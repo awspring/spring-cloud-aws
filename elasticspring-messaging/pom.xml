@@ -19,5 +19,9 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
         </dependency>
+         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
     </dependencies>
 </project>

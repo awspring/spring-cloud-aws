@@ -17,7 +17,6 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-asm:3.0.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-beans:3.0.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-core:3.0.5.RELEASE" level="project" />
-    <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-expression:3.0.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk:1.1.5" level="project" />
     <orderEntry type="library" name="Maven: commons-httpclient:commons-httpclient:3.1" level="project" />
@@ -26,6 +25,11 @@
     <orderEntry type="library" name="Maven: javax.mail:mail:1.4.1" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:activation:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: junit:junit:4.8.2" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:jcl-over-slf4j:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:0.9.27" level="project" />
+    <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:0.9.27" level="project" />
   </component>
 </module>
 

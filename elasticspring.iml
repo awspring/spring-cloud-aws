@@ -11,6 +11,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:jcl-over-slf4j:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:0.9.27" level="project" />
+    <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:0.9.27" level="project" />
   </component>
 </module>
 
