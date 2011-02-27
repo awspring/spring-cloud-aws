@@ -1,0 +1,98 @@
+/*
+ * Copyright [2011] [Agim Emruli]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.elasticspring.messaging.sqs;
+
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.CreateQueueRequest;
+import com.amazonaws.services.sqs.model.CreateQueueResult;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
+import org.junit.Test;
+
+import static org.mockito.Matchers.refEq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ *
+ */
+public class SimpleQueueServiceMessageTemplateTest {
+
+	@Test
+	public void testConvertAndSendSingleMessage() throws Exception {
+		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
+		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
+		when(amazonSQS.sendMessage(refEq(new SendMessageRequest("http://testQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
+
+		messageTemplate.convertAndSend("message");
+
+	}
+
+	@Test
+	public void testConvertAndSendWithCustomDestination() throws Exception {
+		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
+		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
+		when(amazonSQS.sendMessage(refEq(new SendMessageRequest("http://customQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
+
+		messageTemplate.convertAndSend("custom", "message");
+
+	}
+
+	@Test
+	public void testReceiveAndConvert() throws Exception {
+		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
+		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
+		Message message = new Message().withBody("message").withReceiptHandle("r123");
+		when(amazonSQS.receiveMessage(refEq(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
+
+		messageTemplate.receiveAndConvert();
+
+		verify(amazonSQS,times(1)).deleteMessage(refEq(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123")));
+	}
+
+	@Test
+	public void testReceiveAndConvertWithCustomDestination() throws Exception {
+		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
+		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
+		Message message = new Message().withBody("message").withReceiptHandle("r123");
+		when(amazonSQS.receiveMessage(refEq(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
+
+		messageTemplate.receiveAndConvert("custom");
+
+		verify(amazonSQS,times(1)).deleteMessage(refEq(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123")));
+	}
+
+	private SimpleQueueServiceMessageTemplate getMessageTemplate(final AmazonSQS amazonSQS, final String accessKey, final String secretKey, final String defaultDestination) {
+		return new SimpleQueueServiceMessageTemplate(accessKey, secretKey,defaultDestination){
+
+			@Override
+			protected AmazonSQS getQueueingService() {
+				return amazonSQS;
+			}
+		};
+	}
+}
