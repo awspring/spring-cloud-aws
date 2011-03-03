@@ -27,6 +27,9 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.elasticspring.messaging.MessageOperations;
+import org.elasticspring.messaging.support.StringMessage;
+import org.elasticspring.messaging.support.converter.MessageConverter;
+import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.springframework.beans.factory.DisposableBean;
 
 /**
@@ -36,6 +39,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 
 	private final AmazonSQS amazonSQS;
 	private final String defaultDestination;
+	private MessageConverter messageConverter = new StringMessageConverter();
 
 	public SimpleQueueServiceMessageTemplate(String accessKey, String secretKey, String defaultDestination) {
 		this.amazonSQS = new AmazonSQSClient(new BasicAWSCredentials(accessKey, secretKey));
@@ -48,7 +52,8 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 
 	public void convertAndSend(String destinationName, Object payLoad) {
 		CreateQueueResult createQueueResult = this.getQueueingService().createQueue(new CreateQueueRequest(destinationName));
-		SendMessageRequest request = new SendMessageRequest(createQueueResult.getQueueUrl(), payLoad.toString());
+		org.elasticspring.messaging.Message message = this.getMessageConverter().toMessage(payLoad);
+		SendMessageRequest request = new SendMessageRequest(createQueueResult.getQueueUrl(), message.getPayload());
 		this.getQueueingService().sendMessage(request);
 	}
 
@@ -65,13 +70,26 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 		}
 
 		Message message = receiveMessageResult.getMessages().get(0);
+
+		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
+		Object result = this.getMessageConverter().fromMessage(msg);
+
 		this.getQueueingService().deleteMessage(new DeleteMessageRequest(createQueueResult.getQueueUrl(), message.getReceiptHandle()));
-		return receiveMessageResult.getMessages().get(0).getBody();
+
+		return result;
 	}
 
 
 	protected AmazonSQS getQueueingService(){
 		return this.amazonSQS;
+	}
+
+	protected MessageConverter getMessageConverter() {
+		return this.messageConverter;
+	}
+
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.messageConverter = messageConverter;
 	}
 
 	public void destroy() throws Exception {

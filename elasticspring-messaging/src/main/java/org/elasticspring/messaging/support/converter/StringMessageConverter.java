@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.support.converter;
+
+import org.elasticspring.messaging.Message;
+import org.elasticspring.messaging.support.StringMessage;
 
 /**
  *
  */
-public interface Message<P> {
+public class StringMessageConverter implements MessageConverter {
 
-	<P> String getPayload();
+	public Message toMessage(Object payload) {
+		if(!(payload instanceof String)){
+			throw new IllegalArgumentException("Can't convert payload to message. Only String payload can be converted");
+		}
+		return new StringMessage((String) payload);
+	}
 
+	public String fromMessage(Message message) {
+		return message.getPayload();
+	}
 }

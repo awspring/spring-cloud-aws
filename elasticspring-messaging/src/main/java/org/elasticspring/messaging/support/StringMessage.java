@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.sqs.support.converter;
+package org.elasticspring.messaging.support;
 
 import org.elasticspring.messaging.Message;
 
 /**
  *
  */
-public interface MessageFactory<P> {
+public class StringMessage implements Message<String>{
 
-	public Message<P> createMessage(P payload);
+	private final String content;
 
+	public StringMessage(String content) {
+		this.content = content;
+	}
+
+	public String getPayload() {
+		return this.content;
+	}
 }

@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.sqs.support.converter;
-
-import org.elasticspring.messaging.Message;
+package org.elasticspring.messaging.support.converter;
 
 /**
  *
  */
-public class SimpleMessageConverter implements MessageConverter{
+public class MessageConversionException extends RuntimeException {
 
-	public Message<?> toMessage(Object payload, MessageFactory messageFactory) {
-		return null;  //To change body of implemented methods use File | Settings | File Templates.
+	public MessageConversionException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
-	public Object fromMessage(Message message) {
-		return null;  //To change body of implemented methods use File | Settings | File Templates.
-	}
-
-
-	private static class SimpleMessageHolder {
-
-		private enum MessageType{
-			STRING,
-			BYTE
-		}
+	public MessageConversionException(String message) {
+		super(message);
 	}
 }

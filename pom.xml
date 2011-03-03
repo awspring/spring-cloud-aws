@@ -17,6 +17,7 @@
 	<modules>
 		<module>elasticspring-context</module>
 		<module>elasticspring-messaging</module>
+		<module>elasticspring-jdbc</module>
 	</modules>
 
 	<dependencyManagement>
@@ -49,6 +50,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
+				<artifactId>spring-jdbc</artifactId>
+				<version>${spring.framework.release}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-jms</artifactId>
 				<version>${spring.framework.release}</version>
 			</dependency>
@@ -67,11 +73,16 @@
 				<artifactId>jms</artifactId>
 				<version>1.1</version>
 			</dependency>
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>5.1.14</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk</artifactId>
-				<version>1.1.5</version>
+				<version>1.1.7.1</version>
 				<exclusions>
 					<exclusion>
 						<groupId>commons-logging</groupId>
@@ -86,6 +97,12 @@
 						<artifactId>activation</artifactId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-codec</groupId>
+				<artifactId>commons-codec</artifactId>
+				<version>1.4</version>
 			</dependency>
 
 			<dependency>
@@ -141,5 +158,18 @@
 
 	</dependencies>
 
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>1.5</source>
+						<target>1.5</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
 </project>

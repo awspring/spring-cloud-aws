@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.support.converter;
+
+import org.elasticspring.messaging.Message;
 
 /**
  *
  */
-public interface Message<P> {
+public interface MessageConverter {
 
-	<P> String getPayload();
+	Message toMessage(Object payload);
 
+	Object fromMessage(Message message);
 }

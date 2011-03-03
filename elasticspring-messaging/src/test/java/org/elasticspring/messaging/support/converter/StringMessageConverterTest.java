@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.sqs.support.converter;
+package org.elasticspring.messaging.support.converter;
 
 import org.elasticspring.messaging.Message;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  */
-public interface MessageConverter<P> {
+public class StringMessageConverterTest {
 
-	Message<?> toMessage(P payload, MessageFactory messageFactory);
+	@Test
+	public void testToAndFromMessage() throws Exception {
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		Message message = stringMessageConverter.toMessage("content");
+		assertEquals("content",message.getPayload());
 
-	P fromMessage(Message<P> message);
+		String content = stringMessageConverter.fromMessage(message);
+		assertEquals("content",content);
+	}
 }

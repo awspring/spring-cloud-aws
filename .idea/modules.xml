@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/elasticspring.iml" filepath="$PROJECT_DIR$/elasticspring.iml" />
       <module fileurl="file://$PROJECT_DIR$/elasticspring-context/elasticspring-context.iml" filepath="$PROJECT_DIR$/elasticspring-context/elasticspring-context.iml" />
+      <module fileurl="file://$PROJECT_DIR$/elasticspring-jdbc/elasticspring-jdbc.iml" filepath="$PROJECT_DIR$/elasticspring-jdbc/elasticspring-jdbc.iml" />
       <module fileurl="file://$PROJECT_DIR$/elasticspring-messaging/elasticspring-messaging.iml" filepath="$PROJECT_DIR$/elasticspring-messaging/elasticspring-messaging.iml" />
     </modules>
   </component>
