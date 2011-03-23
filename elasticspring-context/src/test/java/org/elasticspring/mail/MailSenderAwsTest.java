@@ -30,7 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MailSenderTest {
+public class MailSenderAwsTest {
 
 	@Autowired
 	private MailSender mailSender;
@@ -42,7 +42,7 @@ public class MailSenderTest {
 	private String recipientAddress;
 
 	@org.junit.Test
-	@IfProfileValue(name= "test-groups", value = "integration-test")
+	@IfProfileValue(name= "test-groups", value = "aws-test")
 	public void testSendMail() throws Exception {
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 		simpleMailMessage.setFrom(this.senderAddress);
