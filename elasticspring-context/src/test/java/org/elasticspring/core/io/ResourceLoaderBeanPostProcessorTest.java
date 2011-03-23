@@ -1,0 +1,56 @@
+/*
+ * Copyright [2011] [Agim Emruli]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.elasticspring.core.io;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ResourceLoader;
+
+/**
+ *
+ */
+public class ResourceLoaderBeanPostProcessorTest {
+
+
+	@Test
+	public void testCreateApplicationContextProxy() throws Exception {
+		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+		ResourceLoaderBeanPostProcessor resourceLoaderBeanPostProcessor = new ResourceLoaderBeanPostProcessor(resourceLoader);
+
+		ApplicationContext context = Mockito.mock(ApplicationContext.class, Mockito.withSettings().extraInterfaces(ResourceLoader.class, BeanFactory.class));
+		Mockito.when(context.getClassLoader()).thenReturn(getClass().getClassLoader());
+
+		resourceLoaderBeanPostProcessor.setApplicationContext(context);
+
+		ApplicationContext proxyApplicationContext = resourceLoaderBeanPostProcessor.decorateApplicationContext(context);
+
+		proxyApplicationContext.getBean(Object.class);
+		proxyApplicationContext.getStartupDate();
+		proxyApplicationContext.getResource("s3://bucket/object");
+		proxyApplicationContext.getClassLoader();
+
+		Mockito.verify(context, Mockito.times(1)).getBean(Object.class);
+		Mockito.verify(context, Mockito.times(1)).getStartupDate();
+
+		//Test resource loader method calls goes to our custom resource loader
+		Mockito.verify(resourceLoader, Mockito.times(1)).getResource("s3://bucket/object");
+		Mockito.verify(resourceLoader, Mockito.times(1)).getClassLoader();
+
+	}
+}

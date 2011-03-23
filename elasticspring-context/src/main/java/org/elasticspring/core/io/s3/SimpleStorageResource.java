@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.s3;
+package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;

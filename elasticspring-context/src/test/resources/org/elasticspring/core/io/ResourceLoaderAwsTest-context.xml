@@ -20,20 +20,14 @@
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<bean id="resourceLoader" class="org.elasticspring.core.s3.SimpleStorageResourceLoader">
+	<bean id="resourceLoader" class="org.elasticspring.core.io.s3.SimpleStorageResourceLoader">
 		<constructor-arg value="${accessKey}"/>
 		<constructor-arg value="${secretKey}"/>
 	</bean>
 
-	<bean class="org.elasticspring.core.s3.SimpleStorageResourceLoaderBeanPostProcessor">
+	<bean class="org.elasticspring.core.io.ResourceLoaderBeanPostProcessor">
 		<constructor-arg ref="resourceLoader"/>
 	</bean>
-
-	<bean class="org.elasticspring.core.s3.SimpleStoreResourceLoaderBeanFactoryPostProcessor">
-		<constructor-arg ref="resourceLoader"/>
-	</bean>
-
-	<bean class="org.elasticspring.core.ResourceLoaderClientBean"/>
 
 	<context:annotation-config/>
 
