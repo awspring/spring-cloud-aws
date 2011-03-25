@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -66,8 +67,13 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 
 
 	protected ApplicationContext decorateApplicationContext(ApplicationContext target) {
-		Class[] interfaces = ClassUtils.getAllInterfaces(target);
-		return (ApplicationContext) Proxy.newProxyInstance(target.getClassLoader(), interfaces, new ResourceLoaderInvocationHandler(this.resourceLoader, target));
+		if (target instanceof GenericApplicationContext) {
+			((GenericApplicationContext) target).setResourceLoader(this.resourceLoader);
+			return target;
+		} else {
+			Class[] interfaces = ClassUtils.getAllInterfaces(target);
+			return (ApplicationContext) Proxy.newProxyInstance(target.getClassLoader(), interfaces, new ResourceLoaderInvocationHandler(this.resourceLoader, target));
+		}
 	}
 
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

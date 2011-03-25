@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 
 /**
@@ -36,8 +37,6 @@ public class ResourceLoaderBeanPostProcessorTest {
 		ApplicationContext context = Mockito.mock(ApplicationContext.class, Mockito.withSettings().extraInterfaces(ResourceLoader.class, BeanFactory.class));
 		Mockito.when(context.getClassLoader()).thenReturn(getClass().getClassLoader());
 
-		resourceLoaderBeanPostProcessor.setApplicationContext(context);
-
 		ApplicationContext proxyApplicationContext = resourceLoaderBeanPostProcessor.decorateApplicationContext(context);
 
 		proxyApplicationContext.getBean(Object.class);
@@ -52,5 +51,23 @@ public class ResourceLoaderBeanPostProcessorTest {
 		Mockito.verify(resourceLoader, Mockito.times(1)).getResource("s3://bucket/object");
 		Mockito.verify(resourceLoader, Mockito.times(1)).getClassLoader();
 
+	}
+
+
+	@Test
+	public void testDoesSetCustomResourceLoaderForGenericApplicationContext() throws Exception {
+		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+		ResourceLoaderBeanPostProcessor resourceLoaderBeanPostProcessor = new ResourceLoaderBeanPostProcessor(resourceLoader);
+
+		GenericApplicationContext genericApplicationContext = new GenericApplicationContext();
+		genericApplicationContext.refresh();
+
+		resourceLoaderBeanPostProcessor.setApplicationContext(genericApplicationContext);
+
+
+		genericApplicationContext.getResource("s3://bucket/object");
+
+		//Test resource loader method calls goes to our custom resource loader
+		Mockito.verify(resourceLoader, Mockito.times(1)).getResource("s3://bucket/object");
 	}
 }

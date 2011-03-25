@@ -159,6 +159,27 @@ public class ResourceLoaderTest {
 		Assert.assertSame(resource, resourceLoaderResource);
 	}
 
+
+
+	@Test
+	public void testWithCustomResourceLoaderForApplicationContext() throws Exception {
+		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
+		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+
+		Resource resource = Mockito.mock(Resource.class);
+		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+
+		staticApplicationContext.setResourceLoader(resourceLoader);
+		staticApplicationContext.registerSingleton("client", ApplicationContextAwareBean.class);
+
+		staticApplicationContext.refresh();
+
+		ApplicationContextAwareBean applicationContextAwareBean = staticApplicationContext.getBean(ApplicationContextAwareBean.class);
+		Resource resourceLoaderResource = applicationContextAwareBean.getApplicationContext().getResource("s3://bucket/object");
+		Assert.assertNotNull(resourceLoaderResource);
+		Assert.assertSame(resource,resourceLoaderResource);
+	}
+
 	private static final class FieldInjectionTarget {
 
 		@Autowired
