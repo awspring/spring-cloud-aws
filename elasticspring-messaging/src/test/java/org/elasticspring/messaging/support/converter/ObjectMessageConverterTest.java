@@ -19,15 +19,13 @@ package org.elasticspring.messaging.support.converter;
 import org.apache.commons.codec.binary.Base64;
 import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.StringMessage;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.Serializable;
 import java.nio.charset.UnsupportedCharsetException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -43,9 +41,9 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
 		Message message = messageConverter.toMessage(sourceMessage);
-		assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("UTF-8")));
+		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("UTF-8")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
-		assertEquals(content, result.getContent());
+		Assert.assertEquals(content, result.getContent());
 	}
 
 	@Test
@@ -54,9 +52,9 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
 		Message message = messageConverter.toMessage(sourceMessage);
-		assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("ISO-8859-1")));
+		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("ISO-8859-1")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
-		assertEquals(content, result.getContent());
+		Assert.assertEquals(content, result.getContent());
 	}
 
 	@Test(expected = UnsupportedCharsetException.class)

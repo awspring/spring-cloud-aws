@@ -33,7 +33,7 @@ import java.util.Properties;
 public class AmazonEC2PropertyPlaceHolderAwsTest {
 
 	@Test
-	@IfProfileValue(name= "test-groups", value = "aws-test")
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testGetUserProperties() throws Exception {
 
 
@@ -49,13 +49,13 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 		InstanceIdProvider instanceIdProvider = Mockito.mock(InstanceIdProvider.class);
 		Mockito.when(instanceIdProvider.getCurrentInstanceId()).thenReturn("i-4a1bfc25");
 
-		AmazonEC2PropertyPlaceHolder amazonEC2PropertyPlaceHolder = new AmazonEC2PropertyPlaceHolder(accessKey,secretKey,instanceIdProvider);
-		amazonEC2PropertyPlaceHolder.resolvePlaceholder("test",new Properties());
+		AmazonEC2PropertyPlaceHolder amazonEC2PropertyPlaceHolder = new AmazonEC2PropertyPlaceHolder(accessKey, secretKey, instanceIdProvider);
+		amazonEC2PropertyPlaceHolder.resolvePlaceholder("test", new Properties());
 
 	}
 
 	@Test
-	@IfProfileValue(name= "test-groups", value = "aws-test")
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testElasticBeans() throws Exception {
 
 		PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
@@ -67,7 +67,7 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 		String secretKey = properties.getProperty("secretKey");
 
 		AmazonElasticBeansTalkPropertyPlaceHolder amazonElasticBeansTalkPropertyPlaceHolder = new AmazonElasticBeansTalkPropertyPlaceHolder(accessKey, secretKey);
-		amazonElasticBeansTalkPropertyPlaceHolder.resolvePlaceholder("test",new Properties());
+		amazonElasticBeansTalkPropertyPlaceHolder.resolvePlaceholder("test", new Properties());
 	}
 
 }

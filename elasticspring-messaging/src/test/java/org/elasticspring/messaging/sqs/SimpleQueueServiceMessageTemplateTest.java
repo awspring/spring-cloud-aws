@@ -26,12 +26,9 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
-import static org.mockito.Matchers.refEq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  *
@@ -40,10 +37,10 @@ public class SimpleQueueServiceMessageTemplateTest {
 
 	@Test
 	public void testConvertAndSendSingleMessage() throws Exception {
-		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
 		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
-		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
-		when(amazonSQS.sendMessage(refEq(new SendMessageRequest("http://testQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
+		Mockito.when(amazonSQS.createQueue(Matchers.refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
+		Mockito.when(amazonSQS.sendMessage(Matchers.refEq(new SendMessageRequest("http://testQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
 
 		messageTemplate.convertAndSend("message");
 
@@ -51,10 +48,10 @@ public class SimpleQueueServiceMessageTemplateTest {
 
 	@Test
 	public void testConvertAndSendWithCustomDestination() throws Exception {
-		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
 		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
-		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
-		when(amazonSQS.sendMessage(refEq(new SendMessageRequest("http://customQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
+		Mockito.when(amazonSQS.createQueue(Matchers.refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
+		Mockito.when(amazonSQS.sendMessage(Matchers.refEq(new SendMessageRequest("http://customQueue","message")))).thenReturn(new SendMessageResult().withMessageId("123"));
 
 		messageTemplate.convertAndSend("custom", "message");
 
@@ -62,28 +59,28 @@ public class SimpleQueueServiceMessageTemplateTest {
 
 	@Test
 	public void testReceiveAndConvert() throws Exception {
-		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
 		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
-		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
+		Mockito.when(amazonSQS.createQueue(Matchers.refEq(new CreateQueueRequest("test")))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		when(amazonSQS.receiveMessage(refEq(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSQS.receiveMessage(Matchers.refEq(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		messageTemplate.receiveAndConvert();
 
-		verify(amazonSQS,times(1)).deleteMessage(refEq(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123")));
+		Mockito.verify(amazonSQS,Mockito.times(1)).deleteMessage(Matchers.refEq(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123")));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithCustomDestination() throws Exception {
-		AmazonSQS amazonSQS = mock(AmazonSQS.class);
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
 		SimpleQueueServiceMessageTemplate messageTemplate = getMessageTemplate(amazonSQS, "accessKey", "secretKey", "test");
-		when(amazonSQS.createQueue(refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
+		Mockito.when(amazonSQS.createQueue(Matchers.refEq(new CreateQueueRequest("custom")))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		when(amazonSQS.receiveMessage(refEq(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSQS.receiveMessage(Matchers.refEq(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1)))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		messageTemplate.receiveAndConvert("custom");
 
-		verify(amazonSQS,times(1)).deleteMessage(refEq(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123")));
+		Mockito.verify(amazonSQS,Mockito.times(1)).deleteMessage(Matchers.refEq(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123")));
 	}
 
 	private SimpleQueueServiceMessageTemplate getMessageTemplate(final AmazonSQS amazonSQS, final String accessKey, final String secretKey, final String defaultDestination) {

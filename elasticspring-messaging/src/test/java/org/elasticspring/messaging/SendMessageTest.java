@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -52,7 +52,7 @@ public class SendMessageTest {
 		stringMessageOperations.convertAndSend(messageContent);
 
 		String receivedMessage = (String) stringMessageOperations.receiveAndConvert();
-		assertEquals(messageContent,receivedMessage);
+		Assert.assertEquals(messageContent, receivedMessage);
 
     }
 
@@ -64,6 +64,6 @@ public class SendMessageTest {
 
 		@SuppressWarnings({"unchecked"})
 		List<String> result = (List<String>) objectMessageOperations.receiveAndConvert();
-		assertEquals("myString",result.get(0));
+		Assert.assertEquals("myString",result.get(0));
     }
 }

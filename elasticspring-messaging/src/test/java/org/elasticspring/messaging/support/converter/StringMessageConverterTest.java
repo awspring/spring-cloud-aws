@@ -17,9 +17,8 @@
 package org.elasticspring.messaging.support.converter;
 
 import org.elasticspring.messaging.Message;
+import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -30,9 +29,9 @@ public class StringMessageConverterTest {
 	public void testToAndFromMessage() throws Exception {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		Message message = stringMessageConverter.toMessage("content");
-		assertEquals("content",message.getPayload());
+		Assert.assertEquals("content", message.getPayload());
 
 		String content = stringMessageConverter.fromMessage(message);
-		assertEquals("content",content);
+		Assert.assertEquals("content",content);
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.elasticspring.core.io;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.InputStream;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -46,24 +44,24 @@ public class ResourceLoaderAwsTest {
 	private ResourceLoader resourceLoader;
 
 	@Test
-	@IfProfileValue(name= "test-groups", value = "aws-test")
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedApplicationContext() throws Exception {
 		Resource resource = this.applicationContext.getResource("s3://test.elasticspring.org/test");
-		assertTrue(resource.exists());
+		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
-		assertNotNull(inputStream);
-		assertTrue(inputStream.available() > 0);
+		Assert.assertNotNull(inputStream);
+		Assert.assertTrue(inputStream.available() > 0);
 		inputStream.close();
 	}
 
 	@Test
-	@IfProfileValue(name= "test-groups", value = "aws-test")
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedResourceLoader() throws Exception {
 		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/test");
-		assertTrue(resource.exists());
+		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
-		assertNotNull(inputStream);
-		assertTrue(inputStream.available() > 0);
+		Assert.assertNotNull(inputStream);
+		Assert.assertTrue(inputStream.available() > 0);
 		inputStream.close();
 	}
 }
