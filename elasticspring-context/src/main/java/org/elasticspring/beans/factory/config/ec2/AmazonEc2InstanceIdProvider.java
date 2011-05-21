@@ -32,13 +32,14 @@ public class AmazonEC2InstanceIdProvider implements InstanceIdProvider {
 
 	private static final String INSTANCE_ID_DEFAULT_URL = "http://169.254.169.254/latest/meta-data/instance-id";
 
-	private String instanceIdUrl = INSTANCE_ID_DEFAULT_URL;
+	private final String instanceIdUrl;
 
 	public AmazonEC2InstanceIdProvider(String instanceIdUrl) {
 		this.instanceIdUrl = instanceIdUrl;
 	}
 
 	public AmazonEC2InstanceIdProvider() {
+		this(INSTANCE_ID_DEFAULT_URL);
 	}
 
 	public String getCurrentInstanceId() throws IOException {

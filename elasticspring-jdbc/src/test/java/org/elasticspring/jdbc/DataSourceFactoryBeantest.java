@@ -17,33 +17,58 @@
 package org.elasticspring.jdbc;
 
 import org.elasticspring.jdbc.rds.AmazonRDSDataSourceFactoryBean;
+import org.elasticspring.jdbc.rds.CommonsDbcpDataSourceFactory;
 import org.junit.Test;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
  *
+ *
  */
 public class DataSourceFactoryBeanTest {
 
-	 @Test
+	@Test
 	public void testCreateDataSource() throws Exception {
-		PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
-		factoryBean.setLocation(new ClassPathResource("access.properties"));
-		factoryBean.afterPropertiesSet();
-		Properties properties = factoryBean.getObject();
+		Properties properties = new Properties();
+		properties.load(new ClassPathResource("access.properties").getInputStream());
 
 		String accessKey = properties.getProperty("accessKey");
 		String secretKey = properties.getProperty("secretKey");
 
+		AmazonRDSDataSourceFactoryBean factoryBean = new AmazonRDSDataSourceFactoryBean(accessKey, secretKey);
+		factoryBean.setEngine("mysql");
+		factoryBean.setMasterUserName("master");
+		factoryBean.setMasterUserPassword("myPass");
+		factoryBean.setAllocatedStorage(5);
+		factoryBean.setAutoCreate(true);
+		factoryBean.setDatabaseName("test");
+		factoryBean.setDataSourceFactory(new CommonsDbcpDataSourceFactory());
+		factoryBean.setDbInstanceIdentifier("test1");
+		factoryBean.setPort(3306);
+		factoryBean.setDbInstanceClass("db.m1.small");
+		factoryBean.setDataSourceFactory(new CommonsDbcpDataSourceFactory());
+		factoryBean.setDbSecurityGroups(Collections.singletonList("test"));
 
-		AmazonRDSDataSourceFactoryBean amazonRDSDataSourceFactoryBean = new AmazonRDSDataSourceFactoryBean(accessKey, secretKey);		amazonRDSDataSourceFactoryBean.afterPropertiesSet();
-		DataSource dataSource = amazonRDSDataSourceFactoryBean.getObject();
-		Connection connection = dataSource.getConnection();
+		factoryBean.afterPropertiesSet();
 
+		DataSource dataSource = factoryBean.getObject();
+
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		jdbcTemplate.query("SELECT 1", new RowMapper<Object>() {
+
+			public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+				return null;
+			}
+		});
+
+		factoryBean.destroy();
 	}
 }
