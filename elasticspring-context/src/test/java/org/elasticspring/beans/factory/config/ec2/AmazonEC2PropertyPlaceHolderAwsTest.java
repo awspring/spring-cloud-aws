@@ -53,21 +53,4 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 		amazonEC2PropertyPlaceHolder.resolvePlaceholder("test", new Properties());
 
 	}
-
-	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
-	public void testElasticBeans() throws Exception {
-
-		PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
-		factoryBean.setLocation(new ClassPathResource("access.properties"));
-		factoryBean.afterPropertiesSet();
-		Properties properties = factoryBean.getObject();
-
-		String accessKey = properties.getProperty("accessKey");
-		String secretKey = properties.getProperty("secretKey");
-
-		AmazonElasticBeansTalkPropertyPlaceHolder amazonElasticBeansTalkPropertyPlaceHolder = new AmazonElasticBeansTalkPropertyPlaceHolder(accessKey, secretKey);
-		amazonElasticBeansTalkPropertyPlaceHolder.resolvePlaceholder("test", new Properties());
-	}
-
 }

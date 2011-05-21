@@ -17,31 +17,120 @@
 package org.elasticspring.jdbc.rds;
 
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.rds.AmazonRDS;
-import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.AmazonRDSAsync;
+import com.amazonaws.services.rds.AmazonRDSAsyncClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
-import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBInstance;
-import com.amazonaws.services.rds.model.DBSecurityGroup;
-import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
-import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
-import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
-import com.amazonaws.services.rds.model.ModifyDBInstanceRequest;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.datasource.AbstractDataSource;
+import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *
  */
 public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSource> {
 
-	private final AmazonRDS amazonRDS;
+	private final AmazonRDSAsync amazonRDS;
+	private String databaseName;
+	private String dbInstanceIdentifier;
+	private Integer allocatedStorage;
+	private String dbInstanceClass;
+	private String engine;
+	private String masterUserName;
+	private String masterUserPassword;
+	private List<String> dbSecurityGroups;
+	private String availabilityZone;
+	private String preferredMaintenanceWindow;
+	private Integer backupRetentionPeriod;
+	private String preferredBackupWindow;
+	private Integer port;
+	private Boolean multiAz;
+	private String engineVersion;
+	private Boolean autoMinorVersionUpgrade;
+	private Boolean autoCreate;
+	private DataSourceFactory dataSourceFactory;
+
+	public void setAutoCreate(Boolean autoCreate) {
+		this.autoCreate = autoCreate;
+	}
+
+	public void setAutoMinorVersionUpgrade(Boolean autoMinorVersionUpgrade) {
+		this.autoMinorVersionUpgrade = autoMinorVersionUpgrade;
+	}
+
+	public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
+		this.dataSourceFactory = dataSourceFactory;
+	}
+
+	public void setMultiAz(Boolean multiAz) {
+		this.multiAz = multiAz;
+	}
+
+	public void setAvailabilityZone(String availabilityZone) {
+		this.availabilityZone = availabilityZone;
+	}
+
+	public void setBackupRetentionPeriod(Integer backupRetentionPeriod) {
+		this.backupRetentionPeriod = backupRetentionPeriod;
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
+	public void setDbInstanceClass(String dbInstanceClass) {
+		this.dbInstanceClass = dbInstanceClass;
+	}
+
+	public void setDbInstanceIdentifier(String dbInstanceIdentifier) {
+		this.dbInstanceIdentifier = dbInstanceIdentifier;
+	}
+
+	public void setDbSecurityGroups(List<String> dbSecurityGroups) {
+		this.dbSecurityGroups = dbSecurityGroups;
+	}
+
+	public void setEngine(String engine) {
+		this.engine = engine;
+	}
+
+	public void setEngineVersion(String engineVersion) {
+		this.engineVersion = engineVersion;
+	}
+
+	public void setMasterUserName(String masterUserName) {
+		this.masterUserName = masterUserName;
+	}
+
+	public void setMasterUserPassword(String masterUserPassword) {
+		this.masterUserPassword = masterUserPassword;
+	}
+
+	public void setPort(Integer port) {
+		this.port = port;
+	}
+
+	public void setPreferredBackupWindow(String preferredBackupWindow) {
+		this.preferredBackupWindow = preferredBackupWindow;
+	}
+
+	public void setPreferredMaintenanceWindow(String preferredMaintenanceWindow) {
+		this.preferredMaintenanceWindow = preferredMaintenanceWindow;
+	}
+
+	public void setAllocatedStorage(Integer allocatedStorage) {
+
+		this.allocatedStorage = allocatedStorage;
+	}
 
 	public AmazonRDSDataSourceFactoryBean(String accessKey, String secretKey) {
-		this.amazonRDS = new AmazonRDSClient(new BasicAWSCredentials(accessKey, secretKey));
+		this.amazonRDS = new AmazonRDSAsyncClient(new BasicAWSCredentials(accessKey, secretKey));
 	}
 
 
@@ -52,32 +141,129 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	@Override
 	protected DataSource createInstance() throws Exception {
-		DescribeDBInstancesResult dbInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("instance1"));
 
-		DBInstance instance;
-		if (dbInstancesResult.getDBInstances().isEmpty()) {
-			CreateDBInstanceRequest createDBInstanceRequest = new CreateDBInstanceRequest("instance1", 5, "db.m1.small", "mysql", "user", "secret").withDBName("test");
-			instance = this.amazonRDS.createDBInstance(createDBInstanceRequest);
-		}else{
-			instance = dbInstancesResult.getDBInstances().get(0);
+		DBInstance dbInstance = getDBInstance();
+
+		if (dbInstance == null) {
+			if (this.autoCreate) {
+				CreateDBInstanceRequest createDBInstanceRequest = new CreateDBInstanceRequest(this.dbInstanceIdentifier, this.allocatedStorage, this.dbInstanceClass, this.engine, this.masterUserName, this.masterUserPassword).withDBName(this.databaseName);
+				if (this.dbSecurityGroups != null) {
+					createDBInstanceRequest.withDBSecurityGroups(this.dbSecurityGroups);
+				}
+				if (this.availabilityZone != null) {
+					createDBInstanceRequest.withAvailabilityZone(this.availabilityZone);
+				}
+				if (this.preferredMaintenanceWindow != null) {
+					createDBInstanceRequest.withPreferredMaintenanceWindow(this.preferredMaintenanceWindow);
+				}
+				if (this.backupRetentionPeriod != null) {
+					createDBInstanceRequest.withBackupRetentionPeriod(this.backupRetentionPeriod);
+				}
+				if (this.preferredBackupWindow != null) {
+					createDBInstanceRequest.withPreferredBackupWindow(this.preferredBackupWindow);
+				}
+				if (this.port != null) {
+					createDBInstanceRequest.withPort(this.port);
+				}
+				if (this.multiAz != null) {
+					createDBInstanceRequest.withMultiAZ(this.multiAz);
+				}
+				if (this.engineVersion != null) {
+					createDBInstanceRequest.withEngineVersion(this.engineVersion);
+				}
+				if (this.autoMinorVersionUpgrade != null) {
+					createDBInstanceRequest.withAutoMinorVersionUpgrade(this.autoMinorVersionUpgrade);
+				}
+				this.amazonRDS.createDBInstance(createDBInstanceRequest);
+			} else {
+				throw new IllegalStateException("No database instance with id:'" + this.dbInstanceIdentifier + "' found and autoCreate is off. " +
+						"Please specify a valid db instance or enable auto creation");
+
+			}
 		}
 
-		DescribeDBSecurityGroupsResult securityGroupsResult = this.amazonRDS.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName("test"));
-		DBSecurityGroup securityGroup;
-		if(securityGroupsResult.getDBSecurityGroups().isEmpty()){
-			securityGroup = this.amazonRDS.createDBSecurityGroup(new CreateDBSecurityGroupRequest("test", "Test security group"));
-		}else{
-			securityGroup = securityGroupsResult.getDBSecurityGroups().get(0);
+		return new DynamicDataSource(dbInstance);
+	}
+
+	private DBInstance getDBInstance() {
+		DescribeDBInstancesResult dbInstancesResult = this.amazonRDS.describeDBInstances();
+		for (DBInstance candidateInstance : dbInstancesResult.getDBInstances()) {
+			if (candidateInstance.getDBInstanceIdentifier().equals(this.dbInstanceIdentifier)) {
+				return candidateInstance;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.dbInstanceIdentifier);
+		Assert.notNull(this.allocatedStorage);
+		Assert.notNull(this.dbInstanceClass);
+		Assert.notNull(this.engine);
+		Assert.notNull(this.masterUserName);
+		Assert.notNull(this.masterUserPassword);
+		super.afterPropertiesSet();
+	}
+
+	@Override
+	protected void destroyInstance(DataSource instance) throws Exception {
+		if(instance instanceof DynamicDataSource){
+			((DynamicDataSource) instance).destroyDataSource();
+		}
+		super.destroyInstance(instance);
+	}
+
+	private void sleepInBetweenStatusCheck() {
+		try {
+			Thread.sleep(5000L);
+		} catch (InterruptedException e) {
+			// Re-interrupt current thread, to allow other threads to react.
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	private final class DynamicDataSource extends AbstractDataSource {
+
+		private volatile DataSource dataSource;
+		private final Object dataSourceMonitor = new Object();
+		private DBInstance dbInstance;
+
+		public DynamicDataSource(DBInstance dbInstance) {
+			this.dbInstance = dbInstance;
 		}
 
+		public Connection getConnection() throws SQLException {
+			if (this.dataSource == null) {
+				initializeDataSource();
+			}
 
-//		DBSecurityGroup dbSecurityGroup = this.amazonRDS.authorizeDBSecurityGroupIngress(new AuthorizeDBSecurityGroupIngressRequest(securityGroup.getDBSecurityGroupName()).withCIDRIP("0.0.0.0/0"));
-		instance = this.amazonRDS.modifyDBInstance(new ModifyDBInstanceRequest("instance1").withDBSecurityGroups("test"));
-//		System.out.println("dbSecurityGroup = " + dbSecurityGroup);
+			return this.dataSource.getConnection();
+		}
 
+		public Connection getConnection(String username, String password) throws SQLException {
+			if (this.dataSource == null) {
+				initializeDataSource();
+			}
 
-		String connectionUrl = "jdbc:mysql://" + instance.getEndpoint().getAddress() + ":" + instance.getEndpoint().getPort() + "/test";
+			return this.dataSource.getConnection(username, password);
+		}
 
-		return new SingleConnectionDataSource(connectionUrl, "user", "secret", true);
+		private void initializeDataSource() {
+			synchronized (this.dataSourceMonitor) {
+				while (this.dbInstance == null || "creating".equals(this.dbInstance.getDBInstanceStatus())) {
+					this.dbInstance = getDBInstance();
+					if("creating".equals(this.dbInstance.getDBInstanceStatus())){
+						sleepInBetweenStatusCheck();
+					}
+				}
+				this.dataSource = AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.createDataSource("com.mysql.jdbc.Driver", this.dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), AmazonRDSDataSourceFactoryBean.this.databaseName,
+						AmazonRDSDataSourceFactoryBean.this.masterUserName, AmazonRDSDataSourceFactoryBean.this.masterUserPassword);
+			}
+		}
+
+		public void destroyDataSource(){
+			AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.closeDataSource(this.dataSource);
+		}
 	}
 }

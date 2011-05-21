@@ -14,48 +14,53 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.ec2;
+package org.elasticspring.beans.factory.config.elasticbeanstalk;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
-import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsResult;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsResult;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Properties;
 
 /**
  *
  */
-public class AmazonElasticBeansTalkPropertyPlaceHolder extends PropertyPlaceholderConfigurer {
+public class AmazonElasticBeansTalkPropertyPlaceHolder extends PropertyPlaceholderConfigurer implements InitializingBean {
 
 	private final AWSElasticBeanstalk awsElasticBeanstalk;
+	private final HashMap<String, String> configurationSettings = new HashMap<String, String>();
+	private String applicationName;
 
 	public AmazonElasticBeansTalkPropertyPlaceHolder(String accessKey, String secretKey) {
 		this.awsElasticBeanstalk = new AWSElasticBeanstalkClient(new BasicAWSCredentials(accessKey, secretKey));
 	}
 
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
+	}
+
+
 	@Override
 	protected String resolvePlaceholder(String placeholder, Properties props) {
-		DescribeApplicationsResult result = awsElasticBeanstalk.describeApplications();
-		for (ApplicationDescription applicationDescription : result.getApplications()) {
-			System.out.println("applicationDescription = " + applicationDescription);
-			DescribeConfigurationSettingsResult describeConfigurationSettingsResult = this.awsElasticBeanstalk.describeConfigurationSettings(new DescribeConfigurationSettingsRequest(applicationDescription.getApplicationName()).withTemplateName(applicationDescription.getConfigurationTemplates().get(0)));
-			List<ConfigurationSettingsDescription> configurationSettings = describeConfigurationSettingsResult.getConfigurationSettings();
-			for (ConfigurationSettingsDescription configurationSetting : configurationSettings) {
-				for (ConfigurationOptionSetting description : configurationSetting.getOptionSettings()) {
-					System.out.println("description = " + description);
-				}
-			}
+		String configurationOption = this.configurationSettings.get(placeholder);
 
+		return configurationOption != null ? configurationOption : super.resolvePlaceholder(placeholder, props);
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		DescribeConfigurationSettingsResult describeConfigurationSettingsResult = this.awsElasticBeanstalk.describeConfigurationSettings(new DescribeConfigurationSettingsRequest(this.applicationName));
+		for (ConfigurationSettingsDescription description : describeConfigurationSettingsResult.getConfigurationSettings()) {
+			for (ConfigurationOptionSetting setting : description.getOptionSettings()) {
+				this.configurationSettings.put(setting.getOptionName(), setting.getValue());
+			}
 		}
 
-		return super.resolvePlaceholder(placeholder, props);	//To change body of overridden methods use File | Settings | File Templates.
 	}
 }

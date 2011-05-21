@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.jms;
+package org.elasticspring.jdbc.rds;
 
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import java.io.Serializable;
+import javax.sql.DataSource;
 
 /**
  *
  */
-public class UrlQueue implements Queue, Serializable {
+public interface DataSourceFactory {
 
-	private final String url;
+	DataSource createDataSource(String dataSourceClass, String hostName, Integer port, String databaseName, String userName, String password);
 
-	public UrlQueue(String url) {
-		this.url = url;
-	}
+	void closeDataSource(DataSource dataSource);
 
-	public String getQueueName() throws JMSException {
-		return this.url;
-	}
 }

@@ -100,7 +100,7 @@ public class AmazonEC2PropertyPlaceHolder extends PropertyPlaceholderConfigurer 
 					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.valueSeparator);
 					String key = userDataAttributesParts[0];
 					String value = userDataAttributesParts[1];
-					instanceUserAttributes.put(key, value);
+					this.instanceUserAttributes.put(key, value);
 				}
 			}
 		}
@@ -127,11 +127,11 @@ public class AmazonEC2PropertyPlaceHolder extends PropertyPlaceholderConfigurer 
 		String result = null;
 
 		if (this.resolveUserDataForInstance) {
-			result = instanceUserAttributes.get(placeholder);
+			result = this.instanceUserAttributes.get(placeholder);
 		}
 
 		if (result == null && this.resolveUserTagsForInstance) {
-			result = instanceUserTags.get(placeholder);
+			result = this.instanceUserTags.get(placeholder);
 		}
 
 		if (result == null) {
