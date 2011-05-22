@@ -16,11 +16,14 @@
 
 package org.elasticspring.jdbc.rds;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.rds.AmazonRDSAsync;
 import com.amazonaws.services.rds.AmazonRDSAsyncClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
+import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.jdbc.datasource.AbstractDataSource;
@@ -29,6 +32,7 @@ import org.springframework.util.Assert;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -37,13 +41,19 @@ import java.util.List;
 public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSource> {
 
 	private final AmazonRDSAsync amazonRDS;
-	private String databaseName;
+	private DataSourceFactory dataSourceFactory;
+
+	private boolean autoCreate;
 	private String dbInstanceIdentifier;
-	private Integer allocatedStorage;
-	private String dbInstanceClass;
-	private String engine;
+	private String databaseName;
 	private String masterUserName;
 	private String masterUserPassword;
+
+	private String dbInstanceClass;
+	private String engine;
+	private String engineVersion;
+	private Integer allocatedStorage;
+
 	private List<String> dbSecurityGroups;
 	private String availabilityZone;
 	private String preferredMaintenanceWindow;
@@ -51,21 +61,56 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	private String preferredBackupWindow;
 	private Integer port;
 	private Boolean multiAz;
-	private String engineVersion;
 	private Boolean autoMinorVersionUpgrade;
-	private Boolean autoCreate;
-	private DataSourceFactory dataSourceFactory;
 
-	public void setAutoCreate(Boolean autoCreate) {
+	private boolean automaticallyCreated;
+
+	public AmazonRDSDataSourceFactoryBean(String accessKey, String secretKey) {
+		this.amazonRDS = new AmazonRDSAsyncClient(new BasicAWSCredentials(accessKey, secretKey));
+	}
+
+	public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
+		this.dataSourceFactory = dataSourceFactory;
+	}
+
+	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
+	}
+
+	public void setDbInstanceIdentifier(String dbInstanceIdentifier) {
+		this.dbInstanceIdentifier = dbInstanceIdentifier;
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
+	public void setMasterUserName(String masterUserName) {
+		this.masterUserName = masterUserName;
+	}
+
+	public void setMasterUserPassword(String masterUserPassword) {
+		this.masterUserPassword = masterUserPassword;
+	}
+
+	public void setDbInstanceClass(String dbInstanceClass) {
+		this.dbInstanceClass = dbInstanceClass;
+	}
+
+	public void setEngine(String engine) {
+		this.engine = engine;
+	}
+
+	public void setEngineVersion(String engineVersion) {
+		this.engineVersion = engineVersion;
 	}
 
 	public void setAutoMinorVersionUpgrade(Boolean autoMinorVersionUpgrade) {
 		this.autoMinorVersionUpgrade = autoMinorVersionUpgrade;
 	}
 
-	public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
-		this.dataSourceFactory = dataSourceFactory;
+	public void setAllocatedStorage(Integer allocatedStorage) {
+		this.allocatedStorage = allocatedStorage;
 	}
 
 	public void setMultiAz(Boolean multiAz) {
@@ -80,36 +125,8 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		this.backupRetentionPeriod = backupRetentionPeriod;
 	}
 
-	public void setDatabaseName(String databaseName) {
-		this.databaseName = databaseName;
-	}
-
-	public void setDbInstanceClass(String dbInstanceClass) {
-		this.dbInstanceClass = dbInstanceClass;
-	}
-
-	public void setDbInstanceIdentifier(String dbInstanceIdentifier) {
-		this.dbInstanceIdentifier = dbInstanceIdentifier;
-	}
-
 	public void setDbSecurityGroups(List<String> dbSecurityGroups) {
 		this.dbSecurityGroups = dbSecurityGroups;
-	}
-
-	public void setEngine(String engine) {
-		this.engine = engine;
-	}
-
-	public void setEngineVersion(String engineVersion) {
-		this.engineVersion = engineVersion;
-	}
-
-	public void setMasterUserName(String masterUserName) {
-		this.masterUserName = masterUserName;
-	}
-
-	public void setMasterUserPassword(String masterUserPassword) {
-		this.masterUserPassword = masterUserPassword;
 	}
 
 	public void setPort(Integer port) {
@@ -124,16 +141,6 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		this.preferredMaintenanceWindow = preferredMaintenanceWindow;
 	}
 
-	public void setAllocatedStorage(Integer allocatedStorage) {
-
-		this.allocatedStorage = allocatedStorage;
-	}
-
-	public AmazonRDSDataSourceFactoryBean(String accessKey, String secretKey) {
-		this.amazonRDS = new AmazonRDSAsyncClient(new BasicAWSCredentials(accessKey, secretKey));
-	}
-
-
 	@Override
 	public Class<DataSource> getObjectType() {
 		return DataSource.class;
@@ -142,95 +149,113 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	@Override
 	protected DataSource createInstance() throws Exception {
 
-		DBInstance dbInstance = getDBInstance();
+		DBInstance dbInstance = getDBInstance(this.dbInstanceIdentifier);
 
 		if (dbInstance == null) {
 			if (this.autoCreate) {
-				CreateDBInstanceRequest createDBInstanceRequest = new CreateDBInstanceRequest(this.dbInstanceIdentifier, this.allocatedStorage, this.dbInstanceClass, this.engine, this.masterUserName, this.masterUserPassword).withDBName(this.databaseName);
-				if (this.dbSecurityGroups != null) {
-					createDBInstanceRequest.withDBSecurityGroups(this.dbSecurityGroups);
-				}
-				if (this.availabilityZone != null) {
-					createDBInstanceRequest.withAvailabilityZone(this.availabilityZone);
-				}
-				if (this.preferredMaintenanceWindow != null) {
-					createDBInstanceRequest.withPreferredMaintenanceWindow(this.preferredMaintenanceWindow);
-				}
-				if (this.backupRetentionPeriod != null) {
-					createDBInstanceRequest.withBackupRetentionPeriod(this.backupRetentionPeriod);
-				}
-				if (this.preferredBackupWindow != null) {
-					createDBInstanceRequest.withPreferredBackupWindow(this.preferredBackupWindow);
-				}
-				if (this.port != null) {
-					createDBInstanceRequest.withPort(this.port);
-				}
-				if (this.multiAz != null) {
-					createDBInstanceRequest.withMultiAZ(this.multiAz);
-				}
-				if (this.engineVersion != null) {
-					createDBInstanceRequest.withEngineVersion(this.engineVersion);
-				}
-				if (this.autoMinorVersionUpgrade != null) {
-					createDBInstanceRequest.withAutoMinorVersionUpgrade(this.autoMinorVersionUpgrade);
-				}
-				this.amazonRDS.createDBInstance(createDBInstanceRequest);
+				createDBInstance();
+				this.automaticallyCreated = true;
 			} else {
-				throw new IllegalStateException("No database instance with id:'" + this.dbInstanceIdentifier + "' found and autoCreate is off. " +
-						"Please specify a valid db instance or enable auto creation");
-
+				throw new IllegalStateException(MessageFormat.format("No database instance with id:''{0}'' found and autoCreate is off. Please specify a valid db instance or enable auto creation",
+						this.dbInstanceIdentifier));
 			}
 		}
 
-		return new DynamicDataSource(dbInstance);
+		return new DynamicDataSource(this.dataSourceFactory, this.dbInstanceIdentifier, this.databaseName, this.masterUserName, this.masterUserPassword);
 	}
 
-	private DBInstance getDBInstance() {
-		DescribeDBInstancesResult dbInstancesResult = this.amazonRDS.describeDBInstances();
-		for (DBInstance candidateInstance : dbInstancesResult.getDBInstances()) {
-			if (candidateInstance.getDBInstanceIdentifier().equals(this.dbInstanceIdentifier)) {
-				return candidateInstance;
+	protected void createDBInstance() {
+		CreateDBInstanceRequest createDBInstanceRequest = new CreateDBInstanceRequest(this.dbInstanceIdentifier, this.allocatedStorage, this.dbInstanceClass, this.engine, this.masterUserName, this.masterUserPassword).withDBName(this.databaseName);
+		if (this.dbSecurityGroups != null) {
+			createDBInstanceRequest.withDBSecurityGroups(this.dbSecurityGroups);
+		}
+		if (this.availabilityZone != null) {
+			createDBInstanceRequest.withAvailabilityZone(this.availabilityZone);
+		}
+		if (this.preferredMaintenanceWindow != null) {
+			createDBInstanceRequest.withPreferredMaintenanceWindow(this.preferredMaintenanceWindow);
+		}
+		if (this.backupRetentionPeriod != null) {
+			createDBInstanceRequest.withBackupRetentionPeriod(this.backupRetentionPeriod);
+		}
+		if (this.preferredBackupWindow != null) {
+			createDBInstanceRequest.withPreferredBackupWindow(this.preferredBackupWindow);
+		}
+		if (this.port != null) {
+			createDBInstanceRequest.withPort(this.port);
+		}
+		if (this.multiAz != null) {
+			createDBInstanceRequest.withMultiAZ(this.multiAz);
+		}
+		if (this.engineVersion != null) {
+			createDBInstanceRequest.withEngineVersion(this.engineVersion);
+		}
+		if (this.autoMinorVersionUpgrade != null) {
+			createDBInstanceRequest.withAutoMinorVersionUpgrade(this.autoMinorVersionUpgrade);
+		}
+		this.amazonRDS.createDBInstance(createDBInstanceRequest);
+	}
+
+	private DBInstance getDBInstance(String instanceName) {
+		DescribeDBInstancesResult dbInstancesResult = null;
+		try {
+			dbInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
+		} catch (AmazonServiceException e) {
+			if ("DBInstanceNotFound".equals(e.getErrorCode())) {
+				return null;
 			}
 		}
-		return null;
+
+		return dbInstancesResult.getDBInstances().get(0);
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.dbInstanceIdentifier);
-		Assert.notNull(this.allocatedStorage);
-		Assert.notNull(this.dbInstanceClass);
-		Assert.notNull(this.engine);
+		Assert.notNull(this.databaseName);
 		Assert.notNull(this.masterUserName);
 		Assert.notNull(this.masterUserPassword);
+
+		if (this.autoCreate) {
+			Assert.notNull(this.allocatedStorage);
+			Assert.notNull(this.dbInstanceClass);
+			Assert.notNull(this.engine);
+		}
+
 		super.afterPropertiesSet();
 	}
 
 	@Override
 	protected void destroyInstance(DataSource instance) throws Exception {
-		if(instance instanceof DynamicDataSource){
+		if (instance instanceof DynamicDataSource) {
 			((DynamicDataSource) instance).destroyDataSource();
+		}
+
+		if (this.automaticallyCreated) {
+			this.amazonRDS.deleteDBInstance(new DeleteDBInstanceRequest(this.dbInstanceIdentifier).withSkipFinalSnapshot(true));
 		}
 		super.destroyInstance(instance);
 	}
 
-	private void sleepInBetweenStatusCheck() {
-		try {
-			Thread.sleep(5000L);
-		} catch (InterruptedException e) {
-			// Re-interrupt current thread, to allow other threads to react.
-			Thread.currentThread().interrupt();
-		}
-	}
-
 	private final class DynamicDataSource extends AbstractDataSource {
 
-		private volatile DataSource dataSource;
-		private final Object dataSourceMonitor = new Object();
-		private DBInstance dbInstance;
+		private final DataSourceFactory dataSourceFactory;
+		private final String dbInstanceIdentifier;
+		private final String databaseName;
+		private final String userName;
+		private final String password;
 
-		public DynamicDataSource(DBInstance dbInstance) {
-			this.dbInstance = dbInstance;
+		private final Object dataSourceMonitor = new Object();
+
+		private volatile DataSource dataSource;
+		private volatile DBInstance dbInstance;
+
+		public DynamicDataSource(DataSourceFactory dataSourceFactory, String dbInstanceIdentifier, String databaseName, String userName, String password) {
+			this.dataSourceFactory = dataSourceFactory;
+			this.dbInstanceIdentifier = dbInstanceIdentifier;
+			this.databaseName = databaseName;
+			this.userName = userName;
+			this.password = password;
 		}
 
 		public Connection getConnection() throws SQLException {
@@ -252,18 +277,27 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		private void initializeDataSource() {
 			synchronized (this.dataSourceMonitor) {
 				while (this.dbInstance == null || "creating".equals(this.dbInstance.getDBInstanceStatus())) {
-					this.dbInstance = getDBInstance();
-					if("creating".equals(this.dbInstance.getDBInstanceStatus())){
+					this.dbInstance = getDBInstance(this.dbInstanceIdentifier);
+					if ("creating".equals(this.dbInstance.getDBInstanceStatus())) {
 						sleepInBetweenStatusCheck();
 					}
 				}
-				this.dataSource = AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.createDataSource("com.mysql.jdbc.Driver", this.dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), AmazonRDSDataSourceFactoryBean.this.databaseName,
-						AmazonRDSDataSourceFactoryBean.this.masterUserName, AmazonRDSDataSourceFactoryBean.this.masterUserPassword);
+				this.dataSource = this.dataSourceFactory.createDataSource("com.mysql.jdbc.Driver", this.dbInstance.getEndpoint().getAddress(), this.dbInstance.getEndpoint().getPort(), this.databaseName,
+						this.userName, this.password);
 			}
 		}
 
-		public void destroyDataSource(){
-			AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.closeDataSource(this.dataSource);
+		public void destroyDataSource() {
+			this.dataSourceFactory.closeDataSource(this.dataSource);
+		}
+
+		private void sleepInBetweenStatusCheck() {
+			try {
+				Thread.sleep(5000L);
+			} catch (InterruptedException e) {
+				// Re-interrupt current thread, to allow other threads to react.
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 }
