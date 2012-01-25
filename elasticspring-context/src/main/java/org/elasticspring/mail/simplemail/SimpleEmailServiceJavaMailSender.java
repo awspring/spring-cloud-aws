@@ -16,7 +16,6 @@
 
 package org.elasticspring.mail.simplemail;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.model.RawMessage;
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
@@ -72,13 +71,13 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		Map<Object, Exception> failedMessages = new HashMap<Object, Exception>();
 
 		for (MimeMessage mimeMessage : mimeMessages) {
-			RawMessage rm = createRawMessage(mimeMessage);
 			try {
+				RawMessage rm = createRawMessage(mimeMessage);
 				SendRawEmailResult sendRawEmailResult = getEmailService().sendRawEmail(new SendRawEmailRequest(rm));
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Message with id: {0} successfully send", sendRawEmailResult.getMessageId());
 				}
-			} catch (AmazonClientException e) {
+			} catch (Exception e) {
 				//Ignore Exception because we are collecting and throwing all if any
 				//noinspection ThrowableResultOfMethodCallIgnored
 				failedMessages.put(mimeMessage, e);

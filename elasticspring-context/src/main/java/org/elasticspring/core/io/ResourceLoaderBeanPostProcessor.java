@@ -93,12 +93,12 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 			this.delegate = delegate;
 		}
 
-		public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			if (method.getDeclaringClass() == ResourceLoader.class) {
-				return ReflectionUtils.invokeMethod(method, this.resourceLoader, arguments);
+				return ReflectionUtils.invokeMethod(method, this.resourceLoader, args);
 			}
 
-			return ReflectionUtils.invokeMethod(method, this.delegate, arguments);
+			return ReflectionUtils.invokeMethod(method, this.delegate, args);
 		}
 	}
 }

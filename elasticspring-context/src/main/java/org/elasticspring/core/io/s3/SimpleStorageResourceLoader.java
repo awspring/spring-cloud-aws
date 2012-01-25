@@ -53,15 +53,15 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 			if (matcher.matches()) {
 				return new SimpleStorageResource(getBucketNameFromUri(matcher), getObjectNameFromUri(matcher), this.getAmazonS3());
 			}else{
-				throw new IllegalArgumentException("The s3 location '" + location + "' is not a valid s3 location!");
+				throw new IllegalArgumentException(String.format("The s3 location '%s' is not a valid s3 location!", location));
 			}
 		}
 
-		return delegate.getResource(location);
+		return this.delegate.getResource(location);
 	}
 
 	public ClassLoader getClassLoader() {
-		return delegate.getClassLoader();
+		return this.delegate.getClassLoader();
 	}
 
 	private String getBucketNameFromUri(Matcher matcher) {

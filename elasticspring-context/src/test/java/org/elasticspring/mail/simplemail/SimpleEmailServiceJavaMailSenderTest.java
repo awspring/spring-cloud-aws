@@ -208,20 +208,26 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMultipleMailsWithExceptionWhilePreparing() throws Exception {
+	public void testSendMailsWithExceptionWhilePreparing() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
 
+		MimeMessage mimeMessage = null;
 		try {
-			mailSender.send(new MimeMessage[]{new MimeMessage(Session.getInstance(new Properties()))});
+			mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+			mailSender.send(new MimeMessage[]{mimeMessage});
 			Assert.fail("Exception expected due to error while sending mail");
-		} catch (MailPreparationException ignore) {
+		} catch (MailSendException e) {
 			//expected due to empty mail message
+			Assert.assertEquals(1, e.getFailedMessages().size());
+			//noinspection ThrowableResultOfMethodCallIgnored
+			Assert.assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailPreparationException);
 		}
 
+		MimeMessage failureMessage = null;
 		try {
-			MimeMessage failureMessage = new MimeMessage(Session.getInstance(new Properties())){
+			failureMessage = new MimeMessage(Session.getInstance(new Properties())) {
 
 				@Override
 				public void writeTo(OutputStream os) throws IOException, MessagingException {
@@ -230,8 +236,11 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			};
 			mailSender.send(new MimeMessage[]{failureMessage});
 			Assert.fail("Exception expected due to error while sending mail");
-		} catch (MailParseException ignore) {
-			//expected due to empty mail message
+		} catch (MailSendException e) {
+			//expected due to exception writing message
+			Assert.assertEquals(1, e.getFailedMessages().size());
+			//noinspection ThrowableResultOfMethodCallIgnored
+			Assert.assertTrue(e.getFailedMessages().get(failureMessage) instanceof MailParseException);
 		}
 	}
 

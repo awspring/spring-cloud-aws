@@ -28,7 +28,6 @@ import com.amazonaws.services.ec2.model.Tag;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.nio.charset.Charset;
@@ -44,19 +43,24 @@ public class AmazonEC2PropertyPlaceHolderTest {
 		AmazonEC2 amazonEC2 = Mockito.mock(AmazonEC2.class);
 		InstanceIdProvider instanceIdProvider = Mockito.mock(InstanceIdProvider.class);
 		AmazonEC2PropertyPlaceHolder amazonEC2PropertyPlaceHolder = getAmazonEC2PropertyPlaceHolder("secret", "access", amazonEC2, instanceIdProvider);
+
 		amazonEC2PropertyPlaceHolder.setResolveUserTagsForInstance(false);
 
 		Mockito.when(instanceIdProvider.getCurrentInstanceId()).thenReturn("1234567890");
 
+		//Request
 		DescribeInstanceAttributeRequest describeInstanceAttributeRequest = new DescribeInstanceAttributeRequest("1234567890", AmazonEC2PropertyPlaceHolder.USER_DATA_ATTRIBUTE_NAME);
-		String encodedUserData = Base64.encodeBase64String("keyA:valueA;keyB:valueB".getBytes("UTF-8"));
 
+		//Result
+		String encodedUserData = Base64.encodeBase64String("keyA:valueA;keyB:valueB".getBytes("UTF-8"));
 		DescribeInstanceAttributeResult describeInstanceAttributeResult = new DescribeInstanceAttributeResult().withInstanceAttribute(new InstanceAttribute().withUserData(encodedUserData));
-		Mockito.when(amazonEC2.describeInstanceAttribute(Matchers.refEq(describeInstanceAttributeRequest))).thenReturn(describeInstanceAttributeResult);
+
+		Mockito.when(amazonEC2.describeInstanceAttribute(describeInstanceAttributeRequest)).thenReturn(describeInstanceAttributeResult);
+
 		amazonEC2PropertyPlaceHolder.afterPropertiesSet();
 
-		Assert.assertEquals("valueA", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", null));
-		Assert.assertEquals("valueB", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyB", null));
+		Assert.assertEquals("valueA", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", new Properties()));
+		Assert.assertEquals("valueB", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyB", new Properties()));
 	}
 
 	@Test
@@ -74,11 +78,11 @@ public class AmazonEC2PropertyPlaceHolderTest {
 		DescribeInstanceAttributeRequest describeInstanceAttributeRequest = new DescribeInstanceAttributeRequest("1234567890", AmazonEC2PropertyPlaceHolder.USER_DATA_ATTRIBUTE_NAME);
 		String encodedUserData = Base64.encodeBase64String("keyA=valueA,keyB=valueÖ".getBytes(Charset.forName("ISO-8859-1")));
 		DescribeInstanceAttributeResult describeInstanceAttributeResult = new DescribeInstanceAttributeResult().withInstanceAttribute(new InstanceAttribute().withUserData(encodedUserData));
-		Mockito.when(amazonEC2.describeInstanceAttribute(Matchers.refEq(describeInstanceAttributeRequest))).thenReturn(describeInstanceAttributeResult);
+		Mockito.when(amazonEC2.describeInstanceAttribute(describeInstanceAttributeRequest)).thenReturn(describeInstanceAttributeResult);
 		amazonEC2PropertyPlaceHolder.afterPropertiesSet();
 
-		Assert.assertEquals("valueA", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", null));
-		Assert.assertEquals("valueÖ", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyB", null));
+		Assert.assertEquals("valueA", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", new Properties()));
+		Assert.assertEquals("valueÖ", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyB", new Properties()));
 	}
 
 	@Test
@@ -95,7 +99,7 @@ public class AmazonEC2PropertyPlaceHolderTest {
 
 		DescribeInstanceAttributeRequest describeInstanceAttributeRequest = new DescribeInstanceAttributeRequest("1234567890", AmazonEC2PropertyPlaceHolder.USER_DATA_ATTRIBUTE_NAME);
 		DescribeInstanceAttributeResult describeInstanceAttributeResult = new DescribeInstanceAttributeResult().withInstanceAttribute(new InstanceAttribute().withUserData(null));
-		Mockito.when(amazonEC2.describeInstanceAttribute(Matchers.refEq(describeInstanceAttributeRequest))).thenReturn(describeInstanceAttributeResult);
+		Mockito.when(amazonEC2.describeInstanceAttribute(describeInstanceAttributeRequest)).thenReturn(describeInstanceAttributeResult);
 		amazonEC2PropertyPlaceHolder.afterPropertiesSet();
 
 		Assert.assertNull(amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", new Properties()));
@@ -118,7 +122,7 @@ public class AmazonEC2PropertyPlaceHolderTest {
 		Reservation reservation = new Reservation().withInstances(targetInstance, anotherInstanceInSameReservation);
 		DescribeInstancesResult describeInstancesResult = new DescribeInstancesResult().withReservations(reservation);
 
-		Mockito.when(amazonEC2.describeInstances(Matchers.refEq(describeInstancesRequest))).thenReturn(describeInstancesResult);
+		Mockito.when(amazonEC2.describeInstances(describeInstancesRequest)).thenReturn(describeInstancesResult);
 		amazonEC2PropertyPlaceHolder.afterPropertiesSet();
 
 		Assert.assertEquals("valueA", amazonEC2PropertyPlaceHolder.resolvePlaceholder("keyA", null));

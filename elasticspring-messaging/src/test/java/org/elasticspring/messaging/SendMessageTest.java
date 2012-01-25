@@ -49,9 +49,9 @@ public class SendMessageTest {
 	@IfProfileValue(name= "test-groups", value = "integration-test")
     public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
-		stringMessageOperations.convertAndSend(messageContent);
+		this.stringMessageOperations.convertAndSend(messageContent);
 
-		String receivedMessage = (String) stringMessageOperations.receiveAndConvert();
+		String receivedMessage = (String) this.stringMessageOperations.receiveAndConvert();
 		Assert.assertEquals(messageContent, receivedMessage);
 
     }
@@ -60,10 +60,10 @@ public class SendMessageTest {
 	@IfProfileValue(name= "test-groups", value = "integration-test")
     public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
-		objectMessageOperations.convertAndSend(payload);
+		this.objectMessageOperations.convertAndSend(payload);
 
 		@SuppressWarnings({"unchecked"})
-		List<String> result = (List<String>) objectMessageOperations.receiveAndConvert();
+		List<String> result = (List<String>) this.objectMessageOperations.receiveAndConvert();
 		Assert.assertEquals("myString",result.get(0));
     }
 }

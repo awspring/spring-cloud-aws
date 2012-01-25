@@ -65,8 +65,8 @@ public class ObjectMessageConverterTest {
 
 	@Test
 	public void testPayloadIsNotAValidBase64Payload() throws Exception {
-		expectedException.expect(MessageConversionException.class);
-		expectedException.expectMessage("not a valid base64 encoded stream");
+		this.expectedException.expect(MessageConversionException.class);
+		this.expectedException.expectMessage("not a valid base64 encoded stream");
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
 		messageConverter.fromMessage(new StringMessage("test€"));
@@ -74,8 +74,8 @@ public class ObjectMessageConverterTest {
 
 	@Test
 	public void testPayloadIsNotAValidObjectStream() throws Exception {
-		expectedException.expect(MessageConversionException.class);
-		expectedException.expectMessage("Error reading payload");
+		this.expectedException.expect(MessageConversionException.class);
+		this.expectedException.expectMessage("Error reading payload");
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
 		messageConverter.fromMessage(new StringMessage("someStream"));

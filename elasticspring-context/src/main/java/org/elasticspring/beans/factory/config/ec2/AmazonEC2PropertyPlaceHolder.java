@@ -49,7 +49,6 @@ public class AmazonEC2PropertyPlaceHolder extends PropertyPlaceholderConfigurer 
 	private final InstanceIdProvider instanceIdProvider;
 	private boolean resolveUserDataForInstance = true;
 	private boolean resolveUserTagsForInstance = true;
-	private String valueSeparator = DEFAULT_VALUE_SEPARATOR;
 	private Charset userDataAttributeEncoding = USER_DATA_ATTRIBUTE_ENCODING;
 	private String userDataAttributeSeparator = USER_DATA_ATTRIBUTE_SEPARATOR;
 
@@ -60,6 +59,7 @@ public class AmazonEC2PropertyPlaceHolder extends PropertyPlaceholderConfigurer 
 	public AmazonEC2PropertyPlaceHolder(String accessKey, String secretKey, InstanceIdProvider instanceIdProvider) {
 		this.amazonEC2 = new AmazonEC2Client(new BasicAWSCredentials(accessKey, secretKey));
 		this.instanceIdProvider = instanceIdProvider;
+		super.setValueSeparator(DEFAULT_VALUE_SEPARATOR);
 	}
 
 	public void setResolveUserDataForInstance(boolean resolveUserDataForInstance) {
@@ -91,16 +91,18 @@ public class AmazonEC2PropertyPlaceHolder extends PropertyPlaceholderConfigurer 
 		if (this.resolveUserDataForInstance) {
 			this.instanceUserAttributes = new HashMap<String, String>();
 			DescribeInstanceAttributeResult attributes = this.getAmazonEC2().describeInstanceAttribute(new DescribeInstanceAttributeRequest(currentInstanceId, USER_DATA_ATTRIBUTE_NAME));
-			String encodedUserData = attributes.getInstanceAttribute().getUserData();
-			if (StringUtils.hasText(encodedUserData)) {
-				byte[] bytes = Base64.decodeBase64(encodedUserData);
-				String userData = new String(bytes, this.userDataAttributeEncoding);
-				String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
-				for (String userDataAttribute : userDataAttributes) {
-					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.valueSeparator);
-					String key = userDataAttributesParts[0];
-					String value = userDataAttributesParts[1];
-					this.instanceUserAttributes.put(key, value);
+			if (attributes != null) {
+				String encodedUserData = attributes.getInstanceAttribute().getUserData();
+				if (StringUtils.hasText(encodedUserData)) {
+					byte[] bytes = Base64.decodeBase64(encodedUserData);
+					String userData = new String(bytes, this.userDataAttributeEncoding);
+					String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
+					for (String userDataAttribute : userDataAttributes) {
+						String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.valueSeparator);
+						String key = userDataAttributesParts[0];
+						String value = userDataAttributesParts[1];
+						this.instanceUserAttributes.put(key, value);
+					}
 				}
 			}
 		}

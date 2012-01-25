@@ -19,9 +19,12 @@ package org.elasticspring.jdbc;
 import org.elasticspring.jdbc.rds.AmazonRDSDataSourceFactoryBean;
 import org.elasticspring.jdbc.rds.CommonsDbcpDataSourceFactory;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -33,9 +36,11 @@ import java.util.Properties;
  *
  *
  */
+@RunWith(SpringJUnit4ClassRunner.class)
 public class DataSourceFactoryBeanTest {
 
 	@Test
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testExistingDataSourceInstance() throws Exception {
 		Properties properties = new Properties();
 		properties.load(new ClassPathResource("access.properties").getInputStream());
@@ -74,6 +79,7 @@ public class DataSourceFactoryBeanTest {
 	}
 
 	@Test
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testCreateDataSource() throws Exception {
 		Properties properties = new Properties();
 		properties.load(new ClassPathResource("access.properties").getInputStream());

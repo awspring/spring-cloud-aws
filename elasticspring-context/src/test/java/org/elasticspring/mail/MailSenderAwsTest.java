@@ -50,6 +50,6 @@ public class MailSenderAwsTest {
 		simpleMailMessage.setSubject("test subject");
 		simpleMailMessage.setText("test content");
 
-		mailSender.send(simpleMailMessage);
+		this.mailSender.send(simpleMailMessage);
 	}
 }

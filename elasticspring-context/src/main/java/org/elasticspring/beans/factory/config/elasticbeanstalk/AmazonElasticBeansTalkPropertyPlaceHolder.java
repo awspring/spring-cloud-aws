@@ -46,11 +46,9 @@ public class AmazonElasticBeansTalkPropertyPlaceHolder extends PropertyPlacehold
 		this.applicationName = applicationName;
 	}
 
-
 	@Override
 	protected String resolvePlaceholder(String placeholder, Properties props) {
 		String configurationOption = this.configurationSettings.get(placeholder);
-
 		return configurationOption != null ? configurationOption : super.resolvePlaceholder(placeholder, props);
 	}
 

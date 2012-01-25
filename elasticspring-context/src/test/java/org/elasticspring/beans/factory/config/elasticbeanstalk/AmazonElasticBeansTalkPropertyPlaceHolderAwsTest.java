@@ -27,9 +27,11 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.*;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +40,7 @@ import java.util.Properties;
 /**
  *
  */
+@RunWith(SpringJUnit4ClassRunner.class)
 public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 
 	@Test
@@ -58,11 +61,10 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 
 
 	@Test
+	@IfProfileValue(name= "test-groups", value = "aws-test")
 	public void testCreate() throws Exception {
 		AWSElasticBeanstalk awsElasticBeanstalk = new AWSElasticBeanstalkClient(new PropertiesCredentials(new ClassPathResource("access.properties").getInputStream()));
 		CheckDNSAvailabilityResult checkDNSAvailabilityResult = awsElasticBeanstalk.checkDNSAvailability(new CheckDNSAvailabilityRequest("greenhouse"));
-		System.out.println("checkDNSAvailabilityResult.getAvailable() = " + checkDNSAvailabilityResult.getAvailable());
-		System.out.println("checkDNSAvailabilityResult.getFullyQualifiedCNAME() = " + checkDNSAvailabilityResult.getFullyQualifiedCNAME());
 
 		ListAvailableSolutionStacksResult listAvailableSolutionStacksResult = awsElasticBeanstalk.listAvailableSolutionStacks();
 //		for (String solutionStack : listAvailableSolutionStacksResult.getSolutionStacks()) {
@@ -78,7 +80,7 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 		DescribeConfigurationOptionsResult configurationOptionsResult = awsElasticBeanstalk.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withApplicationName("greenhouse").withTemplateName("Default"));
 
 
-		configurationOptionsResult = awsElasticBeanstalk.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withSolutionStackName("32bit Amazon Linux running Tomcat 6"));
+//		configurationOptionsResult = awsElasticBeanstalk.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withSolutionStackName("32bit Amazon Linux running Tomcat 6"));
 //		for (ConfigurationOptionDescription description : configurationOptionsResult.getOptions()) {
 //			if (!description.isUserDefined()) {
 //				System.out.println("description = " + description);

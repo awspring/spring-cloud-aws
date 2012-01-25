@@ -79,5 +79,5 @@ public class AmazonEC2InstanceIdProvider implements InstanceIdProvider {
 		return instanceId;
 	}
 
-	
+
 }

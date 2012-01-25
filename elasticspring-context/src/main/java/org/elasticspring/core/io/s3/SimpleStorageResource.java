@@ -57,13 +57,13 @@ public class SimpleStorageResource extends AbstractResource {
 	@Override
 	public long lastModified() throws IOException {
 		assertThatResourceExists();
-		return objectMetadata.getLastModified().getTime();
+		return this.objectMetadata.getLastModified().getTime();
 	}
 
 	@Override
 	public long contentLength() throws IOException {
 		assertThatResourceExists();
-		return objectMetadata.getContentLength();
+		return this.objectMetadata.getContentLength();
 	}
 
 	@Override

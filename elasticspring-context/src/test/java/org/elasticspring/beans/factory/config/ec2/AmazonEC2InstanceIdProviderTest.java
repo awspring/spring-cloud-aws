@@ -62,13 +62,13 @@ public class AmazonEC2InstanceIdProviderTest {
 			this.result = result;
 		}
 
-		public void handle(HttpExchange httpExchange) throws IOException {
-			httpExchange.sendResponseHeaders(200, this.result.length());
-			OutputStream outputStream = httpExchange.getResponseBody();
+		public void handle(HttpExchange exchange) throws IOException {
+			exchange.sendResponseHeaders(200, this.result.length());
+			OutputStream outputStream = exchange.getResponseBody();
 			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
 			outputStreamWriter.write(this.result);
 			outputStreamWriter.flush();
-			httpExchange.close();
+			exchange.close();
 		}
 	}
 }
