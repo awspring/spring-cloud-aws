@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support;
+package org.elasticspring.messaging.listener;
 
-import org.elasticspring.messaging.Message;
+import org.elasticspring.messaging.core.Message;
 
 /**
  *
  */
-public class StringMessage implements Message<String>{
+public class AbstractMessageListenerContainer  {
 
-	private final String content;
+	private MessageListener messageListener;
 
-	public StringMessage(String content) {
-		this.content = content;
-	}
-
-	public String getPayload() {
-		return this.content;
+	protected void executeMessage(Message<?> message){
+		this.messageListener.onMessage(message);
 	}
 }

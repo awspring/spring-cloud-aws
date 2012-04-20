@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.converter;
-
-import org.elasticspring.messaging.core.Message;
-import org.junit.Assert;
-import org.junit.Test;
+package org.elasticspring.messaging.support.destination;
 
 /**
  *
  */
-public class StringMessageConverterTest {
+public class InvalidDestinationException extends RuntimeException {
+	
+	private final String destinationName;
 
-	@Test
-	public void testToAndFromMessage() throws Exception {
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		Message<String> message = stringMessageConverter.toMessage("content");
-		Assert.assertEquals("content", message.getPayload());
 
-		String content = stringMessageConverter.fromMessage(message);
-		Assert.assertEquals("content",content);
+	public InvalidDestinationException(String destinationName,String message) {
+		this.destinationName = destinationName;
+	}
+
+	public String getDestinationName() {
+		return this.destinationName;
 	}
 }

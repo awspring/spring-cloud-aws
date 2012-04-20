@@ -16,22 +16,22 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.support.StringMessage;
+import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.core.StringMessage;
 
 /**
  *
  */
 public class StringMessageConverter implements MessageConverter {
 
-	public Message toMessage(Object payload) {
+	public Message<String> toMessage(Object payload) {
 		if(!(payload instanceof String)){
 			throw new IllegalArgumentException("Can't convert payload to message. Only String payload can be converted");
 		}
 		return new StringMessage((String) payload);
 	}
 
-	public String fromMessage(Message message) {
+	public String fromMessage(Message<String> message) {
 		return message.getPayload();
 	}
 }

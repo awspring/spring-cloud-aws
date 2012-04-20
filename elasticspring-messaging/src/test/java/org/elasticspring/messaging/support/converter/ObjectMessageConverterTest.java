@@ -17,8 +17,8 @@
 package org.elasticspring.messaging.support.converter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.support.StringMessage;
+import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.core.StringMessage;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
-		Message message = messageConverter.toMessage(sourceMessage);
+		Message<String> message = messageConverter.toMessage(sourceMessage);
 		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("UTF-8")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
 		Assert.assertEquals(content, result.getContent());
@@ -51,7 +51,7 @@ public class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
-		Message message = messageConverter.toMessage(sourceMessage);
+		Message<String> message = messageConverter.toMessage(sourceMessage);
 		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("ISO-8859-1")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
 		Assert.assertEquals(content, result.getContent());

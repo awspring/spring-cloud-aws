@@ -78,6 +78,7 @@
         <value />
       </option>
       <option name="ignoreClassWithParameterization" value="false" />
+      <option name="ignoreThrowables" value="true" />
     </inspection_tool>
     <inspection_tool class="EmptyInitializer" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="EmptySynchronizedStatement" enabled="true" level="WARNING" enabled_by_default="true" />

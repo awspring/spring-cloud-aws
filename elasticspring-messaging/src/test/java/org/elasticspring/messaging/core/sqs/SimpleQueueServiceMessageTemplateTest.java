@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.sqs;
+package org.elasticspring.messaging.core.sqs;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;

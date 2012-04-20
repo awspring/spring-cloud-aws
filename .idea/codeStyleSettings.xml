@@ -44,13 +44,6 @@
         <ADDITIONAL_INDENT_OPTIONS fileType="haml">
           <option name="INDENT_SIZE" value="2" />
         </ADDITIONAL_INDENT_OPTIONS>
-        <ADDITIONAL_INDENT_OPTIONS fileType="jsp">
-          <option name="USE_TAB_CHARACTER" value="true" />
-        </ADDITIONAL_INDENT_OPTIONS>
-        <ADDITIONAL_INDENT_OPTIONS fileType="yml">
-          <option name="INDENT_SIZE" value="2" />
-          <option name="USE_TAB_CHARACTER" value="true" />
-        </ADDITIONAL_INDENT_OPTIONS>
         <codeStyleSettings language="Groovy">
           <option name="BLANK_LINES_AFTER_CLASS_HEADER" value="1" />
           <option name="BLANK_LINES_AFTER_ANONYMOUS_CLASS_HEADER" value="1" />
@@ -60,6 +53,11 @@
           <option name="BLANK_LINES_AFTER_CLASS_HEADER" value="1" />
           <option name="BLANK_LINES_AFTER_ANONYMOUS_CLASS_HEADER" value="1" />
           <option name="PARENT_SETTINGS_INSTALLED" value="true" />
+          <indentOptions>
+            <option name="USE_TAB_CHARACTER" value="true" />
+          </indentOptions>
+        </codeStyleSettings>
+        <codeStyleSettings language="JSP">
           <indentOptions>
             <option name="USE_TAB_CHARACTER" value="true" />
           </indentOptions>
@@ -77,6 +75,11 @@
           </indentOptions>
         </codeStyleSettings>
         <codeStyleSettings language="XML">
+          <indentOptions>
+            <option name="USE_TAB_CHARACTER" value="true" />
+          </indentOptions>
+        </codeStyleSettings>
+        <codeStyleSettings language="yaml">
           <indentOptions>
             <option name="USE_TAB_CHARACTER" value="true" />
           </indentOptions>

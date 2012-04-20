@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.converter;
-
-import org.elasticspring.messaging.core.Message;
-import org.junit.Assert;
-import org.junit.Test;
+package org.elasticspring.messaging.core;
 
 /**
  *
  */
-public class StringMessageConverterTest {
+public interface MessageOperations {
 
-	@Test
-	public void testToAndFromMessage() throws Exception {
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		Message<String> message = stringMessageConverter.toMessage("content");
-		Assert.assertEquals("content", message.getPayload());
+	void convertAndSend(Object payLoad);
 
-		String content = stringMessageConverter.fromMessage(message);
-		Assert.assertEquals("content",content);
-	}
+	void convertAndSend(String destinationName, Object payLoad);
+
+	Object receiveAndConvert();
+
+	Object receiveAndConvert(String destinationName);
+
 }

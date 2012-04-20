@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.listener;
+
+import org.elasticspring.messaging.core.Message;
 
 /**
  *
  */
-public interface Message<P> {
+public interface MessageListener {
 
-	<P> String getPayload();
+	void onMessage(Message<?> message);
 
 }

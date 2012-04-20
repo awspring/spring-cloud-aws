@@ -16,12 +16,12 @@
 
 package org.elasticspring.jdbc.rds;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.rds.AmazonRDSAsync;
 import com.amazonaws.services.rds.AmazonRDSAsyncClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -161,7 +162,7 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 			}
 		}
 
-		return new DynamicDataSource(this.dataSourceFactory, this.dbInstanceIdentifier, this.databaseName, this.masterUserName, this.masterUserPassword);
+		return new DynamicDataSource();
 	}
 
 	protected void createDBInstance() {
@@ -197,13 +198,11 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	private DBInstance getDBInstance(String instanceName) {
-		DescribeDBInstancesResult dbInstancesResult = null;
+		DescribeDBInstancesResult dbInstancesResult;
 		try {
 			dbInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
-		} catch (AmazonServiceException e) {
-			if ("DBInstanceNotFound".equals(e.getErrorCode())) {
-				return null;
-			}
+		} catch (DBInstanceNotFoundException e) {
+			return null;
 		}
 
 		return dbInstancesResult.getDBInstances().get(0);
@@ -239,24 +238,13 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	private final class DynamicDataSource extends AbstractDataSource {
 
-		private final DataSourceFactory dataSourceFactory;
-		private final String dbInstanceIdentifier;
-		private final String databaseName;
-		private final String userName;
-		private final String password;
-
 		private final Object dataSourceMonitor = new Object();
 
-		private volatile DataSource dataSource;
-		private volatile DBInstance dbInstance;
+		private final List<String> shutDownStates = Arrays.asList("available", "failed", "storage-full");
 
-		public DynamicDataSource(DataSourceFactory dataSourceFactory, String dbInstanceIdentifier, String databaseName, String userName, String password) {
-			this.dataSourceFactory = dataSourceFactory;
-			this.dbInstanceIdentifier = dbInstanceIdentifier;
-			this.databaseName = databaseName;
-			this.userName = userName;
-			this.password = password;
-		}
+		private DBInstance dbInstance;
+
+		private volatile DataSource dataSource;
 
 		public Connection getConnection() throws SQLException {
 			if (this.dataSource == null) {
@@ -277,18 +265,28 @@ public class AmazonRDSDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		private void initializeDataSource() {
 			synchronized (this.dataSourceMonitor) {
 				while (this.dbInstance == null || "creating".equals(this.dbInstance.getDBInstanceStatus())) {
-					this.dbInstance = getDBInstance(this.dbInstanceIdentifier);
+					this.dbInstance = getDBInstance(AmazonRDSDataSourceFactoryBean.this.dbInstanceIdentifier);
 					if ("creating".equals(this.dbInstance.getDBInstanceStatus())) {
 						sleepInBetweenStatusCheck();
 					}
 				}
-				this.dataSource = this.dataSourceFactory.createDataSource("com.mysql.jdbc.Driver", this.dbInstance.getEndpoint().getAddress(), this.dbInstance.getEndpoint().getPort(), this.databaseName,
-						this.userName, this.password);
+				this.dataSource = AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.createDataSource("com.mysql.jdbc.Driver",
+						this.dbInstance.getEndpoint().getAddress(),
+						this.dbInstance.getEndpoint().getPort(),
+						AmazonRDSDataSourceFactoryBean.this.databaseName,
+						AmazonRDSDataSourceFactoryBean.this.masterUserName,
+						AmazonRDSDataSourceFactoryBean.this.masterUserPassword);
 			}
 		}
 
 		public void destroyDataSource() {
-			this.dataSourceFactory.closeDataSource(this.dataSource);
+			synchronized (this.dataSourceMonitor) {
+				this.dbInstance = getDBInstance(this.dbInstance.getDBInstanceIdentifier());
+				while (this.dbInstance == null || this.shutDownStates.contains(this.dbInstance.getDBInstanceStatus())) {
+					this.dbInstance = getDBInstance(AmazonRDSDataSourceFactoryBean.this.dbInstanceIdentifier);
+				}
+				AmazonRDSDataSourceFactoryBean.this.dataSourceFactory.closeDataSource(this.dataSource);
+			}
 		}
 
 		private void sleepInBetweenStatusCheck() {

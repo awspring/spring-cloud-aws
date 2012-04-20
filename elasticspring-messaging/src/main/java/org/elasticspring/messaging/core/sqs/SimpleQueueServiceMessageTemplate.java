@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.sqs;
+package org.elasticspring.messaging.core.sqs;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.MessageOperations;
-import org.elasticspring.messaging.support.StringMessage;
+import org.elasticspring.messaging.core.MessageOperations;
+import org.elasticspring.messaging.core.StringMessage;
 import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.converter.StringMessageConverter;
+import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
+import org.elasticspring.messaging.support.destination.DestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
 import org.springframework.beans.factory.DisposableBean;
 
 /**
@@ -39,11 +40,13 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 
 	private final AmazonSQS amazonSQS;
 	private final String defaultDestination;
+	private final DestinationResolver destinationResolver;
 	private MessageConverter messageConverter = new StringMessageConverter();
 
 	public SimpleQueueServiceMessageTemplate(String accessKey, String secretKey, String defaultDestination) {
 		this.amazonSQS = new AmazonSQSClient(new BasicAWSCredentials(accessKey, secretKey));
 		this.defaultDestination = defaultDestination;
+		this.destinationResolver = new CachingDestinationResolver(new DynamicDestinationResolver(this.amazonSQS));
 	}
 
 	public void convertAndSend(Object payLoad) {
@@ -51,9 +54,9 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 	}
 
 	public void convertAndSend(String destinationName, Object payLoad) {
-		CreateQueueResult createQueueResult = this.getQueueingService().createQueue(new CreateQueueRequest(destinationName));
-		org.elasticspring.messaging.Message message = this.getMessageConverter().toMessage(payLoad);
-		SendMessageRequest request = new SendMessageRequest(createQueueResult.getQueueUrl(), message.getPayload());
+		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
+		org.elasticspring.messaging.core.Message<String> message = this.getMessageConverter().toMessage(payLoad);
+		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
 		this.getQueueingService().sendMessage(request);
 	}
 
@@ -62,8 +65,8 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 	}
 
 	public Object receiveAndConvert(String destinationName) {
-		CreateQueueResult createQueueResult = this.getQueueingService().createQueue(new CreateQueueRequest(destinationName));
-		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(createQueueResult.getQueueUrl()).withMaxNumberOfMessages(1);
+		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
+		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withMaxNumberOfMessages(1);
 		ReceiveMessageResult receiveMessageResult = this.getQueueingService().receiveMessage(receiveMessageRequest);
 		if (receiveMessageResult.getMessages().isEmpty()) {
 			return null;
@@ -71,10 +74,10 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 
 		Message message = receiveMessageResult.getMessages().get(0);
 
-		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
+		org.elasticspring.messaging.core.Message<String> msg = new StringMessage(message.getBody(),message.getAttributes());
 		Object result = this.getMessageConverter().fromMessage(msg);
 
-		this.getQueueingService().deleteMessage(new DeleteMessageRequest(createQueueResult.getQueueUrl(), message.getReceiptHandle()));
+		this.getQueueingService().deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
 
 		return result;
 	}

@@ -21,18 +21,38 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 
-	<bean id="stringMessage" class="org.elasticspring.messaging.sqs.SimpleQueueServiceMessageTemplate">
+	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
 		<constructor-arg value="${accessKey}"/>
 		<constructor-arg value="${secretKey}"/>
 		<constructor-arg value="testQueue" />
 	</bean>
 
-	<bean id="objectMessage" class="org.elasticspring.messaging.sqs.SimpleQueueServiceMessageTemplate">
+	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
 		<constructor-arg value="${accessKey}"/>
 		<constructor-arg value="${secretKey}"/>
 		<constructor-arg value="testQueue" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter"/>
+		</property>
+	</bean>
+
+	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
+		<constructor-arg value="${accessKey}"/>
+		<constructor-arg value="${secretKey}"/>
+		<constructor-arg value="testQueue" />
+		<property name="messageConverter">
+			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">
+				<constructor-arg name="marshaller" ref="marshaller"/>
+				<constructor-arg name="unmarshaller" ref="marshaller"/>
+				<constructor-arg name="encoding" value="UTF-8"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+		<property name="mode" value="#{T(com.thoughtworks.xstream.XStream).NO_REFERENCES}"/>
+		<property name="streamDriver">
+			<bean class="com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver"/>
 		</property>
 	</bean>
 

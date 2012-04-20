@@ -19,8 +19,8 @@ package org.elasticspring.messaging.support.converter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.support.StringMessage;
+import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.core.StringMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class ObjectMessageConverter implements MessageConverter {
 		this.encoding = Charset.forName(DEFAULT_ENCODING);
 	}
 
-	public Message toMessage(Object payload) {
+	public Message<String> toMessage(Object payload) {
 		if (!(payload instanceof Serializable)) {
 			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
 		}
@@ -80,7 +80,7 @@ public class ObjectMessageConverter implements MessageConverter {
 
 	}
 
-	public Serializable fromMessage(Message message) {
+	public Serializable fromMessage(Message<String> message) {
 		String messagePayload = message.getPayload();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);
 		if(!(Base64.isArrayByteBase64(rawContent))){

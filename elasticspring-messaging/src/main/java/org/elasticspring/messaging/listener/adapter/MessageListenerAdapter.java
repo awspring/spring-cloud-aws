@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.converter;
+package org.elasticspring.messaging.listener.adapter;
 
 import org.elasticspring.messaging.core.Message;
-import org.junit.Assert;
-import org.junit.Test;
+import org.elasticspring.messaging.listener.MessageListener;
 
 /**
  *
  */
-public class StringMessageConverterTest {
+public class MessageListenerAdapter implements MessageListener{
 
-	@Test
-	public void testToAndFromMessage() throws Exception {
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		Message<String> message = stringMessageConverter.toMessage("content");
-		Assert.assertEquals("content", message.getPayload());
+	public void onMessage(Message<?> message) {
 
-		String content = stringMessageConverter.fromMessage(message);
-		Assert.assertEquals("content",content);
 	}
 }

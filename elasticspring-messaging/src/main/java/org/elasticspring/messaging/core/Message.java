@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.core;
+
+import java.util.Map;
 
 /**
  *
  */
-public interface MessageOperations {
+public interface Message<P> {
 
-	void convertAndSend(Object payLoad);
+	Map<String,String> getAttributes();
 
-	void convertAndSend(String destinationName, Object payLoad);
-
-	Object receiveAndConvert();
-
-	Object receiveAndConvert(String destinationName);
+	P getPayload();
 
 }

@@ -16,14 +16,16 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import org.elasticspring.messaging.Message;
+import org.elasticspring.messaging.core.Message;
 
 /**
  *
  */
+//ToDo : Return ? and just the concrete converters should return the Message<String>
 public interface MessageConverter {
 
-	Message toMessage(Object payload);
+	Message<String> toMessage(Object payload);
 
-	Object fromMessage(Message message);
+	Object fromMessage(Message<String> message);
+
 }
