@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="expandStates">
+      <map>
+        <entry key="dependencies/elasticspring-context/elasticspring" value="true" />
+        <entry key="dependencies/elasticspring-messaging/elasticspring" value="true" />
+        <entry key="dependencies/elasticspring/elasticspring" value="false" />
+        <entry key="elasticspring" value="true" />
+        <entry key="elasticspring-context/elasticspring" value="false" />
+        <entry key="elasticspring-messaging/elasticspring" value="false" />
+        <entry key="elasticspring/elasticspring" value="false" />
+      </map>
+    </option>
+    <option name="gradleHome" value="/Applications/gradle-1.0-rc-1" />
+    <option name="linkedProjectPath" value="$PROJECT_DIR$/build.gradle" />
+  </component>
+</project>
+
