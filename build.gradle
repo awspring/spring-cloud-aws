@@ -15,8 +15,8 @@
  */
 
 configure(allprojects) {
-    apply plugin: 'java'
     apply plugin: 'maven'
+    apply plugin: 'java'
 
     group = 'org.elasticspring'
     version = '0.1'
@@ -28,18 +28,21 @@ configure(allprojects) {
 
     test.systemProperty("java.awt.headless", "true")
 
-    dependencies {
-        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.6.1'
-        compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.6.1'
-        compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.27'
-    }
-
     repositories {
         mavenCentral()
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: "file://localhost/tmp/myRepo/")
+            }
+        }
     }
 }
 
 configure(subprojects) {
+
 
     javadoc {
         options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
@@ -56,6 +59,12 @@ configure(subprojects) {
         classifier = 'javadoc'
         from javadoc
     }
+
+    dependencies {
+            compile('org.slf4j:slf4j-api:1.6.1')
+            compile('org.slf4j:jcl-over-slf4j:1.6.1')
+            compile('ch.qos.logback:logback-classic:0.9.27')
+        }
 
     artifacts {
         archives sourcesJar
