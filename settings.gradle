@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-include 'elasticspring-context', 'elasticspring-jdbc', 'elasticspring-messaging'
+include 'elasticspring-core', 'elasticspring-context', 'elasticspring-jdbc', 'elasticspring-messaging'

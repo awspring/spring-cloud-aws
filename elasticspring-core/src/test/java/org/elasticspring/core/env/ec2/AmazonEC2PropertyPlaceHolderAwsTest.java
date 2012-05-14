@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.ec2;
+package org.elasticspring.core.env.ec2;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -49,8 +51,8 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 		InstanceIdProvider instanceIdProvider = Mockito.mock(InstanceIdProvider.class);
 		Mockito.when(instanceIdProvider.getCurrentInstanceId()).thenReturn("i-4a1bfc25");
 
-		AmazonEC2PropertyPlaceHolder amazonEC2PropertyPlaceHolder = new AmazonEC2PropertyPlaceHolder(accessKey, secretKey, instanceIdProvider);
-		amazonEC2PropertyPlaceHolder.resolvePlaceholder("test", new Properties());
-
+		AmazonEC2UserDataPropertySource amazonEC2PropertySource = new AmazonEC2UserDataPropertySource("test",new AmazonEC2Client(new BasicAWSCredentials(accessKey,secretKey)));
+		amazonEC2PropertySource.setInstanceIdProvider(instanceIdProvider);
+		amazonEC2PropertySource.getProperty("test");
 	}
 }

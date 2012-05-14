@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.elasticbeanstalk;
+package org.elasticspring.core.env.elasticbeanstalk;
 
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;

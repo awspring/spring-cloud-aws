@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.ec2;
+package org.elasticspring.core.env.ec2;
 
 import java.io.IOException;
 

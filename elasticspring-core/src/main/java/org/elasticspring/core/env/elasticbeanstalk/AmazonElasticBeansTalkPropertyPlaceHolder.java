@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.elasticbeanstalk;
+package org.elasticspring.core.env.elasticbeanstalk;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;

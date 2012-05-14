@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.beans.factory.config.ec2;
+package org.elasticspring.core.env.ec2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.text.MessageFormat;
 /**
  *
  */
-public class AmazonEC2InstanceIdProvider implements InstanceIdProvider {
+class AmazonEC2InstanceIdProvider implements InstanceIdProvider {
 
 	private static final String INSTANCE_ID_DEFAULT_URL = "http://169.254.169.254/latest/meta-data/instance-id";
 
