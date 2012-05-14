@@ -97,6 +97,7 @@ project('elasticspring-core') {
 project('elasticspring-context') {
     description = 'elasticspring context'
     dependencies {
+        compile project(":elasticspring-core")
         compile('org.springframework:spring-context:3.1.0.RELEASE') {
             exclude module: 'commons-logging'
         }

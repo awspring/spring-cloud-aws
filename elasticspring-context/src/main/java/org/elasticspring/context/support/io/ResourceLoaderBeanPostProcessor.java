@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.io;
+package org.elasticspring.context.support.io;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;

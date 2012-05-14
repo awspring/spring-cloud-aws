@@ -4,7 +4,7 @@
     <facet type="Spring" name="Spring">
       <configuration>
         <fileset id="fileset1" name="Xml Application Context" removed="false">
-          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/core/io/ResourceLoaderAwsTest-context.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/support/io/ResourceLoaderAwsTest-context.xml</file>
           <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/mail/MailSenderAwsTest-context.xml</file>
         </fileset>
       </configuration>
@@ -45,6 +45,7 @@
     <orderEntry type="library" exported="" name="aopalliance-1.0" level="project" />
     <orderEntry type="library" exported="" name="jackson-core-asl-1.9.7" level="project" />
     <orderEntry type="library" exported="" name="jackson-mapper-asl-1.9.7" level="project" />
+    <orderEntry type="module" module-name="elasticspring-core" exported="" />
   </component>
 </module>
 

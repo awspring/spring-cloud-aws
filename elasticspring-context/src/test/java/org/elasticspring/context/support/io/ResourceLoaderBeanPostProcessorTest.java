@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.io;
+package org.elasticspring.context.support.io;
 
 import org.junit.Test;
 import org.mockito.Mockito;
