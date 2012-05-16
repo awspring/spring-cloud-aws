@@ -18,16 +18,22 @@ package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.WritableResource;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  *
  */
-public class SimpleStorageResource extends AbstractResource {
+public class SimpleStorageResource extends AbstractResource implements WritableResource {
 
 	private final String bucketName;
 	private final String objectName;
@@ -38,7 +44,7 @@ public class SimpleStorageResource extends AbstractResource {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.amazonS3 = amazonS3;
-		this.objectMetadata = amazonS3.getObjectMetadata(bucketName,objectName);
+		this.objectMetadata = amazonS3.getObjectMetadata(bucketName, objectName);
 	}
 
 	public String getDescription() {
@@ -85,6 +91,56 @@ public class SimpleStorageResource extends AbstractResource {
 					append(this.objectName).
 					append("' not found!").
 					toString());
+		}
+	}
+
+	@Override
+	public boolean isWritable() {
+		return this.objectMetadata != null;
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		return new DecoratingOutputStream();
+	}
+
+
+	private class DecoratingOutputStream extends OutputStream {
+
+		private final OutputStream tempFileOutputStream;
+		private final File tempFile;
+
+		private DecoratingOutputStream() {
+			try {
+				this.tempFile = File.createTempFile(SimpleStorageResource.this.bucketName, SimpleStorageResource.this.objectName);
+				this.tempFile.deleteOnExit();
+				this.tempFileOutputStream = new FileOutputStream(this.tempFile);
+			} catch (IOException e) {
+				throw new RuntimeException("Error creating temporary file ", e);
+			}
+		}
+
+		@Override
+		public void write(int b) throws IOException {
+			this.tempFileOutputStream.write(b);
+		}
+
+		@Override
+		public void flush() throws IOException {
+			this.tempFileOutputStream.flush();
+			this.tempFileOutputStream.close();
+			PutObjectResult result = SimpleStorageResource.this.amazonS3.putObject(SimpleStorageResource.this.bucketName,
+					SimpleStorageResource.this.objectName, new FileInputStream(this.tempFile),
+					SimpleStorageResource.this.objectMetadata);
+			if(result == null){
+				throw new IOException("Error uploading s3 resource" + SimpleStorageResource.this.objectName);
+			}
+
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.flush();
 		}
 	}
 }
