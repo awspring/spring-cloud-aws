@@ -105,11 +105,6 @@ project('elasticspring-context') {
         compile('javax.mail:mailapi:1.4.3') {
             exclude module: 'activation'
         }
-        compile('com.amazonaws:aws-java-sdk:1.3.7') {
-            exclude module: 'commons-logging'
-            exclude module: 'stax-api'
-            exclude module: 'activation'
-        }
         testCompile('junit:junit:4.8.2')
         testCompile('org.springframework:spring-test:3.1.0.RELEASE')
         testCompile('org.mockito:mockito-all:1.8.5')
