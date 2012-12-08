@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="spring-context-3.1.0.RELEASE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-13/filestore/org.springframework/spring-context/3.1.0.RELEASE/jar/d36e9ab580dccc8311704bc11f2434f230bdec28/spring-context-3.1.0.RELEASE.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-context/3.1.0.RELEASE/jar/d36e9ab580dccc8311704bc11f2434f230bdec28/spring-context-3.1.0.RELEASE.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-13/filestore/org.springframework/spring-context/3.1.0.RELEASE/source/b5b20b5c755ad748b607807a6f0e3e3479cdfe1d/spring-context-3.1.0.RELEASE-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-context/3.1.0.RELEASE/source/b5b20b5c755ad748b607807a6f0e3e3479cdfe1d/spring-context-3.1.0.RELEASE-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
