@@ -1,3 +1,4 @@
 /elasticspring-context/target/
-target/
 /gradle
+/.gradle/
+build/
