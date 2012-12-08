@@ -22,6 +22,7 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 import org.elasticspring.messaging.core.MessageOperations;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,7 @@ public class SendMessageTest {
 	@Value("${secretKey}")
 	private String secretKey;
 
-//	@Before
+	@Before
 	public void deleteQueue() {
 		AmazonSQSClient amazonSQSClient = new AmazonSQSClient(new BasicAWSCredentials(this.accessKey, this.secretKey));
 		amazonSQSClient.deleteQueue(new DeleteQueueRequest(amazonSQSClient.createQueue(new CreateQueueRequest("testQueue")).getQueueUrl()));
@@ -76,7 +77,6 @@ public class SendMessageTest {
 		Thread.sleep(5000);
 		String receivedMessage = (String) this.stringMessageOperations.receiveAndConvert();
 		Assert.assertEquals(messageContent, receivedMessage);
-
 	}
 
 	@Test

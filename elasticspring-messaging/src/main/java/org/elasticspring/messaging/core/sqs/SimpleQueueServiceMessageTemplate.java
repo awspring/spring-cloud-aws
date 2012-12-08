@@ -46,7 +46,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 	public SimpleQueueServiceMessageTemplate(String accessKey, String secretKey, String defaultDestination) {
 		this.amazonSQS = new AmazonSQSClient(new BasicAWSCredentials(accessKey, secretKey));
 		this.defaultDestination = defaultDestination;
-		this.destinationResolver = new CachingDestinationResolver(new DynamicDestinationResolver(this.amazonSQS));
+		this.destinationResolver = new CachingDestinationResolver(new DynamicDestinationResolver(this.getQueueingService()));
 	}
 
 	public void convertAndSend(Object payLoad) {
