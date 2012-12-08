@@ -1,2 +1,3 @@
 /elasticspring-context/target/
-/target/
+target/
+/gradle

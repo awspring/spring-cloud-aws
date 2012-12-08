@@ -12,10 +12,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="slf4j-api-1.6.1" level="project" />
-    <orderEntry type="library" exported="" name="logback-classic-0.9.27" level="project" />
-    <orderEntry type="library" exported="" name="jcl-over-slf4j-1.6.1" level="project" />
-    <orderEntry type="library" exported="" name="logback-core-0.9.27" level="project" />
   </component>
 </module>
 

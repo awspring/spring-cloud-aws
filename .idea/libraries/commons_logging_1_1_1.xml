@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="commons-logging-1.1.1">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-13/filestore/commons-logging/commons-logging/1.1.1/jar/5043bfebc3db072ed80fbd362e7caf00e885d8ae/commons-logging-1.1.1.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/commons-logging/commons-logging/1.1.1/jar/5043bfebc3db072ed80fbd362e7caf00e885d8ae/commons-logging-1.1.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-13/filestore/commons-logging/commons-logging/1.1.1/source/f3f156cbff0e0fb0d64bfce31a352cce4a33bc19/commons-logging-1.1.1-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/commons-logging/commons-logging/1.1.1/source/f3f156cbff0e0fb0d64bfce31a352cce4a33bc19/commons-logging-1.1.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

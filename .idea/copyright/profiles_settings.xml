@@ -1,7 +1,5 @@
 <component name="CopyrightManager">
-  <settings default="elasticspring">
-    <module2copyright>
-      <element module="All" copyright="elasticspring" />
-    </module2copyright>
+  <settings default="">
+    <module2copyright />
   </settings>
 </component>

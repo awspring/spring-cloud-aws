@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="httpclient-4.2.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.apache.httpcomponents/httpclient/4.2.2/jar/ee8dfd1a0efa78a07222eda60b8892972fbb6165/httpclient-4.2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.apache.httpcomponents/httpclient/4.2.2/source/4604e80925edff4b1897380899732d45ff1bc5a8/httpclient-4.2.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
