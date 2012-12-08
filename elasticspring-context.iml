@@ -4,8 +4,8 @@
     <facet type="Spring" name="Spring">
       <configuration>
         <fileset id="fileset1" name="Xml Application Context" removed="false">
-          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/core/io/ResourceLoaderAwsTest-context.xml</file>
           <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/mail/MailSenderAwsTest-context.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/support/io/ResourceLoaderAwsTest-context.xml</file>
         </fileset>
       </configuration>
     </facet>
