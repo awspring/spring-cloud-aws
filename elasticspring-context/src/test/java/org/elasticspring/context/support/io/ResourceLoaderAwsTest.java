@@ -23,11 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.WritableResource;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  *
@@ -63,5 +65,20 @@ public class ResourceLoaderAwsTest {
 		Assert.assertNotNull(inputStream);
 		Assert.assertTrue(inputStream.available() > 0);
 		inputStream.close();
+	}
+
+	@Test
+	@IfProfileValue(name = "test-groups", value = "aws-test")
+	public void testWriteFile() throws Exception {
+		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/writefoo");
+		Assert.assertTrue(WritableResource.class.isInstance(resource));
+		WritableResource writableResource = (WritableResource) resource;
+		OutputStream outputStream = writableResource.getOutputStream();
+		for (int i = 0; i < 6; i++) {
+			for (int j = 0; j < (1024 * 1024); j++) {
+				outputStream.write("c".getBytes("UTF-8"));
+			}
+		}
+		outputStream.close();
 	}
 }
