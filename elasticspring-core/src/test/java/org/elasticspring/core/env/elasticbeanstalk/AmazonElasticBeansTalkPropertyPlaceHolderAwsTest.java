@@ -1,17 +1,19 @@
 /*
- * Copyright [2011] [Agim Emruli]
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2010-2012 the original author or authors.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.elasticspring.core.env.elasticbeanstalk;
@@ -25,7 +27,19 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
-import com.amazonaws.services.elasticbeanstalk.model.*;
+import com.amazonaws.services.elasticbeanstalk.model.CheckDNSAvailabilityRequest;
+import com.amazonaws.services.elasticbeanstalk.model.CheckDNSAvailabilityResult;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsResult;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
+import com.amazonaws.services.elasticbeanstalk.model.ListAvailableSolutionStacksResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -61,7 +75,7 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 
 
 	@Test
-	@IfProfileValue(name= "test-groups", value = "aws-test")
+	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testCreate() throws Exception {
 		AWSElasticBeanstalk awsElasticBeanstalk = new AWSElasticBeanstalkClient(new PropertiesCredentials(new ClassPathResource("access.properties").getInputStream()));
 		CheckDNSAvailabilityResult checkDNSAvailabilityResult = awsElasticBeanstalk.checkDNSAvailability(new CheckDNSAvailabilityRequest("greenhouse"));
@@ -93,7 +107,7 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 		DescribeConfigurationSettingsResult describeConfigurationSettingsResult = awsElasticBeanstalk.describeConfigurationSettings(new DescribeConfigurationSettingsRequest().withApplicationName("greenhouse").withTemplateName("greenhouse"));
 		for (ConfigurationSettingsDescription description : describeConfigurationSettingsResult.getConfigurationSettings()) {
 			System.out.println("description = " + description);
-			Collections.sort(description.getOptionSettings(),new Comparator<ConfigurationOptionSetting>() {
+			Collections.sort(description.getOptionSettings(), new Comparator<ConfigurationOptionSetting>() {
 
 				public int compare(ConfigurationOptionSetting o, ConfigurationOptionSetting o1) {
 					return o.getNamespace().compareTo(o1.getNamespace());
@@ -102,7 +116,7 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 
 			for (ConfigurationOptionSetting setting : description.getOptionSettings()) {
 //				if(setting.getOptionName().equals("PARAM1")){
-					System.out.println("setting = " + setting);
+				System.out.println("setting = " + setting);
 //				}
 			}
 		}

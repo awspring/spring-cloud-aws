@@ -1,17 +1,19 @@
 /*
- * Copyright [2011] [Agim Emruli]
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2010-2012 the original author or authors.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.elasticspring.mail.simplemail;
@@ -38,7 +40,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendSimpleMailWithMinimalProperties() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access","secret",emailService);
+		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 
@@ -59,7 +61,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendSimpleMailWithCCandBCC() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access","secret",emailService);
+		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 		simpleMailMessage.setBcc("bcc@domain.com");
@@ -82,7 +84,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendMultipleMails() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access","secret",emailService);
+		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
 
 		mailSender.send(new SimpleMailMessage[]{createSimpleMailMessage(), createSimpleMailMessage()});
 		Mockito.verify(emailService, Mockito.times(2)).sendEmail(Matchers.any(SendEmailRequest.class));
@@ -91,16 +93,16 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access","secret",emailService);
+		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
 
 		SimpleMailMessage firstMessage = createSimpleMailMessage();
 		firstMessage.setBcc("bcc@domain.com");
 
 		SimpleMailMessage failureMail = createSimpleMailMessage();
 		Mockito.when(emailService.sendEmail(Matchers.isA(SendEmailRequest.class))).
-		thenReturn(new SendEmailResult()).
-		thenThrow(new AmazonClientException("error")).
-		thenReturn(new SendEmailResult());
+				thenReturn(new SendEmailResult()).
+				thenThrow(new AmazonClientException("error")).
+				thenReturn(new SendEmailResult());
 
 		SimpleMailMessage thirdMessage = createSimpleMailMessage();
 
@@ -116,7 +118,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testShutDownOfResources() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access","secret",emailService);
+		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
 
 		mailSender.destroy();
 		Mockito.verify(emailService, Mockito.times(1)).shutdown();

@@ -1,17 +1,19 @@
 /*
- * Copyright [2011] [Agim Emruli]
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2010-2012 the original author or authors.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.elasticspring.core.io.s3;
@@ -91,7 +93,7 @@ public class SimpleStorageResourceLoaderTest {
 
 		assertNotNull(resourceLoader.getResource("s3://prefix.bucket/object.suffix"));
 
-		verify(amazonS3,times(2)).getObjectMetadata("bucket", "object");
+		verify(amazonS3, times(2)).getObjectMetadata("bucket", "object");
 	}
 
 
@@ -121,20 +123,20 @@ public class SimpleStorageResourceLoaderTest {
 		}
 
 
-		verify(amazonS3,times(0)).getObjectMetadata("bucket", "object");
+		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}
 
 	@Test
 	public void testWithCustomClassLoader() throws Exception {
 		ClassLoader classLoader = mock(ClassLoader.class);
-		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader("access","secret",classLoader);
-		assertSame(classLoader,simpleStorageResourceLoader.getClassLoader());
+		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader("access", "secret", classLoader);
+		assertSame(classLoader, simpleStorageResourceLoader.getClassLoader());
 	}
 
 	@Test
 	public void testWithDefaultClassLoader() throws Exception {
-		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader("access","secret");
-		assertSame(SimpleStorageResourceLoader.class.getClassLoader(),simpleStorageResourceLoader.getClassLoader());
+		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader("access", "secret");
+		assertSame(SimpleStorageResourceLoader.class.getClassLoader(), simpleStorageResourceLoader.getClassLoader());
 	}
 
 	private SimpleStorageResourceLoader getResourceLoader(String accessKey, String secretKey, final AmazonS3 amazonS3) {

@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright [2011] [Agim Emruli]
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~       http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ /*
+  ~  * Copyright 2010-2012 the original author or authors.
+  ~  *
+  ~  * Licensed under the Apache License, Version 2.0 (the "License");
+  ~  * you may not use this file except in compliance with the License.
+  ~  * You may obtain a copy of the License at
+  ~  *
+  ~  *      http://www.apache.org/licenses/LICENSE-2.0
+  ~  *
+  ~  * Unless required by applicable law or agreed to in writing, software
+  ~  * distributed under the License is distributed on an "AS IS" BASIS,
+  ~  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  * See the License for the specific language governing permissions and
+  ~  * limitations under the License.
+  ~  */
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -22,40 +24,40 @@
 
 
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
-		<constructor-arg value="${accessKey}"/>
-		<constructor-arg value="${secretKey}"/>
+		<constructor-arg value="${accessKey}" />
+		<constructor-arg value="${secretKey}" />
 		<constructor-arg value="testQueue" />
 	</bean>
 
 	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
-		<constructor-arg value="${accessKey}"/>
-		<constructor-arg value="${secretKey}"/>
+		<constructor-arg value="${accessKey}" />
+		<constructor-arg value="${secretKey}" />
 		<constructor-arg value="testQueue" />
 		<property name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter"/>
+			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 		</property>
 	</bean>
 
 	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
-		<constructor-arg value="${accessKey}"/>
-		<constructor-arg value="${secretKey}"/>
+		<constructor-arg value="${accessKey}" />
+		<constructor-arg value="${secretKey}" />
 		<constructor-arg value="testQueue" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">
-				<constructor-arg name="marshaller" ref="marshaller"/>
-				<constructor-arg name="unmarshaller" ref="marshaller"/>
-				<constructor-arg name="encoding" value="UTF-8"/>
+				<constructor-arg name="marshaller" ref="marshaller" />
+				<constructor-arg name="unmarshaller" ref="marshaller" />
+				<constructor-arg name="encoding" value="UTF-8" />
 			</bean>
 		</property>
 	</bean>
 
 	<bean id="marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
-		<property name="mode" value="#{T(com.thoughtworks.xstream.XStream).NO_REFERENCES}"/>
+		<property name="mode" value="#{T(com.thoughtworks.xstream.XStream).NO_REFERENCES}" />
 		<property name="streamDriver">
-			<bean class="com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver"/>
+			<bean class="com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver" />
 		</property>
 	</bean>
 
-	<context:property-placeholder location="access.properties"/>
+	<context:property-placeholder location="access.properties" />
 
 </beans>

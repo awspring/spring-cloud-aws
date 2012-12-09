@@ -1,17 +1,19 @@
 /*
- * Copyright [2011] [Agim Emruli]
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2010-2012 the original author or authors.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.elasticspring.jdbc.rds;
@@ -161,14 +163,14 @@ public class CommonsDbcpDataSourceFactory implements DataSourceFactory, BeanClas
 		return applyDataSourceProperties(basicDataSource);
 	}
 
-	public DataSource applyDataSourceProperties(BasicDataSource dataSource){
-		if(this.defaultAutoCommit != null){
+	public DataSource applyDataSourceProperties(BasicDataSource dataSource) {
+		if (this.defaultAutoCommit != null) {
 			dataSource.setDefaultAutoCommit(this.defaultAutoCommit);
 		}
-		if(this.defaultReadOnly != null){
+		if (this.defaultReadOnly != null) {
 			dataSource.setDefaultReadOnly(this.defaultReadOnly);
 		}
-		if(this.defaultTransactionIsolation != null){
+		if (this.defaultTransactionIsolation != null) {
 			dataSource.setDefaultTransactionIsolation(this.defaultTransactionIsolation);
 		}
 		if (this.defaultCatalog != null) {
@@ -227,7 +229,7 @@ public class CommonsDbcpDataSourceFactory implements DataSourceFactory, BeanClas
 		}
 		if (this.connectionProperties != null) {
 			for (String propertyName : this.connectionProperties.stringPropertyNames()) {
-				dataSource.addConnectionProperty(propertyName,this.connectionProperties.getProperty(propertyName));
+				dataSource.addConnectionProperty(propertyName, this.connectionProperties.getProperty(propertyName));
 			}
 		}
 
@@ -235,7 +237,7 @@ public class CommonsDbcpDataSourceFactory implements DataSourceFactory, BeanClas
 	}
 
 	public void closeDataSource(DataSource dataSource) {
-		if(dataSource instanceof BasicDataSource){
+		if (dataSource instanceof BasicDataSource) {
 			try {
 				((BasicDataSource) dataSource).close();
 			} catch (SQLException e) {
