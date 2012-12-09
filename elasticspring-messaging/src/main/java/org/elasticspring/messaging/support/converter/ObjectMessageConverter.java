@@ -52,6 +52,7 @@ public class ObjectMessageConverter implements MessageConverter {
 		this.encoding = Charset.forName(DEFAULT_ENCODING);
 	}
 
+	@Override
 	public Message<String> toMessage(Object payload) {
 		if (!(payload instanceof Serializable)) {
 			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
@@ -82,6 +83,7 @@ public class ObjectMessageConverter implements MessageConverter {
 
 	}
 
+	@Override
 	public Serializable fromMessage(Message<String> message) {
 		String messagePayload = message.getPayload();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);

@@ -51,10 +51,12 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 		this.destinationResolver = new CachingDestinationResolver(new DynamicDestinationResolver(this.getQueueingService()));
 	}
 
+	@Override
 	public void convertAndSend(Object payLoad) {
 		this.convertAndSend(this.defaultDestination, payLoad);
 	}
 
+	@Override
 	public void convertAndSend(String destinationName, Object payLoad) {
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		org.elasticspring.messaging.core.Message<String> message = this.getMessageConverter().toMessage(payLoad);
@@ -62,10 +64,12 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 		this.getQueueingService().sendMessage(request);
 	}
 
+	@Override
 	public Object receiveAndConvert() {
 		return this.receiveAndConvert(this.defaultDestination);
 	}
 
+	@Override
 	public Object receiveAndConvert(String destinationName) {
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withMaxNumberOfMessages(1);
@@ -97,6 +101,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 		this.messageConverter = messageConverter;
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		this.getQueueingService().shutdown();
 	}

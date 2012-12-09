@@ -51,7 +51,7 @@ public class SimpleStorageResourceLoaderTest {
 		ObjectMetadata metadata = new ObjectMetadata();
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
 
-		@SuppressWarnings({"HardcodedFileSeparator"})
+		@SuppressWarnings("HardcodedFileSeparator")
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
@@ -70,7 +70,7 @@ public class SimpleStorageResourceLoaderTest {
 
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
 
-		@SuppressWarnings({"HardcodedFileSeparator"})
+		@SuppressWarnings("HardcodedFileSeparator")
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);

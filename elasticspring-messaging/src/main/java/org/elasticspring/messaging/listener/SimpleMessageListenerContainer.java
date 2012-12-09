@@ -70,6 +70,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private class AsyncMessageListener implements Runnable {
 
+		@Override
 		public void run() {
 			while (isRunning()) {
 				synchronized (SimpleMessageListenerContainer.this.getLifecycleMonitor()) {
@@ -90,6 +91,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			this.message = message;
 		}
 
+		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			executeMessage(new StringMessage(receiptHandle, this.message.getAttributes()));

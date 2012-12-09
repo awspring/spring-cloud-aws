@@ -49,6 +49,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 		this.delegate = new DefaultResourceLoader();
 	}
 
+	@Override
 	public Resource getResource(String location) {
 		if (location.startsWith(S3_PROTOCOL_PREFIX)) {
 			Matcher matcher = S3_LOCATION_PATTERN.matcher(location);
@@ -62,6 +63,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 		return this.delegate.getResource(location);
 	}
 
+	@Override
 	public ClassLoader getClassLoader() {
 		return this.delegate.getClassLoader();
 	}

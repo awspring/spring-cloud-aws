@@ -51,6 +51,7 @@ public class MarshallingMessageConverter implements MessageConverter {
 		this.encoding = Charset.forName(encoding).name();
 	}
 
+	@Override
 	public Message<String> toMessage(Object payload) {
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		StreamResult streamResult = new StreamResult(byteArrayOutputStream);
@@ -63,6 +64,7 @@ public class MarshallingMessageConverter implements MessageConverter {
 		}
 	}
 
+	@Override
 	public Object fromMessage(Message<String> message) {
 		try {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(message.getPayload().getBytes(this.encoding));

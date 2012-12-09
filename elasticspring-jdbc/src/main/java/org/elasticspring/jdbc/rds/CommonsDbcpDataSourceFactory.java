@@ -148,10 +148,12 @@ public class CommonsDbcpDataSourceFactory implements DataSourceFactory, BeanClas
 		this.validationQueryTimeout = validationQueryTimeout;
 	}
 
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
 
+	@Override
 	@SuppressWarnings("HardcodedFileSeparator")
 	public DataSource createDataSource(String dataSourceClass, String hostName, Integer port, String databaseName, String userName, String password) {
 		BasicDataSource basicDataSource = new BasicDataSource();
@@ -236,6 +238,7 @@ public class CommonsDbcpDataSourceFactory implements DataSourceFactory, BeanClas
 		return dataSource;
 	}
 
+	@Override
 	public void closeDataSource(DataSource dataSource) {
 		if (dataSource instanceof BasicDataSource) {
 			try {

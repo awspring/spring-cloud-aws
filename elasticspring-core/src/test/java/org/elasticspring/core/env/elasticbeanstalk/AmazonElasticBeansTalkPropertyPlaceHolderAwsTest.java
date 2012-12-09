@@ -109,6 +109,7 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 			System.out.println("description = " + description);
 			Collections.sort(description.getOptionSettings(), new Comparator<ConfigurationOptionSetting>() {
 
+				@Override
 				public int compare(ConfigurationOptionSetting o, ConfigurationOptionSetting o1) {
 					return o.getNamespace().compareTo(o1.getNamespace());
 				}

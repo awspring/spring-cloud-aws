@@ -95,11 +95,8 @@ public class MarshallingMessageConverterTest {
 			if (this.firstName != null ? !this.firstName.equals(that.firstName) : that.firstName != null) {
 				return false;
 			}
-			if (this.lastName != null ? !this.lastName.equals(that.lastName) : that.lastName != null) {
-				return false;
-			}
+			return !(this.lastName != null ? !this.lastName.equals(that.lastName) : that.lastName != null);
 
-			return true;
 		}
 
 		@Override

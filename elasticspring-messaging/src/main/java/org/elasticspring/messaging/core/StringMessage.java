@@ -39,10 +39,12 @@ public class StringMessage implements Message<String> {
 		this.attributes = attributes;
 	}
 
+	@Override
 	public Map<String, String> getAttributes() {
 		return new HashMap<String, String>(this.attributes);
 	}
 
+	@Override
 	public String getPayload() {
 		return this.payload;
 	}
@@ -50,7 +52,7 @@ public class StringMessage implements Message<String> {
 	@SuppressWarnings("MagicCharacter")
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		sb.append("StringMessage");
 		sb.append("{payload='").append(this.payload).append('\'');
 		sb.append(", attributes=").append(this.attributes);

@@ -33,6 +33,7 @@ public class CachingDestinationResolver implements DestinationResolver {
 	}
 
 
+	@Override
 	public String resolveDestinationName(String destination) {
 		if (this.destinationCache.contains(destination)) {
 			return this.destinationCache.get(destination);

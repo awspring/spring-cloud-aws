@@ -26,6 +26,7 @@ import org.elasticspring.messaging.core.StringMessage;
  */
 public class StringMessageConverter implements MessageConverter {
 
+	@Override
 	public Message<String> toMessage(Object payload) {
 		if (!(payload instanceof String)) {
 			throw new IllegalArgumentException("Can't convert payload to message. Only String payload can be converted");
@@ -33,6 +34,7 @@ public class StringMessageConverter implements MessageConverter {
 		return new StringMessage((String) payload);
 	}
 
+	@Override
 	public String fromMessage(Message<String> message) {
 		return message.getPayload();
 	}

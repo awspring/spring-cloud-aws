@@ -32,7 +32,7 @@ abstract class AbstractAmazonEC2PropertySource extends PropertySource<AmazonEC2>
 	private InstanceIdProvider instanceIdProvider;
 	private volatile Map<String, String> propertyValues;
 
-	public AbstractAmazonEC2PropertySource(String name, AmazonEC2 amazonEC2Client) {
+	AbstractAmazonEC2PropertySource(String name, AmazonEC2 amazonEC2Client) {
 		super(name, amazonEC2Client);
 		this.instanceIdProvider = new AmazonEC2InstanceIdProvider();
 	}

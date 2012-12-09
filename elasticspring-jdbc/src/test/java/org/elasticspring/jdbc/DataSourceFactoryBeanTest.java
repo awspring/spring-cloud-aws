@@ -73,6 +73,7 @@ public class DataSourceFactoryBeanTest {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		jdbcTemplate.query("SELECT 1", new RowMapper<Object>() {
 
+			@Override
 			public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return null;
 			}
@@ -121,6 +122,7 @@ public class DataSourceFactoryBeanTest {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		jdbcTemplate.query("SELECT 1", new RowMapper<Object>() {
 
+			@Override
 			public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return null;
 			}

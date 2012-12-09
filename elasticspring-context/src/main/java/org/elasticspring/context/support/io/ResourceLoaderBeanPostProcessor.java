@@ -1,17 +1,19 @@
 /*
- * Copyright [2011] [Agim Emruli]
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2010-2012 the original author or authors.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.elasticspring.context.support.io;
@@ -46,10 +48,12 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 		this.resourceLoader = resourceLoader;
 	}
 
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = decorateApplicationContext(applicationContext);
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof ResourceLoaderAware) {
 			((ResourceLoaderAware) bean).setResourceLoader(this.resourceLoader);
@@ -61,6 +65,7 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 		return bean;
 	}
 
+	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
@@ -76,6 +81,7 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 		}
 	}
 
+	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this.applicationContext);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this.applicationContext);
@@ -88,11 +94,12 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 		private final ResourceLoader resourceLoader;
 		private final ApplicationContext delegate;
 
-		public ResourceLoaderInvocationHandler(ResourceLoader resourceLoader, ApplicationContext delegate) {
+		private ResourceLoaderInvocationHandler(ResourceLoader resourceLoader, ApplicationContext delegate) {
 			this.resourceLoader = resourceLoader;
 			this.delegate = delegate;
 		}
 
+		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			if (method.getDeclaringClass() == ResourceLoader.class) {
 				return ReflectionUtils.invokeMethod(method, this.resourceLoader, args);

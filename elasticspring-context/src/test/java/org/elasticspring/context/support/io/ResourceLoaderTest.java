@@ -229,7 +229,7 @@ public class ResourceLoaderTest {
 		private final ApplicationContext applicationContext;
 
 		@Autowired
-		public ConstructorInjectionTarget(ResourceLoader resourceLoader, ApplicationContext applicationContext) {
+		private ConstructorInjectionTarget(ResourceLoader resourceLoader, ApplicationContext applicationContext) {
 			this.resourceLoader = resourceLoader;
 			this.applicationContext = applicationContext;
 		}
@@ -248,6 +248,7 @@ public class ResourceLoaderTest {
 
 		private ResourceLoader resourceLoader;
 
+		@Override
 		public void setResourceLoader(ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
 		}
@@ -261,6 +262,7 @@ public class ResourceLoaderTest {
 
 		private ApplicationContext applicationContext;
 
+		@Override
 		public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 			this.applicationContext = applicationContext;
 		}
