@@ -127,7 +127,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	private class DecoratingOutputStream extends OutputStream {
 
 		/*
-			The minimum size for an multi part is 5 MB, hence the buffer size of 5 MB
+			The minimum size for a multi part is 5 MB, hence the buffer size of 5 MB
 		 */
 		private static final int BUFFER_SIZE = 1024 * 1024 * 5;
 
@@ -155,7 +155,6 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 							withKey(this.initiateMultipartUploadResult.getKey()).
 							withUploadId(this.initiateMultipartUploadResult.getUploadId()).
 							withInputStream(new ByteArrayInputStream(this.outputStream.toByteArray())).
-							withPartSize(this.outputStream.size()).
 							withPartNumber(this.partNumber).
 							withPartSize(this.outputStream.size()));
 					this.eTags.add(uploadPartResult.getPartETag());
