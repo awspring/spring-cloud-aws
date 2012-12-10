@@ -19,6 +19,9 @@
 configure(allprojects) {
     apply plugin: 'maven'
     apply plugin: 'java'
+    tasks.withType(Compile) {
+        options.encoding = 'UTF-8'
+    }
 
     group = 'org.elasticspring'
     version = '0.1'
