@@ -1,4 +1,9 @@
-/elasticspring-context/target/
-/gradle
-/.gradle/
+# Ignore folders
+target/
 build/
+/gradle
+/.gradle
+
+# Ignore files
+access.properties
+mail.properties
