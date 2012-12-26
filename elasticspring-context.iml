@@ -26,20 +26,20 @@
     <orderEntry type="library" exported="" name="spring-beans-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-asm-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-expression-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="mockito-all-1.8.5" level="project" />
     <orderEntry type="library" exported="" name="commons-logging-1.1.1" level="project" />
-    <orderEntry type="library" exported="" name="jcl-over-slf4j-1.6.1" level="project" />
     <orderEntry type="library" exported="" name="spring-aop-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-context-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" exported="" name="logback-classic-0.9.27" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit-4.8.2" level="project" />
     <orderEntry type="library" exported="" name="spring-core-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="mailapi-1.4.3" level="project" />
     <orderEntry type="library" scope="TEST" name="spring-test-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" exported="" name="logback-core-0.9.27" level="project" />
-    <orderEntry type="library" exported="" name="slf4j-api-1.6.1" level="project" />
     <orderEntry type="library" exported="" name="spring-context-support-3.1.0.RELEASE" level="project" />
     <orderEntry type="module" module-name="elasticspring-core" exported="" />
+    <orderEntry type="library" scope="TEST" name="mockito-all-1.9.5" level="project" />
+    <orderEntry type="library" exported="" name="slf4j-api-1.7.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="junit-4.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="hamcrest-core-1.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="slf4j-jcl-1.7.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="log4j-1.2.17" level="project" />
   </component>
 </module>
 
