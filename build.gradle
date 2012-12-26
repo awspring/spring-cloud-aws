@@ -85,12 +85,12 @@ project('elasticspring-core') {
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
         compile("org.springframework:spring-beans:${springFrameworkVersion}")
+        compile("org.springframework:spring-context:${springFrameworkVersion}")
         compile("com.amazonaws:aws-java-sdk:1.3.26") {
             exclude module: "stax-api"
             exclude module: "activation"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
-        testCompile("org.springframework:spring-context:${springFrameworkVersion}")
     }
 }
 
