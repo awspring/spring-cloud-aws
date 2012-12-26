@@ -1,4 +1,4 @@
-/*
+ /*
  *
  *  * Copyright 2010-2012 the original author or authors.
  *  *
@@ -19,6 +19,7 @@
 package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
@@ -29,6 +30,8 @@ import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,23 +41,54 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
  */
 public class SimpleStorageResource extends AbstractResource implements WritableResource {
 
+	private static final int DEFAULT_CORE_POOL_SIZE = 10;
+	private static final int DEFAULT_QUEUE_SIZE = 10;
+	public static final String THREAD_NAME_PREFIX = "s3UploadThread";
+
 	private final String bucketName;
 	private final String objectName;
 	private final AmazonS3 amazonS3;
+	private final AsyncTaskExecutor taskExecutor;
+
 	private ObjectMetadata objectMetadata;
 
 	public SimpleStorageResource(String bucketName, String objectName, AmazonS3 amazonS3) {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.amazonS3 = amazonS3;
+
+		initAmazonS3();
+		this.taskExecutor = getDefaultTaskExecutor();
+	}
+
+	private AsyncTaskExecutor getDefaultTaskExecutor() {
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(DEFAULT_CORE_POOL_SIZE);
+		threadPoolTaskExecutor.setMaxPoolSize(DEFAULT_CORE_POOL_SIZE);
+		threadPoolTaskExecutor.setQueueCapacity(DEFAULT_QUEUE_SIZE);
+		threadPoolTaskExecutor.setThreadNamePrefix(THREAD_NAME_PREFIX);
+		threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		threadPoolTaskExecutor.initialize();
+		return threadPoolTaskExecutor;
+	}
+
+	private void initAmazonS3() {
+		// TODO find a cleaner way to set the endpoint
+		this.amazonS3.setEndpoint("s3-" + this.amazonS3.getBucketLocation(bucketName) + ".amazonaws.com");
+
 		try {
-			this.objectMetadata = amazonS3.getObjectMetadata(bucketName, objectName);
+			this.objectMetadata = this.amazonS3.getObjectMetadata(bucketName, objectName);
 		} catch (AmazonS3Exception e) {
 			if (e.getStatusCode() == 404) {
 				this.objectMetadata = null;
@@ -131,63 +165,148 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		 */
 		private static final int BUFFER_SIZE = 1024 * 1024 * 5;
 
-		private final Object monitor = new Object();
+		private ByteArrayOutputStream currentOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 
-		private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(BUFFER_SIZE);
+		private Object multiPartUploadResultMonitor = new Object();
+		private Object writeCloseOutputStreamMonitor = new Object();
+
 		private final List<PartETag> eTags = new ArrayList<PartETag>();
-		private InitiateMultipartUploadResult initiateMultipartUploadResult;
+		private final List<Future<Void>> multiPartUploadFutures = new ArrayList<Future<Void>>();
+		private volatile InitiateMultipartUploadResult multiPartUploadResult;
 
-		private int partNumber = 1;
+		private AtomicInteger partNumberCounter = new AtomicInteger(1);
 
 		private DecoratingOutputStream() {
 		}
 
 		@Override
 		public void write(int b) throws IOException {
-			synchronized (this.monitor) {
-				if (this.outputStream.size() == BUFFER_SIZE) {
-					if (this.initiateMultipartUploadResult == null) {
-						this.initiateMultipartUploadResult = SimpleStorageResource.this.amazonS3.initiateMultipartUpload(
-								new InitiateMultipartUploadRequest(SimpleStorageResource.this.bucketName, SimpleStorageResource.this.objectName));
-					}
+			synchronized (this.writeCloseOutputStreamMonitor) {
+				if (this.currentOutputStream.size() == BUFFER_SIZE) {
+					verifyThatMultiPartUploadResultIsSet();
+					Future<Void> future = SimpleStorageResource.this.taskExecutor.submit(
+							uploadMultiPart(DecoratingOutputStream.this.currentOutputStream, DecoratingOutputStream.this.partNumberCounter.getAndIncrement()));
+					addMultiPartUploadFuture(future);
 
-					UploadPartResult uploadPartResult = SimpleStorageResource.this.amazonS3.uploadPart(new UploadPartRequest().withBucketName(this.initiateMultipartUploadResult.getBucketName()).
-							withKey(this.initiateMultipartUploadResult.getKey()).
-							withUploadId(this.initiateMultipartUploadResult.getUploadId()).
-							withInputStream(new ByteArrayInputStream(this.outputStream.toByteArray())).
-							withPartNumber(this.partNumber).
-							withPartSize(this.outputStream.size()));
-					this.eTags.add(uploadPartResult.getPartETag());
-					this.partNumber++;
-					this.outputStream.reset();
+					this.currentOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 				}
-				this.outputStream.write(b);
+				this.currentOutputStream.write(b);
 			}
+		}
+
+		private Callable<Void> uploadMultiPart(final ByteArrayOutputStream outputStream, final int partNumber) throws IOException {
+			return new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					UploadPartResult uploadPartResult = SimpleStorageResource.this.amazonS3.uploadPart(new UploadPartRequest().withBucketName(DecoratingOutputStream.this.multiPartUploadResult.getBucketName()).
+							withKey(DecoratingOutputStream.this.multiPartUploadResult.getKey()).
+							withUploadId(DecoratingOutputStream.this.multiPartUploadResult.getUploadId()).
+							withInputStream(new ByteArrayInputStream(outputStream.toByteArray())).
+							withPartNumber(partNumber).
+							withPartSize(outputStream.size()));
+					addETags(uploadPartResult);
+
+					outputStream.close();
+					return null;
+				}
+			};
+		}
+
+		private Callable<Void> uploadLastMultiPart(final ByteArrayOutputStream outputStream, final int partNumber) throws IOException {
+			final Callable<Void> callable = new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					UploadPartResult uploadPartResult = SimpleStorageResource.this.amazonS3.uploadPart(
+							new UploadPartRequest().withBucketName(DecoratingOutputStream.this.multiPartUploadResult.getBucketName()).
+									withKey(DecoratingOutputStream.this.multiPartUploadResult.getKey()).
+									withUploadId(DecoratingOutputStream.this.multiPartUploadResult.getUploadId()).
+									withInputStream(new ByteArrayInputStream(outputStream.toByteArray())).
+									withLastPart(true).
+									withPartSize(outputStream.size()).
+									withPartNumber(partNumber));
+					addETags(uploadPartResult);
+
+					outputStream.close();
+					return null;
+				}
+			};
+			return callable;
 		}
 
 		@Override
 		public void close() throws IOException {
-			synchronized (this.monitor) {
-				if (this.initiateMultipartUploadResult != null) {
-					UploadPartResult uploadPartResult = SimpleStorageResource.this.amazonS3.uploadPart(new UploadPartRequest().withBucketName(this.initiateMultipartUploadResult.getBucketName()).
-							withKey(this.initiateMultipartUploadResult.getKey()).
-							withUploadId(this.initiateMultipartUploadResult.getUploadId()).
-							withInputStream(new ByteArrayInputStream(this.outputStream.toByteArray())).
-							withLastPart(true).
-							withPartSize(this.outputStream.size()).
-							withPartNumber(this.partNumber));
-					this.eTags.add(uploadPartResult.getPartETag());
-					SimpleStorageResource.this.amazonS3.completeMultipartUpload(new CompleteMultipartUploadRequest(this.initiateMultipartUploadResult.getBucketName(),
-							this.initiateMultipartUploadResult.getKey(), this.initiateMultipartUploadResult.getUploadId(), this.eTags));
-				} else {
+			if (this.multiPartUploadResult != null) {
+				closeMultiPartUpload();
+			} else {
+				closeSimpleUpload();
+			}
+		}
 
-					ObjectMetadata objectMetadata = new ObjectMetadata();
-					objectMetadata.setContentLength(this.outputStream.size());
+		private void closeSimpleUpload() throws IOException {
+			synchronized (this.writeCloseOutputStreamMonitor) {
+				ObjectMetadata objectMetadata = new ObjectMetadata();
+				objectMetadata.setContentLength(this.currentOutputStream.size());
 
-					SimpleStorageResource.this.amazonS3.putObject(SimpleStorageResource.this.bucketName, SimpleStorageResource.this.objectName,
-							new ByteArrayInputStream(this.outputStream.toByteArray()), objectMetadata);
+				SimpleStorageResource.this.amazonS3.putObject(SimpleStorageResource.this.bucketName, SimpleStorageResource.this.objectName,
+						new ByteArrayInputStream(this.currentOutputStream.toByteArray()), objectMetadata);
+				this.currentOutputStream.close();
+			}
+		}
+
+		private void closeMultiPartUpload() throws IOException {
+			synchronized (this.writeCloseOutputStreamMonitor) {
+				Future<Void> future = SimpleStorageResource.this.taskExecutor.submit(uploadLastMultiPart(this.currentOutputStream, this.partNumberCounter.get()));
+				addMultiPartUploadFuture(future);
+
+				try {
+					waitUntilAllMultiPartsAreUploaded();
+					SimpleStorageResource.this.amazonS3.completeMultipartUpload(new CompleteMultipartUploadRequest(this.multiPartUploadResult.getBucketName(),
+							this.multiPartUploadResult.getKey(), this.multiPartUploadResult.getUploadId(), this.eTags));
+				} catch (ExecutionException e) {
+					abortMultiPartUpload();
+					throw new IOException("Multi part upload failed ", e);
+				} catch (InterruptedException e) {
+					abortMultiPartUpload();
+					Thread.currentThread().interrupt();
 				}
-				this.outputStream.close();
+			}
+		}
+
+		private void addETags(UploadPartResult uploadPartResult) {
+			synchronized (this.eTags) {
+				this.eTags.add(uploadPartResult.getPartETag());
+			}
+		}
+
+		private void verifyThatMultiPartUploadResultIsSet() {
+			if (this.multiPartUploadResult == null) {
+				synchronized (this.multiPartUploadResultMonitor) {
+					if (this.multiPartUploadResult == null) {
+						this.multiPartUploadResult = SimpleStorageResource.this.amazonS3.initiateMultipartUpload(
+								new InitiateMultipartUploadRequest(SimpleStorageResource.this.bucketName, SimpleStorageResource.this.objectName));
+					}
+				}
+			}
+		}
+
+		private void addMultiPartUploadFuture(Future<Void> future) {
+			synchronized (this.multiPartUploadFutures) {
+				this.multiPartUploadFutures.add(future);
+			}
+		}
+
+		private void abortMultiPartUpload() {
+			SimpleStorageResource.this.amazonS3.abortMultipartUpload(new AbortMultipartUploadRequest(this.multiPartUploadResult.getBucketName(),
+					this.multiPartUploadResult.getKey(), this.multiPartUploadResult.getUploadId()));
+		}
+
+		private void waitUntilAllMultiPartsAreUploaded() throws ExecutionException, InterruptedException {
+			synchronized (this.multiPartUploadFutures) {
+				for (Future<Void> multiPartUploadFuture : this.multiPartUploadFutures) {
+					multiPartUploadFuture.get();
+				}
 			}
 		}
 	}

@@ -38,7 +38,6 @@ import java.io.OutputStream;
 @ContextConfiguration
 public class ResourceLoaderAwsTest {
 
-
 	@Autowired
 	private ApplicationContext applicationContext;
 

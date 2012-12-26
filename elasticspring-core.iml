@@ -13,12 +13,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="spring-test-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="spring-context-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="spring-aop-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="aopalliance-1.0" level="project" />
+    <orderEntry type="library" exported="" name="spring-context-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" exported="" name="spring-aop-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" exported="" name="aopalliance-1.0" level="project" />
     <orderEntry type="library" exported="" name="spring-beans-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="spring-expression-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" scope="TEST" name="commons-logging-1.1.1" level="project" />
+    <orderEntry type="library" exported="" name="spring-expression-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" exported="" name="commons-logging-1.1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="junit-4.8.2" level="project" />
     <orderEntry type="library" exported="" name="spring-asm-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="logback-core-0.9.27" level="project" />

@@ -91,9 +91,9 @@ project('elasticspring-core') {
             exclude module: 'stax-api'
             exclude module: 'activation'
         }
+        compile('org.springframework:spring-context:3.1.0.RELEASE')
         testCompile('junit:junit:4.8.2')
         testCompile('org.springframework:spring-test:3.1.0.RELEASE')
-        testCompile('org.springframework:spring-context:3.1.0.RELEASE')
         testCompile('org.mockito:mockito-all:1.8.5')
     }
 }
