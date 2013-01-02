@@ -41,13 +41,11 @@ configure(allprojects) {
     [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:none']
 
     test.systemProperty("java.awt.headless", "true")
+    test.jvmArgs System.getProperty("runAwsTest", '[]')
+    test.jvmArgs System.getProperty("testConfigDir", '[]')
 
     repositories {
         mavenCentral()
-    }
-
-    test{
-        outputs.upToDateWhen { false }
     }
 }
 
