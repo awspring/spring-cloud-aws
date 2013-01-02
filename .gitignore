@@ -2,6 +2,7 @@
 target/
 build/
 /.gradle
+/config
 
 # Ignore files
 access.properties

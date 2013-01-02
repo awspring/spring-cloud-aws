@@ -45,6 +45,10 @@ configure(allprojects) {
     repositories {
         mavenCentral()
     }
+
+    test{
+        outputs.upToDateWhen { false }
+    }
 }
 
 configure(subprojects) {
