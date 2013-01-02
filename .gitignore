@@ -1,7 +1,6 @@
 # Ignore folders
 target/
 build/
-/gradle
 /.gradle
 
 # Ignore files
