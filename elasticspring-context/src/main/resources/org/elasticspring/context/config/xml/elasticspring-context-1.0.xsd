@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright 2010-2012 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns="http://www.elasticspring.org/schema/context"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			targetNamespace="http://www.elasticspring.org/schema/context"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+				schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
+
+	<xsd:element name="context-credentials">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.jdbc.rds.config.xml.AmazonRdsDataSourceFactoryBean">
+				<![CDATA[
+	Creates the authentication configuration which will be used to authenticate the request made from this application context to the particular service.
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="com.amazonaws.auth.AWSCredentialsProvider" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:all>
+				<xsd:element name="simple-credentials" type="simpleCredentialsType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Simple credentials which can be used to configure the static credentials. This credentials
+							can be either hard-coded in the XML (not recommended), evaluated through an EL expression or
+							replaced by a property place holder variable.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="security-token-credentials" type="simpleCredentialsType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Security token credentials will be fetched during the runtime. The credentials configured
+							here are used to actually fetch the temporary credentials which will be used to actually
+							call the services. These "proxy" credentials must be valid and have the access-rights in
+							order to get the concrete credentials.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="instance-profile-credentials" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							This credentials will be fetched through the particular instance profile. So there is no
+							need to define any additional information. NOTE: In order to use the instance profile
+							credentials, the application context must run inside an EC2 instance.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:all>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="simpleCredentialsType">
+		<xsd:annotation>
+			<xsd:documentation>
+
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="access-Key" use="required" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The access key used to make the request. An access key is assigned to one account or IAM user.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="secret-Key" use="required" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The secret key which is assigned for the particular access key.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+</xsd:schema>
