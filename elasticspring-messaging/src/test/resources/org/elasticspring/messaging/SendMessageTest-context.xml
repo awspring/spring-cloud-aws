@@ -58,6 +58,6 @@
 		</property>
 	</bean>
 
-	<context:property-placeholder location="access.properties" />
+	<context:property-placeholder location="file://${els.test.config.dir}/access.properties" />
 
 </beans>

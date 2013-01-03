@@ -33,6 +33,6 @@
 
 	<context:annotation-config />
 
-	<context:property-placeholder location="classpath:access.properties" />
+	<context:property-placeholder location="file://${els.test.config.dir}/access.properties" />
 
 </beans>

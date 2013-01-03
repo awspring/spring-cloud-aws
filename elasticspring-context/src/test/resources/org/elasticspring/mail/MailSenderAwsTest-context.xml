@@ -29,8 +29,8 @@
 		<constructor-arg value="${secretKey}" />
 	</bean>
 
-	<context:property-placeholder location="classpath:access.properties" />
+	<context:property-placeholder location="file://${els.test.config.dir}/access.properties" />
 
-	<util:properties id="mail" location="mail.properties" />
+	<util:properties id="mail" location="file://${els.test.config.dir}/mail.properties" />
 
 </beans>
