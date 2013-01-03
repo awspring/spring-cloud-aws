@@ -26,13 +26,13 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,18 +65,19 @@ class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		}
 
 		List<Element> elements = DomUtils.getChildElements(element);
-		List<AWSCredentialsProvider> credentialsProviders = new ArrayList<AWSCredentialsProvider>(elements.size());
+		ManagedList<BeanDefinition> credentialsProviders = new ManagedList<BeanDefinition>(elements.size());
+
 		for (Element credentialsProviderElement : elements) {
-			if ("simple-credentials".equals(credentialsProviderElement.getNodeName())) {
-				credentialsProviders.add(new StaticCredentialsProvider(getCredentials(credentialsProviderElement, parserContext)));
+			if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(StaticCredentialsProvider.class, getCredentials(credentialsProviderElement, parserContext)));
 			}
 
-			if ("security-token-credentials".equals(credentialsProviderElement.getNodeName())) {
-				credentialsProviders.add(new STSSessionCredentialsProvider(getCredentials(credentialsProviderElement, parserContext)));
+			if ("security-token-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(STSSessionCredentialsProvider.class, getCredentials(credentialsProviderElement, parserContext)));
 			}
 
-			if ("simple-credentials".equals(credentialsProviderElement.getNodeName())) {
-				credentialsProviders.add(new InstanceProfileCredentialsProvider());
+			if ("instance-profile-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(InstanceProfileCredentialsProvider.class));
 			}
 		}
 
@@ -85,10 +86,21 @@ class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private static BasicAWSCredentials getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
-		String accessKey = getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext);
-		String secretKey = getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext);
-		return new BasicAWSCredentials(accessKey, secretKey);
+	private static BeanDefinition getCredentialsProvider(Class<? extends AWSCredentialsProvider> credentialsProviderClass, Object... constructorArg) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(credentialsProviderClass);
+		for (Object o : constructorArg) {
+			beanDefinitionBuilder.addConstructorArgValue(o);
+		}
+
+		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
+
+	private static AbstractBeanDefinition getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(BasicAWSCredentials.class);
+		builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
+		builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
+		return builder.getBeanDefinition();
 	}
 
 	/**
@@ -106,8 +118,8 @@ class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	 */
 	private static String getAttributeValue(String attribute, Element element, ParserContext parserContext) {
 		String attributeValue = element.getAttribute(attribute);
-		if (StringUtils.hasText(attributeValue)) {
-			parserContext.getReaderContext().error("The " + attribute + "attribute must not be empty", element);
+		if (!StringUtils.hasText(attributeValue)) {
+			parserContext.getReaderContext().error("The '" + attribute + "' attribute must not be empty", element);
 		}
 		return attributeValue;
 	}

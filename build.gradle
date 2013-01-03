@@ -21,11 +21,11 @@ configure(allprojects) {
     apply plugin: 'java'
 
     ext.springFrameworkVersion = "3.1.0.RELEASE"
-    ext.junitVersion    = '4.10'
-    ext.slf4jVersion    = '1.7.2'
-    ext.log4jVersion    = '1.2.17'
-    ext.awsSdkVersion   = '1.3.27'
-    ext.mockitoVersion  = '1.9.5'
+    ext.junitVersion = '4.10'
+    ext.slf4jVersion = '1.7.2'
+    ext.log4jVersion = '1.2.17'
+    ext.awsSdkVersion = '1.3.27'
+    ext.mockitoVersion = '1.9.5'
 
 
     tasks.withType(Compile) {
@@ -41,8 +41,10 @@ configure(allprojects) {
     [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:none']
 
     test.systemProperty("java.awt.headless", "true")
-    test.jvmArgs System.getProperty("runAwsTest", '[]')
-    test.jvmArgs System.getProperty("testConfigDir", '[]')
+    test.systemProperty("aws.accessKeyId", System.getProperty("aws.accessKeyId", null))
+    test.systemProperty("aws.secretKey", System.getProperty("aws.secretKey", null))
+    test.systemProperty("testConfigDir", System.getProperty("testConfigDir", null))
+    test.systemProperty("test-groups", System.getProperty("test-groups", null))
 
     repositories {
         mavenCentral()

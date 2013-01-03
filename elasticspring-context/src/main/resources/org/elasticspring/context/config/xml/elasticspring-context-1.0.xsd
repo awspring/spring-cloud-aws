@@ -73,24 +73,29 @@
 	</xsd:element>
 
 	<xsd:complexType name="simpleCredentialsType">
-		<xsd:annotation>
-			<xsd:documentation>
-
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:attribute name="access-Key" use="required" type="xsd:string">
+		<xsd:attribute name="access-Key" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
 					The access key used to make the request. An access key is assigned to one account or IAM user.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+				</xsd:restriction>
+			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="secret-Key" use="required" type="xsd:string">
+		<xsd:attribute name="secret-Key" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
 					The secret key which is assigned for the particular access key.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+				</xsd:restriction>
+			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
 

@@ -21,6 +21,9 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 /**
  * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring context
  * namespace.
+ *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 

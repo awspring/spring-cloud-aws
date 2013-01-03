@@ -1,19 +1,17 @@
 /*
+ * Copyright 2010-2012 the original author or authors.
  *
- *  * Copyright 2010-2012 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.elasticspring.mail.simplemail;
@@ -53,14 +51,14 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	public void testCreateMimeMessage() throws Exception {
-		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender("access", "secret");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 		Assert.assertNotNull(mimeMessage);
 	}
 
 	@Test
 	public void testCreateMimeMessageFromPreDefinedMessage() throws Exception {
-		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender("access", "secret");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
 		MimeMessage original = createMimeMessage();
 
@@ -76,7 +74,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	public void testSendMimeMessage() throws MessagingException, IOException {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
 		Mockito.when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
 		MimeMessage mimeMessage = createMimeMessage();
@@ -89,7 +87,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	public void testSendMultipleMimeMessages() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 
 		Mockito.when(emailService.sendRawEmail(Matchers.isA(SendRawEmailRequest.class))).thenReturn(new SendRawEmailResult().withMessageId("123"));
@@ -101,7 +99,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	public void testSendMailWithMimeMessagePreparator() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessagePreparator preparator = new MimeMessagePreparator() {
 
@@ -130,7 +128,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessagePreparator[] preparators = new MimeMessagePreparator[3];
 		preparators[0] = new MimeMessagePreparator() {
@@ -178,7 +176,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		IOException ioException = new IOException("error");
 		Mockito.when(inputStream.read(Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt())).thenThrow(ioException);
@@ -196,7 +194,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	public void testSendMultipleMailsWithException() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessage failureMail = createMimeMessage();
 		Mockito.when(emailService.sendRawEmail(Matchers.isA(SendRawEmailRequest.class))).
@@ -217,7 +215,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	public void testSendMailsWithExceptionWhilePreparing() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
 
-		JavaMailSender mailSender = createJavaMailSender(emailService, "accessKey", "secretKey");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessage mimeMessage = null;
 		try {
@@ -248,16 +246,6 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			//noinspection ThrowableResultOfMethodCallIgnored
 			Assert.assertTrue(e.getFailedMessages().get(failureMessage) instanceof MailParseException);
 		}
-	}
-
-	private JavaMailSender createJavaMailSender(final AmazonSimpleEmailService emailService, String accessKey, String secretKey) {
-		return new SimpleEmailServiceJavaMailSender(accessKey, secretKey) {
-
-			@Override
-			protected AmazonSimpleEmailService getEmailService() {
-				return emailService;
-			}
-		};
 	}
 
 	private MimeMessage createMimeMessage() throws MessagingException {
