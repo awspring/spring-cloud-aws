@@ -27,7 +27,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -42,25 +42,26 @@ import java.util.List;
  * @author Agim Emruli
  * @since 1.0
  */
-class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
+class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String CREDENTIALS_PROVIDER_BEAN_NAME = AWSCredentialsProvider.class.getName();
 	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-Key";
 	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-Key";
 
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return CREDENTIALS_PROVIDER_BEAN_NAME;
+		return ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME;
 	}
 
 	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(CredentialsProviderFactoryBean.class);
-		beanDefinitionBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+	protected Class<?> getBeanClass(Element element) {
+		return CredentialsProviderFactoryBean.class;
+	}
 
-
-		if (parserContext.getRegistry().containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
+	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		if (parserContext.getRegistry().containsBeanDefinition(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME)) {
 			parserContext.getReaderContext().error("Multiple <context-credentials/> detected. The <context-credentials/> is only allowed once per application context", element);
 		}
 
@@ -81,9 +82,8 @@ class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			}
 		}
 
-		beanDefinitionBuilder.addConstructorArgValue(credentialsProviders);
+		builder.addConstructorArgValue(credentialsProviders);
 
-		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
 	private static BeanDefinition getCredentialsProvider(Class<? extends AWSCredentialsProvider> credentialsProviderClass, Object... constructorArg) {
@@ -95,8 +95,19 @@ class CredentialsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-
-	private static AbstractBeanDefinition getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
+	/**
+	 * Creates a bean definition for the credentials object. This methods creates a bean definition instead of the direct
+	 * implementation to allow property place holder to change any place holder used for the access or secret key.
+	 *
+	 * @param credentialsProviderElement
+	 * 		- The element that contains the credentials attributes ACCESS_KEY_ATTRIBUTE_NAME and SECRET_KEY_ATTRIBUTE_NAME
+	 * @param parserContext
+	 * 		- Used to report any errors if there is no ACCESS_KEY_ATTRIBUTE_NAME or SECRET_KEY_ATTRIBUTE_NAME available with
+	 * 		a
+	 * 		valid value
+	 * @return - the bean definition with an {@link BasicAWSCredentials} class
+	 */
+	private static BeanDefinition getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(BasicAWSCredentials.class);
 		builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
 		builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));

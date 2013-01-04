@@ -28,6 +28,7 @@ import java.util.List;
  * on the delegates.
  *
  * @author Agim Emruli
+ * @since 1.0
  */
 public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCredentialsProvider> {
 

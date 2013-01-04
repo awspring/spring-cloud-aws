@@ -16,6 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
@@ -26,6 +27,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @since 1.0
  */
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
+
+	static final String DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME = AWSCredentialsProvider.class.getName();
 
 	@Override
 	public void init() {
