@@ -28,7 +28,7 @@
 
 	<xsd:element name="dataSource">
 		<xsd:annotation>
-			<xsd:documentation source="java:org.elasticspring.jdbc.rds.config.xml.AmazonRdsDataSourceFactoryBean">
+			<xsd:documentation source="java:org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean">
 				<![CDATA[
 	Creates an Amazon RDS backed data source to other beans as a javax.sql.DataSource.
 			]]></xsd:documentation>
@@ -131,7 +131,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="minIdle" type="xsd:int" use="optional" default="1">
+		<xsd:attribute name="minIdle" type="xsd:int" use="optional" default="10">
 			<xsd:annotation>
 				<xsd:documentation>
 					The maximum number of connections that should be kept in the pool at all times. Default value is

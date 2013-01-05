@@ -58,6 +58,61 @@ public final class DataSourceInformation {
 		return this.password;
 	}
 
+	@Override
+	public int hashCode() {
+		int result = this.dataSourceClass.hashCode();
+		result = 31 * result + this.hostName.hashCode();
+		result = 31 * result + this.port.hashCode();
+		result = 31 * result + this.databaseName.hashCode();
+		result = 31 * result + this.userName.hashCode();
+		result = 31 * result + this.password.hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof DataSourceInformation)) {
+			return false;
+		}
+
+		DataSourceInformation that = (DataSourceInformation) obj;
+
+		if (this.dataSourceClass != that.getDataSourceClass()) {
+			return false;
+		}
+		if (!this.databaseName.equals(that.getDatabaseName())) {
+			return false;
+		}
+		if (!this.hostName.equals(that.getHostName())) {
+			return false;
+		}
+		if (!this.password.equals(that.getPassword())) {
+			return false;
+		}
+		if (!this.port.equals(that.getPort())) {
+			return false;
+		}
+		return this.userName.equals(that.getUserName());
+
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("DataSourceInformation");
+		sb.append("{dataSourceClass=").append(this.dataSourceClass);
+		sb.append(", hostName='").append(this.hostName).append("'");
+		sb.append(", port=").append(this.port);
+		sb.append(", databaseName='").append(this.databaseName).append("'");
+		sb.append(", userName='").append(this.userName).append("'");
+		sb.append(", password='").append(this.password).append("'");
+		sb.append("}");
+		return sb.toString();
+	}
+
 	public enum DatabaseType {
 		MYSQL,
 		ORACLE,

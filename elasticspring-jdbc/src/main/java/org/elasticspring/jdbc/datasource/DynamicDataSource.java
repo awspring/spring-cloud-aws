@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.datasource;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.AbstractDataSource;
 
@@ -37,13 +38,15 @@ import java.sql.SQLException;
  * data source. This is especially useful if the data source is in a "non-available" state because it is bootstrapped
  * at the same time like the application. To avoid long application bootstrap times it is recommended to use an
  * asynchronous {@link TaskExecutor} to allow the data source creation to run in the background. In that case the
- * {@link #getConnection()} calls will wait for the data source to become available</p>
+ * {@link #getConnection()} calls will wait for the data source to become available. The initialization is initiated
+ * through the {@link #afterPropertiesSet()} method.</p>
  *
  * @author Agim Emruli
- * @since 0.1
+ * @since 1.0
  */
-public final class DynamicDataSource extends AbstractDataSource {
+public final class DynamicDataSource extends AbstractDataSource implements InitializingBean {
 
+	private static final int TIMEOUT = 5000;
 	private final Object dataSourceMonitor = new Object();
 
 	private final DataSourceInformation dataSourceInformation;
@@ -81,7 +84,7 @@ public final class DynamicDataSource extends AbstractDataSource {
 	 * @param dataSourceStatus
 	 * 		Strategy interface which provides information if the data source itself is available or still bootstrapping.
 	 * @param taskExecutor
-	 * 		Implementation of a Spring {@see TaskExecutor} which is used to query the {@see DataSourceStatus} and construct
+	 * 		Implementation of a Spring {@link TaskExecutor} which is used to query the {@link DataSourceStatus} and construct
 	 * 		the data source afterwards. Based on the implementation this can be done in a synchronous or asynchronous way.
 	 */
 	public DynamicDataSource(DataSourceInformation dataSourceInformation, DataSourceFactory dataSourceFactory,
@@ -90,8 +93,6 @@ public final class DynamicDataSource extends AbstractDataSource {
 		this.dataSourceInformation = dataSourceInformation;
 		this.dataSourceFactory = dataSourceFactory;
 		this.taskExecutor = taskExecutor;
-		initializeDataSource();
-		this.active = true;
 	}
 
 	/**
@@ -118,8 +119,7 @@ public final class DynamicDataSource extends AbstractDataSource {
 
 	/**
 	 * Provides the same semantics like {@link #getConnection()} except that it allow to use a custom username and
-	 * password
-	 * on each method call instead of a fixed one which is provided by the data source.
+	 * password on each method call instead of a fixed one which is provided by the data source.
 	 *
 	 * @param username
 	 * 		The username that will be used to establish the connection
@@ -158,7 +158,7 @@ public final class DynamicDataSource extends AbstractDataSource {
 				synchronized (this.dataSourceMonitor) {
 					while (this.dataSource == null) {
 						assertActive();
-						this.dataSourceMonitor.wait(5000);
+						this.dataSourceMonitor.wait(TIMEOUT);
 					}
 				}
 			} catch (InterruptedException e) {
@@ -171,7 +171,7 @@ public final class DynamicDataSource extends AbstractDataSource {
 
 	private void assertActive() {
 		if (!this.active) {
-			throw new IllegalStateException("DynamicDataSource has been already closed");
+			throw new IllegalStateException("DynamicDataSource has been already closed or not initialized");
 		}
 	}
 
@@ -185,7 +185,7 @@ public final class DynamicDataSource extends AbstractDataSource {
 					synchronized (DynamicDataSource.this.dataSourceMonitor) {
 						while (DynamicDataSource.this.active && DynamicDataSource.this.dataSource == null &&
 								!DynamicDataSource.this.dataSourceStatus.isDataSourceAvailable()) {
-							DynamicDataSource.this.dataSourceMonitor.wait(1000);
+							DynamicDataSource.this.dataSourceMonitor.wait(TIMEOUT);
 						}
 						DynamicDataSource.this.dataSource = DynamicDataSource.this.dataSourceFactory.createDataSource(DynamicDataSource.this.dataSourceInformation);
 						DynamicDataSource.this.dataSourceMonitor.notifyAll();
@@ -198,6 +198,13 @@ public final class DynamicDataSource extends AbstractDataSource {
 		});
 	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		synchronized (this.dataSourceMonitor) {
+			this.active = true;
+			initializeDataSource();
+		}
+	}
 
 	public interface DataSourceStatus {
 

@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.config.xml;
+package org.elasticspring.jdbc.datasource.support;
 
-import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-
+import org.elasticspring.jdbc.datasource.DataSourceInformation;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring 'jdbc' name
- * space.
  *
- * @author Agim Emruli
- * @since 1.0
  */
-public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
+public interface DatabasePlatformSupport {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
-	}
+	String getDriverClassNameForDatabase(DataSourceInformation.DatabaseType databaseType);
+
+	String getDatabaseUrlForDatabase(DataSourceInformation.DatabaseType databaseType, String hostname, int port, String databaseName);
+
 }

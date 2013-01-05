@@ -16,6 +16,8 @@
 
 package org.elasticspring.jdbc;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +41,23 @@ public class DataSourceFactoryBeanAwsTest {
 	private DataSource dataSource;
 
 
+	@Before
+	public void setUp() throws Exception {
+
+
+	}
+
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testExistingDataSourceInstance() throws Exception {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
 		String value = Long.toString(System.currentTimeMillis());
 		jdbcTemplate.update("insert into data(data) values(?)", value);
+	}
+
+	@After
+	public void tearDown() throws Exception {
+
+
 	}
 }

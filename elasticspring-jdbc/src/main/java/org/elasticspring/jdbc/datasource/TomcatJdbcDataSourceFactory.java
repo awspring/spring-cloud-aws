@@ -19,6 +19,8 @@ package org.elasticspring.jdbc.datasource;
 import org.apache.tomcat.jdbc.pool.PoolConfiguration;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.apache.tomcat.jdbc.pool.Validator;
+import org.elasticspring.jdbc.datasource.support.DatabasePlatformSupport;
+import org.elasticspring.jdbc.datasource.support.StaticDatabasePlatformSupport;
 import org.springframework.beans.BeanUtils;
 
 import javax.sql.DataSource;
@@ -354,7 +356,7 @@ public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfi
 
 	@Override
 	public void setDriverClassName(String driverClassName) {
-		this.defaultPoolConfiguration.setDriverClassName(driverClassName);
+		throw new UnsupportedOperationException("Will be set at runtime!");
 	}
 
 	@Override
@@ -389,7 +391,7 @@ public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfi
 
 	@Override
 	public void setUrl(String url) {
-		throw new IllegalStateException("Will be set at runtime");
+		throw new UnsupportedOperationException("Will be set at runtime!");
 	}
 
 	@Override
@@ -542,7 +544,7 @@ public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfi
 	}
 
 	@Override
-	public DataSource createDataSource(DataSourceInformation dataSourceInformation) {
+	public org.apache.tomcat.jdbc.pool.DataSource createDataSource(DataSourceInformation dataSourceInformation) {
 		//create a method scoped instance
 		PoolConfiguration configurationToUse = new PoolProperties();
 

@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -31,12 +32,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Unit-tests for {@see DynamicDataSource}
+ * Unit test class for {@see DynamicDataSource}
+ *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class DynamicDataSourceTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
+
+	@Rule
+	public Timeout timeout = new Timeout(30 * 1000);
 
 	@Test
 	public void testGetConnectionWithReadyDataSource() throws Exception {
@@ -48,6 +55,7 @@ public class DynamicDataSourceTest {
 		Mockito.when(dataSource.getConnection()).thenReturn(connection);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
+		dynamicDataSource.afterPropertiesSet();
 
 		Connection borrowedConnection = dynamicDataSource.getConnection();
 		Assert.assertNotNull(borrowedConnection);
@@ -63,6 +71,7 @@ public class DynamicDataSourceTest {
 		Mockito.when(dataSource.getConnection("user", "password")).thenReturn(connection);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
+		dynamicDataSource.afterPropertiesSet();
 
 		Connection borrowedConnection = dynamicDataSource.getConnection("user", "password");
 		Assert.assertNotNull(borrowedConnection);
@@ -82,6 +91,7 @@ public class DynamicDataSourceTest {
 		SimpleAsyncTaskExecutor taskScheduler = new SimpleAsyncTaskExecutor();
 		SimpleDataSourceStatus dataSourceStatus = new SimpleDataSourceStatus(false);
 		final DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, dataSourceStatus, taskScheduler);
+		dynamicDataSource.afterPropertiesSet();
 
 		for (int i = 0; i < 20; i++) {
 			taskScheduler.execute(new Runnable() {
@@ -122,6 +132,7 @@ public class DynamicDataSourceTest {
 
 		SimpleDataSourceStatus dataSourceStatus = new SimpleDataSourceStatus(false);
 		final DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, dataSourceStatus, taskScheduler);
+		dynamicDataSource.afterPropertiesSet();
 
 		for (int i = 0; i < 5; i++) {
 			taskScheduler.execute(new Runnable() {
@@ -147,7 +158,7 @@ public class DynamicDataSourceTest {
 	}
 
 	@Test
-	public void testDynamicDataSourceIsNotInitialized() throws Exception {
+	public void testDynamicDataSourceIsAlreadyClosed() throws Exception {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("closed");
 
@@ -155,7 +166,21 @@ public class DynamicDataSourceTest {
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
+		dynamicDataSource.afterPropertiesSet();
+
 		dynamicDataSource.destroyDataSource();
+		dynamicDataSource.getConnection();
+	}
+
+	@Test
+	public void testDynamicDataSourceIsNotInitializedClosed() throws Exception {
+		this.expectedException.expect(IllegalStateException.class);
+		this.expectedException.expectMessage("closed");
+
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+
+		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
 		dynamicDataSource.getConnection();
 	}
 
@@ -181,6 +206,7 @@ public class DynamicDataSourceTest {
 		};
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, dataSourceStatus, taskScheduler);
+		dynamicDataSource.afterPropertiesSet();
 
 		//Make sure that the thread as actually ramped up
 		countDownLatch.await(1, TimeUnit.SECONDS);
@@ -188,7 +214,7 @@ public class DynamicDataSourceTest {
 		dynamicDataSource.destroyDataSource();
 
 		//give the thread a short amount of time to finish
-		Thread.sleep(1L);
+		Thread.sleep(5L);
 
 		Assert.assertEquals(1, taskScheduler.getThreadPoolExecutor().getCompletedTaskCount());
 		Assert.assertEquals(0, taskScheduler.getThreadPoolExecutor().getActiveCount());

@@ -16,14 +16,14 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
-import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
-import com.amazonaws.services.rds.AmazonRDSClient;
+import org.elasticspring.context.config.xml.ContextNamespaceHandler;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
+import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -35,6 +35,7 @@ import org.w3c.dom.Node;
  */
 public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
+	static final String RDS_CLIENT_BEAN_NAME = "RDS_CLIENT";
 	private static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
@@ -44,18 +45,23 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
 
-		BeanDefinitionBuilder amazonRDS = BeanDefinitionBuilder.rootBeanDefinition(AmazonRDSClient.class);
-		amazonRDS.addConstructorArgValue(new ClasspathPropertiesFileCredentialsProvider("access.properties"));
+		//Check if the AmazonRDS client is already available in the registry, or create a new one
+		if (!parserContext.getRegistry().containsBeanDefinition(RDS_CLIENT_BEAN_NAME)) {
+			BeanDefinitionBuilder amazonRDS = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsClientFactoryBean.class);
+			amazonRDS.addConstructorArgReference(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME);
+			parserContext.getRegistry().registerBeanDefinition(RDS_CLIENT_BEAN_NAME, amazonRDS.getBeanDefinition());
+		}
 
-		datasourceBuilder.addConstructorArgValue(amazonRDS.getBeanDefinition());
+		//Constructor (mandatory) args
+		datasourceBuilder.addConstructorArgReference(RDS_CLIENT_BEAN_NAME);
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
 
-		datasourceBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DB_INSTANCE_IDENTIFIER), element.getAttribute(DB_INSTANCE_IDENTIFIER));
-
+		//optional args
 		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
 			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
 		}
 
-		datasourceBuilder.addPropertyValue(PASSWORD, element.getAttribute(PASSWORD));
 		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
 
 		return datasourceBuilder.getBeanDefinition();
@@ -64,10 +70,12 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	private static AbstractBeanDefinition createDataSourceFactoryBeanDefinition(Element element) {
 		BeanDefinitionBuilder datasourceFactoryBuilder = BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class);
 		Element poolAttributes = DomUtils.getChildElementByTagName(element, "pool-attributes");
-		NamedNodeMap attributes = poolAttributes.getAttributes();
-		for (int i = 0, x = attributes.getLength(); i < x; i++) {
-			Node item = attributes.item(i);
-			datasourceFactoryBuilder.addPropertyValue(item.getNodeName(), item.getNodeValue());
+		if (poolAttributes != null) {
+			NamedNodeMap attributes = poolAttributes.getAttributes();
+			for (int i = 0, x = attributes.getLength(); i < x; i++) {
+				Node item = attributes.item(i);
+				datasourceFactoryBuilder.addPropertyValue(item.getNodeName(), item.getNodeValue());
+			}
 		}
 
 		return datasourceFactoryBuilder.getBeanDefinition();
