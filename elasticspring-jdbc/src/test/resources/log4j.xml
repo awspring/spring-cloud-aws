@@ -25,7 +25,7 @@
 	</appender>
 
 	<root>
-		<priority value="trace" />
+		<priority value="ERROR" />
 		<appender-ref ref="console" />
 	</root>
 

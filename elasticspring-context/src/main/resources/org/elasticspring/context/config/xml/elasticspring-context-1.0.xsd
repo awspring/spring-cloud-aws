@@ -28,7 +28,7 @@
 
 	<xsd:element name="context-credentials">
 		<xsd:annotation>
-			<xsd:documentation source="java:org.elasticspring.jdbc.rds.config.xml.AmazonRdsDataSourceFactoryBean">
+			<xsd:documentation source="java:org.elasticspring.context.credentials.CredentialsProviderFactoryBean">
 				<![CDATA[
 	Creates the authentication configuration which will be used to authenticate the request made from this application context to the particular service.
 			]]></xsd:documentation>

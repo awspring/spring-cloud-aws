@@ -8,12 +8,12 @@
             <list>
               <CustomBeanInfo>
                 <option name="beanName" value="RDS_CLIENT" />
-                <option name="beanClassName" value="org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean" />
+                <option name="beanClassName" value="com.amazonaws.services.rds.AmazonRDS" />
                 <option name="constructorArgumentCount" value="1" />
               </CustomBeanInfo>
               <CustomBeanInfo>
                 <option name="beanName" value="dataSource" />
-                <option name="beanClassName" value="org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean" />
+                <option name="beanClassName" value="javax.sql.DataSource" />
                 <option name="idAttribute" value="id" />
                 <option name="constructorArgumentCount" value="3" />
               </CustomBeanInfo>
