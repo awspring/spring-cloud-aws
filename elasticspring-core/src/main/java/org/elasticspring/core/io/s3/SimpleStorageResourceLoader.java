@@ -50,7 +50,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 		if (location.startsWith(S3_PROTOCOL_PREFIX)) {
 			Matcher matcher = S3_LOCATION_PATTERN.matcher(location);
 			if (matcher.matches()) {
-				return new SimpleStorageResource(getBucketNameFromUri(matcher), getObjectNameFromUri(matcher), this.amazonS3);
+				return new SimpleStorageResource(this.amazonS3, getBucketNameFromUri(matcher), getObjectNameFromUri(matcher));
 			} else {
 				throw new IllegalArgumentException(String.format("The s3 location '%s' is not a valid s3 location!", location));
 			}
