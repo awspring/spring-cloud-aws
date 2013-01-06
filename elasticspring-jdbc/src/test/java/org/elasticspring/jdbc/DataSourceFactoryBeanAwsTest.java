@@ -27,8 +27,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.sql.DataSource;
 
 /**
+ * AWS backed integration test for the data source feature of the jdbc module
  *
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
 @SuppressWarnings("SpringJavaAutowiringInspection")
 @ContextConfiguration

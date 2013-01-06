@@ -36,7 +36,20 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * {@link org.springframework.beans.factory.FactoryBean} implementation that create a data source backed by an Amazon
+ * Relational Database service instance. This factory bean retrieves all the meta data from the AWS RDS service in
+ * order to create and configure a data source. THis class uses the {@link AmazonRDS} service to retrieve the meta data
+ * and the {@link DataSourceFactory} to actually create the data source.
+ * <p/>
+ * The created data source of this implementation is a {@link DynamicDataSource} which allows the creation of a "proxy"
+ * data source to allow this factory bean to complete. The DynamicDataSource class will uses the {@link
+ * org.elasticspring.jdbc.datasource.DynamicDataSource.DataSourceStatus} implementation provides by this class to
+ * actually check whenever this data source is available. If you want to make sure that the data source is available
+ * before this class returns the object, then pass an {@link org.springframework.core.task.SyncTaskExecutor} which will
+ * effectively wait till the data source is available before returning the object.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSource> {
 
@@ -48,20 +61,60 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	private String username;
 	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
+	/**
+	 * Constructor which retrieves all mandatory objects to allow the object to be constructed. This are the minimal
+	 * configuration options which uses defaults or no values for all optional elements.
+	 *
+	 * @param amazonRDS
+	 * 		- The amazonRDS instance used to connect to the service. This object will be used to actually retrieve the data
+	 * 		source meta data from the Amazon RDS service.
+	 * @param dbInstanceIdentifier
+	 * 		- the unique data base instance identifier in the Amazon RDS service
+	 * @param password
+	 * 		- The password used to connect to the data source. For security reasons the password is not available in the meta
+	 * 		data (in contrast to the user) so it must be provided in order to connect to the data base with JDBC.
+	 */
 	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRDS, String dbInstanceIdentifier, String password) {
 		this.amazonRDS = amazonRDS;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
 		this.password = password;
 	}
 
+	/**
+	 * Allows to configure a different DataSourceFactory in order to use a different DataSource implementation. Uses the
+	 * {@link TomcatJdbcDataSourceFactory} by default if not configured.
+	 *
+	 * @param dataSourceFactory
+	 * 		- A fully configured DataSourceFactory instance, will be used by the DynamicDataSource to actually create the
+	 * 		data
+	 * 		source.
+	 */
 	public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
 		this.dataSourceFactory = dataSourceFactory;
 	}
 
+	/**
+	 * Allows to set a different user then the master user name in order to connect to the data base. In contrast to the
+	 * password, the master user name is available in the meta data to connect to the database so this username is only
+	 * used when configured.
+	 *
+	 * @param username
+	 * 		- The username to connect to the database, every value provided (even empty ones) are used to connect to the
+	 * 		database.
+	 */
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
+	/**
+	 * Allows to configure a different TaskExecutor which will be passed to the DynamicDataSource in order to retrieve the
+	 * DataSourceStatus status. Uses an {@link SimpleAsyncTaskExecutor} by default which will create a thread to retrieve
+	 * the data source status.
+	 *
+	 * @param taskExecutor
+	 * 		- A configured TaskExecutor implementation. May be a pooled one or even a managed one. See TaskExecutor
+	 * 		implementations for further details.
+	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
@@ -101,6 +154,10 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		}
 	}
 
+	/**
+	 * SPI implementation of the {@link org.elasticspring.jdbc.datasource.DynamicDataSource.DataSourceStatus} interface.
+	 * Check the data source status through the AWS RDS meta-data and returns true once the data source is available.
+	 */
 	static class AmazonRdsInstanceStatus implements DynamicDataSource.DataSourceStatus {
 
 		private final AmazonRDS amazonRDS;

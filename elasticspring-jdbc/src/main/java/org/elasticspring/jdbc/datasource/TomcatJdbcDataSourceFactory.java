@@ -27,7 +27,16 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 /**
+ * A Tomcat JDBC Pool {@link DataSourceFactory} implementation that creates a JDBC pool backed data source. Allows the
+ * configuration of all configuration properties except username, password, url and driver class name because their are
+ * passed in while actually creating the data source. All other properties can be modified by calling the
+ * respective setter methods. This class uses a {@link DatabasePlatformSupport} implementation to actually retrieve the
+ * driver class name and url in order to create the data source.
+ * <p/>
+ * <p>All properties are derived from {@link PoolConfiguration} of the Tomcat JDBC Pool class.</p>
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfiguration {
 
@@ -551,8 +560,8 @@ public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfi
 		//copy all general properties
 		BeanUtils.copyProperties(this.defaultPoolConfiguration, configurationToUse);
 
-		configurationToUse.setDriverClassName(this.databasePlatformSupport.getDriverClassNameForDatabase(dataSourceInformation.getDataSourceClass()));
-		configurationToUse.setUrl(this.databasePlatformSupport.getDatabaseUrlForDatabase(dataSourceInformation.getDataSourceClass(),
+		configurationToUse.setDriverClassName(this.databasePlatformSupport.getDriverClassNameForDatabase(dataSourceInformation.getDatabaseType()));
+		configurationToUse.setUrl(this.databasePlatformSupport.getDatabaseUrlForDatabase(dataSourceInformation.getDatabaseType(),
 				dataSourceInformation.getHostName(), dataSourceInformation.getPort(), dataSourceInformation.getDatabaseName()));
 		configurationToUse.setUsername(dataSourceInformation.getUserName());
 		configurationToUse.setPassword(dataSourceInformation.getPassword());

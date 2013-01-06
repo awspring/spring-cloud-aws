@@ -22,13 +22,19 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
+ * Simple implementation that holds statically all information for the data base platform.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
 	private final Map<DataSourceInformation.DatabaseType, String> driverClassNameMappings;
 	private final Map<DataSourceInformation.DatabaseType, String> schemeNames;
 
+	/**
+	 * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with the configuration information
+	 */
 	public StaticDatabasePlatformSupport() {
 		this.driverClassNameMappings = Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
 		this.schemeNames = Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "jdbc:mysql");

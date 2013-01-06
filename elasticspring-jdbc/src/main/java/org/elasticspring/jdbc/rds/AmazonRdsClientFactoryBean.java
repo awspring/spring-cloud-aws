@@ -22,12 +22,24 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
+ * {@link org.springframework.beans.factory.FactoryBean} implementation for the {@link AmazonRDS} service. This factory
+ * bean encapsulates the creation and destruction of the AmazonRDS service.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class AmazonRdsClientFactoryBean extends AbstractFactoryBean<AmazonRDS> {
 
 	private final AWSCredentialsProvider awsCredentialsProvider;
 
+	/**
+	 * Constructor that retrieves the mandatory AWSCredentialsProvider instance in order to create the service. The
+	 * AWSCredentialsProvider is typically configured through ElasticSpring credentials element which may use static or
+	 * dynamic credentials to actually create the object.
+	 *
+	 * @param awsCredentialsProvider
+	 * 		- The credentials provider - must not be null
+	 */
 	public AmazonRdsClientFactoryBean(AWSCredentialsProvider awsCredentialsProvider) {
 		this.awsCredentialsProvider = awsCredentialsProvider;
 	}
@@ -42,6 +54,12 @@ public class AmazonRdsClientFactoryBean extends AbstractFactoryBean<AmazonRDS> {
 		return new AmazonRDSClient(this.awsCredentialsProvider);
 	}
 
+	/**
+	 * Issues a shutdown call on the underlying implementation which will free up all (cached) connections by the client.
+	 *
+	 * @param instance
+	 * 		- the instance of the AmazonRDS client, created by the {@link #createInstance()} method
+	 */
 	@Override
 	protected void destroyInstance(AmazonRDS instance) throws Exception {
 		instance.shutdown();

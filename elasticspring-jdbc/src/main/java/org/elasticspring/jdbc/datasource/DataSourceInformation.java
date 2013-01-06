@@ -16,17 +16,56 @@
 
 package org.elasticspring.jdbc.datasource;
 
+import org.springframework.util.Assert;
+
+/**
+ * Immutable parameter object that holds all information needed by the {@link DataSourceFactory} implementation to
+ * create a data source. The attributes inside this class represents the minimal information for the DataSourceFactory
+ * to actually create the underlying data source.
+ * <p>This parameter object is used to allow a more flexible DataSourceFactory interface</p>
+ *
+ * @author Agim Emruli
+ * @since 1.0
+ */
 public final class DataSourceInformation {
 
-	private final DatabaseType dataSourceClass;
+	private final DatabaseType databaseType;
 	private final String hostName;
 	private final Integer port;
 	private final String databaseName;
 	private final String userName;
 	private final String password;
 
-	public DataSourceInformation(DatabaseType dataSourceClass, String hostName, Integer port, String databaseName, String userName, String password) {
-		this.dataSourceClass = dataSourceClass;
+	/**
+	 * Main constructor to create this object. This constructor receives all information to fully construct the object and
+	 * to allow the implementation to be immutable.
+	 *
+	 * @param databaseType
+	 * 		- The data base type used by the data source to connect to. This information will be typically used to
+	 * 		instantiate
+	 * 		and use the particular driver class to connect to the database platform.
+	 * @param hostName
+	 * 		- The fully qualified hostname without any protocol or port information (e.g. myDbServer.domain.com, localhost,
+	 * 		192.168.23.1)
+	 * @param port
+	 * 		-  The port used to connect to the particular data base platform (eg. 3306 as a default for mysql)
+	 * @param databaseName
+	 * 		- The data base name used to connect to the database. The meaning is database specific for (e.g for mysql the
+	 * 		database name, for oracle the SID id)
+	 * @param userName
+	 * 		- The username used to connect to the database
+	 * @param password
+	 * 		- The password used to connect to the database
+	 */
+	public DataSourceInformation(DatabaseType databaseType, String hostName, Integer port, String databaseName, String userName, String password) {
+		Assert.notNull(databaseType, "DatabaseType must not be null");
+		Assert.notNull(hostName, "Hostname must not be null");
+		Assert.notNull(port, "Port must not be null");
+		Assert.notNull(databaseName, "DatabaseName must not be null");
+		Assert.notNull(userName, "UserName must not be null");
+		Assert.notNull(password, "Password must not be null");
+
+		this.databaseType = databaseType;
 		this.hostName = hostName;
 		this.port = port;
 		this.databaseName = databaseName;
@@ -34,33 +73,70 @@ public final class DataSourceInformation {
 		this.password = password;
 	}
 
-	public DatabaseType getDataSourceClass() {
-		return this.dataSourceClass;
+	/**
+	 * Returns the data base type provided by this class. Represented by an enumeration based on the supported database
+	 * platform in the AWS platform.
+	 *
+	 * @return - The databaseType - never null
+	 */
+	public DatabaseType getDatabaseType() {
+		return this.databaseType;
 	}
 
+	/**
+	 * Returns the host name which will be used to connect to the database. This is only the hostname without any further
+	 * protocol information.
+	 *
+	 * @return - The hostname - never null
+	 */
 	public String getHostName() {
 		return this.hostName;
 	}
 
+	/**
+	 * Returns the port used to connect to the database.
+	 *
+	 * @return - The port - never null
+	 */
 	public Integer getPort() {
 		return this.port;
 	}
 
+	/**
+	 * The database name used to connect to the database. The information is {@link #databaseType} type specfic.
+	 * <ul>
+	 * <li>MySQL - This is the data base name to connect to </li>
+	 * <li>Oracle - This is the system id (SID) to connect to</li>
+	 * <li>MSSQL - This information is not used at all</li>
+	 * </ul>
+	 *
+	 * @return - The database name that can be used to connect to the database.
+	 */
 	public String getDatabaseName() {
 		return this.databaseName;
 	}
 
+	/**
+	 * The username used to connect to the database. The user must have the right to connect to the database.
+	 *
+	 * @return - The username never null
+	 */
 	public String getUserName() {
 		return this.userName;
 	}
 
+	/**
+	 * The password used to connect to the database. The password might be empty but not null.
+	 *
+	 * @return - the password - never null
+	 */
 	public String getPassword() {
 		return this.password;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = this.dataSourceClass.hashCode();
+		int result = this.databaseType.hashCode();
 		result = 31 * result + this.hostName.hashCode();
 		result = 31 * result + this.port.hashCode();
 		result = 31 * result + this.databaseName.hashCode();
@@ -80,7 +156,7 @@ public final class DataSourceInformation {
 
 		DataSourceInformation that = (DataSourceInformation) obj;
 
-		if (this.dataSourceClass != that.getDataSourceClass()) {
+		if (this.databaseType != that.getDatabaseType()) {
 			return false;
 		}
 		if (!this.databaseName.equals(that.getDatabaseName())) {
@@ -103,7 +179,7 @@ public final class DataSourceInformation {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("DataSourceInformation");
-		sb.append("{dataSourceClass=").append(this.dataSourceClass);
+		sb.append("{databaseType=").append(this.databaseType);
 		sb.append(", hostName='").append(this.hostName).append("'");
 		sb.append(", port=").append(this.port);
 		sb.append(", databaseName='").append(this.databaseName).append("'");
@@ -113,6 +189,10 @@ public final class DataSourceInformation {
 		return sb.toString();
 	}
 
+	/**
+	 * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
+	 * underlying AWS cloud implementation.
+	 */
 	public enum DatabaseType {
 		MYSQL,
 		ORACLE,

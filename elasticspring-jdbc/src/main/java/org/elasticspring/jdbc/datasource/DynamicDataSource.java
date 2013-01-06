@@ -48,24 +48,20 @@ public final class DynamicDataSource extends AbstractDataSource implements Initi
 
 	private static final int TIMEOUT = 5000;
 	private final Object dataSourceMonitor = new Object();
-
 	private final DataSourceInformation dataSourceInformation;
 	private final DataSourceFactory dataSourceFactory;
 	private final DataSourceStatus dataSourceStatus;
 	private final TaskExecutor taskExecutor;
-
 	/**
 	 * Flag the indicated if this data source is still active or has been requested to shutdown while bootstrapping.
 	 * This is typically the case if the application bootstrap process is cancelled due to some errors in the
 	 * configuration or initialization of the application itself.
 	 */
 	private volatile boolean active;
-
 	/**
 	 * Internal target data source that will provide the actual connection once it is initialized
 	 */
 	private volatile DataSource dataSource;
-
 
 	/**
 	 * Constructor that receives all strategies needed to create the underlying data source. Note that all values are
@@ -206,8 +202,20 @@ public final class DynamicDataSource extends AbstractDataSource implements Initi
 		}
 	}
 
+	/**
+	 * SPI interface that will be used by the DynamicDataSource to recognize if a data source is available or not. This is
+	 * the barrier before actually creating the data source. Implementation could ask the cloud service if the data base
+	 * service is available and return the result of the computation.
+	 */
 	public interface DataSourceStatus {
 
+		/**
+		 * Returns whenever the data source is available or not. This method will be called periodically until it returns
+		 * true
+		 * so that the data source is created.
+		 *
+		 * @return true if the data source is available. False while the data source is not available.
+		 */
 		boolean isDataSourceAvailable();
 	}
 }

@@ -31,10 +31,20 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 /**
+ * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the data source
+ * element. Parses the element and constructs a fully configured {@link AmazonRdsDataSourceFactoryBean} bean
+ * definition. Also creates a bean definition for the {@link AmazonRdsClientFactoryBean} if there is not already an
+ * existing one this application context.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
+	/**
+	 * The bean name which will be used to register the AmazonRdsClientFactoryBean, will re-use the bean if there is
+	 * already an exiting one (e.g. multiple data source elements in one application context)
+	 */
 	static final String RDS_CLIENT_BEAN_NAME = "RDS_CLIENT";
 	private static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String USERNAME = "username";
@@ -67,6 +77,15 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 		return datasourceBuilder.getBeanDefinition();
 	}
 
+	/**
+	 * Creates a {@link org.elasticspring.jdbc.datasource.DataSourceFactory} implementation. Uses the
+	 * TomcatJdbcDataSourceFactory implementation and passes all pool attributes from the xml directly to the class
+	 * (through setting the bean properties).
+	 *
+	 * @param element
+	 * 		- The data source element which may contain a pool-attributes element
+	 * @return - fully confgiured bean definition for the DataSourceFactory
+	 */
 	private static AbstractBeanDefinition createDataSourceFactoryBeanDefinition(Element element) {
 		BeanDefinitionBuilder datasourceFactoryBuilder = BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class);
 		Element poolAttributes = DomUtils.getChildElementByTagName(element, "pool-attributes");
