@@ -38,7 +38,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendSimpleMailWithMinimalProperties() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 
@@ -59,7 +59,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendSimpleMailWithCCandBCC() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 		simpleMailMessage.setBcc("bcc@domain.com");
@@ -82,7 +82,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendMultipleMails() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
 		Mockito.when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
@@ -94,7 +94,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage firstMessage = createSimpleMailMessage();
 		firstMessage.setBcc("bcc@domain.com");
@@ -119,7 +119,7 @@ public class SimpleEmailServiceMailSenderTest {
 	@Test
 	public void testShutDownOfResources() throws Exception {
 		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
-		SimpleEmailServiceMailSender mailSender = createMailSender("access", "secret", emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		mailSender.destroy();
 		Mockito.verify(emailService, Mockito.times(1)).shutdown();
@@ -134,13 +134,4 @@ public class SimpleEmailServiceMailSenderTest {
 		return simpleMailMessage;
 	}
 
-	private SimpleEmailServiceMailSender createMailSender(String accessKey, String secretKey, final AmazonSimpleEmailService emailService) {
-		return new SimpleEmailServiceMailSender(accessKey, secretKey) {
-
-			@Override
-			protected AmazonSimpleEmailService getEmailService() {
-				return emailService;
-			}
-		};
-	}
 }

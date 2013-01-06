@@ -110,9 +110,6 @@
       <option name="ignoreToString" value="true" />
       <option name="nonNlsCommentPattern" value="NON-NLS" />
     </inspection_tool>
-    <inspection_tool class="HardcodedFileSeparators" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="m_recognizeExampleMediaType" value="false" />
-    </inspection_tool>
     <inspection_tool class="HardcodedLineSeparators" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IfMayBeConditional" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="InstanceGuardedByStatic" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -222,14 +219,14 @@
     <inspection_tool class="StaticNonFinalField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringBufferField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringBufferReplaceableByString" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="StringConcatenation" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="StringConcatenation" enabled="false" level="WARNING" enabled_by_default="false">
       <option name="ignoreAsserts" value="false" />
       <option name="ignoreSystemOuts" value="false" />
       <option name="ignoreSystemErrs" value="false" />
       <option name="ignoreThrowableArguments" value="false" />
-      <option name="ignoreConstantInitializers" value="false" />
+      <option name="ignoreConstantInitializers" value="true" />
       <option name="ignoreInTestCode" value="false" />
-      <option name="ignoreInToString" value="false" />
+      <option name="ignoreInToString" value="true" />
     </inspection_tool>
     <inspection_tool class="StringConcatenationInFormatCall" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringConcatenationInMessageFormatCall" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -295,7 +292,6 @@
     <inspection_tool class="UseOfJDBCDriverClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UseOfProcessBuilder" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UseOfSunClasses" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="VariableNotUsedInsideIf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="VolatileArrayField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="VolatileLongOrDoubleField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitOrAwaitWithoutTimeout" enabled="true" level="WARNING" enabled_by_default="true" />

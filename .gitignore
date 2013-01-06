@@ -1,8 +1,8 @@
 # Ignore folders
 target/
 build/
-/gradle
 /.gradle
+/config
 
 # Ignore files
 access.properties

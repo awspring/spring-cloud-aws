@@ -18,6 +18,8 @@
 
 package org.elasticspring.mail;
 
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +45,8 @@ public class MailSenderAwsTest {
 	@Value("#{mail.recipientAddress}")
 	private String recipientAddress;
 
-	@org.junit.Test
+	@Ignore
+	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testSendMail() throws Exception {
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
