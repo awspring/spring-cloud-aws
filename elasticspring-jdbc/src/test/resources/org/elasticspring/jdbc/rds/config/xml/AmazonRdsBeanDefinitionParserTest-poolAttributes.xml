@@ -27,7 +27,7 @@
 	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password">
 		<jdbc:pool-attributes connectionProperties="foo=bar" defaultAutoCommit="true"
 							  defaultCatalog="mySchema" defaultReadOnly="true"
-							  defaultTransactionIsolation="READ_COMMITTED" initialSize="10"
+							  defaultTransactionIsolation="2" initialSize="10"
 							  initSQL="SET CURRENT SCHEMA" logAbandoned="true"
 							  maxActive="10" maxIdle="5" maxWait="10000" minEvictableIdleTimeMillis="60000"
 							  minIdle="20" removeAbandoned="true" removeAbandonedTimeout="61" testOnBorrow="true"

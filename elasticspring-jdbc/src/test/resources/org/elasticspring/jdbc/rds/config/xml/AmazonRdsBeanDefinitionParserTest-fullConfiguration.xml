@@ -24,6 +24,16 @@
 		<context:simple-credentials access-Key="foo" secret-Key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" username="myUser" />
+	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" username="myUser">
+		<jdbc:pool-attributes connectionProperties="foo=bar" defaultAutoCommit="true"
+							  defaultCatalog="mySchema" defaultReadOnly="true"
+							  defaultTransactionIsolationName="READ_COMMITTED" initialSize="10"
+							  initSQL="SET CURRENT SCHEMA" logAbandoned="true"
+							  maxActive="10" maxIdle="5" maxWait="10000" minEvictableIdleTimeMillis="60000"
+							  minIdle="20" removeAbandoned="true" removeAbandonedTimeout="61" testOnBorrow="true"
+							  testOnReturn="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="4000"
+							  validationQuery="SELECT 1"
+							  validatorClassName="myValidator" />
+	</jdbc:dataSource>
 
 </beans>

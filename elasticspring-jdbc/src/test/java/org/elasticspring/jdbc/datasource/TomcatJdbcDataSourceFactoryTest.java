@@ -26,6 +26,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.transaction.TransactionDefinition;
 
 import java.beans.PropertyDescriptor;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -95,6 +96,14 @@ public class TomcatJdbcDataSourceFactoryTest {
 		Assert.assertFalse(pool.isClosed());
 		tomcatJdbcDataSourceFactory.closeDataSource(dataSource);
 		Assert.assertTrue(pool.isClosed());
+	}
+
+	@Test
+	public void testSetDefaultIsolationLevelName() throws Exception {
+		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
+		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolationName("READ_COMMITTED");
+
+		Assert.assertEquals(Connection.TRANSACTION_READ_COMMITTED, tomcatJdbcDataSourceFactory.getDefaultTransactionIsolation());
 	}
 
 	@Test

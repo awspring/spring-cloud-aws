@@ -79,6 +79,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 								withDBName("test").
 								withDBInstanceIdentifier("test").
 								withEngine("mysql").
+								withMasterUsername("admin").
 								withEndpoint(new Endpoint().
 										withAddress("localhost").
 										withPort(3306)
@@ -105,16 +106,43 @@ public class AmazonRdsBeanDefinitionParserTest {
 		//Using a bean factory to disable eager creation of singletons
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
+		//Register a mock object which will be used to replay service calls
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+		beanDefinitionBuilder.setFactoryMethod("mock");
+		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
+		beanFactory.registerBeanDefinition(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+
 		//Load xml file
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-fullConfiguration.xml", getClass()));
 
-		BeanDefinition dataSource = beanFactory.getBeanDefinition("dataSource");
+		//Get the created mock object from the bean factory, data source has not ben initialized yet
+		AmazonRDS client = beanFactory.getBean(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
-		Assert.assertEquals("test", dataSource.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
-		Assert.assertEquals("password", dataSource.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
-		Assert.assertEquals("myUser", dataSource.getPropertyValues().getPropertyValue("username").getValue());
+		//Replay invocation that will be called during data source creation
+		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+				new DescribeDBInstancesResult().
+						withDBInstances(new DBInstance().
+								withDBInstanceStatus("available").
+								withDBName("test").
+								withDBInstanceIdentifier("test").
+								withEngine("mysql").
+								withEndpoint(new Endpoint().
+										withAddress("localhost").
+										withPort(3306)
+								)
+						)
+		);
 
+
+		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
+
+		Assert.assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
+		Assert.assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
+		Assert.assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
+
+		DataSource dataSource = beanFactory.getBean(DataSource.class);
+		Assert.assertNotNull(dataSource);
 	}
 
 	@Test
@@ -134,7 +162,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultAutoCommit").getValue());
 		Assert.assertEquals("mySchema", dataSourceFactory.getPropertyValues().getPropertyValue("defaultCatalog").getValue());
 		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultReadOnly").getValue());
-		Assert.assertEquals("READ_COMMITTED", dataSourceFactory.getPropertyValues().getPropertyValue("defaultTransactionIsolation").getValue());
+		Assert.assertEquals("2", dataSourceFactory.getPropertyValues().getPropertyValue("defaultTransactionIsolation").getValue());
 		Assert.assertEquals("10", dataSourceFactory.getPropertyValues().getPropertyValue("initialSize").getValue());
 		Assert.assertEquals("SET CURRENT SCHEMA", dataSourceFactory.getPropertyValues().getPropertyValue("initSQL").getValue());
 		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("logAbandoned").getValue());

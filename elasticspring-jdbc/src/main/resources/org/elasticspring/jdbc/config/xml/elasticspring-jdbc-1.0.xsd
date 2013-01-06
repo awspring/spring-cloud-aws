@@ -101,6 +101,23 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
+				<xsd:restriction base="xsd:int">
+					<xsd:enumeration value="0" />
+					<xsd:enumeration value="1" />
+					<xsd:enumeration value="2" />
+					<xsd:enumeration value="4" />
+					<xsd:enumeration value="8" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="defaultTransactionIsolationName" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default TransactionIsolation names of connections created by this pool. If not set,
+					the method will not be called and it defaults to the JDBC driver.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="NONE" />
 					<xsd:enumeration value="READ_COMMITTED" />

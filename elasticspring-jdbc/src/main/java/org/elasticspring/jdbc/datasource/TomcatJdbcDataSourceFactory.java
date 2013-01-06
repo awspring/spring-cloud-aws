@@ -22,8 +22,10 @@ import org.apache.tomcat.jdbc.pool.Validator;
 import org.elasticspring.jdbc.datasource.support.DatabasePlatformSupport;
 import org.elasticspring.jdbc.datasource.support.StaticDatabasePlatformSupport;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.Constants;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.Properties;
 
 /**
@@ -39,6 +41,8 @@ import java.util.Properties;
  * @since 1.0
  */
 public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfiguration {
+
+	private static final String PREFIX_ISOLATION = "TRANSACTION_";
 
 	private final PoolProperties defaultPoolConfiguration = new PoolProperties();
 	private DatabasePlatformSupport databasePlatformSupport = new StaticDatabasePlatformSupport();
@@ -526,6 +530,14 @@ public class TomcatJdbcDataSourceFactory implements DataSourceFactory, PoolConfi
 	@Override
 	public void setDefaultTransactionIsolation(int defaultTransactionIsolation) {
 		this.defaultPoolConfiguration.setDefaultTransactionIsolation(defaultTransactionIsolation);
+	}
+
+	public void setDefaultTransactionIsolationName(String constantName) {
+		if (constantName == null) {
+			throw new IllegalArgumentException("Isolation name must not be null");
+		}
+		Constants constants = new Constants(Connection.class);
+		setDefaultTransactionIsolation(constants.asNumber(PREFIX_ISOLATION + constantName).intValue());
 	}
 
 	@Override
