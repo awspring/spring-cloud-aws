@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration>
+        <fileset id="fileset1" name="XML Application Context" removed="false">
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/DataSourceFactoryBeanAwsTest-context.xml</file>
+        </fileset>
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$/elasticspring-jdbc">
@@ -20,9 +29,7 @@
     <orderEntry type="library" exported="" name="commons-logging-1.1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="spring-test-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-tx-3.1.0.RELEASE" level="project" />
-    <orderEntry type="library" exported="" name="commons-pool-1.5.4" level="project" />
     <orderEntry type="library" exported="" name="mysql-connector-java-5.1.16" level="project" />
-    <orderEntry type="library" exported="" name="commons-dbcp-1.4" level="project" />
     <orderEntry type="library" exported="" name="spring-core-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-asm-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-expression-3.1.0.RELEASE" level="project" />
@@ -33,6 +40,9 @@
     <orderEntry type="library" scope="TEST" name="junit-4.10" level="project" />
     <orderEntry type="library" scope="TEST" name="slf4j-jcl-1.7.2" level="project" />
     <orderEntry type="library" scope="TEST" name="log4j-1.2.17" level="project" />
+    <orderEntry type="library" scope="TEST" name="tomcat-extras-juli-7.0.34" level="project" />
+    <orderEntry type="library" name="tomcat-jdbc-7.0.34" level="project" />
+    <orderEntry type="library" scope="TEST" name="tomcat-extras-juli-adapters-7.0.34" level="project" />
   </component>
 </module>
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CustomBeanRegistry">
+    <option name="map">
+      <map>
+        <entry key="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;jdbc:dataSource xmlns:jdbc=&quot;http://www.elasticspring.org/schema/jdbc&quot; id=&quot;dataSource&quot; db-instance-identifier=&quot;test&quot; password=&quot;secret23&quot; /&gt;&#10;&#10;">
+          <value>
+            <list>
+              <CustomBeanInfo>
+                <option name="beanName" value="RDS_CLIENT" />
+                <option name="beanClassName" value="com.amazonaws.services.rds.AmazonRDS" />
+                <option name="constructorArgumentCount" value="1" />
+              </CustomBeanInfo>
+              <CustomBeanInfo>
+                <option name="beanName" value="dataSource" />
+                <option name="beanClassName" value="javax.sql.DataSource" />
+                <option name="idAttribute" value="id" />
+                <option name="constructorArgumentCount" value="3" />
+              </CustomBeanInfo>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
+

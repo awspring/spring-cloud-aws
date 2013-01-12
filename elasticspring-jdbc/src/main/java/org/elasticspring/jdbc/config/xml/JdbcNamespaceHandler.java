@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
+
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring context
- * namespace.
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring 'jdbc' name
+ * space.
  *
  * @author Agim Emruli
  * @since 1.0
  */
-public class ContextNamespaceHandler extends NamespaceHandlerSupport {
-
-	public static final String DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME = AWSCredentialsProvider.class.getName();
+public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("context-credentials", new CredentialsBeanDefinitionParser());
+		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
 	}
 }
