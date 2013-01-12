@@ -37,5 +37,6 @@ public class AmazonElasticBeansTalkPropertyPlaceHolderAwsTest {
 		AmazonElasticBeansTalkPropertyPlaceHolder amazonElasticBeansTalkPropertyPlaceHolder = new AmazonElasticBeansTalkPropertyPlaceHolder(
 				new AWSElasticBeanstalkClient(new SystemPropertiesCredentialsProvider()));
 		amazonElasticBeansTalkPropertyPlaceHolder.resolvePlaceholder("test", new Properties());
+		amazonElasticBeansTalkPropertyPlaceHolder.setApplicationName("test");
 	}
 }

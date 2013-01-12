@@ -30,13 +30,13 @@ import java.util.Properties;
 /**
  *
  */
-public class AmazonElasticBeansTalkPropertyPlaceHolder extends PropertyPlaceholderConfigurer implements InitializingBean {
+class AmazonElasticBeansTalkPropertyPlaceHolder extends PropertyPlaceholderConfigurer implements InitializingBean {
 
 	private final AWSElasticBeanstalk awsElasticBeanstalk;
 	private final HashMap<String, String> configurationSettings = new HashMap<String, String>();
 	private String applicationName;
 
-	public AmazonElasticBeansTalkPropertyPlaceHolder(AWSElasticBeanstalk awsElasticBeanstalk) {
+	AmazonElasticBeansTalkPropertyPlaceHolder(AWSElasticBeanstalk awsElasticBeanstalk) {
 		this.awsElasticBeanstalk = awsElasticBeanstalk;
 	}
 

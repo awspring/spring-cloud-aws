@@ -14,45 +14,37 @@
  * limitations under the License.
  */
 
-package org.elasticspring.mail;
+package org.elasticspring.jdbc;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.sql.DataSource;
+
 /**
+ * AWS backed integration test for the data source feature of the jdbc module
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
-@ContextConfiguration("MailSenderAwsTest-context.xml")
+@SuppressWarnings("SpringJavaAutowiringInspection")
+@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MailSenderAwsTest {
+public class DataSourceFactoryBeanAwsTest {
 
 	@Autowired
-	private MailSender mailSender;
+	private DataSource dataSource;
 
-	@Value("#{mail.senderAddress}")
-	private String senderAddress;
-
-	@Value("#{mail.recipientAddress}")
-	private String recipientAddress;
-
-	@Ignore
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
-	public void testSendMail() throws Exception {
-		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-		simpleMailMessage.setFrom(this.senderAddress);
-		simpleMailMessage.setTo(this.recipientAddress);
-		simpleMailMessage.setSubject("test subject");
-		simpleMailMessage.setText("test content");
-
-		this.mailSender.send(simpleMailMessage);
+	public void testExistingDataSourceInstance() throws Exception {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
+		String value = Long.toString(System.currentTimeMillis());
+		jdbcTemplate.update("insert into data(data) values(?)", value);
 	}
 }

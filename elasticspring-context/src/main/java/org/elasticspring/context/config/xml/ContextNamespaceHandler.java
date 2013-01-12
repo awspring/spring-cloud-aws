@@ -28,7 +28,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
-	static final String DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME = AWSCredentialsProvider.class.getName();
+	public static final String DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME = AWSCredentialsProvider.class.getName();
 	static final String RESOURCE_LOADER_BEAN_NAME = "resourceLoader";
 
 	@Override

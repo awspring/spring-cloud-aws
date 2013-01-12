@@ -21,7 +21,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 
-	<bean class="org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender">
+	<bean id="mailSender" class="org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender">
 		<constructor-arg>
 			<bean class="com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient">
 				<constructor-arg>

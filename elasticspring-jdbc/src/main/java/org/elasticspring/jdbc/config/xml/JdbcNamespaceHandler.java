@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.destination;
+package org.elasticspring.jdbc.config.xml;
+
+import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+
 
 /**
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring 'jdbc' name
+ * space.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
-public class InvalidDestinationException extends RuntimeException {
+public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
-	private final String destinationName;
-
-
-	public InvalidDestinationException(String destinationName) {
-		this.destinationName = destinationName;
-	}
-
-	public String getDestinationName() {
-		return this.destinationName;
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
 	}
 }

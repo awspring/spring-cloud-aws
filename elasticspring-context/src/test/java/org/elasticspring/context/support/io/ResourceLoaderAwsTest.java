@@ -72,7 +72,7 @@ public class ResourceLoaderAwsTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWriteFile() throws Exception {
-		Resource resource = this.resourceLoader.getResource("s3://test-alsa.elasticspring.org/writefoo");
+		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/newFile");
 		Assert.assertTrue(WritableResource.class.isInstance(resource));
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();

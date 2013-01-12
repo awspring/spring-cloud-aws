@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        maven { url 'http://repo.springsource.org/plugins-release' }
+    }
+    dependencies {
+        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.1'
+    }
+}
 
 
 configure(allprojects) {
     apply plugin: 'maven'
     apply plugin: 'java'
+    apply plugin: "propdeps"
+    apply plugin: 'propdeps-maven'
+    apply plugin: 'propdeps-idea'
 
     ext.springFrameworkVersion = "3.1.0.RELEASE"
     ext.junitVersion = '4.10'
@@ -109,12 +120,20 @@ project('elasticspring-context') {
 }
 
 project('elasticspring-jdbc') {
+
+    ext.tomcatVersion = "7.0.34"
+
     description = 'elasticspring jdbc'
     dependencies {
         compile project(":elasticspring-context")
         compile("org.springframework:spring-jdbc:${springFrameworkVersion}")
-        compile("mysql:mysql-connector-java:5.1.16")
-        compile("commons-dbcp:commons-dbcp:1.4")
+
+        optional("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
+            exclude module: "tomcat-juli"
+        }
+
+        testCompile("mysql:mysql-connector-java:5.1.16")
+        testCompile("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
     }
 }
