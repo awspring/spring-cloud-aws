@@ -25,6 +25,7 @@ import org.elasticspring.jdbc.datasource.DataSourceFactory;
 import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.elasticspring.jdbc.datasource.DynamicDataSource;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -142,7 +143,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
-		return new DataSourceInformation(DataSourceInformation.DatabaseType.valueOf(dbInstance.getEngine().toUpperCase()),
+		return new DataSourceInformation(DatabaseType.valueOf(dbInstance.getEngine().toUpperCase()),
 				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
 				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
 	}

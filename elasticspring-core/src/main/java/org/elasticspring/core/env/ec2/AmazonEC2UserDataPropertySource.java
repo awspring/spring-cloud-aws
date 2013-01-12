@@ -1,11 +1,11 @@
 /*
- * Copyright [2011] [Agim Emruli]
+ * Copyright 2010-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,8 +33,8 @@ import java.util.Map;
 public class AmazonEC2UserDataPropertySource extends AbstractAmazonEC2PropertySource {
 
 	public static final String USER_DATA_ATTRIBUTE_NAME = "userData";
-	public static final String USER_DATA_ATTRIBUTE_SEPARATOR = ";";
-	public static final Charset USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
+	private static final String USER_DATA_ATTRIBUTE_SEPARATOR = ";";
+	private static final Charset USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
 	private Charset userDataAttributeEncoding = USER_DATA_ATTRIBUTE_ENCODING;
 	private String userDataAttributeSeparator = USER_DATA_ATTRIBUTE_SEPARATOR;
 	private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;

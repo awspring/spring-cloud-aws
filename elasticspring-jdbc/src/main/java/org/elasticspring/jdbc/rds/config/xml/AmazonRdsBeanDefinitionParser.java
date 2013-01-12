@@ -84,7 +84,7 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	 *
 	 * @param element
 	 * 		- The data source element which may contain a pool-attributes element
-	 * @return - fully confgiured bean definition for the DataSourceFactory
+	 * @return - fully configured bean definition for the DataSourceFactory
 	 */
 	private static AbstractBeanDefinition createDataSourceFactoryBeanDefinition(Element element) {
 		BeanDefinitionBuilder datasourceFactoryBuilder = BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class);

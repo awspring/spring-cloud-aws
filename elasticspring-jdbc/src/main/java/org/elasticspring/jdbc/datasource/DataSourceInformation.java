@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.datasource;
 
+import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.springframework.util.Assert;
 
 /**
@@ -103,7 +104,7 @@ public final class DataSourceInformation {
 	}
 
 	/**
-	 * The database name used to connect to the database. The information is {@link #databaseType} type specfic.
+	 * The database name used to connect to the database. The information is {@link #databaseType} type specific.
 	 * <ul>
 	 * <li>MySQL - This is the data base name to connect to </li>
 	 * <li>Oracle - This is the system id (SID) to connect to</li>
@@ -189,13 +190,4 @@ public final class DataSourceInformation {
 		return sb.toString();
 	}
 
-	/**
-	 * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
-	 * underlying AWS cloud implementation.
-	 */
-	public enum DatabaseType {
-		MYSQL,
-		ORACLE,
-		MSSQL
-	}
 }

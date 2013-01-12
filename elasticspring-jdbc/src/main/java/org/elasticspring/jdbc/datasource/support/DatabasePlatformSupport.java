@@ -16,8 +16,6 @@
 
 package org.elasticspring.jdbc.datasource.support;
 
-import org.elasticspring.jdbc.datasource.DataSourceInformation;
-
 /**
  * Support interface used by the {@link org.elasticspring.jdbc.datasource.DataSourceFactory} implementation to retrieve
  * the necessary configuration data for every data base platform. As data bases platform have differences in the URL
@@ -40,7 +38,7 @@ public interface DatabasePlatformSupport {
 	 * 		- The database type for which the data base driver class should be returned.
 	 * @return The fully qualified driver class name used to connect to the data base.
 	 */
-	String getDriverClassNameForDatabase(DataSourceInformation.DatabaseType databaseType);
+	String getDriverClassNameForDatabase(DatabaseType databaseType);
 
 	/**
 	 * Construct the data base URL for the data base instance. Implementation will typically infer the URI scheme from the
@@ -55,8 +53,8 @@ public interface DatabasePlatformSupport {
 	 * 		- The port used to connect to the data base
 	 * @param databaseName
 	 * 		- The data base name used to connect to. The usage is implementation specific (e.g. for Oracle this is the SID)
-	 * @return - A fully constructed and valid url for the data source to connect to the data base plattform.
+	 * @return - A fully constructed and valid url for the data source to connect to the data base platform.
 	 */
-	String getDatabaseUrlForDatabase(DataSourceInformation.DatabaseType databaseType, String hostname, int port, String databaseName);
+	String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName);
 
 }

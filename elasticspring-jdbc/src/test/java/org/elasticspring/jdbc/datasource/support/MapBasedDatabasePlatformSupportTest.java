@@ -16,7 +16,6 @@
 
 package org.elasticspring.jdbc.datasource.support;
 
-import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,14 +37,14 @@ public class MapBasedDatabasePlatformSupportTest {
 
 	@Test
 	public void testGetDriverClassNameForDatabase() throws Exception {
-		Assert.assertEquals("com.mysql.jdbc.Driver", new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DataSourceInformation.DatabaseType.MYSQL));
+		Assert.assertEquals("com.mysql.jdbc.Driver", new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.MYSQL));
 	}
 
 	@Test
 	public void testGetDriverNonConfiguredDatabasePlatform() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No driver");
-		new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DataSourceInformation.DatabaseType.ORACLE);
+		new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.ORACLE);
 	}
 
 	@Test
@@ -58,7 +57,7 @@ public class MapBasedDatabasePlatformSupportTest {
 	@Test
 	public void testGetDatabaseUrlForDatabase() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
-		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb");
+		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL, "localhost", 3306, "testDb");
 		Assert.assertEquals("jdbc:mysql://localhost:3306/testDb", url);
 	}
 
@@ -67,7 +66,7 @@ public class MapBasedDatabasePlatformSupportTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("Error constructing URI from Host:'localhost<'");
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
-		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DataSourceInformation.DatabaseType.MYSQL, "localhost<", 3306, "testDb");
+		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL, "localhost<", 3306, "testDb");
 		Assert.assertEquals("jdbc:mysql://localhost:3306/testDb", url);
 	}
 
@@ -75,13 +74,13 @@ public class MapBasedDatabasePlatformSupportTest {
 	private static class SimpleDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
 		@Override
-		protected Map<DataSourceInformation.DatabaseType, String> getDriverClassNameMappings() {
-			return Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
+		protected Map<DatabaseType, String> getDriverClassNameMappings() {
+			return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
 		}
 
 		@Override
-		protected Map<DataSourceInformation.DatabaseType, String> getSchemeNames() {
-			return Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "jdbc:mysql");
+		protected Map<DatabaseType, String> getSchemeNames() {
+			return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
 		}
 	}
 }

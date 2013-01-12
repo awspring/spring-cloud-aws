@@ -16,8 +16,6 @@
 
 package org.elasticspring.jdbc.datasource.support;
 
-import org.elasticspring.jdbc.datasource.DataSourceInformation;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -29,24 +27,24 @@ import java.util.Map;
  */
 public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
-	private final Map<DataSourceInformation.DatabaseType, String> driverClassNameMappings;
-	private final Map<DataSourceInformation.DatabaseType, String> schemeNames;
+	private final Map<DatabaseType, String> driverClassNameMappings;
+	private final Map<DatabaseType, String> schemeNames;
 
 	/**
 	 * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with the configuration information
 	 */
 	public StaticDatabasePlatformSupport() {
-		this.driverClassNameMappings = Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
-		this.schemeNames = Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "jdbc:mysql");
+		this.driverClassNameMappings = Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
+		this.schemeNames = Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
 	}
 
 	@Override
-	protected Map<DataSourceInformation.DatabaseType, String> getDriverClassNameMappings() {
+	protected Map<DatabaseType, String> getDriverClassNameMappings() {
 		return this.driverClassNameMappings;
 	}
 
 	@Override
-	protected Map<DataSourceInformation.DatabaseType, String> getSchemeNames() {
+	protected Map<DatabaseType, String> getSchemeNames() {
 		return this.schemeNames;
 	}
 }

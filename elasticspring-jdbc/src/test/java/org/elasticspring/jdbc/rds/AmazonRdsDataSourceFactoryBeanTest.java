@@ -24,6 +24,7 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
 import org.elasticspring.jdbc.datasource.DataSourceFactory;
 import org.elasticspring.jdbc.datasource.DataSourceInformation;
+import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,7 +86,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		amazonRdsDataSourceFactoryBean.getObject();
 
 
-		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
+		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
 	}
 
 	@Test
@@ -109,7 +110,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 						)
 		);
 
-		Mockito.when(dataSourceFactory.createDataSource(new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+		Mockito.when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
 
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
@@ -151,7 +152,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		amazonRdsDataSourceFactoryBean.getObject();
 
 
-		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
+		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
 	}
 
 	@Test

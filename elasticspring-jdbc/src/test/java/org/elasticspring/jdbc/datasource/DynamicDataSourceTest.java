@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.datasource;
 
+import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +48,7 @@ public class DynamicDataSourceTest {
 
 	@Test
 	public void testGetConnectionWithReadyDataSource() throws Exception {
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 		DataSource dataSource = Mockito.mock(DataSource.class);
 		Connection connection = Mockito.mock(Connection.class);
@@ -63,7 +64,7 @@ public class DynamicDataSourceTest {
 
 	@Test
 	public void testGetConnectionWithReadyUsernameAndPassword() throws Exception {
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 		DataSource dataSource = Mockito.mock(DataSource.class);
 		Connection connection = Mockito.mock(Connection.class);
@@ -79,7 +80,7 @@ public class DynamicDataSourceTest {
 
 	@Test
 	public void testGetConnectionNonReadyDataSourceConcurrent() throws Exception {
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 		DataSource dataSource = Mockito.mock(DataSource.class);
 		Connection connection = Mockito.mock(Connection.class);
@@ -117,7 +118,7 @@ public class DynamicDataSourceTest {
 
 	@Test
 	public void testGetConnectionTerminatesWhileShuttingDown() throws Exception {
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 		DataSource dataSource = Mockito.mock(DataSource.class);
 		Connection connection = Mockito.mock(Connection.class);
@@ -162,7 +163,7 @@ public class DynamicDataSourceTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("closed");
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
@@ -177,7 +178,7 @@ public class DynamicDataSourceTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("closed");
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
@@ -187,7 +188,7 @@ public class DynamicDataSourceTest {
 
 	@Test
 	public void testDynamicDataSourceDestroyedWhileWaitingForConnection() throws Exception {
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
 		ThreadPoolTaskExecutor taskScheduler = new ThreadPoolTaskExecutor();

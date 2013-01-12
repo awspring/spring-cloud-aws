@@ -18,6 +18,7 @@ package org.elasticspring.jdbc.datasource;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.elasticspring.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 	public void testCreateWithDefaultSettings() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL,
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		Assert.assertNotNull(dataSource);
@@ -62,17 +63,17 @@ public class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setDatabasePlatformSupport(new MapBasedDatabasePlatformSupport() {
 
 			@Override
-			protected Map<DataSourceInformation.DatabaseType, String> getDriverClassNameMappings() {
-				return Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "com.mysql.driver");
+			protected Map<DatabaseType, String> getDriverClassNameMappings() {
+				return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.driver");
 			}
 
 			@Override
-			protected Map<DataSourceInformation.DatabaseType, String> getSchemeNames() {
-				return Collections.singletonMap(DataSourceInformation.DatabaseType.MYSQL, "jdbc:sql");
+			protected Map<DatabaseType, String> getSchemeNames() {
+				return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:sql");
 			}
 		});
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL,
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		Assert.assertNotNull(dataSource);
@@ -87,7 +88,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setInitialSize(0);
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL,
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		Assert.assertNotNull(dataSource);
@@ -152,7 +153,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setLogValidationErrors(true);
 		tomcatJdbcDataSourceFactory.setPropagateInterruptState(true);
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(DataSourceInformation.DatabaseType.MYSQL,
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 

@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.destination;
+package org.elasticspring.jdbc.datasource.support;
 
 /**
- *
+ * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
+ * underlying AWS cloud implementation.
  */
-public class InvalidDestinationException extends RuntimeException {
-
-	private final String destinationName;
-
-
-	public InvalidDestinationException(String destinationName) {
-		this.destinationName = destinationName;
-	}
-
-	public String getDestinationName() {
-		return this.destinationName;
-	}
+@SuppressWarnings("UnusedDeclaration")
+public enum DatabaseType {
+	MYSQL,
+	ORACLE,
+	MSSQL
 }

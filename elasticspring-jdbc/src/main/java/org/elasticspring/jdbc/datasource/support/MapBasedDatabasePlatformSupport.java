@@ -16,7 +16,6 @@
 
 package org.elasticspring.jdbc.datasource.support;
 
-import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.springframework.util.Assert;
 
 import java.net.URI;
@@ -42,7 +41,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 * 		if there is not driver class name available for the DatabaseType
 	 */
 	@Override
-	public String getDriverClassNameForDatabase(DataSourceInformation.DatabaseType databaseType) {
+	public String getDriverClassNameForDatabase(DatabaseType databaseType) {
 		Assert.notNull(databaseType, "databaseType must not be null");
 		String candidate = this.getDriverClassNameMappings().get(databaseType);
 		Assert.notNull(candidate, String.format("No driver class name found for database :'%s'", databaseType.name()));
@@ -65,7 +64,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 * 		if there is no scheme available for the database type or if the information are not valid to construct a URL.
 	 */
 	@Override
-	public String getDatabaseUrlForDatabase(DataSourceInformation.DatabaseType databaseType, String hostname, int port, String databaseName) {
+	public String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName) {
 		String scheme = this.getSchemeNames().get(databaseType);
 		Assert.notNull(databaseType, String.format("No scheme name found for database :'%s'", databaseType.name()));
 		try {
@@ -82,7 +81,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 *
 	 * @return Map containing the driver class name for every data base platform
 	 */
-	protected abstract Map<DataSourceInformation.DatabaseType, String> getDriverClassNameMappings();
+	protected abstract Map<DatabaseType, String> getDriverClassNameMappings();
 
 
 	/**
@@ -94,5 +93,5 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 *
 	 * @return Map containing the schema (and sub-scheme) names for every support data base platform
 	 */
-	protected abstract Map<DataSourceInformation.DatabaseType, String> getSchemeNames();
+	protected abstract Map<DatabaseType, String> getSchemeNames();
 }

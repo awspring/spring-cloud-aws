@@ -1,19 +1,17 @@
 /*
+ * Copyright 2010-2012 the original author or authors.
  *
- *  * Copyright 2010-2012 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.elasticspring.messaging.support.converter;
@@ -79,32 +77,44 @@ public class MarshallingMessageConverterTest {
 		}
 
 		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
+		public boolean equals(Object obj) {
+			if (this == obj) {
 				return true;
 			}
-			if (o == null || getClass() != o.getClass()) {
+			if (obj == null || getClass() != obj.getClass()) {
 				return false;
 			}
 
-			TestPerson that = (TestPerson) o;
+			TestPerson that = (TestPerson) obj;
 
-			if (this.birthdate != null ? !this.birthdate.equals(that.birthdate) : that.birthdate != null) {
+			if (this.getBirthdate() != null ? !this.getBirthdate().equals(that.getBirthdate()) : that.getBirthdate() != null) {
 				return false;
 			}
-			if (this.firstName != null ? !this.firstName.equals(that.firstName) : that.firstName != null) {
+			if (this.getFirstName() != null ? !this.getFirstName().equals(that.getFirstName()) : that.getFirstName() != null) {
 				return false;
 			}
-			return !(this.lastName != null ? !this.lastName.equals(that.lastName) : that.lastName != null);
+			return !(this.getLastName() != null ? !this.getLastName().equals(that.getLastName()) : that.getLastName() != null);
 
 		}
 
 		@Override
 		public int hashCode() {
-			int result = this.firstName != null ? this.firstName.hashCode() : 0;
-			result = 31 * result + (this.lastName != null ? this.lastName.hashCode() : 0);
-			result = 31 * result + (this.birthdate != null ? this.birthdate.hashCode() : 0);
+			int result = this.getFirstName() != null ? this.getFirstName().hashCode() : 0;
+			result = 31 * result + (this.getLastName() != null ? this.getLastName().hashCode() : 0);
+			result = 31 * result + (this.getBirthdate() != null ? this.getBirthdate().hashCode() : 0);
 			return result;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public Date getBirthdate() {
+			return this.birthdate;
 		}
 	}
 }
