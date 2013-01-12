@@ -18,6 +18,7 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/context"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:beans="http://www.springframework.org/schema/beans"
 			targetNamespace="http://www.elasticspring.org/schema/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -72,6 +73,45 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="context-region">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.core.region.RegionProvider">
+				<![CDATA[
+	Provides the configuration for the region which every component inside this context will use as a default.
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.elasticspring.core.region.RegionProvider" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:all>
+				<xsd:element name="static-region" type="staticRegionType" minOccurs="1" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Configures a region in a static way at configuration time.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:all>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="context-resource-loader">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser">
+				<![CDATA[
+	Configures a resource loader that supports amazon S3 resources to be loaded by the application context resource loader.
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.core.io.ResourceLoader" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:complexType name="simpleCredentialsType">
 		<xsd:attribute name="access-Key" use="required">
 			<xsd:annotation>
@@ -94,6 +134,28 @@
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
 					<xsd:minLength value="1" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="staticRegionType">
+		<xsd:attribute name="region" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The logical name of the region. Possible regions are available on http://docs.amazonwebservices.com/general/latest/gr/rande.html
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="US_EAST_1" />
+					<xsd:enumeration value="US_WEST_1" />
+					<xsd:enumeration value="US_WEST_2" />
+					<xsd:enumeration value="EU_WEST_1" />
+					<xsd:enumeration value="AP_SOUTHEAST_1" />
+					<xsd:enumeration value="AP_SOUTHEAST_2" />
+					<xsd:enumeration value="AP_NORTHEAST_1" />
+					<xsd:enumeration value="SA_EAST_1" />
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>

@@ -1,19 +1,17 @@
 /*
+ * Copyright 2010-2012 the original author or authors.
  *
- *  * Copyright 2010-2012 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.elasticspring.core.io.s3;
@@ -50,7 +48,7 @@ public class SimpleStorageResourceTest {
 	public void testFileExists() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(new ObjectMetadata());
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertTrue(simpleStorageResource.exists());
 	}
 
@@ -58,7 +56,7 @@ public class SimpleStorageResourceTest {
 	public void testFileDoesNotExist() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertFalse(simpleStorageResource.exists());
 	}
 
@@ -70,7 +68,7 @@ public class SimpleStorageResourceTest {
 		Date lastModified = new Date();
 		objectMetadata.setLastModified(lastModified);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertEquals(1234L, simpleStorageResource.contentLength());
 		assertEquals(lastModified.getTime(), simpleStorageResource.lastModified());
 	}
@@ -79,7 +77,7 @@ public class SimpleStorageResourceTest {
 	public void testContentLengthForFileThatDoesNotExist() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		try {
 			simpleStorageResource.contentLength();
 			fail("FileNotFoundException expected because s3 resource does not exist!");
@@ -99,7 +97,7 @@ public class SimpleStorageResourceTest {
 	public void testGetFileName() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertEquals("object", simpleStorageResource.getFilename());
 	}
 
@@ -117,7 +115,7 @@ public class SimpleStorageResourceTest {
 
 		when(amazonS3.getObject("bucket", "object")).thenReturn(s3Object);
 
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("bucket", "object", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertTrue(simpleStorageResource.exists());
 		assertEquals(42, simpleStorageResource.getInputStream().read());
 	}
@@ -125,7 +123,7 @@ public class SimpleStorageResourceTest {
 	@Test
 	public void testGetDescription() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("1", "2", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "1", "2");
 		String description = simpleStorageResource.getDescription();
 		assertTrue(description.contains("bucket"));
 		assertTrue(description.contains("object"));
@@ -137,7 +135,7 @@ public class SimpleStorageResourceTest {
 	@Test
 	public void testWriteFile() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource("123123123123", "2", amazonS3);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "123123123123", "2");
 		final String messageContext = "myFileContent";
 		when(amazonS3.putObject(eq("123123123123"), Matchers.eq("2"), any(InputStream.class), any(ObjectMetadata.class))).thenAnswer(new Answer<PutObjectResult>() {
 

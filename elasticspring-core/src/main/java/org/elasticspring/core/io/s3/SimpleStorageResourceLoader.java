@@ -33,7 +33,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 
 	private final AmazonS3 amazonS3;
 	private final ResourceLoader delegate;
-	private static final Pattern S3_LOCATION_PATTERN = Pattern.compile("^s3://([A-Za-z0-9\\.]*)/([A-Za-z0-9\\.]*)/?$");
+	private static final Pattern S3_LOCATION_PATTERN = Pattern.compile("^s3://([A-Za-z0-9\\.\\-]*)/([A-Za-z0-9\\.\\-]*)/?$");
 	private static final String S3_PROTOCOL_PREFIX = "s3://";
 
 	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
@@ -50,7 +50,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 		if (location.startsWith(S3_PROTOCOL_PREFIX)) {
 			Matcher matcher = S3_LOCATION_PATTERN.matcher(location);
 			if (matcher.matches()) {
-				return new SimpleStorageResource(getBucketNameFromUri(matcher), getObjectNameFromUri(matcher), this.amazonS3);
+				return new SimpleStorageResource(this.amazonS3, getBucketNameFromUri(matcher), getObjectNameFromUri(matcher));
 			} else {
 				throw new IllegalArgumentException(String.format("The s3 location '%s' is not a valid s3 location!", location));
 			}
