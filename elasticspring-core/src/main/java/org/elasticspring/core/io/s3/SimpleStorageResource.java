@@ -84,7 +84,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
+ 		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
 	}
 
 	@Override
@@ -143,9 +143,12 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	}
 
 	private void initAmazonS3() {
-		//		// TODO find a cleaner way to set the endpoint
-		//		this.amazonS3.setEndpoint("s3-" + this.amazonS3.getBucketLocation(this.bucketName) + ".amazonaws.com");
+		// TODO find a cleaner way to set the region
+		// this.amazonS3.setEndpoint("s3-" + this.amazonS3.getBucketLocation(this.bucketName) + ".amazonaws.com");
+		fetchObjectMetadata();
+	}
 
+	private void fetchObjectMetadata() {
 		try {
 			this.objectMetadata = this.amazonS3.getObjectMetadata(this.bucketName, this.objectName);
 		} catch (AmazonS3Exception e) {
@@ -162,7 +165,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		/*
 			The minimum size for a multi part is 5 MB, hence the buffer size of 5 MB
 		 */
-		private static final int BUFFER_SIZE = 1024 * 1024 * DEFAULT_CONCURRENCY_LIMIT;
+		private static final int BUFFER_SIZE = 1024 * 1024 * 5;
 		private final Object monitor = new Object();
 		private final AmazonS3 amazonS3;
 		private final TaskExecutor taskExecutor;
@@ -188,6 +191,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 			synchronized (this.monitor) {
 				if (this.currentOutputStream.size() == BUFFER_SIZE) {
 					initiateMultiPartIfNeeded();
+					// TODO document that if a task executor with a queue is used there's a huge memory consumption.
 					this.completionService.submit(
 							new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter++,
 									false));
@@ -200,12 +204,16 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		@Override
 		public void close() throws IOException {
 			synchronized (this.monitor) {
-				if (this.multiPartUploadResult != null) {
+				if (isMultiPartUpload()) {
 					finishMultiPartUpload();
 				} else {
 					finishSimpleUpload();
 				}
 			}
+		}
+
+		private boolean isMultiPartUpload() {
+			return this.multiPartUploadResult != null;
 		}
 
 		private void finishSimpleUpload() throws IOException {
@@ -244,7 +252,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		}
 
 		private void abortMultiPartUpload() {
-			if (this.multiPartUploadResult != null) {
+			if (isMultiPartUpload()) {
 				this.amazonS3.abortMultipartUpload(new AbortMultipartUploadRequest(this.multiPartUploadResult.getBucketName(),
 						this.multiPartUploadResult.getKey(), this.multiPartUploadResult.getUploadId()));
 			}
@@ -253,13 +261,14 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		private List<PartETag> getMultiPartsUploadResults() throws ExecutionException, InterruptedException {
 			List<PartETag> result = new ArrayList<PartETag>(this.partNumberCounter);
 			for (int i = this.partNumberCounter; i > 1; i--) {
+				// TODO use poll with a timeout
 				Future<UploadPartResult> uploadPartResultFuture = this.completionService.take();
 				result.add(uploadPartResultFuture.get().getPartETag());
 			}
 			return result;
 		}
 
-		private class UploadPartResultCallable implements Callable<UploadPartResult> {
+		private static class UploadPartResultCallable implements Callable<UploadPartResult> {
 
 			private final AmazonS3 amazonS3;
 			@SuppressWarnings("FieldMayBeFinal")

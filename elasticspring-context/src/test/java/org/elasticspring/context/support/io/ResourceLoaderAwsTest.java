@@ -28,8 +28,11 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -47,10 +50,10 @@ public class ResourceLoaderAwsTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedApplicationContext() throws Exception {
-		Resource resource = this.applicationContext.getResource("s3://test.elasticspring.org/test");
+		Resource resource = this.applicationContext.getResource("s3://test-alsa.elasticspring.org/test.txt");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
-		Assert.assertNotNull(inputStream);
+		assertNotNull(inputStream);
 		Assert.assertTrue(inputStream.available() > 0);
 		inputStream.close();
 	}
@@ -58,10 +61,10 @@ public class ResourceLoaderAwsTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedResourceLoader() throws Exception {
-		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/test");
+		Resource resource = this.resourceLoader.getResource("s3://test-alsa.elasticspring.org/test.txt");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
-		Assert.assertNotNull(inputStream);
+		assertNotNull(inputStream);
 		Assert.assertTrue(inputStream.available() > 0);
 		inputStream.close();
 	}
@@ -69,15 +72,23 @@ public class ResourceLoaderAwsTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWriteFile() throws Exception {
-		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/writefoo");
+		Resource resource = this.resourceLoader.getResource("s3://test-alsa.elasticspring.org/writefoo");
 		Assert.assertTrue(WritableResource.class.isInstance(resource));
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
-		for (int i = 0; i < 120; i++) {
+		for (int i = 0; i < 6; i++) {
 			for (int j = 0; j < (1024 * 1024); j++) {
 				outputStream.write("c".getBytes("UTF-8"));
 			}
 		}
 		outputStream.close();
+	}
+
+	@Test
+	@IfProfileValue(name = "test-groups", value = "aws-test")
+	public void testLocationEndpoint() throws IOException {
+		Resource resource = this.resourceLoader.getResource("s3://test-alsa.elasticspring.org/test.txt");
+		InputStream inputStream = resource.getInputStream();
+		assertNotNull(inputStream);
 	}
 }
