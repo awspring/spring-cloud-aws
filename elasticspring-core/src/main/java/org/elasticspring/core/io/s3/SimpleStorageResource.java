@@ -139,12 +139,6 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 			this.taskExecutor = simpleAsyncTaskExecutor;
 		}
 
-		initAmazonS3();
-	}
-
-	private void initAmazonS3() {
-		// TODO find a cleaner way to set the region
-		// this.amazonS3.setEndpoint("s3-" + this.amazonS3.getBucketLocation(this.bucketName) + ".amazonaws.com");
 		fetchObjectMetadata();
 	}
 
