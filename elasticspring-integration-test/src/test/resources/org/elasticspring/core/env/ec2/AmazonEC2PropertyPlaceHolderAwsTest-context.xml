@@ -17,21 +17,12 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="mailSender" class="org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender">
-		<constructor-arg>
-			<bean class="com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient">
-				<constructor-arg>
-					<bean class="com.amazonaws.auth.SystemPropertiesCredentialsProvider" />
-				</constructor-arg>
-			</bean>
-		</constructor-arg>
-
+	<bean id="amazonEC2Client" class="com.amazonaws.services.ec2.AmazonEC2Client">
+		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.ContextNamespaceHandler).DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
-
-	<util:properties id="mail" location="file://${els.test.config.dir}/mail.properties" />
 
 </beans>

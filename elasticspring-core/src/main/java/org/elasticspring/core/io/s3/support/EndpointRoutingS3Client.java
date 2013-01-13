@@ -92,6 +92,7 @@ import java.util.List;
 
 public class EndpointRoutingS3Client implements AmazonS3 {
 
+	private static final String DEFAULT_REGION = "US";
 	private final AmazonS3Client defaultClient;
 	private final AmazonS3ClientFactory clientFactory;
 
@@ -336,7 +337,12 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 		Assert.notNull(bucketName);
 		if (bucketName.contains(".")) {
 			String bucketRegion = this.defaultClient.getBucketLocation(bucketName);
-			return this.clientFactory.getForEndpoint(org.elasticspring.core.region.Region.fromRegionName(bucketRegion));
+			// Special handling for US region, which is the defualt one
+			if (bucketRegion.equals(DEFAULT_REGION)) {
+				return this.defaultClient;
+			} else {
+				return this.clientFactory.getForEndpoint(org.elasticspring.core.region.Region.fromRegionName(bucketRegion));
+			}
 		} else {
 			return this.defaultClient;
 		}

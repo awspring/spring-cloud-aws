@@ -3,9 +3,13 @@
   <component name="FacetManager">
     <facet type="Spring" name="Spring">
       <configuration>
-        <fileset id="fileset1" name="Xml Application Context" removed="false">
-          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/mail/MailSenderAwsTest-context.xml</file>
-          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/support/io/ResourceLoaderAwsTest-context.xml</file>
+        <fileset id="fileset1" name="XML Application Context" removed="false">
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-context.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-testMultipleElements.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-testWithEmptyAccessKey.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-testWithEmptySecretKey.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-testWithExpressions.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-context/src/test/resources/org/elasticspring/context/config/xml/CredentialsBeanDefinitionParserTest-testWithPlaceHolder.xml</file>
         </fileset>
       </configuration>
     </facet>

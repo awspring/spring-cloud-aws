@@ -16,6 +16,7 @@
 
 package org.elasticspring.context.config;
 
+import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -42,5 +43,12 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 	protected AmazonS3 createInstance() throws Exception {
 		AmazonS3Client defaultClient = new AmazonS3Client(this.awsCredentialsProvider);
 		return new EndpointRoutingS3Client(defaultClient, this.amazonS3ClientFactory);
+	}
+
+	@Override
+	protected void destroyInstance(AmazonS3 instance) throws Exception {
+		if (instance instanceof AmazonWebServiceClient) {
+			((AmazonWebServiceClient) instance).shutdown();
+		}
 	}
 }

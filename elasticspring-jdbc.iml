@@ -4,7 +4,11 @@
     <facet type="Spring" name="Spring">
       <configuration>
         <fileset id="fileset1" name="XML Application Context" removed="false">
-          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/DataSourceFactoryBeanAwsTest-context.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/rds/config/xml/AmazonRdsBeanDefinitionParserTest-defaultPoolAttributes.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/rds/config/xml/AmazonRdsBeanDefinitionParserTest-fullConfiguration.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/rds/config/xml/AmazonRdsBeanDefinitionParserTest-minimal.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/rds/config/xml/AmazonRdsBeanDefinitionParserTest-noCredentials.xml</file>
+          <file>file://$MODULE_DIR$/elasticspring-jdbc/src/test/resources/org/elasticspring/jdbc/rds/config/xml/AmazonRdsBeanDefinitionParserTest-poolAttributes.xml</file>
         </fileset>
       </configuration>
     </facet>

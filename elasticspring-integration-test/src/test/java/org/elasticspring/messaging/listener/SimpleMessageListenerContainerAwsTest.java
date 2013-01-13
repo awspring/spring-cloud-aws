@@ -16,9 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
-import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
@@ -30,9 +28,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
@@ -44,14 +43,15 @@ import java.util.concurrent.Executors;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("SimpleMessageListenerContainerAwsTest-context.xml")
 public class SimpleMessageListenerContainerAwsTest {
 
+	@Autowired
 	private AmazonSQSAsync amazonSQSClient;
 
 
 	@Before
 	public void setUp() throws Exception {
-		this.amazonSQSClient = new AmazonSQSAsyncClient(new PropertiesCredentials(new ClassPathResource("access.properties").getFile()));
 		CreateQueueResult existingQueue = this.amazonSQSClient.createQueue(new CreateQueueRequest("testQueue"));
 		for (int b = 0; b < 10; b++) {
 			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();

@@ -37,6 +37,7 @@ configure(allprojects) {
     ext.log4jVersion = '1.2.17'
     ext.awsSdkVersion = '1.3.27'
     ext.mockitoVersion = '1.9.5'
+    ext.tomcatVersion = "7.0.34"
 
 
     tasks.withType(Compile) {
@@ -120,9 +121,6 @@ project('elasticspring-context') {
 }
 
 project('elasticspring-jdbc') {
-
-    ext.tomcatVersion = "7.0.34"
-
     description = 'elasticspring jdbc'
     dependencies {
         compile project(":elasticspring-context")
@@ -154,9 +152,33 @@ project('elasticspring-messaging') {
     }
 }
 
+project('elasticspring-integration-test') {
+    description = 'elasticspring integration test on AWS'
+    dependencies {
+        testCompile project(":elasticspring-core")
+        testCompile project(":elasticspring-context")
+        testCompile project(":elasticspring-jdbc")
+        testCompile project(":elasticspring-messaging")
+        testCompile("org.springframework:spring-test:${springFrameworkVersion}")
+        optional("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
+            exclude module: "tomcat-juli"
+        }
+
+        testCompile("mysql:mysql-connector-java:5.1.16")
+        testCompile("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
+    }
+
+    final configDir = System.getProperty("els.config.dir", null)
+    if (configDir != null) {
+        test.systemProperty("els.config.dir", configDir)
+        test.systemProperty("test-groups", "aws-test")
+    }
+
+}
+
 
 configure(rootProject) {
-    description = 'Elastic Spring'
+    description = 'ElasticSpring'
 
     // don't publish the default jar for the root project
     configurations.archives.artifacts.clear()
