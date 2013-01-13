@@ -73,10 +73,10 @@ public class SimpleMessageListenerContainerAwsTest {
 		ConcurrentTaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newCachedThreadPool(), Executors.newScheduledThreadPool(1000));
 		simpleMessageListenerContainer.setTaskExecutor(taskScheduler);
 		simpleMessageListenerContainer.setMaxNumberOfMessages(10);
-		simpleMessageListenerContainer.setMessageListener(new MessageListener() {
+		simpleMessageListenerContainer.setMessageListener(new MessageListener<String>() {
 
 			@Override
-			public void onMessage(Message<?> message) {
+			public void onMessage(Message<String> message) {
 				Assert.assertNotNull(message);
 				messageReceivedCount.countDown();
 			}

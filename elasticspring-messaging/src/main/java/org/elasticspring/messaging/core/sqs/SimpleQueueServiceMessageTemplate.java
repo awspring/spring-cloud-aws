@@ -29,12 +29,11 @@ import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
-import org.springframework.beans.factory.DisposableBean;
 
 /**
  *
  */
-public class SimpleQueueServiceMessageTemplate implements MessageOperations, DisposableBean {
+public class SimpleQueueServiceMessageTemplate implements MessageOperations {
 
 	private final AmazonSQS amazonSQS;
 	private final String defaultDestination;
@@ -93,8 +92,4 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 		this.messageConverter = messageConverter;
 	}
 
-	@Override
-	public void destroy() throws Exception {
-		this.amazonSQS.shutdown();
-	}
 }

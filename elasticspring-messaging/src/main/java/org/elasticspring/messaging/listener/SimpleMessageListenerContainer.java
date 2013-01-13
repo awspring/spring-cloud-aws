@@ -52,7 +52,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	private void scheduleMessageListener() {
-		getTaskExecutor().execute(new AsyncMessageListener());
+		getTaskExecutor().execute(new AsynchronousMessageListener());
 	}
 
 	protected void executeMessage(org.elasticspring.messaging.core.Message<?> stringMessage) {
@@ -68,16 +68,14 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 
-	private class AsyncMessageListener implements Runnable {
+	private class AsynchronousMessageListener implements Runnable {
 
 		@Override
 		public void run() {
 			while (isRunning()) {
-				synchronized (SimpleMessageListenerContainer.this.getLifecycleMonitor()) {
-					ReceiveMessageResult receiveMessageResult = getAmazonSQS().receiveMessage(getReceiveMessageRequest());
-					for (Message message : receiveMessageResult.getMessages()) {
-						getTaskExecutor().execute(new MessageExecutor(message));
-					}
+				ReceiveMessageResult receiveMessageResult = getAmazonSQS().receiveMessage(getReceiveMessageRequest());
+				for (Message message : receiveMessageResult.getMessages()) {
+					getTaskExecutor().execute(new MessageExecutor(message));
 				}
 			}
 		}
