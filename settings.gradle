@@ -16,4 +16,4 @@
 
 
 
-include 'elasticspring-core', 'elasticspring-context', 'elasticspring-jdbc', 'elasticspring-messaging'
+include 'elasticspring-core', 'elasticspring-context', 'elasticspring-jdbc', 'elasticspring-messaging', 'elasticspring-integration-test'
