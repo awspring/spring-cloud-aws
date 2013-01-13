@@ -21,7 +21,6 @@
     <orderEntry type="library" exported="" name="commons-logging-1.1.1" level="project" />
     <orderEntry type="library" exported="" name="spring-expression-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="commons-logging-1.1.1" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit-4.8.2" level="project" />
     <orderEntry type="library" exported="" name="spring-asm-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="spring-core-3.1.0.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="jackson-mapper-asl-1.8.9" level="project" />
