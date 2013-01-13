@@ -19,12 +19,16 @@ buildscript {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.1'
+        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.1")
+        classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.4")
     }
 }
 
 
 configure(allprojects) {
+    group = 'org.elasticspring'
+    version = '0.1'
+
     apply plugin: 'maven'
     apply plugin: 'java'
     apply plugin: "propdeps"
@@ -39,17 +43,13 @@ configure(allprojects) {
     ext.mockitoVersion = '1.9.5'
 
 
-    tasks.withType(Compile) {
+    tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+        options.compilerArgs = ['-Xlint:-options']
     }
-
-    group = 'org.elasticspring'
-    version = '0.1'
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
-
-    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:none']
 
     test.systemProperty("java.awt.headless", "true")
 
@@ -156,10 +156,18 @@ project('elasticspring-messaging') {
 
 
 configure(rootProject) {
-    description = 'Elastic Spring'
+    description = 'ElasticSpring'
+
+    apply plugin: "docbook-reference"
 
     // don't publish the default jar for the root project
     configurations.archives.artifacts.clear()
+
+
+    reference {
+        sourceDir = file("src/reference/docbook")
+        pdfFilename = "elasticspring-reference.pdf"
+    }
 
 
     task wrapper(type: Wrapper) {
