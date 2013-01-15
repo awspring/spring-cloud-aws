@@ -341,7 +341,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 			if (bucketRegion.equals(DEFAULT_REGION)) {
 				return this.defaultClient;
 			} else {
-				return this.clientFactory.getForEndpoint(org.elasticspring.core.region.Region.fromRegionName(bucketRegion));
+				return this.clientFactory.getClientForRegion(org.elasticspring.core.region.Region.fromRegionName(bucketRegion));
 			}
 		} else {
 			return this.defaultClient;
