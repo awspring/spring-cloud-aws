@@ -24,41 +24,37 @@ package org.elasticspring.core.region;
  * @since 1.0
  */
 public enum S3Region {
-	US_EAST_1("us-east-1", "amazonaws.com"),
-	US_WEST_1("us-west-1", "amazonaws.com"),
-	US_WEST_2("us-west-2", "amazonaws.com"),
-	EU_WEST_1("eu-west-1", "amazonaws.com"),
-	AP_SOUTHEAST_1("ap-southeast-1", "amazonaws.com"),
-	AP_SOUTHEAST_2("ap-southeast-2", "amazonaws.com"),
-	AP_NORTHEAST_1("ap-northeast-1", "amazonaws.com"),
-	SA_EAST_1("sa-east-1", "amazonaws.com");
+	US_EAST_1("US", "s3.amazonaws.com"),
+	US_WEST_1("us-west-1", "s3-us-west-1.amazonaws.com"),
+	US_WEST_2("us-west-2", "s3-us-west-2.amazonaws.com"),
+	EU_WEST_1("eu-west-1", "s3-eu-west-1.amazonaws.com"),
+	AP_SOUTHEAST_1("ap-southeast-1", "s3-ap-southeast-1.amazonaws.com"),
+	AP_SOUTHEAST_2("ap-southeast-2", "s3-ap-southeast-2.amazonaws.com"),
+	AP_NORTHEAST_1("ap-northeast-1", "s3-ap-northeast-1.amazonaws.com"),
+	SA_EAST_1("sa-east-1", "s3-sa-east-1.amazonaws.com");
 
-	private final String region;
-	private final String domain;
+	private final String location;
+	private final String endpoint;
 
-	S3Region(String region, String domain) {
-		this.region = region;
-		this.domain = domain;
+	S3Region(String location, String endpoint) {
+		this.location = location;
+		this.endpoint = endpoint;
 	}
 
-	public String getDomain() {
-		return this.domain;
+	public String getEndpoint() {
+		return this.endpoint;
 	}
 
-	public String getRegion() {
-		return this.region;
+	public String getLocation() {
+		return this.location;
 	}
 
-	public String getRegionDomain() {
-		return this.region + "." + this.domain;
-	}
-
-	public static S3Region fromRegionName(String regionName) {
+	public static S3Region fromLocation(String location) {
 		for (S3Region s3Region : values()) {
-			if (s3Region.getRegion().equalsIgnoreCase(regionName)) {
+			if (s3Region.getLocation().equalsIgnoreCase(location)) {
 				return s3Region;
 			}
 		}
-		throw new IllegalArgumentException("No S3Region found for RegionName:'" + regionName + "'");
+		throw new IllegalArgumentException("No S3Region found for location:'" + location + "'");
 	}
 }

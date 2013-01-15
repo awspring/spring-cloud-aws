@@ -42,7 +42,7 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
 		AmazonS3Client defaultClient = new AmazonS3Client(this.awsCredentialsProvider);
-		return new EndpointRoutingS3Client(defaultClient, this.amazonS3ClientFactory);
+		return new EndpointRoutingS3Client(this.amazonS3ClientFactory);
 	}
 
 	@Override

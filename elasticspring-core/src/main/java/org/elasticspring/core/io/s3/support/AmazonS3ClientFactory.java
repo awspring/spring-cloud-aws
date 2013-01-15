@@ -55,11 +55,10 @@ public class AmazonS3ClientFactory {
 		} else {
 			synchronized (this.clientsForRegion) {
 				AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
-				amazonS3Client.setEndpoint(SERVICE_NAME + s3Region.getRegionDomain());
+				amazonS3Client.setEndpoint(s3Region.getEndpoint());
 				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
 
 				if (previousValue == null) {
-					System.out.println("Created a client for region: " + s3Region.getRegion());
 					return amazonS3Client;
 				} else {
 					return previousValue;

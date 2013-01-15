@@ -21,7 +21,6 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ResponseMetadata;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AccessControlList;
@@ -93,13 +92,13 @@ import java.util.List;
 
 public class EndpointRoutingS3Client implements AmazonS3 {
 
-	private static final String DEFAULT_REGION = "US";
-	private final AmazonS3Client defaultClient;
+	public static final S3Region DEFAULT_S3_REGION = S3Region.US_EAST_1;
+	private final AmazonS3 defaultClient;
 	private final AmazonS3ClientFactory clientFactory;
 
-	public EndpointRoutingS3Client(AmazonS3Client defaultClient, AmazonS3ClientFactory clientFactory) {
-		this.defaultClient = defaultClient;
+	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory) {
 		this.clientFactory = clientFactory;
+		this.defaultClient = clientFactory.getClientForRegion(DEFAULT_S3_REGION);
 	}
 
 	@Override
@@ -338,12 +337,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 		Assert.notNull(bucketName);
 		if (bucketName.contains(".")) {
 			String bucketRegion = this.defaultClient.getBucketLocation(bucketName);
-			// Special handling for US region, which is the defualt one
-			if (bucketRegion.equals(DEFAULT_REGION)) {
-				return this.defaultClient;
-			} else {
-				return this.clientFactory.getClientForRegion(S3Region.fromRegionName(bucketRegion));
-			}
+			return this.clientFactory.getClientForRegion(S3Region.fromLocation(bucketRegion));
 		} else {
 			return this.defaultClient;
 		}
