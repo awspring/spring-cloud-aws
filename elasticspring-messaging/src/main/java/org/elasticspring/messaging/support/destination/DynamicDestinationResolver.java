@@ -43,11 +43,11 @@ public class DynamicDestinationResolver implements DestinationResolver {
 	public String resolveDestinationName(String destination) {
 
 		if (this.autoCreate) {
-			CreateQueueResult createQueueResult = this.getQueueingService().createQueue(new CreateQueueRequest(destination));
+			CreateQueueResult createQueueResult = this.queueingService.createQueue(new CreateQueueRequest(destination));
 			return createQueueResult.getQueueUrl();
 		} else {
 			try {
-				GetQueueUrlResult getQueueUrlResult = this.getQueueingService().getQueueUrl(new GetQueueUrlRequest(destination));
+				GetQueueUrlResult getQueueUrlResult = this.queueingService.getQueueUrl(new GetQueueUrlRequest(destination));
 				return getQueueUrlResult.getQueueUrl();
 			} catch (AmazonServiceException e) {
 				if ("AWS.SimpleQueueService.NonExistentQueue".equals(e.getErrorCode())) {
@@ -56,9 +56,5 @@ public class DynamicDestinationResolver implements DestinationResolver {
 			}
 		}
 		return null;
-	}
-
-	public AmazonSQS getQueueingService() {
-		return this.queueingService;
 	}
 }

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.converter;
+package org.elasticspring.messaging;
 
-import org.elasticspring.messaging.Message;
+import java.util.Map;
 
 /**
  *
  */
-//ToDo : Return ? and just the concrete converters should return the Message<String>
-public interface MessageConverter {
+public interface Message<P> {
 
-	Message<String> toMessage(Object payload);
+	Map<String, String> getAttributes();
 
-	Object fromMessage(Message<String> message);
+	P getPayload();
 
 }

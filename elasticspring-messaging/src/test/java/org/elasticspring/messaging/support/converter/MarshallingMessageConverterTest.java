@@ -18,7 +18,7 @@ package org.elasticspring.messaging.support.converter;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.Message;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

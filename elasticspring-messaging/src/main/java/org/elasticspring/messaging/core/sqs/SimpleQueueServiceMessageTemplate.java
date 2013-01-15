@@ -23,7 +23,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.elasticspring.messaging.core.MessageOperations;
-import org.elasticspring.messaging.core.StringMessage;
+import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
@@ -55,7 +55,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 	@Override
 	public void convertAndSend(String destinationName, Object payLoad) {
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
-		org.elasticspring.messaging.core.Message<String> message = this.getMessageConverter().toMessage(payLoad);
+		org.elasticspring.messaging.Message<String> message = this.getMessageConverter().toMessage(payLoad);
 		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
 		this.amazonSQS.sendMessage(request);
 	}
@@ -76,7 +76,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations, Dis
 
 		Message message = receiveMessageResult.getMessages().get(0);
 
-		org.elasticspring.messaging.core.Message<String> msg = new StringMessage(message.getBody(), message.getAttributes());
+		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody(), message.getAttributes());
 		Object result = this.getMessageConverter().fromMessage(msg);
 
 		this.amazonSQS.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
