@@ -19,14 +19,14 @@ package org.elasticspring.core.io.s3.support;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import org.elasticspring.core.region.Region;
+import org.elasticspring.core.region.S3Region;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory that returns the corresponding {@link AmazonS3Client} based
- * on the {@link Region}. The {@link AmazonS3Client} are cached so that
- * at most one instance is create per {@link Region}.
+ * on the {@link S3Region}. The {@link AmazonS3Client} are cached so that
+ * at most one instance is create per {@link S3Region}.
  *
  * @author Agim Emruli
  * @author Alain Sahli
@@ -36,7 +36,7 @@ public class AmazonS3ClientFactory {
 
 	private static final String SERVICE_NAME = "s3-";
 	private final AWSCredentialsProvider credentials;
-	private final ConcurrentHashMap<Region, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<Region, AmazonS3Client>();
+	private final ConcurrentHashMap<S3Region, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<S3Region, AmazonS3Client>();
 
 	public AmazonS3ClientFactory(AWSCredentialsProvider credentials) {
 		this.credentials = credentials;
@@ -44,18 +44,27 @@ public class AmazonS3ClientFactory {
 
 	/**
 	 * Method that returns the corresponding {@link AmazonS3} client based
-	 * on the {@link Region}.
-	 * @param region the {@link Region} that the client must access.
+	 * on the {@link S3Region}.
+	 * @param s3Region the {@link S3Region} that the client must access.
 	 * @return the correspinding {@link AmazonS3} client.
 	 */
-	public AmazonS3 getClientForRegion(Region region) {
-		AmazonS3Client cachedAmazonS3Client = this.clientsForRegion.get(region);
+	public AmazonS3 getClientForRegion(S3Region s3Region) {
+		AmazonS3Client cachedAmazonS3Client = this.clientsForRegion.get(s3Region);
 		if (cachedAmazonS3Client != null) {
 			return cachedAmazonS3Client;
 		} else {
-			AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
-			amazonS3Client.setEndpoint(SERVICE_NAME + region.getRegionDomain());
-			return this.clientsForRegion.putIfAbsent(region, amazonS3Client);
+			synchronized (this.clientsForRegion) {
+				AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
+				amazonS3Client.setEndpoint(SERVICE_NAME + s3Region.getRegionDomain());
+				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
+
+				if (previousValue == null) {
+					System.out.println("Created a client for region: " + s3Region.getRegion());
+					return amazonS3Client;
+				} else {
+					return previousValue;
+				}
+			}
 		}
 	}
 }

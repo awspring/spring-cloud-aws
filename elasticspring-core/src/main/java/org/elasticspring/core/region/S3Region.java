@@ -16,7 +16,14 @@
 
 package org.elasticspring.core.region;
 
-public enum Region {
+/**
+ * Enum that holds all available regions for the S3 service.
+ *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @since 1.0
+ */
+public enum S3Region {
 	US_EAST_1("us-east-1", "amazonaws.com"),
 	US_WEST_1("us-west-1", "amazonaws.com"),
 	US_WEST_2("us-west-2", "amazonaws.com"),
@@ -29,7 +36,7 @@ public enum Region {
 	private final String region;
 	private final String domain;
 
-	Region(String region, String domain) {
+	S3Region(String region, String domain) {
 		this.region = region;
 		this.domain = domain;
 	}
@@ -46,12 +53,12 @@ public enum Region {
 		return this.region + "." + this.domain;
 	}
 
-	public static Region fromRegionName(String regionName) {
-		for (Region region : values()) {
-			if (region.getRegion().equalsIgnoreCase(regionName)) {
-				return region;
+	public static S3Region fromRegionName(String regionName) {
+		for (S3Region s3Region : values()) {
+			if (s3Region.getRegion().equalsIgnoreCase(regionName)) {
+				return s3Region;
 			}
 		}
-		throw new IllegalArgumentException("No Region found for RegionName:'" + regionName + "'");
+		throw new IllegalArgumentException("No S3Region found for RegionName:'" + regionName + "'");
 	}
 }

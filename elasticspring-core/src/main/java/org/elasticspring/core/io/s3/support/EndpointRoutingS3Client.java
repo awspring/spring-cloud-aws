@@ -82,6 +82,7 @@ import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.model.VersionListing;
+import org.elasticspring.core.region.S3Region;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -341,7 +342,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 			if (bucketRegion.equals(DEFAULT_REGION)) {
 				return this.defaultClient;
 			} else {
-				return this.clientFactory.getClientForRegion(org.elasticspring.core.region.Region.fromRegionName(bucketRegion));
+				return this.clientFactory.getClientForRegion(S3Region.fromRegionName(bucketRegion));
 			}
 		} else {
 			return this.defaultClient;
