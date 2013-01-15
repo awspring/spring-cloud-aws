@@ -42,7 +42,15 @@
     <orderEntry type="library" scope="TEST" name="tomcat-extras-juli-adapters-7.0.34" level="project" />
     <orderEntry type="library" scope="TEST" name="log4j-1.2.17" level="project" />
     <orderEntry type="library" scope="TEST" name="tomcat-extras-juli-7.0.34" level="project" />
-    <orderEntry type="library" name="tomcat-jdbc-7.0.34" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-aop-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-beans-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-asm-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="aopalliance-1.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-core-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-expression-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-context-support-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="spring-context-3.1.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="tomcat-jdbc-7.0.34" level="project" />
   </component>
 </module>
 
