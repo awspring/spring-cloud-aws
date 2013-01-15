@@ -18,7 +18,6 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/context"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
-			xmlns:beans="http://www.springframework.org/schema/beans"
 			targetNamespace="http://www.elasticspring.org/schema/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -100,7 +99,8 @@
 
 	<xsd:element name="context-resource-loader">
 		<xsd:annotation>
-			<xsd:documentation source="java:org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser">
+			<xsd:documentation
+					source="java:org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser">
 				<![CDATA[
 	Configures a resource loader that supports amazon S3 resources to be loaded by the application context resource loader.
 			]]></xsd:documentation>
@@ -143,7 +143,8 @@
 		<xsd:attribute name="region" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
-					The logical name of the region. Possible regions are available on http://docs.amazonwebservices.com/general/latest/gr/rande.html
+					The logical name of the region. Possible regions are available on
+					http://docs.amazonwebservices.com/general/latest/gr/rande.html
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
