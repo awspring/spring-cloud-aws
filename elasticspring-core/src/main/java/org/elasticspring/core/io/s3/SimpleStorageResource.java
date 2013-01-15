@@ -51,9 +51,9 @@ import java.util.concurrent.Future;
 /**
  *
  */
-public class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
+class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
 
-	public static final String DEFAULT_THREAD_NAME_PREFIX =
+	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleStorageResource.class) + "-";
 
 	private static final int DEFAULT_CONCURRENCY_LIMIT = 5;
@@ -64,7 +64,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	private TaskExecutor taskExecutor;
 	private ObjectMetadata objectMetadata;
 
-	public SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName) {
+	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName) {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.amazonS3 = amazonS3;
@@ -84,7 +84,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public InputStream getInputStream() throws IOException {
- 		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
+		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
 	}
 
 	@Override
@@ -210,7 +210,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 			return this.multiPartUploadResult != null;
 		}
 
-		private void finishSimpleUpload() throws IOException {
+		private void finishSimpleUpload() {
 			ObjectMetadata objectMetadata = new ObjectMetadata();
 			objectMetadata.setContentLength(this.currentOutputStream.size());
 
