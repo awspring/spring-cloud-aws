@@ -25,7 +25,8 @@
 	<bean id="mailSender" class="org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender">
 		<constructor-arg>
 			<bean class="com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient">
-				<constructor-arg ref="#{T(org.elasticspring.context.config.xml.ContextNamespaceHandler).DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME}" />
+				<constructor-arg
+						ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 			</bean>
 		</constructor-arg>
 	</bean>

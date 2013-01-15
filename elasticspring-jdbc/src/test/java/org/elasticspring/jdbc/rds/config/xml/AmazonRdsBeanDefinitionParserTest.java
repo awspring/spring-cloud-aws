@@ -22,7 +22,7 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
-import org.elasticspring.context.config.xml.ContextNamespaceHandler;
+import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -94,7 +94,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 	@Test
 	public void testNoCredentialsDefined() throws Exception {
 		this.expectedException.expect(BeanCreationException.class);
-		this.expectedException.expectMessage(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME);
+		this.expectedException.expectMessage(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 
 		//noinspection ResultOfObjectAllocationIgnored
 		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-noCredentials.xml", getClass());

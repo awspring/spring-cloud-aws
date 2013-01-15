@@ -16,7 +16,7 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
-import org.elasticspring.context.config.xml.ContextNamespaceHandler;
+import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
@@ -58,7 +58,7 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 		//Check if the AmazonRDS client is already available in the registry, or create a new one
 		if (!parserContext.getRegistry().containsBeanDefinition(RDS_CLIENT_BEAN_NAME)) {
 			BeanDefinitionBuilder amazonRDS = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsClientFactoryBean.class);
-			amazonRDS.addConstructorArgReference(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME);
+			amazonRDS.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 			parserContext.getRegistry().registerBeanDefinition(RDS_CLIENT_BEAN_NAME, amazonRDS.getBeanDefinition());
 		}
 

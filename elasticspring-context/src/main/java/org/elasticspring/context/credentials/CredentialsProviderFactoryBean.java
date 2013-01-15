@@ -32,6 +32,8 @@ import java.util.List;
  */
 public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCredentialsProvider> {
 
+	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "credentialsProvider";
+
 	private final List<AWSCredentialsProvider> delegates;
 
 	public CredentialsProviderFactoryBean(List<AWSCredentialsProvider> delegates) {

@@ -22,7 +22,8 @@
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<bean id="amazonEC2Client" class="com.amazonaws.services.ec2.AmazonEC2Client">
-		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.ContextNamespaceHandler).DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
 </beans>

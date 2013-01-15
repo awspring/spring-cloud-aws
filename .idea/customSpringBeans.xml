@@ -3,6 +3,17 @@
   <component name="CustomBeanRegistry">
     <option name="map">
       <map>
+        <entry key="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;context:context-credentials xmlns:context=&quot;http://www.elasticspring.org/schema/context&quot;&gt;&#10;  &lt;context:instance-profile-credentials /&gt;&#10;  &lt;context:security-token-credentials access-Key=&quot;foo&quot; secret-Key=&quot;bar&quot; /&gt;&#10;  &lt;context:simple-credentials access-Key=&quot;staticAccessKey&quot; secret-Key=&quot;staticSecretKey&quot; /&gt;&#10;&lt;/context:context-credentials&gt;&#10;&#10;">
+          <value>
+            <list>
+              <CustomBeanInfo>
+                <option name="beanName" value="com.amazonaws.auth.AWSCredentialsProvider" />
+                <option name="beanClassName" value="org.elasticspring.context.credentials.CredentialsProviderFactoryBean" />
+                <option name="constructorArgumentCount" value="1" />
+              </CustomBeanInfo>
+            </list>
+          </value>
+        </entry>
         <entry key="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;jdbc:dataSource xmlns:jdbc=&quot;http://www.elasticspring.org/schema/jdbc&quot; id=&quot;dataSource&quot; db-instance-identifier=&quot;test&quot; password=&quot;secret23&quot; /&gt;&#10;&#10;">
           <value>
             <list>

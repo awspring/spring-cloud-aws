@@ -17,6 +17,7 @@
 package org.elasticspring.context.config.xml;
 
 import org.elasticspring.context.config.AmazonS3FactoryBean;
+import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -34,14 +35,14 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (!parserContext.getRegistry().containsBeanDefinition(AMAZON_S3_BEAN_NAME)) {
 			BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
-			amazonsS3Builder.addConstructorArgReference(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME);
+			amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 			parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
 		}
 
 		builder.addConstructorArgReference(AMAZON_S3_BEAN_NAME);
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinitionBuilder.addConstructorArgReference(ContextNamespaceHandler.RESOURCE_LOADER_BEAN_NAME);
+		beanDefinitionBuilder.addConstructorArgReference(SimpleStorageResourceLoader.class.getName());
 		AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
 		String beanName = parserContext.getReaderContext().generateBeanName(beanDefinition);
 		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
@@ -51,7 +52,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return ContextNamespaceHandler.RESOURCE_LOADER_BEAN_NAME;
+		return SimpleStorageResourceLoader.class.getName();
 	}
 
 	@Override

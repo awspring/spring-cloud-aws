@@ -50,7 +50,7 @@ class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME;
+		return CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
 	}
 
 	@Override
@@ -60,8 +60,7 @@ class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		if (parserContext.getRegistry().containsBeanDefinition(ContextNamespaceHandler.DEFAULT_CREDENTIALS_PROVIDER_BEAN_NAME)) {
+		if (parserContext.getRegistry().containsBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)) {
 			parserContext.getReaderContext().error("Multiple <context-credentials/> detected. The <context-credentials/> is only allowed once per application context", element);
 		}
 
