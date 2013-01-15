@@ -22,7 +22,7 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
 import org.junit.Assert;
 import org.junit.Before;
