@@ -168,6 +168,7 @@ project('elasticspring-integration-test') {
 
         testRuntime("mysql:mysql-connector-java:5.1.16")
         testRuntime("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
+        testRuntime("org.springframework:spring-oxm:${springFrameworkVersion}")
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
     }
 
