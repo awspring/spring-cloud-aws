@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.core.region.Region;
+import org.elasticspring.core.region.S3Region;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -29,7 +29,7 @@ class RegionProviderBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		Element staticRegionElement = DomUtils.getChildElementByTagName(element, "static-region");
-		Region region = Region.valueOf(staticRegionElement.getAttribute("region"));
+		S3Region region = S3Region.valueOf(staticRegionElement.getAttribute("region"));
 		builder.addConstructorArgValue(region);
 	}
 
