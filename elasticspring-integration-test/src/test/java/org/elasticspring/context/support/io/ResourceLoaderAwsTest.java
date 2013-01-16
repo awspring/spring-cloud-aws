@@ -18,9 +18,9 @@ package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import org.elasticspring.core.region.S3Region;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.After;
-import org.elasticspring.core.region.S3Region;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -60,14 +61,14 @@ public class ResourceLoaderAwsTest {
 	@Autowired
 	private AmazonS3 amazonS3;
 
-	private List<String> createdObjects = new ArrayList<String>();
+	private final List<String> createdObjects = new ArrayList<String>();
 
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedApplicationContext() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		uploadFile(bucketName, "test");
-		Resource resource = this.applicationContext.getResource("s3://" + bucketName + "/test");
+		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/test");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
 		Assert.assertNotNull(inputStream);
@@ -87,7 +88,7 @@ public class ResourceLoaderAwsTest {
 	public void testWithInjectedResourceLoader() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		uploadFile(bucketName, "test");
-		Resource resource = this.applicationContext.getResource("s3://" + bucketName + "/test");
+		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/test");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
 		Assert.assertNotNull(inputStream);
@@ -99,7 +100,7 @@ public class ResourceLoaderAwsTest {
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWriteFile() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		Resource resource = this.resourceLoader.getResource("s3://" + bucketName + "/newFile");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/newFile");
 		Assert.assertTrue(WritableResource.class.isInstance(resource));
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
@@ -148,6 +149,8 @@ public class ResourceLoaderAwsTest {
 				}
 			}
 		}
+	}
+
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
 	@After
 	public void tearDown() throws Exception {
