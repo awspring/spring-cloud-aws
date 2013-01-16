@@ -22,6 +22,8 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="secret23" />
+	<jdbc:dataSource id="dataSource"
+					 db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
+					 password="secret23" />
 
 </beans>

@@ -27,4 +27,9 @@
 	</els-context:context-credentials>
 
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
+
+	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+	</bean>
 </beans>

@@ -16,6 +16,10 @@
 
 package org.elasticspring.context.support.io;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import org.elasticspring.support.TestStackEnvironment;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,15 +32,17 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration("ResourceLoaderAwsTest-context.xml")
 public class ResourceLoaderAwsTest {
 
 	@Autowired
@@ -45,10 +51,21 @@ public class ResourceLoaderAwsTest {
 	@Autowired
 	private ResourceLoader resourceLoader;
 
+	@Autowired
+	private TestStackEnvironment testStackEnvironment;
+
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Autowired
+	private AmazonS3 amazonS3;
+
+	private List<String> createdObjects = new ArrayList<String>();
+
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedApplicationContext() throws Exception {
-		Resource resource = this.applicationContext.getResource("s3://test.elasticspring.org/test");
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		uploadFile(bucketName, "test");
+		Resource resource = this.applicationContext.getResource("s3://" + bucketName + "/test");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
 		Assert.assertNotNull(inputStream);
@@ -56,10 +73,19 @@ public class ResourceLoaderAwsTest {
 		inputStream.close();
 	}
 
+	private void uploadFile(String bucketName, String objectKey) {
+		ObjectMetadata objectMetadata = new ObjectMetadata();
+		objectMetadata.setContentLength("hello world".length());
+		this.amazonS3.putObject(bucketName, objectKey, new ByteArrayInputStream("hello world".getBytes()), objectMetadata);
+		this.createdObjects.add(objectKey);
+	}
+
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedResourceLoader() throws Exception {
-		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/test");
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		uploadFile(bucketName, "test");
+		Resource resource = this.applicationContext.getResource("s3://" + bucketName + "/test");
 		Assert.assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
 		Assert.assertNotNull(inputStream);
@@ -70,7 +96,8 @@ public class ResourceLoaderAwsTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWriteFile() throws Exception {
-		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/newFile");
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource("s3://" + bucketName + "/newFile");
 		Assert.assertTrue(WritableResource.class.isInstance(resource));
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
@@ -80,14 +107,16 @@ public class ResourceLoaderAwsTest {
 			}
 		}
 		outputStream.close();
+		this.createdObjects.add("newFile");
 	}
 
-	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
-	public void testLocationEndpoint() throws IOException {
-		Resource resource = this.resourceLoader.getResource("s3://test.elasticspring.org/test");
-		InputStream inputStream = resource.getInputStream();
-		Assert.assertTrue(resource.contentLength() > 0);
-		Assert.assertNotNull(inputStream);
+	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
+	@After
+	public void tearDown() throws Exception {
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		for (String createdObject : this.createdObjects) {
+			this.amazonS3.deleteObject(bucketName, createdObject);
+		}
+
 	}
 }

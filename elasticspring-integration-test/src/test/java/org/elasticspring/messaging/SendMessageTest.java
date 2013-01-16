@@ -16,8 +16,8 @@
 
 package org.elasticspring.messaging;
 
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import org.elasticspring.messaging.core.MessageOperations;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,13 +49,13 @@ public class SendMessageTest {
 	private MessageOperations jsonMessageOperations;
 
 	@Autowired
-	private AmazonSQSClient amazonSQSClient;
+	private TestStackEnvironment testStackEnvironment;
 
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
-		String queueName = "stringQueue";
+		String queueName = this.testStackEnvironment.getByLogicalId("StringQueue");
 		this.stringMessageOperations.convertAndSend(queueName, messageContent);
 		Thread.sleep(5000);
 		String receivedMessage = (String) this.stringMessageOperations.receiveAndConvert(queueName);
@@ -66,7 +66,7 @@ public class SendMessageTest {
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
-		String queueName = "objectQueue";
+		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
 		this.objectMessageOperations.convertAndSend(queueName, payload);
 
 		@SuppressWarnings("unchecked")
@@ -77,7 +77,7 @@ public class SendMessageTest {
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testSendAndReceiveJsonMessage() throws Exception {
-		String queueName = "jsonQueue";
+		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
 		this.jsonMessageOperations.convertAndSend(queueName, "myString");
 
 		@SuppressWarnings("unchecked")

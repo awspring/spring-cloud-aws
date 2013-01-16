@@ -17,6 +17,7 @@
       <entry name="?*.handlers" />
       <entry name="?*.schemas" />
       <entry name="?*.xsd" />
+      <entry name="?*.template" />
     </wildcardResourcePatterns>
     <annotationProcessing>
       <profile default="true" name="Default" enabled="false">

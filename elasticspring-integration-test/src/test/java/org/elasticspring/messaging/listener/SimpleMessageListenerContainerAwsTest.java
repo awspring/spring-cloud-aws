@@ -18,12 +18,11 @@ package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,16 +48,18 @@ public class SimpleMessageListenerContainerAwsTest {
 	@Autowired
 	private AmazonSQSAsync amazonSQSClient;
 
+	@Autowired
+	private TestStackEnvironment testStackEnvironment;
 
 	@Before
 	public void setUp() throws Exception {
-		CreateQueueResult existingQueue = this.amazonSQSClient.createQueue(new CreateQueueRequest("testQueue"));
+		String queueUrl = this.testStackEnvironment.getByLogicalId("LoadTestQueue");
 		for (int b = 0; b < 10; b++) {
 			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();
 			for (int i = 0; i < 10; i++) {
 				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(b + i).toString()));
 			}
-			this.amazonSQSClient.sendMessageBatch(new SendMessageBatchRequest(existingQueue.getQueueUrl(), messages));
+			this.amazonSQSClient.sendMessageBatch(new SendMessageBatchRequest(queueUrl, messages));
 		}
 	}
 
@@ -68,9 +69,9 @@ public class SimpleMessageListenerContainerAwsTest {
 		final CountDownLatch messageReceivedCount = new CountDownLatch(100);
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		simpleMessageListenerContainer.setAmazonSQS(new AmazonSQSBufferedAsyncClient(this.amazonSQSClient));
-		simpleMessageListenerContainer.setDestinationName("testQueue");
+		simpleMessageListenerContainer.setDestinationName(this.testStackEnvironment.getByLogicalId("LoadTestQueue"));
 		simpleMessageListenerContainer.setDestinationResolver(new DynamicDestinationResolver(this.amazonSQSClient));
-		ConcurrentTaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newCachedThreadPool(), Executors.newScheduledThreadPool(1000));
+		ConcurrentTaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newCachedThreadPool(), Executors.newScheduledThreadPool(10));
 		simpleMessageListenerContainer.setTaskExecutor(taskScheduler);
 		simpleMessageListenerContainer.setMaxNumberOfMessages(10);
 		simpleMessageListenerContainer.setMessageListener(new MessageListener() {

@@ -19,6 +19,7 @@ package org.elasticspring.core.env.ec2;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,13 +45,16 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 	@Autowired
 	private AmazonEC2 amazonEC2Client;
 
+	@Autowired
+	private TestStackEnvironment testStackEnvironment;
+
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testGetUserProperties() throws Exception {
 		SimpleHttpServerFactoryBean simpleHttpServerFactoryBean = new SimpleHttpServerFactoryBean();
 
 		Map<String, HttpHandler> contexts = new HashMap<String, HttpHandler>();
-		contexts.put("/latest/meta-data/instance-id", new InstanceIdHttpHandler("i-2bceb35a"));
+		contexts.put("/latest/meta-data/instance-id", new InstanceIdHttpHandler(this.testStackEnvironment.getByLogicalId("UserTagAndUserDataInstance")));
 		simpleHttpServerFactoryBean.setContexts(contexts);
 		simpleHttpServerFactoryBean.afterPropertiesSet();
 
