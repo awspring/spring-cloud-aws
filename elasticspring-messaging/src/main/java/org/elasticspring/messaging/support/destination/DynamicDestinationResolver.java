@@ -41,6 +41,9 @@ public class DynamicDestinationResolver implements DestinationResolver {
 
 	@Override
 	public String resolveDestinationName(String destination) {
+		if (destination.startsWith("http")) {
+			return destination;
+		}
 
 		if (this.autoCreate) {
 			CreateQueueResult createQueueResult = this.queueingService.createQueue(new CreateQueueRequest(destination));
