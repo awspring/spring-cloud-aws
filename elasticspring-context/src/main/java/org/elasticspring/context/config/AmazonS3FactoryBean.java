@@ -19,18 +19,15 @@ package org.elasticspring.context.config;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
 import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
-	private final AWSCredentialsProvider awsCredentialsProvider;
 	private final AmazonS3ClientFactory amazonS3ClientFactory;
 
 	public AmazonS3FactoryBean(AWSCredentialsProvider awsCredentialsProvider) {
-		this.awsCredentialsProvider = awsCredentialsProvider;
 		this.amazonS3ClientFactory = new AmazonS3ClientFactory(awsCredentialsProvider);
 	}
 
@@ -41,7 +38,6 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
-		AmazonS3Client defaultClient = new AmazonS3Client(this.awsCredentialsProvider);
 		return new EndpointRoutingS3Client(this.amazonS3ClientFactory);
 	}
 

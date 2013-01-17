@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AmazonS3ClientFactory {
 
-	private static final String SERVICE_NAME = "s3-";
 	private final AWSCredentialsProvider credentials;
 	private final ConcurrentHashMap<S3Region, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<S3Region, AmazonS3Client>();
 
@@ -45,7 +44,9 @@ public class AmazonS3ClientFactory {
 	/**
 	 * Method that returns the corresponding {@link AmazonS3} client based
 	 * on the {@link S3Region}.
-	 * @param s3Region the {@link S3Region} that the client must access.
+	 *
+	 * @param s3Region
+	 * 		the {@link S3Region} that the client must access.
 	 * @return the correspinding {@link AmazonS3} client.
 	 */
 	public AmazonS3 getClientForRegion(S3Region s3Region) {
@@ -58,11 +59,7 @@ public class AmazonS3ClientFactory {
 				amazonS3Client.setEndpoint(s3Region.getEndpoint());
 				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
 
-				if (previousValue == null) {
-					return amazonS3Client;
-				} else {
-					return previousValue;
-				}
+				return previousValue == null ? amazonS3Client : previousValue;
 			}
 		}
 	}
