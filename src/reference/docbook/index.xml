@@ -55,9 +55,9 @@
 
 	<!-- front matter -->
 
-	<toc></toc>
+	<toc />
 
-	<chapter id="introduction">
+	<chapter>
 		<title>Introduction</title>
 		<para>
 			ElasticSpring is a cloud-development framework based on the popular Spring Framework.
