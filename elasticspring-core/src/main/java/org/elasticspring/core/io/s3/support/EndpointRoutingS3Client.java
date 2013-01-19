@@ -153,12 +153,12 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public void deleteBucket(String bucketName) throws AmazonClientException {
-		this.defaultClient.deleteBucket(bucketName);
+		getClientForBucketName(bucketName).deleteBucket(bucketName);
 	}
 
 	@Override
 	public void deleteBucket(DeleteBucketRequest deleteBucketRequest) throws AmazonClientException {
-		this.defaultClient.deleteBucket(deleteBucketRequest);
+		getClientForBucketName(deleteBucketRequest.getBucketName()).deleteBucket(deleteBucketRequest);
 	}
 
 	@Override
@@ -198,12 +198,12 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public void deleteObject(String bucketName, String key) throws AmazonClientException {
-		this.defaultClient.deleteObject(bucketName, key);
+		getClientForBucketName(bucketName).deleteObject(bucketName, key);
 	}
 
 	@Override
 	public void deleteObject(DeleteObjectRequest deleteObjectRequest) throws AmazonClientException {
-		this.defaultClient.deleteObject(deleteObjectRequest);
+		getClientForBucketName(deleteObjectRequest.getBucketName()).deleteObject(deleteObjectRequest);
 	}
 
 	@Override

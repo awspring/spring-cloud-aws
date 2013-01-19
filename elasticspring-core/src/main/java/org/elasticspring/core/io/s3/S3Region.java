@@ -29,7 +29,7 @@ public enum S3Region implements Region {
 	US_STANDARD("US", "s3.amazonaws.com"),
 	NORTHERN_CALIFORNIA("us-west-1", "s3-us-west-1.amazonaws.com"),
 	OREGON("us-west-2", "s3-us-west-2.amazonaws.com"),
-	IRELAND("eu-west-1", "s3-eu-west-1.amazonaws.com"),
+	IRELAND("EU", "s3-eu-west-1.amazonaws.com"),
 	SINGAPORE("ap-southeast-1", "s3-ap-southeast-1.amazonaws.com"),
 	SYDNEY("ap-southeast-2", "s3-ap-southeast-2.amazonaws.com"),
 	TOKYO("ap-northeast-1", "s3-ap-northeast-1.amazonaws.com"),

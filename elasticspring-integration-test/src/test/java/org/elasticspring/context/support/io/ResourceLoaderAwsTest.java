@@ -119,7 +119,7 @@ public class ResourceLoaderAwsTest {
 		for (S3Region region : S3Region.values()) {
 			InputStream inputStream = null;
 			try {
-				String bucketNameWithDots = region.getLocation() + ".elasticspring.org";
+				String bucketNameWithDots = region.getLocation().toLowerCase() + ".elasticspring.org";
 				Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketNameWithDots + "/test.txt");
 				inputStream = resource.getInputStream();
 				Assert.assertTrue(resource.contentLength() > 0);
@@ -138,7 +138,7 @@ public class ResourceLoaderAwsTest {
 		for (S3Region region : S3Region.values()) {
 			InputStream inputStream = null;
 			try {
-				String bucketNameWithoutDots = region.getLocation() + "-elasticspring-org";
+				String bucketNameWithoutDots = region.getLocation().toLowerCase() + "-elasticspring-org";
 				Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketNameWithoutDots + "/test.txt");
 				inputStream = resource.getInputStream();
 				Assert.assertTrue(resource.contentLength() > 0);
