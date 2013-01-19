@@ -77,6 +77,48 @@
 	</xsd:element>
 
 
+	<xsd:element name="retry-interceptor">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor">
+				<![CDATA[
+	Creates an AOP Interceptor which can be used to retry database operations which failed due to transient error (e.g. connection lost due to failover)
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.aopalliance.intercept.MethodInterceptor" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The name of the data base identifier in Amazon RDS
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The maximum number of retries the interceptor will re-execute the call after an error happended
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The reference to a BackOffPolicy which defines what should happen between retry approaches
+						]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+
 	<xsd:complexType name="poolAttributesType">
 		<xsd:attribute name="defaultAutoCommit" type="xsd:boolean" use="optional">
 			<xsd:annotation>

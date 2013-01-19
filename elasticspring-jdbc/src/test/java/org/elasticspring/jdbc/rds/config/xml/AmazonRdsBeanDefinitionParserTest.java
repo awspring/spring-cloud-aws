@@ -62,14 +62,14 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
 		beanDefinitionBuilder.setFactoryMethod("mock");
 		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
-		beanFactory.registerBeanDefinition(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+		beanFactory.registerBeanDefinition(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
 
 		//Load xml file
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
 		//Get the created mock object from the bean factory, data source has not ben initialized yet
-		AmazonRDS client = beanFactory.getBean(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
 		//Replay invocation that will be called during data source creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
@@ -110,14 +110,14 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
 		beanDefinitionBuilder.setFactoryMethod("mock");
 		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
-		beanFactory.registerBeanDefinition(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+		beanFactory.registerBeanDefinition(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
 
 		//Load xml file
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-fullConfiguration.xml", getClass()));
 
 		//Get the created mock object from the bean factory, data source has not ben initialized yet
-		AmazonRDS client = beanFactory.getBean(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
 		//Replay invocation that will be called during data source creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(

@@ -17,6 +17,7 @@
 package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
+import org.elasticspring.jdbc.rds.config.xml.AmazonRdsRetryInterceptorBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 
@@ -32,5 +33,6 @@ public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
+		registerBeanDefinitionParser("retry-interceptor", new AmazonRdsRetryInterceptorBeanDefinitionParser());
 	}
 }

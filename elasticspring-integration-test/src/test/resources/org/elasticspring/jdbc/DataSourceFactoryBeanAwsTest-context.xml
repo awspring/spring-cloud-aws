@@ -17,13 +17,35 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:jdbc="http://www.elasticspring.org/schema/jdbc"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.elasticspring.org/schema/jdbc http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd">
+	   http://www.elasticspring.org/schema/jdbc http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+	   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<jdbc:dataSource id="dataSource"
 					 db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
-					 password="secret23" />
+					 password="secret23">
+		<jdbc:pool-attributes initialSize="1" />
+	</jdbc:dataSource>
 
+	<jdbc:retry-interceptor db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
+							id="myInterceptor" />
+
+	<context:component-scan base-package="org.elasticspring.jdbc" />
+
+	<tx:annotation-driven />
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<aop:config>
+		<aop:advisor advice-ref="myInterceptor" pointcut="bean(simpleDatabaseService)" order="1" />
+	</aop:config>
 </beans>

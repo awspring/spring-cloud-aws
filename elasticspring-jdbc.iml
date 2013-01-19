@@ -47,6 +47,7 @@
     <orderEntry type="library" scope="TEST" name="mysql-connector-java-5.1.16" level="project" />
     <orderEntry type="library" exported="" name="aopalliance-1.0" level="project" />
     <orderEntry type="library" scope="TEST" name="hamcrest-core-1.1" level="project" />
+    <orderEntry type="library" name="spring-retry-1.0.0.RELEASE" level="project" />
   </component>
 </module>
 

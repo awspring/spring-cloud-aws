@@ -81,11 +81,14 @@
   </component>
   <component name="ProjectResources">
     <resource url="http://www.springframework.org/schema/util/spring-util.xsd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-beans/3.1.0.RELEASE/jar/d12bb11cc2469cca2d8ba33d86d188733544d7e0/spring-beans-3.1.0.RELEASE.jar!/org/springframework/beans/factory/xml/spring-util-3.1.xsd" />
+    <resource url="http://www.springframework.org/schema/aop/spring-aop.xsd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-aop/3.1.0.RELEASE/jar/5d998ce239b87cbf66fd18a01dad854de13e2f06/spring-aop-3.1.0.RELEASE.jar!/org/springframework/aop/config/spring-aop-3.1.xsd" />
     <resource url="http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd" location="$PROJECT_DIR$/elasticspring-jdbc/src/main/resources/org/elasticspring/jdbc/config/xml/elasticspring-jdbc-1.0.xsd" />
     <resource url="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" location="$PROJECT_DIR$/elasticspring-context/src/main/resources/org/elasticspring/context/config/xml/elasticspring-context-1.0.xsd" />
     <resource url="http://www.springframework.org/schema/beans/spring-beans.xsd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-beans/3.1.0.RELEASE/jar/d12bb11cc2469cca2d8ba33d86d188733544d7e0/spring-beans-3.1.0.RELEASE.jar!/org/springframework/beans/factory/xml/spring-beans-3.1.xsd" />
+    <resource url="http://www.springframework.org/schema/context/spring-context.xsd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-context/3.1.0.RELEASE/jar/d36e9ab580dccc8311704bc11f2434f230bdec28/spring-context-3.1.0.RELEASE.jar!/org/springframework/context/config/spring-context-3.1.xsd" />
     <resource url="log4j.dtd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
     <resource url="http://jakarta.apache.org/log4j/" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
+    <resource url="http://www.springframework.org/schema/tx/spring-tx.xsd" location="$USER_HOME$/.gradle/caches/artifacts-15/filestore/org.springframework/spring-tx/3.1.0.RELEASE/jar/825dd46d268cc89eb282885ceb1b1664b31a43d3/spring-tx-3.1.0.RELEASE.jar!/org/springframework/transaction/config/spring-tx-3.1.xsd" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />

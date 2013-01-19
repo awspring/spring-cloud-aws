@@ -16,10 +16,10 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
@@ -41,12 +41,7 @@ import org.w3c.dom.Node;
  */
 public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
-	/**
-	 * The bean name which will be used to register the AmazonRdsClientFactoryBean, will re-use the bean if there is
-	 * already an exiting one (e.g. multiple data source elements in one application context)
-	 */
-	static final String RDS_CLIENT_BEAN_NAME = "RDS_CLIENT";
-	private static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
+	static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
 
@@ -55,15 +50,10 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
 
-		//Check if the AmazonRDS client is already available in the registry, or create a new one
-		if (!parserContext.getRegistry().containsBeanDefinition(RDS_CLIENT_BEAN_NAME)) {
-			BeanDefinitionBuilder amazonRDS = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsClientFactoryBean.class);
-			amazonRDS.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-			parserContext.getRegistry().registerBeanDefinition(RDS_CLIENT_BEAN_NAME, amazonRDS.getBeanDefinition());
-		}
+		BeanDefinitionHolder holder = AmazonRdsClientConfigurationUtils.registerAmazonRdsClient(parserContext.getRegistry(), element);
 
 		//Constructor (mandatory) args
-		datasourceBuilder.addConstructorArgReference(RDS_CLIENT_BEAN_NAME);
+		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
 

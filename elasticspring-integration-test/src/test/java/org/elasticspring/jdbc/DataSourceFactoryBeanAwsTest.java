@@ -20,12 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import javax.sql.DataSource;
 
 /**
  * AWS backed integration test for the data source feature of the jdbc module
@@ -38,13 +35,11 @@ import javax.sql.DataSource;
 public class DataSourceFactoryBeanAwsTest {
 
 	@Autowired
-	private DataSource dataSource;
+	private DatabaseService databaseService;
 
 	@Test
 	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testExistingDataSourceInstance() throws Exception {
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
-		long result = jdbcTemplate.queryForLong("select 1");
-		Assert.assertEquals(1L, result);
+		Assert.assertTrue(this.databaseService.checkDatabase());
 	}
 }
