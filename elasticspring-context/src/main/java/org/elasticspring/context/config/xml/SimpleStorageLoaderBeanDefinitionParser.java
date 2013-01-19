@@ -19,8 +19,11 @@ package org.elasticspring.context.config.xml;
 import org.elasticspring.context.config.AmazonS3FactoryBean;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
+import org.elasticspring.core.io.s3.S3Region;
 import org.elasticspring.core.io.s3.SimpleStorageResourceLoader;
+import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
@@ -40,6 +43,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		}
 
 		builder.addConstructorArgReference(AMAZON_S3_BEAN_NAME);
+		builder.addConstructorArgValue(getRegionProviderBeanDefinition(element));
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinitionBuilder.addConstructorArgReference(SimpleStorageResourceLoader.class.getName());
@@ -48,6 +52,12 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
 
 		super.doParse(element, parserContext, builder);
+	}
+
+	private static BeanDefinition getRegionProviderBeanDefinition(Element element) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
+		beanDefinitionBuilder.addConstructorArgValue(S3Region.valueOf(element.getAttribute("region").replace(" ", "_")));
+		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
 	@Override

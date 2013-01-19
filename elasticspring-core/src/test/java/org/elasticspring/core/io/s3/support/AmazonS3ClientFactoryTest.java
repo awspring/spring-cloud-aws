@@ -2,7 +2,7 @@ package org.elasticspring.core.io.s3.support;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import org.elasticspring.core.region.S3Region;
+import org.elasticspring.core.io.s3.S3Region;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,8 +38,8 @@ public class AmazonS3ClientFactoryTest {
 				public void run() {
 					try {
 						countDownLatch.await();
-						amazonS3Clients.add(factory.getClientForRegion(S3Region.EU_WEST_1));
-						amazonS3Clients.add(factory.getClientForRegion(S3Region.SA_EAST_1));
+						amazonS3Clients.add(factory.getClientForRegion(S3Region.IRELAND));
+						amazonS3Clients.add(factory.getClientForRegion(S3Region.SAO_PAULO));
 					} catch (InterruptedException e) {
 						fail("Error awaiting latch");
 					}

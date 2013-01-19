@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.core.region.S3Region;
+import org.elasticspring.core.io.s3.S3Region;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;

@@ -18,7 +18,7 @@ package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.elasticspring.core.region.S3Region;
+import org.elasticspring.core.io.s3.S3Region;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.After;
 import org.junit.Assert;
@@ -47,7 +47,7 @@ import java.util.List;
 @ContextConfiguration("ResourceLoaderAwsTest-context.xml")
 public class ResourceLoaderAwsTest {
 
-	public static final String S3_PREFIX = "s3://";
+	private static final String S3_PREFIX = "s3://";
 	@Autowired
 	private ApplicationContext applicationContext;
 
