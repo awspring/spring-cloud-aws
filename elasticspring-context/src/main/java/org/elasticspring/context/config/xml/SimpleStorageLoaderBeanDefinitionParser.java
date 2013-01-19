@@ -32,31 +32,29 @@ import org.w3c.dom.Element;
 
 public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
+	public static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (!parserContext.getRegistry().containsBeanDefinition(AMAZON_S3_BEAN_NAME)) {
 			BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
 			amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+			amazonsS3Builder.addConstructorArgValue(getRegionProviderBeanDefinition(element));
 			parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
 		}
 
 		builder.addConstructorArgReference(AMAZON_S3_BEAN_NAME);
-		builder.addConstructorArgValue(getRegionProviderBeanDefinition(element));
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinitionBuilder.addConstructorArgReference(SimpleStorageResourceLoader.class.getName());
 		AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
 		String beanName = parserContext.getReaderContext().generateBeanName(beanDefinition);
 		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
-
-		super.doParse(element, parserContext, builder);
 	}
 
 	private static BeanDefinition getRegionProviderBeanDefinition(Element element) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
-		beanDefinitionBuilder.addConstructorArgValue(S3Region.valueOf(element.getAttribute("region").replace(" ", "_")));
+		beanDefinitionBuilder.addConstructorArgValue(S3Region.valueOf(element.getAttribute("region").replace(" ", "_").toUpperCase()));
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
