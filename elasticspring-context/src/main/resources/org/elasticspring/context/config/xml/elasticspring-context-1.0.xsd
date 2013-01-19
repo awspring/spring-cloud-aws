@@ -72,31 +72,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="context-region">
-		<xsd:annotation>
-			<xsd:documentation source="java:org.elasticspring.core.region.RegionProvider">
-				<![CDATA[
-	Provides the configuration for the region which every component inside this context will use as a default.
-			]]></xsd:documentation>
-			<xsd:appinfo>
-				<tool:annotation>
-					<tool:exports type="org.elasticspring.core.region.RegionProvider" />
-				</tool:annotation>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:all>
-				<xsd:element name="static-region" type="staticRegionType" minOccurs="1" maxOccurs="1">
-					<xsd:annotation>
-						<xsd:documentation>
-							Configures a region in a static way at configuration time.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
-			</xsd:all>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:element name="context-resource-loader">
 		<xsd:annotation>
 			<xsd:documentation
@@ -110,6 +85,22 @@
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="region" default="US Standard">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="US Standard" />
+						<xsd:enumeration value="Oregon" />
+						<xsd:enumeration value="Northern California" />
+						<xsd:enumeration value="Ireland" />
+						<xsd:enumeration value="Singapore" />
+						<xsd:enumeration value="Sydney" />
+						<xsd:enumeration value="Tokyo" />
+						<xsd:enumeration value="Sao Paulo" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="simpleCredentialsType">
