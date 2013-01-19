@@ -162,7 +162,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().withDBInstanceStatus("available")), new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("notAvailable")));
+						withDBInstances(new DBInstance().withDBInstanceStatus("available")), new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("rebooting")));
 
 		Assert.assertTrue(amazonRdsInstanceStatus.isDataSourceAvailable());
 		Assert.assertFalse(amazonRdsInstanceStatus.isDataSourceAvailable());

@@ -22,12 +22,12 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import org.elasticspring.jdbc.rds.InstanceStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  *
@@ -35,7 +35,8 @@ import java.util.List;
 public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 
 	private static final String DB_INSTANCE_ATTRIBUTE_NAME = "DbInstanceIdentifier";
-	private static final List<String> RETRY_ABLE_STATES = Arrays.asList("available");
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseInstanceStatusRetryPolicy.class);
+
 	private final String dbInstanceIdentifier;
 	private final AmazonRDS amazonRDS;
 
@@ -55,13 +56,18 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 		try {
 			describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier((String) context.getAttribute(DB_INSTANCE_ATTRIBUTE_NAME)));
 		} catch (DBInstanceNotFoundException e) {
+			LOGGER.warn("Database Instance with name {} has been removed or is not configured correctly, no retry possible", this.dbInstanceIdentifier);
 			//Database has been deleted while operating, hence we can not retry
 			return false;
 		}
 
 		if (describeDBInstancesResult.getDBInstances().size() == 1) {
 			DBInstance dbInstance = describeDBInstancesResult.getDBInstances().get(0);
-			return RETRY_ABLE_STATES.contains(dbInstance.getDBInstanceStatus());
+			InstanceStatus instanceStatus = InstanceStatus.valueOf(dbInstance.getDBInstanceStatus().toUpperCase());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Status of database to be retried is {}", instanceStatus);
+			}
+			return instanceStatus.isRetryable();
 		} else {
 			throw new IllegalStateException("Multiple data bases found for same identifier, this is likely an incompatibility with the Amazon SDK");
 		}
@@ -71,16 +77,25 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	public RetryContext open(RetryContext parent) {
 		RetryContextSupport context = new RetryContextSupport(parent);
 		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, this.dbInstanceIdentifier);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Starting RetryContext for database instance with identifier {}", this.dbInstanceIdentifier);
+		}
 		return context;
 	}
 
 	@Override
 	public void close(RetryContext context) {
 		context.removeAttribute(DB_INSTANCE_ATTRIBUTE_NAME);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Closing RetryContext for database instance with identifier {}", this.dbInstanceIdentifier);
+		}
 	}
 
 	@Override
 	public void registerThrowable(RetryContext context, Throwable throwable) {
 		((RetryContextSupport) context).registerThrowable(throwable);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Registered Throwable of Type {} for RetryContext", throwable.getClass().getName());
+		}
 	}
 }

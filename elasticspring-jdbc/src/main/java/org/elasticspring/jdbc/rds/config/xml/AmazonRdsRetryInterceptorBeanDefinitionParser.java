@@ -51,7 +51,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 
 		if (StringUtils.hasText(element.getAttribute(BACK_OFF_POLICY))) {
 			String backOffPolicyBeanName = element.getAttribute(BACK_OFF_POLICY);
-			builder.addPropertyValue(Conventions.attributeNameToPropertyName(BACK_OFF_POLICY), backOffPolicyBeanName);
+			builder.addPropertyReference(Conventions.attributeNameToPropertyName(BACK_OFF_POLICY), backOffPolicyBeanName);
 		}
 
 		return builder.getBeanDefinition();
@@ -80,7 +80,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 	private static BeanDefinition buildSQLRetryPolicy(Element element) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SqlRetryPolicy.class);
 		if (StringUtils.hasText(element.getAttribute(MAX_NUMBER_OF_RETRIES))) {
-			beanDefinitionBuilder.addPropertyValue("maxAttempts", element.getAttribute(MAX_NUMBER_OF_RETRIES));
+			beanDefinitionBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(MAX_NUMBER_OF_RETRIES), element.getAttribute(MAX_NUMBER_OF_RETRIES));
 		}
 		return beanDefinitionBuilder.getBeanDefinition();
 	}

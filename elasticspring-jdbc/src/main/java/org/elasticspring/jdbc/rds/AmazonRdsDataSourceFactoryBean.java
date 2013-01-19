@@ -33,8 +33,6 @@ import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} implementation that create a data source backed by an Amazon
@@ -163,7 +161,6 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 		private final AmazonRDS amazonRDS;
 		private final String instanceIdentifier;
-		private static final List<String> AVAILABLE_STATES = Arrays.asList("available");
 
 		AmazonRdsInstanceStatus(AmazonRDS amazonRDS, String instanceIdentifier) {
 			this.amazonRDS = amazonRDS;
@@ -174,7 +171,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		public boolean isDataSourceAvailable() {
 			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(this.instanceIdentifier));
 			DBInstance instance = describeDBInstancesResult.getDBInstances().get(0);
-			return AVAILABLE_STATES.contains(instance.getDBInstanceStatus());
+			InstanceStatus instanceStatus = InstanceStatus.valueOf(instance.getDBInstanceStatus().toUpperCase());
+			return instanceStatus.isAvailable();
 		}
 	}
 }

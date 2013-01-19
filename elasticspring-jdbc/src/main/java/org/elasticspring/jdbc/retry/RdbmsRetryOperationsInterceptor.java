@@ -37,13 +37,16 @@ public class RdbmsRetryOperationsInterceptor extends RetryOperationsInterceptor 
 
 		if (!isRetryContextOperationActive()) {
 			assertNoTransactionActive();
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Starting a new Retry Interceptor for " + (invocation != null ? invocation.getMethod() : null));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Starting a new Retry Interceptor for {}", (invocation != null ? invocation.getMethod() : null));
 			}
 			result = super.invoke(invocation);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finsihed a new Retry Interceptor for {}", (invocation != null ? invocation.getMethod() : null));
+			}
 		} else {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Participating in existing retry operation");
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Participating in existing retry operation");
 			}
 			result = invocation.proceed();
 		}

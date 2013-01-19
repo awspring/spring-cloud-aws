@@ -31,11 +31,17 @@
 	<jdbc:dataSource id="dataSource"
 					 db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
 					 password="secret23">
-		<jdbc:pool-attributes initialSize="1" />
+		<jdbc:pool-attributes initialSize="1"
+							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
+							  testOnBorrow="true" validationQuery="SELECT 1" />
 	</jdbc:dataSource>
 
 	<jdbc:retry-interceptor db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
-							id="myInterceptor" />
+							id="myInterceptor" back-off-policy="backOffPolicy" max-number-of-retries="10" />
+
+	<bean id="backOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
+		<property name="backOffPeriod" value="120000" />
+	</bean>
 
 	<context:component-scan base-package="org.elasticspring.jdbc" />
 
