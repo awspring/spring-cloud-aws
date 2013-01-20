@@ -18,6 +18,6 @@ package org.elasticspring.core.region;
 
 public interface RegionProvider {
 
-	S3Region getRegion();
+	Region getRegion();
 
 }

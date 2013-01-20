@@ -18,8 +18,10 @@ package org.elasticspring.messaging.support.converter;
 
 /**
  *
+ * @author Alain Sahli
+ * @since 1.0
  */
-public class MessageConversionException extends RuntimeException {
+class MessageConversionException extends RuntimeException {
 
 	public MessageConversionException(String message, Throwable cause) {
 		super(message, cause);

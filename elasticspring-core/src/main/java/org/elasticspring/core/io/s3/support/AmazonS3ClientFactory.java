@@ -19,7 +19,8 @@ package org.elasticspring.core.io.s3.support;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import org.elasticspring.core.region.S3Region;
+import org.elasticspring.core.io.s3.S3Region;
+import org.elasticspring.core.region.Region;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AmazonS3ClientFactory {
 
 	private final AWSCredentialsProvider credentials;
-	private final ConcurrentHashMap<S3Region, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<S3Region, AmazonS3Client>();
+	private final ConcurrentHashMap<Region, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<Region, AmazonS3Client>();
 
 	public AmazonS3ClientFactory(AWSCredentialsProvider credentials) {
 		this.credentials = credentials;
@@ -43,24 +44,22 @@ public class AmazonS3ClientFactory {
 
 	/**
 	 * Method that returns the corresponding {@link AmazonS3} client based
-	 * on the {@link S3Region}.
+	 * on the {@link Region}.
 	 *
 	 * @param s3Region
-	 * 		the {@link S3Region} that the client must access.
+	 * 		the {@link Region} that the client must access.
 	 * @return the correspinding {@link AmazonS3} client.
 	 */
-	public AmazonS3 getClientForRegion(S3Region s3Region) {
+	public AmazonS3 getClientForRegion(Region s3Region) {
 		AmazonS3Client cachedAmazonS3Client = this.clientsForRegion.get(s3Region);
 		if (cachedAmazonS3Client != null) {
 			return cachedAmazonS3Client;
 		} else {
-			synchronized (this.clientsForRegion) {
 				AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
 				amazonS3Client.setEndpoint(s3Region.getEndpoint());
 				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
 
 				return previousValue == null ? amazonS3Client : previousValue;
-			}
 		}
 	}
 }

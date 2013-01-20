@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.region;
+package org.elasticspring.core.io.s3;
+
+import org.elasticspring.core.region.Region;
 
 /**
  * Enum that holds all available regions for the S3 service.
@@ -23,15 +25,15 @@ package org.elasticspring.core.region;
  * @author Alain Sahli
  * @since 1.0
  */
-public enum S3Region {
-	US_EAST_1("US", "s3.amazonaws.com"),
-	US_WEST_1("us-west-1", "s3-us-west-1.amazonaws.com"),
-	US_WEST_2("us-west-2", "s3-us-west-2.amazonaws.com"),
-	EU_WEST_1("eu-west-1", "s3-eu-west-1.amazonaws.com"),
-	AP_SOUTHEAST_1("ap-southeast-1", "s3-ap-southeast-1.amazonaws.com"),
-	AP_SOUTHEAST_2("ap-southeast-2", "s3-ap-southeast-2.amazonaws.com"),
-	AP_NORTHEAST_1("ap-northeast-1", "s3-ap-northeast-1.amazonaws.com"),
-	SA_EAST_1("sa-east-1", "s3-sa-east-1.amazonaws.com");
+public enum S3Region implements Region {
+	US_STANDARD("US", "s3.amazonaws.com"),
+	NORTHERN_CALIFORNIA("us-west-1", "s3-us-west-1.amazonaws.com"),
+	OREGON("us-west-2", "s3-us-west-2.amazonaws.com"),
+	IRELAND("EU", "s3-eu-west-1.amazonaws.com"),
+	SINGAPORE("ap-southeast-1", "s3-ap-southeast-1.amazonaws.com"),
+	SYDNEY("ap-southeast-2", "s3-ap-southeast-2.amazonaws.com"),
+	TOKYO("ap-northeast-1", "s3-ap-northeast-1.amazonaws.com"),
+	SAO_PAULO("sa-east-1", "s3-sa-east-1.amazonaws.com");
 
 	private final String location;
 	private final String endpoint;
@@ -41,10 +43,12 @@ public enum S3Region {
 		this.endpoint = endpoint;
 	}
 
+	@Override
 	public String getEndpoint() {
 		return this.endpoint;
 	}
 
+	@Override
 	public String getLocation() {
 		return this.location;
 	}

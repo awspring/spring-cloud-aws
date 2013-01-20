@@ -81,7 +81,8 @@ import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.model.VersionListing;
-import org.elasticspring.core.region.S3Region;
+import org.elasticspring.core.io.s3.S3Region;
+import org.elasticspring.core.region.RegionProvider;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -92,13 +93,12 @@ import java.util.List;
 
 public class EndpointRoutingS3Client implements AmazonS3 {
 
-	public static final S3Region DEFAULT_S3_REGION = S3Region.US_EAST_1;
 	private final AmazonS3 defaultClient;
 	private final AmazonS3ClientFactory clientFactory;
 
-	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory) {
+	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory, RegionProvider regionProvider) {
 		this.clientFactory = clientFactory;
-		this.defaultClient = clientFactory.getClientForRegion(DEFAULT_S3_REGION);
+		this.defaultClient = clientFactory.getClientForRegion(regionProvider.getRegion());
 	}
 
 	@Override
@@ -153,12 +153,12 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public void deleteBucket(String bucketName) throws AmazonClientException {
-		this.defaultClient.deleteBucket(bucketName);
+		getClientForBucketName(bucketName).deleteBucket(bucketName);
 	}
 
 	@Override
 	public void deleteBucket(DeleteBucketRequest deleteBucketRequest) throws AmazonClientException {
-		this.defaultClient.deleteBucket(deleteBucketRequest);
+		getClientForBucketName(deleteBucketRequest.getBucketName()).deleteBucket(deleteBucketRequest);
 	}
 
 	@Override
@@ -198,12 +198,12 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public void deleteObject(String bucketName, String key) throws AmazonClientException {
-		this.defaultClient.deleteObject(bucketName, key);
+		getClientForBucketName(bucketName).deleteObject(bucketName, key);
 	}
 
 	@Override
 	public void deleteObject(DeleteObjectRequest deleteObjectRequest) throws AmazonClientException {
-		this.defaultClient.deleteObject(deleteObjectRequest);
+		getClientForBucketName(deleteObjectRequest.getBucketName()).deleteObject(deleteObjectRequest);
 	}
 
 	@Override

@@ -18,14 +18,14 @@ package org.elasticspring.core.region;
 
 public class StaticRegionProvider implements RegionProvider {
 
-	private final S3Region configuredRegion;
+	private final Region configuredRegion;
 
-	public StaticRegionProvider(S3Region configuredRegion) {
+	public StaticRegionProvider(Region configuredRegion) {
 		this.configuredRegion = configuredRegion;
 	}
 
 	@Override
-	public S3Region getRegion() {
+	public Region getRegion() {
 		return this.configuredRegion;
 	}
 }

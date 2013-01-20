@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support.destination;
+package org.elasticspring.core.region;
 
-/**
- *
- * @author Alain Sahli
- * @since 1.0
- */
-class InvalidDestinationException extends RuntimeException {
-
-	private final String destinationName;
-
-
-	public InvalidDestinationException(String destinationName) {
-		this.destinationName = destinationName;
-	}
-
-	public String getDestinationName() {
-		return this.destinationName;
-	}
+public interface Region {
+	String getEndpoint();
+	String getLocation();
 }

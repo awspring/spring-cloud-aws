@@ -93,10 +93,12 @@ once, and reuse them for the tests run, you have to create the stack manually us
 "IntegrationTestStack" to ensure that the integration tests will re-use the stack.
 
 # Getting in touch
+ElasticSpring on [Twitter](https://twitter.com/elasticspring)
+
 Individual team members can be found on different social media channels
 
 Agim Emruli ([Twitter](http://twitter.com/aemruli) / [LinkedIn](http://de.linkedin.com/in/agimemruli/))
-Alain Sahli ([Twitter](http://twitter.com/alainsahli) / [LinkedIn](http://ch.linkedin.com/in/asahli) )
+Alain Sahli ([Twitter](http://twitter.com/sahlialain) / [LinkedIn](http://ch.linkedin.com/in/asahli) )
 
 [AWS]: http://aws.amazon.com/
 [Spring]: http://www.springsource.org
@@ -105,3 +107,5 @@ Alain Sahli ([Twitter](http://twitter.com/alainsahli) / [LinkedIn](http://ch.lin
 [Amazon-IAM]: https://aws.amazon.com/iam/
 [Amazon-SES]: https://aws.amazon.com/ses/
 [Amazon-CloudFormation]: https://aws.amazon.com/de/cloudformation/
+[Twitter]: https://www.twitter.com
+[LinkedIn]: http://www.linkedin.com

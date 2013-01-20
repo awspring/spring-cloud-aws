@@ -23,4 +23,10 @@
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<els-context:context-resource-loader />
+
+	<!--suppress SpringBeanConstructorArgInspection -->
+	<bean class="org.elasticspring.context.support.io.TestBucketsInitialization">
+		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser).AMAZON_S3_BEAN_NAME}" />
+	</bean>
+
 </beans>
