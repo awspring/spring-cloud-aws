@@ -30,14 +30,33 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
+ * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation for the
+ * <code>retry-interceptor</code> element. This parser produce a {@link org.aopalliance.intercept.MethodInterceptor}
+ * which can be used by advice to intercept method calls and retry their particular operation.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
+	/**
+	 * Class name for the RetryTemplate. String because retry support is optional
+	 */
 	private static final String RETRY_OPERATIONS_CLASS_NAME = "org.springframework.retry.support.RetryTemplate";
+
+	/**
+	 * Class name use for the policy, which is a composition of two policies (database instance status and SQL error code)
+	 */
 	private static final String COMPOSITE_RETRY_POLICY_CLASS_NAME = "org.springframework.retry.policy.CompositeRetryPolicy";
 
+	/**
+	 * Attribute name for the number of retries that should be done
+	 */
 	private static final String MAX_NUMBER_OF_RETRIES = "max-number-of-retries";
+
+	/**
+	 * Attribute name to a custom back of policy
+	 */
 	private static final String BACK_OFF_POLICY = "back-off-policy";
 
 	@Override
@@ -45,6 +64,15 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 		builder.addPropertyValue("retryOperations", buildRetryOperationDefinition(element, parserContext));
 	}
 
+	/**
+	 * Build the RetryOperation {@link BeanDefinition} with its collaborators
+	 *
+	 * @param element
+	 * 		- <code>retry-interceptor Element</code>
+	 * @param parserContext
+	 * 		- ParserContext used to query the {@link org.springframework.beans.factory.support.BeanDefinitionRegistry}
+	 * @return Configured but non registered bean definition
+	 */
 	private static BeanDefinition buildRetryOperationDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RETRY_OPERATIONS_CLASS_NAME);
 		builder.addPropertyValue("retryPolicy", buildRetryPolicyDefinition(element, parserContext));
@@ -84,7 +112,6 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 		}
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
-
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {

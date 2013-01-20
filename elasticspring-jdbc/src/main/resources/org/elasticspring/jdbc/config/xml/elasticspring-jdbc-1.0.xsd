@@ -95,7 +95,7 @@
 					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The name of the data base identifier in Amazon RDS
+					The name of the data base identifier in Amazon RDS instance. Should be the same as the database instance used inside the operations that will be retried.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -109,7 +109,7 @@
 					<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The reference to a BackOffPolicy which defines what should happen between retry approaches
+					The reference to a BackOffPolicy which defines what should happen between retry approaches. Normally a back-off-policy will sleep in between the retry attempts.
 						]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

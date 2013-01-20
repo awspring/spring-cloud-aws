@@ -24,10 +24,16 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
 /**
+ * Utility class which configure the {@link AmazonRdsClientFactoryBean} to make it available in the application context
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class AmazonRdsClientConfigurationUtils {
 
+	/**
+	 * Default bean name used inside the application context for the Amazon RDS client
+	 */
 	static final String RDS_CLIENT_BEAN_NAME = "RDS_CLIENT";
 
 	static BeanDefinitionHolder registerAmazonRdsClient(

@@ -31,7 +31,9 @@ import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * Unit test class for {@link RdbmsRetryOperationsInterceptor}
  *
+ * @author Agim Emruli
  */
 public class RdbmsRetryOperationsInterceptorTest {
 

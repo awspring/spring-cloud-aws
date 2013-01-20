@@ -24,12 +24,31 @@ import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * Subclass of {@link RetryOperationsInterceptor} that checks that there is no transaction available while starting a
+ * retryable operation. This class also ensures that there is only one outer retry operation in case of nested
+ * retryable methods.
+ * <p>This allows service to call other service that might have a retry interceptor configured.</p>
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class RdbmsRetryOperationsInterceptor extends RetryOperationsInterceptor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RdbmsRetryOperationsInterceptor.class);
 
+	/**
+	 * Checks that there is no retry operation open before delegating to the method {@link
+	 * RetryOperationsInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)} method. Execute the MethodInvocation
+	 * directly if there is already a {@link org.springframework.retry.RetryContext} available for the current thread
+	 * execution.
+	 *
+	 * @param invocation
+	 * 		- the method invocation that is the target of this interceptor
+	 * @return the result of the method invocation
+	 * @throws Throwable
+	 * 		- the exception thrown by the method invocations target or a {@link JdbcRetryException} if there is already a
+	 * 		transaction available.
+	 */
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 
@@ -42,7 +61,7 @@ public class RdbmsRetryOperationsInterceptor extends RetryOperationsInterceptor 
 			}
 			result = super.invoke(invocation);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Finsihed a new Retry Interceptor for {}", (invocation != null ? invocation.getMethod() : null));
+				LOGGER.trace("Finished a new Retry Interceptor for {}", (invocation != null ? invocation.getMethod() : null));
 			}
 		} else {
 			if (LOGGER.isTraceEnabled()) {

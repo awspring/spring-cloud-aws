@@ -27,7 +27,9 @@ import java.sql.SQLException;
 import java.sql.SQLTransientException;
 
 /**
+ * Unit test class for the {@link SqlRetryPolicy}
  *
+ * @author Agim Emruli
  */
 public class SqlRetryPolicyTest {
 

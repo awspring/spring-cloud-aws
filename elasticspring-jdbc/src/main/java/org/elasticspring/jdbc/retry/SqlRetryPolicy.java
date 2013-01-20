@@ -23,9 +23,10 @@ import org.springframework.classify.BinaryExceptionClassifier;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.context.RetryContextSupport;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 
-import java.net.ConnectException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
@@ -33,49 +34,88 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * {@link RetryPolicy} implementation that check for data base error which are retry able. Normally this are well known
+ * exceptions inside the JDBC (1.6) exception hierarchy and also the Spring {@link
+ * org.springframework.dao.DataAccessException} hierarchy. In addition to that this class also tries for permanent
+ * exception which are related to a connection of the database. This is useful because Amazon RDS database instances
+ * might be retryable even if there is a permanent error. This is typically the case in a master a/z failover where
+ * the source instance might not be available but a second attempt might succeed because the DNS record has been update
+ * to the failover instance.
+ * <p/>
+ * <p>In contrast to a {@link SimpleRetryPolicy} this class also check recursively the
+ * cause of the exception if there is a retryable implementation.</p>
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class SqlRetryPolicy implements RetryPolicy {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SqlRetryPolicy.class);
 
+	/**
+	 * BinaryExceptionClassifier used to classify exceptions
+	 */
 	private final BinaryExceptionClassifier binaryExceptionClassifier = new BinaryExceptionClassifier(getSqlRetryAbleExceptions(), false);
 
+	/**
+	 * Holds the maximum number of retries that should be tried if a exception is retryable
+	 */
 	private int maxNumberOfRetries = 3;
 
+	/**
+	 * Returns all the exception for which a retry is useful
+	 *
+	 * @return - Map containing all retryable exception for the {@link BinaryExceptionClassifier}
+	 */
 	private static Map<Class<? extends Throwable>, Boolean> getSqlRetryAbleExceptions() {
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
 		retryableExceptions.put(SQLTransientException.class, true);
 		retryableExceptions.put(SQLRecoverableException.class, true);
 		retryableExceptions.put(TransientDataAccessException.class, true);
 		retryableExceptions.put(SQLNonTransientConnectionException.class, true);
-		retryableExceptions.put(ConnectException.class, true);
 		return retryableExceptions;
 	}
 
+	/**
+	 * Returns if this method is retryable based on the {@link RetryContext}. If there is no Throwable registered, then
+	 * this method returns true without checking any further conditions. If there is a Throwable registered, this class
+	 * check if the registered Throwable is retryable Exception in the context of SQL exception. If not successful, this
+	 * class also check the cause if there is a nested retryable exception available.
+	 * <p>Before checking exception this class check that the current retry count (fetched through {@link
+	 * org.springframework.retry.RetryContext#getRetryCount()} is smaller or equals the {@link #maxNumberOfRetries}</p>
+	 *
+	 * @param context
+	 * 		- the retry context holding information about the retry able operation (number of retries, throwable if any)
+	 * @return true if there is no throwable registered, if there is a retry able exception and the number of maximum
+	 *         numbers of retries have not been reached.
+	 */
 	@Override
 	public boolean canRetry(RetryContext context) {
 		Throwable candidate = context.getLastThrowable();
 		if (candidate == null) {
 			return true;
 		}
-
-		boolean retry = this.binaryExceptionClassifier.classify(candidate);
-		if (LOGGER.isTraceEnabled() && !retry) {
-			LOGGER.trace("Retry on Exception: {} not possible trying cause", candidate.getClass().getName());
-		}
-
-		while (!retry && candidate.getCause() != null) {
-			candidate = candidate.getCause();
-			retry = this.binaryExceptionClassifier.classify(candidate);
-		}
-
-		if (LOGGER.isTraceEnabled() && retry) {
-			LOGGER.trace("Retry possible due to exception class {}", candidate.getClass().getName());
-		}
-
-		return context.getRetryCount() <= this.maxNumberOfRetries && retry;
+		return context.getRetryCount() <= this.maxNumberOfRetries && isRetryAbleException(candidate);
 	}
+
+	private boolean isRetryAbleException(Throwable throwable) {
+		boolean retryAble = this.binaryExceptionClassifier.classify(throwable);
+		if (!retryAble) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retry on Exception: {} not possible trying cause", throwable.getClass().getName());
+			}
+			if (throwable.getCause() != null) {
+				return isRetryAbleException(throwable.getCause());
+			}
+			return false;
+		} else {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retry possible due to exception class {}", throwable.getClass().getName());
+			}
+			return retryAble;
+		}
+	}
+
 
 	@Override
 	public RetryContext open(RetryContext parent) {
@@ -92,6 +132,18 @@ public class SqlRetryPolicy implements RetryPolicy {
 		((RetryContextSupport) context).registerThrowable(throwable);
 	}
 
+	/**
+	 * Configures the maximum number of retries. This number should be a trade-off between having enough retries to
+	 * survive a database outage due to failure and a responsive and not stalling application. The default value for the
+	 * maximum number is 3.
+	 * <p/>
+	 * <p><b>Note:</b>Consider using a {@link BackOffPolicy} which ensures that there is
+	 * enough time left between the retry attempts instead of increasing this value to a high number. The back-off policy
+	 * ensures that there is a delay in between the retry operations.</p>
+	 *
+	 * @param maxNumberOfRetries
+	 * 		- the maximum number of retries should be a positive number, otherwise all retries will fail.
+	 */
 	public void setMaxNumberOfRetries(int maxNumberOfRetries) {
 		this.maxNumberOfRetries = maxNumberOfRetries;
 	}

@@ -31,7 +31,9 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.context.RetryContextSupport;
 
 /**
+ * Unit test class for {@link DatabaseInstanceStatusRetryPolicy}
  *
+ * @author Agim Emruli
  */
 public class DatabaseInstanceStatusRetryPolicyTest {
 
