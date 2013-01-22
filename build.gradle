@@ -24,49 +24,67 @@ buildscript {
     }
 }
 
-
 configure(allprojects) {
     group = 'org.elasticspring'
     version = '0.1'
 
     apply plugin: 'maven'
-    apply plugin: 'java'
-    apply plugin: "propdeps"
-    apply plugin: 'propdeps-maven'
-    apply plugin: 'propdeps-idea'
     apply plugin: "project-report"
-
-    ext.springFrameworkVersion = "3.1.0.RELEASE"
-    ext.junitVersion = '4.10'
-    ext.slf4jVersion = '1.7.2'
-    ext.log4jVersion = '1.2.17'
-    ext.awsSdkVersion = '1.3.27'
-    ext.mockitoVersion = '1.9.5'
-    ext.tomcatVersion = "7.0.34"
-
-
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-        options.compilerArgs = ['-Xlint:-options']
-    }
-
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-
-    test.systemProperty("java.awt.headless", "true")
 
     repositories {
         mavenCentral()
     }
+
+    ext.javadocLinks = [
+            "http://docs.oracle.com/javase/6/docs/api",
+            "http://docs.oracle.com/javaee/6/api",
+            "http://aopalliance.sourceforge.net/doc",
+            "http://www.eclipse.org/aspectj/doc/released/aspectj5rt-api/",
+            "http://hc.apache.org/httpclient-3.x/apidocs",
+            "http://fasterxml.github.com/jackson-core/javadoc/2.0.0",
+            "http://jackson.codehaus.org/1.4.2/javadoc",
+            "http://static.springsource.org/spring/docs/3.1.x/javadoc-api/"
+    ] as String[]
 }
 
 configure(subprojects) {
 
+    apply plugin: 'java'
+    apply plugin: "propdeps"
+    apply plugin: 'propdeps-maven'
+    apply plugin: 'propdeps-idea'
+
+    // Custom properties
+    ext {
+        springFrameworkVersion = "3.1.0.RELEASE"
+        junitVersion = '4.10'
+        slf4jVersion = '1.7.2'
+        log4jVersion = '1.2.17'
+        awsSdkVersion = '1.3.27'
+        mockitoVersion = '1.9.5'
+        tomcatVersion = "7.0.34"
+    }
+
+    //Default dependencies
+    dependencies {
+        compile("org.slf4j:slf4j-api:${slf4jVersion}")
+        testRuntime("org.slf4j:slf4j-jcl:${slf4jVersion}")
+        testRuntime("log4j:log4j:${log4jVersion}")
+        testCompile("junit:junit:${junitVersion}")
+        testCompile("org.mockito:mockito-all:${mockitoVersion}")
+    }
+
+    //Configure java compiler
+    compileJava {
+        options.encoding = 'UTF-8'
+        options.compilerArgs = ['-Xlint:-options'] // disable options warning about boot class path
+    }
 
     javadoc {
         options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
         options.author = true
         options.header = project.name
+        options.links(project.ext.javadocLinks)
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -79,17 +97,16 @@ configure(subprojects) {
         from javadoc
     }
 
-    dependencies {
-        compile("org.slf4j:slf4j-api:${slf4jVersion}")
-        testRuntime("org.slf4j:slf4j-jcl:${slf4jVersion}")
-        testRuntime("log4j:log4j:${log4jVersion}")
-        testCompile("junit:junit:${junitVersion}")
-        testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    }
-
     artifacts {
         archives sourcesJar
         archives javadocJar
+    }
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
+    test {
+        systemProperty("java.awt.headless", "true")
     }
 }
 
@@ -198,6 +215,112 @@ configure(rootProject) {
     // don't publish the default jar for the root project
     configurations.archives.artifacts.clear()
 
+    task api(type: Javadoc) {
+        group = "Documentation"
+        description = "Generates aggregated Javadoc API documentation."
+        title = "${rootProject.description} ${version} API"
+
+        dependsOn {
+            subprojects.collect {
+                it.tasks.getByName("jar")
+            }
+        }
+        options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+        options.author = true
+        options.header = rootProject.description
+        options.splitIndex = true
+        options.links(project.ext.javadocLinks)
+
+        source subprojects.collect { project ->
+            project.sourceSets.main.allJava
+        }
+
+        classpath = files(subprojects.collect { project ->
+            project.sourceSets.main.compileClasspath
+        })
+
+        maxMemory = "1024m"
+        destinationDir = new File(buildDir as String, "api")
+    }
+
+    task docsZip(type: Zip) {
+        group = "Distribution"
+        baseName = "elastic-spring"
+        classifier = "docs"
+        description = "Builds -${classifier} archive containing api and reference "
+
+        from(api) {
+            into "javadoc-api"
+        }
+
+        from(reference) {
+            into "elastic-spring-reference"
+        }
+    }
+
+    task schemaZip(type: Zip) {
+        group = "Distribution"
+        baseName = "elastic-spring"
+        classifier = "schema"
+        description = "Builds -${classifier} archive containing all " +
+                "XSDs for deployment at http://www.elasticspring.org/schema/."
+
+        subprojects.each { subproject ->
+            def Properties schemas = new Properties();
+
+            subproject.sourceSets.main.resources.find {
+                it.path.endsWith("META-INF/spring.schemas")
+            }?.withInputStream { schemas.load(it) }
+
+            for (def key : schemas.keySet()) {
+                def shortName = key.replaceAll(/http.*schema.(.*).elasticspring-.*/, '$1')
+                assert shortName != key
+                File xsdFile = subproject.sourceSets.main.resources.find {
+                    it.path.endsWith(schemas.get(key))
+                } as File
+                assert xsdFile != null
+                into(shortName) {
+                    from xsdFile.path
+                }
+            }
+        }
+    }
+
+    task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
+        group = "Distribution"
+        baseName = "elastic-spring"
+        classifier = "dist"
+        description = "Builds -${classifier} archive, containing all jars and docs, " +
+                "suitable for community download page."
+
+        ext.baseDir = "${baseName}-${project.version}";
+
+        from(zipTree(docsZip.archivePath)) {
+            into "${baseDir}/docs"
+        }
+
+        from(zipTree(schemaZip.archivePath)) {
+            into "${baseDir}/schema"
+        }
+
+        subprojects.each { subproject ->
+            into("${baseDir}/libs") {
+                from subproject.jar
+                if (subproject.tasks.findByPath("sourcesJar")) {
+                    from subproject.sourcesJar
+                }
+                if (subproject.tasks.findByPath("javadocJar")) {
+                    from subproject.javadocJar
+                }
+            }
+        }
+    }
+
+    artifacts {
+        archives docsZip
+        archives schemaZip
+        archives distZip
+    }
 
     reference {
         sourceDir = file("src/reference/docbook")
