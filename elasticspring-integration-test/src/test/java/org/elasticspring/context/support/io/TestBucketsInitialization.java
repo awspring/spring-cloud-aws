@@ -33,8 +33,8 @@ import java.io.ByteArrayInputStream;
 public class TestBucketsInitialization implements InitializingBean, DisposableBean {
 
 	private static final String DEFAULT_FILENAME = "test.txt";
-	public static final String NAME_WITH_DOTS = ".elasticspring.org";
-	public static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
+	private static final String NAME_WITH_DOTS = ".elasticspring.org";
+	private static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
 	private final AmazonS3 amazonS3;
 
 	@Autowired

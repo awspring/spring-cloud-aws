@@ -17,7 +17,6 @@
 package org.elasticspring.messaging.support.destination;
 
 /**
- *
  * @author Alain Sahli
  * @since 1.0
  */
@@ -26,7 +25,7 @@ class InvalidDestinationException extends RuntimeException {
 	private final String destinationName;
 
 
-	public InvalidDestinationException(String destinationName) {
+	InvalidDestinationException(String destinationName) {
 		this.destinationName = destinationName;
 	}
 
