@@ -75,9 +75,9 @@ configure(subprojects) {
     }
 
     //Configure java compiler
-    compileJava {
+    tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        options.compilerArgs = ['-Xlint:-options'] // disable options warning about boot class path
+        options.compilerArgs = ['-Xlint:-options']
     }
 
     javadoc {
