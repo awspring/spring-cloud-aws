@@ -30,6 +30,7 @@ configure(allprojects) {
 
     apply plugin: 'maven'
     apply plugin: "project-report"
+    apply plugin: 'java'
 
     repositories {
         mavenCentral()
@@ -49,7 +50,6 @@ configure(allprojects) {
 
 configure(subprojects) {
 
-    apply plugin: 'java'
     apply plugin: "propdeps"
     apply plugin: 'propdeps-maven'
     apply plugin: 'propdeps-idea'
