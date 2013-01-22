@@ -1,3 +1,5 @@
+ant.xml
+gradle.xml
 workspace.xml
 dictionaries/*.xml
 /dictionaries/
