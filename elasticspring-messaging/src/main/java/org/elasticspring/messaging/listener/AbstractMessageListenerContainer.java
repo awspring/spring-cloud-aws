@@ -76,7 +76,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 		this.phase = phase;
 	}
 
-	public String getBeanName() {
+	protected String getBeanName() {
 		return this.beanName;
 	}
 
@@ -216,5 +216,9 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 
 	public void setWaitTimeOut(Integer waitTimeOut) {
 		this.waitTimeOut = waitTimeOut;
+	}
+
+	protected Logger getLogger() {
+		return this.logger;
 	}
 }
