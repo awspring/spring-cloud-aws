@@ -25,7 +25,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Agim Emruli
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings("WeakerAccess")
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override

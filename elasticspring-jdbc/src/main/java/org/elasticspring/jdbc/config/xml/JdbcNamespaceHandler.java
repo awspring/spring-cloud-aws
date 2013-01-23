@@ -27,6 +27,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Agim Emruli
  * @since 1.0
  */
+@SuppressWarnings("WeakerAccess")
 public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
