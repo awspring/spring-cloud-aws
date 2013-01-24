@@ -17,7 +17,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:jdbc="http://www.elasticspring.org/schema/jdbc"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	   http://www.elasticspring.org/schema/jdbc http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
