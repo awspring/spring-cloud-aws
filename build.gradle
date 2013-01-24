@@ -24,12 +24,18 @@ buildscript {
     }
 }
 
+apply from: "gradle/idea.gradle"
+
 configure(allprojects) {
     group = 'org.elasticspring'
     version = '0.1'
 
     apply plugin: 'maven'
     apply plugin: "project-report"
+    apply plugin: "propdeps"
+    apply plugin: 'propdeps-maven'
+    apply plugin: 'propdeps-idea'
+
     apply plugin: 'java'
 
     repositories {

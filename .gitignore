@@ -7,3 +7,6 @@ build/
 # Ignore files
 access.properties
 mail.properties
+*.iml
+*.ipr
+.idea

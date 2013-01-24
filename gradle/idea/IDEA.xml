@@ -1,6 +1,5 @@
-<component name="InspectionProjectProfileManager">
   <profile version="1.0" is_locked="false">
-    <option name="myName" value="Project Default" />
+    <option name="myName" value="Idea" />
     <option name="myLocal" value="false" />
     <inspection_tool class="AbstractClassNeverImplemented" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AbstractClassWithoutAbstractMethods" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -316,4 +315,3 @@
       <option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />
     </inspection_tool>
   </profile>
-</component>
