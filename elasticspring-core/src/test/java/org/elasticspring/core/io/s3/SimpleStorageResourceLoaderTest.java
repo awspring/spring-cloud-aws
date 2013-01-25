@@ -32,6 +32,8 @@ import static org.mockito.Mockito.when;
 
 /**
  *
+ * @author Alain Sahli
+ * @since 1.0
  */
 public class SimpleStorageResourceLoaderTest {
 
@@ -94,7 +96,7 @@ public class SimpleStorageResourceLoaderTest {
 		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
 
 		try {
-			assertNotNull(resourceLoader.getResource("s3://bucket/object/asd/"));
+			assertNotNull(resourceLoader.getResource("s3://bucket/object!asd/"));
 			fail("expected exception due to path after object");
 		} catch (IllegalArgumentException e) {
 			assertTrue(e.getMessage().contains("not a valid s3 location"));
@@ -125,6 +127,17 @@ public class SimpleStorageResourceLoaderTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3);
 		assertSame(SimpleStorageResourceLoader.class.getClassLoader(), simpleStorageResourceLoader.getClassLoader());
+	}
+
+	@Test
+	public void testValidS3Pattern() throws Exception {
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
+
+		// None of the patterns below should throw an exception
+		resourceLoader.getResource("s3://bucket/key");
+		resourceLoader.getResource("S3://BuCket/key");
+		resourceLoader.getResource("s3://bucket/folder1/folder2/key");
 	}
 
 	private SimpleStorageResourceLoader getResourceLoader(AmazonS3 amazonS3) {

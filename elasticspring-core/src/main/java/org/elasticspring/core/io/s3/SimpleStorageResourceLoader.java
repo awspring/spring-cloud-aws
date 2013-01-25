@@ -27,13 +27,15 @@ import java.util.regex.Pattern;
 
 /**
  *
+ * @author Alain Sahli
+ * @since 1.0
  */
 public class SimpleStorageResourceLoader implements ResourceLoader {
 
 
 	private final AmazonS3 amazonS3;
 	private final ResourceLoader delegate;
-	private static final Pattern S3_LOCATION_PATTERN = Pattern.compile("^s3://([A-Za-z0-9\\.\\-]*)/([A-Za-z0-9\\.\\-]*)/?$");
+	private static final Pattern S3_LOCATION_PATTERN = Pattern.compile("^s3://([A-Za-z0-9\\.\\-]*)/([A-Za-z0-9/\\.\\-]*)/?$");
 	private static final String S3_PROTOCOL_PREFIX = "s3://";
 
 	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
@@ -69,6 +71,11 @@ public class SimpleStorageResourceLoader implements ResourceLoader {
 	}
 
 	private String getObjectNameFromUri(Matcher matcher) {
-		return matcher.group(2);
+		String objectName = matcher.group(2);
+		if (objectName != null && objectName.endsWith("/")) {
+			return objectName.substring(0, objectName.length() - 1);
+		} else {
+			return objectName;
+		}
 	}
 }
