@@ -400,17 +400,17 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public ObjectListing listObjects(String bucketName) throws AmazonClientException {
-		return this.defaultClient.listObjects(bucketName);
+		return getClientForBucketName(bucketName).listObjects(bucketName);
 	}
 
 	@Override
 	public ObjectListing listObjects(String bucketName, String prefix) throws AmazonClientException {
-		return this.defaultClient.listObjects(bucketName, prefix);
+		return getClientForBucketName(bucketName).listObjects(bucketName, prefix);
 	}
 
 	@Override
 	public ObjectListing listObjects(ListObjectsRequest listObjectsRequest) throws AmazonClientException {
-		return this.defaultClient.listObjects(listObjectsRequest);
+		return getClientForBucketName(listObjectsRequest.getBucketName()).listObjects(listObjectsRequest);
 	}
 
 	@Override

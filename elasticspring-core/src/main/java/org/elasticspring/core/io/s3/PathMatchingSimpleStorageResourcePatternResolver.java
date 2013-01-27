@@ -119,6 +119,30 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	}
 
 	private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
+		String remainingPatternPart = getRemainingPatternPart(keyPattern, prefix);
+		if (remainingPatternPart.startsWith("**")) {
+			findAllAndMatch(bucketName, resources, prefix, keyPattern);
+		} else {
+			findProgressivelyWithParitalMatch(bucketName, resources, prefix, keyPattern);
+		}
+	}
+
+	private void findAllAndMatch(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix);
+		ObjectListing objectListing = this.amazonS3.listObjects(listObjectsRequest);
+
+		for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+			String keyPath = S3_PROTOCOL_PREFIX + bucketName + "/" + objectSummary.getKey();
+			if (pathMatcher.match(keyPattern, objectSummary.getKey())) {
+				Resource resource = this.simpleStorageResourceLoader.getResource(keyPath);
+				if (resource.exists()) {
+					resources.add(resource);
+				}
+			}
+		}
+	}
+
+	private void findProgressivelyWithParitalMatch(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withDelimiter("/").withPrefix(prefix);
 		ObjectListing objectListing = this.amazonS3.listObjects(listObjectsRequest);
 		Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, objectListing.getObjectSummaries(), keyPattern);
@@ -131,7 +155,16 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 				findPathMatchingKeyInBucket(bucketName, resources, commonPrefix, keyPattern);
 			}
 		}
+	}
 
+	private String getRemainingPatternPart(String keyPattern, String path) {
+		int numberOfSlashes = StringUtils.countOccurrencesOf(path, "/");
+		int indexOfNthSlash = getIndexOfNthOccurence(keyPattern, "/", numberOfSlashes);
+		if (indexOfNthSlash != -1) {
+			return keyPattern.substring(indexOfNthSlash);
+		} else {
+			return null;
+		}
 	}
 
 	private boolean keyPathMatchesPartially(String keyPattern, String keyPath) {
