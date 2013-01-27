@@ -33,11 +33,15 @@ To build reference documentation (results will be in `build/reference`):
 
 # Using IntelliJ IDEA
 
-ElastiSpring development is done with [IntelliJ IDEA] [IntelliJ]. All configurations files (which do not contain environment
-specific paths) are kept in the repository to ensure that every developer gets the same settings (Copyright header,
-Formatter, Inspections, Encoding etc.). These files are located in the root and .idea folder.
+ElastiSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
+ project files, you have to execute the following Gradle task:
 
- You can open the project through File --> Open... (select the folder which you checked out before)
+ 	./gradlew idea
+
+ Then you can open the project through File --> Open... (select the elasticspring.ipr file locate at the project root).
+ If for some reason you want to remove the [IntelliJ IDEA] [IntelliJ] project files you can run:
+
+ 	./gradlew cleanIdea
 
 
 # Running integration tests
