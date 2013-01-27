@@ -121,40 +121,52 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
 		String remainingPatternPart = getRemainingPatternPart(keyPattern, prefix);
 		if (remainingPatternPart.startsWith("**")) {
-			findAllAndMatch(bucketName, resources, prefix, keyPattern);
+			findAllResourcesThatMatches(bucketName, resources, prefix, keyPattern);
 		} else {
 			findProgressivelyWithParitalMatch(bucketName, resources, prefix, keyPattern);
 		}
 	}
 
-	private void findAllAndMatch(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
+	private void findAllResourcesThatMatches(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix);
-		ObjectListing objectListing = this.amazonS3.listObjects(listObjectsRequest);
+		ObjectListing objectListing = null;
 
-		for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-			String keyPath = S3_PROTOCOL_PREFIX + bucketName + "/" + objectSummary.getKey();
-			if (pathMatcher.match(keyPattern, objectSummary.getKey())) {
-				Resource resource = this.simpleStorageResourceLoader.getResource(keyPath);
-				if (resource.exists()) {
-					resources.add(resource);
-				}
+		do {
+			if (objectListing == null) {
+				objectListing = this.amazonS3.listObjects(listObjectsRequest);
+			} else {
+				objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
 			}
-		}
+
+			Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, objectListing.getObjectSummaries(), keyPattern);
+			if (newResources.size() > 0) {
+				resources.addAll(newResources);
+			}
+		} while (objectListing.isTruncated());
 	}
 
 	private void findProgressivelyWithParitalMatch(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withDelimiter("/").withPrefix(prefix);
-		ObjectListing objectListing = this.amazonS3.listObjects(listObjectsRequest);
-		Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, objectListing.getObjectSummaries(), keyPattern);
-		if (newResources.size() > 0) {
-			resources.addAll(newResources);
-		}
+		ObjectListing objectListing = null;
 
-		for (String commonPrefix : objectListing.getCommonPrefixes()) {
-			if (keyPathMatchesPartially(keyPattern, commonPrefix)) {
-				findPathMatchingKeyInBucket(bucketName, resources, commonPrefix, keyPattern);
+		do {
+			if (objectListing == null) {
+				objectListing = this.amazonS3.listObjects(listObjectsRequest);
+			} else {
+				objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
 			}
-		}
+
+			Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, objectListing.getObjectSummaries(), keyPattern);
+			if (newResources.size() > 0) {
+				resources.addAll(newResources);
+			}
+
+			for (String commonPrefix : objectListing.getCommonPrefixes()) {
+				if (keyPathMatchesPartially(keyPattern, commonPrefix)) {
+					findPathMatchingKeyInBucket(bucketName, resources, commonPrefix, keyPattern);
+				}
+			}
+		} while (objectListing.isTruncated());
 	}
 
 	private String getRemainingPatternPart(String keyPattern, String path) {
