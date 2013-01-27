@@ -3,10 +3,11 @@ target/
 build/
 /.gradle
 /config
+/.idea
 
 # Ignore files
 access.properties
 mail.properties
 *.iml
 *.ipr
-.idea
+*.iws
