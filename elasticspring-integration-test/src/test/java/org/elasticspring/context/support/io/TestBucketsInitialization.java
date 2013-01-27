@@ -35,8 +35,8 @@ import java.util.List;
 public class TestBucketsInitialization implements InitializingBean, DisposableBean {
 
 	private static final String DEFAULT_FILENAME = "test.txt";
-	public static final String NAME_WITH_DOTS = ".elasticspring.org";
-	public static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
+	private static final String NAME_WITH_DOTS = ".elasticspring.org";
+	private static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
 	private final AmazonS3 amazonS3;
 	private final List<String> filesForHierarchy = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
 			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");

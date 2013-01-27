@@ -63,10 +63,6 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver(classLoader);
 	}
 
-	public PathMatcher getPathMatcher() {
-		return pathMatcher;
-	}
-
 	@SuppressWarnings("UnusedDeclaration")
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");
@@ -77,7 +73,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	public Resource[] getResources(String locationPattern) throws IOException {
 		if (locationPattern.startsWith(S3_PROTOCOL_PREFIX)) {
 			int prefixEnd = locationPattern.indexOf(":") + 3;
-			if (getPathMatcher().isPattern(locationPattern.substring(prefixEnd))) {
+			if (this.pathMatcher.isPattern(locationPattern.substring(prefixEnd))) {
 				return findPathMatchingResources(locationPattern);
 			} else {
 				return new Resource[]{this.simpleStorageResourceLoader.getResource(locationPattern)};
