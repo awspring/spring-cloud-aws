@@ -16,6 +16,10 @@
 
 
 
+
+
+
+
 import org.gradle.api.tasks.compile.JavaCompile
 
 buildscript {
@@ -29,7 +33,7 @@ buildscript {
 }
 
 apply from: "gradle/idea.gradle"
-apply from: "gradle/checkStyle.gradle"
+apply from: "gradle/checkstyle.gradle"
 
 configure(allprojects) {
     group = 'org.elasticspring'
