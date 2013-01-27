@@ -25,6 +25,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Alain Sahli
@@ -36,6 +38,10 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 	public static final String NAME_WITH_DOTS = ".elasticspring.org";
 	public static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
 	private final AmazonS3 amazonS3;
+	private final List<String> filesForHierarchy = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
+			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");
+	private final List<String> bucketsForPathMatch = Arrays.asList("my-bucket-one.elasticspring.org", "my-bucket-two.elasticspring.org",
+			"another-bucket.elasticspring.org", "yet-another-bucket.elasticspring.org");
 
 	@Autowired
 	public TestBucketsInitialization(@SuppressWarnings("SpringJavaAutowiringInspection") AmazonS3 amazonS3) {
@@ -44,7 +50,17 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.createTestBucketForEachRegion();
+		createTestBucketForEachRegion();
+		createFolderHierarchyForPathMatcher();
+	}
+
+	private void createFolderHierarchyForPathMatcher() {
+		for (String bucketName : bucketsForPathMatch) {
+			this.amazonS3.createBucket(bucketName, Region.EU_Ireland);
+			for (String file : filesForHierarchy) {
+				this.amazonS3.putObject(bucketName, file, new ByteArrayInputStream(file.getBytes()), new ObjectMetadata());
+			}
+		}
 	}
 
 	private void createTestBucketForEachRegion() {
@@ -73,6 +89,20 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 
 	@Override
 	public void destroy() throws Exception {
+		deleteTestBucketsInEachRegion();
+		deleteFolderHierarchyForPathMatcher();
+	}
+
+	private void deleteFolderHierarchyForPathMatcher() {
+		for (String bucketName : bucketsForPathMatch) {
+			for (String file : filesForHierarchy) {
+				this.amazonS3.deleteObject(bucketName, file);
+			}
+			deleteBucket(bucketName);
+		}
+	}
+
+	private void deleteTestBucketsInEachRegion() {
 		deleteBucketWithAndWithoutDotsAndFile(S3Region.US_STANDARD.getLocation());
 		deleteBucketWithAndWithoutDotsAndFile(S3Region.OREGON.getLocation());
 		deleteBucketWithAndWithoutDotsAndFile(S3Region.NORTHERN_CALIFORNIA.getLocation());

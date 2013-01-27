@@ -93,6 +93,9 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		Set<Resource> resources;
 		if (this.pathMatcher.isPattern(bucketPattern)) {
 			List<String> matchingBuckets = findMatchingBuckets(bucketPattern);
+			if (bucketPattern.startsWith("**")) {
+				keyPattern = "**/" + keyPattern;
+			}
 			resources = findPathMatchingKeys(keyPattern, matchingBuckets);
 		} else {
 			resources = findPathMatchingKeys(keyPattern, Arrays.asList(bucketPattern));

@@ -62,7 +62,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		{
 			Resource[] resources = resourceLoader.getResources("s3://**/test.txt");
-			Assert.assertEquals("test the double '**' wildcard", 4, resources.length);
+			Assert.assertEquals("test the double '**' wildcard", 2, resources.length);
 		}
 	}
 
@@ -133,7 +133,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		// Without prefix calls
 		ObjectListing objectListingWithoutPrefixPart1 = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/test.txt"),
 				createS3ObjectSummaryWithKey("fooOne/bazOne/test.txt"), createS3ObjectSummaryWithKey("fooTwo/barTwo/test.txt")), Collections.<String>emptyList(), true);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher(null, null)))).thenReturn(objectListingWithoutPrefixPart1);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, null)))).thenReturn(objectListingWithoutPrefixPart1);
 
 		ObjectListing objectListingWithoutPrefixPart2 = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooThree/baz/test.txt"),
 				createS3ObjectSummaryWithKey("foFour/barFour/test.txt")), Collections.<String>emptyList(), false);
@@ -141,16 +141,16 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		// With prefix calls
 		ObjectListing objectListingWithPrefixPart1 = createObjectListingMock(Collections.<S3ObjectSummary>emptyList(), Arrays.asList("dooOne/", "dooTwo/"), true);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher(null, "/")))).thenReturn(objectListingWithPrefixPart1);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, "/")))).thenReturn(objectListingWithPrefixPart1);
 
 		ObjectListing objectListingWithPrefixPart2 = createObjectListingMock(Collections.<S3ObjectSummary>emptyList(), Arrays.asList("fooOne/"), false);
 		when(amazonS3.listNextBatchOfObjects(objectListingWithPrefixPart1)).thenReturn(objectListingWithPrefixPart2);
 
 		ObjectListing objectListingWithPrefixFooOne = createObjectListingMock(Collections.<S3ObjectSummary>emptyList(), Arrays.asList("fooOne/barOne/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooOne/", "/")))).thenReturn(objectListingWithPrefixFooOne);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/", "/")))).thenReturn(objectListingWithPrefixFooOne);
 
 		ObjectListing objectListingWithPrefixFooOneBarOne = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooOne/barOne/", "/")))).thenReturn(objectListingWithPrefixFooOneBarOne);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/barOne/", "/")))).thenReturn(objectListingWithPrefixFooOneBarOne);
 
 		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
 
@@ -161,6 +161,15 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		when(amazonS3.listBuckets()).thenReturn(Arrays.asList(new Bucket("myBucketOne"), new Bucket("myBucketTwo"),
 				new Bucket("anotherBucket"), new Bucket("myBuckez")));
+
+		// Mocks for the '**' case
+		ObjectListing objectListingWithOneFile = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("test.txt")), Collections.<String>emptyList(), false);
+		ObjectListing emptyObjectListing = createObjectListingMock(Collections.<S3ObjectSummary>emptyList(), Collections.<String>emptyList(), false);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucketOne", null, null)))).thenReturn(objectListingWithOneFile);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucketTwo", null, null)))).thenReturn(emptyObjectListing);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("anotherBucket", null, null)))).thenReturn(objectListingWithOneFile);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBuckez", null, null)))).thenReturn(emptyObjectListing);
+
 		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
 		return amazonS3;
 	}
@@ -181,50 +190,50 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		// Root requests
 		ObjectListing objectListingMockAtRoot = createObjectListingMock(Collections.<S3ObjectSummary>emptyList(), Arrays.asList("foFour/", "fooOne/", "fooThree/", "fooTwo/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher(null, "/")))).thenReturn(objectListingMockAtRoot);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, "/")))).thenReturn(objectListingMockAtRoot);
 
 		// Requests on fooOne
 		ObjectListing objectListingFooOne = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/")), Arrays.asList("fooOne/barOne/", "fooOne/bazOne/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooOne/", "/")))).thenReturn(objectListingFooOne);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/", "/")))).thenReturn(objectListingFooOne);
 
 		ObjectListing objectListingFooOneBarOne = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/"),
 				createS3ObjectSummaryWithKey("fooOne/barOne/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooOne/barOne/", "/")))).thenReturn(objectListingFooOneBarOne);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/barOne/", "/")))).thenReturn(objectListingFooOneBarOne);
 
 		ObjectListing objectListingFooOneBazOne = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/bazOne/"),
 				createS3ObjectSummaryWithKey("fooOne/bazOne/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooOne/bazOne/", "/")))).thenReturn(objectListingFooOneBazOne);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/bazOne/", "/")))).thenReturn(objectListingFooOneBazOne);
 
 		// Requests on fooTwo
 		ObjectListing objectListingFooTwo = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooTwo/")), Arrays.asList("fooTwo/barTwo/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooTwo/", "/")))).thenReturn(objectListingFooTwo);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooTwo/", "/")))).thenReturn(objectListingFooTwo);
 
 		ObjectListing objectListingFooTwoBarTwo = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooTwo/barTwo/"),
 				createS3ObjectSummaryWithKey("fooTwo/barTwo/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooTwo/barTwo/", "/")))).thenReturn(objectListingFooTwoBarTwo);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooTwo/barTwo/", "/")))).thenReturn(objectListingFooTwoBarTwo);
 
 		// Requests on fooThree
 		ObjectListing objectListingFooThree = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooThree/")), Arrays.asList("fooTwo/baz/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooThree/", "/")))).thenReturn(objectListingFooThree);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooThree/", "/")))).thenReturn(objectListingFooThree);
 
 		ObjectListing objectListingFooThreeBaz = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooThree/baz/"),
 				createS3ObjectSummaryWithKey("fooThree/baz/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("fooThree/baz/", "/")))).thenReturn(objectListingFooThreeBaz);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooThree/baz/", "/")))).thenReturn(objectListingFooThreeBaz);
 
 		// Requests for foFour
 		ObjectListing objectListingFoFour = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("foFour/")), Arrays.asList("foFour/barFour/"), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("foFour/", "/")))).thenReturn(objectListingFoFour);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "foFour/", "/")))).thenReturn(objectListingFoFour);
 
 		ObjectListing objectListingFoFourBarFour = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("foFour/barFour/"),
 				createS3ObjectSummaryWithKey("foFour/barFour/test.txt")), Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("foFour/barFour/", "/")))).thenReturn(objectListingFoFourBarFour);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "foFour/barFour/", "/")))).thenReturn(objectListingFoFourBarFour);
 
 		// Requests for all
 		ObjectListing fullObjectListing = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/test.txt"),
 				createS3ObjectSummaryWithKey("fooOne/bazOne/test.txt"), createS3ObjectSummaryWithKey("fooTwo/barTwo/test.txt"),
 				createS3ObjectSummaryWithKey("fooThree/baz/test.txt"), createS3ObjectSummaryWithKey("foFour/barFour/test.txt")),
 				Collections.<String>emptyList(), false);
-		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher(null, null)))).thenReturn(fullObjectListing);
+		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, null)))).thenReturn(fullObjectListing);
 
 		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
 
@@ -251,10 +260,12 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 	private static class ListObjectsRequestMatcher extends ArgumentMatcher<ListObjectsRequest> {
 
+		private final String bucketName;
 		private final String prefix;
 		private final String delimiter;
 
-		private ListObjectsRequestMatcher(String prefix, String delimiter) {
+		private ListObjectsRequestMatcher(String bucketName, String prefix, String delimiter) {
+			this.bucketName = bucketName;
 			this.prefix = prefix;
 			this.delimiter = delimiter;
 		}
@@ -263,11 +274,11 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		public boolean matches(Object argument) {
 			if (argument instanceof ListObjectsRequest) {
 				ListObjectsRequest listObjectsRequest = (ListObjectsRequest) argument;
-				boolean delimiterIsEqual;
-				if (listObjectsRequest.getDelimiter() != null) {
-					delimiterIsEqual = listObjectsRequest.getDelimiter().equals(this.delimiter);
+				boolean bucketNameIsEqual;
+				if (listObjectsRequest.getBucketName() != null) {
+					bucketNameIsEqual = listObjectsRequest.getBucketName().equals(this.bucketName);
 				} else {
-					delimiterIsEqual = this.delimiter == null;
+					bucketNameIsEqual = this.bucketName == null;
 				}
 
 				boolean prefixIsEqual;
@@ -277,7 +288,15 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 					prefixIsEqual = this.prefix == null;
 				}
 
-				return delimiterIsEqual && prefixIsEqual;
+				boolean delimiterIsEqual;
+				if (listObjectsRequest.getDelimiter() != null) {
+					delimiterIsEqual = listObjectsRequest.getDelimiter().equals(this.delimiter);
+				} else {
+					delimiterIsEqual = this.delimiter == null;
+				}
+
+
+				return delimiterIsEqual && prefixIsEqual && bucketNameIsEqual;
 			} else {
 				return false;
 			}
