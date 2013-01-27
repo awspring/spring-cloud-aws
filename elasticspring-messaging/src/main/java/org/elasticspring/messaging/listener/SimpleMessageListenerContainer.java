@@ -29,7 +29,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private TaskExecutor taskExecutor;
 
-	public TaskExecutor getTaskExecutor() {
+	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 
@@ -62,7 +62,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	protected void handleException(Throwable throwable) {
-
+		getLogger().error("Error executing listener with exception:", throwable);
 	}
 
 

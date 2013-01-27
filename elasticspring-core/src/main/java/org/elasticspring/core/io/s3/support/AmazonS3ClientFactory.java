@@ -48,18 +48,18 @@ public class AmazonS3ClientFactory {
 	 *
 	 * @param s3Region
 	 * 		the {@link Region} that the client must access.
-	 * @return the correspinding {@link AmazonS3} client.
+	 * @return the corresponding {@link AmazonS3} client.
 	 */
 	public AmazonS3 getClientForRegion(Region s3Region) {
 		AmazonS3Client cachedAmazonS3Client = this.clientsForRegion.get(s3Region);
 		if (cachedAmazonS3Client != null) {
 			return cachedAmazonS3Client;
 		} else {
-				AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
-				amazonS3Client.setEndpoint(s3Region.getEndpoint());
-				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
+			AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
+			amazonS3Client.setEndpoint(s3Region.getEndpoint());
+			AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3Region, amazonS3Client);
 
-				return previousValue == null ? amazonS3Client : previousValue;
+			return previousValue == null ? amazonS3Client : previousValue;
 		}
 	}
 }
