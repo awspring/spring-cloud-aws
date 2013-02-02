@@ -19,6 +19,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -170,12 +172,8 @@ project('elasticspring-integration-test') {
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
     }
 
-    final configDir = System.getProperty("els.config.dir", null)
-    if (configDir != null) {
-        test.systemProperty("els.config.dir", configDir)
-        test.systemProperty("test-groups", "aws-test")
-    }
-
+    test.onlyIf { System.getProperty("els.config.dir") != null }
+    test.systemProperty("els.config.dir", System.getProperty("els.config.dir"))
 }
 
 
