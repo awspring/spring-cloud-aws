@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 allprojects {
 
     apply plugin: 'maven'
@@ -22,4 +24,72 @@ allprojects {
     repositories {
         mavenCentral()
     }
+
+    install {
+        repositories.mavenInstaller {
+            customizePom(pom, project)
+        }
+    }
+
+    uploadArchives {
+        configurations { deployerJars }
+        dependencies {
+            deployerJars "org.springframework.build:aws-maven:4.4.0.RELEASE"
+        }
+
+        repositories.mavenDeployer { deployer ->
+            def repositoryUrl = 's3://repo.elasticspring.org/'
+            configuration = configurations.deployerJars
+            ext.s3credentials = [userName: S3_ACCESS_KEY, passphrase: S3_SECRET_KEY]
+            repository(url: repositoryUrl) { authentication(s3credentials) }
+            snapshotRepository(url: repositoryUrl) { authentication(s3credentials) }
+        }
+    }
 }
+
+def customizePom(pom, gradleProject) {
+    pom.whenConfigured { generatedPom ->
+        // eliminate test-scoped dependencies (no need in maven central poms)
+        generatedPom.dependencies.removeAll { dep ->
+            dep.scope == "test"
+        }
+
+        // add all items necessary for maven central publication
+        generatedPom.project {
+            name = gradleProject.description
+            description = gradleProject.description
+            url = "https://github.com/aemruli/elasticspring"
+            organization {
+                name = "ElasticSpring"
+                url = "http://elasticspring.org"
+            }
+            licenses {
+                license {
+                    name "The Apache Software License, Version 2.0"
+                    url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    distribution "repo"
+                }
+            }
+            scm {
+                url = "https://github.com/aemruli/elasticspring"
+                connection = "scm:git:git://github.com/aemruli/elasticspring"
+                developerConnection = "scm:git:git://github.com/aemruli/elasticspring"
+            }
+            developers {
+                developer {
+                    id = "aemruli"
+                    name = "Agim Emruli"
+                }
+                developer {
+                    id = "alainsahli"
+                    name = "Alain Sahli"
+                }
+            }
+        }
+    }
+}
+
+
+
+
+

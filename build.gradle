@@ -17,6 +17,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -216,7 +218,7 @@ task api(type: Javadoc) {
 
 task docsZip(type: Zip) {
     group = "Distribution"
-    baseName = "elastic-spring"
+    baseName = "elasticspring"
     classifier = "docs"
     description = "Builds -${classifier} archive containing api and reference "
 
@@ -225,13 +227,13 @@ task docsZip(type: Zip) {
     }
 
     from(reference) {
-        into "elastic-spring-reference"
+        into "elasticspring-reference"
     }
 }
 
 task schemaZip(type: Zip) {
     group = "Distribution"
-    baseName = "elastic-spring"
+    baseName = "elasticspring"
     classifier = "schema"
     description = "Builds -${classifier} archive containing all " +
             "XSDs for deployment at http://www.elasticspring.org/schema/."
