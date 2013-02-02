@@ -16,6 +16,8 @@
 
 
 
+
+
 allprojects {
     apply plugin: 'java'
 
@@ -27,4 +29,20 @@ allprojects {
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
+
+    tasks.withType(Jar).all {
+        manifest {
+            attributes("Implementation-Title": "ElasticSpring",
+                    "Implementation-Version": project.version,
+                    "Implementation-Vendor": "ElasticSpring",
+                    "Implementation-URL": "http://elasticspring.org",
+                    "Created-By": "Gradle:" + project.getGradle().gradleVersion + " , " +
+                            "Java Version: " + rootProject.ext.buildenvironment.javaVersion + ", " +
+                            "User: " + rootProject.ext.buildenvironment.username + ", " +
+                            "Host: " + rootProject.ext.buildenvironment.hostname + ", " +
+                            "OS: " + rootProject.ext.buildenvironment.osVersion,
+                    "Build-Date": rootProject.ext.buildenvironment.timeStamp,
+                    "Build-Commit": rootProject.ext.buildenvironment.commitId)
+        }
+    }
 }

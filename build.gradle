@@ -23,6 +23,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -33,12 +35,13 @@ buildscript {
     }
 }
 
+apply from: "gradle/environment.gradle"
+apply from: "gradle/version.gradle"
 apply from: "gradle/checkstyle.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/java.gradle"
 apply from: "gradle/javadoc.gradle"
 apply from: "gradle/maven.gradle"
-apply from: "gradle/version.gradle"
 
 allprojects {
     group = 'org.elasticspring'
