@@ -16,14 +16,15 @@
 
 
 
-
-
-
-
 allprojects {
-    apply plugin: 'checkstyle'
+    apply plugin: 'java'
 
-    checkstyle {
-        configFile = new File("$rootProject.buildDir.parent/gradle/checkstyle", "checkstyle.xml")
+    //Configure java compiler
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs = ['-Xlint:-options']
     }
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 }

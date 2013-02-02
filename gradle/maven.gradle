@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-
-
-
-
-
-
 allprojects {
-    apply plugin: 'checkstyle'
 
-    checkstyle {
-        configFile = new File("$rootProject.buildDir.parent/gradle/checkstyle", "checkstyle.xml")
+    apply plugin: 'maven'
+    apply plugin: 'propdeps-maven'
+
+    repositories {
+        mavenCentral()
     }
 }
