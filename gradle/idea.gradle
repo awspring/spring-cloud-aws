@@ -16,15 +16,12 @@
 
 
 
-
-
-
-
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 
 allprojects {
     apply plugin: "idea"
+    apply plugin: 'propdeps-idea'
 }
 
 
@@ -66,7 +63,7 @@ idea {
                 }
 
                 // Code formatting options
-                def codeFormatSettings = new XmlParser().parse(new File(buildscript.sourceFile.parent as String, "gradle/idea/codeStyleSettings.xml"))
+                def codeFormatSettings = new XmlParser().parse(new File(rootDir as String, "gradle/idea/codeStyleSettings.xml"))
                 node.append(codeFormatSettings)
 
                 //Inspections
@@ -79,7 +76,7 @@ idea {
                                   </component>''')
                 node.append(inspectionProfileManager)
 
-                def ideaInspectionProfile = new XmlParser().parse(new File(buildscript.sourceFile.parent as String, "gradle/idea/IDEA.xml"))
+                def ideaInspectionProfile = new XmlParser().parse(new File(rootDir as String, "gradle/idea/IDEA.xml"))
                 def profiles = inspectionProfileManager.find { it.name() == 'profiles' }
                 profiles.append(ideaInspectionProfile)
 
@@ -112,6 +109,12 @@ idea {
                 node.append(entryPoints)
             }
         }
+    }
+
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+
     }
 }
 
