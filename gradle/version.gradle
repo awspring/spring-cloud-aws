@@ -19,15 +19,28 @@
 
 
 
+
+
+
+
 allprojects {
     version = parseVersionFromFile()
 }
 
 def Version parseVersionFromFile() {
     def versionFileName = "${rootDir}/version.properties"
-    def config = new ConfigSlurper().parse(new File(versionFileName).toURI().toURL())
-    new Version(major: config.major, minor: config.minor,
-            patch: config.patch, qualifier: getCiQualifier(config.qualifier as String));
+    def file = file(versionFileName)
+
+    //Using properties instead of ConfigSlurper because of the copy right header which is not loadable with the
+    // ConfigSlurper
+    def props = file.withInputStream {
+        def p = new Properties()
+        p.load(new InputStreamReader(it as InputStream, "UTF-8"))
+        p
+    } as Properties
+
+    new Version(major: props.major.toInteger(), minor: props.minor.toInteger(),
+            patch: props.patch.toInteger(), qualifier: getCiQualifier(props.qualifier as String));
 }
 
 def String getCiQualifier(String qualifier) {
