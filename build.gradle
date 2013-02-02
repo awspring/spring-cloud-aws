@@ -21,6 +21,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -36,14 +38,12 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/java.gradle"
 apply from: "gradle/javadoc.gradle"
 apply from: "gradle/maven.gradle"
+apply from: "gradle/version.gradle"
 
 allprojects {
     group = 'org.elasticspring'
-    version = '0.1'
-
     apply plugin: "project-report"
     apply plugin: "propdeps"
-    apply plugin: 'propdeps-idea'
 }
 
 subprojects {

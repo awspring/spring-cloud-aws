@@ -1,0 +1,49 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+allprojects {
+    version = parseVersionFromFile()
+}
+
+def Version parseVersionFromFile() {
+    def versionFileName = "${rootDir}/version.properties"
+    def config = new ConfigSlurper().parse(new File(versionFileName).toURI().toURL())
+    new Version(major: config.major, minor: config.minor,
+            patch: config.patch, qualifier: getCiQualifier(config.qualifier as String));
+}
+
+def String getCiQualifier(String qualifier) {
+    return System.env["BUILD_NUMBER"] != null ? System.env["BUILD_NUMBER"] : qualifier;
+}
+
+class Version {
+
+    private final static String VERSION_SEPARATOR = ".";
+
+    private int major;
+    private int minor;
+    private int patch;
+    private String qualifier;
+
+    String toString() {
+        return major + VERSION_SEPARATOR + minor + VERSION_SEPARATOR + patch + VERSION_SEPARATOR + qualifier
+    }
+}
