@@ -16,6 +16,8 @@
 
 
 
+
+
 allprojects {
 
     apply plugin: 'maven'
@@ -32,17 +34,19 @@ allprojects {
     }
 
     uploadArchives {
-        configurations { deployerJars }
-        dependencies {
-            deployerJars "org.springframework.build:aws-maven:4.4.0.RELEASE"
-        }
+        if (project.hasProperty("S3_ACCESS_KEY") && project.hasProperty("S3_SECRET_KEY")) {
+            configurations { deployerJars }
+            dependencies {
+                deployerJars "org.springframework.build:aws-maven:4.4.0.RELEASE"
+            }
 
-        repositories.mavenDeployer { deployer ->
-            def repositoryUrl = 's3://repo.elasticspring.org/'
-            configuration = configurations.deployerJars
-            ext.s3credentials = [userName: S3_ACCESS_KEY, passphrase: S3_SECRET_KEY]
-            repository(url: repositoryUrl) { authentication(s3credentials) }
-            snapshotRepository(url: repositoryUrl) { authentication(s3credentials) }
+            repositories.mavenDeployer { deployer ->
+                def repositoryUrl = 's3://repo.elasticspring.org/'
+                configuration = configurations.deployerJars
+                ext.s3credentials = [userName: S3_ACCESS_KEY, passphrase: S3_SECRET_KEY]
+                repository(url: repositoryUrl) { authentication(s3credentials) }
+                snapshotRepository(url: repositoryUrl) { authentication(s3credentials) }
+            }
         }
     }
 }
