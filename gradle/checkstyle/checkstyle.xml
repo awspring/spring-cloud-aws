@@ -19,4 +19,35 @@
 		"-//Puppy Crawl//DTD Check Configuration 1.1//EN"
 		"http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
 
-<module name="Checker" />
+<module name="Checker">
+	<module name="TreeWalker">
+		<module name="MissingDeprecated" />
+		<module name="MissingOverride" />
+		<module name="EmptyBlock" />
+		<module name="LeftCurly" />
+		<module name="NeedBraces" />
+		<module name="RightCurly" />
+		<module name="AvoidNestedBlocks" />
+		<module name="InterfaceIsType" />
+		<module name="MutableException" />
+		<module name="InnerTypeLast" />
+		<module name="EmptyStatement" />
+		<module name="EqualsAvoidNull" />
+		<module name="EqualsHashCode" />
+		<module name="InnerAssignment" />
+		<module name="MissingSwitchDefault" />
+		<module name="ModifiedControlVariable" />
+		<module name="StringLiteralEquality" />
+		<module name="NoFinalizer" />
+		<module name="RequireThis">
+			<property name="checkMethods" value="false" />
+		</module>
+		<module name="IllegalImport" />
+		<module name="RedundantImport" />
+		<module name="UpperEll" />
+		<module name="ArrayTypeStyle" />
+		<module name="OuterTypeFilename" />
+		<module name="ModifierOrder" />
+		<module name="RedundantModifier" />
+	</module>
+</module>

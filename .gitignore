@@ -1,13 +1,12 @@
 # Ignore folders
-target/
 build/
 /.gradle
 /config
-/.idea
 
 # Ignore files
 access.properties
 mail.properties
+gradle.properties
 *.iml
 *.ipr
 *.iws

@@ -18,7 +18,9 @@
 
 
 
-configure(allprojects) {
+
+
+allprojects {
     apply plugin: 'checkstyle'
 
     checkstyle {

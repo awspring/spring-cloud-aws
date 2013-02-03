@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.WritableResource;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -64,7 +63,6 @@ public class ResourceLoaderAwsTest {
 	private final List<String> createdObjects = new ArrayList<String>();
 
 	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedApplicationContext() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		uploadFile(bucketName, "test");
@@ -84,7 +82,6 @@ public class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWithInjectedResourceLoader() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		uploadFile(bucketName, "test");
@@ -97,7 +94,6 @@ public class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testWriteFile() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/newFile");
@@ -114,7 +110,6 @@ public class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testBucketNamesWithDotsOnAllS3Regions() throws IOException {
 		for (S3Region region : S3Region.values()) {
 			InputStream inputStream = null;
@@ -133,7 +128,6 @@ public class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	@IfProfileValue(name = "test-groups", value = "aws-test")
 	public void testBucketNamesWithoutDotsOnAllS3Regions() throws IOException {
 		for (S3Region region : S3Region.values()) {
 			InputStream inputStream = null;
