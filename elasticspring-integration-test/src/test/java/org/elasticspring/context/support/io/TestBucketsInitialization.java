@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Region;
 import org.elasticspring.core.io.s3.S3Region;
@@ -38,6 +37,7 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 	private static final String DEFAULT_FILENAME = "test.txt";
 	private static final String NAME_WITH_DOTS = ".elasticspring.org";
 	private static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
+
 	private final AmazonS3 amazonS3;
 	private final List<String> filesForHierarchy = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
 			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");
@@ -56,10 +56,13 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 	}
 
 	private void createFolderHierarchyForPathMatcher() {
-		for (String bucketName : bucketsForPathMatch) {
-			this.amazonS3.createBucket(bucketName, Region.EU_Ireland);
-			for (String file : filesForHierarchy) {
-				this.amazonS3.putObject(bucketName, file, new ByteArrayInputStream(file.getBytes()), new ObjectMetadata());
+		for (String bucketName : this.bucketsForPathMatch) {
+			if (!this.amazonS3.doesBucketExist(bucketName)) {
+				this.amazonS3.createBucket(bucketName, Region.EU_Ireland);
+
+				for (String file : this.filesForHierarchy) {
+					this.amazonS3.putObject(bucketName, file, new ByteArrayInputStream(file.getBytes()), new ObjectMetadata());
+				}
 			}
 		}
 	}
@@ -82,23 +85,13 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 
 
 	private void createBucketWithFile(String bucketName, Region region) {
-		if (!isBucketAlreadyExisting(bucketName)) {
+		if (!this.amazonS3.doesBucketExist(bucketName)) {
 			this.amazonS3.createBucket(bucketName, region);
 		}
 
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		objectMetadata.setContentLength(bucketName.getBytes().length);
 		this.amazonS3.putObject(bucketName, DEFAULT_FILENAME, new ByteArrayInputStream(bucketName.getBytes()), objectMetadata);
-	}
-
-	private boolean isBucketAlreadyExisting(String bucketName) {
-		List<Bucket> buckets = this.amazonS3.listBuckets();
-		for (Bucket bucket : buckets) {
-			if (bucket.getName().equals(bucketName)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -108,8 +101,8 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 	}
 
 	private void deleteFolderHierarchyForPathMatcher() {
-		for (String bucketName : bucketsForPathMatch) {
-			for (String file : filesForHierarchy) {
+		for (String bucketName : this.bucketsForPathMatch) {
+			for (String file : this.filesForHierarchy) {
 				this.amazonS3.deleteObject(bucketName, file);
 			}
 			deleteBucket(bucketName);

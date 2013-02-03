@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,20 +50,9 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket*/test.txt");
-			Assert.assertEquals("test the single '*' wildcard", 2, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket?wo/test.txt");
-			Assert.assertEquals("test the '?' wildcard", 1, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://**/test.txt");
-			Assert.assertEquals("test the double '**' wildcard", 2, resources.length);
-		}
+		Assert.assertEquals("test the single '*' wildcard", 2, resourceLoader.getResources("s3://myBucket*/test.txt").length);
+		Assert.assertEquals("test the '?' wildcard", 1, resourceLoader.getResources("s3://myBucket?wo/test.txt").length);
+		Assert.assertEquals("test the double '**' wildcard", 2, resourceLoader.getResources("s3://**/test.txt").length);
 	}
 
 	@Test
@@ -72,25 +61,10 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket/foo*/bar*/test.txt");
-			Assert.assertEquals("test the single '*' wildcard", 2, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucke?/fooOne/ba?One/test.txt");
-			Assert.assertEquals("test the '?' wildcard", 2, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket/**/test.txt");
-			Assert.assertEquals("test the double '**' wildcard", 5, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucke?/**/*.txt");
-			Assert.assertEquals("test all together", 5, resources.length);
-		}
+		Assert.assertEquals("test the single '*' wildcard", 2, resourceLoader.getResources("s3://myBucket/foo*/bar*/test.txt").length);
+		Assert.assertEquals("test the '?' wildcard", 2, resourceLoader.getResources("s3://myBucke?/fooOne/ba?One/test.txt").length);
+		Assert.assertEquals("test the double '**' wildcard", 5, resourceLoader.getResources("s3://myBucket/**/test.txt").length);
+		Assert.assertEquals("test all together", 5, resourceLoader.getResources("s3://myBucke?/**/*.txt").length);
 	}
 
 	@Test
@@ -98,17 +72,13 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
-		{
-			Resource[] resources = resourceLoader.getResources("classpath*:org/elasticspring/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
-			Assert.assertEquals(1, resources.length);
-			Assert.assertTrue("load without wildcards", resources[0].exists());
-		}
+		Resource[] resources = resourceLoader.getResources("classpath*:org/elasticspring/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
+		Assert.assertEquals(1, resources.length);
+		Assert.assertTrue("load without wildcards", resources[0].exists());
 
-		{
-			Resource[] resources = resourceLoader.getResources("classpath*:org/**/PathMatchingSimpleStorageResourcePatternResolverTes?.class");
-			Assert.assertEquals(1, resources.length);
-			Assert.assertTrue("load with wildcards", resources[0].exists());
-		}
+		Resource[] resourcesWithFileNameWildcard = resourceLoader.getResources("classpath*:org/**/PathMatchingSimpleStorageResourcePatternResolverTes?.class");
+		Assert.assertEquals(1, resourcesWithFileNameWildcard.length);
+		Assert.assertTrue("load with wildcards", resourcesWithFileNameWildcard[0].exists());
 	}
 
 	@Test
@@ -116,15 +86,8 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		AmazonS3 amazonS3 = prepareMockForTestTruncatedListings();
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket/**/test.txt");
-			Assert.assertEquals("Test that all parts are returned when object summaries are truncated", 5, resources.length);
-		}
-
-		{
-			Resource[] resources = resourceLoader.getResources("s3://myBucket/fooOne/ba*/test.txt");
-			Assert.assertEquals("Test that all parts are return when common prefixes are truncated", 1, resources.length);
-		}
+		Assert.assertEquals("Test that all parts are returned when object summaries are truncated", 5, resourceLoader.getResources("s3://myBucket/**/test.txt").length);
+		Assert.assertEquals("Test that all parts are return when common prefixes are truncated", 1, resourceLoader.getResources("s3://myBucket/fooOne/ba*/test.txt").length);
 	}
 
 	private AmazonS3 prepareMockForTestTruncatedListings() {
