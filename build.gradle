@@ -25,6 +25,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -50,6 +52,8 @@ allprojects {
 }
 
 subprojects {
+
+    apply plugin: 'jdepend'
 
     // Custom properties
     ext {
