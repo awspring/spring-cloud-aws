@@ -46,7 +46,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 	private final AmazonCloudFormation amazonCloudFormation;
 	private static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
 	private static final String TEMPLATE_PATH = "IntegrationTest.template";
-	private DescribeStackResourcesResult stackRessources;
+	private DescribeStackResourcesResult stackResources;
 	private boolean stackCreatedByThisInstance;
 
 	@Autowired
@@ -56,10 +56,10 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.stackRessources = getStackRessources(DEFAULT_STACK_NAME);
+		this.stackResources = getStackResources(DEFAULT_STACK_NAME);
 	}
 
-	private DescribeStackResourcesResult getStackRessources(String stackName) throws InterruptedException, IOException {
+	private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
 		try {
 			DescribeStacksResult describeStacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(stackName));
 			for (Stack stack : describeStacksResult.getStacks()) {
@@ -71,12 +71,12 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 						throw new IllegalArgumentException("Could not create stack");
 					}
 					this.amazonCloudFormation.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
-					return getStackRessources(stackName);
+					return getStackResources(stackName);
 				}
 				if (isInProgress(stack)) {
 					//noinspection BusyWait
 					Thread.sleep(5000L);
-					return getStackRessources(stackName);
+					return getStackResources(stackName);
 				}
 			}
 		} catch (AmazonClientException e) {
@@ -86,11 +86,11 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 			this.stackCreatedByThisInstance = true;
 		}
 
-		return getStackRessources(stackName);
+		return getStackResources(stackName);
 	}
 
 	public String getByLogicalId(String id) {
-		for (StackResource stackResource : this.stackRessources.getStackResources()) {
+		for (StackResource stackResource : this.stackResources.getStackResources()) {
 			if (stackResource.getLogicalResourceId().equals(id)) {
 				return stackResource.getPhysicalResourceId();
 			}

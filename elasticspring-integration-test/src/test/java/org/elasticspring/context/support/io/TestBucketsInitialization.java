@@ -17,6 +17,7 @@
 package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Region;
 import org.elasticspring.core.io.s3.S3Region;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
 
 /**
  * @author Alain Sahli
@@ -33,8 +35,8 @@ import java.io.ByteArrayInputStream;
 public class TestBucketsInitialization implements InitializingBean, DisposableBean {
 
 	private static final String DEFAULT_FILENAME = "test.txt";
-	public static final String NAME_WITH_DOTS = ".elasticspring.org";
-	public static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
+	private static final String NAME_WITH_DOTS = ".elasticspring.org";
+	private static final String NAME_WITHOUT_DOTS = "-elasticspring-org";
 	private final AmazonS3 amazonS3;
 
 	@Autowired
@@ -65,10 +67,23 @@ public class TestBucketsInitialization implements InitializingBean, DisposableBe
 
 
 	private void createBucketWithFile(String bucketName, Region region) {
-		this.amazonS3.createBucket(bucketName, region);
+		if (!isBucketAlreadyExisting(bucketName)) {
+			this.amazonS3.createBucket(bucketName, region);
+		}
+
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		objectMetadata.setContentLength(bucketName.getBytes().length);
 		this.amazonS3.putObject(bucketName, DEFAULT_FILENAME, new ByteArrayInputStream(bucketName.getBytes()), objectMetadata);
+	}
+
+	private boolean isBucketAlreadyExisting(String bucketName) {
+		List<Bucket> buckets = this.amazonS3.listBuckets();
+		for (Bucket bucket : buckets) {
+			if (bucket.getName().equals(bucketName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

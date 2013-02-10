@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,72 +14,59 @@
  * limitations under the License.
  */
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.1")
+        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
         classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.4")
     }
 }
 
+apply from: "gradle/environment.gradle"
+apply from: "gradle/version.gradle"
+apply from: "gradle/checkstyle.gradle"
+apply from: "gradle/idea.gradle"
+apply from: "gradle/java.gradle"
+apply from: "gradle/javadoc.gradle"
+apply from: "gradle/maven.gradle"
 
-configure(allprojects) {
+allprojects {
     group = 'org.elasticspring'
-    version = '0.1'
-
-    apply plugin: 'maven'
-    apply plugin: 'java'
-    apply plugin: "propdeps"
-    apply plugin: 'propdeps-maven'
-    apply plugin: 'propdeps-idea'
     apply plugin: "project-report"
-
-    ext.springFrameworkVersion = "3.1.0.RELEASE"
-    ext.junitVersion = '4.10'
-    ext.slf4jVersion = '1.7.2'
-    ext.log4jVersion = '1.2.17'
-    ext.awsSdkVersion = '1.3.27'
-    ext.mockitoVersion = '1.9.5'
-    ext.tomcatVersion = "7.0.34"
-    ext.springRetryVersion = "1.0.0.RELEASE"
-
-
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-        options.compilerArgs = ['-Xlint:-options']
-    }
-
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-
-    test.systemProperty("java.awt.headless", "true")
-
-    repositories {
-        mavenCentral()
-    }
+    apply plugin: "propdeps"
 }
 
-configure(subprojects) {
+subprojects {
 
+    apply plugin: 'jdepend'
 
-    javadoc {
-        options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-        options.author = true
-        options.header = project.name
+    // Custom properties
+    ext {
+        springFrameworkVersion = "3.1.0.RELEASE"
+        junitVersion = '4.10'
+        slf4jVersion = '1.7.2'
+        log4jVersion = '1.2.17'
+        awsSdkVersion = '1.3.27'
+        mockitoVersion = '1.9.5'
+        tomcatVersion = "7.0.34"
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allJava
-    }
-
-    task javadocJar(type: Jar) {
-        classifier = 'javadoc'
-        from javadoc
-    }
-
+    //Default dependencies
     dependencies {
         compile("org.slf4j:slf4j-api:${slf4jVersion}")
         testRuntime("org.slf4j:slf4j-jcl:${slf4jVersion}")
@@ -88,9 +75,19 @@ configure(subprojects) {
         testCompile("org.mockito:mockito-all:${mockitoVersion}")
     }
 
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allJava
+    }
+
     artifacts {
         archives sourcesJar
         archives javadocJar
+    }
+
+    test {
+        systemProperty("java.awt.headless", "true")
     }
 }
 
@@ -190,34 +187,138 @@ project('elasticspring-integration-test') {
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
     }
 
-    final configDir = System.getProperty("els.config.dir", null)
-    if (configDir != null) {
-        test.systemProperty("els.config.dir", configDir)
-        test.systemProperty("test-groups", "aws-test")
-    }
-
+    test.onlyIf { System.getProperty("els.config.dir") != null }
+    test.systemProperty("els.config.dir", System.getProperty("els.config.dir"))
 }
 
 
-configure(rootProject) {
-    description = 'ElasticSpring'
 
-    apply plugin: "docbook-reference"
+description = 'ElasticSpring'
 
-    // don't publish the default jar for the root project
-    configurations.archives.artifacts.clear()
+apply plugin: "docbook-reference"
 
+// don't publish the default jar for the root project
+configurations.archives.artifacts.clear()
 
-    reference {
-        sourceDir = file("src/reference/docbook")
-        pdfFilename = "elasticspring-reference.pdf"
+task api(type: Javadoc) {
+    group = "Documentation"
+    description = "Generates aggregated Javadoc API documentation."
+    title = "${rootProject.description} ${version} API"
+
+    dependsOn {
+        subprojects.collect {
+            it.tasks.getByName("jar")
+        }
+    }
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+    options.author = true
+    options.header = rootProject.description
+    options.splitIndex = true
+    options.links(project.ext.javadocLinks)
+
+    source subprojects.collect { project ->
+        project.sourceSets.main.allJava
     }
 
+    classpath = files(subprojects.collect { project ->
+        project.sourceSets.main.compileClasspath
+    })
 
-    task wrapper(type: Wrapper) {
-        description = 'Generates gradlew[.bat] scripts'
-        gradleVersion = '1.3'
-    }
+    maxMemory = "1024m"
+    destinationDir = new File(buildDir as String, "api")
 }
 
 
+task docsZip(type: Zip) {
+    group = "Distribution"
+    baseName = "elasticspring"
+    classifier = "docs"
+    description = "Builds -${classifier} archive containing api and reference "
+
+    from(api) {
+        into "javadoc-api"
+    }
+
+    from(reference) {
+        into "elasticspring-reference"
+    }
+}
+
+task schemaZip(type: Zip) {
+    group = "Distribution"
+    baseName = "elasticspring"
+    classifier = "schema"
+    description = "Builds -${classifier} archive containing all " +
+            "XSDs for deployment at http://www.elasticspring.org/schema/."
+
+    subprojects.each { subproject ->
+        def Properties schemas = new Properties();
+
+        subproject.sourceSets.main.resources.find {
+            it.path.endsWith("META-INF/spring.schemas")
+        }?.withInputStream { schemas.load(it) }
+
+        for (def key : schemas.keySet()) {
+            def shortName = key.replaceAll(/http.*schema.(.*).elasticspring-.*/, '$1')
+            assert shortName != key
+            File xsdFile = subproject.sourceSets.main.resources.find {
+                it.path.endsWith(schemas.get(key))
+            } as File
+            assert xsdFile != null
+            into(shortName) {
+                from xsdFile.path
+            }
+        }
+    }
+}
+
+task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
+    group = "Distribution"
+    baseName = "elasticspring"
+    classifier = "dist"
+    description = "Builds -${classifier} archive, containing all jars and docs, " +
+            "suitable for community download page."
+
+    ext.baseDir = "${baseName}-${project.version}";
+
+    from(zipTree(docsZip.archivePath)) {
+        into "${baseDir}/docs"
+    }
+
+    from(zipTree(schemaZip.archivePath)) {
+        into "${baseDir}/schema"
+    }
+
+    subprojects.each { subproject ->
+        into("${baseDir}/libs") {
+            from subproject.jar
+            if (subproject.tasks.findByPath("sourcesJar")) {
+                from subproject.sourcesJar
+            }
+            if (subproject.tasks.findByPath("javadocJar")) {
+                from subproject.javadocJar
+            }
+        }
+    }
+}
+
+artifacts {
+    archives docsZip
+    archives schemaZip
+    archives distZip
+}
+
+reference {
+    sourceDir = file("src/reference/docbook")
+    pdfFilename = "elasticspring-reference.pdf"
+}
+
+
+task wrapper(type: Wrapper) {
+    description = 'Generates gradlew[.bat] scripts'
+    gradleVersion = '1.4'
+}
+
+dependencies {
+    compile gradleApi()
+}

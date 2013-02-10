@@ -25,6 +25,8 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
+import org.elasticspring.messaging.core.MessageOperations;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -37,7 +39,7 @@ public class SimpleQueueServiceMessageTemplateTest {
 	@Test
 	public void testConvertAndSendSingleMessage() throws Exception {
 		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueServiceMessageTemplate messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
+		MessageOperations messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
 		Mockito.when(amazonSQS.createQueue(new CreateQueueRequest("test"))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
 		Mockito.when(amazonSQS.sendMessage(new SendMessageRequest("http://testQueue", "message"))).thenReturn(new SendMessageResult().withMessageId("123"));
 
@@ -48,7 +50,7 @@ public class SimpleQueueServiceMessageTemplateTest {
 	@Test
 	public void testConvertAndSendWithCustomDestination() throws Exception {
 		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueServiceMessageTemplate messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
+		MessageOperations messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
 		Mockito.when(amazonSQS.createQueue(new CreateQueueRequest("custom"))).thenReturn(new CreateQueueResult().withQueueUrl("http://customQueue"));
 		Mockito.when(amazonSQS.sendMessage(new SendMessageRequest("http://customQueue", "message"))).thenReturn(new SendMessageResult().withMessageId("123"));
 
@@ -59,12 +61,13 @@ public class SimpleQueueServiceMessageTemplateTest {
 	@Test
 	public void testReceiveAndConvert() throws Exception {
 		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueServiceMessageTemplate messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
+		MessageOperations messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS, "test");
 		Mockito.when(amazonSQS.createQueue(new CreateQueueRequest("test"))).thenReturn(new CreateQueueResult().withQueueUrl("http://testQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
 		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
-		messageTemplate.receiveAndConvert();
+		String result = (String) messageTemplate.receiveAndConvert();
+		Assert.assertEquals("message", result);
 
 		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123"));
 	}

@@ -1,0 +1,46 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+allprojects {
+    ext.javadocLinks = [
+            "http://docs.oracle.com/javase/6/docs/api",
+            "http://docs.oracle.com/javaee/6/api",
+            "http://aopalliance.sourceforge.net/doc",
+            "http://www.eclipse.org/aspectj/doc/released/aspectj5rt-api/",
+            "http://hc.apache.org/httpclient-3.x/apidocs",
+            "http://fasterxml.github.com/jackson-core/javadoc/2.0.0",
+            "http://jackson.codehaus.org/1.4.2/javadoc",
+            "http://static.springsource.org/spring/docs/3.1.x/javadoc-api/"
+    ] as String[]
+}
+
+
+subprojects {
+
+    javadoc {
+        options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+        options.author = true
+        options.header = project.name
+        options.links(project.ext.javadocLinks)
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+}

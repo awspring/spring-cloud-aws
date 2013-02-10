@@ -1,5 +1,4 @@
 # Ignore folders
-target/
 build/
 /.gradle
 /config
@@ -7,3 +6,6 @@ build/
 # Ignore files
 access.properties
 mail.properties
+gradle.properties
+*.iml
+*.ipr
