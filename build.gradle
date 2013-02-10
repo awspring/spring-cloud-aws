@@ -58,6 +58,7 @@ subprojects {
     // Custom properties
     ext {
         springFrameworkVersion = "3.1.0.RELEASE"
+		springRetryVersion = "1.0.2.RELEASE"
         junitVersion = '4.10'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
