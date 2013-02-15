@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @since 1.0
  */
 public class SimpleStorageResourceLoaderTest {
 
@@ -41,12 +43,11 @@ public class SimpleStorageResourceLoaderTest {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 		ObjectMetadata metadata = new ObjectMetadata();
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
 
-		@SuppressWarnings("HardcodedFileSeparator")
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
@@ -58,11 +59,8 @@ public class SimpleStorageResourceLoaderTest {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
-
-		@SuppressWarnings("HardcodedFileSeparator")
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
@@ -73,7 +71,7 @@ public class SimpleStorageResourceLoaderTest {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 
 		assertNotNull(resourceLoader.getResource("s3://bucket/object/"));
@@ -91,21 +89,13 @@ public class SimpleStorageResourceLoaderTest {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = getResourceLoader(amazonS3);
-
-		try {
-			assertNotNull(resourceLoader.getResource("s3://bucket/object/asd/"));
-			fail("expected exception due to path after object");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("not a valid s3 location"));
-		}
-
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 		try {
 			assertNotNull(resourceLoader.getResource("s3://bucketsAndObject"));
 			fail("expected exception due to missing object");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("not a valid s3 location"));
+			assertTrue(e.getMessage().contains("valid bucket name"));
 		}
 
 
@@ -127,7 +117,15 @@ public class SimpleStorageResourceLoaderTest {
 		assertSame(SimpleStorageResourceLoader.class.getClassLoader(), simpleStorageResourceLoader.getClassLoader());
 	}
 
-	private SimpleStorageResourceLoader getResourceLoader(AmazonS3 amazonS3) {
-		return new SimpleStorageResourceLoader(amazonS3);
+	@Test
+	public void testValidS3Pattern() throws Exception {
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+		// None of the patterns below should throw an exception
+		resourceLoader.getResource("s3://bucket/key");
+		resourceLoader.getResource("S3://BuCket/key");
+		resourceLoader.getResource("s3://bucket/folder1/folder2/key");
 	}
+
 }

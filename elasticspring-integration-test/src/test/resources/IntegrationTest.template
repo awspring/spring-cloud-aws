@@ -38,7 +38,7 @@
 			"Type": "AWS::RDS::DBInstance",
 			"Properties": {
 				"AllocatedStorage": "5",
-				"DBInstanceClass": "db.t1.micro",
+				"DBInstanceClass": "db.m1.small",
 				"DBName": "test",
 				"Engine": "mysql",
 				"MasterUsername": "admin",
@@ -63,6 +63,18 @@
 			}
 		},
 		"EmptyBucket": {
+			"Type": "AWS::S3::Bucket"
+		},
+		"PathMatcherBucket": {
+			"Type": "AWS::S3::Bucket"
+		},
+		"PathMatcherBucket01": {
+			"Type": "AWS::S3::Bucket"
+		},
+		"PathMatcherBucket02": {
+			"Type": "AWS::S3::Bucket"
+		},
+		"PathMatcherBucket03": {
 			"Type": "AWS::S3::Bucket"
 		},
 		"StringQueue": {
