@@ -21,6 +21,8 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -44,6 +46,7 @@ import java.util.Set;
  */
 public class PathMatchingSimpleStorageResourcePatternResolver implements ResourcePatternResolver {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(PathMatchingSimpleStorageResourcePatternResolver.class);
 	private final AmazonS3 amazonS3;
 	private final ResourceLoader simpleStorageResourceLoader;
 	private final ResourcePatternResolver resourcePatternResolverDelegate;
@@ -73,6 +76,9 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	public Resource[] getResources(String locationPattern) throws IOException {
 		if (SimpleStorageNameUtils.isSimpleStorageResource(locationPattern)) {
 			if (this.pathMatcher.isPattern(SimpleStorageNameUtils.stripProtocol(locationPattern))) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Found wildcard pattern in location {}", locationPattern);
+				}
 				return findPathMatchingResources(locationPattern);
 			} else {
 				return new Resource[]{this.simpleStorageResourceLoader.getResource(locationPattern)};
@@ -88,11 +94,22 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		Set<Resource> resources;
 		if (this.pathMatcher.isPattern(bucketPattern)) {
 			List<String> matchingBuckets = findMatchingBuckets(bucketPattern);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found wildcard in bucket name {} buckets found are {}", bucketPattern, matchingBuckets);
+			}
+
 			if (bucketPattern.startsWith("**")) {
 				keyPattern = "**/" + keyPattern;
 			}
 			resources = findPathMatchingKeys(keyPattern, matchingBuckets);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found resources {} in buckets {}", resources, matchingBuckets);
+			}
+
 		} else {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("No wildcard in bucket name {} using single bucket name", bucketPattern);
+			}
 			resources = findPathMatchingKeys(keyPattern, Arrays.asList(bucketPattern));
 		}
 
