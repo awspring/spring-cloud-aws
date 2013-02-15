@@ -59,14 +59,12 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver();
 	}
 
-	@SuppressWarnings("UnusedDeclaration")
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ClassLoader classLoader) {
 		this.amazonS3 = amazonS3;
 		this.simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3, classLoader);
 		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver(classLoader);
 	}
 
-	@SuppressWarnings("UnusedDeclaration")
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");
 		this.pathMatcher = pathMatcher;

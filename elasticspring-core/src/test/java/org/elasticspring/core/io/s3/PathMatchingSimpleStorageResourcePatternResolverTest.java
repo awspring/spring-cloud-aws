@@ -25,8 +25,11 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Mockito;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.PathMatcher;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,10 +39,13 @@ import java.util.List;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
 public class PathMatchingSimpleStorageResourcePatternResolverTest {
@@ -88,6 +94,30 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		Assert.assertEquals("Test that all parts are returned when object summaries are truncated", 5, resourceLoader.getResources("s3://myBucket/**/test.txt").length);
 		Assert.assertEquals("Test that all parts are return when common prefixes are truncated", 1, resourceLoader.getResources("s3://myBucket/fooOne/ba*/test.txt").length);
+	}
+
+	@Test
+	public void testWithCustomClassLoader() throws Exception {
+		AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+
+		Assert.assertSame(ClassUtils.getDefaultClassLoader(), new PathMatchingSimpleStorageResourcePatternResolver(amazonS3).getClassLoader());
+
+
+		ClassLoader classLoader = Mockito.mock(ClassLoader.class);
+		Assert.assertSame(classLoader, new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, classLoader).getClassLoader());
+	}
+
+	@Test
+	public void testWithCustomPathMatcher() throws Exception {
+		AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+		PathMatcher pathMatcher = Mockito.mock(PathMatcher.class);
+
+		PathMatchingSimpleStorageResourcePatternResolver patternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3);
+		patternResolver.setPathMatcher(pathMatcher);
+
+		patternResolver.getResources("s3://foo/bar");
+
+		verify(pathMatcher, times(1)).isPattern("foo/bar");
 	}
 
 	private AmazonS3 prepareMockForTestTruncatedListings() {

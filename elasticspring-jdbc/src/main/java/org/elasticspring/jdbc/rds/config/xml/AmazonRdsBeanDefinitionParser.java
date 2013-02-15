@@ -39,7 +39,6 @@ import org.w3c.dom.Node;
  * @author Agim Emruli
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
 public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	/**

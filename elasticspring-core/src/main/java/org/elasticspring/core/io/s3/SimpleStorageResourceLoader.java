@@ -27,18 +27,18 @@ import org.springframework.util.ClassUtils;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageResourceLoader implements ResourceLoader {
+class SimpleStorageResourceLoader implements ResourceLoader {
 
 
 	private final AmazonS3 amazonS3;
 	private final ResourceLoader delegate;
 
-	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
+	SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
 		this.amazonS3 = amazonS3;
 		this.delegate = new DefaultResourceLoader(classLoader);
 	}
 
-	public SimpleStorageResourceLoader(AmazonS3 amazonS3) {
+	SimpleStorageResourceLoader(AmazonS3 amazonS3) {
 		this(amazonS3, ClassUtils.getDefaultClassLoader());
 	}
 
