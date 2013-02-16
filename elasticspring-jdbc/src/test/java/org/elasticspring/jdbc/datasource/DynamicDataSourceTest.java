@@ -187,11 +187,26 @@ public class DynamicDataSourceTest {
 
 
 	@Test
-	public void testDynamicDataSourceDestroyedWhileWaitingForConnection() throws Exception {
+	public void testDynamicDataSourceDestroyedWhileInitializing() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
-		ThreadPoolTaskExecutor taskScheduler = new ThreadPoolTaskExecutor();
+		final CountDownLatch taskCountDownLatch = new CountDownLatch(1);
+
+		ThreadPoolTaskExecutor taskScheduler = new ThreadPoolTaskExecutor() {
+
+			@Override
+			public void execute(final Runnable task) {
+				super.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						task.run();
+						taskCountDownLatch.countDown();
+					}
+				});
+			}
+		};
 		taskScheduler.setCorePoolSize(0);
 		taskScheduler.afterPropertiesSet();
 
@@ -212,14 +227,13 @@ public class DynamicDataSourceTest {
 		//Make sure that the thread as actually ramped up
 		countDownLatch.await(1, TimeUnit.SECONDS);
 
+		//Destroy data source
 		dynamicDataSource.destroyDataSource();
 
-		//give the thread a short amount of time to finish
-		Thread.sleep(5L);
+		//Await background thread to be shut down
+		taskCountDownLatch.await(5, TimeUnit.SECONDS);
 
-		Assert.assertEquals(1, taskScheduler.getThreadPoolExecutor().getCompletedTaskCount());
-		Assert.assertEquals(0, taskScheduler.getThreadPoolExecutor().getActiveCount());
-
+		//destroy scheduler
 		taskScheduler.destroy();
 	}
 
