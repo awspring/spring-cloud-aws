@@ -19,21 +19,23 @@ package org.elasticspring.context.config;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
+import org.elasticspring.core.io.s3.S3ServiceEndpoint;
 import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
 import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
 import org.elasticspring.core.region.RegionProvider;
+import org.elasticspring.core.region.ServiceEndpoint;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	private final AmazonS3ClientFactory amazonS3ClientFactory;
-	private final RegionProvider regionProvider;
+	private final ServiceEndpoint serviceEndpoint;
 
 	@RuntimeUse
 	public AmazonS3FactoryBean(AWSCredentialsProvider awsCredentialsProvider, RegionProvider regionProvider) {
 		this.amazonS3ClientFactory = new AmazonS3ClientFactory(awsCredentialsProvider);
-		this.regionProvider = regionProvider;
+		this.serviceEndpoint = S3ServiceEndpoint.fromRegion(regionProvider.getRegion());
 	}
 
 	@Override
@@ -43,7 +45,7 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
-		return new EndpointRoutingS3Client(this.amazonS3ClientFactory, this.regionProvider);
+		return new EndpointRoutingS3Client(this.amazonS3ClientFactory, this.serviceEndpoint);
 	}
 
 	@Override

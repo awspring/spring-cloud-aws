@@ -18,7 +18,6 @@ package org.elasticspring.core.region;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  *
@@ -27,8 +26,6 @@ public class StaticRegionProviderTest {
 
 	@Test
 	public void testGetRegion() throws Exception {
-		Region region = Mockito.mock(Region.class);
-		Assert.assertSame(region, new StaticRegionProvider(region).getRegion());
-		Assert.assertNull(new StaticRegionProvider(region).getRegion().getLocation());
+		Assert.assertSame(Region.US_STANDARD, new StaticRegionProvider(Region.US_STANDARD).getRegion());
 	}
 }
