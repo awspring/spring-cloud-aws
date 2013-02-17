@@ -98,7 +98,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory, ServiceEndpoint serviceEndpoint) {
 		this.clientFactory = clientFactory;
-		this.defaultClient = clientFactory.getClientForRegion(serviceEndpoint);
+		this.defaultClient = clientFactory.getClientForServiceEndpoint(serviceEndpoint);
 	}
 
 	@Override
@@ -337,7 +337,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 		Assert.notNull(bucketName);
 		if (bucketName.contains(".")) {
 			String bucketRegion = this.defaultClient.getBucketLocation(bucketName);
-			return this.clientFactory.getClientForRegion(S3ServiceEndpoint.fromLocation(bucketRegion));
+			return this.clientFactory.getClientForServiceEndpoint(S3ServiceEndpoint.fromLocation(bucketRegion));
 		} else {
 			return this.defaultClient;
 		}

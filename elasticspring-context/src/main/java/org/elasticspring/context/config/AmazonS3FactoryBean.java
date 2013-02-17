@@ -17,7 +17,6 @@
 package org.elasticspring.context.config;
 
 import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import org.elasticspring.core.io.s3.S3ServiceEndpoint;
 import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
@@ -33,8 +32,8 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 	private final ServiceEndpoint serviceEndpoint;
 
 	@RuntimeUse
-	public AmazonS3FactoryBean(AWSCredentialsProvider awsCredentialsProvider, RegionProvider regionProvider) {
-		this.amazonS3ClientFactory = new AmazonS3ClientFactory(awsCredentialsProvider);
+	public AmazonS3FactoryBean(AmazonS3ClientFactory amazonS3ClientFactory, RegionProvider regionProvider) {
+		this.amazonS3ClientFactory = amazonS3ClientFactory;
 		this.serviceEndpoint = S3ServiceEndpoint.fromRegion(regionProvider.getRegion());
 	}
 

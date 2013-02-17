@@ -87,6 +87,34 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="client-encryption" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Configures a client side encryption resource loader.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:choice>
+							<xsd:element name="symmetric-key" type="symmetricKeyType" minOccurs="0" maxOccurs="1">
+								<xsd:annotation>
+									<xsd:documentation>
+										Configures the symmetric key to use for encryption.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="key-pair" type="keyPairType" minOccurs="0" maxOccurs="1">
+								<xsd:annotation>
+									<xsd:documentation>
+										Configures the key pair to use for encryption.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+						<xsd:attribute name="anonymous" type="xsd:boolean" default="false" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 			<xsd:attribute name="region" type="regionType" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>The region that will be used by this context loader. As Amazon S3 has a global
@@ -105,35 +133,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:all>
-				<xsd:element name="client-encryption" minOccurs="0" maxOccurs="1"
-							 default="false">
-					<xsd:annotation>
-						<xsd:documentation>
-							Configures a client side encryption resource loader.
-						</xsd:documentation>
-					</xsd:annotation>
-					<xsd:complexType>
-						<xsd:all>
-							<xsd:element name="symmetric-key" type="symmetricKeyType" minOccurs="0" maxOccurs="1">
-								<xsd:annotation>
-									<xsd:documentation>
-										Configures the symmetric key to use for encryption.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:element>
-							<xsd:element name="key-pair" type="keyPairType" minOccurs="0" maxOccurs="1">
-								<xsd:annotation>
-									<xsd:documentation>
-										Configures the key pair to use for encryption.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:element>
-						</xsd:all>
-						<xsd:attribute name="anonymous" type="xsd:boolean" default="false" />
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:all>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -228,4 +227,60 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="clientEncryptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines if the encryption clients has to make anonymous requests. If set to true,
+				only a subset of amazon's API will work. More information here
+				http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3EncryptionClient.html#AmazonS3EncryptionClient(com.amazonaws.services.s3.model.EncryptionMaterials)
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:boolean" />
+	</xsd:simpleType>
+
+	<xsd:complexType name="symmetricKeyType">
+		<xsd:attribute name="key-ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Configures a reference to a bean which must be an instance of javax.crypto.SecretKey
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.crypto.SecretKey" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="key-resource" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Path to symmetric key file
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="keyPairType">
+		<xsd:attribute name="key-ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Configures a reference to a bean which must be an instance of java.security.KeyPair
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.security.KeyPair" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="key-resource" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Path to key pair file (*.pem)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
 </xsd:schema>

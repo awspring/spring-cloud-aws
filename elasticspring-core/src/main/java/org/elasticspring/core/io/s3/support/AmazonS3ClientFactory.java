@@ -19,8 +19,13 @@ package org.elasticspring.core.io.s3.support;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3EncryptionClient;
+import com.amazonaws.services.s3.model.EncryptionMaterials;
 import org.elasticspring.core.region.ServiceEndpoint;
+import org.springframework.core.io.Resource;
 
+import javax.crypto.SecretKey;
+import java.security.KeyPair;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,9 +41,54 @@ public class AmazonS3ClientFactory {
 
 	private final AWSCredentialsProvider credentials;
 	private final ConcurrentHashMap<ServiceEndpoint, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<ServiceEndpoint, AmazonS3Client>();
+	private boolean anonymous;
+	private KeyPair keyPairRef;
+	private SecretKey symmetricKeyRef;
+	private Resource keyPairResource;
+	private Resource symmetricKeyResource;
 
 	public AmazonS3ClientFactory(AWSCredentialsProvider credentials) {
 		this.credentials = credentials;
+	}
+
+	public boolean isAnonymous() {
+		return this.anonymous;
+	}
+
+	public void setAnonymous(boolean anonymous) {
+		this.anonymous = anonymous;
+	}
+
+	public KeyPair getKeyPairRef() {
+		return this.keyPairRef;
+	}
+
+	public void setKeyPairRef(KeyPair keyPairRef) {
+		this.keyPairRef = keyPairRef;
+	}
+
+	public SecretKey getSymmetricKeyRef() {
+		return this.symmetricKeyRef;
+	}
+
+	public void setSymmetricKeyRef(SecretKey symmetricKeyRef) {
+		this.symmetricKeyRef = symmetricKeyRef;
+	}
+
+	public Resource getKeyPairResource() {
+		return this.keyPairResource;
+	}
+
+	public void setKeyPairResource(Resource keyPairResource) {
+		this.keyPairResource = keyPairResource;
+	}
+
+	public Resource getSymmetricKeyResource() {
+		return this.symmetricKeyResource;
+	}
+
+	public void setSymmetricKeyResource(Resource symmetricKeyResource) {
+		this.symmetricKeyResource = symmetricKeyResource;
 	}
 
 	/**
@@ -49,16 +99,49 @@ public class AmazonS3ClientFactory {
 	 * 		the {@link org.elasticspring.core.region.ServiceEndpoint} that the client must access.
 	 * @return the corresponding {@link AmazonS3} client.
 	 */
-	public AmazonS3 getClientForRegion(ServiceEndpoint s3ServiceEndpoint) {
+	public AmazonS3 getClientForServiceEndpoint(ServiceEndpoint s3ServiceEndpoint) {
 		AmazonS3Client cachedAmazonS3Client = this.clientsForRegion.get(s3ServiceEndpoint);
 		if (cachedAmazonS3Client != null) {
 			return cachedAmazonS3Client;
 		} else {
-			AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
-			amazonS3Client.setEndpoint(s3ServiceEndpoint.getEndpoint());
-			AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3ServiceEndpoint, amazonS3Client);
-
-			return previousValue == null ? amazonS3Client : previousValue;
+			if (isEncryptionClient()) {
+				return createAmazonS3EncryptionClient(s3ServiceEndpoint);
+			} else {
+				AmazonS3Client amazonS3Client = new AmazonS3Client(this.credentials.getCredentials());
+				amazonS3Client.setEndpoint(s3ServiceEndpoint.getEndpoint());
+				AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3ServiceEndpoint, amazonS3Client);
+				return previousValue == null ? amazonS3Client : previousValue;
+			}
 		}
+	}
+
+	private AmazonS3 createAmazonS3EncryptionClient(ServiceEndpoint s3ServiceEndpoint) {
+		EncryptionMaterials encryptionMaterials = null;
+		if (this.keyPairRef != null) {
+			encryptionMaterials = new EncryptionMaterials(this.keyPairRef);
+		}
+
+		// TODO read key resource (*.pem) and create a KeyPair
+
+		if (this.symmetricKeyRef != null) {
+			encryptionMaterials = new EncryptionMaterials(this.symmetricKeyRef);
+		}
+
+		// TODO read key resource and create a SecretKey
+
+		AmazonS3EncryptionClient amazonS3EncryptionClient;
+		if (this.anonymous) {
+			amazonS3EncryptionClient = new AmazonS3EncryptionClient(encryptionMaterials);
+		} else {
+			amazonS3EncryptionClient = new AmazonS3EncryptionClient(this.credentials.getCredentials(), encryptionMaterials);
+		}
+
+		AmazonS3Client previousValue = this.clientsForRegion.putIfAbsent(s3ServiceEndpoint, amazonS3EncryptionClient);
+		return previousValue == null ? amazonS3EncryptionClient : previousValue;
+	}
+
+	private boolean isEncryptionClient() {
+		return this.anonymous || this.keyPairRef != null || (this.keyPairResource != null && this.keyPairResource.exists()) ||
+				this.symmetricKeyRef != null || (this.symmetricKeyResource != null && this.symmetricKeyResource.exists());
 	}
 }

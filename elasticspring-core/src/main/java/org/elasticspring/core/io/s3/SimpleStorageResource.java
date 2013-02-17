@@ -50,6 +50,9 @@ import java.util.concurrent.Future;
 
 /**
  *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @since 1.0
  */
 class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
 

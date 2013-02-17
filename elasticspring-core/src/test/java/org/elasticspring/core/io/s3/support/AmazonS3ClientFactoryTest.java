@@ -1,27 +1,18 @@
-/*
- * Copyright 2013 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.elasticspring.core.io.s3.support;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import org.elasticspring.core.io.s3.S3ServiceEndpoint;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -39,8 +30,7 @@ public class AmazonS3ClientFactoryTest {
 
 	@Test
 	public void testCacheUnderHighConcurrency() throws InterruptedException {
-		AWSCredentialsProvider awsCredentialsProviderMock = Mockito.mock(AWSCredentialsProvider.class);
-		final AmazonS3ClientFactory factory = new AmazonS3ClientFactory(awsCredentialsProviderMock);
+		final AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
 
 		int nThreads = 100;
 		ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
@@ -54,8 +44,8 @@ public class AmazonS3ClientFactoryTest {
 				public void run() {
 					try {
 						countDownLatch.await();
-						amazonS3Clients.add(factory.getClientForRegion(S3ServiceEndpoint.IRELAND));
-						amazonS3Clients.add(factory.getClientForRegion(S3ServiceEndpoint.SAO_PAULO));
+						amazonS3Clients.add(factory.getClientForServiceEndpoint(S3ServiceEndpoint.IRELAND));
+						amazonS3Clients.add(factory.getClientForServiceEndpoint(S3ServiceEndpoint.SAO_PAULO));
 					} catch (InterruptedException e) {
 						fail("Error awaiting latch");
 					}
@@ -69,4 +59,33 @@ public class AmazonS3ClientFactoryTest {
 		assertEquals(2, amazonS3Clients.size());
 	}
 
+	@Test
+	public void testInstantiationWithKeyPairRef() throws NoSuchAlgorithmException {
+		final AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
+
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+		keyPairGenerator.initialize(1024);
+		KeyPair keyPair = keyPairGenerator.generateKeyPair();
+		factory.setKeyPairRef(keyPair);
+
+		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
+		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
+	}
+
+	@Test
+	public void testInstantiationWithSymmetricKeyRef() throws NoSuchAlgorithmException {
+		final AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
+
+		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
+		SecretKey secretKey = keyGenerator.generateKey();
+		factory.setSymmetricKeyRef(secretKey);
+
+		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
+		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
+	}
+
+	private AmazonS3ClientFactory getAmazonS3ClientFactory() {
+		AWSCredentialsProvider awsCredentialsProviderMock = Mockito.mock(AWSCredentialsProvider.class);
+		return new AmazonS3ClientFactory(awsCredentialsProviderMock);
+	}
 }
