@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,14 +16,35 @@
 
 package org.elasticspring.core.region;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
+
+/**
+ * Static {@link RegionProvider} implementation that can used to statically configure a region. The region could be
+ * provided through a configuration file at configuration time.
+ *
+ * @author Agim Emruli
+ * @since 1.0
+ */
 public class StaticRegionProvider implements RegionProvider {
 
 	private final Region configuredRegion;
 
+	/**
+	 * Constructs and configures the static region for this RegionProvider implementation.
+	 *
+	 * @param configuredRegion
+	 * 		- the region that will be statically returned in {@link #getRegion()}
+	 */
+	@RuntimeUse
 	public StaticRegionProvider(Region configuredRegion) {
 		this.configuredRegion = configuredRegion;
 	}
 
+	/**
+	 * Return the configured Region configured at construction time.
+	 *
+	 * @return the configured region, for every call the same
+	 */
 	@Override
 	public Region getRegion() {
 		return this.configuredRegion;

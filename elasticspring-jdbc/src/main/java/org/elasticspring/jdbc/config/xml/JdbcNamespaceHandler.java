@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.config.xml;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
 import org.elasticspring.jdbc.rds.config.xml.AmazonRdsRetryInterceptorBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
@@ -28,7 +29,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Agim Emruli
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
+@RuntimeUse
 public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override

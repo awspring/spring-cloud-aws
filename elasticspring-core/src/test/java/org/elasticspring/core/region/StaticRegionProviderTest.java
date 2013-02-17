@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.datasource.support;
+package org.elasticspring.core.region;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
- * underlying AWS cloud implementation.
+ *
  */
-public enum DatabaseType {
-	@RuntimeUse
-	MYSQL,
-	@RuntimeUse
-	ORACLE,
-	@RuntimeUse
-	MSSQL
+public class StaticRegionProviderTest {
+
+	@Test
+	public void testGetRegion() throws Exception {
+		Assert.assertSame(Region.US_STANDARD, new StaticRegionProvider(Region.US_STANDARD).getRegion());
+	}
 }

@@ -17,8 +17,9 @@
 package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.elasticspring.core.io.s3.S3Region;
+import com.amazonaws.services.s3.model.Region;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.After;
 import org.junit.Assert;
@@ -38,15 +39,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
 
 /**
- *
+ * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("ResourceLoaderAwsTest-context.xml")
 public class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";
+
 	@Autowired
 	private ApplicationContext applicationContext;
 
@@ -61,6 +68,10 @@ public class ResourceLoaderAwsTest {
 	private AmazonS3 amazonS3;
 
 	private final List<String> createdObjects = new ArrayList<String>();
+
+	private final CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newSingleThreadExecutor());
+
+	private static final String DEFAULT_FILENAME = "test.txt";
 
 	@Test
 	public void testWithInjectedApplicationContext() throws Exception {
@@ -110,48 +121,125 @@ public class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	public void testBucketNamesWithDotsOnAllS3Regions() throws IOException {
-		for (S3Region region : S3Region.values()) {
-			InputStream inputStream = null;
-			try {
-				String bucketNameWithDots = region.getLocation().toLowerCase() + ".elasticspring.org";
-				Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketNameWithDots + "/test.txt");
-				inputStream = resource.getInputStream();
-				Assert.assertTrue(resource.contentLength() > 0);
-				Assert.assertNotNull(inputStream);
-			} finally {
-				if (inputStream != null) {
-					inputStream.close();
-				}
+	public void testBucketNamesWithDotsOnAllS3Regions() throws Exception {
+		List<String> createdBuckets = null;
+		try {
+			createdBuckets = createBuckets(".");
+
+			for (String bucketName : createdBuckets) {
+				assertBucketContent(bucketName);
 			}
+		} finally {
+			deleteBucket(createdBuckets);
 		}
 	}
 
 	@Test
-	public void testBucketNamesWithoutDotsOnAllS3Regions() throws IOException {
-		for (S3Region region : S3Region.values()) {
-			InputStream inputStream = null;
-			try {
-				String bucketNameWithoutDots = region.getLocation().toLowerCase() + "-elasticspring-org";
-				Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketNameWithoutDots + "/test.txt");
-				inputStream = resource.getInputStream();
-				Assert.assertTrue(resource.contentLength() > 0);
-				Assert.assertNotNull(inputStream);
-			} finally {
-				if (inputStream != null) {
-					inputStream.close();
-				}
+	public void testBucketNamesWithoutDotsOnAllS3Regions() throws Exception {
+		List<String> createdBuckets = null;
+		try {
+			createdBuckets = createBuckets("-");
+
+			for (String bucketName : createdBuckets) {
+				assertBucketContent(bucketName);
+			}
+		} finally {
+			deleteBucket(createdBuckets);
+		}
+	}
+
+
+	private void assertBucketContent(String bucketName) throws IOException {
+		InputStream inputStream = null;
+		try {
+			Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test.txt");
+			inputStream = resource.getInputStream();
+			Assert.assertTrue(resource.contentLength() > 0);
+			Assert.assertNotNull(inputStream);
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
 			}
 		}
 	}
 
+
+	private List<String> createBuckets(String separator) throws Exception {
+		List<String> createdBuckets = new ArrayList<String>(Region.values().length);
+		for (Region region : Region.values()) {
+			String bucketName = "test" + separator + "elasticspring" + separator + UUID.randomUUID().toString().replace("-", separator);
+			this.completionService.submit(new CreateBucketCallable(region, this.amazonS3, bucketName));
+		}
+
+		for (Region ignore : Region.values()) {
+			createdBuckets.add(this.completionService.take().get());
+		}
+
+		return createdBuckets;
+	}
+
+	private void deleteBucket(List<String> bucketNames) throws InterruptedException {
+		if (bucketNames == null) {
+			return;
+		}
+		for (String bucketName : bucketNames) {
+			this.completionService.submit(new DeleteBucketCallable(this.amazonS3, bucketName));
+		}
+
+		for (String ignore : bucketNames) {
+			this.completionService.take();
+		}
+	}
+
+
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
 		for (String createdObject : this.createdObjects) {
 			this.amazonS3.deleteObject(bucketName, createdObject);
 		}
 
 	}
+
+	private static class CreateBucketCallable implements Callable<String> {
+
+		private final Region region;
+		private final AmazonS3 amazonS3;
+		private final String bucketName;
+
+		private CreateBucketCallable(Region region, AmazonS3 amazonS3, String bucketName) {
+			this.region = region;
+			this.amazonS3 = amazonS3;
+			this.bucketName = bucketName;
+		}
+
+		@Override
+		public String call() throws Exception {
+			Bucket bucket = this.amazonS3.createBucket(this.bucketName, this.region);
+			ObjectMetadata objectMetadata = new ObjectMetadata();
+			objectMetadata.setContentLength(this.region.name().getBytes().length);
+			this.amazonS3.putObject(this.bucketName, DEFAULT_FILENAME, new ByteArrayInputStream(this.region.name().getBytes()), objectMetadata);
+			return bucket.getName();
+		}
+	}
+
+	private static class DeleteBucketCallable implements Callable<String> {
+
+		private final AmazonS3 amazonS3;
+		private final String bucketName;
+
+		private DeleteBucketCallable(AmazonS3 amazonS3, String bucketName) {
+			this.amazonS3 = amazonS3;
+			this.bucketName = bucketName;
+		}
+
+		@Override
+		public String call() throws Exception {
+			this.amazonS3.deleteObject(this.bucketName, DEFAULT_FILENAME);
+			this.amazonS3.deleteBucket(this.bucketName);
+			return this.bucketName;
+		}
+	}
+
 }

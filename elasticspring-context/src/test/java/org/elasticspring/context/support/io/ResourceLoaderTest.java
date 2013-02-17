@@ -186,6 +186,7 @@ public class ResourceLoaderTest {
 		@Autowired
 		private ApplicationContext applicationContext;
 
+		@SuppressWarnings("SpringJavaAutowiringInspection")
 		@Autowired
 		private ResourceLoader resourceLoader;
 
@@ -210,7 +211,7 @@ public class ResourceLoaderTest {
 		}
 
 		@Autowired
-		public void setResourceLoader(ResourceLoader resourceLoader) {
+		public void setResourceLoader(@SuppressWarnings("SpringJavaAutowiringInspection") ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
 		}
 
@@ -229,7 +230,7 @@ public class ResourceLoaderTest {
 		private final ApplicationContext applicationContext;
 
 		@Autowired
-		private ConstructorInjectionTarget(ResourceLoader resourceLoader, ApplicationContext applicationContext) {
+		private ConstructorInjectionTarget(@SuppressWarnings("SpringJavaAutowiringInspection") ResourceLoader resourceLoader, ApplicationContext applicationContext) {
 			this.resourceLoader = resourceLoader;
 			this.applicationContext = applicationContext;
 		}

@@ -9,3 +9,4 @@ mail.properties
 gradle.properties
 *.iml
 *.ipr
+*.iws

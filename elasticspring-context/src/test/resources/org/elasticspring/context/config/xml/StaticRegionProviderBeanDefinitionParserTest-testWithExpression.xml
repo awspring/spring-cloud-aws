@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2013 the original author or authors.
   ~
@@ -17,11 +16,14 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
+	   xmlns:context="http://www.elasticspring.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<import resource="classpath:Integration-test-context.xml" />
+	<context:static-region-provider id="myRegionProvider" region="#{configuration['region']}" />
 
-	<els-context:context-resource-loader />
 
+	<util:properties id="configuration">
+		<prop key="region">SAO_PAULO</prop>
+	</util:properties>
 </beans>

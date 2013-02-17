@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,8 +81,8 @@ import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.model.VersionListing;
-import org.elasticspring.core.io.s3.S3Region;
-import org.elasticspring.core.region.RegionProvider;
+import org.elasticspring.core.io.s3.S3ServiceEndpoint;
+import org.elasticspring.core.region.ServiceEndpoint;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -96,9 +96,9 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 	private final AmazonS3 defaultClient;
 	private final AmazonS3ClientFactory clientFactory;
 
-	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory, RegionProvider regionProvider) {
+	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory, ServiceEndpoint serviceEndpoint) {
 		this.clientFactory = clientFactory;
-		this.defaultClient = clientFactory.getClientForRegion(regionProvider.getRegion());
+		this.defaultClient = clientFactory.getClientForRegion(serviceEndpoint);
 	}
 
 	@Override
@@ -337,7 +337,7 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 		Assert.notNull(bucketName);
 		if (bucketName.contains(".")) {
 			String bucketRegion = this.defaultClient.getBucketLocation(bucketName);
-			return this.clientFactory.getClientForRegion(S3Region.fromLocation(bucketRegion));
+			return this.clientFactory.getClientForRegion(S3ServiceEndpoint.fromLocation(bucketRegion));
 		} else {
 			return this.defaultClient;
 		}
@@ -400,17 +400,17 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 
 	@Override
 	public ObjectListing listObjects(String bucketName) throws AmazonClientException {
-		return this.defaultClient.listObjects(bucketName);
+		return getClientForBucketName(bucketName).listObjects(bucketName);
 	}
 
 	@Override
 	public ObjectListing listObjects(String bucketName, String prefix) throws AmazonClientException {
-		return this.defaultClient.listObjects(bucketName, prefix);
+		return getClientForBucketName(bucketName).listObjects(bucketName, prefix);
 	}
 
 	@Override
 	public ObjectListing listObjects(ListObjectsRequest listObjectsRequest) throws AmazonClientException {
-		return this.defaultClient.listObjects(listObjectsRequest);
+		return getClientForBucketName(listObjectsRequest.getBucketName()).listObjects(listObjectsRequest);
 	}
 
 	@Override

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class DynamicDataSourceTest {
 
 	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Rule
 	public Timeout timeout = new Timeout(30 * 1000);
@@ -187,11 +187,26 @@ public class DynamicDataSourceTest {
 
 
 	@Test
-	public void testDynamicDataSourceDestroyedWhileWaitingForConnection() throws Exception {
+	public void testDynamicDataSourceDestroyedWhileInitializing() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
-		ThreadPoolTaskExecutor taskScheduler = new ThreadPoolTaskExecutor();
+		final CountDownLatch taskCountDownLatch = new CountDownLatch(1);
+
+		ThreadPoolTaskExecutor taskScheduler = new ThreadPoolTaskExecutor() {
+
+			@Override
+			public void execute(final Runnable task) {
+				super.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						task.run();
+						taskCountDownLatch.countDown();
+					}
+				});
+			}
+		};
 		taskScheduler.setCorePoolSize(0);
 		taskScheduler.afterPropertiesSet();
 
@@ -212,14 +227,13 @@ public class DynamicDataSourceTest {
 		//Make sure that the thread as actually ramped up
 		countDownLatch.await(1, TimeUnit.SECONDS);
 
+		//Destroy data source
 		dynamicDataSource.destroyDataSource();
 
-		//give the thread a short amount of time to finish
-		Thread.sleep(5L);
+		//Await background thread to be shut down
+		taskCountDownLatch.await(5, TimeUnit.SECONDS);
 
-		Assert.assertEquals(1, taskScheduler.getThreadPoolExecutor().getCompletedTaskCount());
-		Assert.assertEquals(0, taskScheduler.getThreadPoolExecutor().getActiveCount());
-
+		//destroy scheduler
 		taskScheduler.destroy();
 	}
 

@@ -42,6 +42,20 @@ idea {
                 def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
                 vcsConfig.mapping[0].'@vcs' = 'Git'
 
+                //Entry Points for inspections
+                def entryPoints = new XmlParser().parseText('''<component name="EntryPointsManager">
+                                     <component name="EntryPointsManager">
+                                        <entry_points version="2.0" />
+                                        <list size="3">
+                                          <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
+                                          <item index="1" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Autowired" />
+                                          <item index="2" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Value" />
+                                        </list>
+                                     </component>
+                                  </component>''')
+                entryPoints
+                node.append(entryPoints)
+
                 // Set gradle home
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
@@ -103,17 +117,6 @@ idea {
                             <resource url="http://jakarta.apache.org/log4j/" location="''' + getLibraryForArtifact(modules as List<IdeaModule>, "log4j-1") + '''!/org/apache/log4j/xml/log4j.dtd" />
                         </component>''')
                 node.append(projectResource)
-
-                //Entry Points for inspections
-                def entryPoints = new XmlParser().parseText('''<component name="EntryPointsManager">
-                    <entry_points version="2.0" />
-                    <list size="2">
-                      <item index="0" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Autowired" />
-                      <item index="1" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Value" />
-                    </list>
-                  </component>''')
-                entryPoints
-                node.append(entryPoints)
             }
         }
     }
