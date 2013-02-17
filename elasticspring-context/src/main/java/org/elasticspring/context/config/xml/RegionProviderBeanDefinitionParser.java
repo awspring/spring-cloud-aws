@@ -24,7 +24,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-@SuppressWarnings("UnusedDeclaration")
 class RegionProviderBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override

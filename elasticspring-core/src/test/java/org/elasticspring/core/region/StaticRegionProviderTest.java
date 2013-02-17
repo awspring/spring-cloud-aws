@@ -16,19 +16,19 @@
 
 package org.elasticspring.core.region;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
 
-public class StaticRegionProvider implements RegionProvider {
+/**
+ *
+ */
+public class StaticRegionProviderTest {
 
-	private final Region configuredRegion;
-
-	@RuntimeUse
-	public StaticRegionProvider(Region configuredRegion) {
-		this.configuredRegion = configuredRegion;
-	}
-
-	@Override
-	public Region getRegion() {
-		return this.configuredRegion;
+	@Test
+	public void testGetRegion() throws Exception {
+		Region region = Mockito.mock(Region.class);
+		Assert.assertSame(region, new StaticRegionProvider(region).getRegion());
+		Assert.assertNull(new StaticRegionProvider(region).getRegion().getLocation());
 	}
 }

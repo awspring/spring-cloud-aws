@@ -2185,7 +2185,7 @@
 	<inspection_tool class="UnusedCatchParameterJS" enabled="false" level="WARNING" enabled_by_default="false">
 		<option name="m_ignoreCatchBlocksWithComments" value="false" />
 	</inspection_tool>
-	<inspection_tool class="UnusedDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
+	<inspection_tool class="UnusedDeclaration" enabled="false" level="WARNING" enabled_by_default="false">
 		<option name="ADD_MAINS_TO_ENTRIES" value="true" />
 		<option name="ADD_APPLET_TO_ENTRIES" value="true" />
 		<option name="ADD_SERVLET_TO_ENTRIES" value="true" />
@@ -2242,7 +2242,7 @@
 	<inspection_tool class="WaitWhileHoldingTwoLocks" enabled="false" level="WARNING" enabled_by_default="false" />
 	<inspection_tool class="WaitWithoutCorrespondingNotify" enabled="false" level="WARNING"
 					 enabled_by_default="false" />
-	<inspection_tool class="WeakerAccess" enabled="true" level="WARNING" enabled_by_default="true">
+	<inspection_tool class="WeakerAccess" enabled="false" level="WARNING" enabled_by_default="false">
 		<option name="SUGGEST_PACKAGE_LOCAL_FOR_MEMBERS" value="false" />
 		<option name="SUGGEST_PACKAGE_LOCAL_FOR_TOP_CLASSES" value="true" />
 		<option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />

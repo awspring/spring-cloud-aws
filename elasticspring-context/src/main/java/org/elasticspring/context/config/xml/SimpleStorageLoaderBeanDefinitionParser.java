@@ -30,10 +30,9 @@ import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
-@SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
-public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
+class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
-	public static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
+	private static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {

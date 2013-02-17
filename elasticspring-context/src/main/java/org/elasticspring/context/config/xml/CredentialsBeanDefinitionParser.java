@@ -42,7 +42,6 @@ import java.util.List;
  * @author Agim Emruli
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
 class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-Key";

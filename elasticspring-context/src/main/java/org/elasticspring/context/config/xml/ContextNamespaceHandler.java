@@ -16,6 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Agim Emruli
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
+@RuntimeUse
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override

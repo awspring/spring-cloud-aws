@@ -16,7 +16,10 @@
 
 package org.elasticspring.context.support.io;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import junit.framework.Assert;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,38 +27,136 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Alain Sahli
  * @since 1.0
  */
+@SuppressWarnings("SpringJavaAutowiringInspection")
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("PathMatchingResourceLoaderAwsTest-context.xml")
 public class PathMatchingResourceLoaderAwsTest {
 
 	@Autowired
-	private TestBucketsInitialization testBucketsInitialization;
-
-	@SuppressWarnings("SpringJavaAutowiringInspection")
-	@Autowired
 	private ResourcePatternResolver resourceLoader;
 
-	@Test
-	public void testWildcardsInKey() throws IOException, InterruptedException {
-		String protocolAndBucket = "s3://my-bucket-one.elasticspring.org";
+	@Autowired
+	private AmazonS3 amazonS3;
 
-		Assert.assertEquals("test the '?' wildcard", 1, this.resourceLoader.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length);
-		Assert.assertEquals("test the '*' wildcard", 1, this.resourceLoader.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length);
-		Assert.assertEquals("test the '**' wildcard", 4, this.resourceLoader.getResources(protocolAndBucket + "/**/test1.txt").length);
-		Assert.assertEquals("test a mix of '**' and '?'", 6, this.resourceLoader.getResources(protocolAndBucket + "/**/test?.txt").length);
-		Assert.assertEquals("test all together", 2, this.resourceLoader.getResources(protocolAndBucket + "/**/baz*/test?.txt").length);
+	@Autowired
+	private TestStackEnvironment testStackEnvironment;
+
+	private final CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newFixedThreadPool(10));
+
+	private static final List<String> FILES_FOR_HIERARCHY = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
+			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");
+
+	@Test
+	public void testWildcardsInKey() throws Exception {
+		String bucketName = this.testStackEnvironment.getByLogicalId("PathMatcherBucket");
+		createTestFiles(bucketName);
+
+		String protocolAndBucket = "s3://" + bucketName;
+		try {
+			Assert.assertEquals("test the '?' wildcard", 1, this.resourceLoader.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length);
+			Assert.assertEquals("test the '*' wildcard", 1, this.resourceLoader.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length);
+			Assert.assertEquals("test the '**' wildcard", 4, this.resourceLoader.getResources(protocolAndBucket + "/**/test1.txt").length);
+			Assert.assertEquals("test a mix of '**' and '?'", 6, this.resourceLoader.getResources(protocolAndBucket + "/**/test?.txt").length);
+			Assert.assertEquals("test all together", 2, this.resourceLoader.getResources(protocolAndBucket + "/**/baz*/test?.txt").length);
+		} finally {
+			deleteTestFiles(bucketName);
+		}
 	}
 
+
 	@Test
-	public void testWildcardsInBucket() throws IOException, InterruptedException {
-		Assert.assertEquals("test the '?' wildcard", 1, this.resourceLoader.getResources("s3://my-bucket-?ne.elasticspring.org/test1.txt").length);
-		Assert.assertEquals("test the '*' wildcard", 2, this.resourceLoader.getResources("s3://my-bucket*/test1.txt").length);
-		Assert.assertEquals("test the '**' wildcard", 16, this.resourceLoader.getResources("s3://**/test1.txt").length);
+	public void testWildcardsInBucket() throws Exception {
+		String firstBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket01");
+		String secondBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket02");
+		String thirdBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket03");
+		String bucketPrefix = firstBucket.substring(0, firstBucket.lastIndexOf("-") - 2);
+		try {
+			createTestFiles(firstBucket, secondBucket, thirdBucket);
+			Assert.assertEquals("test the '?' wildcard", 1, this.resourceLoader.getResources("s3://" + bucketPrefix + "??" + firstBucket.substring(firstBucket.lastIndexOf("-")) + "/test1.txt").length);
+			Assert.assertEquals("test the '*' wildcard", 3, this.resourceLoader.getResources("s3://" + bucketPrefix + "*/test1.txt").length);
+			Assert.assertEquals("test the '**' wildcard", 4 * 3, this.resourceLoader.getResources("s3://**/test1.txt").length);
+		} finally {
+			deleteTestFiles(firstBucket, secondBucket, thirdBucket);
+		}
+	}
+
+
+	private void createTestFiles(String... bucketNames) throws InterruptedException {
+		int createdFiles = 0;
+		for (String bucketName : bucketNames) {
+			for (String fileName : FILES_FOR_HIERARCHY) {
+				this.completionService.submit(new CreateFileCallable(bucketName, fileName, this.amazonS3));
+				createdFiles++;
+			}
+		}
+
+		for (int i = 0; i < createdFiles; i++) {
+			this.completionService.take();
+		}
+	}
+
+	private void deleteTestFiles(String... bucketNames) throws InterruptedException {
+		int createdFiles = 0;
+		for (String bucketName : bucketNames) {
+			for (String fileName : FILES_FOR_HIERARCHY) {
+				this.completionService.submit(new DeleteFileCallable(bucketName, fileName, this.amazonS3));
+				createdFiles++;
+			}
+		}
+		for (int i = 0; i < createdFiles; i++) {
+			this.completionService.take();
+		}
+	}
+
+	private static class CreateFileCallable implements Callable<String> {
+
+		private final String fileName;
+		private final AmazonS3 amazonS3;
+		private final String bucketName;
+
+		private CreateFileCallable(String bucketName, String fileName, AmazonS3 amazonS3) {
+			this.fileName = fileName;
+			this.amazonS3 = amazonS3;
+			this.bucketName = bucketName;
+		}
+
+
+		@Override
+		public String call() throws Exception {
+			this.amazonS3.putObject(this.bucketName, this.fileName, new ByteArrayInputStream(this.fileName.getBytes()), new ObjectMetadata());
+			return this.fileName;
+		}
+	}
+
+	private static class DeleteFileCallable implements Callable<String> {
+
+		private final String fileName;
+		private final AmazonS3 amazonS3;
+		private final String bucketName;
+
+		private DeleteFileCallable(String bucketName, String fileName, AmazonS3 amazonS3) {
+			this.fileName = fileName;
+			this.amazonS3 = amazonS3;
+			this.bucketName = bucketName;
+		}
+
+
+		@Override
+		public String call() throws Exception {
+			this.amazonS3.deleteObject(this.bucketName, this.fileName);
+			return this.fileName;
+		}
 	}
 }

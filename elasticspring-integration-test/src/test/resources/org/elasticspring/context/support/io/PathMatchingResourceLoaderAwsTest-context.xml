@@ -18,22 +18,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
-	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<els-context:context-credentials>
-		<els-context:simple-credentials access-Key="${accessKey}" secret-Key="${secretKey}" />
-	</els-context:context-credentials>
-
-	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
+	<import resource="classpath:Integration-test-context.xml" />
 
 	<els-context:context-resource-loader />
-
-	<!--suppress SpringBeanConstructorArgInspection -->
-	<bean class="org.elasticspring.context.support.io.TestBucketsInitialization">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser).AMAZON_S3_BEAN_NAME}" />
-	</bean>
 
 </beans>

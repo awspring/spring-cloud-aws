@@ -1,9 +1,9 @@
 # ElasticSpring
 
-ElasticSpring is a cloud application framework for the [Amazon Webservice Plattform] [AWS]. ElasticSpring enables developers to
+ElasticSpring is a cloud application framework for the [Amazon Webservice Platform] [AWS]. ElasticSpring enables developers to
 use popular Amazon Webservices with the [Spring Framework] [Spring]. With ElasticSpring, developers can re-use their existing
 knowledge, code and components build with the Spring Framework programming model and build applications using the
-Amazon Webservices. While continuing to use the programming model, developers can take advantage of the scaliablity
+Amazon Webservices. While continuing to use the programming model, developers can take advantage of the scalability
 of the service provided by the Amazon cloud platform.
 
 
@@ -33,7 +33,7 @@ To build reference documentation (results will be in `build/reference`):
 
 # Using IntelliJ IDEA
 
-ElastiSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
+ElasticSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
  project files, you have to execute the following Gradle task:
 
  	./gradlew idea
@@ -46,8 +46,8 @@ ElastiSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to cr
 
 # Running integration tests
 ElasticSpring contains a test-suite which runs integration tests to ensure compatibility with the Amazon Webservices.
-In order to run the integration tests, the build process have to create different ressources on the Amazon Webservice
-platform (Amazon EC2 instances, Amazon RDS instances, Amazon S3 Buckets, Amazon SQS Qeues). Creating these ressource
+In order to run the integration tests, the build process have to create different resources on the Amazon Webservice
+platform (Amazon EC2 instances, Amazon RDS instances, Amazon S3 Buckets, Amazon SQS Queues). Creating these resource
 takes time and costs money, because every instance creation is charged with a one hour usage. Therefore ElasticSpring
 does not execute the integration tests by default.
 
@@ -56,7 +56,7 @@ parameters to build the environment.
 
 Please create a new file named access.properties this file must contain two properties named accessKey and secretKey.
 These two properties are account/user specific and should never be shared to anybody. Two retrieve this setting you have
-to open your account inside the AWS console and retreive them through the [Security Crendetials Page]
+to open your account inside the AWS console and rretrieve them through the [Security Credentials Page]
 [AWS-Security-Credentials].
 *Note:* In general we recommend that you use an [Amazon IAM] [Amazon-IAM] user instead of the account itself.
 

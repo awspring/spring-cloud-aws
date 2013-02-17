@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 public class SimpleStorageNameUtilsTest {
 
 	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
 	public void testIsSimpleStorageResource() throws Exception {

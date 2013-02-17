@@ -51,7 +51,7 @@ public class SimpleMessageListenerContainerAwsTest {
 	private TestStackEnvironment testStackEnvironment;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		String queueUrl = this.testStackEnvironment.getByLogicalId("LoadTestQueue");
 		for (int b = 0; b < 10; b++) {
 			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();
