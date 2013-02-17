@@ -45,7 +45,7 @@ public class StaticRegionProviderBeanDefinitionParserTest {
 
 	@Test
 	public void testParseWithPlaceholder() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithPlaceholder.xml", getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithPlaceHolder.xml", getClass());
 		RegionProvider myRegionProvider = context.getBean("myRegionProvider", RegionProvider.class);
 		Assert.assertNotNull(myRegionProvider);
 		Assert.assertEquals(Region.SAO_PAULO, myRegionProvider.getRegion());
