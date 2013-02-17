@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright 2010-2012 the original author or authors.
+  ~ Copyright 2013 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/context"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:beans="http://www.springframework.org/schema/beans"
 			targetNamespace="http://www.elasticspring.org/schema/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -74,9 +75,11 @@
 
 	<xsd:element name="context-resource-loader">
 		<xsd:annotation>
-			<xsd:documentation source="java:org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser"><![CDATA[
-				Configures a resource loader that supports amazon S3 resources to be loaded by the application context resource loader.
-			]]></xsd:documentation>
+			<xsd:documentation
+					source="java:org.elasticspring.context.config.xml.SimpleStorageLoaderBeanDefinitionParser">
+				Configures a resource loader that supports amazon S3 resources to be loaded by the application context
+				resource loader.
+			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
 					<tool:exports type="org.springframework.core.io.ResourceLoader" />
@@ -84,6 +87,24 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:attribute name="region" type="regionType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>The region that will be used by this context loader. As Amazon S3 has a global
+						region this setting is optional and only useful to use the more direct endpoint to access the S3
+						resource. The resources are however (in contrast to other services) visible with every region.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="region-provider-ref" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.elasticspring.core.region.RegionProvider" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:all>
 				<xsd:element name="client-encryption" minOccurs="0" maxOccurs="1"
 							 default="false">
@@ -143,82 +164,68 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:complexType name="staticRegionType">
-		<xsd:attribute name="region" use="required">
-			<xsd:annotation>
-				<xsd:documentation>
-					The logical name of the region. Possible regions are available on
-					http://docs.amazonwebservices.com/general/latest/gr/rande.html
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="US_EAST_1" />
-					<xsd:enumeration value="US_WEST_1" />
-					<xsd:enumeration value="US_WEST_2" />
-					<xsd:enumeration value="EU_WEST_1" />
-					<xsd:enumeration value="AP_SOUTHEAST_1" />
-					<xsd:enumeration value="AP_SOUTHEAST_2" />
-					<xsd:enumeration value="AP_NORTHEAST_1" />
-					<xsd:enumeration value="SA_EAST_1" />
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
-	</xsd:complexType>
-
-	<xsd:simpleType name="clientEncryptionType">
+	<xsd:simpleType name="regionType">
 		<xsd:annotation>
-			<xsd:documentation>
-				Defines if the encryption clients has to make anonymous requests. If set to true,
-				only a subset of amazon's API will work. More informations here
-				http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3EncryptionClient.html#AmazonS3EncryptionClient(com.amazonaws.services.s3.model.EncryptionMaterials)
+			<xsd:documentation>The region type which could be a directly enumerated string or an expression or
+				placeholder
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:restriction base="xsd:boolean" />
+		<xsd:union memberTypes="regionTypeEnumeration expressionType placeholderType" />
 	</xsd:simpleType>
 
-	<xsd:complexType name="symmetricKeyType">
-		<xsd:attribute name="key-ref" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Configures a reference to a bean which must be an instance of javax.crypto.SecretKey
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="javax.crypto.SecretKey" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="key-resource" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Path to symmetric key file
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
+	<xsd:simpleType name="regionTypeEnumeration">
+		<xsd:annotation>
+			<xsd:documentation>
+				The logical name of the region. Possible regions are available on
+				http://docs.amazonwebservices.com/general/latest/gr/rande.html
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="US_STANDARD" />
+			<xsd:enumeration value="OREGON" />
+			<xsd:enumeration value="NORTHERN_CALIFORNIA" />
+			<xsd:enumeration value="IRELAND" />
+			<xsd:enumeration value="SINGAPORE" />
+			<xsd:enumeration value="SYDNEY" />
+			<xsd:enumeration value="TOKYO" />
+			<xsd:enumeration value="SAO_PAULO" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
-	<xsd:complexType name="keyPairType">
-		<xsd:attribute name="key-ref" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Configures a reference to a bean which must be an instance of java.security.KeyPair
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="java.security.KeyPair" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="key-resource" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Path to key pair file (*.pem)
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
+	<xsd:simpleType name="expressionType">
+		<xsd:annotation>
+			<xsd:documentation>Type that can be used if regular expression like #{foo.bar} should be allowed in a
+				normally fixed enumeration. This is useful to allow enumerations to be resolved at runtime
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[#]\{.+\}" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
+	<xsd:simpleType name="placeholderType">
+		<xsd:annotation>
+			<xsd:documentation>Type that can be used if placeholder expression like ${foo.bar} should be allowed in a
+				normally fixed enumeration. This is useful to allow enumerations to be resolved at configuration time
+				through a property source
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[$]\{.+\}" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="static-region-provider">
+		<xsd:annotation>
+			<xsd:documentation>Defines a region provider to be configured with a static region
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="region" type="regionType" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 </xsd:schema>

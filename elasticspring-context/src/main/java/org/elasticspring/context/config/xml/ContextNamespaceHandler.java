@@ -32,7 +32,7 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("context-credentials", new CredentialsBeanDefinitionParser());
-		registerBeanDefinitionParser("context-region", new RegionProviderBeanDefinitionParser());
+		registerBeanDefinitionParser("static-region-provider", new StaticRegionProviderBeanDefinitionParser());
 		registerBeanDefinitionParser("context-resource-loader", new SimpleStorageLoaderBeanDefinitionParser());
 	}
 }

@@ -20,14 +20,14 @@ import org.elasticspring.context.config.AmazonS3FactoryBean;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.elasticspring.core.io.s3.S3Region;
+import org.elasticspring.core.io.s3.S3ServiceEndpoint;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
@@ -39,7 +39,7 @@ class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefiniti
 		if (!parserContext.getRegistry().containsBeanDefinition(AMAZON_S3_BEAN_NAME)) {
 			BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
 			amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-			amazonsS3Builder.addConstructorArgValue(getRegionProviderBeanDefinition(element));
+			addRegionProviderBeanDefinition(element, parserContext, amazonsS3Builder);
 			parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
 		}
 
@@ -52,10 +52,26 @@ class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefiniti
 		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
 	}
 
-	private static BeanDefinition getRegionProviderBeanDefinition(Element element) {
+	private static void addRegionProviderBeanDefinition(Element element, ParserContext parserContext, BeanDefinitionBuilder parent) {
+		if (StringUtils.hasText(element.getAttribute("region")) && StringUtils.hasText(element.getAttribute("region-provider-ref"))) {
+			parserContext.getReaderContext().error("region and region-provider-ref attribute must not be used together", element);
+			return;
+		}
+
+		if (StringUtils.hasText(element.getAttribute("region-provider-ref"))) {
+			parent.addConstructorArgReference(element.getAttribute("region-provider-ref"));
+			return;
+		}
+
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
-		beanDefinitionBuilder.addConstructorArgValue(S3Region.valueOf(element.getAttribute("region").replace(" ", "_").toUpperCase()));
-		return beanDefinitionBuilder.getBeanDefinition();
+		if (StringUtils.hasText(element.getAttribute("region"))) {
+			beanDefinitionBuilder.addConstructorArgValue(S3ServiceEndpoint.valueOf(element.getAttribute("region")));
+			parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
+		} else {
+			beanDefinitionBuilder.addConstructorArgValue(S3ServiceEndpoint.US_STANDARD);
+		}
+
+		parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
 	}
 
 	@Override
