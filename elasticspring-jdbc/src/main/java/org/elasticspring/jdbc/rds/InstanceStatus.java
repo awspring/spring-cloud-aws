@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,8 @@
  */
 
 package org.elasticspring.jdbc.rds;
+
+import org.elasticspring.core.support.documentation.RuntimeUse;
 
 /**
  * Enumeration that holds all possible Amazon RDS database instance states. Used by client code to check if the
@@ -29,18 +31,21 @@ public enum InstanceStatus {
 	 * Database state that is available during creation of the database. This is typically the case if the database is
 	 * started at the same time like the application is bootstrapped. In this case a retry will succeed.
 	 */
+	@RuntimeUse
 	CREATING(true, false),
 
 	/**
 	 * Database state that defines that the database is available. The database can be used at all, also a retry for a
 	 * temporary problem (like a dead-lock) is likely to succeed if called twice.
 	 */
+	@RuntimeUse
 	AVAILABLE(true, true),
 
 	/**
 	 * Database state which defines that the database instance is rebooting. This can happen during a user initiated
 	 * reboot. A second attempt is likely to succeed especially in the combination with a replicated Multi A/Z instance.
 	 */
+	@RuntimeUse
 	REBOOTING(true, false);
 
 	/**
