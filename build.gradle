@@ -100,6 +100,7 @@ project('elasticspring-core') {
             exclude module: "activation"
         }
         compile("org.springframework:spring-beans:${springFrameworkVersion}")
+        optional('org.bouncycastle:bcprov-jdk16:1.46')
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-context:${springFrameworkVersion}")
     }

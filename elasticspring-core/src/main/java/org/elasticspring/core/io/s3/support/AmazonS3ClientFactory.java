@@ -21,11 +21,35 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.EncryptionMaterials;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMReader;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.elasticspring.core.region.ServiceEndpoint;
 import org.springframework.core.io.Resource;
 
 import javax.crypto.SecretKey;
+import java.io.FileReader;
+import java.io.IOException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -44,7 +68,8 @@ public class AmazonS3ClientFactory {
 	private boolean anonymous;
 	private KeyPair keyPairRef;
 	private SecretKey symmetricKeyRef;
-	private Resource keyPairResource;
+	private Resource privateKeyResource;
+	private Resource publicKeyResource;
 	private Resource symmetricKeyResource;
 
 	public AmazonS3ClientFactory(AWSCredentialsProvider credentials) {
@@ -75,12 +100,20 @@ public class AmazonS3ClientFactory {
 		this.symmetricKeyRef = symmetricKeyRef;
 	}
 
-	public Resource getKeyPairResource() {
-		return this.keyPairResource;
+	public Resource getPrivateKeyResource() {
+		return this.privateKeyResource;
 	}
 
-	public void setKeyPairResource(Resource keyPairResource) {
-		this.keyPairResource = keyPairResource;
+	public void setPrivateKeyResource(Resource privateKeyResource) {
+		this.privateKeyResource = privateKeyResource;
+	}
+
+	public Resource getPublicKeyResource() {
+		return this.publicKeyResource;
+	}
+
+	public void setPublicKeyResource(Resource publicKeyResource) {
+		this.publicKeyResource = publicKeyResource;
 	}
 
 	public Resource getSymmetricKeyResource() {
@@ -121,7 +154,14 @@ public class AmazonS3ClientFactory {
 			encryptionMaterials = new EncryptionMaterials(this.keyPairRef);
 		}
 
-		// TODO read key resource (*.pem) and create a KeyPair
+		if (this.privateKeyResource != null && this.privateKeyResource.exists()) {
+			try {
+				KeyPair keyPair = createKeyPair();
+				encryptionMaterials = new EncryptionMaterials(keyPair);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		if (this.symmetricKeyRef != null) {
 			encryptionMaterials = new EncryptionMaterials(this.symmetricKeyRef);
@@ -141,7 +181,85 @@ public class AmazonS3ClientFactory {
 	}
 
 	private boolean isEncryptionClient() {
-		return this.anonymous || this.keyPairRef != null || (this.keyPairResource != null && this.keyPairResource.exists()) ||
+		return this.anonymous || this.keyPairRef != null || (this.privateKeyResource != null && this.privateKeyResource.exists()) ||
 				this.symmetricKeyRef != null || (this.symmetricKeyResource != null && this.symmetricKeyResource.exists());
+	}
+
+	private KeyPair createKeyPair() {
+		if (!this.publicKeyResource.exists() || !this.privateKeyResource.exists()) {
+			// TODO throw an appropriate exception...
+		}
+
+		Security.addProvider(new BouncyCastleProvider());
+		try {
+			PublicKey publicKey = createPublicKey();
+			PrivateKey privateKey = createPrivateKey();
+			return new KeyPair(publicKey, privateKey);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private PrivateKey createPrivateKey() throws IOException {
+		FileReader fileReader = null;
+		PEMReader pemReader = null;
+		ASN1InputStream asn1InputStream = null;
+		try {
+			fileReader = new FileReader(this.getPrivateKeyResource().getFile());
+			pemReader = new PEMReader(fileReader);
+			PemObject pemObject = pemReader.readPemObject();
+			asn1InputStream = new ASN1InputStream(pemObject.getContent());
+			PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption, new DERNull()), asn1InputStream.readObject());
+			RSAKeyParameters rsaPrivateParams = (RSAKeyParameters) PrivateKeyFactory.createKey(privateKeyInfo);
+			RSAPrivateKeySpec rsaPrivateSpec = new RSAPrivateKeySpec(rsaPrivateParams.getModulus(), rsaPrivateParams.getExponent());
+			return KeyFactory.getInstance("RSA").generatePrivate(rsaPrivateSpec);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			e.printStackTrace();
+		} finally {
+			if (pemReader != null) {
+				pemReader.close();
+			}
+			if (fileReader != null) {
+				fileReader.close();
+			}
+			if (asn1InputStream != null) {
+				asn1InputStream.close();
+			}
+		}
+		return null;
+	}
+
+	private PublicKey createPublicKey() throws IOException {
+		FileReader fileReader = null;
+		PEMReader pemReader = null;
+		try {
+			fileReader = new FileReader(this.getPublicKeyResource().getFile());
+			pemReader = new PEMReader(fileReader);
+			PemObject pemObject = pemReader.readPemObject();
+			SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo((ASN1Sequence) ASN1Object.fromByteArray(pemObject.getContent()));
+
+			RSAKeyParameters rsaPublicParams = (RSAKeyParameters) PublicKeyFactory.createKey(subjectPublicKeyInfo);
+			RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(rsaPublicParams.getModulus(), rsaPublicParams.getExponent());
+			return KeyFactory.getInstance("RSA").generatePublic(rsaPublicKeySpec);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			e.printStackTrace();
+		} finally {
+			if (pemReader != null) {
+				pemReader.close();
+			}
+			if (fileReader != null) {
+				fileReader.close();
+			}
+		}
+		return null;
 	}
 }
