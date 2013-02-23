@@ -20,7 +20,7 @@ import org.elasticspring.context.config.AmazonS3FactoryBean;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.elasticspring.core.io.s3.S3ServiceEndpoint;
+import org.elasticspring.core.region.Region;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -65,10 +65,10 @@ class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefiniti
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
 		if (StringUtils.hasText(element.getAttribute("region"))) {
-			beanDefinitionBuilder.addConstructorArgValue(S3ServiceEndpoint.valueOf(element.getAttribute("region")));
+			beanDefinitionBuilder.addConstructorArgValue(Region.valueOf(element.getAttribute("region")));
 			parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
 		} else {
-			beanDefinitionBuilder.addConstructorArgValue(S3ServiceEndpoint.US_STANDARD);
+			beanDefinitionBuilder.addConstructorArgValue(Region.US_STANDARD);
 		}
 
 		parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
