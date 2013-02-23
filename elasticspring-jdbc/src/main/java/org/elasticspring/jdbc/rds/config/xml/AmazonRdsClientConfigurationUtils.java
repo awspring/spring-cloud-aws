@@ -17,11 +17,15 @@
 package org.elasticspring.jdbc.rds.config.xml;
 
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.region.StaticRegionProvider;
 import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Utility class which configure the {@link AmazonRdsClientFactoryBean} to make it available in the application context
@@ -37,13 +41,28 @@ class AmazonRdsClientConfigurationUtils {
 	static final String RDS_CLIENT_BEAN_NAME = "RDS_CLIENT";
 
 	static BeanDefinitionHolder registerAmazonRdsClient(
-			BeanDefinitionRegistry registry, Object source) {
+			BeanDefinitionRegistry registry, Element source, ParserContext parserContext) {
 
 		if (!registry.containsBeanDefinition(RDS_CLIENT_BEAN_NAME)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsClientFactoryBean.class);
 			builder.getRawBeanDefinition().setSource(source);
 			builder.getRawBeanDefinition().setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+
+			if (StringUtils.hasText(source.getAttribute("region-provider-ref")) && StringUtils.hasText(source.getAttribute("region"))) {
+				parserContext.getReaderContext().error("region and region-provider-ref attribute must not be used together", source);
+			}
+
+			if (StringUtils.hasText(source.getAttribute("region-provider-ref"))) {
+				builder.addPropertyReference("regionProvider", source.getAttribute("region-provider-ref"));
+			} else {
+				if (StringUtils.hasText(source.getAttribute("region"))) {
+					BeanDefinitionBuilder regionProvider = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
+					regionProvider.addConstructorArgValue(source.getAttribute("region"));
+					builder.addPropertyValue("regionProvider", regionProvider.getBeanDefinition());
+				}
+			}
+
 			registry.registerBeanDefinition(RDS_CLIENT_BEAN_NAME, builder.getBeanDefinition());
 		}
 

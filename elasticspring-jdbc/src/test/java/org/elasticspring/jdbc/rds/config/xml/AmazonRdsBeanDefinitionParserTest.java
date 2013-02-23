@@ -33,11 +33,13 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.sql.DataSource;
 
@@ -200,5 +202,50 @@ public class AmazonRdsBeanDefinitionParserTest {
 		for (PropertyValue propertyValue : dataSourceFactory.getPropertyValues().getPropertyValueList()) {
 			Assert.assertEquals(beanWrapper.getPropertyValue(propertyValue.getName()).toString(), propertyValue.getValue());
 		}
+	}
+
+	@Test
+	public void testCustomRegion() throws Exception {
+
+		//Using a bean factory to disable eager creation of singletons
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegion.xml", getClass()));
+
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+
+		//have to use reflection utils
+		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+
+	}
+
+	@Test
+	public void testCustomRegionProvider() throws Exception {
+
+		//Using a bean factory to disable eager creation of singletons
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegionProvider.xml", getClass()));
+
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+
+		//have to use reflection utils
+		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+
+	}
+
+	@Test
+	public void testCustomRegionProviderAndRegion() throws Exception {
+
+		this.expectedException.expect(BeanDefinitionParsingException.class);
+		this.expectedException.expectMessage("not be used together");
+
+		//noinspection ResultOfObjectAllocationIgnored
+		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegionProviderAndRegion.xml", getClass());
+
 	}
 }

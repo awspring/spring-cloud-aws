@@ -50,7 +50,7 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
 
-		BeanDefinitionHolder holder = AmazonRdsClientConfigurationUtils.registerAmazonRdsClient(parserContext.getRegistry(), element);
+		BeanDefinitionHolder holder = AmazonRdsClientConfigurationUtils.registerAmazonRdsClient(parserContext.getRegistry(), element, parserContext);
 
 		//Constructor (mandatory) args
 		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
