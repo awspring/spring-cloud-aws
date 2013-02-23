@@ -82,7 +82,7 @@ public class CredentialsBeanDefinitionParserTest {
 	@Test
 	public void testWithEmptyAccessKey() throws Exception {
 		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("The 'access-Key' attribute must not be empty");
+		this.expectedException.expectMessage("The 'access-key' attribute must not be empty");
 		//noinspection ResultOfObjectAllocationIgnored
 		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithEmptyAccessKey.xml", getClass());
 	}
@@ -90,7 +90,7 @@ public class CredentialsBeanDefinitionParserTest {
 	@Test
 	public void testWithEmptySecretKey() throws Exception {
 		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("The 'secret-Key' attribute must not be empty");
+		this.expectedException.expectMessage("The 'secret-key' attribute must not be empty");
 		//noinspection ResultOfObjectAllocationIgnored
 		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithEmptySecretKey.xml", getClass());
 	}
