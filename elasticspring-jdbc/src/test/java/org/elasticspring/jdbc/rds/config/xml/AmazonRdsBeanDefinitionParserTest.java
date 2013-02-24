@@ -214,7 +214,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegion.xml", getClass()));
 
-		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRDS.class);
 
 		//have to use reflection utils
 		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
@@ -231,7 +231,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegionProvider.xml", getClass()));
 
-		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRDS.class);
 
 		//have to use reflection utils
 		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
