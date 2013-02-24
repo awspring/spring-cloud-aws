@@ -79,7 +79,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 
 	@Test
 	public void testCustomMaxNumberOfRetries() throws Exception {
-		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-maxNUmberOfRetries.xml", getClass());
+		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-maxNumberOfRetries.xml", getClass());
 		BeanDefinition beanDefinition = classPathXmlApplicationContext.getBeanFactory().getBeanDefinition("interceptor");
 		BeanDefinition retryOperations = (BeanDefinition) beanDefinition.getPropertyValues().getPropertyValue("retryOperations").getValue();
 		BeanDefinition compositeRetryPolicy = (BeanDefinition) retryOperations.getPropertyValues().getPropertyValue("retryPolicy").getValue();
