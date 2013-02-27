@@ -115,29 +115,42 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
-			<xsd:attribute name="region" type="regionType" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>The region that will be used by this context loader. As Amazon S3 has a global
-						region this setting is optional and only useful to use the more direct endpoint to access the S3
-						resource. The resources are however (in contrast to other services) visible with every region.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="region-provider-ref" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.elasticspring.core.region.RegionProvider" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:complexContent>
+				<xsd:extension base="locationAwareType" />
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:complexType name="locationAwareType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Abstract type which can be extended by components which are location and hence region aware. This type
+				allows users to configure the particular region.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="region" type="regionType" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>The region that will be used by this context loader. As Amazon S3 has a global
+					region this setting is optional and only useful to use the more direct endpoint to access the S3
+					resource. The resources are however (in contrast to other services) visible with every region.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="region-provider-ref" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+								type="org.elasticspring.core.region.RegionProvider" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+
 	<xsd:complexType name="simpleCredentialsType">
-		<xsd:attribute name="access-Key" use="required">
+		<xsd:attribute name="access-key" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
 					The access key used to make the request. An access key is assigned to one account or IAM user.
@@ -149,7 +162,7 @@
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="secret-Key" use="required">
+		<xsd:attribute name="secret-key" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
 					The secret key which is assigned for the particular access key.

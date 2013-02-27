@@ -44,8 +44,8 @@ import java.util.List;
  */
 class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-Key";
-	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-Key";
+	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
+	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-key";
 
 
 	@Override
