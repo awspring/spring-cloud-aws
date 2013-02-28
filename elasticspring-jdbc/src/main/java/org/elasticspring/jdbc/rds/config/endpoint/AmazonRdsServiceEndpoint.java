@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.config.xml;
+package org.elasticspring.jdbc.rds.config.endpoint;
 
+import org.elasticspring.core.region.ConfigurableServiceEndpoint;
+import org.elasticspring.core.region.Region;
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
-import org.elasticspring.jdbc.rds.config.xml.AmazonRdsRetryInterceptorBeanDefinitionParser;
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring 'jdbc' name
- * space.
- *
  * @author Agim Emruli
  * @since 1.0
  */
 @RuntimeUse
-public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
+public class AmazonRdsServiceEndpoint extends ConfigurableServiceEndpoint {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
-		registerBeanDefinitionParser("retry-interceptor", new AmazonRdsRetryInterceptorBeanDefinitionParser());
+	private static final String SERVICE_NAME = "rds";
+
+	public AmazonRdsServiceEndpoint(Region region) {
+		super(region, SERVICE_NAME);
 	}
 }

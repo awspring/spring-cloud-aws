@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright 2010-2012 the original author or authors.
+  ~ Copyright 2013 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +16,22 @@
   -->
 
 <xsd:schema xmlns="http://www.elasticspring.org/schema/jdbc"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:els-context="http://www.elasticspring.org/schema/context"
 			targetNamespace="http://www.elasticspring.org/schema/jdbc"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xsd:import namespace="http://www.springframework.org/schema/beans"
-				schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
 				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
+	<xsd:import namespace="http://www.elasticspring.org/schema/context"
+				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
 
 	<xsd:element name="dataSource">
 		<xsd:annotation>
 			<xsd:documentation source="java:org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean">
 				<![CDATA[
-	Creates an Amazon RDS backed data source to other beans as a javax.sql.DataSource.
+	Creates an Amazon RDS backed datasource to other beans as a javax.sql.DataSource.
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -40,7 +41,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
+				<xsd:extension base="els-context:locationAwareType">
 					<xsd:sequence>
 						<xsd:element name="pool-attributes" type="poolAttributesType" minOccurs="0" maxOccurs="1">
 							<xsd:annotation>
@@ -50,25 +51,88 @@
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
+					<xsd:attribute name="id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The unique identifier for a bean. A bean id may not be used more than once
+					within the same <beans> element.
+								]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The name of the data base identifier in Amazon RDS
+					The name of the database identifier in Amazon RDS
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="username" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The user name that will be used to connect the database to
+					The user name that will be used to connect to the database
 												]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="password" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The password that will be used to connect the database to
+					The password that will be used to connect to the database
 						]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<xsd:element name="retry-interceptor">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor">
+				<![CDATA[
+	Creates an AOP Interceptor which can be used to retry database operations which failed due to transient error (e.g. connection lost due to failover)
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.aopalliance.intercept.MethodInterceptor" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="els-context:locationAwareType">
+					<xsd:attribute name="id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+										The unique identifier for a bean. A bean id may not be used more than once
+										within the same <beans> element.
+													]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The name of the database identifier in Amazon RDS instance. Should be the same as the database instance used inside the operations that will be retried.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The maximum number of retries the interceptor will re-execute the call after an error happended
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					The reference to a BackOffPolicy which defines what should happen between retry approaches. Normally a back-off-policy will sleep in between the retry attempts.
+						]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.retry.backoff.BackOffPolicy" />
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -251,7 +315,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Timeout in seconds before an abandoned(in use) connection can be removed. The default value is 60
-					(60 seconds). The value should be set to the longest running query your applications might have.
+					(seconds). The value should be set to the longest running query your applications might have.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

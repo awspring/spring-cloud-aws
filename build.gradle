@@ -27,6 +27,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -58,6 +60,7 @@ subprojects {
     // Custom properties
     ext {
         springFrameworkVersion = "3.1.0.RELEASE"
+        springRetryVersion = "1.0.2.RELEASE"
         junitVersion = '4.10'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
@@ -130,9 +133,13 @@ project('elasticspring-jdbc') {
             exclude module: "tomcat-juli"
         }
 
+        optional("org.springframework.retry:spring-retry:${springRetryVersion}") {
+            exclude module: "spring-context"
+        }
+
         testRuntime("mysql:mysql-connector-java:5.1.16")
         testRuntime("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
-        testRuntime("org.springframework:spring-test:${springFrameworkVersion}")
+        testCompile("org.springframework:spring-test:${springFrameworkVersion}")
     }
 }
 
@@ -177,7 +184,11 @@ project('elasticspring-integration-test') {
         testRuntime("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
+        testRuntime("org.springframework.retry:spring-retry:${springRetryVersion}") {
+            exclude module: "spring-context"
+        }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
+        testRuntime("org.aspectj:aspectjweaver:1.7.1")
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }

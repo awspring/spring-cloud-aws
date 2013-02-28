@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
- * A map based implementation of the {@link DatabasePlatformSupport} interface. Sub classes must only provides map with
+ * A map based implementation of the {@link DatabasePlatformSupport} interface. Sub classes must only provide map with
  * the database specific information. This class takes care of asserting and computing the returned information.
  *
  * @author Agim Emruli
@@ -32,10 +32,10 @@ import java.util.Map;
 public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatformSupport {
 
 	/**
-	 * Return the driver class for the database platform.
+	 * Returns the driver class for the database platform.
 	 *
 	 * @param databaseType
-	 * 		- The data base type used to lookup the driver class name. Must not be null
+	 * 		- The database type used to lookup the driver class name. Must not be null
 	 * @return - The driver class name, is never null
 	 * @throws IllegalArgumentException
 	 * 		if there is not driver class name available for the DatabaseType
@@ -49,19 +49,19 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	}
 
 	/**
-	 * Construct the URL for the data base by using a {@link URI} to construct the URL
+	 * Constructs the URL for the database by using a {@link URI} to construct the URL
 	 *
 	 * @param databaseType
 	 * 		- The databaseType for which the URL should be constructed.
 	 * @param hostname
 	 * 		- The hostname without any port information used to connect to.
 	 * @param port
-	 * 		- The port used to connect to the data base
+	 * 		- The port used to connect to the database
 	 * @param databaseName
-	 * 		- The data base name used to connect to. The usage is implementation specific (e.g. for Oracle this is the SID)
-	 * @return - the data base specific URL
+	 * 		- The database name used to connect to. The usage is implementation specific (e.g. for Oracle this is the SID)
+	 * @return - the database specific URL
 	 * @throws IllegalArgumentException
-	 * 		if there is no scheme available for the database type or if the information are not valid to construct a URL.
+	 * 		if there is no scheme available for the database type or if the information is not valid to construct a URL.
 	 */
 	@Override
 	public String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName) {
@@ -76,22 +76,20 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	}
 
 	/**
-	 * Template method that must be implemented in order to retrieve all driver class name for every supported data base
+	 * Template method that must be implemented in order to retrieve all driver class names for every supported database
 	 * platform.
 	 *
-	 * @return Map containing the driver class name for every data base platform
+	 * @return Map containing the driver class name for every database platform
 	 */
 	protected abstract Map<DatabaseType, String> getDriverClassNameMappings();
 
 
 	/**
-	 * Template method that mus be implemented to get all scheme names for every supported data base platform. Scheme
-	 * names
-	 * are unfortunately only standardized in the root scheme (jdbc:) but not in the sub-scheme which is data base
-	 * platform
-	 * specific.
+	 * Template method that mus be implemented to get all scheme names for every supported database platform. Scheme
+	 * names are unfortunately only standardized in the root scheme (jdbc:) but not in the sub-scheme which is database
+	 * platform specific.
 	 *
-	 * @return Map containing the schema (and sub-scheme) names for every support data base platform
+	 * @return Map containing the schema (and sub-scheme) names for every support database platform
 	 */
 	protected abstract Map<DatabaseType, String> getSchemeNames();
 }

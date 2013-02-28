@@ -33,11 +33,13 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.sql.DataSource;
 
@@ -62,16 +64,16 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
 		beanDefinitionBuilder.setFactoryMethod("mock");
 		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
-		beanFactory.registerBeanDefinition(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+		beanFactory.registerBeanDefinition(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
 
 		//Load xml file
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		//Get the created mock object from the bean factory, data source has not ben initialized yet
-		AmazonRDS client = beanFactory.getBean(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		//Get the created mock object from the bean factory, datasource has not ben initialized yet
+		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
-		//Replay invocation that will be called during data source creation
+		//Replay invocation that will be called during datasource creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
@@ -110,16 +112,16 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
 		beanDefinitionBuilder.setFactoryMethod("mock");
 		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
-		beanFactory.registerBeanDefinition(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+		beanFactory.registerBeanDefinition(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
 
 		//Load xml file
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-fullConfiguration.xml", getClass()));
 
-		//Get the created mock object from the bean factory, data source has not ben initialized yet
-		AmazonRDS client = beanFactory.getBean(AmazonRdsBeanDefinitionParser.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
+		//Get the created mock object from the bean factory, datasource has not ben initialized yet
+		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
-		//Replay invocation that will be called during data source creation
+		//Replay invocation that will be called during datasource creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
@@ -200,5 +202,50 @@ public class AmazonRdsBeanDefinitionParserTest {
 		for (PropertyValue propertyValue : dataSourceFactory.getPropertyValues().getPropertyValueList()) {
 			Assert.assertEquals(beanWrapper.getPropertyValue(propertyValue.getName()).toString(), propertyValue.getValue());
 		}
+	}
+
+	@Test
+	public void testCustomRegion() throws Exception {
+
+		//Using a bean factory to disable eager creation of singletons
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegion.xml", getClass()));
+
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRDS.class);
+
+		//have to use reflection utils
+		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+
+	}
+
+	@Test
+	public void testCustomRegionProvider() throws Exception {
+
+		//Using a bean factory to disable eager creation of singletons
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRegionProvider.xml", getClass()));
+
+		AmazonRDS amazonRDS = beanFactory.getBean(AmazonRDS.class);
+
+		//have to use reflection utils
+		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+
+	}
+
+	@Test
+	public void testCustomRegionProviderAndRegion() throws Exception {
+
+		this.expectedException.expect(BeanDefinitionParsingException.class);
+		this.expectedException.expectMessage("not be used together");
+
+		//noinspection ResultOfObjectAllocationIgnored
+		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegionProviderAndRegion.xml", getClass());
+
 	}
 }
