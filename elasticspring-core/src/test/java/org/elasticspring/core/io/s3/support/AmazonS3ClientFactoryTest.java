@@ -7,7 +7,6 @@ import org.elasticspring.core.io.s3.S3ServiceEndpoint;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -67,19 +66,10 @@ public class AmazonS3ClientFactoryTest {
 		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 		keyPairGenerator.initialize(1024);
 		KeyPair keyPair = keyPairGenerator.generateKeyPair();
-		factory.setKeyPairRef(keyPair);
+		factory.setKeyPair(keyPair);
 
 		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
 		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
-	}
-
-	@Test
-	public void testInstantiationWithKeyPairResource() throws Exception {
-		AmazonS3ClientFactory amazonS3ClientFactory = getAmazonS3ClientFactory();
-
-		amazonS3ClientFactory.setPrivateKeyResource(new ClassPathResource("private-key.pem"));
-		amazonS3ClientFactory.setPublicKeyResource(new ClassPathResource("public-key.pem"));
-		AmazonS3 clientForServiceEndpoint = amazonS3ClientFactory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
 	}
 
 	@Test
@@ -88,7 +78,7 @@ public class AmazonS3ClientFactoryTest {
 
 		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
 		SecretKey secretKey = keyGenerator.generateKey();
-		factory.setSymmetricKeyRef(secretKey);
+		factory.setSymmetricKey(secretKey);
 
 		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
 		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);

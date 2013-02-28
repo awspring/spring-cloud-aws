@@ -20,6 +20,8 @@ import org.elasticspring.context.config.AmazonS3FactoryBean;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.elasticspring.core.io.s3.encryption.KeyPairFactoryBean;
+import org.elasticspring.core.io.s3.encryption.SymmetricKeyFactoryBean;
 import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
 import org.elasticspring.core.region.Region;
 import org.elasticspring.core.region.StaticRegionProvider;
@@ -60,6 +62,16 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
 	}
 
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+		return PathMatchingSimpleStorageResourcePatternResolver.class.getName();
+	}
+
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return PathMatchingSimpleStorageResourcePatternResolver.class;
+	}
+
 	private static void addRegionProviderBeanDefinition(Element element, ParserContext parserContext, BeanDefinitionBuilder parent) {
 		if (StringUtils.hasText(element.getAttribute("region")) && StringUtils.hasText(element.getAttribute("region-provider-ref"))) {
 			parserContext.getReaderContext().error("region and region-provider-ref attribute must not be used together", element);
@@ -73,7 +85,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
 		if (StringUtils.hasText(element.getAttribute("region"))) {
-			beanDefinitionBuilder.addConstructorArgValue(Region.valueOf(element.getAttribute("region")));
+			beanDefinitionBuilder.addConstructorArgValue(element.getAttribute("region"));
 			parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
 		} else {
 			beanDefinitionBuilder.addConstructorArgValue(Region.US_STANDARD);
@@ -103,68 +115,14 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 			}
 
 			List<Element> elements = DomUtils.getChildElements(clientEncryption);
-			boolean keyPairSet = false;
-			boolean symmetricKeySet = false;
 			for (Element encryptionKeyElement : elements) {
 				if ("key-pair".equals(encryptionKeyElement.getLocalName())) {
-					keyPairSet = true;
-					boolean keyPairRefSet = false;
-					boolean keyPairResourceSet = false;
-
-					String keyPairRef = encryptionKeyElement.getAttribute("key-ref");
-					if (StringUtils.hasText(keyPairRef)) {
-						amazonS3ClientFactoryBeanBuilder.addPropertyReference("keyPairRef", keyPairRef);
-						keyPairRefSet = true;
-					}
-
-					String keyPairResource = encryptionKeyElement.getAttribute("key-resource");
-					if (StringUtils.hasText(keyPairResource)) {
-						amazonS3ClientFactoryBeanBuilder.addPropertyValue("keyPairResource", keyPairResource);
-						keyPairResourceSet = true;
-					}
-
-					if (keyPairRefSet && keyPairResourceSet) {
-						parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'key-pair' element.", encryptionKeyElement);
-					}
-
-					if (!keyPairRefSet && !keyPairResourceSet) {
-						parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'key-pair'.", encryptionKeyElement);
-					}
+					parseKeyPair(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
 				}
 
 				if ("symmetric-key".equals(encryptionKeyElement.getLocalName())) {
-					symmetricKeySet = true;
-					boolean symmetricKeyRefSet = false;
-					boolean symmetricKeyResourceSet = false;
-
-					String symmetricKeyRef = encryptionKeyElement.getAttribute("key-ref");
-					if (StringUtils.hasText(symmetricKeyRef)) {
-						amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKeyRef", symmetricKeyRef);
-						symmetricKeyRefSet = true;
-					}
-
-					String symmetricKeyResource = encryptionKeyElement.getAttribute("key-resource");
-					if (StringUtils.hasText(symmetricKeyResource)) {
-						amazonS3ClientFactoryBeanBuilder.addPropertyValue("symmetricKeyResource", symmetricKeyResource);
-						symmetricKeyResourceSet = true;
-					}
-
-					if (symmetricKeyRefSet && symmetricKeyResourceSet) {
-						parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'symmetric-key' element.", encryptionKeyElement);
-					}
-
-					if (!symmetricKeyRefSet && !symmetricKeyResourceSet) {
-						parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'symmetric-key'.", encryptionKeyElement);
-					}
+					parseSymmetricKey(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
 				}
-			}
-
-			if (symmetricKeySet && keyPairSet) {
-				parserContext.getReaderContext().error("'key-pair' and 'symmetric-key' are not allowed together inside a 'client-encryption' element.", clientEncryption);
-			}
-
-			if (!symmetricKeySet && !keyPairSet) {
-				parserContext.getReaderContext().error("Either element 'key-pair' or 'symmetric-key' must be defined inside a 'client-encryption' element.", clientEncryption);
 			}
 
 		}
@@ -172,13 +130,61 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		return amazonS3ClientFactoryBeanBuilder.getBeanDefinition();
 	}
 
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return PathMatchingSimpleStorageResourcePatternResolver.class.getName();
+	private static void parseKeyPair(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
+		boolean keyPairRefSet = false;
+		boolean keyPairResourceSet = false;
+
+		String keyPairRef = encryptionKeyElement.getAttribute("key-ref");
+		if (StringUtils.hasText(keyPairRef)) {
+			amazonS3ClientFactoryBeanBuilder.addPropertyReference("keyPair", keyPairRef);
+			keyPairRefSet = true;
+		}
+
+		String privateKeyResource = encryptionKeyElement.getAttribute("private-key-resource");
+		String publicKeyResource = encryptionKeyElement.getAttribute("public-key-resource");
+		if (StringUtils.hasText(privateKeyResource) && StringUtils.hasText(publicKeyResource)) {
+			BeanDefinitionBuilder keyPairFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(KeyPairFactoryBean.class);
+			keyPairFactoryBeanBuilder.addConstructorArgValue(privateKeyResource);
+			keyPairFactoryBeanBuilder.addConstructorArgValue(publicKeyResource);
+			amazonS3ClientFactoryBeanBuilder.addPropertyValue("keyPair", keyPairFactoryBeanBuilder.getBeanDefinition());
+			keyPairResourceSet = true;
+		}
+
+		if (keyPairRefSet && keyPairResourceSet) {
+			parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'key-pair' element.", encryptionKeyElement);
+		}
+
+		if (!keyPairRefSet && !keyPairResourceSet) {
+			parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'key-pair'.", encryptionKeyElement);
+		}
 	}
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return PathMatchingSimpleStorageResourcePatternResolver.class;
+	private static void parseSymmetricKey(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
+		boolean symmetricKeyRefSet = false;
+		boolean symmetricKeyResourceSet = false;
+
+		String symmetricKeyRef = encryptionKeyElement.getAttribute("key-ref");
+		if (StringUtils.hasText(symmetricKeyRef)) {
+			amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKeyRef", symmetricKeyRef);
+			symmetricKeyRefSet = true;
+		}
+
+		String password = encryptionKeyElement.getAttribute("password");
+		String salt = encryptionKeyElement.getAttribute("salt");
+		if (StringUtils.hasText(password) && StringUtils.hasText(salt)) {
+			BeanDefinitionBuilder symmetricKeyFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(SymmetricKeyFactoryBean.class);
+			symmetricKeyFactoryBeanBuilder.addConstructorArgValue(password);
+			symmetricKeyFactoryBeanBuilder.addConstructorArgValue(salt);
+			amazonS3ClientFactoryBeanBuilder.addPropertyValue("symmetricKey", symmetricKeyFactoryBeanBuilder.getBeanDefinition());
+			symmetricKeyResourceSet = true;
+		}
+
+		if (symmetricKeyRefSet && symmetricKeyResourceSet) {
+			parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'symmetric-key' element.", encryptionKeyElement);
+		}
+
+		if (!symmetricKeyRefSet && !symmetricKeyResourceSet) {
+			parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'symmetric-key'.", encryptionKeyElement);
+		}
 	}
 }

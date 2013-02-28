@@ -87,36 +87,37 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="client-encryption" minOccurs="0" maxOccurs="1">
-					<xsd:annotation>
-						<xsd:documentation>
-							Configures a client side encryption resource loader.
-						</xsd:documentation>
-					</xsd:annotation>
-					<xsd:complexType>
-						<xsd:choice>
-							<xsd:element name="symmetric-key" type="symmetricKeyType" minOccurs="0" maxOccurs="1">
-								<xsd:annotation>
-									<xsd:documentation>
-										Configures the symmetric key to use for encryption.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:element>
-							<xsd:element name="key-pair" type="keyPairType" minOccurs="0" maxOccurs="1">
-								<xsd:annotation>
-									<xsd:documentation>
-										Configures the key pair to use for encryption.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:element>
-						</xsd:choice>
-						<xsd:attribute name="anonymous" type="xsd:boolean" default="false" />
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:sequence>
 			<xsd:complexContent>
-				<xsd:extension base="locationAwareType" />
+				<xsd:extension base="locationAwareType">
+					<xsd:sequence>
+						<xsd:element name="client-encryption" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>
+									Configures a client side encryption resource loader.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:complexType>
+								<xsd:choice>
+									<xsd:element name="symmetric-key" type="symmetricKeyType" minOccurs="0" maxOccurs="1">
+										<xsd:annotation>
+											<xsd:documentation>
+												Configures the symmetric key to use for encryption.
+											</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element name="key-pair" type="keyPairType" minOccurs="0" maxOccurs="1">
+										<xsd:annotation>
+											<xsd:documentation>
+												Configures the key pair to use for encryption.
+											</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+								</xsd:choice>
+								<xsd:attribute name="anonymous" type="xsd:boolean" default="false" />
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -253,7 +254,7 @@
 	</xsd:simpleType>
 
 	<xsd:complexType name="symmetricKeyType">
-		<xsd:attribute name="key-ref" type="xsd:string">
+		<xsd:attribute name="key-ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a reference to a bean which must be an instance of javax.crypto.SecretKey
@@ -265,17 +266,24 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="key-resource" type="xsd:string">
+		<xsd:attribute name="password" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Path to symmetric key file
+					The password used for the generation of an AES key. If this attribute is set, then the salt attribute must also be set.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="salt" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The salt used for the generation of an AES key. If this attribute is set, the the password attribute must also be set.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="keyPairType">
-		<xsd:attribute name="key-ref" type="xsd:string">
+		<xsd:attribute name="key-ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a reference to a bean which must be an instance of java.security.KeyPair
@@ -287,10 +295,17 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="key-resource" type="xsd:string">
+		<xsd:attribute name="private-key-resource" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Path to key pair file (*.pem)
+					Path to RSA encoded file (*.pem)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="public-key-resource" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Path to RSA encoded file (*.pem)
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
