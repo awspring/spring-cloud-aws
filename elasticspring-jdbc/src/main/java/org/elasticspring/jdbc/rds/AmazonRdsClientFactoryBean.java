@@ -25,6 +25,7 @@ import org.elasticspring.core.region.ServiceEndpoint;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.jdbc.rds.config.endpoint.AmazonRdsServiceEndpoint;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} implementation for the {@link AmazonRDS} service. This factory
@@ -48,6 +49,7 @@ public class AmazonRdsClientFactoryBean extends AbstractFactoryBean<AmazonRDS> {
 	 * 		- The credentials provider - must not be null
 	 */
 	public AmazonRdsClientFactoryBean(AWSCredentialsProvider awsCredentialsProvider) {
+		Assert.notNull(awsCredentialsProvider, "awsCredentialsProvider must not be null.");
 		this.awsCredentialsProvider = awsCredentialsProvider;
 	}
 

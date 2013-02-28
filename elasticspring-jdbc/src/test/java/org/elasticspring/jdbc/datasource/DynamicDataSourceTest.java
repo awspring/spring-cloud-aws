@@ -227,7 +227,7 @@ public class DynamicDataSourceTest {
 		//Make sure that the thread as actually ramped up
 		countDownLatch.await(1, TimeUnit.SECONDS);
 
-		//Destroy data source
+		//Destroy datasource
 		dynamicDataSource.destroyDataSource();
 
 		//Await background thread to be shut down

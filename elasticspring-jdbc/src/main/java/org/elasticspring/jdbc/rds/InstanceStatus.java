@@ -51,7 +51,7 @@ public enum InstanceStatus {
 	/**
 	 * boolean flag indicating if a second attempt to execute the operation will succeed
 	 */
-	private final boolean retryAble;
+	private final boolean retryable;
 
 	/**
 	 * boolean flag indicating if the database is available from the management perspective of Amazon RDS
@@ -60,27 +60,29 @@ public enum InstanceStatus {
 
 
 	InstanceStatus(boolean retryable, boolean available) {
-		this.retryAble = retryable;
+		this.retryable = retryable;
 		this.available = available;
 	}
 
 	/**
-	 * Operation that returns if a second call will likely succeed. This is typically the case if the database is down for
-	 * temporary reasons like a reboot after a configuration change, or a multi a/z failover until the DNS record is
-	 * updated. Clients should wait some time (e.g. up until 3 minutes) before retrying their last database operation.
+	 * Operation that returns <code>true</code> if a second call will likely succeed. This is typically the case if the
+	 * database is down for temporary reasons like a reboot after a configuration change, or a multi a/z failover until
+	 * the DNS record is updated. Clients should wait some time (e.g. up until 3 minutes) before retrying their last
+	 * database operation.
 	 *
-	 * @return true if the operation is retryable, false otherwise
+	 * @return <code>true</code> if the operation is retryable, <code>false</code> otherwise
 	 */
 	public boolean isRetryable() {
-		return this.retryAble;
+		return this.retryable;
 	}
 
 	/**
-	 * Operation that returns if the database is available from the Amazon RDS perspective. That does not necessarily mean
-	 * that there is a connection possible to that database itself. Due to wrong/missing rule in the security credentials
-	 * it might be possible that a database is available but not connectible through the JDBC protocol.
+	 * Operation that returns <code>true</code> if the database is available from the Amazon RDS perspective. That does
+	 * not necessarily mean that there is a connection possible to that database itself. Due to wrong/missing rule in
+	 * the security credentials it might be possible that a database is available but not connectible through the JDBC
+	 * protocol.
 	 *
-	 * @return true if the database is available
+	 * @return <code>true</code> if the database is available, <code>false</code> otherwise
 	 */
 	public boolean isAvailable() {
 		return this.available;

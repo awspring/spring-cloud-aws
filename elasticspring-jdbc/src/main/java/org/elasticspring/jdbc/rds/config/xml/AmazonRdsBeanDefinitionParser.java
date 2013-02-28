@@ -31,7 +31,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 /**
- * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the data source
+ * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the datasource
  * element. Parses the element and constructs a fully configured {@link AmazonRdsDataSourceFactoryBean} bean
  * definition. Also creates a bean definition for the {@link AmazonRdsClientFactoryBean} if there is not already an
  * existing one this application context.
@@ -73,7 +73,7 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 	 * (through setting the bean properties).
 	 *
 	 * @param element
-	 * 		- The data source element which may contain a pool-attributes element
+	 * 		- The datasource element which may contain a pool-attributes element
 	 * @return - fully configured bean definition for the DataSourceFactory
 	 */
 	private static AbstractBeanDefinition createDataSourceFactoryBeanDefinition(Element element) {

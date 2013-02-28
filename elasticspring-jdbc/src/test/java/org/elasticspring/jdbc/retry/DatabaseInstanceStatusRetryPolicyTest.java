@@ -72,7 +72,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	@Test
 	public void testMultipleDatabasesFoundForInstanceIdentifier() throws Exception {
 		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("Multiple data bases found for same identifier");
+		this.expectedException.expectMessage("Multiple databases found for same identifier");
 
 		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
 

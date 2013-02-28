@@ -70,10 +70,10 @@ public class AmazonRdsBeanDefinitionParserTest {
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		//Get the created mock object from the bean factory, data source has not ben initialized yet
+		//Get the created mock object from the bean factory, datasource has not ben initialized yet
 		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
-		//Replay invocation that will be called during data source creation
+		//Replay invocation that will be called during datasource creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
@@ -118,10 +118,10 @@ public class AmazonRdsBeanDefinitionParserTest {
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-fullConfiguration.xml", getClass()));
 
-		//Get the created mock object from the bean factory, data source has not ben initialized yet
+		//Get the created mock object from the bean factory, datasource has not ben initialized yet
 		AmazonRDS client = beanFactory.getBean(AmazonRdsClientConfigurationUtils.RDS_CLIENT_BEAN_NAME, AmazonRDS.class);
 
-		//Replay invocation that will be called during data source creation
+		//Replay invocation that will be called during datasource creation
 		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().

@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Simple implementation that holds statically all information for the data base platform.
+ * Simple implementation that holds statically all information for the database platform.
  *
  * @author Agim Emruli
  * @since 1.0

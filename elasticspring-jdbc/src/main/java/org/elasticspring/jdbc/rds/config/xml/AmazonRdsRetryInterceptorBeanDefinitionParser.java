@@ -31,7 +31,7 @@ import org.w3c.dom.Element;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation for the
- * <code>retry-interceptor</code> element. This parser produce a {@link org.aopalliance.intercept.MethodInterceptor}
+ * <code>retry-interceptor</code> element. This parser produces a {@link org.aopalliance.intercept.MethodInterceptor}
  * which can be used by advice to intercept method calls and retry their particular operation.
  *
  * @author Agim Emruli
@@ -45,7 +45,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 	private static final String RETRY_OPERATIONS_CLASS_NAME = "org.springframework.retry.support.RetryTemplate";
 
 	/**
-	 * Class name use for the policy, which is a composition of two policies (database instance status and SQL error code)
+	 * Class name used for the policy, which is a composition of two policies (database instance status and SQL error code)
 	 */
 	private static final String COMPOSITE_RETRY_POLICY_CLASS_NAME = "org.springframework.retry.policy.CompositeRetryPolicy";
 
@@ -55,7 +55,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 	private static final String MAX_NUMBER_OF_RETRIES = "max-number-of-retries";
 
 	/**
-	 * Attribute name to a custom back of policy
+	 * Attribute name to a custom back off policy
 	 */
 	private static final String BACK_OFF_POLICY = "back-off-policy";
 
@@ -65,7 +65,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 	}
 
 	/**
-	 * Build the RetryOperation {@link BeanDefinition} with its collaborators
+	 * Builds the RetryOperation {@link BeanDefinition} with its collaborators
 	 *
 	 * @param element
 	 * 		- <code>retry-interceptor Element</code>

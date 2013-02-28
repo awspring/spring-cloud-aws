@@ -28,9 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
+import org.springframework.util.Assert;
 
 /**
- * {@link RetryPolicy} implementation that check if it is useful to retry a operation based on the database instance
+ * {@link RetryPolicy} implementation that checks if it is useful to retry an operation based on the database instance
  * status. This class retrieves that database state and verifies through the {@link InstanceStatus} enum operation if
  * it is useful to retry the operation. This class does not retrieve the status if there is no Throwable registered to
  * avoid any performance implication during normal operations.
@@ -70,18 +71,19 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	 * 		- database instance for which this class should check the state.
 	 */
 	public DatabaseInstanceStatusRetryPolicy(AmazonRDS amazonRDS, String dbInstanceIdentifier) {
+		Assert.notNull(amazonRDS, "amazonRDS must not be null.");
 		this.amazonRDS = amazonRDS;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
 	}
 
 	/**
 	 * Implementation that checks if there is an exception registered through {@link #registerThrowable(org.springframework.retry.RetryContext,
-	 * Throwable)}. Returns true  if there is no exception registered at all and verifies the database instance status if
+	 * Throwable)}. Returns <code>true</code> if there is no exception registered at all and verifies the database instance status if
 	 * there is one registered.
 	 *
 	 * @param context
 	 * 		- the retry context which may contain a registered exception
-	 * @return true if there is no exception registered or if there is a retry useful which is verified by the {@link
+	 * @return <code>true</code> if there is no exception registered or if there is a retry useful which is verified by the {@link
 	 *         InstanceStatus} enum.
 	 */
 	@Override
@@ -108,7 +110,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 			}
 			return instanceStatus.isRetryable();
 		} else {
-			throw new IllegalStateException("Multiple data bases found for same identifier, this is likely an incompatibility with the Amazon SDK");
+			throw new IllegalStateException("Multiple databases found for same identifier, this is likely an incompatibility with the Amazon SDK");
 		}
 	}
 

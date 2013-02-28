@@ -34,15 +34,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@link RetryPolicy} implementation that check for data base error which are retry able. Normally this are well known
+ * {@link RetryPolicy} implementation that checks for database error which are retryable. Normally this are well known
  * exceptions inside the JDBC (1.6) exception hierarchy and also the Spring {@link
- * org.springframework.dao.DataAccessException} hierarchy. In addition to that this class also tries for permanent
+ * org.springframework.dao.DataAccessException} hierarchy. In addition to that, this class also tries for permanent
  * exception which are related to a connection of the database. This is useful because Amazon RDS database instances
  * might be retryable even if there is a permanent error. This is typically the case in a master a/z failover where
- * the source instance might not be available but a second attempt might succeed because the DNS record has been update
+ * the source instance might not be available but a second attempt might succeed because the DNS record has been updated
  * to the failover instance.
  * <p/>
- * <p>In contrast to a {@link SimpleRetryPolicy} this class also check recursively the
+ * <p>In contrast to a {@link SimpleRetryPolicy} this class also checks recursively the
  * cause of the exception if there is a retryable implementation.</p>
  *
  * @author Agim Emruli
@@ -58,14 +58,14 @@ public class SqlRetryPolicy implements RetryPolicy {
 	private final BinaryExceptionClassifier binaryExceptionClassifier = new BinaryExceptionClassifier(getSqlRetryAbleExceptions(), false);
 
 	/**
-	 * Holds the maximum number of retries that should be tried if a exception is retryable
+	 * Holds the maximum number of retries that should be tried if an exception is retryable
 	 */
 	private int maxNumberOfRetries = 3;
 
 	/**
-	 * Returns all the exception for which a retry is useful
+	 * Returns all the exceptions for which a retry is useful
 	 *
-	 * @return - Map containing all retryable exception for the {@link BinaryExceptionClassifier}
+	 * @return - Map containing all retryable exceptions for the {@link BinaryExceptionClassifier}
 	 */
 	private static Map<Class<? extends Throwable>, Boolean> getSqlRetryAbleExceptions() {
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
@@ -78,15 +78,15 @@ public class SqlRetryPolicy implements RetryPolicy {
 
 	/**
 	 * Returns if this method is retryable based on the {@link RetryContext}. If there is no Throwable registered, then
-	 * this method returns true without checking any further conditions. If there is a Throwable registered, this class
-	 * check if the registered Throwable is retryable Exception in the context of SQL exception. If not successful, this
-	 * class also check the cause if there is a nested retryable exception available.
-	 * <p>Before checking exception this class check that the current retry count (fetched through {@link
-	 * org.springframework.retry.RetryContext#getRetryCount()} is smaller or equals the {@link #maxNumberOfRetries}</p>
+	 * this method returns <code>true</code> without checking any further conditions. If there is a Throwable registered,
+	 * this class checks if the registered Throwable is a retryable Exception in the context of SQL exception. If not
+	 * successful, this class also checks the cause if there is a nested retryable exception available.
+	 * <p>Before checking exception this class checks that the current retry count (fetched through {@link
+	 * org.springframework.retry.RetryContext#getRetryCount()} is smaller or equals to the {@link #maxNumberOfRetries}</p>
 	 *
 	 * @param context
-	 * 		- the retry context holding information about the retry able operation (number of retries, throwable if any)
-	 * @return true if there is no throwable registered, if there is a retry able exception and the number of maximum
+	 * 		- the retry context holding information about the retryable operation (number of retries, throwable if any)
+	 * @return <code>true</code> if there is no throwable registered, if there is a retryable exception and the number of maximum
 	 *         numbers of retries have not been reached.
 	 */
 	@Override

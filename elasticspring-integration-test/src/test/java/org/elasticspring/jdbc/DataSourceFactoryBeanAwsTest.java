@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * AWS backed integration test for the data source feature of the jdbc module
+ * AWS backed integration test for the datasource feature of the jdbc module
  *
  * @author Agim Emruli
  * @since 1.0

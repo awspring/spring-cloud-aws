@@ -21,7 +21,8 @@ import org.elasticspring.core.region.Region;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 
 /**
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
 @RuntimeUse
 public class AmazonRdsServiceEndpoint extends ConfigurableServiceEndpoint {

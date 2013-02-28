@@ -169,7 +169,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 
 	}
 
-	@Test //Test that the setters are not usable which will be configured at runtime during data source creation
+	@Test //Test that the setters are not usable which will be configured at runtime during datasource creation
 	public void testInvalidPoolAttributes() throws Exception {
 
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();

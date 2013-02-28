@@ -74,19 +74,18 @@ public class RdbmsRetryOperationsInterceptor extends RetryOperationsInterceptor 
 	}
 
 	/**
-	 * Return whenever there is already a proxy running inside this thread execution. To avoid multiple retries in the
-	 * case
-	 * if this bean is called by another bean which already has an RetryOperationsInterceptor.
+	 * Returns whenever there is already a proxy running inside this thread execution. To avoid multiple retries in the
+	 * case if this bean is called by another bean which already has a RetryOperationsInterceptor.
 	 *
-	 * @return true if there is a {@link org.springframework.retry.RetryContext} available inside the {@link
-	 *         RetrySynchronizationManager} or false otherwise.
+	 * @return <code>true</code> if there is a {@link org.springframework.retry.RetryContext} available inside the {@link
+	 *         RetrySynchronizationManager} or <code>false</code> otherwise.
 	 */
 	protected boolean isRetryContextOperationActive() {
 		return RetrySynchronizationManager.getContext() != null;
 	}
 
 	/**
-	 * Check that there is no current transaction active. This should never happen as this interceptor must run actually
+	 * Checks that there is no current transaction active. This should never happen as this interceptor must run actually
 	 * before a transaction is created, to ensure a new transaction is started while retrying.
 	 */
 	private static void assertNoTransactionActive() {

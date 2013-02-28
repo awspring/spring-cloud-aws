@@ -21,8 +21,8 @@ import org.springframework.util.Assert;
 
 /**
  * Immutable parameter object that holds all information needed by the {@link DataSourceFactory} implementation to
- * create a data source. The attributes inside this class represents the minimal information for the DataSourceFactory
- * to actually create the underlying data source.
+ * create a datasource. The attributes inside this class represents the minimal information for the DataSourceFactory
+ * to actually create the underlying datasource.
  * <p>This parameter object is used to allow a more flexible DataSourceFactory interface</p>
  *
  * @author Agim Emruli
@@ -42,16 +42,15 @@ public final class DataSourceInformation {
 	 * to allow the implementation to be immutable.
 	 *
 	 * @param databaseType
-	 * 		- The data base type used by the data source to connect to. This information will be typically used to
-	 * 		instantiate
-	 * 		and use the particular driver class to connect to the database platform.
+	 * 		- The database type used by the datasource to connect to. This information will be typically used to
+	 * 		instantiate and use the particular driver class to connect to the database platform.
 	 * @param hostName
 	 * 		- The fully qualified hostname without any protocol or port information (e.g. myDbServer.domain.com, localhost,
 	 * 		192.168.23.1)
 	 * @param port
-	 * 		-  The port used to connect to the particular data base platform (eg. 3306 as a default for mysql)
+	 * 		-  The port used to connect to the particular database platform (eg. 3306 as a default for mysql)
 	 * @param databaseName
-	 * 		- The data base name used to connect to the database. The meaning is database specific for (e.g for mysql the
+	 * 		- The database name used to connect to the database. The meaning is database specific for (e.g for mysql the
 	 * 		database name, for oracle the SID id)
 	 * @param userName
 	 * 		- The username used to connect to the database
@@ -75,7 +74,7 @@ public final class DataSourceInformation {
 	}
 
 	/**
-	 * Returns the data base type provided by this class. Represented by an enumeration based on the supported database
+	 * Returns the database type provided by this class. Represented by an enumeration based on the supported database
 	 * platform in the AWS platform.
 	 *
 	 * @return - The databaseType - never null
@@ -106,7 +105,7 @@ public final class DataSourceInformation {
 	/**
 	 * The database name used to connect to the database. The information is {@link #databaseType} type specific.
 	 * <ul>
-	 * <li>MySQL - This is the data base name to connect to </li>
+	 * <li>MySQL - This is the database name to connect to </li>
 	 * <li>Oracle - This is the system id (SID) to connect to</li>
 	 * <li>MSSQL - This information is not used at all</li>
 	 * </ul>

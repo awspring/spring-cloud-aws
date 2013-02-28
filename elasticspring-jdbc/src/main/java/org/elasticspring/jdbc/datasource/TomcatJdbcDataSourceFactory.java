@@ -29,11 +29,11 @@ import java.sql.Connection;
 import java.util.Properties;
 
 /**
- * A Tomcat JDBC Pool {@link DataSourceFactory} implementation that creates a JDBC pool backed data source. Allows the
- * configuration of all configuration properties except username, password, url and driver class name because their are
- * passed in while actually creating the data source. All other properties can be modified by calling the
+ * A Tomcat JDBC Pool {@link DataSourceFactory} implementation that creates a JDBC pool backed datasource. Allows the
+ * configuration of all configuration properties except username, password, url and driver class name because they are
+ * passed in while actually creating the datasource. All other properties can be modified by calling the
  * respective setter methods. This class uses a {@link DatabasePlatformSupport} implementation to actually retrieve the
- * driver class name and url in order to create the data source.
+ * driver class name and url in order to create the datasource.
  * <p/>
  * <p>All properties are derived from {@link PoolConfiguration} of the Tomcat JDBC Pool class.</p>
  *
