@@ -83,6 +83,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations {
 		return result;
 	}
 
+	// TODO create a method for receive with expected type
 
 	protected MessageConverter getMessageConverter() {
 		return this.messageConverter;

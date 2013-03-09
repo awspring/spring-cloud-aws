@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.elasticspring.messaging.core.Message;
+import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.converter.ObjectMessageConverter;
 import org.junit.Test;
 

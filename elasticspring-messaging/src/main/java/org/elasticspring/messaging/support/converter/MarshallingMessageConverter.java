@@ -58,7 +58,7 @@ public class MarshallingMessageConverter implements MessageConverter {
 			String result = byteArrayOutputStream.toString(this.encoding);
 			return new StringMessage(result);
 		} catch (IOException e) {
-			throw new MessageConversionException(String.format("Error converting payload %sto Message", payload), e);
+			throw new MessageConversionException(String.format("Error converting payload %s to Message", payload), e);
 		}
 	}
 
