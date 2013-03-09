@@ -16,13 +16,9 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.elasticspring.messaging.Message;
+public class ListenerExecutionFailedException extends RuntimeException {
 
-/**
- *
- */
-public interface MessageListener<T> {
-
-	void onMessage(Message<T> message);
-
+	public ListenerExecutionFailedException(Throwable cause) {
+		super(cause);
+	}
 }
