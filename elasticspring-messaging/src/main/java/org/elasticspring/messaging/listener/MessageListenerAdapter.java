@@ -22,7 +22,7 @@ import org.springframework.util.MethodInvoker;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class MessageListenerAdapter implements MessageListener<String> {
+public class MessageListenerAdapter implements MessageListener {
 
 	private final MessageConverter messageConverter;
 	private final Object delegate;

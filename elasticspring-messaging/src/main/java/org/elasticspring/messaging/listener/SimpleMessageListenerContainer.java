@@ -54,7 +54,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		getTaskExecutor().execute(new AsynchronousMessageListener());
 	}
 
-	protected void executeMessage(org.elasticspring.messaging.Message<?> stringMessage) {
+	protected void executeMessage(org.elasticspring.messaging.Message<String> stringMessage) {
 		try {
 			getMessageListener().onMessage(stringMessage);
 		} catch (Throwable throwable) {
