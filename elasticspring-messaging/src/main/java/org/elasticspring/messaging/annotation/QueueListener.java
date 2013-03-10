@@ -16,12 +16,22 @@
 
 package org.elasticspring.messaging.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * @author Agim Emruli
  * @since 1.0
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface QueueListener {
 
-	String queueName();
+	String queueName() default "";
+
+	String value() default "";
+
 
 }

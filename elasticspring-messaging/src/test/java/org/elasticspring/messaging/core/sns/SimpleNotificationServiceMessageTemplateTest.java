@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.core.sns;
 
-public class StringMessage implements Message<String> {
+import org.junit.Test;
 
-	private final String payload;
+/**
+ * @author Agim Emruli
+ * @since 1.0
+ */
+public class SimpleNotificationServiceMessageTemplateTest {
 
-	public StringMessage(String payload) {
-		this.payload = payload;
-	}
+	@Test
+	public void testConvertAndSend() throws Exception {
 
-	@Override
-	public String getPayload() {
-		return this.payload;
-	}
-
-	@SuppressWarnings("MagicCharacter")
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("StringMessage");
-		sb.append("{payload='").append(this.payload).append('\'');
-		sb.append('}');
-		return sb.toString();
 	}
 }

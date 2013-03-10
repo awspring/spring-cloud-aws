@@ -83,7 +83,7 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations {
 
 		Message message = receiveMessageResult.getMessages().get(0);
 
-		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody(), message.getAttributes());
+		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
 		Object result = this.getMessageConverter().fromMessage(msg);
 
 		this.amazonSQS.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
