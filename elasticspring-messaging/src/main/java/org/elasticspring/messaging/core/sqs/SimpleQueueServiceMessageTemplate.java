@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,13 +22,14 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.core.MessageOperations;
 import org.elasticspring.messaging.StringMessage;
+import org.elasticspring.messaging.core.MessageOperations;
 import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
-import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
+import org.springframework.util.Assert;
 
 /**
  *
@@ -36,23 +37,28 @@ import org.elasticspring.messaging.support.destination.DynamicDestinationResolve
 public class SimpleQueueServiceMessageTemplate implements MessageOperations {
 
 	private final AmazonSQS amazonSQS;
-	private final String defaultDestination;
 	private final DestinationResolver destinationResolver;
+	private String defaultDestinationName;
 	private MessageConverter messageConverter = new StringMessageConverter();
 
-	public SimpleQueueServiceMessageTemplate(AmazonSQS amazonSQS, String defaultDestination) {
+	public SimpleQueueServiceMessageTemplate(AmazonSQS amazonSQS) {
 		this.amazonSQS = amazonSQS;
-		this.defaultDestination = defaultDestination;
-		this.destinationResolver = new CachingDestinationResolver(new DynamicDestinationResolver(this.amazonSQS));
+		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
+	}
+
+	public void setDefaultDestinationName(String defaultDestinationName) {
+		this.defaultDestinationName = defaultDestinationName;
 	}
 
 	@Override
 	public void convertAndSend(Object payLoad) {
-		this.convertAndSend(this.defaultDestination, payLoad);
+		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		this.convertAndSend(this.defaultDestinationName, payLoad);
 	}
 
 	@Override
 	public void convertAndSend(String destinationName, Object payLoad) {
+		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		org.elasticspring.messaging.Message<String> message = this.getMessageConverter().toMessage(payLoad);
 		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
@@ -61,11 +67,13 @@ public class SimpleQueueServiceMessageTemplate implements MessageOperations {
 
 	@Override
 	public Object receiveAndConvert() {
-		return this.receiveAndConvert(this.defaultDestination);
+		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		return this.receiveAndConvert(this.defaultDestinationName);
 	}
 
 	@Override
 	public Object receiveAndConvert(String destinationName) {
+		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withMaxNumberOfMessages(1);
 		ReceiveMessageResult receiveMessageResult = this.amazonSQS.receiveMessage(receiveMessageRequest);

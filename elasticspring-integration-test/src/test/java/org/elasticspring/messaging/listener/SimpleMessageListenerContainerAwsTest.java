@@ -21,7 +21,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.support.destination.DynamicDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Before;
@@ -68,7 +68,7 @@ public class SimpleMessageListenerContainerAwsTest {
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		simpleMessageListenerContainer.setAmazonSQS(new AmazonSQSBufferedAsyncClient(this.amazonSQSClient));
 		simpleMessageListenerContainer.setDestinationName(this.testStackEnvironment.getByLogicalId("LoadTestQueue"));
-		simpleMessageListenerContainer.setDestinationResolver(new DynamicDestinationResolver(this.amazonSQSClient));
+		simpleMessageListenerContainer.setDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQSClient));
 		ConcurrentTaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newCachedThreadPool(), Executors.newScheduledThreadPool(10));
 		simpleMessageListenerContainer.setTaskExecutor(taskScheduler);
 		simpleMessageListenerContainer.setMaxNumberOfMessages(10);
