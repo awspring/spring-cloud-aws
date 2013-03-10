@@ -96,6 +96,56 @@
 			"Type": "AWS::SQS::Queue",
 			"Properties": {
 			}
+		},
+		"NotificationQueue": {
+			"Type": "AWS::SQS::Queue"
+		},
+		"MySNSTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [ "NotificationQueue", "Arn" ]
+						},
+						"Protocol": "sqs"
+					}
+				]
+			}
+		},
+		"SnsToSqsPolicy": {
+			"Type": "AWS::SQS::QueuePolicy",
+			"Properties": {
+				"PolicyDocument": {
+					"Version": "2008-10-17",
+					"Id": "SnsToSqsPolicy",
+					"Statement": [
+						{
+							"Sid": "Allow-Sns-SendMessage",
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": "*"
+							},
+							"Action": [ "sqs:SendMessage" ],
+							"Resource": {
+								"Fn::GetAtt": [ "NotificationQueue", "Arn" ]
+							},
+							"Condition": {
+								"ArnEquals": {
+									"aws:SourceArn": {
+										"Ref": "MySNSTopic"
+									}
+								}
+							}
+						}
+					]
+				},
+				"Queues": [
+					{
+						"Ref": "NotificationQueue"
+					}
+				]
+			}
 		}
 	}
 }
