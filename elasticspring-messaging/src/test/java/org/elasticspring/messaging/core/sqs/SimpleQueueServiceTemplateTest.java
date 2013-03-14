@@ -235,4 +235,24 @@ public class SimpleQueueServiceTemplateTest {
 
 		messageTemplate.receiveAndConvert("custom", BigDecimal.class);
 	}
+
+	@Test
+	public void testConvertAndSendWithNoDefaultDestination() throws Exception {
+		this.expectedException.expect(IllegalStateException.class);
+		this.expectedException.expectMessage("No default destination name configured for this template.");
+
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		messageTemplate.convertAndSend("message");
+	}
+
+	@Test
+	public void testReceiveAndConvertWithNoDefaultDestination() throws Exception {
+		this.expectedException.expect(IllegalStateException.class);
+		this.expectedException.expectMessage("No default destination name configured for this template.");
+
+		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		messageTemplate.receiveAndConvert();
+	}
 }

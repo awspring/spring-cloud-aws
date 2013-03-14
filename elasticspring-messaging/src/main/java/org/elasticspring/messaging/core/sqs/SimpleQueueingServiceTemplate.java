@@ -61,7 +61,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 	@Override
 	public void convertAndSend(Object payLoad) {
-		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		this.convertAndSend(this.defaultDestinationName, payLoad);
 	}
 
@@ -76,13 +76,13 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 	@Override
 	public Object receiveAndConvert() {
-		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		return this.receiveAndConvert(this.defaultDestinationName);
 	}
 
 	@Override
 	public <T> T receiveAndConvert(Class<T> expectedType) {
-		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		return receiveAndConvert(this.defaultDestinationName, expectedType);
 	}
 

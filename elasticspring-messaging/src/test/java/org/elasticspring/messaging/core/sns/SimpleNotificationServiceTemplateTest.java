@@ -157,7 +157,7 @@ public class SimpleNotificationServiceTemplateTest {
 
 	@Test
 	public void testNoDestinationWithNoDefaultDestination() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("No default destination name configured for this template.");
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(Mockito.mock(AmazonSNS.class));
