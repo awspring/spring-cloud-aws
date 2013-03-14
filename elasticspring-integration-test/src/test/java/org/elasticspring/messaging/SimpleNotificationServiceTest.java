@@ -16,8 +16,8 @@
 
 package org.elasticspring.messaging;
 
-import org.elasticspring.messaging.core.MessageOperations;
 import org.elasticspring.messaging.core.NotificationOperations;
+import org.elasticspring.messaging.core.QueueingOperations;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +37,7 @@ public class SimpleNotificationServiceTest {
 	private NotificationOperations notificationOperations;
 
 	@Autowired
-	private MessageOperations messageOperations;
+	private QueueingOperations queueingOperations;
 
 
 	@Test
@@ -45,7 +45,7 @@ public class SimpleNotificationServiceTest {
 		String payload = "Hello World";
 		this.notificationOperations.convertAndSend(payload);
 
-		Object content = this.messageOperations.receiveAndConvert();
+		Object content = this.queueingOperations.receiveAndConvert();
 		Assert.assertEquals(payload, content);
 	}
 }

@@ -23,7 +23,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.elasticspring.messaging.StringMessage;
-import org.elasticspring.messaging.core.MessageOperations;
+import org.elasticspring.messaging.core.QueueingOperations;
 import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
@@ -34,14 +34,14 @@ import org.springframework.util.Assert;
 /**
  *
  */
-public class SimpleQueueServiceMessageTemplate implements MessageOperations {
+public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 	private final AmazonSQS amazonSQS;
 	private final DestinationResolver destinationResolver;
 	private String defaultDestinationName;
 	private MessageConverter messageConverter = new StringMessageConverter();
 
-	public SimpleQueueServiceMessageTemplate(AmazonSQS amazonSQS) {
+	public SimpleQueueingServiceTemplate(AmazonSQS amazonSQS) {
 		this.amazonSQS = amazonSQS;
 		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
 	}

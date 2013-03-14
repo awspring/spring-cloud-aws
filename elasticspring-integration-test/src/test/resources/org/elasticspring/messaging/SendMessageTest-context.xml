@@ -26,12 +26,12 @@
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
+	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
 		<constructor-arg ref="amazonSQSClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 	</bean>
 
-	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
+	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
 		<constructor-arg ref="amazonSQSClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 		<property name="messageConverter">
@@ -39,7 +39,7 @@
 		</property>
 	</bean>
 
-	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
+	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
 		<constructor-arg ref="amazonSQSClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 		<property name="messageConverter">

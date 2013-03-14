@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.core.sns;
-
-import org.junit.Test;
+package org.elasticspring.messaging.core;
 
 /**
- * @author Agim Emruli
- * @since 1.0
+ *
  */
-public class SimpleNotificationServiceMessageTemplateTest {
+public interface QueueingOperations {
 
-	@Test
-	public void testConvertAndSend() throws Exception {
+	void convertAndSend(Object payLoad);
 
-	}
+	void convertAndSend(String destinationName, Object payLoad);
+
+	Object receiveAndConvert();
+
+	Object receiveAndConvert(String destinationName);
+
 }

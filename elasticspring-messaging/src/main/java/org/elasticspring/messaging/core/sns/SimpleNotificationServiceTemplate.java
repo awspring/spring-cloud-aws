@@ -25,19 +25,21 @@ import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
+import org.springframework.util.Assert;
 
 /**
  * @author Agim Emruli
  * @since 1.0
  */
-public class SimpleNotificationServiceMessageTemplate implements NotificationOperations {
+public class SimpleNotificationServiceTemplate implements NotificationOperations {
 
 	private final AmazonSNS amazonSNS;
 	private MessageConverter messageConverter = new StringMessageConverter();
 	private DestinationResolver destinationResolver;
 	private String defaultDestinationName;
 
-	public SimpleNotificationServiceMessageTemplate(AmazonSNS amazonSNS) {
+	public SimpleNotificationServiceTemplate(AmazonSNS amazonSNS) {
+		Assert.notNull(amazonSNS, "amazonSNS must not be null");
 		this.amazonSNS = amazonSNS;
 		this.destinationResolver = new CachingDestinationResolver(new DynamicTopicDestinationResolver(amazonSNS));
 	}
@@ -48,10 +50,6 @@ public class SimpleNotificationServiceMessageTemplate implements NotificationOpe
 
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
-	}
-
-	protected MessageConverter getMessageConverter() {
-		return this.messageConverter;
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {

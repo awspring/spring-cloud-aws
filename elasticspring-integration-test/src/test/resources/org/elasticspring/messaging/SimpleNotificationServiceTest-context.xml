@@ -38,7 +38,7 @@
 	</bean>
 
 	<bean id="simpleNotificationServiceMessageTemplate"
-		  class="org.elasticspring.messaging.core.sns.SimpleNotificationServiceMessageTemplate">
+		  class="org.elasticspring.messaging.core.sns.SimpleNotificationServiceTemplate">
 		<constructor-arg ref="amazonSns" />
 		<property name="destinationResolver" ref="cachingDestinationResolver" />
 		<property name="defaultDestinationName" value="#{testStackEnvironment.getByLogicalId('MySNSTopic')}" />
@@ -50,7 +50,7 @@
 
 	</bean>
 
-	<bean class="org.elasticspring.messaging.core.sqs.SimpleQueueServiceMessageTemplate">
+	<bean class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
 		<constructor-arg ref="amazonSqs" />
 		<property name="defaultDestinationName" value="#{testStackEnvironment.getByLogicalId('NotificationQueue')}" />
 		<property name="messageConverter">

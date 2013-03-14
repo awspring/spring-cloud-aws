@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging;
 
-import org.elasticspring.messaging.core.MessageOperations;
+import org.elasticspring.messaging.core.QueueingOperations;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,13 +39,13 @@ public class SendMessageTest {
 
 
 	@Resource(name = "stringMessage")
-	private MessageOperations stringMessageOperations;
+	private QueueingOperations stringQueueingOperations;
 
 	@Resource(name = "objectMessage")
-	private MessageOperations objectMessageOperations;
+	private QueueingOperations objectQueueingOperations;
 
 	@Resource(name = "jsonMessage")
-	private MessageOperations jsonMessageOperations;
+	private QueueingOperations jsonQueueingOperations;
 
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
@@ -54,9 +54,9 @@ public class SendMessageTest {
 	public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
 		String queueName = this.testStackEnvironment.getByLogicalId("StringQueue");
-		this.stringMessageOperations.convertAndSend(queueName, messageContent);
+		this.stringQueueingOperations.convertAndSend(queueName, messageContent);
 		Thread.sleep(5000);
-		String receivedMessage = (String) this.stringMessageOperations.receiveAndConvert(queueName);
+		String receivedMessage = (String) this.stringQueueingOperations.receiveAndConvert(queueName);
 		Assert.assertEquals(messageContent, receivedMessage);
 	}
 
@@ -64,20 +64,20 @@ public class SendMessageTest {
 	public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
 		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
-		this.objectMessageOperations.convertAndSend(queueName, payload);
+		this.objectQueueingOperations.convertAndSend(queueName, payload);
 
 		@SuppressWarnings("unchecked")
-		List<String> result = (List<String>) this.objectMessageOperations.receiveAndConvert(queueName);
+		List<String> result = (List<String>) this.objectQueueingOperations.receiveAndConvert(queueName);
 		Assert.assertEquals("myString", result.get(0));
 	}
 
 	@Test
 	public void testSendAndReceiveJsonMessage() throws Exception {
 		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
-		this.jsonMessageOperations.convertAndSend(queueName, "myString");
+		this.jsonQueueingOperations.convertAndSend(queueName, "myString");
 
 		@SuppressWarnings("unchecked")
-		String result = (String) this.jsonMessageOperations.receiveAndConvert(queueName);
+		String result = (String) this.jsonQueueingOperations.receiveAndConvert(queueName);
 		Assert.assertEquals("myString", result);
 	}
 }
