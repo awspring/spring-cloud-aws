@@ -24,7 +24,6 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import com.amazonaws.services.sqs.model.SendMessageResult;
 import org.elasticspring.messaging.core.MessageOperations;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +31,8 @@ import org.mockito.Mockito;
 
 
 /**
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class SimpleQueueServiceMessageTemplateTest {
 
@@ -42,9 +42,10 @@ public class SimpleQueueServiceMessageTemplateTest {
 		SimpleQueueServiceMessageTemplate messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS);
 		messageTemplate.setDefaultDestinationName("test");
 		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
-		Mockito.when(amazonSQS.sendMessage(new SendMessageRequest("http://testQueue", "message"))).thenReturn(new SendMessageResult().withMessageId("123"));
 
 		messageTemplate.convertAndSend("message");
+
+		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://testQueue", "message"));
 
 	}
 
@@ -53,10 +54,10 @@ public class SimpleQueueServiceMessageTemplateTest {
 		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
 		MessageOperations messageTemplate = new SimpleQueueServiceMessageTemplate(amazonSQS);
 		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
-		Mockito.when(amazonSQS.sendMessage(new SendMessageRequest("http://customQueue", "message"))).thenReturn(new SendMessageResult().withMessageId("123"));
 
 		messageTemplate.convertAndSend("custom", "message");
 
+		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://customQueue", "message"));
 	}
 
 	@Test
