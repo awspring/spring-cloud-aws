@@ -58,6 +58,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 
 	@Override
 	public void convertAndSend(Object payload) {
+		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		this.convertAndSend(this.defaultDestinationName, payload);
 	}
 

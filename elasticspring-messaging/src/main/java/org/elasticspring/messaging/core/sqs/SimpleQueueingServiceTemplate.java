@@ -32,18 +32,27 @@ import org.elasticspring.messaging.support.destination.DynamicQueueDestinationRe
 import org.springframework.util.Assert;
 
 /**
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 	private final AmazonSQS amazonSQS;
-	private final DestinationResolver destinationResolver;
-	private String defaultDestinationName;
+	private DestinationResolver destinationResolver;
 	private MessageConverter messageConverter = new StringMessageConverter();
+	private String defaultDestinationName;
 
 	public SimpleQueueingServiceTemplate(AmazonSQS amazonSQS) {
 		this.amazonSQS = amazonSQS;
 		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
+	}
+
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
+	}
+
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.messageConverter = messageConverter;
 	}
 
 	public void setDefaultDestinationName(String defaultDestinationName) {
@@ -60,7 +69,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	public void convertAndSend(String destinationName, Object payLoad) {
 		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
-		org.elasticspring.messaging.Message<String> message = this.getMessageConverter().toMessage(payLoad);
+		org.elasticspring.messaging.Message<String> message = this.messageConverter.toMessage(payLoad);
 		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
 		this.amazonSQS.sendMessage(request);
 	}
@@ -84,7 +93,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		Message message = receiveMessageResult.getMessages().get(0);
 
 		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
-		Object result = this.getMessageConverter().fromMessage(msg);
+		Object result = this.messageConverter.fromMessage(msg);
 
 		this.amazonSQS.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
 
@@ -93,12 +102,5 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 	// TODO create a method for receive with expected type
 
-	protected MessageConverter getMessageConverter() {
-		return this.messageConverter;
-	}
-
-	public void setMessageConverter(MessageConverter messageConverter) {
-		this.messageConverter = messageConverter;
-	}
 
 }

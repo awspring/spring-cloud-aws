@@ -153,6 +153,14 @@ public class SimpleNotificationServiceTemplateTest {
 
 		//noinspection ResultOfObjectAllocationIgnored
 		new SimpleNotificationServiceTemplate(null);
+	}
 
+	@Test
+	public void testNoDestinationWithNoDefaultDestination() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("No default destination name configured for this template.");
+
+		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(Mockito.mock(AmazonSNS.class));
+		template.convertAndSend("message");
 	}
 }
