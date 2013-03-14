@@ -27,6 +27,9 @@ public interface QueueingOperations {
 
 	Object receiveAndConvert();
 
+	<T> T receiveAndConvert(Class<T> expectedType);
+
 	Object receiveAndConvert(String destinationName);
 
+	<T> T receiveAndConvert(String destinationName, Class<T> expectedType);
 }

@@ -81,6 +81,12 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	}
 
 	@Override
+	public <T> T receiveAndConvert(Class<T> expectedType) {
+		Assert.isTrue(this.defaultDestinationName != null, "No default destination name configured for this template.");
+		return receiveAndConvert(this.defaultDestinationName, expectedType);
+	}
+
+	@Override
 	public Object receiveAndConvert(String destinationName) {
 		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
@@ -100,7 +106,11 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		return result;
 	}
 
-	// TODO create a method for receive with expected type
-
-
+	@Override
+	public <T> T receiveAndConvert(String destinationName, Class<T> expectedType) {
+		Assert.notNull(expectedType, "expectedType must not be null");
+		Object result = receiveAndConvert(destinationName);
+		Assert.isTrue(expectedType.isInstance(result), "result is not of expected type:" + expectedType.getName());
+		return expectedType.cast(result);
+	}
 }
