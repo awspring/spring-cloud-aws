@@ -52,7 +52,7 @@ public class QueueListenerBeanPostProcessorTest {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(QueueListenerBean.class);
 		builder.addConstructorArgValue(countDownLatch);
 
-		String message = "YAHHOOOOOO";
+		String message = "test";
 		builder.addConstructorArgValue(message);
 		applicationContext.registerBeanDefinition("listenerBean", builder.getBeanDefinition());
 		applicationContext.registerBeanDefinition("beanPostProcessor", BeanDefinitionBuilder.rootBeanDefinition(QueueListenerBeanPostProcessor.class).getBeanDefinition());

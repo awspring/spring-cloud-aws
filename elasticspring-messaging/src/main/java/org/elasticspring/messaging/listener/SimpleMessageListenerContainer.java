@@ -22,13 +22,18 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.elasticspring.messaging.StringMessage;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.util.ClassUtils;
 
 /**
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
 
-	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+	private static final String DEFAULT_THREAD_NAME_PREFIX =
+			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
+
+	private TaskExecutor taskExecutor;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -36,6 +41,28 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
+	}
+
+	@Override
+	protected void initialize() {
+		if (this.taskExecutor == null) {
+			this.taskExecutor = createDefaultTaskExecutor();
+		}
+
+		super.initialize();
+	}
+
+	/**
+	 * Create a default TaskExecutor. Called if no explicit TaskExecutor has been specified.
+	 * <p>The default implementation builds a {@link org.springframework.core.task.SimpleAsyncTaskExecutor}
+	 * with the specified bean name (or the class name, if no bean name specified) as thread name prefix.
+	 *
+	 * @see org.springframework.core.task.SimpleAsyncTaskExecutor#SimpleAsyncTaskExecutor(String)
+	 */
+	protected TaskExecutor createDefaultTaskExecutor() {
+		String beanName = getBeanName();
+		String threadNamePrefix = (beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
+		return new SimpleAsyncTaskExecutor(threadNamePrefix);
 	}
 
 	@Override
@@ -47,7 +74,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	@Override
 	protected void doStop() {
-
+		//calling explicit shutdown to force a flush of the internal queue inside the sdk client
+		getAmazonSQS().shutdown();
 	}
 
 	private void scheduleMessageListener() {
@@ -66,7 +94,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		getLogger().error("Error executing listener with exception:", throwable);
 	}
 
-
 	private class AsynchronousMessageListener implements Runnable {
 
 		@Override
@@ -74,7 +101,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			while (isRunning()) {
 				ReceiveMessageResult receiveMessageResult = getAmazonSQS().receiveMessage(getReceiveMessageRequest());
 				for (Message message : receiveMessageResult.getMessages()) {
-					getTaskExecutor().execute(new MessageExecutor(message));
+					if (isRunning()) {
+						getTaskExecutor().execute(new MessageExecutor(message));
+					} else {
+						break;
+					}
 				}
 			}
 		}

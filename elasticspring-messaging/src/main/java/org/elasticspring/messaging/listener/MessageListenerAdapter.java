@@ -18,6 +18,7 @@ package org.elasticspring.messaging.listener;
 
 import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.converter.MessageConverter;
+import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +30,9 @@ public class MessageListenerAdapter implements MessageListener {
 	private final String listenerMethod;
 
 	public MessageListenerAdapter(MessageConverter messageConverter, Object delegate, String listenerMethod) {
+		Assert.notNull(messageConverter, "messageConverter must not be null");
+		Assert.notNull(delegate, "delegate must not be null");
+		Assert.notNull(listenerMethod, "listenerMethod must not be null");
 		this.messageConverter = messageConverter;
 		this.delegate = delegate;
 		this.listenerMethod = listenerMethod;
@@ -45,9 +49,9 @@ public class MessageListenerAdapter implements MessageListener {
 		try {
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {
-			throw new ListenerExecutionFailedException(e.getCause());
+			throw new ListenerExecutionFailedException(e);
 		} catch (NoSuchMethodException e) {
-			throw new ListenerExecutionFailedException(e.getCause());
+			throw new ListenerExecutionFailedException(e);
 		}
 
 		try {

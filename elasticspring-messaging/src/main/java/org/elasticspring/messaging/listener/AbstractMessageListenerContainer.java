@@ -24,67 +24,60 @@ import org.elasticspring.messaging.support.destination.DynamicQueueDestinationRe
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.util.Assert;
 
 /**
- *
+ * @author Agim Emruli
+ * @since 1.0
  */
-abstract class AbstractMessageListenerContainer implements InitializingBean, SmartLifecycle, BeanNameAware {
+abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
 
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Object lifecycleMonitor = new Object();
+
+	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private AmazonSQSAsync amazonSQS;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private MessageListener messageListener;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private String destinationName;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private DestinationResolver destinationResolver;
-
-	private boolean autoStartup = true;
-
-	private int phase = Integer.MAX_VALUE;
-
 	private String beanName;
 
-	private MessageListener messageListener;
-
-	private String destinationName;
-
+	//Optional settings with no defaults
 	private Integer maxNumberOfMessages;
-
 	private Integer visibilityTimeout;
+	private Integer waitTimeOut;
 
-	private AmazonSQSAsync amazonSQS;
+	//Optional settings with defaults
+	private boolean autoStartup = true;
+	private int phase = Integer.MAX_VALUE;
 
+	//Settings that are changed at runtime
 	private boolean active;
-
 	private boolean running;
-
-	private final Object lifecycleMonitor = new Object();
 
 	private ReceiveMessageRequest receiveMessageRequest;
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-
-	private Integer waitTimeOut;
-
-	protected DestinationResolver getDestinationResolver() {
-		return this.destinationResolver;
+	protected Object getLifecycleMonitor() {
+		return this.lifecycleMonitor;
 	}
 
-	public void setDestinationResolver(DestinationResolver destinationResolver) {
-		this.destinationResolver = destinationResolver;
+	protected Logger getLogger() {
+		return this.logger;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
+	protected AmazonSQSAsync getAmazonSQS() {
+		return this.amazonSQS;
 	}
 
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	protected String getBeanName() {
-		return this.beanName;
-	}
-
-	@Override
-	public void setBeanName(String name) {
-		this.beanName = name;
+	public void setAmazonSQS(AmazonSQSAsync amazonSQS) {
+		this.amazonSQS = amazonSQS;
 	}
 
 	protected MessageListener getMessageListener() {
@@ -103,6 +96,23 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 		this.destinationName = destinationName;
 	}
 
+	protected DestinationResolver getDestinationResolver() {
+		return this.destinationResolver;
+	}
+
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
+	}
+
+	protected String getBeanName() {
+		return this.beanName;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
 	protected Integer getMaxNumberOfMessages() {
 		return this.maxNumberOfMessages;
 	}
@@ -119,12 +129,30 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 		this.visibilityTimeout = visibilityTimeout;
 	}
 
-	protected AmazonSQSAsync getAmazonSQS() {
-		return this.amazonSQS;
+	protected Integer getWaitTimeOut() {
+		return this.waitTimeOut;
 	}
 
-	public void setAmazonSQS(AmazonSQSAsync amazonSQS) {
-		this.amazonSQS = amazonSQS;
+	public void setWaitTimeOut(Integer waitTimeOut) {
+		this.waitTimeOut = waitTimeOut;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	public boolean isActive() {
@@ -141,14 +169,31 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		synchronized (this.getLifecycleMonitor()) {
-			this.active = true;
-			this.getLifecycleMonitor().notifyAll();
+		validateConfiguration();
+		initialize();
+	}
 
+	protected void validateConfiguration() {
+		Assert.state(this.amazonSQS != null, "amazonSQS must not be null");
+		Assert.state(this.messageListener != null, "messageListener must not be null");
+		Assert.state(this.destinationName != null, "destinationName must not be null");
+	}
+
+	protected void initialize() {
+		synchronized (this.getLifecycleMonitor()) {
 			if (this.destinationResolver == null) {
 				this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
 			}
 
+			this.active = true;
+			this.getLifecycleMonitor().notifyAll();
+		}
+	}
+
+	@Override
+	public void start() {
+		getLogger().debug("Starting container with name {}", getBeanName());
+		synchronized (this.getLifecycleMonitor()) {
 			String destinationUrl = getDestinationResolver().resolveDestinationName(getDestinationName());
 			ReceiveMessageRequest request = new ReceiveMessageRequest(destinationUrl);
 			if (getMaxNumberOfMessages() != null) {
@@ -164,12 +209,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 			}
 
 			this.receiveMessageRequest = request;
-		}
-	}
 
-	@Override
-	public void start() {
-		synchronized (this.getLifecycleMonitor()) {
+
 			this.running = true;
 			this.getLifecycleMonitor().notifyAll();
 		}
@@ -177,23 +218,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 	}
 
 	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	@Override
 	public void stop() {
+		getLogger().debug("Stopping container with name {}", getBeanName());
 		synchronized (this.getLifecycleMonitor()) {
 			this.running = false;
 			this.getLifecycleMonitor().notifyAll();
 		}
 		doStop();
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.stop();
-		callback.run();
 	}
 
 	@Override
@@ -204,27 +235,20 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Sma
 	}
 
 	@Override
-	public int getPhase() {
-		return this.phase;
+	public void stop(Runnable callback) {
+		this.stop();
+		callback.run();
+	}
+
+	@Override
+	public void destroy() {
+		synchronized (this.lifecycleMonitor) {
+			stop();
+			this.active = false;
+		}
 	}
 
 	protected abstract void doStart();
 
 	protected abstract void doStop();
-
-	protected Object getLifecycleMonitor() {
-		return this.lifecycleMonitor;
-	}
-
-	protected Integer getWaitTimeOut() {
-		return this.waitTimeOut;
-	}
-
-	public void setWaitTimeOut(Integer waitTimeOut) {
-		this.waitTimeOut = waitTimeOut;
-	}
-
-	protected Logger getLogger() {
-		return this.logger;
-	}
 }
