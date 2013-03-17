@@ -24,8 +24,7 @@
 
 	<els-context:context-resource-loader>
 		<els-context:client-encryption>
-			<els-context:key-pair public-key-resource="classpath:/org/elasticspring/context/support/io/encryption/public-key.pem"
-								  private-key-resource="classpath:/org/elasticspring/context/support/io/encryption/private-key.pem" />
+			<els-context:symmetric-key password="myMegaPassword" salt="mySaltySalt" />
 		</els-context:client-encryption>
 	</els-context:context-resource-loader>
 

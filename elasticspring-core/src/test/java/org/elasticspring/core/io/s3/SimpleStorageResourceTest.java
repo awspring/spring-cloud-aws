@@ -18,24 +18,17 @@ package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -129,30 +122,6 @@ public class SimpleStorageResourceTest {
 		assertTrue(description.contains("object"));
 		assertTrue(description.contains("1"));
 		assertTrue(description.contains("2"));
-	}
-
-
-	@Test
-	public void testWriteFile() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "123123123123", "2");
-		final String messageContext = "myFileContent";
-		when(amazonS3.putObject(eq("123123123123"), Matchers.eq("2"), any(InputStream.class), any(ObjectMetadata.class))).thenAnswer(new Answer<PutObjectResult>() {
-
-			@Override
-			public PutObjectResult answer(InvocationOnMock invocation) throws Throwable {
-				assertEquals("123123123123", invocation.getArguments()[0]);
-				assertEquals("2", invocation.getArguments()[1]);
-				byte[] content = new byte[messageContext.length()];
-				assertEquals(content.length, ((InputStream) invocation.getArguments()[2]).read(content));
-				assertEquals(messageContext, new String(content));
-				return new PutObjectResult();
-			}
-		});
-		OutputStream outputStream = simpleStorageResource.getOutputStream();
-		outputStream.write(messageContext.getBytes());
-		outputStream.flush();
-		outputStream.close();
 	}
 
 }

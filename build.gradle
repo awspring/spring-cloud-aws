@@ -190,6 +190,7 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
+        optional('org.bouncycastle:bcprov-jdk16:1.46')
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }

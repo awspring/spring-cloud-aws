@@ -16,14 +16,17 @@
 
 package org.elasticspring.context.support.io.encryption;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
+import junit.framework.Assert;
 import org.elasticspring.support.TestStackEnvironment;
-import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.WritableResource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,11 +34,12 @@ import org.springframework.util.DigestUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * @author Alain Sahli
@@ -46,51 +50,67 @@ import java.security.MessageDigest;
 public class SymmetricKeyEncryptionClientTest {
 
 	private static final String S3_PREFIX = "s3://";
+
+	@Rule
+	public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
 
+	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
 	private ResourcePatternResolver resourceLoader;
 
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Autowired
+	private AmazonS3 amazonS3;
+
 	@Test
-	@Ignore
 	public void testWriteEncryptedObjects() throws Exception {
 		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test.txt");
+		String key = "test-encryption.txt";
 
-		if (resource instanceof WritableResource) {
-			WritableResource writableResource = (WritableResource) resource;
-			OutputStream outputStream = writableResource.getOutputStream();
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			try {
-				outputStream = new DigestOutputStream(outputStream, md);
-				for (int i = 0; i < 6; i++) {
-					for (int j = 0; j < (1024 * 1024); j++) {
-						outputStream.write("c".getBytes("UTF-8"));
-					}
+		File file = this.temporaryFolder.newFile(key);
+		String originalFileCheckSum = createDummyFile(file, 6);
+
+		TransferManager transferManager = new TransferManager(this.amazonS3);
+		Upload upload = transferManager.upload(bucketName, key, file);
+		while (!upload.isDone()) {
+			Thread.sleep(1000L);
+		}
+
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/" + key);
+		int read;
+		byte[] buffer = new byte[1024];
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		InputStream downloadInputStream = resource.getInputStream();
+		while ((read = downloadInputStream.read(buffer)) != -1) {
+			md.update(buffer, 0, read);
+		}
+		downloadInputStream.close();
+
+		String downloadedFileChecksum = DigestUtils.md5DigestAsHex(md.digest());
+
+		Assert.assertEquals(originalFileCheckSum, downloadedFileChecksum);
+	}
+
+	private String createDummyFile(File file, int sizeInMB) throws NoSuchAlgorithmException, IOException {
+		OutputStream outputStream = null;
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		try {
+			outputStream = new DigestOutputStream(new FileOutputStream(file), md);
+			for (int i = 0; i < sizeInMB; i++) {
+				for (int j = 0; j < (1024 * 1024); j++) {
+					outputStream.write("c".getBytes("UTF-8"));
 				}
-			} finally {
+			}
+		} finally {
+			if (outputStream != null) {
 				outputStream.close();
 			}
-			String originalMd5Checksum = DigestUtils.md5DigestAsHex(md.digest());
-
-			Resource downloadedResource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test.txt");
-			InputStream downloadedInputStream = downloadedResource.getInputStream();
-
-			md.reset();
-			try {
-				downloadedInputStream = new DigestInputStream(downloadedInputStream, md);
-				while (downloadedInputStream.read() != -1) {
-					// go through the input stream until EOF to compute MD5 checksum.
-					// Dummy operation to avoid checkstyle error
-					int a = 1;
-				}
-			} finally {
-				downloadedInputStream.close();
-			}
-
-			String downloadedMd5Checksum = DigestUtils.md5DigestAsHex(md.digest());
-			Assert.assertEquals(originalMd5Checksum, downloadedMd5Checksum);
 		}
+
+		return DigestUtils.md5DigestAsHex(md.digest());
 	}
+
 }
