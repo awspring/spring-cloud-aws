@@ -54,7 +54,7 @@ import java.util.concurrent.Future;
  * @author Alain Sahli
  * @since 1.0
  */
-class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
+public class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
 
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleStorageResource.class) + "-";
@@ -190,8 +190,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 					initiateMultiPartIfNeeded();
 					// TODO document that if a task executor with a queue is used there's a huge memory consumption.
 					this.completionService.submit(
-							new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter++,
-									false));
+							new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.currentOutputStream.size(), this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter++, false));
 					this.currentOutputStream.reset();
 				}
 				this.currentOutputStream.write(b);
@@ -225,7 +224,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		}
 
 		private void finishMultiPartUpload() throws IOException {
-			this.completionService.submit(new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter, true));
+			this.completionService.submit(new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.currentOutputStream.size() , this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter, true));
 			try {
 				List<PartETag> partETags = getMultiPartsUploadResults();
 				this.amazonS3.completeMultipartUpload(new CompleteMultipartUploadRequest(this.multiPartUploadResult.getBucketName(),
@@ -257,7 +256,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 
 		private List<PartETag> getMultiPartsUploadResults() throws ExecutionException, InterruptedException {
 			List<PartETag> result = new ArrayList<PartETag>(this.partNumberCounter);
-			for (int i = this.partNumberCounter; i > 1; i--) {
+			for (int i = 0; i < this.partNumberCounter; i++) {
 				// TODO use poll with a timeout
 				Future<UploadPartResult> uploadPartResultFuture = this.completionService.take();
 				result.add(uploadPartResultFuture.get().getPartETag());
@@ -277,10 +276,10 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 			private final String key;
 			private final String uploadId;
 
-			private UploadPartResultCallable(AmazonS3 amazon, byte[] content, String bucketName, String key, String uploadId, int partNumber, boolean last) {
+			private UploadPartResultCallable(AmazonS3 amazon, byte[] content, int writtenDataSize, String bucketName, String key, String uploadId, int partNumber, boolean last) {
 				this.amazonS3 = amazon;
 				this.content = content;
-				this.contentLength = content.length;
+				this.contentLength = writtenDataSize;
 				this.partNumber = partNumber;
 				this.last = last;
 				this.bucketName = bucketName;
@@ -305,7 +304,5 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 				}
 			}
 		}
-
-
 	}
 }

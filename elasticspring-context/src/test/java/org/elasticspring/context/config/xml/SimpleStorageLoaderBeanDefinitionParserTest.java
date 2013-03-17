@@ -39,10 +39,24 @@ public class SimpleStorageLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testCreateResourceLoaderWithEncryptionClient() throws Exception {
+	public void testCreateResourceLoaderWithSymmetricKeyEncryptionClient() throws Exception {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withSymmetricKeyEncryptionClient.xml", getClass());
 		ResourceLoader resourceLoader = applicationContext.getBean(ResourceLoader.class);
-		Assert.assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+
+		Object amazonS3 = ReflectionTestUtils.getField(resourceLoader, "amazonS3");
+		if (amazonS3 instanceof EndpointRoutingS3Client) {
+			EndpointRoutingS3Client endpointRoutingS3Client = (EndpointRoutingS3Client) amazonS3;
+			Object defaultClient = ReflectionTestUtils.getField(endpointRoutingS3Client, "defaultClient");
+			Assert.assertTrue(AmazonS3EncryptionClient.class.isInstance(defaultClient));
+		} else {
+			Assert.fail("Resource loader uses not the expected AmazonS3 client.");
+		}
+	}
+
+	@Test
+	public void testCreateResourceLoaderWithKeyPairEncryptionClient() throws Exception {
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withKeyPairEncryptionClient.xml", getClass());
+		ResourceLoader resourceLoader = applicationContext.getBean(ResourceLoader.class);
 
 		Object amazonS3 = ReflectionTestUtils.getField(resourceLoader, "amazonS3");
 		if (amazonS3 instanceof EndpointRoutingS3Client) {

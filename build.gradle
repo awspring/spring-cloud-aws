@@ -119,6 +119,7 @@ project('elasticspring-context') {
         optional("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
+        optional('org.bouncycastle:bcprov-jdk16:1.46')
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
     }
 }

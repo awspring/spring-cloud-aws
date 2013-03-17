@@ -85,6 +85,9 @@ public class AmazonS3ClientFactory {
 	}
 
 	private AmazonS3 createAmazonS3EncryptionClient(ServiceEndpoint s3ServiceEndpoint) {
+		// CryptoConfiguration cryptoConfiguration = new CryptoConfiguration();
+		// cryptoConfiguration.setCryptoProvider(new BouncyCastleProvider());
+
 		EncryptionMaterials encryptionMaterials = null;
 		if (this.keyPair != null) {
 			encryptionMaterials = new EncryptionMaterials(this.keyPair);
