@@ -75,14 +75,9 @@ public class KeyPairFactoryBean extends AbstractFactoryBean<KeyPair> {
 	@Override
 	protected KeyPair createInstance() throws Exception {
 		Security.addProvider(new BouncyCastleProvider());
-		try {
-			PublicKey publicKey = createPublicKey();
-			PrivateKey privateKey = createPrivateKey();
-			return new KeyPair(publicKey, privateKey);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		PublicKey publicKey = createPublicKey();
+		PrivateKey privateKey = createPrivateKey();
+		return new KeyPair(publicKey, privateKey);
 	}
 
 	private PrivateKey createPrivateKey() throws IOException {
@@ -98,12 +93,10 @@ public class KeyPairFactoryBean extends AbstractFactoryBean<KeyPair> {
 			RSAKeyParameters rsaPrivateParams = (RSAKeyParameters) PrivateKeyFactory.createKey(privateKeyInfo);
 			RSAPrivateKeySpec rsaPrivateSpec = new RSAPrivateKeySpec(rsaPrivateParams.getModulus(), rsaPrivateParams.getExponent());
 			return KeyFactory.getInstance("RSA").generatePrivate(rsaPrivateSpec);
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("The algorithm 'RSA' is not known", e);
 		} catch (InvalidKeySpecException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Wrong key specification", e);
 		} finally {
 			if (pemReader != null) {
 				pemReader.close();
@@ -115,7 +108,6 @@ public class KeyPairFactoryBean extends AbstractFactoryBean<KeyPair> {
 				asn1InputStream.close();
 			}
 		}
-		return null;
 	}
 
 	private PublicKey createPublicKey() throws IOException {
@@ -130,12 +122,10 @@ public class KeyPairFactoryBean extends AbstractFactoryBean<KeyPair> {
 			RSAKeyParameters rsaPublicParams = (RSAKeyParameters) PublicKeyFactory.createKey(subjectPublicKeyInfo);
 			RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(rsaPublicParams.getModulus(), rsaPublicParams.getExponent());
 			return KeyFactory.getInstance("RSA").generatePublic(rsaPublicKeySpec);
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("The algorithm 'RSA' is not known", e);
 		} catch (InvalidKeySpecException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Wrong key specification", e);
 		} finally {
 			if (pemReader != null) {
 				pemReader.close();
@@ -144,6 +134,5 @@ public class KeyPairFactoryBean extends AbstractFactoryBean<KeyPair> {
 				fileReader.close();
 			}
 		}
-		return null;
 	}
 }

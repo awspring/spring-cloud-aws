@@ -21,6 +21,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.S3ResponseMetadata;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AccessControlList;
@@ -99,6 +100,10 @@ public class EndpointRoutingS3Client implements AmazonS3 {
 	public EndpointRoutingS3Client(AmazonS3ClientFactory clientFactory, ServiceEndpoint serviceEndpoint) {
 		this.clientFactory = clientFactory;
 		this.defaultClient = clientFactory.getClientForServiceEndpoint(serviceEndpoint);
+	}
+
+	public boolean isEncryptionClient() {
+		return this.defaultClient instanceof AmazonS3EncryptionClient;
 	}
 
 	@Override

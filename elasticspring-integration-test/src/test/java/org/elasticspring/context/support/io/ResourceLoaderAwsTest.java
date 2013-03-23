@@ -27,14 +27,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.WritableResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.DigestUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -100,6 +108,69 @@ public class ResourceLoaderAwsTest {
 		Assert.assertNotNull(inputStream);
 		Assert.assertTrue(resource.contentLength() > 0);
 		inputStream.close();
+	}
+
+	@Test
+	public void testWriteFile() throws Exception {
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/newFile");
+		Assert.assertTrue(WritableResource.class.isInstance(resource));
+		WritableResource writableResource = (WritableResource) resource;
+		OutputStream outputStream = writableResource.getOutputStream();
+		for (int i = 0; i < 6; i++) {
+			for (int j = 0; j < (1024 * 1024); j++) {
+				outputStream.write("c".getBytes("UTF-8"));
+			}
+		}
+		outputStream.close();
+		this.createdObjects.add("newFile");
+	}
+
+	@Test
+	public void testWriteFileAndCheckChecksum() throws IOException, NoSuchAlgorithmException {
+		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.pdf");
+		Assert.assertTrue(WritableResource.class.isInstance(resource));
+
+		WritableResource writableResource = (WritableResource) resource;
+		OutputStream outputStream = writableResource.getOutputStream();
+		ClassPathResource testFileResource = new ClassPathResource("/org/elasticspring/context/support/io/test-file.pdf");
+		InputStream inputStream = new FileInputStream(testFileResource.getFile());
+
+		byte[] buffer = new byte[1024];
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		try {
+			inputStream = new DigestInputStream(inputStream, md);
+			int bytesRead;
+			while ((bytesRead = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, bytesRead);
+			}
+		} finally {
+   			inputStream.close();
+			outputStream.close();
+		}
+
+		byte[] originalMd5Checksum = md.digest();
+
+		Resource downloadedResource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.pdf");
+		InputStream downloadedInputStream = downloadedResource.getInputStream();
+
+		md.reset();
+		try {
+			downloadedInputStream = new DigestInputStream(downloadedInputStream, md);
+			while (downloadedInputStream.read(buffer) != -1) {
+				// go through the input stream until EOF to compute MD5 checksum.
+				// Dummy operation to avoid checkstyle error
+				int a = 1;
+			}
+		} finally {
+			downloadedInputStream.close();
+		}
+
+		byte[] downloadedMd5Checksum = md.digest();
+
+		Assert.assertEquals(DigestUtils.md5DigestAsHex(originalMd5Checksum), DigestUtils.md5DigestAsHex(downloadedMd5Checksum));
+		this.createdObjects.add("test-file.pdf");
 	}
 
 	@Test

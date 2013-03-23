@@ -132,8 +132,6 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 	private static void parseKeyPair(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
 		boolean keyPairRefSet = false;
-		boolean keyPairResourceSet = false;
-
 		String keyPairRef = encryptionKeyElement.getAttribute("key-ref");
 		if (StringUtils.hasText(keyPairRef)) {
 			amazonS3ClientFactoryBeanBuilder.addPropertyReference("keyPair", keyPairRef);
@@ -142,6 +140,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 		String privateKeyResource = encryptionKeyElement.getAttribute("private-key-resource");
 		String publicKeyResource = encryptionKeyElement.getAttribute("public-key-resource");
+		boolean keyPairResourceSet = false;
 		if (StringUtils.hasText(privateKeyResource) && StringUtils.hasText(publicKeyResource)) {
 			BeanDefinitionBuilder keyPairFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(KeyPairFactoryBean.class);
 			keyPairFactoryBeanBuilder.addConstructorArgValue(privateKeyResource);
@@ -160,9 +159,8 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 	}
 
 	private static void parseSymmetricKey(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
-		boolean symmetricKeyRefSet = false;
-		boolean symmetricKeyResourceSet = false;
 
+		boolean symmetricKeyRefSet = false;
 		String symmetricKeyRef = encryptionKeyElement.getAttribute("key-ref");
 		if (StringUtils.hasText(symmetricKeyRef)) {
 			amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKeyRef", symmetricKeyRef);
@@ -171,6 +169,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 		String password = encryptionKeyElement.getAttribute("password");
 		String salt = encryptionKeyElement.getAttribute("salt");
+		boolean symmetricKeyResourceSet = false;
 		if (StringUtils.hasText(password) && StringUtils.hasText(salt)) {
 			BeanDefinitionBuilder symmetricKeyFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(SymmetricKeyFactoryBean.class);
 			symmetricKeyFactoryBeanBuilder.addConstructorArgValue(password);
