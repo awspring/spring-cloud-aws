@@ -163,7 +163,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		boolean symmetricKeyRefSet = false;
 		String symmetricKeyRef = encryptionKeyElement.getAttribute("key-ref");
 		if (StringUtils.hasText(symmetricKeyRef)) {
-			amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKeyRef", symmetricKeyRef);
+			amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKey", symmetricKeyRef);
 			symmetricKeyRefSet = true;
 		}
 
