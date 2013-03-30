@@ -18,6 +18,8 @@ package org.elasticspring.messaging.listener;
 
 import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.support.converter.MessageConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 
@@ -25,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class MessageListenerAdapter implements MessageListener {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MessageListenerAdapter.class);
 	private final MessageConverter messageConverter;
 	private final Object delegate;
 	private final String listenerMethod;
@@ -47,6 +50,7 @@ public class MessageListenerAdapter implements MessageListener {
 		methodInvoker.setArguments(new Object[]{param});
 
 		try {
+			LOGGER.debug("Preparing method invoker for object {} and method {} with argument {}", this.delegate, this.listenerMethod, param);
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {
 			throw new ListenerExecutionFailedException(e);
