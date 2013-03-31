@@ -21,18 +21,18 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="amazonSQSClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
+	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
 		<constructor-arg
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSQSClient" index="0" />
+		<constructor-arg ref="amazonSqsClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 	</bean>
 
 	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSQSClient" index="0" />
+		<constructor-arg ref="amazonSqsClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
@@ -40,7 +40,7 @@
 	</bean>
 
 	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSQSClient" index="0" />
+		<constructor-arg ref="amazonSqsClient" index="0" />
 		<property name="defaultDestinationName" value="testQueue" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">

@@ -37,14 +37,14 @@ import org.springframework.util.Assert;
  */
 public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
-	private final AmazonSQS amazonSQS;
+	private final AmazonSQS amazonSqs;
 	private DestinationResolver destinationResolver;
 	private MessageConverter messageConverter = new StringMessageConverter();
 	private String defaultDestinationName;
 
-	public SimpleQueueingServiceTemplate(AmazonSQS amazonSQS) {
-		this.amazonSQS = amazonSQS;
-		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
+	public SimpleQueueingServiceTemplate(AmazonSQS amazonSqs) {
+		this.amazonSqs = amazonSqs;
+		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqs));
 	}
 
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
@@ -71,7 +71,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		org.elasticspring.messaging.Message<String> message = this.messageConverter.toMessage(payLoad);
 		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
-		this.amazonSQS.sendMessage(request);
+		this.amazonSqs.sendMessage(request);
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
 		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withMaxNumberOfMessages(1);
-		ReceiveMessageResult receiveMessageResult = this.amazonSQS.receiveMessage(receiveMessageRequest);
+		ReceiveMessageResult receiveMessageResult = this.amazonSqs.receiveMessage(receiveMessageRequest);
 		if (receiveMessageResult.getMessages().isEmpty()) {
 			return null;
 		}
@@ -101,7 +101,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
 		Object result = this.messageConverter.fromMessage(msg);
 
-		this.amazonSQS.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
+		this.amazonSqs.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
 
 		return result;
 	}

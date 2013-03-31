@@ -50,32 +50,32 @@ public class SimpleQueueServiceTemplateTest {
 
 	@Test
 	public void testConvertAndSendWithMinimalConfiguration() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		QueueingOperations messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		QueueingOperations messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 
 		messageTemplate.convertAndSend("custom", "message");
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://customQueue", "message"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).sendMessage(new SendMessageRequest("http://customQueue", "message"));
 	}
 
 	@Test
 	public void testConvertAndSendSingleMessageDefaultDestination() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.setDefaultDestinationName("test");
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
 
 		messageTemplate.convertAndSend("message");
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://testQueue", "message"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).sendMessage(new SendMessageRequest("http://testQueue", "message"));
 	}
 
 	@Test
 	public void testConvertAndSendWithCustomMessageConverter() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
-		SimpleQueueingServiceTemplate template = new SimpleQueueingServiceTemplate(amazonSQS);
+		SimpleQueueingServiceTemplate template = new SimpleQueueingServiceTemplate(amazonSqs);
 
 		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
 		Mockito.when(messageConverter.toMessage(Mockito.anyString())).thenAnswer(new Answer<Object>() {
@@ -85,19 +85,19 @@ public class SimpleQueueServiceTemplateTest {
 				return new StringMessage(invocation.getArguments()[0].toString().toUpperCase());
 			}
 		});
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 
 		template.setMessageConverter(messageConverter);
 		template.convertAndSend("test", "message");
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://customQueue", "MESSAGE"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).sendMessage(new SendMessageRequest("http://customQueue", "MESSAGE"));
 	}
 
 	@Test
 	public void testConvertAndSendWithCustomDestinationResolver() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
-		SimpleQueueingServiceTemplate template = new SimpleQueueingServiceTemplate(amazonSQS);
+		SimpleQueueingServiceTemplate template = new SimpleQueueingServiceTemplate(amazonSqs);
 		DestinationResolver destinationResolver = Mockito.mock(DestinationResolver.class);
 
 		Mockito.when(destinationResolver.resolveDestinationName("test")).thenReturn("http://testQueue");
@@ -105,42 +105,42 @@ public class SimpleQueueServiceTemplateTest {
 		template.setDestinationResolver(destinationResolver);
 		template.convertAndSend("test", "message");
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).sendMessage(new SendMessageRequest("http://testQueue", "message"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).sendMessage(new SendMessageRequest("http://testQueue", "message"));
 	}
 
 
 	@Test
 	public void testReceiveAndConvertWithDefaultDestination() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.setDefaultDestinationName("test");
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		String result = (String) messageTemplate.receiveAndConvert();
 		Assert.assertEquals("message", result);
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithCustomDestination() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		String result = (String) messageTemplate.receiveAndConvert("custom");
 		Assert.assertEquals("message", result);
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithCustomMessageConverter() throws Exception {
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
 		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
 		Mockito.when(messageConverter.fromMessage(Mockito.<org.elasticspring.messaging.Message<String>>anyObject())).thenAnswer(new Answer<Object>() {
@@ -151,63 +151,63 @@ public class SimpleQueueServiceTemplateTest {
 			}
 		});
 
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.setMessageConverter(messageConverter);
 
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		String result = (String) messageTemplate.receiveAndConvert("custom");
 		Assert.assertEquals("MESSAGE", result);
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithCustomDestinationResolver() throws Exception {
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		DestinationResolver destinationResolver = Mockito.mock(DestinationResolver.class);
 		Mockito.when(destinationResolver.resolveDestinationName("test")).thenReturn("http://customQueue");
 
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
 
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		messageTemplate.setDestinationResolver(destinationResolver);
 		String result = (String) messageTemplate.receiveAndConvert("test");
 		Assert.assertEquals("message", result);
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithTypeAndDefaultDestination() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.setDefaultDestinationName("test");
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		String result = messageTemplate.receiveAndConvert(String.class);
 		Assert.assertEquals("message", result);
 
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://testQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
 	public void testReceiveAndConvertWithTypeAndCustomDestination() throws Exception {
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		String result = messageTemplate.receiveAndConvert("custom", String.class);
 		Assert.assertEquals("message", result);
-		Mockito.verify(amazonSQS, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
+		Mockito.verify(amazonSqs, Mockito.times(1)).deleteMessage(new DeleteMessageRequest().withQueueUrl("http://customQueue").withReceiptHandle("r123"));
 	}
 
 	@Test
@@ -215,8 +215,8 @@ public class SimpleQueueServiceTemplateTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("expectedType must not be null");
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.setDefaultDestinationName("test");
 
 		messageTemplate.receiveAndConvert((Class<Object>) null);
@@ -227,11 +227,11 @@ public class SimpleQueueServiceTemplateTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("result is not of expected type:" + BigDecimal.class.getName());
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
-		Mockito.when(amazonSQS.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
+		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("custom"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
 		Message message = new Message().withBody("message").withReceiptHandle("r123");
-		Mockito.when(amazonSQS.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
+		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://customQueue").withMaxNumberOfMessages(1))).thenReturn(new ReceiveMessageResult().withMessages(message));
 
 		messageTemplate.receiveAndConvert("custom", BigDecimal.class);
 	}
@@ -241,8 +241,8 @@ public class SimpleQueueServiceTemplateTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("No default destination name configured for this template.");
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.convertAndSend("message");
 	}
 
@@ -251,8 +251,8 @@ public class SimpleQueueServiceTemplateTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("No default destination name configured for this template.");
 
-		AmazonSQS amazonSQS = Mockito.mock(AmazonSQS.class);
-		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSQS);
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		SimpleQueueingServiceTemplate messageTemplate = new SimpleQueueingServiceTemplate(amazonSqs);
 		messageTemplate.receiveAndConvert();
 	}
 }
