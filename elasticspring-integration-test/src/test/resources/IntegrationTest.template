@@ -97,6 +97,11 @@
 			"Properties": {
 			}
 		},
+		"QueueListenerTest": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+			}
+		},
 		"NotificationQueue": {
 			"Type": "AWS::SQS::Queue"
 		},

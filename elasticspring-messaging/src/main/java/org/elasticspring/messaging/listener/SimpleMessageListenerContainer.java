@@ -102,7 +102,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(getReceiveMessageRequest());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
-						getTaskExecutor().execute(new MessageExecutor(message));
+						getTaskExecutor().execute(new MessageExecutor(message, getReceiveMessageRequest().getQueueUrl()));
 					} else {
 						break;
 					}
@@ -114,16 +114,20 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private class MessageExecutor implements Runnable {
 
 		private final Message message;
+		private final String queueUrl;
 
-		private MessageExecutor(Message message) {
+		private MessageExecutor(Message message, String queueUrl) {
 			this.message = message;
+			this.queueUrl = queueUrl;
+
 		}
 
 		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			executeMessage(new StringMessage(this.message.getBody()));
-			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.message.getMessageId(), receiptHandle));
+			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
 		}
 	}
 }

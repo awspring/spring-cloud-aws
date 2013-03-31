@@ -82,7 +82,7 @@ public class SimpleMessageListenerContainerAwsTest {
 		});
 		simpleMessageListenerContainer.afterPropertiesSet();
 		simpleMessageListenerContainer.start();
+		messageReceivedCount.await();
 		simpleMessageListenerContainer.stop();
-		messageReceivedCount.countDown();
 	}
 }
