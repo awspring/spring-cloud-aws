@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.annotation;
+package org.elasticspring.messaging.config.annotation;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;

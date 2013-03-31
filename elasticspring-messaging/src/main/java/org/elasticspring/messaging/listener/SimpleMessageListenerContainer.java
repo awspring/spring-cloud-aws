@@ -75,7 +75,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	@Override
 	protected void doStop() {
 		//calling explicit shutdown to force a flush of the internal queue inside the sdk client
-		getAmazonSQS().shutdown();
+		getAmazonSqs().shutdown();
 	}
 
 	private void scheduleMessageListener() {
@@ -99,7 +99,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		@Override
 		public void run() {
 			while (isRunning()) {
-				ReceiveMessageResult receiveMessageResult = getAmazonSQS().receiveMessage(getReceiveMessageRequest());
+				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(getReceiveMessageRequest());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
 						getTaskExecutor().execute(new MessageExecutor(message));
@@ -123,7 +123,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			executeMessage(new StringMessage(this.message.getBody()));
-			getAmazonSQS().deleteMessageAsync(new DeleteMessageRequest(this.message.getMessageId(), receiptHandle));
+			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.message.getMessageId(), receiptHandle));
 		}
 	}
 }

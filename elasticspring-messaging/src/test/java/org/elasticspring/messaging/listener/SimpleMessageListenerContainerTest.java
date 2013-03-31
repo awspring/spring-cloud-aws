@@ -43,7 +43,7 @@ public class SimpleMessageListenerContainerTest {
 	public void testWithDefaultTaskExecutorAndNoBeanName() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
-		container.setAmazonSQS(Mockito.mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageListener(Mockito.mock(MessageListener.class));
 		container.setDestinationName("testQueue");
 
@@ -58,7 +58,7 @@ public class SimpleMessageListenerContainerTest {
 	public void testWithDefaultTaskExecutorAndBeanName() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
-		container.setAmazonSQS(Mockito.mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageListener(Mockito.mock(MessageListener.class));
 		container.setDestinationName("testQueue");
 		container.setBeanName("testContainerName");
@@ -75,7 +75,7 @@ public class SimpleMessageListenerContainerTest {
 		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 		container.setTaskExecutor(taskExecutor);
 
-		container.setAmazonSQS(Mockito.mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageListener(Mockito.mock(MessageListener.class));
 		container.setDestinationName("testQueue");
 		container.setBeanName("testContainerName");
@@ -91,7 +91,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setTaskExecutor(taskExecutor);
 
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
-		container.setAmazonSQS(sqs);
+		container.setAmazonSqs(sqs);
 
 
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -131,7 +131,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setTaskExecutor(taskExecutor);
 
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
-		container.setAmazonSQS(sqs);
+		container.setAmazonSqs(sqs);
 
 		container.setMessageListener(new MessageListener() {
 
@@ -178,7 +178,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setTaskExecutor(taskExecutor);
 
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
-		container.setAmazonSQS(sqs);
+		container.setAmazonSqs(sqs);
 
 		container.setMessageListener(new MessageListener() {
 

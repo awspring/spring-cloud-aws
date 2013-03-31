@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.annotation;
+package org.elasticspring.messaging.config.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,6 +32,4 @@ public @interface QueueListener {
 	String queueName() default "";
 
 	String value() default "";
-
-
 }

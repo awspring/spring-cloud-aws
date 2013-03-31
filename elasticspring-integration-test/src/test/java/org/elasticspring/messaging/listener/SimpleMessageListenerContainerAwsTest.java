@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 public class SimpleMessageListenerContainerAwsTest {
 
 	@Autowired
-	private AmazonSQSAsync amazonSQSClient;
+	private AmazonSQSAsync amazonSqsClient;
 
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
@@ -58,7 +58,7 @@ public class SimpleMessageListenerContainerAwsTest {
 			for (int i = 0; i < 10; i++) {
 				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(b + i).toString()));
 			}
-			this.amazonSQSClient.sendMessageBatch(new SendMessageBatchRequest(queueUrl, messages));
+			this.amazonSqsClient.sendMessageBatch(new SendMessageBatchRequest(queueUrl, messages));
 		}
 	}
 
@@ -66,9 +66,9 @@ public class SimpleMessageListenerContainerAwsTest {
 	public void testSimpleListen() throws Exception {
 		final CountDownLatch messageReceivedCount = new CountDownLatch(100);
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-		simpleMessageListenerContainer.setAmazonSQS(new AmazonSQSBufferedAsyncClient(this.amazonSQSClient));
+		simpleMessageListenerContainer.setAmazonSqs(new AmazonSQSBufferedAsyncClient(this.amazonSqsClient));
 		simpleMessageListenerContainer.setDestinationName(this.testStackEnvironment.getByLogicalId("LoadTestQueue"));
-		simpleMessageListenerContainer.setDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQSClient));
+		simpleMessageListenerContainer.setDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqsClient));
 		ConcurrentTaskScheduler taskScheduler = new ConcurrentTaskScheduler(Executors.newCachedThreadPool(), Executors.newScheduledThreadPool(10));
 		simpleMessageListenerContainer.setTaskExecutor(taskScheduler);
 		simpleMessageListenerContainer.setMaxNumberOfMessages(10);

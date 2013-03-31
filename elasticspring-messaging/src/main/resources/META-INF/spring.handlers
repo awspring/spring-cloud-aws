@@ -1,1 +1,1 @@
-http\://www.elasticspring.org/schema/messaging=org.elasticspring.messaging.config.MessagingNamespaceHandler
+http\://www.elasticspring.org/schema/messaging=org.elasticspring.messaging.config.xml.MessagingNamespaceHandler

@@ -27,16 +27,16 @@
 				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
 
 
-	<xsd:element name="annotation-driven">
+	<xsd:element name="annotation-driven-messaging">
 		<xsd:annotation>
 			<xsd:documentation>
-				Scans the classes annotated with org.elasticspring.messaging.annotation.QueueListener or
-				org.elasticspring.messaging.annotation.TopicListener and registers
+				Scans the classes annotated with org.elasticspring.messaging.config.annotation.QueueListener and
+				registers
 				them as endpoints for receiving messages from SQS or SNS.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="task-manager-ref" type="xsd:string">
+			<xsd:attribute name="task-manager" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -45,7 +45,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="amazon-sqs-client" type="xsd:string">
+			<xsd:attribute name="amazon-sqs" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -53,6 +53,14 @@
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-messages" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="visibility-timeout" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="wait-time-out" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:boolean">
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>

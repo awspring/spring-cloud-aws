@@ -40,7 +40,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private AmazonSQSAsync amazonSQS;
+	private AmazonSQSAsync amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private MessageListener messageListener;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
@@ -72,12 +72,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.logger;
 	}
 
-	protected AmazonSQSAsync getAmazonSQS() {
-		return this.amazonSQS;
+	protected AmazonSQSAsync getAmazonSqs() {
+		return this.amazonSqs;
 	}
 
-	public void setAmazonSQS(AmazonSQSAsync amazonSQS) {
-		this.amazonSQS = amazonSQS;
+	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
+		this.amazonSqs = amazonSqs;
 	}
 
 	protected MessageListener getMessageListener() {
@@ -174,7 +174,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	}
 
 	protected void validateConfiguration() {
-		Assert.state(this.amazonSQS != null, "amazonSQS must not be null");
+		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
 		Assert.state(this.messageListener != null, "messageListener must not be null");
 		Assert.state(this.destinationName != null, "destinationName must not be null");
 	}
@@ -182,7 +182,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected void initialize() {
 		synchronized (this.getLifecycleMonitor()) {
 			if (this.destinationResolver == null) {
-				this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSQS));
+				this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqs));
 			}
 
 			this.active = true;

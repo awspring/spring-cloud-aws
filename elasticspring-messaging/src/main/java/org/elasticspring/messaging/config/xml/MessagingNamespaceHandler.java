@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.annotation;
+package org.elasticspring.messaging.config.xml;
+
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * @author Agim Emruli
  * @since 1.0
  */
-public @interface TopicListener {
+public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 
-	String topicName();
-
-	NotificationProtocol protocol();
-
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("annotation-driven-messaging", new AnnotationDrivenMessagingBeanDefinitionParser());
+	}
 }
