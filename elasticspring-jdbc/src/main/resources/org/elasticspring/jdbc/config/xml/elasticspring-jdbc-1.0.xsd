@@ -119,7 +119,7 @@
 					<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-					The maximum number of retries the interceptor will re-execute the call after an error happended
+					The maximum number of retries the interceptor will re-execute the call after an error happened
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
