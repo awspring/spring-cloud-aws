@@ -32,4 +32,6 @@ public @interface QueueListener {
 	String queueName() default "";
 
 	String value() default "";
+
+	String messageConverter() default "";
 }

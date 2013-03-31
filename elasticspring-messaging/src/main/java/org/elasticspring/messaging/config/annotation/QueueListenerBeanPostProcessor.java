@@ -22,6 +22,7 @@ import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -47,6 +48,8 @@ public class QueueListenerBeanPostProcessor implements BeanDefinitionRegistryPos
 	private static final String ANNOTATION_TYPE = QueueListener.class.getName();
 	private static final String DESTINATION_ATTRIBUTE_NAME = "queueName";
 	private static final String VALUE_ATTRIBUTE_NAME = "value";
+	private static final String MESSAGE_CONVERTER_ATTRIBUTE_NAME = "messageConverter";
+
 	private final MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
 
 	private Map<String, Object> messageListenerContainerConfiguration = new HashMap<String, Object>();
@@ -97,8 +100,12 @@ public class QueueListenerBeanPostProcessor implements BeanDefinitionRegistryPos
 	private BeanDefinition getMessageListenerBeanDefinition(String target, MethodMetadata methodMetadata) {
 		BeanDefinitionBuilder listenerBuilder = BeanDefinitionBuilder.rootBeanDefinition(MessageListenerAdapter.class);
 
-		//TODO: Add support for custom message converter
-		listenerBuilder.addConstructorArgValue(BeanDefinitionBuilder.rootBeanDefinition(StringMessageConverter.class).getBeanDefinition());
+		if (StringUtils.hasText(getNullSafeAnnotationAttribute(methodMetadata, MESSAGE_CONVERTER_ATTRIBUTE_NAME))) {
+			listenerBuilder.addConstructorArgValue(new RuntimeBeanReference(getNullSafeAnnotationAttribute(methodMetadata, MESSAGE_CONVERTER_ATTRIBUTE_NAME)));
+		} else {
+			listenerBuilder.addConstructorArgValue(BeanDefinitionBuilder.rootBeanDefinition(StringMessageConverter.class).getBeanDefinition());
+		}
+
 		listenerBuilder.addConstructorArgReference(target);
 		listenerBuilder.addConstructorArgValue(methodMetadata.getMethodName());
 		return listenerBuilder.getBeanDefinition();
