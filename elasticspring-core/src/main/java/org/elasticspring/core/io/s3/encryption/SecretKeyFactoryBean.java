@@ -29,7 +29,7 @@ import java.security.spec.KeySpec;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SymmetricKeyFactoryBean extends AbstractFactoryBean<SecretKey> {
+public class SecretKeyFactoryBean extends AbstractFactoryBean<SecretKey> {
 
 	private final String password;
 	private final String salt;
@@ -39,7 +39,7 @@ public class SymmetricKeyFactoryBean extends AbstractFactoryBean<SecretKey> {
 	 * @param password the password used for the AES key generation - must not be null
 	 * @param salt the salt used for the AES key generation - must not be null
 	 */
-	public SymmetricKeyFactoryBean(String password, String salt) {
+	public SecretKeyFactoryBean(String password, String salt) {
 		Assert.notNull(password, "password must not be null");
 		Assert.notNull(salt, "salt must not be null");
 		this.password = password;

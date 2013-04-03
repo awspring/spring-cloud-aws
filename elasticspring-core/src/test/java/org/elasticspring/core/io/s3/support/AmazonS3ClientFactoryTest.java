@@ -30,7 +30,7 @@ public class AmazonS3ClientFactoryTest {
 
 	@Test
 	public void testCacheUnderHighConcurrency() throws InterruptedException {
-		final AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
+		final AmazonS3ClientFactory factory = getAmazonS3ClientWithCredentialsProviderFactory();
 
 		int nThreads = 100;
 		ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
@@ -61,7 +61,7 @@ public class AmazonS3ClientFactoryTest {
 
 	@Test
 	public void testInstantiationWithKeyPairRef() throws NoSuchAlgorithmException {
-		AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
+		AmazonS3ClientFactory factory = getAmazonS3ClientWithCredentialsProviderFactory();
 
 		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 		keyPairGenerator.initialize(1024);
@@ -73,19 +73,47 @@ public class AmazonS3ClientFactoryTest {
 	}
 
 	@Test
-	public void testInstantiationWithSymmetricKeyRef() throws NoSuchAlgorithmException {
-		AmazonS3ClientFactory factory = getAmazonS3ClientFactory();
+	public void testInstantiationWithSecretKeyRef() throws NoSuchAlgorithmException {
+		AmazonS3ClientFactory factory = getAmazonS3ClientWithCredentialsProviderFactory();
 
 		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
 		SecretKey secretKey = keyGenerator.generateKey();
-		factory.setSymmetricKey(secretKey);
+		factory.setSecretKey(secretKey);
 
 		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
 		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
 	}
 
-	private AmazonS3ClientFactory getAmazonS3ClientFactory() {
+	@Test
+	public void testInstantiationWithAnonymousFlagAndSecretKeyRef() throws Exception {
+		AmazonS3ClientFactory factory = new AmazonS3ClientFactory();
+
+		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
+		SecretKey secretKey = keyGenerator.generateKey();
+		factory.setSecretKey(secretKey);
+		factory.setAnonymous(true);
+
+		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
+		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
+	}
+
+	@Test
+	public void testInstantiationWithAnonymousFlagAndKeyPairRef() throws Exception {
+		AmazonS3ClientFactory factory = new AmazonS3ClientFactory();
+
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+		keyPairGenerator.initialize(1024);
+		KeyPair keyPair = keyPairGenerator.generateKeyPair();
+		factory.setKeyPair(keyPair);
+		factory.setAnonymous(true);
+
+		AmazonS3 amazonS3Client = factory.getClientForServiceEndpoint(S3ServiceEndpoint.US_STANDARD);
+		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
+	}
+
+	private AmazonS3ClientFactory getAmazonS3ClientWithCredentialsProviderFactory() {
 		AWSCredentialsProvider awsCredentialsProviderMock = Mockito.mock(AWSCredentialsProvider.class);
 		return new AmazonS3ClientFactory(awsCredentialsProviderMock);
 	}
+
 }

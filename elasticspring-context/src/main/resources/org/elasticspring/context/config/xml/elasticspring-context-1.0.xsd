@@ -98,10 +98,10 @@
 							</xsd:annotation>
 							<xsd:complexType>
 								<xsd:choice>
-									<xsd:element name="symmetric-key" type="symmetricKeyType" minOccurs="0" maxOccurs="1">
+									<xsd:element name="secret-key" type="secretKeyType" minOccurs="0" maxOccurs="1">
 										<xsd:annotation>
 											<xsd:documentation>
-												Configures the symmetric key to use for encryption.
+												Configures the secret key to use for encryption.
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:element>
@@ -137,7 +137,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="region-provider-ref" type="xsd:string" use="optional">
+		<xsd:attribute name="region-provider" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -253,8 +253,8 @@
 		<xsd:restriction base="xsd:boolean" />
 	</xsd:simpleType>
 
-	<xsd:complexType name="symmetricKeyType">
-		<xsd:attribute name="key-ref" type="xsd:string" use="optional">
+	<xsd:complexType name="secretKeyType">
+		<xsd:attribute name="ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a reference to a bean which must be an instance of javax.crypto.SecretKey
@@ -283,7 +283,7 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="keyPairType">
-		<xsd:attribute name="key-ref" type="xsd:string" use="optional">
+		<xsd:attribute name="ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures a reference to a bean which must be an instance of java.security.KeyPair

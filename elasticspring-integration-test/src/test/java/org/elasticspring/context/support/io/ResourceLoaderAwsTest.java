@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -160,8 +161,6 @@ public class ResourceLoaderAwsTest {
 			downloadedInputStream = new DigestInputStream(downloadedInputStream, md);
 			while (downloadedInputStream.read(buffer) != -1) {
 				// go through the input stream until EOF to compute MD5 checksum.
-				// Dummy operation to avoid checkstyle error
-				int a = 1;
 			}
 		} finally {
 			downloadedInputStream.close();

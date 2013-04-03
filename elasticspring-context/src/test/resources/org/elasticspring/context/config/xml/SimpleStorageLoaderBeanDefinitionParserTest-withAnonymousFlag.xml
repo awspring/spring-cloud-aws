@@ -20,13 +20,9 @@
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<els-context:context-credentials>
-		<els-context:simple-credentials access-key="accessKey" secret-key="secretKey" />
-	</els-context:context-credentials>
-
 	<els-context:context-resource-loader>
-		<els-context:client-encryption>
-			<els-context:symmetric-key password="myVerySecretPassword" salt="mySaltySalt" />
+		<els-context:client-encryption anonymous="true">
+			<els-context:secret-key password="myMegaSecurePassword" salt="mySaltySalt" />
 		</els-context:client-encryption>
 	</els-context:context-resource-loader>
 

@@ -42,7 +42,14 @@ public class AmazonS3ClientFactory {
 	private final ConcurrentHashMap<ServiceEndpoint, AmazonS3Client> clientsForRegion = new ConcurrentHashMap<ServiceEndpoint, AmazonS3Client>();
 	private boolean anonymous;
 	private KeyPair keyPair;
-	private SecretKey symmetricKey;
+	private SecretKey secretKey;
+
+	/**
+	 * Used for anonymous client.
+	 */
+	public AmazonS3ClientFactory() {
+		this.credentials = null;
+	}
 
 	public AmazonS3ClientFactory(AWSCredentialsProvider credentials) {
 		this.credentials = credentials;
@@ -56,8 +63,8 @@ public class AmazonS3ClientFactory {
 		this.keyPair = keyPair;
 	}
 
-	public void setSymmetricKey(SecretKey symmetricKey) {
-		this.symmetricKey = symmetricKey;
+	public void setSecretKey(SecretKey secretKey) {
+		this.secretKey = secretKey;
 	}
 
 	/**
@@ -90,8 +97,8 @@ public class AmazonS3ClientFactory {
 			encryptionMaterials = new EncryptionMaterials(this.keyPair);
 		}
 
-		if (this.symmetricKey != null) {
-			encryptionMaterials = new EncryptionMaterials(this.symmetricKey);
+		if (this.secretKey != null) {
+			encryptionMaterials = new EncryptionMaterials(this.secretKey);
 		}
 
 		AmazonS3EncryptionClient amazonS3EncryptionClient;
@@ -106,6 +113,6 @@ public class AmazonS3ClientFactory {
 	}
 
 	private boolean isEncryptionClient() {
-		return this.anonymous || this.keyPair != null || this.symmetricKey != null;
+		return this.anonymous || this.keyPair != null || this.secretKey != null;
 	}
 }

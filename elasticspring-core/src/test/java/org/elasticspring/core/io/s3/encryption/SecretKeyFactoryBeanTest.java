@@ -25,12 +25,12 @@ import javax.crypto.SecretKey;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SymmetricKeyFactoryBeanTest {
+public class SecretKeyFactoryBeanTest {
 
 	@Test
 	public void testInstantiationWithPasswordAndSalt() throws Exception {
-		SymmetricKeyFactoryBean symmetricKeyFactoryBean = new SymmetricKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
-		SecretKey secretKey = symmetricKeyFactoryBean.createInstance();
+		SecretKeyFactoryBean secretKeyFactoryBean = new SecretKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
+		SecretKey secretKey = secretKeyFactoryBean.createInstance();
 
 		Assert.assertNotNull(secretKey);
 		Assert.assertNotNull(secretKey.getEncoded());
@@ -38,8 +38,8 @@ public class SymmetricKeyFactoryBeanTest {
 
 	@Test
 	public void testInstantiationWithEmptyStrings() throws Exception {
-		SymmetricKeyFactoryBean symmetricKeyFactoryBean = new SymmetricKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
-		SecretKey secretKey = symmetricKeyFactoryBean.createInstance();
+		SecretKeyFactoryBean secretKeyFactoryBean = new SecretKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
+		SecretKey secretKey = secretKeyFactoryBean.createInstance();
 
 		Assert.assertNotNull(secretKey);
 		Assert.assertNotNull(secretKey.getEncoded());
@@ -47,11 +47,11 @@ public class SymmetricKeyFactoryBeanTest {
 
 	@Test
 	public void samePasswordAndSaltReturnsSameSecretKey() throws Exception {
-		SymmetricKeyFactoryBean symmetricKeyFactoryBean1 = new SymmetricKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
-		SecretKey secretKey1 = symmetricKeyFactoryBean1.createInstance();
+		SecretKeyFactoryBean secretKeyFactoryBean1 = new SecretKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
+		SecretKey secretKey1 = secretKeyFactoryBean1.createInstance();
 
-		SymmetricKeyFactoryBean symmetricKeyFactoryBean2 = new SymmetricKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
-		SecretKey secretKey2 = symmetricKeyFactoryBean2.createInstance();
+		SecretKeyFactoryBean secretKeyFactoryBean2 = new SecretKeyFactoryBean("myVerySecurePassword", "mySaltySalt");
+		SecretKey secretKey2 = secretKeyFactoryBean2.createInstance();
 
 		Assert.assertEquals(secretKey1, secretKey2);
 	}

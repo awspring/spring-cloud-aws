@@ -21,7 +21,7 @@ import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.elasticspring.core.io.s3.encryption.KeyPairFactoryBean;
-import org.elasticspring.core.io.s3.encryption.SymmetricKeyFactoryBean;
+import org.elasticspring.core.io.s3.encryption.SecretKeyFactoryBean;
 import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
 import org.elasticspring.core.region.Region;
 import org.elasticspring.core.region.StaticRegionProvider;
@@ -73,19 +73,22 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 	}
 
 	private static void addRegionProviderBeanDefinition(Element element, ParserContext parserContext, BeanDefinitionBuilder parent) {
-		if (StringUtils.hasText(element.getAttribute("region")) && StringUtils.hasText(element.getAttribute("region-provider-ref"))) {
-			parserContext.getReaderContext().error("region and region-provider-ref attribute must not be used together", element);
+		String regionAttribute = element.getAttribute("region");
+		String regionProviderAttribute = element.getAttribute("region-provider");
+
+		if (StringUtils.hasText(regionAttribute) && StringUtils.hasText(regionProviderAttribute)) {
+			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
 			return;
 		}
 
-		if (StringUtils.hasText(element.getAttribute("region-provider-ref"))) {
-			parent.addConstructorArgReference(element.getAttribute("region-provider-ref"));
+		if (StringUtils.hasText(regionProviderAttribute)) {
+			parent.addConstructorArgReference(regionProviderAttribute);
 			return;
 		}
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
-		if (StringUtils.hasText(element.getAttribute("region"))) {
-			beanDefinitionBuilder.addConstructorArgValue(element.getAttribute("region"));
+		if (StringUtils.hasText(regionAttribute)) {
+			beanDefinitionBuilder.addConstructorArgValue(regionAttribute);
 			parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
 		} else {
 			beanDefinitionBuilder.addConstructorArgValue(Region.US_STANDARD);
@@ -105,26 +108,36 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 	private static BeanDefinition buildAmazonS3ClientFactoryDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3ClientFactory.class);
-		amazonS3ClientFactoryBeanBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 
 		Element clientEncryption = DomUtils.getChildElementByTagName(element, "client-encryption");
 		if (clientEncryption != null) {
-			String anonymous = element.getAttribute("anonymous");
-			if (StringUtils.hasText(anonymous)) {
-				amazonS3ClientFactoryBeanBuilder.addPropertyValue("anonymous", "true".equals(anonymous));
+			String anonymousAttribute = clientEncryption.getAttribute("anonymous");
+			boolean isAnonymous = StringUtils.hasText(anonymousAttribute) && "true".equals(anonymousAttribute);
+			if (isAnonymous) {
+				amazonS3ClientFactoryBeanBuilder.addPropertyValue("anonymous", true);
+			} else {
+				amazonS3ClientFactoryBeanBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 			}
 
+			boolean encryptionMaterialSet = false;
 			List<Element> elements = DomUtils.getChildElements(clientEncryption);
 			for (Element encryptionKeyElement : elements) {
 				if ("key-pair".equals(encryptionKeyElement.getLocalName())) {
 					parseKeyPair(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
+					encryptionMaterialSet = true;
 				}
 
-				if ("symmetric-key".equals(encryptionKeyElement.getLocalName())) {
-					parseSymmetricKey(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
+				if ("secret-key".equals(encryptionKeyElement.getLocalName())) {
+					parseSecretKey(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
+					encryptionMaterialSet = true;
 				}
 			}
 
+			if (isAnonymous && !encryptionMaterialSet) {
+				parserContext.getReaderContext().error("When attribute 'anonymous' is set to 'true' either 'key-pair' or 'secret-key' must be set.", clientEncryption);
+			}
+		} else {
+			amazonS3ClientFactoryBeanBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 		}
 
 		return amazonS3ClientFactoryBeanBuilder.getBeanDefinition();
@@ -132,7 +145,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 	private static void parseKeyPair(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
 		boolean keyPairRefSet = false;
-		String keyPairRef = encryptionKeyElement.getAttribute("key-ref");
+		String keyPairRef = encryptionKeyElement.getAttribute("ref");
 		if (StringUtils.hasText(keyPairRef)) {
 			amazonS3ClientFactoryBeanBuilder.addPropertyReference("keyPair", keyPairRef);
 			keyPairRefSet = true;
@@ -150,40 +163,40 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		}
 
 		if (keyPairRefSet && keyPairResourceSet) {
-			parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'key-pair' element.", encryptionKeyElement);
+			parserContext.getReaderContext().error("'ref' and 'public-key-resource' with 'private-key-resource' are not allowed together in the same 'key-pair' element.", encryptionKeyElement);
 		}
 
 		if (!keyPairRefSet && !keyPairResourceSet) {
-			parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'key-pair'.", encryptionKeyElement);
+			parserContext.getReaderContext().error("Either attribute 'ref' or 'private-key-resource' with 'public-key-resource' must be defined on element 'key-pair'.", encryptionKeyElement);
 		}
 	}
 
-	private static void parseSymmetricKey(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
+	private static void parseSecretKey(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
 
-		boolean symmetricKeyRefSet = false;
-		String symmetricKeyRef = encryptionKeyElement.getAttribute("key-ref");
-		if (StringUtils.hasText(symmetricKeyRef)) {
-			amazonS3ClientFactoryBeanBuilder.addPropertyReference("symmetricKey", symmetricKeyRef);
-			symmetricKeyRefSet = true;
+		boolean secretKeyRefSet = false;
+		String secretKeyRef = encryptionKeyElement.getAttribute("ref");
+		if (StringUtils.hasText(secretKeyRef)) {
+			amazonS3ClientFactoryBeanBuilder.addPropertyReference("secretKey", secretKeyRef);
+			secretKeyRefSet = true;
 		}
 
 		String password = encryptionKeyElement.getAttribute("password");
 		String salt = encryptionKeyElement.getAttribute("salt");
-		boolean symmetricKeyResourceSet = false;
+		boolean secretKeyResourceSet = false;
 		if (StringUtils.hasText(password) && StringUtils.hasText(salt)) {
-			BeanDefinitionBuilder symmetricKeyFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(SymmetricKeyFactoryBean.class);
-			symmetricKeyFactoryBeanBuilder.addConstructorArgValue(password);
-			symmetricKeyFactoryBeanBuilder.addConstructorArgValue(salt);
-			amazonS3ClientFactoryBeanBuilder.addPropertyValue("symmetricKey", symmetricKeyFactoryBeanBuilder.getBeanDefinition());
-			symmetricKeyResourceSet = true;
+			BeanDefinitionBuilder secretKeyFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(SecretKeyFactoryBean.class);
+			secretKeyFactoryBeanBuilder.addConstructorArgValue(password);
+			secretKeyFactoryBeanBuilder.addConstructorArgValue(salt);
+			amazonS3ClientFactoryBeanBuilder.addPropertyValue("secretKey", secretKeyFactoryBeanBuilder.getBeanDefinition());
+			secretKeyResourceSet = true;
 		}
 
-		if (symmetricKeyRefSet && symmetricKeyResourceSet) {
-			parserContext.getReaderContext().error("'key-ref' and 'key-resource' are not allowed together in the same 'symmetric-key' element.", encryptionKeyElement);
+		if (secretKeyRefSet && secretKeyResourceSet) {
+			parserContext.getReaderContext().error("'ref' and 'password' with 'salt' are not allowed together in the same 'secret-key' element.", encryptionKeyElement);
 		}
 
-		if (!symmetricKeyRefSet && !symmetricKeyResourceSet) {
-			parserContext.getReaderContext().error("Either attribute 'key-ref' or 'key-resource' must be defined on element 'symmetric-key'.", encryptionKeyElement);
+		if (!secretKeyRefSet && !secretKeyResourceSet) {
+			parserContext.getReaderContext().error("Either attribute 'ref' or 'password' with 'salt' must be defined on element 'secret-key'.", encryptionKeyElement);
 		}
 	}
 }

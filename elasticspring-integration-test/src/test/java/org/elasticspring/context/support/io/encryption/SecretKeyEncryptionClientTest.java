@@ -49,8 +49,8 @@ import java.util.List;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("SymmetricKeyEncryptionClientTest-context.xml")
-public class SymmetricKeyEncryptionClientTest {
+@ContextConfiguration("SecretKeyEncryptionClientTest-context.xml")
+public class SecretKeyEncryptionClientTest {
 
 	private static final String S3_PREFIX = "s3://";
 

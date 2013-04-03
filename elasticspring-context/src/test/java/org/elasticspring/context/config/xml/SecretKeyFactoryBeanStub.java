@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SymmetricKeyFactoryBeanStub extends AbstractFactoryBean<SecretKey> {
+public class SecretKeyFactoryBeanStub extends AbstractFactoryBean<SecretKey> {
 
 	@Override
 	public Class<?> getObjectType() {
