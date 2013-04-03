@@ -26,6 +26,7 @@ public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("annotation-driven-messaging", new AnnotationDrivenMessagingBeanDefinitionParser());
+		registerBeanDefinitionParser("annotation-driven-queue-listener", new AnnotationDrivenQueueListenerBeanDefinitionParser());
+		registerBeanDefinitionParser("annotation-driven-topic-listener", new AnnotationDrivenTopicListenerBeanDefinitionParser());
 	}
 }

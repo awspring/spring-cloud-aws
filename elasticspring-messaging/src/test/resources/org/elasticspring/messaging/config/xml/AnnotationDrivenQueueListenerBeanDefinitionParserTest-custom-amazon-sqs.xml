@@ -17,18 +17,18 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd
+	   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<bean id="first" class="org.elasticspring.messaging.endpoint.NotificationEndpointHttpRequestHandler">
-		<constructor-arg name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.NotificationMessageConverter" />
-		</constructor-arg>
-		<constructor-arg name="listenerMethod" value="handleNotification" />
-		<constructor-arg name="target" ref="target" />
-		<constructor-arg name="endpointAddress" value="http://localhost:8080/test/first" />
-	</bean>
+	<bean id="myClient" class="com.amazonaws.services.sqs.AmazonSQSAsyncClient" />
 
-	<bean id="target"
-		  class="org.elasticspring.messaging.endpoint.NotificationEndpointHttpRequestHandlerTest$SimpleHttpRequestHandler" />
+	<els-messaging:annotation-driven-queue-listener amazon-sqs="myClient" />
+
+	<els-context:context-credentials>
+		<els-context:instance-profile-credentials />
+	</els-context:context-credentials>
 
 </beans>

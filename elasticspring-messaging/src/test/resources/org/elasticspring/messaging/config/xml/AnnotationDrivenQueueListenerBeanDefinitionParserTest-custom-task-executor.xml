@@ -23,8 +23,9 @@
 	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd
 	   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<els-messaging:annotation-driven-messaging auto-startup="false" max-number-of-messages="9" visibility-timeout="6"
-											   wait-time-out="3" />
+	<bean id="executor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+
+	<els-messaging:annotation-driven-queue-listener task-manager="executor" />
 
 	<els-context:context-credentials>
 		<els-context:instance-profile-credentials />

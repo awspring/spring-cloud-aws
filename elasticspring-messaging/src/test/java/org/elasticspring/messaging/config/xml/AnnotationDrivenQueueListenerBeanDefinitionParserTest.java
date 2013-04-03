@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.config.annotation.QueueListenerBeanPostProcessor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,24 +32,22 @@ import java.util.Map;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AnnotationDrivenMessagingBeanDefinitionParserTest {
-
+public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 	@Test
 	public void testParseMinimalConfig() throws Exception {
-
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		BeanDefinition sqsAsync = registry.getBeanDefinition(AnnotationDrivenMessagingBeanDefinitionParser.SQS_CLIENT_BEAN_NAME);
+		BeanDefinition sqsAsync = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
 		Assert.assertNotNull(sqsAsync);
 
 		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanPostProcessor.class.getName() + "#0");
 		@SuppressWarnings("unchecked") Map<String, Object> configuration =
 				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
 		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("amazonSqs");
-		Assert.assertEquals(AnnotationDrivenMessagingBeanDefinitionParser.SQS_CLIENT_BEAN_NAME, reference.getBeanName());
+		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME, reference.getBeanName());
 	}
 
 	@Test

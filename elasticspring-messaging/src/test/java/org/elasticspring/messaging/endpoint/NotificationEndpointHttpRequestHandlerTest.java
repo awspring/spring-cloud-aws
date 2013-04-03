@@ -45,7 +45,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), target, "handleNotification");
+				new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first");
 
 		String message = "{ \"Type\" : \"Notification\"," +
 				" \"Message\" : \"world\"}";
@@ -55,7 +55,6 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		Assert.assertEquals("world", target.getLastMessage());
 	}
 
-
 	@Test
 	public void testRegisterClass() throws Exception {
 		Tomcat tomcat = new Tomcat();
@@ -63,7 +62,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		tomcat.setPort(0);
 		tomcat.setHostname("localhost");
 
-		Context context = tomcat.addWebapp("/", System.getProperty("java.io.tmpdir"));
+		Context context = tomcat.addWebapp("/test", System.getProperty("java.io.tmpdir"));
 		context.setApplicationLifecycleListeners(new Object[]{new ContextLoaderListener()});
 		ApplicationParameter parameter = new ApplicationParameter();
 		parameter.setName(ContextLoaderListener.CONFIG_LOCATION_PARAM);
@@ -74,7 +73,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		Assert.assertTrue(context.getState().isAvailable());
 
 		HttpClient httpClient = new DefaultHttpClient();
-		HttpPost httpPost = new HttpPost("http://localhost:" + tomcat.getConnector().getLocalPort() + "/first");
+		HttpPost httpPost = new HttpPost("http://localhost:" + tomcat.getConnector().getLocalPort() + "/test/first");
 
 		String message = "{ \"Type\" : \"Notification\"," +
 				" \"Message\" : \"world\"}";
@@ -88,7 +87,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 
 		private String lastMessage;
 
-		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP)
+		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "foo")
 		public void handleNotification(String message) {
 			this.lastMessage = message;
 		}

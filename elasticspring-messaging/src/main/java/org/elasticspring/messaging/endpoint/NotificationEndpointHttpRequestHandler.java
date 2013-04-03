@@ -23,6 +23,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MethodInvoker;
+import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.HttpRequestHandlerServlet;
@@ -34,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 /**
@@ -46,14 +49,26 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	private final MessageConverter messageConverter;
 	private final Object target;
 	private final String listenerMethod;
+	private final String endpointAddress;
 
 	private ServletContext servletContext;
 	private String beanName;
 
-	public NotificationEndpointHttpRequestHandler(MessageConverter messageConverter, Object target, String listenerMethod) {
+	public NotificationEndpointHttpRequestHandler(MessageConverter messageConverter, Object target, String listenerMethod, String endpointAddress) {
 		this.messageConverter = messageConverter;
 		this.target = target;
 		this.listenerMethod = listenerMethod;
+		this.endpointAddress = endpointAddress;
+	}
+
+	@Override
+	public void setServletContext(ServletContext servletContext) {
+		this.servletContext = servletContext;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
 	}
 
 	@Override
@@ -89,16 +104,26 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 		Assert.notNull(this.servletContext, "ServletContext must no be null, please make sure this class is " +
 				"used inside a web application context");
 		ServletRegistration.Dynamic dynamic = this.servletContext.addServlet(this.beanName, new HttpRequestHandlerServlet());
-		dynamic.addMapping("/" + this.beanName);
+		dynamic.addMapping(getUrlInServletContext(this.servletContext, this.endpointAddress));
 	}
 
-	@Override
-	public void setServletContext(ServletContext servletContext) {
-		this.servletContext = servletContext;
-	}
-
-	@Override
-	public void setBeanName(String name) {
-		this.beanName = name;
+	private static String getUrlInServletContext(ServletContext servletContext, String endpointAddress) {
+		URI uri;
+		try {
+			uri = new URI(endpointAddress);
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Illegal URL configured in Amazon SNS, please make sure to have a valid URL configured", e);
+		}
+		String query = uri.getPath();
+		String contextPath = servletContext.getContextPath();
+		if (!query.contains(contextPath)) {
+			throw new IllegalArgumentException("wrong url configured");
+		}
+		if (StringUtils.hasText(contextPath)) {
+			String relativePath = query.substring(contextPath.length());
+			return relativePath.startsWith("/") ? relativePath : "/" + relativePath;
+		} else {
+			return query;
+		}
 	}
 }

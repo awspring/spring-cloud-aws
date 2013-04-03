@@ -16,11 +16,9 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
-import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.config.annotation.QueueListenerBeanPostProcessor;
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -37,9 +35,8 @@ import java.util.List;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AnnotationDrivenMessagingBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	static final String SQS_CLIENT_BEAN_NAME = "SQS_CLIENT";
 	private static final List<String> MESSAGE_LISTENER_COLLABORATORS = Arrays.asList("task-manager", "amazon-sqs");
 
 
@@ -56,17 +53,8 @@ public class AnnotationDrivenMessagingBeanDefinitionParser extends AbstractSingl
 		}
 
 		if (!defaultProperties.containsKey("amazonSqs")) {
-			if (!parserContext.getRegistry().containsBeanDefinition(SQS_CLIENT_BEAN_NAME)) {
-				BeanDefinitionBuilder clientBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSAsyncClient.class);
-				clientBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-				clientBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
-
-				BeanDefinitionBuilder bufferClientBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSBufferedAsyncClient.class);
-				bufferClientBuilder.addConstructorArgValue(clientBuilder.getBeanDefinition());
-
-				parserContext.getRegistry().registerBeanDefinition(SQS_CLIENT_BEAN_NAME, bufferClientBuilder.getBeanDefinition());
-			}
-			defaultProperties.put("amazonSqs", new RuntimeBeanReference(SQS_CLIENT_BEAN_NAME));
+			BeanDefinitionHolder definitionHolder = AmazonMessagingConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(), element);
+			defaultProperties.put("amazonSqs", new RuntimeBeanReference(definitionHolder.getBeanName()));
 		}
 
 		builder.addPropertyValue("messageListenerContainerConfiguration", defaultProperties);

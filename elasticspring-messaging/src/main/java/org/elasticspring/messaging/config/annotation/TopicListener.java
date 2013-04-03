@@ -16,6 +16,8 @@
 
 package org.elasticspring.messaging.config.annotation;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
+
 /**
  * @author Agim Emruli
  * @since 1.0
@@ -26,13 +28,35 @@ public @interface TopicListener {
 
 	NotificationProtocol protocol();
 
+	String endpoint();
+
 	/**
 	 * @author Agim Emruli
 	 * @since 1.0
 	 */
 	enum NotificationProtocol {
 
-		HTTP, HTTPS, E_MAIL, E_MAIL_JSON, SQS, SMS
+		@RuntimeUse
+		HTTP("http"),
+		@RuntimeUse
+		HTTPS("https"),
+		@RuntimeUse
+		E_MAIL("e-mail"),
+		@RuntimeUse
+		E_MAIL_JSON("e-mail-json"),
+		@RuntimeUse
+		SQS("sqs"),
+		@RuntimeUse
+		SMS("sms");
 
+		private final String canonicalName;
+
+		NotificationProtocol(String canonicalName) {
+			this.canonicalName = canonicalName;
+		}
+
+		public String getCanonicalName() {
+			return this.canonicalName;
+		}
 	}
 }
