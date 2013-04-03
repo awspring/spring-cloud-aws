@@ -23,7 +23,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MethodInvoker;
-import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.HttpRequestHandlerServlet;
@@ -86,8 +85,10 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return;
 		} catch (NoSuchMethodException e) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "The configured endpoint method:'" + this.listenerMethod + "' does not exist");
+			return;
 		}
 
 		try {
@@ -103,27 +104,29 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.servletContext, "ServletContext must no be null, please make sure this class is " +
 				"used inside a web application context");
+		Assert.notNull(this.beanName, "bean name must not be null");
+
 		ServletRegistration.Dynamic dynamic = this.servletContext.addServlet(this.beanName, new HttpRequestHandlerServlet());
-		dynamic.addMapping(getUrlInServletContext(this.servletContext, this.endpointAddress));
+
+		Assert.notNull(dynamic, "Error registering servlet to handle notification request. Please make sure to run in a servlet 3.0 compliant servlet container");
+
+		dynamic.addMapping(getRelativeUrlInContextPath(this.servletContext.getContextPath(), this.endpointAddress));
 	}
 
-	private static String getUrlInServletContext(ServletContext servletContext, String endpointAddress) {
-		URI uri;
-		try {
-			uri = new URI(endpointAddress);
-		} catch (URISyntaxException e) {
-			throw new IllegalStateException("Illegal URL configured in Amazon SNS, please make sure to have a valid URL configured", e);
-		}
+	private static String getRelativeUrlInContextPath(String contextPath, String endpointAddress) throws URISyntaxException {
+		Assert.notNull(contextPath, "contextPath must not be null");
+
+		URI uri = new URI(endpointAddress);
 		String query = uri.getPath();
-		String contextPath = servletContext.getContextPath();
-		if (!query.contains(contextPath)) {
-			throw new IllegalArgumentException("wrong url configured");
-		}
-		if (StringUtils.hasText(contextPath)) {
-			String relativePath = query.substring(contextPath.length());
-			return relativePath.startsWith("/") ? relativePath : "/" + relativePath;
-		} else {
-			return query;
-		}
+
+		Assert.isTrue(query.contains(contextPath), "The endpoint:'" + endpointAddress + "' " +
+				"does not contain the context path:'" + contextPath + "' where the application is running");
+
+		String relativePath = query.substring(contextPath.length());
+		return toContextPath(relativePath);
+	}
+
+	private static String toContextPath(String input) {
+		return input.startsWith("/") ? input : "/" + input;
 	}
 }

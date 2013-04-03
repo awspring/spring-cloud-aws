@@ -16,21 +16,20 @@
 
 package org.elasticspring.messaging.endpoint;
 
-import org.apache.catalina.Context;
-import org.apache.catalina.deploy.ApplicationParameter;
-import org.apache.catalina.startup.Tomcat;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.support.HttpRequestHandlerServlet;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletRegistration;
 
 /**
  * @author Agim Emruli
@@ -38,49 +37,239 @@ import org.springframework.web.context.ContextLoaderListener;
  */
 public class NotificationEndpointHttpRequestHandlerTest {
 
+	@Rule
+	public final ExpectedException expectedException = ExpectedException.none();
+
 	@Test
 	public void testSimpleRequest() throws Exception {
-
-		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
-		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
 				new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first");
 
-		String message = "{ \"Type\" : \"Notification\"," +
-				" \"Message\" : \"world\"}";
-		mockHttpServletRequest.setContent(message.getBytes("UTF-8"));
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "Hello World");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
 
 		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
-		Assert.assertEquals("world", target.getLastMessage());
+		Assert.assertEquals("Hello World", target.getLastMessage());
 	}
 
 	@Test
-	public void testRegisterClass() throws Exception {
-		Tomcat tomcat = new Tomcat();
-		tomcat.setBaseDir(System.getProperty("java.io.tmpdir"));
-		tomcat.setPort(0);
-		tomcat.setHostname("localhost");
+	public void testRegisterInRootContextWithRootMapping() throws Exception {
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first");
 
-		Context context = tomcat.addWebapp("/test", System.getProperty("java.io.tmpdir"));
-		context.setApplicationLifecycleListeners(new Object[]{new ContextLoaderListener()});
-		ApplicationParameter parameter = new ApplicationParameter();
-		parameter.setName(ContextLoaderListener.CONFIG_LOCATION_PARAM);
-		parameter.setValue("classpath:org/elasticspring/messaging/endpoint/web-app-config.xml");
-		context.addApplicationParameter(parameter);
-		tomcat.start();
 
-		Assert.assertTrue(context.getState().isAvailable());
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
 
-		HttpClient httpClient = new DefaultHttpClient();
-		HttpPost httpPost = new HttpPost("http://localhost:" + tomcat.getConnector().getLocalPort() + "/test/first");
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
 
-		String message = "{ \"Type\" : \"Notification\"," +
-				" \"Message\" : \"world\"}";
-		httpPost.setEntity(new StringEntity(message));
-		HttpResponse response = httpClient.execute(httpPost);
-		Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-		tomcat.stop();
+		handler.afterPropertiesSet();
+
+		Mockito.verify(dynamic, Mockito.times(1)).addMapping("/first");
+	}
+
+	@Test
+	public void testRegisterInRootContextWithNestedMapping() throws Exception {
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		Mockito.verify(dynamic, Mockito.times(1)).addMapping("/first/second/third");
+	}
+
+	@Test
+	public void testRegisterInRootContextWithEmptyContext() throws Exception {
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("");
+
+		handler.afterPropertiesSet();
+
+		Mockito.verify(dynamic, Mockito.times(1)).addMapping("/first/second/third");
+	}
+
+	@Test
+	public void testRegisterInSubContextWithNestedMapping() throws Exception {
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/myApp");
+
+		handler.afterPropertiesSet();
+
+		Mockito.verify(dynamic, Mockito.times(1)).addMapping("/first/second");
+	}
+
+	@Test
+	public void testContextIsNotInEndpoint() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("does not contain the context path");
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/differentApp");
+
+		handler.afterPropertiesSet();
+	}
+
+	@Test
+	public void testNoServletContextSet() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("ServletContext must no be null, please make sure this class is used inside a web application context");
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+
+		handler.setBeanName("testBean");
+		handler.afterPropertiesSet();
+	}
+
+	@Test
+	public void testRegisterBeanNameNotSet() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("bean name must not be null");
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+
+		handler.afterPropertiesSet();
+	}
+
+	@Test //e.g. Jetty 8
+	public void testNoValidServlet30ServletContainer() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("Error registering servlet to handle notification request. Please make sure to run in a servlet 3.0 compliant servlet container");
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+		handler.afterPropertiesSet();
+	}
+
+	@Test
+	public void testInvalidClass() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), target, "notExistingMethod", "http://localhost:8080/first");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "Hello World");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals(500, mockHttpServletResponse.getStatus());
+		Assert.assertEquals("The configured endpoint method:'notExistingMethod' does not exist", mockHttpServletResponse.getErrorMessage());
+	}
+
+	@Test
+	public void testExceptionThrowingMethod() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				new NotificationMessageConverter(), target, "exceptionThrowingMethod", "http://localhost:8080/first");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "Hello World");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals(500, mockHttpServletResponse.getStatus());
+		Assert.assertEquals("Application Error", mockHttpServletResponse.getErrorMessage());
 	}
 
 	static class SimpleHttpRequestHandler {
@@ -90,6 +279,11 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "foo")
 		public void handleNotification(String message) {
 			this.lastMessage = message;
+		}
+
+		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "bar")
+		public void exceptionThrowingMethod(String message) {
+			throw new RuntimeException("Application Error");
 		}
 
 		public String getLastMessage() {

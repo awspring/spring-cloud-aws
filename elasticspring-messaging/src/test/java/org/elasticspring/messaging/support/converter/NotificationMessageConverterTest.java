@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.support.converter;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.StringMessage;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -39,9 +40,10 @@ public class NotificationMessageConverterTest {
 
 	@Test
 	public void testReadMessage() throws Exception {
-		String message = "{ \"Type\" : \"Notification\"," +
-				" \"Message\" : \"Hello World!\"}";
-		Object result = new NotificationMessageConverter().fromMessage(new StringMessage(message));
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "Hello World!");
+		Object result = new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
 		Assert.assertEquals("Hello World!", result);
 	}
 
@@ -49,26 +51,29 @@ public class NotificationMessageConverterTest {
 	public void testNoTypeSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("does not contain a Type attribute");
-		String message = "{ \"Message\" : \"Hello World!\"}";
-		new NotificationMessageConverter().fromMessage(new StringMessage(message));
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Message", "Hello World!");
+		new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
 	}
 
 	@Test
 	public void testWrongTypeSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
-		this.expectedException.expectMessage("does is not a valid notification");
-		String message = "{ \"Type\" : \"Subscription\"," +
-				" \"Message\" : \"Hello World!\"}";
-		new NotificationMessageConverter().fromMessage(new StringMessage(message));
+		this.expectedException.expectMessage("is not a valid notification");
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Subscription");
+		jsonObject.put("Message", "Hello World!");
+		new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
 	}
 
 	@Test
 	public void testNoMessageAvailableSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("does not contain a message");
-		String message = "{ \"Type\" : \"Notification\"," +
-				" \"Subject\" : \"Hello World!\"}";
-		new NotificationMessageConverter().fromMessage(new StringMessage(message));
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "Hello World!");
+		new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
 	}
 
 	@Test

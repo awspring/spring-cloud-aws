@@ -44,7 +44,7 @@ public class NotificationMessageConverter implements MessageConverter {
 			}
 
 			if (!"Notification".equals(jsonNode.get("Type").getTextValue())) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does is not a valid notification");
+				throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification");
 			}
 
 			if (!jsonNode.has("Message")) {
