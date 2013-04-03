@@ -56,81 +56,97 @@ public class AmazonResourceNameTest {
 
 	@Test
 	public void testDynamoDb() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:dynamodb:us-east-1:123456789012:table/books_table");
+		String arn = "arn:aws:dynamodb:us-east-1:123456789012:table/books_table";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("dynamodb", resourceName.getService());
 		Assert.assertEquals("us-east-1", resourceName.getRegion());
 		Assert.assertEquals("123456789012", resourceName.getAccount());
 		Assert.assertEquals("table", resourceName.getResourceType());
 		Assert.assertEquals("books_table", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testElasticBeansTalk() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7");
+		String arn = "arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("elasticbeanstalk", resourceName.getService());
 		Assert.assertEquals("us-east-1", resourceName.getRegion());
 		Assert.assertNull(resourceName.getAccount());
 		Assert.assertEquals("solutionstack", resourceName.getResourceType());
 		Assert.assertEquals("32bit Amazon Linux running Tomcat 7", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testIamService() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:iam::123456789012:server-certificate/ProdServerCert");
+		String arn = "arn:aws:iam::123456789012:server-certificate/ProdServerCert";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("iam", resourceName.getService());
 		Assert.assertNull(resourceName.getRegion());
 		Assert.assertEquals("123456789012", resourceName.getAccount());
 		Assert.assertEquals("server-certificate", resourceName.getResourceType());
 		Assert.assertEquals("ProdServerCert", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testRdsService() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:rds:us-west-2:123456789012:db:mysql-db");
+		String arn = "arn:aws:rds:us-west-2:123456789012:db:mysql-db";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("rds", resourceName.getService());
 		Assert.assertEquals("us-west-2", resourceName.getRegion());
 		Assert.assertEquals("123456789012", resourceName.getAccount());
 		Assert.assertEquals("db", resourceName.getResourceType());
 		Assert.assertEquals("mysql-db", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testRoute53Service() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:route53:::hostedzone/Z148QEXAMPLE8V");
+		String arn = "arn:aws:route53:::hostedzone/Z148QEXAMPLE8V";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("route53", resourceName.getService());
 		Assert.assertNull(resourceName.getRegion());
 		Assert.assertNull(resourceName.getAccount());
 		Assert.assertEquals("hostedzone", resourceName.getResourceType());
 		Assert.assertEquals("Z148QEXAMPLE8V", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testS3Service() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:s3:::my_corporate_bucket/Development/*");
+		String arn = "arn:aws:s3:::my_corporate_bucket/Development/*";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("s3", resourceName.getService());
 		Assert.assertNull(resourceName.getRegion());
 		Assert.assertNull(resourceName.getAccount());
 		Assert.assertEquals("my_corporate_bucket", resourceName.getResourceType());
 		Assert.assertEquals("Development/*", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testSnsService() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:sns:us-east-1:123456789012:my_corporate_topic:02034b43-fefa-4e07-a5eb-3be56f8c54ce");
+		String arn = "arn:aws:sns:us-east-1:123456789012:my_corporate_topic:02034b43-fefa-4e07-a5eb-3be56f8c54ce";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("sns", resourceName.getService());
 		Assert.assertEquals("us-east-1", resourceName.getRegion());
 		Assert.assertEquals("123456789012", resourceName.getAccount());
 		Assert.assertEquals("my_corporate_topic", resourceName.getResourceType());
 		Assert.assertEquals("02034b43-fefa-4e07-a5eb-3be56f8c54ce", resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 
 	@Test
 	public void testSqsService() throws Exception {
-		AmazonResourceName resourceName = AmazonResourceName.fromString("arn:aws:sqs:us-east-1:123456789012:queue1");
+		String arn = "arn:aws:sqs:us-east-1:123456789012:queue1";
+		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
 		Assert.assertEquals("sqs", resourceName.getService());
 		Assert.assertEquals("us-east-1", resourceName.getRegion());
 		Assert.assertEquals("123456789012", resourceName.getAccount());
 		Assert.assertEquals("queue1", resourceName.getResourceType());
 		Assert.assertNull(resourceName.getResourceName());
+		Assert.assertEquals(arn, resourceName.toString());
 	}
 }

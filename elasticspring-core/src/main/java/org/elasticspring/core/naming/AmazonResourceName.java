@@ -36,8 +36,8 @@ import java.util.Arrays;
 public class AmazonResourceName {
 
 	/*
-	 * The delimiter for the arn which delimits the different parts of the arn string
-	 */
+		 * The delimiter for the arn which delimits the different parts of the arn string
+		 */
 	private static final String RESOURCE_NAME_DELIMITER = ":";
 
 	/*
@@ -50,8 +50,9 @@ public class AmazonResourceName {
 	private final String account;
 	private final String resourceType;
 	private final String resourceName;
+	private final String actualResourceTypeDelimiter;
 
-	private AmazonResourceName(String service, String region, String account, String resourceType, String resourceName) {
+	private AmazonResourceName(String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
 		Assert.notNull("service must not be null");
 		Assert.notNull("resourceType must not be null");
 		this.service = service;
@@ -59,6 +60,7 @@ public class AmazonResourceName {
 		this.account = account;
 		this.resourceType = resourceType;
 		this.resourceName = resourceName;
+		this.actualResourceTypeDelimiter = actualResourceTypeDelimiter;
 	}
 
 	/**
@@ -130,6 +132,7 @@ public class AmazonResourceName {
 		}
 
 
+		String actualResourceTypeDelimiter;
 		if (tokens.length == 6) {
 			tokens = Arrays.copyOf(tokens, 7);
 			String[] split = StringUtils.split(tokens[5], RESOURCE_TYPE_DELIMITER);
@@ -137,10 +140,38 @@ public class AmazonResourceName {
 				tokens[5] = split[0];
 				tokens[6] = split[1];
 			}
+			actualResourceTypeDelimiter = RESOURCE_TYPE_DELIMITER;
+		} else {
+			actualResourceTypeDelimiter = RESOURCE_NAME_DELIMITER;
 		}
 
 
-		return new AmazonResourceName(tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]));
+		return new AmazonResourceName(tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]), actualResourceTypeDelimiter);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("arn");
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append("aws");
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append(this.service);
+		builder.append(RESOURCE_NAME_DELIMITER);
+		if (this.region != null) {
+			builder.append(this.region);
+		}
+		builder.append(RESOURCE_NAME_DELIMITER);
+		if (this.account != null) {
+			builder.append(this.account);
+		}
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append(this.resourceType);
+		if (this.resourceName != null) {
+			builder.append(this.actualResourceTypeDelimiter);
+			builder.append(this.resourceName);
+		}
+		return builder.toString();
 	}
 
 	private static String trimToNull(String input) {
