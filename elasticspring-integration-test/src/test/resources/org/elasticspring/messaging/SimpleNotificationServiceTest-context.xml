@@ -17,7 +17,9 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
@@ -26,36 +28,14 @@
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<bean id="cachingDestinationResolver"
-		  class="org.elasticspring.messaging.support.destination.CachingDestinationResolver">
-		<constructor-arg>
-			<bean id="dynamicTopicDestinationResolver"
-				  class="org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver">
-				<constructor-arg ref="amazonSns" />
-				<property name="autoCreate" value="true" />
-			</bean>
-		</constructor-arg>
-	</bean>
-
 	<bean id="simpleNotificationServiceMessageTemplate"
 		  class="org.elasticspring.messaging.core.sns.SimpleNotificationServiceTemplate">
 		<constructor-arg ref="amazonSns" />
-		<property name="destinationResolver" ref="cachingDestinationResolver" />
 		<property name="defaultDestinationName" value="#{testStackEnvironment.getByLogicalId('MySNSTopic')}" />
 	</bean>
 
-	<bean id="amazonSqs" class="com.amazonaws.services.sqs.AmazonSQSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+	<bean class="org.elasticspring.messaging.SimpleNotificationServiceTest$NotificationReceiver" />
 
-	</bean>
-
-	<bean class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSqs" />
-		<property name="defaultDestinationName" value="#{testStackEnvironment.getByLogicalId('NotificationQueue')}" />
-		<property name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.NotificationMessageConverter" />
-		</property>
-	</bean>
-
+	<!--suppress UnparsedCustomBeanInspection -->
+	<els-messaging:annotation-driven-topic-listener amazon-sns="amazonSns" />
 </beans>

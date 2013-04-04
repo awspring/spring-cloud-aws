@@ -16,14 +16,16 @@
 
 package org.elasticspring.messaging;
 
+import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.core.NotificationOperations;
-import org.elasticspring.messaging.core.QueueingOperations;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Agim Emruli
@@ -37,15 +39,36 @@ public class SimpleNotificationServiceTest {
 	private NotificationOperations notificationOperations;
 
 	@Autowired
-	private QueueingOperations queueingOperations;
-
+	private NotificationReceiver notificationReceiver;
 
 	@Test
 	public void testConvertAndSendWithoutSubject() throws Exception {
 		String payload = "Hello World";
 		this.notificationOperations.convertAndSend(payload);
+		this.notificationReceiver.getCountDownLatch().await();
+		Assert.assertEquals(payload, this.notificationReceiver.getLastMessage());
+	}
 
-		Object content = this.queueingOperations.receiveAndConvert();
-		Assert.assertEquals(payload, content);
+
+	static class NotificationReceiver {
+
+		private final CountDownLatch countDownLatch = new CountDownLatch(1);
+		private String lastMessage;
+
+		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('MySNSTopic')}",
+				protocol = TopicListener.NotificationProtocol.SQS,
+				endpoint = "#{testStackEnvironment.getByLogicalId('NotificationQueue')}")
+		public void receiveNotification(String message) {
+			this.countDownLatch.countDown();
+			this.lastMessage = message;
+		}
+
+		CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
+		}
+
+		String getLastMessage() {
+			return this.lastMessage;
+		}
 	}
 }
