@@ -149,6 +149,15 @@ public class AmazonResourceName {
 		return new AmazonResourceName(tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]), actualResourceTypeDelimiter);
 	}
 
+	public static boolean isValidAmazonResourceName(String name) {
+		try {
+			fromString(name);
+			return true;
+		} catch (IllegalArgumentException ignore) {
+			return false;
+		}
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

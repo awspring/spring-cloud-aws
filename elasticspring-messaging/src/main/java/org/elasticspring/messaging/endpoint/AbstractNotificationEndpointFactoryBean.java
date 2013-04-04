@@ -70,9 +70,15 @@ public abstract class AbstractNotificationEndpointFactoryBean<T> extends Abstrac
 	private String getTopicResourceName(String marker) {
 		ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
 		for (Topic topic : listTopicsResult.getTopics()) {
-			AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-			if (resourceName.getResourceType().equals(getTopicName())) {
-				return topic.getTopicArn();
+			if (AmazonResourceName.isValidAmazonResourceName(getTopicName())) {
+				if (topic.getTopicArn().equals(getTopicName())) {
+					return topic.getTopicArn();
+				}
+			} else {
+				AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
+				if (resourceName.getResourceType().equals(getTopicName())) {
+					return topic.getTopicArn();
+				}
 			}
 		}
 
