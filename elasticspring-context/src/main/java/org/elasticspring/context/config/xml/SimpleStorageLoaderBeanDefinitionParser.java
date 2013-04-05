@@ -22,11 +22,7 @@ import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.elasticspring.core.io.s3.encryption.KeyPairFactoryBean;
 import org.elasticspring.core.io.s3.encryption.SecretKeyFactoryBean;
-import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
-import org.elasticspring.core.region.Region;
-import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
@@ -72,63 +68,29 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		return PathMatchingSimpleStorageResourcePatternResolver.class;
 	}
 
-	private static void addRegionProviderBeanDefinition(Element element, ParserContext parserContext, BeanDefinitionBuilder parent) {
-		String regionAttribute = element.getAttribute("region");
-		String regionProviderAttribute = element.getAttribute("region-provider");
-
-		if (StringUtils.hasText(regionAttribute) && StringUtils.hasText(regionProviderAttribute)) {
-			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
-			return;
-		}
-
-		if (StringUtils.hasText(regionProviderAttribute)) {
-			parent.addConstructorArgReference(regionProviderAttribute);
-			return;
-		}
-
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
-		if (StringUtils.hasText(regionAttribute)) {
-			beanDefinitionBuilder.addConstructorArgValue(regionAttribute);
-			parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
-		} else {
-			beanDefinitionBuilder.addConstructorArgValue(Region.US_STANDARD);
-		}
-
-		parent.addConstructorArgValue(beanDefinitionBuilder.getBeanDefinition());
-	}
-
 	private static void buildAmazonS3Definition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
-		amazonsS3Builder.addConstructorArgValue(buildAmazonS3ClientFactoryDefinition(element, parserContext));
-		addRegionProviderBeanDefinition(element, parserContext, amazonsS3Builder);
-
-		parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
-
-	}
-
-	private static BeanDefinition buildAmazonS3ClientFactoryDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3ClientFactory.class);
 
 		Element clientEncryption = DomUtils.getChildElementByTagName(element, "client-encryption");
 		if (clientEncryption != null) {
 			String anonymousAttribute = clientEncryption.getAttribute("anonymous");
 			boolean isAnonymous = StringUtils.hasText(anonymousAttribute) && "true".equals(anonymousAttribute);
 			if (isAnonymous) {
-				amazonS3ClientFactoryBeanBuilder.addPropertyValue("anonymous", true);
+				amazonsS3Builder.addPropertyValue("anonymous", true);
 			} else {
-				amazonS3ClientFactoryBeanBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+				amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 			}
 
 			boolean encryptionMaterialSet = false;
 			List<Element> elements = DomUtils.getChildElements(clientEncryption);
 			for (Element encryptionKeyElement : elements) {
 				if ("key-pair".equals(encryptionKeyElement.getLocalName())) {
-					parseKeyPair(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
+					parseKeyPair(parserContext, amazonsS3Builder, encryptionKeyElement);
 					encryptionMaterialSet = true;
 				}
 
 				if ("secret-key".equals(encryptionKeyElement.getLocalName())) {
-					parseSecretKey(parserContext, amazonS3ClientFactoryBeanBuilder, encryptionKeyElement);
+					parseSecretKey(parserContext, amazonsS3Builder, encryptionKeyElement);
 					encryptionMaterialSet = true;
 				}
 			}
@@ -137,17 +99,18 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 				parserContext.getReaderContext().error("When attribute 'anonymous' is set to 'true' either 'key-pair' or 'secret-key' must be set.", clientEncryption);
 			}
 		} else {
-			amazonS3ClientFactoryBeanBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+			amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 		}
 
-		return amazonS3ClientFactoryBeanBuilder.getBeanDefinition();
+		parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
+
 	}
 
-	private static void parseKeyPair(ParserContext parserContext, BeanDefinitionBuilder amazonS3ClientFactoryBeanBuilder, Element encryptionKeyElement) {
+	private static void parseKeyPair(ParserContext parserContext, BeanDefinitionBuilder amazonS3FactoryBeanBuilder, Element encryptionKeyElement) {
 		boolean keyPairRefSet = false;
 		String keyPairRef = encryptionKeyElement.getAttribute("ref");
 		if (StringUtils.hasText(keyPairRef)) {
-			amazonS3ClientFactoryBeanBuilder.addPropertyReference("keyPair", keyPairRef);
+			amazonS3FactoryBeanBuilder.addPropertyReference("keyPair", keyPairRef);
 			keyPairRefSet = true;
 		}
 
@@ -158,7 +121,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 			BeanDefinitionBuilder keyPairFactoryBeanBuilder = BeanDefinitionBuilder.rootBeanDefinition(KeyPairFactoryBean.class);
 			keyPairFactoryBeanBuilder.addConstructorArgValue(privateKeyResource);
 			keyPairFactoryBeanBuilder.addConstructorArgValue(publicKeyResource);
-			amazonS3ClientFactoryBeanBuilder.addPropertyValue("keyPair", keyPairFactoryBeanBuilder.getBeanDefinition());
+			amazonS3FactoryBeanBuilder.addPropertyValue("keyPair", keyPairFactoryBeanBuilder.getBeanDefinition());
 			keyPairResourceSet = true;
 		}
 

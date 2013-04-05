@@ -17,24 +17,45 @@
 package org.elasticspring.context.config;
 
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import org.elasticspring.core.io.s3.S3ServiceEndpoint;
-import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
-import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
-import org.elasticspring.core.region.RegionProvider;
-import org.elasticspring.core.region.ServiceEndpoint;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3EncryptionClient;
+import com.amazonaws.services.s3.model.EncryptionMaterials;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
+import javax.crypto.SecretKey;
+import java.security.KeyPair;
+
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
-	private final AmazonS3ClientFactory amazonS3ClientFactory;
-	private final ServiceEndpoint serviceEndpoint;
+	private final AWSCredentialsProvider credentials;
+	private boolean anonymous;
+	private KeyPair keyPair;
+	private SecretKey secretKey;
 
 	@RuntimeUse
-	public AmazonS3FactoryBean(AmazonS3ClientFactory amazonS3ClientFactory, RegionProvider regionProvider) {
-		this.amazonS3ClientFactory = amazonS3ClientFactory;
-		this.serviceEndpoint = S3ServiceEndpoint.fromRegion(regionProvider.getRegion());
+	public AmazonS3FactoryBean() {
+		// For anonymous clients
+		this.credentials = null;
+	}
+
+	@RuntimeUse
+	public AmazonS3FactoryBean(AWSCredentialsProvider credentials) {
+		this.credentials = credentials;
+	}
+
+	public void setAnonymous(boolean anonymous) {
+		this.anonymous = anonymous;
+	}
+
+	public void setKeyPair(KeyPair keyPair) {
+		this.keyPair = keyPair;
+	}
+
+	public void setSecretKey(SecretKey secretKey) {
+		this.secretKey = secretKey;
 	}
 
 	@Override
@@ -44,7 +65,35 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
-		return new EndpointRoutingS3Client(this.amazonS3ClientFactory, this.serviceEndpoint);
+		if (isEncryptionClient()) {
+			return createAmazonS3EncryptionClient();
+		} else {
+			return new AmazonS3Client(this.credentials.getCredentials());
+		}
+	}
+
+	private AmazonS3 createAmazonS3EncryptionClient() {
+		EncryptionMaterials encryptionMaterials = null;
+		if (this.keyPair != null) {
+			encryptionMaterials = new EncryptionMaterials(this.keyPair);
+		}
+
+		if (this.secretKey != null) {
+			encryptionMaterials = new EncryptionMaterials(this.secretKey);
+		}
+
+		AmazonS3EncryptionClient amazonS3EncryptionClient;
+		if (this.anonymous) {
+			amazonS3EncryptionClient = new AmazonS3EncryptionClient(encryptionMaterials);
+		} else {
+			amazonS3EncryptionClient = new AmazonS3EncryptionClient(this.credentials.getCredentials(), encryptionMaterials);
+		}
+
+		return amazonS3EncryptionClient;
+	}
+
+	private boolean isEncryptionClient() {
+		return this.anonymous || this.keyPair != null || this.secretKey != null;
 	}
 
 	@Override

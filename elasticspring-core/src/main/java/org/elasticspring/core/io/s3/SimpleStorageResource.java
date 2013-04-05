@@ -27,7 +27,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
-import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
@@ -151,12 +150,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	}
 
 	private boolean isEncryptionClient() {
-		if (this.amazonS3 instanceof EndpointRoutingS3Client) {
-			EndpointRoutingS3Client endpointRoutingS3Client = (EndpointRoutingS3Client) this.amazonS3;
-			return endpointRoutingS3Client.isEncryptionClient();
-		} else {
-			return this.amazonS3 instanceof AmazonS3EncryptionClient;
-		}
+		return this.amazonS3 instanceof AmazonS3EncryptionClient;
 	}
 
 	private void fetchObjectMetadata() {

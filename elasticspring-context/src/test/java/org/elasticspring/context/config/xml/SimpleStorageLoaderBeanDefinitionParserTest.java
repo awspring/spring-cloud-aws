@@ -18,7 +18,6 @@ package org.elasticspring.context.config.xml;
 
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -94,15 +93,6 @@ public class SimpleStorageLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testCreateResourceLoaderWithTwoRegion() throws Exception {
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("region and region-provider attribute must not be used together");
-
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withTwoRegion.xml", getClass());
-	}
-
-	@Test
 	public void testCreateResourceLoaderWithTwoKeyPair() throws Exception {
 		this.expectedException.expect(BeanDefinitionParsingException.class);
 		this.expectedException.expectMessage("'ref' and 'public-key-resource' with 'private-key-resource' are not allowed together in the same 'key-pair' element.");
@@ -122,11 +112,7 @@ public class SimpleStorageLoaderBeanDefinitionParserTest {
 
 	private void assertThatClientIsEncryptionClient(ResourceLoader resourceLoader) {
 		Object amazonS3 = ReflectionTestUtils.getField(resourceLoader, "amazonS3");
-		if (amazonS3 instanceof EndpointRoutingS3Client) {
-			EndpointRoutingS3Client endpointRoutingS3Client = (EndpointRoutingS3Client) amazonS3;
-			Object defaultClient = ReflectionTestUtils.getField(endpointRoutingS3Client, "defaultClient");
-			Assert.assertTrue(AmazonS3EncryptionClient.class.isInstance(defaultClient));
-		} else {
+		if (!(amazonS3 instanceof AmazonS3EncryptionClient)) {
 			Assert.fail("Resource loader uses not the expected AmazonS3 client.");
 		}
 	}
