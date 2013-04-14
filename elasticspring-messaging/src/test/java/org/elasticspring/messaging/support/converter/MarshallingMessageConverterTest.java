@@ -64,7 +64,7 @@ public class MarshallingMessageConverterTest {
 		new MarshallingMessageConverter(marshaller, unmarshaller, "FOO");
 	}
 
-	private class TestPerson {
+	private static class TestPerson {
 
 		private final String firstName;
 		private final String lastName;
