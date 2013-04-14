@@ -29,8 +29,6 @@
 
 
 
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -156,12 +154,7 @@ project('elasticspring-messaging') {
         optional("org.codehaus.jettison:jettison:1.3.1") {
             exclude module: "stax-api"
         }
-        optional("javax.servlet:javax.servlet-api:3.0.1")
-        optional("org.springframework:spring-web:${springFrameworkVersion}")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
-        testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
-        testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
-        testCompile("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
     }
 }
 
