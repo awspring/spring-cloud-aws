@@ -175,6 +175,11 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
+        testCompile("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
+        testCompile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
+            exclude module: "spymemcached"
+        }
+        optional files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }
