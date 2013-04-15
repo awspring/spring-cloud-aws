@@ -20,42 +20,16 @@ import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3EncryptionClient;
-import com.amazonaws.services.s3.model.EncryptionMaterials;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-
-import javax.crypto.SecretKey;
-import java.security.KeyPair;
 
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	private final AWSCredentialsProvider credentials;
-	private boolean anonymous;
-	private KeyPair keyPair;
-	private SecretKey secretKey;
-
-	@RuntimeUse
-	public AmazonS3FactoryBean() {
-		// For anonymous clients
-		this.credentials = null;
-	}
 
 	@RuntimeUse
 	public AmazonS3FactoryBean(AWSCredentialsProvider credentials) {
 		this.credentials = credentials;
-	}
-
-	public void setAnonymous(boolean anonymous) {
-		this.anonymous = anonymous;
-	}
-
-	public void setKeyPair(KeyPair keyPair) {
-		this.keyPair = keyPair;
-	}
-
-	public void setSecretKey(SecretKey secretKey) {
-		this.secretKey = secretKey;
 	}
 
 	@Override
@@ -65,35 +39,7 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
-		if (isEncryptionClient()) {
-			return createAmazonS3EncryptionClient();
-		} else {
-			return new AmazonS3Client(this.credentials.getCredentials());
-		}
-	}
-
-	private AmazonS3 createAmazonS3EncryptionClient() {
-		EncryptionMaterials encryptionMaterials = null;
-		if (this.keyPair != null) {
-			encryptionMaterials = new EncryptionMaterials(this.keyPair);
-		}
-
-		if (this.secretKey != null) {
-			encryptionMaterials = new EncryptionMaterials(this.secretKey);
-		}
-
-		AmazonS3EncryptionClient amazonS3EncryptionClient;
-		if (this.anonymous) {
-			amazonS3EncryptionClient = new AmazonS3EncryptionClient(encryptionMaterials);
-		} else {
-			amazonS3EncryptionClient = new AmazonS3EncryptionClient(this.credentials.getCredentials(), encryptionMaterials);
-		}
-
-		return amazonS3EncryptionClient;
-	}
-
-	private boolean isEncryptionClient() {
-		return this.anonymous || this.keyPair != null || this.secretKey != null;
+		return new AmazonS3Client(this.credentials.getCredentials());
 	}
 
 	@Override

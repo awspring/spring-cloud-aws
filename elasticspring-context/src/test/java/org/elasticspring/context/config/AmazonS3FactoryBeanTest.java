@@ -18,6 +18,7 @@ package org.elasticspring.context.config;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,60 +36,12 @@ import java.security.KeyPairGenerator;
 public class AmazonS3FactoryBeanTest {
 
 	@Test
-	public void testInstantiationWithKeyPairRef() throws Exception {
-		AmazonS3FactoryBean factory = getAmazonS3ClientWithCredentialsProviderFactory();
-
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		keyPairGenerator.initialize(1024);
-		KeyPair keyPair = keyPairGenerator.generateKeyPair();
-		factory.setKeyPair(keyPair);
-
-		AmazonS3 amazonS3Client = factory.createInstance();
-		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
-	}
-
-	@Test
-	public void testInstantiationWithSecretKeyRef() throws Exception {
-		AmazonS3FactoryBean factory = getAmazonS3ClientWithCredentialsProviderFactory();
-
-		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
-		SecretKey secretKey = keyGenerator.generateKey();
-		factory.setSecretKey(secretKey);
-
-		AmazonS3 amazonS3Client = factory.createInstance();
-		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
-	}
-
-	@Test
-	public void testInstantiationWithAnonymousFlagAndSecretKeyRef() throws Exception {
-		AmazonS3FactoryBean factory = new AmazonS3FactoryBean();
-
-		KeyGenerator keyGenerator = KeyGenerator.getInstance("DESede");
-		SecretKey secretKey = keyGenerator.generateKey();
-		factory.setSecretKey(secretKey);
-		factory.setAnonymous(true);
-
-		AmazonS3 amazonS3Client = factory.createInstance();
-		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
-	}
-
-	@Test
-	public void testInstantiationWithAnonymousFlagAndKeyPairRef() throws Exception {
-		AmazonS3FactoryBean factory = new AmazonS3FactoryBean();
-
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		keyPairGenerator.initialize(1024);
-		KeyPair keyPair = keyPairGenerator.generateKeyPair();
-		factory.setKeyPair(keyPair);
-		factory.setAnonymous(true);
-
-		AmazonS3 amazonS3Client = factory.createInstance();
-		Assert.assertTrue(amazonS3Client instanceof AmazonS3EncryptionClient);
-	}
-
-	private AmazonS3FactoryBean getAmazonS3ClientWithCredentialsProviderFactory() {
+	public void testBeanCreation() throws Exception {
 		AWSCredentialsProvider awsCredentialsProviderMock = Mockito.mock(AWSCredentialsProvider.class);
-		return new AmazonS3FactoryBean(awsCredentialsProviderMock);
+		AmazonS3FactoryBean amazonS3FactoryBean = new AmazonS3FactoryBean(awsCredentialsProviderMock);
+		AmazonS3 instance = amazonS3FactoryBean.createInstance();
+
+		Assert.assertTrue(AmazonS3Client.class.isInstance(instance));
 	}
 
 }
