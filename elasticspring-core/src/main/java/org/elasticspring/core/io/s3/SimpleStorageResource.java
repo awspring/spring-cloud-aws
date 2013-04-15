@@ -17,7 +17,6 @@
 package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -25,14 +24,17 @@ import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
+import com.amazonaws.util.BinaryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import java.io.ByteArrayInputStream;
@@ -41,6 +43,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -85,7 +90,8 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
+		S3Object object = this.amazonS3.getObject(this.bucketName, this.objectName);
+		return new SimpleStorageInputStream(object.getObjectContent(), object.getObjectMetadata().getETag());
 	}
 
 	@Override
@@ -134,23 +140,13 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public void afterPropertiesSet() {
-		// Even if a TaskExecutor is set one override it in case of an encryption client because encryption client
-		// doesn't support parallel uploads of multiparts.
-		if (isEncryptionClient()) {
-			SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor(DEFAULT_THREAD_NAME_PREFIX);
-			simpleAsyncTaskExecutor.setConcurrencyLimit(1);
-			this.taskExecutor = simpleAsyncTaskExecutor;
-		} else if (this.taskExecutor == null) {
+		if (this.taskExecutor == null) {
 			SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor(DEFAULT_THREAD_NAME_PREFIX);
 			simpleAsyncTaskExecutor.setConcurrencyLimit(5);
 			this.taskExecutor = simpleAsyncTaskExecutor;
 		}
 
 		fetchObjectMetadata();
-	}
-
-	private boolean isEncryptionClient() {
-		return this.amazonS3 instanceof AmazonS3EncryptionClient;
 	}
 
 	private void fetchObjectMetadata() {
@@ -162,6 +158,50 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 			} else {
 				throw e;
 			}
+		}
+	}
+
+	private static class SimpleStorageInputStream extends InputStream {
+
+		private final InputStream inputStream;
+		private final String expectedMd5Checksum;
+		private final MessageDigest messageDigest;
+
+		private SimpleStorageInputStream(InputStream inputStream, String expectedMd5Checksum) {
+			Assert.notNull(inputStream, "inputStream must not be null");
+			Assert.notNull(expectedMd5Checksum, "expectedMd5Checksum must not be null");
+
+			try {
+				this.messageDigest = MessageDigest.getInstance("MD5");
+				this.inputStream = new DigestInputStream(inputStream, this.messageDigest);
+				this.expectedMd5Checksum = expectedMd5Checksum;
+			} catch (NoSuchAlgorithmException e) {
+				throw new IllegalStateException("MessageDigest could not be initialized because it uses an unknown algorithm", e);
+			}
+		}
+
+		@Override
+		public int read() throws IOException {
+			int read = this.inputStream.read();
+
+			if (read == -1) {
+				assertChecksum();
+			}
+
+			return read;
+		}
+
+		private void assertChecksum() {
+			String actualChecksum = BinaryUtils.toHex(this.messageDigest.digest());
+			if (!this.expectedMd5Checksum.equals(actualChecksum)) {
+				throw new IllegalStateException("The actual checksum '" + actualChecksum + "' does not match the expected one '" + this.expectedMd5Checksum + "'");
+			}
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.inputStream.close();
+			super.close();
 		}
 	}
 
