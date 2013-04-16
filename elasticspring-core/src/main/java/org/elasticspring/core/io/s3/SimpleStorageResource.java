@@ -24,7 +24,6 @@ import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.util.BinaryUtils;
@@ -34,7 +33,6 @@ import org.springframework.core.io.WritableResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import java.io.ByteArrayInputStream;
@@ -43,7 +41,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -90,8 +87,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		S3Object object = this.amazonS3.getObject(this.bucketName, this.objectName);
-		return new SimpleStorageInputStream(object.getObjectContent(), object.getObjectMetadata().getETag());
+		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
 	}
 
 	@Override
@@ -161,50 +157,6 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		}
 	}
 
-	private static class SimpleStorageInputStream extends InputStream {
-
-		private final InputStream inputStream;
-		private final String expectedMd5Checksum;
-		private final MessageDigest messageDigest;
-
-		private SimpleStorageInputStream(InputStream inputStream, String expectedMd5Checksum) {
-			Assert.notNull(inputStream, "inputStream must not be null");
-			Assert.notNull(expectedMd5Checksum, "expectedMd5Checksum must not be null");
-
-			try {
-				this.messageDigest = MessageDigest.getInstance("MD5");
-				this.inputStream = new DigestInputStream(inputStream, this.messageDigest);
-				this.expectedMd5Checksum = expectedMd5Checksum;
-			} catch (NoSuchAlgorithmException e) {
-				throw new IllegalStateException("MessageDigest could not be initialized because it uses an unknown algorithm", e);
-			}
-		}
-
-		@Override
-		public int read() throws IOException {
-			int read = this.inputStream.read();
-
-			if (read == -1) {
-				assertChecksum();
-			}
-
-			return read;
-		}
-
-		private void assertChecksum() {
-			String actualChecksum = BinaryUtils.toHex(this.messageDigest.digest());
-			if (!this.expectedMd5Checksum.equals(actualChecksum)) {
-				throw new IllegalStateException("The actual checksum '" + actualChecksum + "' does not match the expected one '" + this.expectedMd5Checksum + "'");
-			}
-		}
-
-		@Override
-		public void close() throws IOException {
-			this.inputStream.close();
-			super.close();
-		}
-	}
-
 	private static class SimpleStorageOutputStream extends OutputStream {
 
 		/*
@@ -264,8 +216,17 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 			ObjectMetadata objectMetadata = new ObjectMetadata();
 			objectMetadata.setContentLength(this.currentOutputStream.size());
 
+			byte[] content = this.currentOutputStream.toByteArray();
+			try {
+				MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+				String md5Digest = BinaryUtils.toBase64(messageDigest.digest(content));
+				objectMetadata.setContentMD5(md5Digest);
+			} catch (NoSuchAlgorithmException e) {
+				throw new IllegalStateException("MessageDigest could not be initialized because it uses an unknown algorithm", e);
+			}
+
 			this.amazonS3.putObject(this.bucketName, this.objectName,
-					new ByteArrayInputStream(this.currentOutputStream.toByteArray()), objectMetadata);
+					new ByteArrayInputStream(content), objectMetadata);
 
 			//Release the memory early
 			this.currentOutputStream = null;

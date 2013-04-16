@@ -105,7 +105,6 @@ public class SimpleStorageResourceTest {
 	public void testGetInputStream() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ObjectMetadata objectMetadata = mock(ObjectMetadata.class);
-		when(objectMetadata.getETag()).thenReturn("md5Hash");
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
 
 		S3Object s3Object = new S3Object();
@@ -120,54 +119,6 @@ public class SimpleStorageResourceTest {
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
 		assertTrue(simpleStorageResource.exists());
 		assertEquals(42, simpleStorageResource.getInputStream().read());
-	}
-
-	@Test(expected = IllegalStateException.class)
-	public void testInputStreamCheckSumVerification() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		ObjectMetadata objectMetadata = mock(ObjectMetadata.class);
-		when(objectMetadata.getETag()).thenReturn("md5Hash");
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
-
-		S3Object s3Object = new S3Object();
-		s3Object.setObjectMetadata(objectMetadata);
-
-		InputStream inputStream = mock(InputStream.class);
-		when(inputStream.read()).thenReturn(42, -1);
-		s3Object.setObjectContent(inputStream);
-
-		when(amazonS3.getObject("bucket", "object")).thenReturn(s3Object);
-
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
-		InputStream simpleStorageResourceInputStream = simpleStorageResource.getInputStream();
-		//noinspection ResultOfMethodCallIgnored
-		simpleStorageResourceInputStream.read();
-		//noinspection ResultOfMethodCallIgnored
-		simpleStorageResourceInputStream.read();
-	}
-
-	@Test
-	public void testInputStreamChecksumVerificationWithCorrectHash() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		ObjectMetadata objectMetadata = mock(ObjectMetadata.class);
-		when(objectMetadata.getETag()).thenReturn("3389dae361af79b04c9c8e7057f60cc6");
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
-
-		S3Object s3Object = new S3Object();
-		s3Object.setObjectMetadata(objectMetadata);
-
-		InputStream inputStream = mock(InputStream.class);
-		when(inputStream.read()).thenReturn(42, -1);
-		s3Object.setObjectContent(inputStream);
-
-		when(amazonS3.getObject("bucket", "object")).thenReturn(s3Object);
-
-		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object");
-		InputStream simpleStorageResourceInputStream = simpleStorageResource.getInputStream();
-		//noinspection ResultOfMethodCallIgnored
-		simpleStorageResourceInputStream.read();
-		//noinspection ResultOfMethodCallIgnored
-		simpleStorageResourceInputStream.read();
 	}
 
 	@Test
