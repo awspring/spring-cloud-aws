@@ -52,11 +52,14 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 
 /**
+ * {@link org.springframework.core.io.Resource} implementation for {@code com.amazonaws.services.s3.model.S3Object}
+ * handles. Implements the extended {@link WritableResource} interface.
+ *
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
+class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
 
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleStorageResource.class) + "-";
@@ -64,7 +67,13 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	private final String bucketName;
 	private final String objectName;
 	private final AmazonS3 amazonS3;
+
+	/**
+	* <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
+	* reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
+	*/
 	private TaskExecutor taskExecutor;
+
 	private ObjectMetadata objectMetadata;
 
 	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName) {
@@ -73,7 +82,6 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 		this.amazonS3 = amazonS3;
 		afterPropertiesSet();
 	}
-
 
 	@Override
 	public String getDescription() {
@@ -159,9 +167,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	private static class SimpleStorageOutputStream extends OutputStream {
 
-		/*
-			The minimum size for a multi part is 5 MB, hence the buffer size of 5 MB
-		 */
+		// The minimum size for a multi part is 5 MB, hence the buffer size of 5 MB
 		private static final int BUFFER_SIZE = 1024 * 1024 * 5;
 		private final Object monitor = new Object();
 		private final AmazonS3 amazonS3;
@@ -173,6 +179,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 		private int partNumberCounter = 1;
 		private InitiateMultipartUploadResult multiPartUploadResult;
+		@SuppressWarnings("FieldMayBeFinal")
 		private ByteArrayOutputStream currentOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 
 		SimpleStorageOutputStream(AmazonS3 amazonS3, TaskExecutor taskExecutor, String bucketName, String objectName) {

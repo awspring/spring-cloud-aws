@@ -37,7 +37,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
+ * {@link BeanPostProcessor} implementation which decorates the ApplicationContext in order to set
+ * a specialized {@link ResourceLoader} that can handle S3 resources.
  *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @since 1.0
  */
 public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware, BeanFactoryPostProcessor {
 

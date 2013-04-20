@@ -28,6 +28,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
 /**
+ * Parser for the {@code <els-context:context-resource-loader />} element.
+ *
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0

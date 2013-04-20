@@ -159,6 +159,7 @@ public class ResourceLoaderAwsTest {
 		md.reset();
 		try {
 			downloadedInputStream = new DigestInputStream(downloadedInputStream, md);
+			//noinspection StatementWithEmptyBody
 			while (downloadedInputStream.read(buffer) != -1) {
 				// go through the input stream until EOF to compute MD5 checksum.
 			}

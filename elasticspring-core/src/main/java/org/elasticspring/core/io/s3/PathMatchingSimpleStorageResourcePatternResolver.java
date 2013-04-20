@@ -40,6 +40,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * A {@link ResourcePatternResolver} implementation which allows an ant-style path matching when
+ * loading S3 resources. Ant wildcards (*, ** and ?) are allowed in both, bucket name and object
+ * name.
+ * <p/>
+ * <p><b>WARNING:</b></p>
+ * <p>Be aware that when you are using wildcards in the bucket name it can take a very long
+ * time to parse all files.<br/>
+ * Moreover this implementation does not return truncated results. This means that when handling huge
+ * buckets it could lead to serious performance problems. For more information look at the
+ * {@code findProgressivelyWithPartialMatch} method.</p>
+ *
  * @author Alain Sahli
  * @author Agim Emruli
  * @since 1.0
@@ -53,18 +64,42 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
 
+	/**
+	 * Simple constructor which will use the thread context class loader
+	 * at the time of actual resource access.
+	 *
+	 * @param amazonS3
+	 * 		An AmazonS3 client - Must not be null.
+	 */
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3) {
+		Assert.notNull(amazonS3);
 		this.amazonS3 = amazonS3;
 		this.simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3);
 		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver();
 	}
 
+	/**
+	 * Constructor which will pass the given {@code classLoader} to the {@link ResourceLoader}.
+	 *
+	 * @param amazonS3
+	 * 		An AmazonS3 client - Must not be null.
+	 * @param classLoader
+	 * 		the ClassLoader to load classpath resources with,
+	 * 		or {@code null} for using the thread context class loader
+	 * 		at the time of actual resource access {@link org.springframework.core.io.DefaultResourceLoader}
+	 */
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ClassLoader classLoader) {
 		this.amazonS3 = amazonS3;
 		this.simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3, classLoader);
 		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver(classLoader);
 	}
 
+	/**
+	 * Set the PathMatcher implementation to use for this
+	 * resource pattern resolver. Default is AntPathMatcher.
+	 *
+	 * @see org.springframework.util.AntPathMatcher
+	 */
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");
 		this.pathMatcher = pathMatcher;
@@ -74,9 +109,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	public Resource[] getResources(String locationPattern) throws IOException {
 		if (SimpleStorageNameUtils.isSimpleStorageResource(locationPattern)) {
 			if (this.pathMatcher.isPattern(SimpleStorageNameUtils.stripProtocol(locationPattern))) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Found wildcard pattern in location {}", locationPattern);
-				}
+				LOGGER.debug("Found wildcard pattern in location {}", locationPattern);
 				return findPathMatchingResources(locationPattern);
 			} else {
 				return new Resource[]{this.simpleStorageResourceLoader.getResource(locationPattern)};
@@ -87,27 +120,25 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	}
 
 	protected Resource[] findPathMatchingResources(String locationPattern) {
+		// Separate the bucket and key patterns as each one uses a different aws API for resolving.
 		String bucketPattern = SimpleStorageNameUtils.getBucketNameFromLocation(locationPattern);
 		String keyPattern = SimpleStorageNameUtils.getObjectNameFromLocation(locationPattern);
 		Set<Resource> resources;
 		if (this.pathMatcher.isPattern(bucketPattern)) {
 			List<String> matchingBuckets = findMatchingBuckets(bucketPattern);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Found wildcard in bucket name {} buckets found are {}", bucketPattern, matchingBuckets);
-			}
+			LOGGER.debug("Found wildcard in bucket name {} buckets found are {}", bucketPattern, matchingBuckets);
 
+			// If the '**' wildcard is used in the bucket name, one have to inspect all
+			// objects in the bucket. Therefore the keyPattern is prefixed with '**/' so
+			// that the findPathMatchingKeys method knows that it must go through all objects.
 			if (bucketPattern.startsWith("**")) {
 				keyPattern = "**/" + keyPattern;
 			}
 			resources = findPathMatchingKeys(keyPattern, matchingBuckets);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Found resources {} in buckets {}", resources, matchingBuckets);
-			}
+			LOGGER.debug("Found resources {} in buckets {}", resources, matchingBuckets);
 
 		} else {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("No wildcard in bucket name {} using single bucket name", bucketPattern);
-			}
+			LOGGER.debug("No wildcard in bucket name {} using single bucket name", bucketPattern);
 			resources = findPathMatchingKeys(keyPattern, Arrays.asList(bucketPattern));
 		}
 
@@ -158,6 +189,12 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		} while (objectListing.isTruncated());
 	}
 
+	/**
+	 * Searches for matching keys progressively. This means that instead of retrieving all keys given a prefix, it goes
+	 * down one level at a time and filters out all non-matching results. This avoids a lot of unused requests results.
+	 * WARNING: This method does not truncate results. Therefore all matching resources will be returned regardless of
+	 * the truncation.
+	 */
 	private void findProgressivelyWithPartialMatch(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withDelimiter("/").withPrefix(prefix);
 		ObjectListing objectListing = null;
