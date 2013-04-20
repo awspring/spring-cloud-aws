@@ -18,13 +18,19 @@
 
 
 
+
+
 allprojects {
     apply plugin: 'java'
 
     //Configure java compiler
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        options.compilerArgs = ['-Xlint:-options']
+        options.compilerArgs = [
+                '-Xlint:all', //Enable all warnings
+                '-Xlint:-options', //Disable options warning because we will have differences between the compiler and source code loevel
+                '-Xlint:-serial', // Disable serialversionuid warnings
+                '-Werror']
     }
 
     sourceCompatibility = 1.6

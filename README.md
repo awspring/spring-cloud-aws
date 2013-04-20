@@ -2,14 +2,14 @@
 
 ElasticSpring is a cloud application framework for the [Amazon Webservice Platform] [AWS]. ElasticSpring enables developers to
 use popular Amazon Webservices with the [Spring Framework] [Spring]. With ElasticSpring, developers can re-use their existing
-knowledge, code and components build with the Spring Framework programming model and build applications using the
+knowledge, code and components built with the Spring Framework programming model and build applications using the
 Amazon Webservices. While continuing to use the programming model, developers can take advantage of the scalability
 of the service provided by the Amazon cloud platform.
 
 
 # Checking out and Building
 
-To check out the project and build from source, do the following:
+To check out the project and build it from source, do the following:
 
     git clone https://github.com/aemruli/elasticspring.git
     cd elasticspring
@@ -46,17 +46,17 @@ ElasticSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to c
 
 # Running integration tests
 ElasticSpring contains a test-suite which runs integration tests to ensure compatibility with the Amazon Webservices.
-In order to run the integration tests, the build process have to create different resources on the Amazon Webservice
-platform (Amazon EC2 instances, Amazon RDS instances, Amazon S3 Buckets, Amazon SQS Queues). Creating these resource
+In order to run the integration tests, the build process has to create different resources on the Amazon Webservice
+platform (Amazon EC2 instances, Amazon RDS instances, Amazon S3 Buckets, Amazon SQS Queues). Creating these resources
 takes time and costs money, because every instance creation is charged with a one hour usage. Therefore ElasticSpring
 does not execute the integration tests by default.
 
 In order to execute the integration tests you have to create two configuration files that configure the necessary
 parameters to build the environment.
 
-Please create a new file named access.properties this file must contain two properties named accessKey and secretKey.
-These two properties are account/user specific and should never be shared to anybody. Two retrieve this setting you have
-to open your account inside the AWS console and rretrieve them through the [Security Credentials Page]
+Please create a new file named access.properties. This file must contain two properties named accessKey and secretKey.
+These two properties are account/user specific and should never be shared to anyone. Two retrieve these settings you have
+to open your account inside the AWS console and retrieve them through the [Security Credentials Page]
 [AWS-Security-Credentials].
 *Note:* In general we recommend that you use an [Amazon IAM] [Amazon-IAM] user instead of the account itself.
 
@@ -74,7 +74,7 @@ An example file will have the following contents
 	recipientAddress=baz@buz.com
 
 After creating both files and storing them outside the project (or inside the project, they are ignored in git)
-you have to provide the configuration directory while running the build. Providing these configuration setting will
+you have to provide the configuration directory when running the build. Providing these configuration settings will
 automatically execute the integration tests.
 
 To build with the integration tests you must execute
@@ -82,9 +82,9 @@ To build with the integration tests you must execute
 	./gradlew build -Dels.config.dir=/Users/foo/config/dir
  	(on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
 
-The integration test will create a [Amazon Webservices CloudFormation] [Amazon-CloudFormation] Stack and execute the
+The integration test will create an [Amazon Webservices CloudFormation] [Amazon-CloudFormation] stack and execute the
 tests. The stack is destroyed after executing the tests (either successful or failed) to ensure that there are no
-non-necessary costs.
+unnecessary costs.
 
 ### Costs of integration tests
 The costs for one integration test run should not be more then 0.13 $ (excl. VAT).
@@ -101,8 +101,9 @@ ElasticSpring on [Twitter](https://twitter.com/elasticspring)
 
 Individual team members can be found on different social media channels
 
-Agim Emruli ([Twitter](http://twitter.com/aemruli) / [LinkedIn](http://de.linkedin.com/in/agimemruli/))
-Alain Sahli ([Twitter](http://twitter.com/sahlialain) / [LinkedIn](http://ch.linkedin.com/in/asahli) )
+* Agim Emruli ([Twitter](http://twitter.com/aemruli) / [LinkedIn](http://de.linkedin.com/in/agimemruli/))
+* Alain Sahli ([Twitter](http://twitter.com/sahlialain) / [LinkedIn](http://ch.linkedin.com/in/asahli))
+* Christian Stettler ([Twitter](http://twitter.com/chrisstettler))
 
 [AWS]: http://aws.amazon.com/
 [Spring]: http://www.springsource.org
