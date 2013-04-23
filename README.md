@@ -101,7 +101,7 @@ ElasticSpring on [Twitter](https://twitter.com/elasticspring)
 
 Individual team members can be found on different social media channels
 
-* Agim Emruli ([Twitter](http://twitter.com/aemruli) / [LinkedIn](http://de.linkedin.com/in/agimemruli/))
+* Agim Emruli ([Twitter](http://twitter.com/aemruli) / [LinkedIn](http://de.linkedin.com/in/agimemruli))
 * Alain Sahli ([Twitter](http://twitter.com/sahlialain) / [LinkedIn](http://ch.linkedin.com/in/asahli))
 * Christian Stettler ([Twitter](http://twitter.com/chrisstettler))
 
