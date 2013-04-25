@@ -75,7 +75,6 @@ public class PathMatchingResourceLoaderAwsTest {
 		}
 	}
 
-
 	@Test
 	public void testWildcardsInBucket() throws Exception {
 		String firstBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket01");
@@ -91,7 +90,6 @@ public class PathMatchingResourceLoaderAwsTest {
 			deleteTestFiles(firstBucket, secondBucket, thirdBucket);
 		}
 	}
-
 
 	private void createTestFiles(String... bucketNames) throws InterruptedException {
 		int createdFiles = 0;

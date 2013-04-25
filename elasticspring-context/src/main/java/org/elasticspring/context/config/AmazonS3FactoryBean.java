@@ -19,23 +19,34 @@ package org.elasticspring.context.config;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import org.elasticspring.core.io.s3.S3ServiceEndpoint;
-import org.elasticspring.core.io.s3.support.AmazonS3ClientFactory;
-import org.elasticspring.core.io.s3.support.EndpointRoutingS3Client;
-import org.elasticspring.core.region.RegionProvider;
-import org.elasticspring.core.region.ServiceEndpoint;
+import com.amazonaws.services.s3.AmazonS3Client;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.util.Assert;
 
+/**
+ * {@link org.springframework.beans.factory.FactoryBean} implementation that creates an {@link AmazonS3} client.
+ * The lifecycle of the created bean is managed and {@link com.amazonaws.AmazonWebServiceClient#shutdown()} is
+ * called before the bean is destroyed.
+ *
+ * @author Alain Sahli
+ * @since 1.0
+ */
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
-	private final AmazonS3ClientFactory amazonS3ClientFactory;
-	private final ServiceEndpoint serviceEndpoint;
+	private final AWSCredentialsProvider credentials;
 
+	/**
+	 * Constructor that retrieves the mandatory {@link AWSCredentialsProvider} instance in order to create the service. The
+	 * {@link AWSCredentialsProvider} is typically configured through ElasticSpring credentials element which may use static or
+	 * dynamic credentials to actually create the object.
+	 *
+	 * @param credentialsProvider must not be null
+	 */
 	@RuntimeUse
-	public AmazonS3FactoryBean(AWSCredentialsProvider awsCredentialsProvider, RegionProvider regionProvider) {
-		this.amazonS3ClientFactory = new AmazonS3ClientFactory(awsCredentialsProvider);
-		this.serviceEndpoint = S3ServiceEndpoint.fromRegion(regionProvider.getRegion());
+	public AmazonS3FactoryBean(AWSCredentialsProvider credentialsProvider) {
+		Assert.notNull(credentialsProvider);
+		this.credentials = credentialsProvider;
 	}
 
 	@Override
@@ -45,7 +56,7 @@ public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	@Override
 	protected AmazonS3 createInstance() throws Exception {
-		return new EndpointRoutingS3Client(this.amazonS3ClientFactory, this.serviceEndpoint);
+		return new AmazonS3Client(this.credentials.getCredentials());
 	}
 
 	@Override
