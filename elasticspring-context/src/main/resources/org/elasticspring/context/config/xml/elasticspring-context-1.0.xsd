@@ -108,7 +108,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="region-provider-ref" type="xsd:string" use="optional">
+		<xsd:attribute name="region-provider" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -147,7 +147,6 @@
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
-
 
 	<xsd:simpleType name="regionType">
 		<xsd:annotation>
