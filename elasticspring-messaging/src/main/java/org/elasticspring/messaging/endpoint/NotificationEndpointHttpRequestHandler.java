@@ -16,6 +16,10 @@
 
 package org.elasticspring.messaging.endpoint;
 
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.ConfirmSubscriptionRequest;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanNameAware;
@@ -45,6 +49,12 @@ import java.nio.charset.Charset;
 public class NotificationEndpointHttpRequestHandler implements HttpRequestHandler, ServletContextAware, InitializingBean, BeanNameAware {
 
 	private static final String PAYLOAD_CHAR_SET = "UTF-8";
+	public static final String MESSAGE_TYPE = "x-amz-sns-message-type";
+	public static final String NOTIFICATION_MESSAGE_TYPE = "Notification";
+	public static final String SUBSCRIPTION_MESSAGE_TYPE = "SubscriptionConfirmation";
+
+
+	private final AmazonSNS amazonSNS;
 	private final MessageConverter messageConverter;
 	private final Object target;
 	private final String listenerMethod;
@@ -53,7 +63,8 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	private ServletContext servletContext;
 	private String beanName;
 
-	public NotificationEndpointHttpRequestHandler(MessageConverter messageConverter, Object target, String listenerMethod, String endpointAddress) {
+	public NotificationEndpointHttpRequestHandler(AmazonSNS amazonSns, MessageConverter messageConverter, Object target, String listenerMethod, String endpointAddress) {
+		this.amazonSNS = amazonSns;
 		this.messageConverter = messageConverter;
 		this.target = target;
 		this.listenerMethod = listenerMethod;
@@ -71,7 +82,20 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	}
 
 	@Override
+	//TODO: Check topic arn
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		if (request.getHeader(MESSAGE_TYPE) == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No mandatory request header with name:'" + MESSAGE_TYPE + "'");
+		}
+
+		if (NOTIFICATION_MESSAGE_TYPE.equals(request.getHeader(MESSAGE_TYPE))) {
+			handleNotificationMessage(request, response);
+		} else if (SUBSCRIPTION_MESSAGE_TYPE.equals(request.getHeader(MESSAGE_TYPE))) {
+			handleSubscription(request, response);
+		}
+	}
+
+	private void handleNotificationMessage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		MethodInvoker methodInvoker = new MethodInvoker();
 		methodInvoker.setTargetObject(this.target);
 		methodInvoker.setTargetMethod(this.listenerMethod);
@@ -97,6 +121,16 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getTargetException().getMessage());
 		} catch (IllegalAccessException e) {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+	}
+
+	private void handleSubscription(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		byte[] payload = FileCopyUtils.copyToByteArray(request.getInputStream());
+		try {
+			JSONObject jsonObject = new JSONObject(new String(payload, PAYLOAD_CHAR_SET));
+			this.amazonSNS.confirmSubscription(new ConfirmSubscriptionRequest(jsonObject.getString("TopicArn"), jsonObject.getString("Token")));
+		} catch (JSONException e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 		}
 	}
 

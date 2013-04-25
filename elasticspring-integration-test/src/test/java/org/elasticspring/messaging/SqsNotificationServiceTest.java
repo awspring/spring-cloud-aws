@@ -33,7 +33,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class SimpleNotificationServiceTest {
+public class SqsNotificationServiceTest {
 
 	@Autowired
 	private NotificationOperations notificationOperations;
@@ -55,7 +55,7 @@ public class SimpleNotificationServiceTest {
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 		private String lastMessage;
 
-		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('MySNSTopic')}",
+		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.SQS,
 				endpoint = "#{testStackEnvironment.getByLogicalId('NotificationQueue')}")
 		public void receiveNotification(String message) {

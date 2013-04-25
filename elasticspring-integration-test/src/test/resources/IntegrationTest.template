@@ -105,7 +105,7 @@
 		"NotificationQueue": {
 			"Type": "AWS::SQS::Queue"
 		},
-		"MySNSTopic": {
+		"SqsReceivingSnsTopic": {
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
 				"Subscription": [
@@ -138,7 +138,7 @@
 							"Condition": {
 								"ArnEquals": {
 									"aws:SourceArn": {
-										"Ref": "MySNSTopic"
+										"Ref": "SqsReceivingSnsTopic"
 									}
 								}
 							}
@@ -148,6 +148,17 @@
 				"Queues": [
 					{
 						"Ref": "NotificationQueue"
+					}
+				]
+			}
+		},
+		"HttpReceivingSnsTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": "http://notimportant.elasticspring.com/endpoint",
+						"Protocol": "http"
 					}
 				]
 			}

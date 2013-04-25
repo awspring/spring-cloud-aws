@@ -31,10 +31,11 @@
 	<bean id="simpleNotificationServiceMessageTemplate"
 		  class="org.elasticspring.messaging.core.sns.SimpleNotificationServiceTemplate">
 		<constructor-arg ref="amazonSns" />
-		<property name="defaultDestinationName" value="#{testStackEnvironment.getByLogicalId('MySNSTopic')}" />
+		<property name="defaultDestinationName"
+				  value="#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}" />
 	</bean>
 
-	<bean class="org.elasticspring.messaging.SimpleNotificationServiceTest$NotificationReceiver" />
+	<bean class="org.elasticspring.messaging.SqsNotificationServiceTest$NotificationReceiver" />
 
 	<!--suppress UnparsedCustomBeanInspection -->
 	<els-messaging:annotation-driven-topic-listener amazon-sns="amazonSns" />

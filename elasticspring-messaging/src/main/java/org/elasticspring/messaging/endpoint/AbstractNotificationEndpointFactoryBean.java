@@ -60,8 +60,8 @@ public abstract class AbstractNotificationEndpointFactoryBean<T> extends Abstrac
 
 	@Override
 	protected T createInstance() throws Exception {
-		String topicResourceName = getTopicResourceName(null);
-		Subscription subscriptionForEndpoint = getSubscriptionForEndpoint(topicResourceName, null);
+		String topicArn = getTopicResourceName(null);
+		Subscription subscriptionForEndpoint = getSubscriptionForEndpoint(topicArn, null);
 		return doCreateEndpointInstance(subscriptionForEndpoint);
 	}
 
@@ -102,7 +102,7 @@ public abstract class AbstractNotificationEndpointFactoryBean<T> extends Abstrac
 		if (StringUtils.hasText(listSubscriptionsByTopicResult.getNextToken())) {
 			return getSubscriptionForEndpoint(topicArn, listSubscriptionsByTopicResult.getNextToken());
 		} else {
-			throw new IllegalArgumentException("No subscription found for topic arn:'" + topicArn + "'");
+			throw new IllegalArgumentException("No subscription found for topic arn:'" + topicArn + "' and endpoint:'" + getEndpoint() + "'");
 		}
 	}
 

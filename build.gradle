@@ -17,6 +17,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -178,6 +180,14 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
+
+        testRuntime("javax.servlet:javax.servlet-api:3.0.1")
+        testCompile("org.springframework:spring-web:${springFrameworkVersion}")
+
+        testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
+        testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
+        testCompile("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
+
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }

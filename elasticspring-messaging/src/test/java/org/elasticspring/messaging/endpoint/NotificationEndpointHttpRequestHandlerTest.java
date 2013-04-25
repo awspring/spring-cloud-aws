@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.endpoint;
 
+import com.amazonaws.services.sns.AmazonSNS;
 import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
@@ -45,7 +46,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -59,6 +60,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
 
@@ -75,7 +78,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithRootMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -94,7 +97,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithNestedMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -113,7 +116,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithEmptyContext() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -132,7 +135,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInSubContextWithNestedMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -154,7 +157,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expectMessage("does not contain the context path");
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -174,7 +177,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expectMessage("ServletContext must no be null, please make sure this class is used inside a web application context");
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
 
 		handler.setBeanName("testBean");
 		handler.afterPropertiesSet();
@@ -185,7 +188,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("bean name must not be null");
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
 		handler.setServletContext(servletContext);
@@ -198,7 +201,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("Error registering servlet to handle notification request. Please make sure to run in a servlet 3.0 compliant servlet container");
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
 		handler.setServletContext(servletContext);
@@ -211,7 +214,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), target, "notExistingMethod", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "notExistingMethod", "http://localhost:8080/first");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -225,6 +228,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
 
@@ -244,7 +249,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				new NotificationMessageConverter(), target, "exceptionThrowingMethod", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "exceptionThrowingMethod", "http://localhost:8080/first");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -258,6 +263,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
 
