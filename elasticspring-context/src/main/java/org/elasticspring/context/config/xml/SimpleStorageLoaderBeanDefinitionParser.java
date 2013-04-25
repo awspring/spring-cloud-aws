@@ -42,7 +42,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (!parserContext.getRegistry().containsBeanDefinition(AMAZON_S3_BEAN_NAME)) {
-			buildAmazonS3Definition(element, parserContext);
+			buildAmazonS3Definition(parserContext);
 		}
 
 		builder.addConstructorArgReference(AMAZON_S3_BEAN_NAME);
@@ -64,7 +64,7 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 		return PathMatchingSimpleStorageResourcePatternResolver.class;
 	}
 
-	private static void buildAmazonS3Definition(Element element, ParserContext parserContext) {
+	private static void buildAmazonS3Definition(ParserContext parserContext) {
 		BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
 		amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 
