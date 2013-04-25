@@ -51,7 +51,7 @@ subprojects {
         junitVersion = '4.10'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
-        awsSdkVersion = '1.3.27'
+        awsSdkVersion = '1.4.1'
         mockitoVersion = '1.9.5'
         tomcatVersion = "7.0.34"
     }
@@ -85,7 +85,7 @@ project('elasticspring-core') {
     description = 'elasticspring core'
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
-        compile("com.amazonaws:aws-java-sdk:1.3.26") {
+        compile("com.amazonaws:aws-java-sdk:${awsSdkVersion}") {
             exclude module: "stax-api"
             exclude module: "activation"
         }

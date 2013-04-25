@@ -50,4 +50,7 @@
 		<module name="ModifierOrder" />
 		<module name="RedundantModifier" />
 	</module>
+	<module name="SuppressionFilter">
+		<property name="file" value="gradle/checkstyle/suppression.xml" />
+	</module>
 </module>

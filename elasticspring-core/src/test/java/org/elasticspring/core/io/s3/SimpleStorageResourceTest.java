@@ -104,10 +104,11 @@ public class SimpleStorageResourceTest {
 	@Test
 	public void testGetInputStream() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		ObjectMetadata objectMetadata = new ObjectMetadata();
+		ObjectMetadata objectMetadata = mock(ObjectMetadata.class);
 		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
 
 		S3Object s3Object = new S3Object();
+		s3Object.setObjectMetadata(objectMetadata);
 
 		InputStream inputStream = mock(InputStream.class);
 		when(inputStream.read()).thenReturn(42);
