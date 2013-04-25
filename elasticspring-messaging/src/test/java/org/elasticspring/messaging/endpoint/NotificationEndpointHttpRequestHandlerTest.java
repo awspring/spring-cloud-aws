@@ -17,6 +17,7 @@
 package org.elasticspring.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.ConfirmSubscriptionRequest;
 import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
@@ -42,11 +43,11 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
-	public void testSimpleRequest() throws Exception {
+	public void testSimpleNotificationRequest() throws Exception {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -60,7 +61,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
-		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
@@ -78,7 +80,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithRootMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -97,7 +99,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithNestedMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -116,7 +118,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInRootContextWithEmptyContext() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/first/second/third", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -135,7 +137,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	@Test
 	public void testRegisterInSubContextWithNestedMapping() throws Exception {
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -157,7 +159,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expectMessage("does not contain the context path");
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -177,7 +179,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expectMessage("ServletContext must no be null, please make sure this class is used inside a web application context");
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		handler.setBeanName("testBean");
 		handler.afterPropertiesSet();
@@ -188,7 +190,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("bean name must not be null");
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
 		handler.setServletContext(servletContext);
@@ -201,7 +203,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("Error registering servlet to handle notification request. Please make sure to run in a servlet 3.0 compliant servlet container");
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), new SimpleHttpRequestHandler(), "handleNotification", "http://localhost:8080/myApp/first/second", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
 		handler.setServletContext(servletContext);
@@ -214,7 +216,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "notExistingMethod", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "notExistingMethod", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -228,7 +230,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
-		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
@@ -249,7 +252,7 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
 
 		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
-				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "exceptionThrowingMethod", "http://localhost:8080/first");
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "exceptionThrowingMethod", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 
 		ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -263,7 +266,8 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		handler.afterPropertiesSet();
 
 		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
-		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE,NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
 
 		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
@@ -278,6 +282,129 @@ public class NotificationEndpointHttpRequestHandlerTest {
 		Assert.assertEquals(500, mockHttpServletResponse.getStatus());
 		Assert.assertEquals("Application Error", mockHttpServletResponse.getErrorMessage());
 	}
+
+	@Test
+	public void testNoMessageTypeSend() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals(400, mockHttpServletResponse.getStatus());
+		Assert.assertTrue(mockHttpServletResponse.getErrorMessage().startsWith("No mandatory request header with name"));
+	}
+
+	@Test
+	public void testNoTopicArn() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals(400, mockHttpServletResponse.getStatus());
+		Assert.assertTrue(mockHttpServletResponse.getErrorMessage().startsWith("The topic arn in the message:'' does not match the expected configured topic arn"));
+	}
+
+	@Test
+	public void testWrongTopicArn() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:notExistingTopic");
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals(400, mockHttpServletResponse.getStatus());
+		Assert.assertTrue(mockHttpServletResponse.getErrorMessage().startsWith("The topic arn in the message:'arn:aws:sns:us-east-1:123456789012:notExistingTopic' " +
+				"does not match the expected configured topic arn"));
+	}
+
+	@Test
+	public void testSubscriptionRequest() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				amazonSns, new NotificationMessageConverter(), target, "handleNotification", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.SUBSCRIPTION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Token", "1234");
+		jsonObject.put("TopicArn", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Mockito.verify(amazonSns, Mockito.times(1)).confirmSubscription(new ConfirmSubscriptionRequest("arn:aws:sns:us-east-1:123456789012:my_corporate_topic", "1234"));
+	}
+
 
 	static class SimpleHttpRequestHandler {
 

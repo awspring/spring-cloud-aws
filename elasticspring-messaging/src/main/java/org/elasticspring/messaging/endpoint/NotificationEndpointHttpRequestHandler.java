@@ -50,25 +50,29 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 
 	private static final String PAYLOAD_CHAR_SET = "UTF-8";
 	public static final String MESSAGE_TYPE = "x-amz-sns-message-type";
+	public static final String TOPIC_ARN_HEADER = "x-amz-sns-topic-arn";
+
 	public static final String NOTIFICATION_MESSAGE_TYPE = "Notification";
 	public static final String SUBSCRIPTION_MESSAGE_TYPE = "SubscriptionConfirmation";
-
 
 	private final AmazonSNS amazonSNS;
 	private final MessageConverter messageConverter;
 	private final Object target;
 	private final String listenerMethod;
 	private final String endpointAddress;
+	private final String topicArn;
 
 	private ServletContext servletContext;
 	private String beanName;
 
-	public NotificationEndpointHttpRequestHandler(AmazonSNS amazonSns, MessageConverter messageConverter, Object target, String listenerMethod, String endpointAddress) {
+	public NotificationEndpointHttpRequestHandler(AmazonSNS amazonSns, MessageConverter messageConverter, Object target,
+												  String listenerMethod, String endpointAddress, String topicArn) {
 		this.amazonSNS = amazonSns;
 		this.messageConverter = messageConverter;
 		this.target = target;
 		this.listenerMethod = listenerMethod;
 		this.endpointAddress = endpointAddress;
+		this.topicArn = topicArn;
 	}
 
 	@Override
@@ -82,10 +86,18 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	}
 
 	@Override
-	//TODO: Check topic arn
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if (request.getHeader(MESSAGE_TYPE) == null) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No mandatory request header with name:'" + MESSAGE_TYPE + "'");
+			return;
+		}
+
+		if (request.getHeader(TOPIC_ARN_HEADER) == null || !request.getHeader(TOPIC_ARN_HEADER).equals(this.topicArn)) {
+			// Do not send the configured topic arn as that contains sensitive information like the account no
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The topic arn in the message:'" +
+					(request.getHeader(TOPIC_ARN_HEADER) != null ? request.getHeader(TOPIC_ARN_HEADER) : "") +
+					"' does not match the expected configured topic arn");
+			return;
 		}
 
 		if (NOTIFICATION_MESSAGE_TYPE.equals(request.getHeader(MESSAGE_TYPE))) {

@@ -46,7 +46,9 @@ public class HttpNotificationEndpointFactoryBean extends AbstractNotificationEnd
 
 	@Override
 	protected Object doCreateEndpointInstance(Subscription subscription) {
-		NotificationEndpointHttpRequestHandler requestHandler = new NotificationEndpointHttpRequestHandler(getAmazonSns(), this.messageConverter, getTarget(), getMethod(), getEndpoint());
+		NotificationEndpointHttpRequestHandler requestHandler = new NotificationEndpointHttpRequestHandler(getAmazonSns(),
+				this.messageConverter, getTarget(), getMethod(), getEndpoint(), subscription.getTopicArn());
+
 		requestHandler.setServletContext(this.servletContext);
 		requestHandler.setBeanName(this.beanName);
 		return requestHandler;
