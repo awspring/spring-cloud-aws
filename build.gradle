@@ -90,7 +90,6 @@ project('elasticspring-core') {
             exclude module: "activation"
         }
         compile("org.springframework:spring-beans:${springFrameworkVersion}")
-        optional('org.bouncycastle:bcprov-jdk16:1.46')
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-context:${springFrameworkVersion}")
     }
@@ -106,7 +105,6 @@ project('elasticspring-context') {
         optional("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
-        optional('org.bouncycastle:bcprov-jdk16:1.46')
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
     }
 }
@@ -177,7 +175,6 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
-        optional('org.bouncycastle:bcprov-jdk16:1.46')
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }

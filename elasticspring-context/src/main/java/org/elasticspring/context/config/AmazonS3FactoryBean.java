@@ -22,14 +22,31 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.util.Assert;
 
+/**
+ * {@link org.springframework.beans.factory.FactoryBean} implementation that creates an {@link AmazonS3} client.
+ * The lifecycle of the created bean is managed and {@link com.amazonaws.AmazonWebServiceClient#shutdown()} is
+ * called before the bean is destroyed.
+ *
+ * @author Alain Sahli
+ * @since 1.0
+ */
 public class AmazonS3FactoryBean extends AbstractFactoryBean<AmazonS3> {
 
 	private final AWSCredentialsProvider credentials;
 
+	/**
+	 * Constructor that retrieves the mandatory {@link AWSCredentialsProvider} instance in order to create the service. The
+	 * {@link AWSCredentialsProvider} is typically configured through ElasticSpring credentials element which may use static or
+	 * dynamic credentials to actually create the object.
+	 *
+	 * @param credentialsProvider must not be null
+	 */
 	@RuntimeUse
-	public AmazonS3FactoryBean(AWSCredentialsProvider credentials) {
-		this.credentials = credentials;
+	public AmazonS3FactoryBean(AWSCredentialsProvider credentialsProvider) {
+		Assert.notNull(credentialsProvider);
+		this.credentials = credentialsProvider;
 	}
 
 	@Override

@@ -195,7 +195,6 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 			synchronized (this.monitor) {
 				if (this.currentOutputStream.size() == BUFFER_SIZE) {
 					initiateMultiPartIfNeeded();
-					// TODO document that if a task executor with a queue is used there's a huge memory consumption.
 					this.completionService.submit(
 							new UploadPartResultCallable(this.amazonS3, this.currentOutputStream.toByteArray(), this.currentOutputStream.size(), this.bucketName, this.objectName, this.multiPartUploadResult.getUploadId(), this.partNumberCounter++, false));
 					this.currentOutputStream.reset();
@@ -273,7 +272,6 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		private List<PartETag> getMultiPartsUploadResults() throws ExecutionException, InterruptedException {
 			List<PartETag> result = new ArrayList<PartETag>(this.partNumberCounter);
 			for (int i = 0; i < this.partNumberCounter; i++) {
-				// TODO use poll with a timeout
 				Future<UploadPartResult> uploadPartResultFuture = this.completionService.take();
 				result.add(uploadPartResultFuture.get().getPartETag());
 			}

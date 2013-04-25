@@ -1,4 +1,6 @@
 // CHECKSTYLE:OFF
+// Checkstyle is disabled because in test 'testWriteFileAndCheckChecksum'
+// there is a needed while loop without a statement inside.
 /*
  * Copyright 2013 the original author or authors.
  *
