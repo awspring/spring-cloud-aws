@@ -68,16 +68,4 @@ public class QueueingNotificationEndpointFactoryBeanTest {
 		factoryBean.afterPropertiesSet();
 		Assert.assertNotNull(factoryBean.getObject());
 	}
-
-	@Test
-	public void testWrongProtocol() throws Exception {
-		this.expectedException.expectMessage("This endpoint only support sqs endpoints");
-		this.expectedException.expect(IllegalArgumentException.class);
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
-		//noinspection ResultOfObjectAllocationIgnored
-		new QueueingNotificationEndpointFactoryBean(sns, sqs, "test",
-				TopicListener.NotificationProtocol.E_MAIL_JSON, "myQueue", new Object(), "listenerMethod");
-
-	}
 }

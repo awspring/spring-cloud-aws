@@ -33,14 +33,14 @@ import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
  * @author Agim Emruli
  * @since 1.0
  */
-public class TopicListenerBeanPostProcessorTest {
+public class TopicListenerBeanDefinitionRegistryPostProcessorTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
 	public void testCreateHttpEndpoint() throws Exception {
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
+		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
 		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
 
 		simpleBeanDefinitionRegistry.registerBeanDefinition("httpEndpoint",
@@ -69,7 +69,7 @@ public class TopicListenerBeanPostProcessorTest {
 
 	@Test
 	public void testCreateHttpsEndpoint() throws Exception {
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
+		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
 		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
 
 		simpleBeanDefinitionRegistry.registerBeanDefinition("httpsEndpoint",
@@ -98,7 +98,7 @@ public class TopicListenerBeanPostProcessorTest {
 
 	@Test
 	public void testCreateHttpEndpointWithCustomSns() throws Exception {
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
+		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
 		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
 
 		simpleBeanDefinitionRegistry.registerBeanDefinition("httpEndpoint",
@@ -128,7 +128,7 @@ public class TopicListenerBeanPostProcessorTest {
 
 	@Test
 	public void testCreateSqsEndpoint() throws Exception {
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
+		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
 		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
 
 		simpleBeanDefinitionRegistry.registerBeanDefinition("sqsEndpoint",
@@ -160,7 +160,7 @@ public class TopicListenerBeanPostProcessorTest {
 
 	@Test
 	public void testCreateSqsWithCustomSnsAndSqs() throws Exception {
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
+		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
 		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
 
 		simpleBeanDefinitionRegistry.registerBeanDefinition("sqsEndpoint",
@@ -191,21 +191,6 @@ public class TopicListenerBeanPostProcessorTest {
 				getArgumentValue(6, String.class).getValue());
 	}
 
-
-	@Test
-	public void testCreateEmailEndpoint() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("The protocol :'E_MAIL' is currently not supported");
-		TopicListenerBeanPostProcessor postProcessor = new TopicListenerBeanPostProcessor();
-		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
-
-		simpleBeanDefinitionRegistry.registerBeanDefinition("sqsEndpoint",
-				BeanDefinitionBuilder.rootBeanDefinition(EmailEndpoint.class).getBeanDefinition());
-
-		postProcessor.postProcessBeanDefinitionRegistry(simpleBeanDefinitionRegistry);
-	}
-
-
 	static class HttpEndpoint {
 
 		@TopicListener(protocol = TopicListener.NotificationProtocol.HTTP, topicName = "test",
@@ -228,15 +213,6 @@ public class TopicListenerBeanPostProcessorTest {
 
 		@TopicListener(protocol = TopicListener.NotificationProtocol.SQS, topicName = "test",
 				endpoint = "myQueue")
-		public void doReceiveNotification(String message) {
-			LoggerFactory.getLogger(getClass()).debug("Received message {}", message);
-		}
-	}
-
-	static class EmailEndpoint {
-
-		@TopicListener(protocol = TopicListener.NotificationProtocol.E_MAIL, topicName = "test",
-				endpoint = "agim@mail.com")
 		public void doReceiveNotification(String message) {
 			LoggerFactory.getLogger(getClass()).debug("Received message {}", message);
 		}

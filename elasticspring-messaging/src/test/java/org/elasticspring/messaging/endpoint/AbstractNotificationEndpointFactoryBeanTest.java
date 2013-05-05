@@ -24,6 +24,7 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sns.model.Topic;
 import org.elasticspring.messaging.config.annotation.TopicListener;
+import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,69 +46,16 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 	public void testTopicDoesNotExist() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
+		DestinationResolver destinationResolver = Mockito.mock(DestinationResolver.class);
 
-		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
+		Mockito.when(destinationResolver.resolveDestinationName("test")).thenThrow(new IllegalArgumentException("No topic found for name :'test'"));
 
-		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
+		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+
+		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(amazonSns, "test",
 				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
+		factoryBean.setDestinationResolver(destinationResolver);
 		factoryBean.afterPropertiesSet();
-	}
-
-	@Test
-	public void testTopicDoesNotExistWithMarker() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("No topic found for name :'test'");
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
-
-		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("foo"));
-		Mockito.when(sns.listTopics(new ListTopicsRequest("foo"))).thenReturn(new ListTopicsResult());
-
-		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
-		factoryBean.afterPropertiesSet();
-	}
-
-	@Test
-	public void testTopicNameFoundInFirstRun() throws Exception {
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
-
-		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
-		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
-		Subscription subscription = new Subscription().withEndpoint("testQueue").
-				withProtocol(TopicListener.NotificationProtocol.SQS.getCanonicalName()).withTopicArn(topicArn);
-		Mockito.when(sns.listSubscriptionsByTopic(new ListSubscriptionsByTopicRequest(topicArn))).thenReturn(
-				new ListSubscriptionsByTopicResult().withSubscriptions(subscription));
-
-		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
-		factoryBean.afterPropertiesSet();
-
-		Assert.assertNotNull(factoryBean.getObject());
-		Assert.assertSame(subscription, factoryBean.getObject());
-	}
-
-	@Test
-	public void testTopicNameFoundInSecondRun() throws Exception {
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
-
-		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("mark"));
-
-		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
-		Mockito.when(sns.listTopics(new ListTopicsRequest("mark"))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
-
-		Subscription subscription = new Subscription().withEndpoint("testQueue").
-				withProtocol(TopicListener.NotificationProtocol.SQS.getCanonicalName()).withTopicArn(topicArn);
-
-		Mockito.when(sns.listSubscriptionsByTopic(new ListSubscriptionsByTopicRequest(topicArn))).thenReturn(
-				new ListSubscriptionsByTopicResult().withSubscriptions(subscription));
-
-		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
-		factoryBean.afterPropertiesSet();
-
-		Assert.assertNotNull(factoryBean.getObject());
-		Assert.assertSame(subscription, factoryBean.getObject());
 	}
 
 	@Test

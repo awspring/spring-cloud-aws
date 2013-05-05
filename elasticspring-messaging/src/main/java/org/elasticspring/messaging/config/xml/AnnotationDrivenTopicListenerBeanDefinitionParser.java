@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.messaging.config.annotation.TopicListenerBeanPostProcessor;
+import org.elasticspring.messaging.config.annotation.TopicListenerBeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -43,7 +43,7 @@ public class AnnotationDrivenTopicListenerBeanDefinitionParser extends AbstractS
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return TopicListenerBeanPostProcessor.class;
+		return TopicListenerBeanDefinitionRegistryPostProcessor.class;
 	}
 
 	@Override

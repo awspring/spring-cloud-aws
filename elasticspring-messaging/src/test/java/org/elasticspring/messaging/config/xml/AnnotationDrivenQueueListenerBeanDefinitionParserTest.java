@@ -17,7 +17,7 @@
 package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
-import org.elasticspring.messaging.config.annotation.QueueListenerBeanPostProcessor;
+import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -43,7 +43,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition sqsAsync = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
 		Assert.assertNotNull(sqsAsync);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		@SuppressWarnings("unchecked") Map<String, Object> configuration =
 				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
 		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("amazonSqs");
@@ -59,7 +59,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition sqsAsync = registry.getBeanDefinition("myClient");
 		Assert.assertNotNull(sqsAsync);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		@SuppressWarnings("unchecked") Map<String, Object> configuration =
 				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
 		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("amazonSqs");
@@ -75,7 +75,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition sqsAsync = registry.getBeanDefinition("executor");
 		Assert.assertNotNull(sqsAsync);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		@SuppressWarnings("unchecked") Map<String, Object> configuration =
 				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
 		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("taskManager");
@@ -88,7 +88,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-properties.xml", getClass()));
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		@SuppressWarnings("unchecked") Map<String, Object> configuration =
 				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
 		Assert.assertEquals("false", configuration.get("autoStartup"));

@@ -17,7 +17,7 @@
 package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
-import org.elasticspring.messaging.config.annotation.QueueListenerBeanPostProcessor;
+import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -62,7 +62,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractS
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return QueueListenerBeanPostProcessor.class;
+		return QueueListenerBeanDefinitionRegistryPostProcessor.class;
 	}
 
 	@Override

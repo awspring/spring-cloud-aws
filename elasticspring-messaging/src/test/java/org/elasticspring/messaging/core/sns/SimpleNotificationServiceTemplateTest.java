@@ -45,10 +45,10 @@ public class SimpleNotificationServiceTemplateTest {
 		AmazonSNS amazonSNS = Mockito.mock(AmazonSNS.class);
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 		template.convertAndSend("test", "hello");
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "hello"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "hello"));
 	}
 
 	@Test
@@ -57,10 +57,10 @@ public class SimpleNotificationServiceTemplateTest {
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
 		template.setDefaultDestinationName("test");
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 		template.convertAndSend("hello");
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "hello"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "hello"));
 	}
 
 	@Test
@@ -69,10 +69,10 @@ public class SimpleNotificationServiceTemplateTest {
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
 		template.setDefaultDestinationName("test");
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 		template.convertAndSendWithSubject("hello", "world");
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "hello", "world"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "hello", "world"));
 	}
 
 	@Test
@@ -80,10 +80,10 @@ public class SimpleNotificationServiceTemplateTest {
 		AmazonSNS amazonSNS = Mockito.mock(AmazonSNS.class);
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 		template.convertAndSendWithSubject("test", "hello", "world");
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "hello", "world"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "hello", "world"));
 	}
 
 	@Test
@@ -98,15 +98,15 @@ public class SimpleNotificationServiceTemplateTest {
 			}
 		});
 
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
 		template.setMessageConverter(messageConverter);
 
 		template.convertAndSend("test", "messageContent");
 
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "MESSAGECONTENT"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "MESSAGECONTENT"));
 
 	}
 
@@ -122,15 +122,15 @@ public class SimpleNotificationServiceTemplateTest {
 			}
 		});
 
-		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest("test"))).
-				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("aws::sns::test")));
+		Mockito.when(amazonSNS.listTopics(new ListTopicsRequest(null))).
+				thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:us-east-1:123456789012:test")));
 
 		SimpleNotificationServiceTemplate template = new SimpleNotificationServiceTemplate(amazonSNS);
 		template.setMessageConverter(messageConverter);
 
 		template.convertAndSendWithSubject("test", "messageContent", "subject");
 
-		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("aws::sns::test", "MESSAGECONTENT", "subject"));
+		Mockito.verify(amazonSNS, Mockito.times(1)).publish(new PublishRequest("arn:aws:sns:us-east-1:123456789012:test", "MESSAGECONTENT", "subject"));
 	}
 
 	@Test

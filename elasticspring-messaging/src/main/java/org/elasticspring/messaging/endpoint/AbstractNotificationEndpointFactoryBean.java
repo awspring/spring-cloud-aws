@@ -19,12 +19,11 @@ package org.elasticspring.messaging.endpoint;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
-import com.amazonaws.services.sns.model.ListTopicsRequest;
-import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Subscription;
-import com.amazonaws.services.sns.model.Topic;
-import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
+import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
+import org.elasticspring.messaging.support.destination.DestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -43,6 +42,7 @@ public abstract class AbstractNotificationEndpointFactoryBean<T> extends Abstrac
 	private final String endpoint;
 	private final Object target;
 	private final String method;
+	private DestinationResolver destinationResolver;
 
 	public AbstractNotificationEndpointFactoryBean(AmazonSNS amazonSns, String topicName, TopicListener.NotificationProtocol protocol, String endpoint, Object target, String method) {
 		Assert.notNull(amazonSns, "amazonSns must not be null");
@@ -56,38 +56,21 @@ public abstract class AbstractNotificationEndpointFactoryBean<T> extends Abstrac
 		this.endpoint = endpoint;
 		this.target = target;
 		this.method = method;
+		this.destinationResolver = new CachingDestinationResolver(new DynamicTopicDestinationResolver(amazonSns));
+	}
+
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
 	}
 
 	@Override
 	protected T createInstance() throws Exception {
-		String topicArn = getTopicResourceName(null);
+		String topicArn = this.destinationResolver.resolveDestinationName(getTopicName());
 		Subscription subscriptionForEndpoint = getSubscriptionForEndpoint(topicArn, null);
 		return doCreateEndpointInstance(subscriptionForEndpoint);
 	}
 
 	protected abstract T doCreateEndpointInstance(Subscription subscription);
-
-	private String getTopicResourceName(String marker) {
-		ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
-		for (Topic topic : listTopicsResult.getTopics()) {
-			if (AmazonResourceName.isValidAmazonResourceName(getTopicName())) {
-				if (topic.getTopicArn().equals(getTopicName())) {
-					return topic.getTopicArn();
-				}
-			} else {
-				AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-				if (resourceName.getResourceType().equals(getTopicName())) {
-					return topic.getTopicArn();
-				}
-			}
-		}
-
-		if (StringUtils.hasText(listTopicsResult.getNextToken())) {
-			return getTopicResourceName(listTopicsResult.getNextToken());
-		} else {
-			throw new IllegalArgumentException("No topic found for name :'" + this.topicName + "'");
-		}
-	}
 
 	private Subscription getSubscriptionForEndpoint(String topicArn, String nextToken) {
 

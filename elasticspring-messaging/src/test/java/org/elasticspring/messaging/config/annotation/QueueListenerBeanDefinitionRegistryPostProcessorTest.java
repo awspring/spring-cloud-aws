@@ -36,7 +36,7 @@ import java.util.HashMap;
  * @author Agim Emruli
  * @since 1.0
  */
-public class QueueListenerBeanPostProcessorTest {
+public class QueueListenerBeanDefinitionRegistryPostProcessorTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
@@ -47,7 +47,7 @@ public class QueueListenerBeanPostProcessorTest {
 		this.expectedException.expectMessage("must contain either value or queueName attribute");
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 		staticApplicationContext.registerSingleton("listener", InvalidBeanWithNoDestination.class);
-		staticApplicationContext.registerSingleton("processor", QueueListenerBeanPostProcessor.class);
+		staticApplicationContext.registerSingleton("processor", QueueListenerBeanDefinitionRegistryPostProcessor.class);
 		staticApplicationContext.refresh();
 	}
 
@@ -57,7 +57,7 @@ public class QueueListenerBeanPostProcessorTest {
 		this.expectedException.expectMessage("not both");
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 		staticApplicationContext.registerSingleton("listener", InvalidBeanWithAmbiguousDestinations.class);
-		staticApplicationContext.registerSingleton("processor", QueueListenerBeanPostProcessor.class);
+		staticApplicationContext.registerSingleton("processor", QueueListenerBeanDefinitionRegistryPostProcessor.class);
 		staticApplicationContext.refresh();
 	}
 
@@ -66,7 +66,7 @@ public class QueueListenerBeanPostProcessorTest {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		registry.registerBeanDefinition("queueListenerBean",
 				BeanDefinitionBuilder.rootBeanDefinition(MinimalListenerConfiguration.class).getBeanDefinition());
-		QueueListenerBeanPostProcessor processor = new QueueListenerBeanPostProcessor();
+		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
 		processor.postProcessBeanDefinitionRegistry(registry);
 
 		Assert.assertEquals(2, registry.getBeanDefinitionCount());
@@ -95,7 +95,7 @@ public class QueueListenerBeanPostProcessorTest {
 		customProperties.put("amazonSqs", new RuntimeBeanReference("customOne"));
 		customProperties.put("maxNumberOfMessages", 2);
 
-		QueueListenerBeanPostProcessor processor = new QueueListenerBeanPostProcessor();
+		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
 		processor.setMessageListenerContainerConfiguration(customProperties);
 
 		processor.postProcessBeanDefinitionRegistry(registry);
@@ -129,7 +129,7 @@ public class QueueListenerBeanPostProcessorTest {
 		registry.registerBeanDefinition("myMessageConverter",
 				BeanDefinitionBuilder.rootBeanDefinition(ObjectMessageConverter.class).getBeanDefinition());
 
-		QueueListenerBeanPostProcessor processor = new QueueListenerBeanPostProcessor();
+		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
 		processor.postProcessBeanDefinitionRegistry(registry);
 
 		Assert.assertEquals(3, registry.getBeanDefinitionCount());
@@ -159,7 +159,7 @@ public class QueueListenerBeanPostProcessorTest {
 
 		@QueueListener(queueName = "myQueue", messageConverter = "myMessageConverter")
 		public void listenerMethod() {
-
+			LoggerFactory.getLogger(getClass()).debug("Method listenerMethod() called");
 		}
 	}
 

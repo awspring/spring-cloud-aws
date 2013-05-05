@@ -34,7 +34,7 @@ import java.util.Set;
  * @author Agim Emruli
  * @since 1.0
  */
-public class TopicListenerBeanPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
+public class TopicListenerBeanDefinitionRegistryPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
 
 	private static final String ANNOTATION_TYPE = TopicListener.class.getName();
 	private String amazonSnsBeanName;

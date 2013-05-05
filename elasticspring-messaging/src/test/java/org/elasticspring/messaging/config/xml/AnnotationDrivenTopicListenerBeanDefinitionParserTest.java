@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.messaging.config.annotation.TopicListenerBeanPostProcessor;
+import org.elasticspring.messaging.config.annotation.TopicListenerBeanDefinitionRegistryPostProcessor;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -36,7 +36,7 @@ public class AnnotationDrivenTopicListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 		Assert.assertEquals(1, registry.getBeanDefinitionCount());
-		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		Assert.assertEquals(0, beanDefinition.getPropertyValues().size());
 	}
 
@@ -46,7 +46,7 @@ public class AnnotationDrivenTopicListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sqs.xml", getClass()));
 		Assert.assertEquals(2, registry.getBeanDefinitionCount());
-		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		Assert.assertEquals(1, beanDefinition.getPropertyValues().size());
 		Assert.assertEquals("customSqs", beanDefinition.getPropertyValues().getPropertyValue("amazonSqsBeanName").getValue());
 	}
@@ -57,7 +57,7 @@ public class AnnotationDrivenTopicListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sns.xml", getClass()));
 		Assert.assertEquals(2, registry.getBeanDefinitionCount());
-		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanPostProcessor.class.getName() + "#0");
+		BeanDefinition beanDefinition = registry.getBeanDefinition(TopicListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
 		Assert.assertEquals(1, beanDefinition.getPropertyValues().size());
 		Assert.assertEquals("customSns", beanDefinition.getPropertyValues().getPropertyValue("amazonSnsBeanName").getValue());
 	}

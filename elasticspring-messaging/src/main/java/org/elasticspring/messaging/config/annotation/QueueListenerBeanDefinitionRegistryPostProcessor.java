@@ -36,7 +36,7 @@ import java.util.Set;
  * @author Agim Emruli
  * @since 1.0
  */
-public class QueueListenerBeanPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
+public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
 
 	private static final String ANNOTATION_TYPE = QueueListener.class.getName();
 	private static final String DESTINATION_ATTRIBUTE_NAME = "queueName";

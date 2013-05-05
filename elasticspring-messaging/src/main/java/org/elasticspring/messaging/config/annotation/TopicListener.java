@@ -41,13 +41,7 @@ public @interface TopicListener {
 		@RuntimeUse
 		HTTPS("https"),
 		@RuntimeUse
-		E_MAIL("e-mail"),
-		@RuntimeUse
-		E_MAIL_JSON("e-mail-json"),
-		@RuntimeUse
-		SQS("sqs"),
-		@RuntimeUse
-		SMS("sms");
+		SQS("sqs");
 
 		private final String canonicalName;
 
