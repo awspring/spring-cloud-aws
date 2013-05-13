@@ -28,6 +28,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Agim Emruli
@@ -54,9 +55,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private Integer visibilityTimeout;
 	private Integer waitTimeOut;
 
+
 	//Optional settings with defaults
 	private boolean autoStartup = true;
 	private int phase = Integer.MAX_VALUE;
+	private ErrorHandler errorHandler = new LoggingErrorHandler();
 
 	//Settings that are changed at runtime
 	private boolean active;
@@ -155,6 +158,14 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		this.phase = phase;
 	}
 
+	protected ErrorHandler getErrorHandler() {
+		return this.errorHandler;
+	}
+
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
 	public boolean isActive() {
 		synchronized (this.getLifecycleMonitor()) {
 			return this.active;
@@ -251,4 +262,18 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected abstract void doStart();
 
 	protected abstract void doStop();
+
+	protected void handleError(Throwable throwable) {
+		if (getErrorHandler() != null) {
+			getErrorHandler().handleError(throwable);
+		}
+	}
+
+	private class LoggingErrorHandler implements ErrorHandler {
+
+		@Override
+		public void handleError(Throwable t) {
+			getLogger().error("Error occurred while processing message", t);
+		}
+	}
 }

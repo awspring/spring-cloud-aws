@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.util.ErrorHandler;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,7 +93,6 @@ public class ActorBasedMessageListenerContainerTest {
 	public void testListenerThrowsException() throws Exception {
 		AmazonSQSAsync amazonSqsMock = Mockito.mock(AmazonSQSBufferedAsyncClient.class);
 
-
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
 
 		final ReceiveMessageResult messageResult = new ReceiveMessageResult().withMessages(
@@ -118,13 +118,19 @@ public class ActorBasedMessageListenerContainerTest {
 		});
 		actorBasedMessageListenerContainer.setAmazonSqs(amazonSqsMock);
 
+		final AtomicInteger errorCounter = new AtomicInteger();
+
 		actorBasedMessageListenerContainer.setMessageListener(new MessageListener() {
 
 			@Override
 			public void onMessage(Message<String> message) {
+				errorCounter.incrementAndGet();
 				throw new IllegalArgumentException("myError");
 			}
 		});
+
+		ErrorHandler errorHandler = Mockito.mock(ErrorHandler.class);
+		actorBasedMessageListenerContainer.setErrorHandler(errorHandler);
 
 		actorBasedMessageListenerContainer.setBeanName("test");
 		actorBasedMessageListenerContainer.afterPropertiesSet();
@@ -135,6 +141,8 @@ public class ActorBasedMessageListenerContainerTest {
 
 		Mockito.verify(amazonSqsMock, Mockito.times(0)).deleteMessageAsync(
 				new DeleteMessageRequest().withQueueUrl(queueUrl).withReceiptHandle("123"));
+
+		Mockito.verify(errorHandler,Mockito.times(errorCounter.intValue())).handleError(Mockito.isA(IllegalArgumentException.class));
 
 	}
 }

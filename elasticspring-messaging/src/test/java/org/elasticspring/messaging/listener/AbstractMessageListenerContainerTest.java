@@ -27,6 +27,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.springframework.util.ErrorHandler;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -349,6 +351,68 @@ public class AbstractMessageListenerContainerTest {
 				}
 			}
 		});
+	}
+
+	@Test
+	public void testWithDefaultErrorHandler() throws Exception {
+		final Logger logger = Mockito.mock(Logger.class);
+
+		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
+
+			@Override
+			protected void doStart() {
+			}
+
+			@Override
+			protected void doStop() {
+			}
+
+			@Override
+			protected Logger getLogger() {
+				return logger;
+			}
+		};
+
+		container.handleError(new Throwable("test"));
+		Mockito.verify(logger, Mockito.times(1)).error(Mockito.isA(String.class), Mockito.isA(Throwable.class));
+	}
+
+	@Test
+	public void testWithNullConfiguredErrorHandler() throws Exception {
+		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
+
+			@Override
+			protected void doStart() {
+			}
+
+			@Override
+			protected void doStop() {
+			}
+		};
+
+		container.setErrorHandler(null);
+		container.handleError(new Throwable("test"));
+	}
+
+	@Test
+	public void testWithCustomErrorHandler() throws Exception {
+		ErrorHandler errorHandler = Mockito.mock(ErrorHandler.class);
+
+		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
+
+			@Override
+			protected void doStart() {
+			}
+
+			@Override
+			protected void doStop() {
+			}
+		};
+
+		container.setErrorHandler(errorHandler);
+		Throwable throwable = new Throwable("test");
+		container.handleError(throwable);
+		Mockito.verify(errorHandler, Mockito.times(1)).handleError(throwable);
 	}
 
 	private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {

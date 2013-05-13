@@ -86,12 +86,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		try {
 			getMessageListener().onMessage(stringMessage);
 		} catch (Throwable throwable) {
-			handleException(throwable);
+			handleError(throwable);
 		}
-	}
-
-	protected void handleException(Throwable throwable) {
-		getLogger().error("Error executing listener with exception:", throwable);
 	}
 
 	private class AsynchronousMessageListener implements Runnable {

@@ -142,7 +142,7 @@ public class ActorBasedMessageListenerContainer extends AbstractMessageListenerC
 
 					@Override
 					public void onFailure(Throwable failure) throws Throwable {
-						MessageExecutor.this.logging.error(failure, "Error executing message");
+						handleError(failure);
 					}
 				}, ActorBasedMessageListenerContainer.this.actorSystem.dispatcher());
 			}

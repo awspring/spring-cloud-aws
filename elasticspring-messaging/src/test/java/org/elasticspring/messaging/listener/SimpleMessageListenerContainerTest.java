@@ -167,10 +167,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void handleException(Throwable throwable) {
+			protected void handleError(Throwable throwable) {
 				Assert.assertNotNull(throwable);
 				Assert.assertTrue(IllegalArgumentException.class.isInstance(throwable));
-				super.handleException(throwable);
 				super.stop();
 			}
 		};
