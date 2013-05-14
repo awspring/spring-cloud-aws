@@ -26,6 +26,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.endpoint.NotificationEndpointHttpRequestHandler;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.web.context.ContextLoaderListener;
@@ -60,7 +61,7 @@ public class HttpNotificationServiceTest {
 		ServletContext servletContext = context.getServletContext();
 		WebApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
 		SimpleHttpEndpoint bean = applicationContext.getBean(SimpleHttpEndpoint.class);
-
+		TestStackEnvironment testStackEnvironment = applicationContext.getBean(TestStackEnvironment.class);
 
 		Assert.assertTrue(context.getState().isAvailable());
 
@@ -68,30 +69,37 @@ public class HttpNotificationServiceTest {
 		HttpPost httpPost = new HttpPost("http://localhost:" + tomcat.getConnector().getLocalPort() + "/endpoint");
 
 		String message = "{ \"Type\" : \"Notification\"," +
-				" \"Message\" : \"world\"}";
+				" \"Message\" : \"world\", \"Subject\" : \"Hello\"}";
 		httpPost.setEntity(new StringEntity(message));
 		httpPost.setHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		httpPost.setHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, testStackEnvironment.getByLogicalId("HttpReceivingSnsTopic"));
 		HttpResponse response = httpClient.execute(httpPost);
 		Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 		tomcat.stop();
 
+		Assert.assertEquals("Hello", bean.getLastSubject());
 		Assert.assertEquals("world", bean.getLastMessage());
 	}
-
 
 	static class SimpleHttpEndpoint {
 
 		private String lastMessage;
+		private String lastSubject;
 
 		String getLastMessage() {
 			return this.lastMessage;
 		}
 
+		String getLastSubject() {
+			return this.lastSubject;
+		}
+
 		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('HttpReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.HTTP,
 				endpoint = "http://notimportant.elasticspring.com/endpoint")
-		public void receiveNotification(String notification) {
-			this.lastMessage = notification;
+		public void receiveNotification(String body,String subject) {
+			this.lastMessage = body;
+			this.lastSubject = subject;
 		}
 	}
 }

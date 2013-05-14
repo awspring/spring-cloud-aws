@@ -42,9 +42,23 @@ public class NotificationMessageConverterTest {
 	public void testReadMessage() throws Exception {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("Type", "Notification");
-		jsonObject.put("Message", "Hello World!");
-		Object result = new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
-		Assert.assertEquals("Hello World!", result);
+		jsonObject.put("Subject", "Hello");
+		jsonObject.put("Message", "World");
+		NotificationMessageConverter.NotificationMessage notificationMessage =
+				new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
+		Assert.assertEquals("Hello", notificationMessage.getSubject());
+		Assert.assertEquals("World", notificationMessage.getBody());
+	}
+
+	@Test
+	public void testReadMessageOnlyBody() throws Exception {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "Hello World");
+		NotificationMessageConverter.NotificationMessage notificationMessage =
+				new NotificationMessageConverter().fromMessage(new StringMessage(jsonObject.toString()));
+		Assert.assertEquals("Hello World", notificationMessage.getBody());
+		Assert.assertNull(notificationMessage.getSubject());
 	}
 
 	@Test

@@ -23,8 +23,8 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.listener.MessageListenerAdapter;
+import org.elasticspring.messaging.listener.NotificationEndpointMessageListenerAdapter;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
-import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
@@ -38,7 +38,6 @@ import org.springframework.util.Assert;
 public class QueueingNotificationEndpointFactoryBean extends AbstractNotificationEndpointFactoryBean<SimpleMessageListenerContainer> implements SmartLifecycle {
 
 	private final AmazonSQSAsync amazonSqs;
-	private final NotificationMessageConverter messageConverter = new NotificationMessageConverter();
 	private final DestinationResolver destinationResolver;
 	private SimpleMessageListenerContainer container;
 
@@ -56,7 +55,7 @@ public class QueueingNotificationEndpointFactoryBean extends AbstractNotificatio
 		this.container = new SimpleMessageListenerContainer();
 		this.container.setAmazonSqs(this.amazonSqs);
 
-		MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(this.messageConverter, getTarget(), getMethod());
+		MessageListenerAdapter messageListenerAdapter = new NotificationEndpointMessageListenerAdapter(getTarget(), getMethod());
 		this.container.setMessageListener(messageListenerAdapter);
 		this.container.setDestinationName(AmazonResourceName.fromString(subscription.getEndpoint()).getResourceType());
 		return this.container;

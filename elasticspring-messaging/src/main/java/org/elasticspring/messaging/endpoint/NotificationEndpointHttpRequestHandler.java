@@ -22,9 +22,12 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.support.converter.MessageConverter;
+import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MethodInvoker;
 import org.springframework.web.HttpRequestHandler;
@@ -114,9 +117,16 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 
 		byte[] payload = FileCopyUtils.copyToByteArray(request.getInputStream());
 
-		Object argument = this.messageConverter.fromMessage(new StringMessage(
-				new String(payload, Charset.forName(PAYLOAD_CHAR_SET))));
-		methodInvoker.setArguments(new Object[]{argument});
+		NotificationMessageConverter.NotificationMessage notificationMessage = (NotificationMessageConverter.NotificationMessage)
+				this.messageConverter.fromMessage(new StringMessage(
+						new String(payload, Charset.forName(PAYLOAD_CHAR_SET))));
+
+		if (ClassUtils.hasMethod(AopUtils.getTargetClass(this.target), this.listenerMethod, String.class, String.class)) {
+			methodInvoker.setArguments(new Object[]{notificationMessage.getBody(), notificationMessage.getSubject()});
+		} else {
+			methodInvoker.setArguments(new Object[]{notificationMessage.getBody()});
+		}
+
 		try {
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {

@@ -75,6 +75,80 @@ public class NotificationEndpointHttpRequestHandlerTest {
 
 		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
 		Assert.assertEquals("Hello World", target.getLastMessage());
+		Assert.assertNull(target.getLastSubject());
+	}
+
+	@Test
+	public void testNotificationRequestWithSubject() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotificationWithSubject", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "Hello");
+		jsonObject.put("Message", "World");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertEquals("Hello", target.getLastSubject());
+		Assert.assertEquals("World", target.getLastMessage());
+	}
+
+	@Test
+	public void testNotificationRequestWithSubjectButNoSubjectInNotification() throws Exception {
+		SimpleHttpRequestHandler target = new SimpleHttpRequestHandler();
+
+		NotificationEndpointHttpRequestHandler handler = new NotificationEndpointHttpRequestHandler(
+				Mockito.mock(AmazonSNS.class), new NotificationMessageConverter(), target, "handleNotificationWithSubject", "http://localhost:8080/first", "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+
+		ServletContext servletContext = Mockito.mock(ServletContext.class);
+		handler.setServletContext(servletContext);
+		handler.setBeanName("testBean");
+
+		ServletRegistration.Dynamic dynamic = Mockito.mock(ServletRegistration.Dynamic.class);
+		Mockito.when(servletContext.addServlet(Mockito.eq("testBean"), Mockito.isA(HttpRequestHandlerServlet.class))).thenReturn(dynamic);
+		Mockito.when(servletContext.getContextPath()).thenReturn("/");
+
+		handler.afterPropertiesSet();
+
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.MESSAGE_TYPE, NotificationEndpointHttpRequestHandler.NOTIFICATION_MESSAGE_TYPE);
+		mockHttpServletRequest.addHeader(NotificationEndpointHttpRequestHandler.TOPIC_ARN_HEADER, "arn:aws:sns:us-east-1:123456789012:my_corporate_topic");
+
+		MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "World");
+
+		mockHttpServletRequest.setContent(jsonObject.toString().getBytes());
+
+		handler.handleRequest(mockHttpServletRequest, mockHttpServletResponse);
+		Assert.assertNull(target.getLastSubject());
+		Assert.assertEquals("World", target.getLastMessage());
 	}
 
 	@Test
@@ -409,10 +483,17 @@ public class NotificationEndpointHttpRequestHandlerTest {
 	static class SimpleHttpRequestHandler {
 
 		private String lastMessage;
+		private String lastSubject;
 
 		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "foo")
 		public void handleNotification(String message) {
 			this.lastMessage = message;
+		}
+
+		@TopicListener(topicName = "testWithSubject", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "foo")
+		public void handleNotificationWithSubject(String message, String subject) {
+			this.lastMessage = message;
+			this.lastSubject = subject;
 		}
 
 		@TopicListener(topicName = "test", protocol = TopicListener.NotificationProtocol.HTTP, endpoint = "bar")
@@ -422,6 +503,10 @@ public class NotificationEndpointHttpRequestHandlerTest {
 
 		public String getLastMessage() {
 			return this.lastMessage;
+		}
+
+		String getLastSubject() {
+			return this.lastSubject;
 		}
 	}
 }

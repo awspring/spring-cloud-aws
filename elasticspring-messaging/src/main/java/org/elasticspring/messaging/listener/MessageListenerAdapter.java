@@ -41,16 +41,25 @@ public class MessageListenerAdapter implements MessageListener {
 		this.listenerMethod = listenerMethod;
 	}
 
+	protected Object getDelegate() {
+		return this.delegate;
+	}
+
+	protected String getListenerMethod() {
+		return this.listenerMethod;
+	}
+
 	@Override
 	public void onMessage(Message<String> message) {
 		MethodInvoker methodInvoker = new MethodInvoker();
 		methodInvoker.setTargetObject(this.delegate);
 		methodInvoker.setTargetMethod(this.listenerMethod);
 		Object param = this.messageConverter.fromMessage(message);
-		methodInvoker.setArguments(new Object[]{param});
+
+		prepareArguments(methodInvoker, param);
 
 		try {
-			LOGGER.debug("Preparing method invoker for object {} and method {} with argument {}", this.delegate, this.listenerMethod, param);
+			LOGGER.debug("Preparing method invoker for object {} and method {} with argument(s) {}", this.delegate, this.listenerMethod, methodInvoker.getArguments());
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {
 			throw new ListenerExecutionFailedException(e);
@@ -65,5 +74,9 @@ public class MessageListenerAdapter implements MessageListener {
 		} catch (IllegalAccessException e) {
 			throw new ListenerExecutionFailedException(e.getCause());
 		}
+	}
+
+	protected void prepareArguments(MethodInvoker methodInvoker, Object payload) {
+		methodInvoker.setArguments(new Object[]{payload});
 	}
 }

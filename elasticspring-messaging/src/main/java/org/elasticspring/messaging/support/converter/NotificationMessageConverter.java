@@ -36,7 +36,7 @@ public class NotificationMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Object fromMessage(Message<String> message) {
+	public NotificationMessage fromMessage(Message<String> message) {
 		try {
 			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload(), JsonNode.class);
 			if (!jsonNode.has("Type")) {
@@ -51,9 +51,32 @@ public class NotificationMessageConverter implements MessageConverter {
 				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message");
 			}
 
-			return jsonNode.get("Message").getTextValue();
+			return new NotificationMessage(nullSafeGetTextValue(jsonNode, "Message"),nullSafeGetTextValue(jsonNode, "Subject"));
 		} catch (IOException e) {
 			throw new MessageConversionException("Error reading payload :'" + message.getPayload() + "' from message", e);
+		}
+	}
+
+	private static String nullSafeGetTextValue(JsonNode jsonNode, String attribute) {
+		return jsonNode.has(attribute) ? jsonNode.get(attribute).getValueAsText() : null;
+	}
+
+	public static class NotificationMessage {
+
+		private final String body;
+		private final String subject;
+
+		public NotificationMessage(String body, String subject) {
+			this.body = body;
+			this.subject = subject;
+		}
+
+		public String getBody() {
+			return this.body;
+		}
+
+		public String getSubject() {
+			return this.subject;
 		}
 	}
 }

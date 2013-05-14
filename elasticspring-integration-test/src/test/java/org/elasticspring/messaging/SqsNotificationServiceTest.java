@@ -43,24 +43,27 @@ public class SqsNotificationServiceTest {
 
 	@Test
 	public void testConvertAndSendWithoutSubject() throws Exception {
-		String payload = "Hello World";
-		this.notificationOperations.convertAndSend(payload);
+		String subject = "Hello";
+		String payload = "World";
+		this.notificationOperations.convertAndSendWithSubject(payload, subject);
 		this.notificationReceiver.getCountDownLatch().await();
+		Assert.assertEquals(subject, this.notificationReceiver.getLastSubject());
 		Assert.assertEquals(payload, this.notificationReceiver.getLastMessage());
 	}
-
 
 	static class NotificationReceiver {
 
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 		private String lastMessage;
+		private String lastSubject;
 
 		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.SQS,
 				endpoint = "#{testStackEnvironment.getByLogicalId('NotificationQueue')}")
-		public void receiveNotification(String message) {
+		public void receiveNotification(String message,String subject) {
 			this.countDownLatch.countDown();
 			this.lastMessage = message;
+			this.lastSubject = subject;
 		}
 
 		CountDownLatch getCountDownLatch() {
@@ -69,6 +72,10 @@ public class SqsNotificationServiceTest {
 
 		String getLastMessage() {
 			return this.lastMessage;
+		}
+
+		String getLastSubject() {
+			return this.lastSubject;
 		}
 	}
 }
