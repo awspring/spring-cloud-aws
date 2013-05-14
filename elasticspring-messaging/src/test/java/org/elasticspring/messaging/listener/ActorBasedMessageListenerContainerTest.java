@@ -84,6 +84,7 @@ public class ActorBasedMessageListenerContainerTest {
 		actorBasedMessageListenerContainer.start();
 		countDownLatch.await();
 		actorBasedMessageListenerContainer.stop();
+		actorBasedMessageListenerContainer.destroy();
 
 		Mockito.verify(amazonSqsMock, Mockito.times(messageCount.intValue())).deleteMessage(
 				new DeleteMessageRequest().withQueueUrl(queueUrl).withReceiptHandle("123"));
@@ -138,11 +139,33 @@ public class ActorBasedMessageListenerContainerTest {
 		actorBasedMessageListenerContainer.start();
 		countDownLatch.await();
 		actorBasedMessageListenerContainer.stop();
+		actorBasedMessageListenerContainer.destroy();
 
 		Mockito.verify(amazonSqsMock, Mockito.times(0)).deleteMessageAsync(
 				new DeleteMessageRequest().withQueueUrl(queueUrl).withReceiptHandle("123"));
 
-		Mockito.verify(errorHandler,Mockito.times(errorCounter.intValue())).handleError(Mockito.isA(IllegalArgumentException.class));
+		Mockito.verify(errorHandler, Mockito.times(errorCounter.intValue())).handleError(Mockito.isA(IllegalArgumentException.class));
 
+	}
+
+	@Test
+	public void testWithCustomConfig() throws Exception {
+		ActorBasedMessageListenerContainer actorBasedMessageListenerContainer = new ActorBasedMessageListenerContainer();
+		actorBasedMessageListenerContainer.setConfigFile("customConfig.conf");
+
+		AmazonSQSAsync amazonSqsMock = Mockito.mock(AmazonSQSBufferedAsyncClient.class);
+
+		actorBasedMessageListenerContainer.setMessageListener(new MessageListener() {
+
+			@Override
+			public void onMessage(Message<String> message) {
+			}
+		});
+		actorBasedMessageListenerContainer.setAmazonSqs(amazonSqsMock);
+		actorBasedMessageListenerContainer.setDestinationName("test");
+		actorBasedMessageListenerContainer.setBeanName("test");
+		actorBasedMessageListenerContainer.setBeanClassLoader(Thread.currentThread().getContextClassLoader());
+		actorBasedMessageListenerContainer.afterPropertiesSet();
+		actorBasedMessageListenerContainer.destroy();
 	}
 }

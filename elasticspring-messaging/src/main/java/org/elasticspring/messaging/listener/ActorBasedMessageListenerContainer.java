@@ -33,7 +33,10 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.typesafe.config.ConfigFactory;
 import org.elasticspring.messaging.StringMessage;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.util.Assert;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
@@ -44,14 +47,41 @@ import java.util.concurrent.TimeUnit;
  * @author Agim Emruli
  * @since 1.0
  */
-public class ActorBasedMessageListenerContainer extends AbstractMessageListenerContainer {
+public class ActorBasedMessageListenerContainer extends AbstractMessageListenerContainer implements BeanClassLoaderAware {
 
 	private ActorSystem actorSystem;
 	private Cancellable cancellable;
+	private ClassLoader classLoader;
+	private String configFile;
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	public void setConfigFile(String configFile) {
+		this.configFile = configFile;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+
+		Assert.notNull(getBeanName(),"beanName must not be null, please use this class inside a " +
+				"bean factory or set the bean name manually");
+
+		if (this.configFile != null) {
+			Assert.notNull(this.classLoader,"classLoader must not be null, please use this class inside a " +
+					"bean factory or set the class loader manually");
+			this.actorSystem = ActorSystem.create(getBeanName(),
+					ConfigFactory.load(this.classLoader, this.configFile), this.classLoader);
+		} else {
+			this.actorSystem = ActorSystem.create(getBeanName());
+		}
+	}
 
 	@Override
 	protected void doStart() {
-		this.actorSystem = ActorSystem.create();
 		ActorRef actorRef = this.actorSystem.actorOf(new Props(new UntypedActorFactory() {
 
 			@Override
@@ -66,11 +96,17 @@ public class ActorBasedMessageListenerContainer extends AbstractMessageListenerC
 
 	@Override
 	protected void doStop() {
-		this.cancellable.cancel();
+		if (this.cancellable != null) {
+			this.cancellable.cancel();
+		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
 		this.actorSystem.shutdown();
 		this.actorSystem.awaitTermination();
 	}
-
 
 	private class AsynchronousMessageListener extends UntypedActor {
 
