@@ -24,13 +24,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
 
 /**
  * @author Agim Emruli
@@ -64,80 +62,56 @@ public class QueueListenerBeanDefinitionRegistryPostProcessorTest {
 	@Test
 	public void testRegisterContainerWithMinimalConfiguration() throws Exception {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
+		registry.registerBeanDefinition("myParentBean", builder.getBeanDefinition());
+
 		registry.registerBeanDefinition("queueListenerBean",
 				BeanDefinitionBuilder.rootBeanDefinition(MinimalListenerConfiguration.class).getBeanDefinition());
+
 		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
+		processor.setParentBeanName("myParentBean");
 		processor.postProcessBeanDefinitionRegistry(registry);
 
-		Assert.assertEquals(2, registry.getBeanDefinitionCount());
-		BeanDefinition definition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertEquals(3, registry.getBeanDefinitionCount());
+		BeanDefinition definition = registry.getBeanDefinition("myParentBean$child#0");
 		Assert.assertNotNull(definition);
 
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getName(), definition.getBeanClassName());
+		Assert.assertEquals("myParentBean", definition.getParentName());
 		Assert.assertEquals(2, definition.getPropertyValues().size());
+
+		//First property
 		Assert.assertEquals("myQueue", definition.getPropertyValues().getPropertyValue("destinationName").getValue());
 
+		//Second property
 		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageListener").getValue();
 		Assert.assertEquals("listenerMethod", messageListener.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
-
 		RuntimeBeanReference messageListenerTarget = (RuntimeBeanReference) messageListener.getConstructorArgumentValues().
 				getArgumentValue(1, MinimalListenerConfiguration.class).getValue();
 		Assert.assertEquals("queueListenerBean", messageListenerTarget.getBeanName());
 	}
 
 	@Test
-	public void testWithCustomConfiguration() throws Exception {
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		registry.registerBeanDefinition("queueListenerBean",
-				BeanDefinitionBuilder.rootBeanDefinition(MinimalListenerConfiguration.class).getBeanDefinition());
-
-		HashMap<String, Object> customProperties = new HashMap<String, Object>();
-		customProperties.put("amazonSqs", new RuntimeBeanReference("customOne"));
-		customProperties.put("maxNumberOfMessages", 2);
-
-		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
-		processor.setMessageListenerContainerConfiguration(customProperties);
-
-		processor.postProcessBeanDefinitionRegistry(registry);
-
-		Assert.assertEquals(2, registry.getBeanDefinitionCount());
-		BeanDefinition definition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(definition);
-
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getName(), definition.getBeanClassName());
-		Assert.assertEquals(4, definition.getPropertyValues().size());
-		Assert.assertEquals("myQueue", definition.getPropertyValues().getPropertyValue("destinationName").getValue());
-
-		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageListener").getValue();
-		ConstructorArgumentValues messageListenerConstructorArgumentValues = messageListener.getConstructorArgumentValues();
-		Assert.assertEquals("listenerMethod", messageListenerConstructorArgumentValues.getArgumentValue(2, String.class).getValue());
-
-		RuntimeBeanReference messageListenerTarget = (RuntimeBeanReference) messageListenerConstructorArgumentValues.
-				getArgumentValue(1, MinimalListenerConfiguration.class).getValue();
-		Assert.assertEquals("queueListenerBean", messageListenerTarget.getBeanName());
-
-		RuntimeBeanReference amazonSqs = (RuntimeBeanReference) definition.getPropertyValues().getPropertyValue("amazonSqs").getValue();
-		Assert.assertEquals("customOne", amazonSqs.getBeanName());
-		Assert.assertEquals(2, definition.getPropertyValues().getPropertyValue("maxNumberOfMessages").getValue());
-	}
-
-	@Test
 	public void testRegisterContainerWithCustomMessageConverter() throws Exception {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
+		registry.registerBeanDefinition("myParentBean", builder.getBeanDefinition());
+
+
+		AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(CustomConverterListener.class).getBeanDefinition();
 		registry.registerBeanDefinition("queueListenerBean",
-				BeanDefinitionBuilder.rootBeanDefinition(CustomConverterListener.class).getBeanDefinition());
+				beanDefinition);
 		registry.registerBeanDefinition("myMessageConverter",
 				BeanDefinitionBuilder.rootBeanDefinition(ObjectMessageConverter.class).getBeanDefinition());
 
 		QueueListenerBeanDefinitionRegistryPostProcessor processor = new QueueListenerBeanDefinitionRegistryPostProcessor();
+		processor.setParentBeanName("myParentBean");
 		processor.postProcessBeanDefinitionRegistry(registry);
 
-		Assert.assertEquals(3, registry.getBeanDefinitionCount());
-		BeanDefinition definition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertEquals(4, registry.getBeanDefinitionCount());
+		BeanDefinition definition = registry.getBeanDefinition("myParentBean$child#0");
 		Assert.assertNotNull(definition);
-
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getName(), definition.getBeanClassName());
-
 
 		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageListener").getValue();
 		Assert.assertEquals("listenerMethod", messageListener.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());

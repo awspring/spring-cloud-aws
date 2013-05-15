@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 
+<!--suppress UnparsedCustomBeanInspection -->
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
@@ -23,9 +24,7 @@
 	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd
 	   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<bean id="executor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
-
-	<els-messaging:annotation-driven-queue-listener task-executor="executor" />
+	<els-messaging:annotation-driven-queue-listener container-type="simple" config-file="test.conf" />
 
 	<els-context:context-credentials>
 		<els-context:instance-profile-credentials />

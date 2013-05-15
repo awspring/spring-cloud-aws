@@ -18,15 +18,18 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
+import org.elasticspring.messaging.listener.ActorBasedMessageListenerContainer;
+import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
-
-import java.util.Map;
 
 /**
  * @author Agim Emruli
@@ -34,20 +37,116 @@ import java.util.Map;
  */
 public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
+	@Rule
+	public final ExpectedException expectedException = ExpectedException.none();
+
 	@Test
-	public void testParseMinimalConfig() throws Exception {
+	public void testParseMinimalConfigWithDefaultContainer() throws Exception {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		BeanDefinition sqsAsync = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
-		Assert.assertNotNull(sqsAsync);
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
+		Assert.assertNotNull(sqsDefinition);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		@SuppressWarnings("unchecked") Map<String, Object> configuration =
-				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
-		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("amazonSqs");
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME, reference.getBeanName());
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+
+		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
+		Assert.assertNotNull(registryProcessor);
+		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
+
+		Assert.assertEquals(SimpleMessageListenerContainer.class.getName() + "#0",
+				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
+	}
+
+	@Test
+	public void testParseMinimalConfigWithExplicitSimpleContainer() throws Exception {
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-simple.xml", getClass()));
+
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
+		Assert.assertNotNull(sqsDefinition);
+
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+
+		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
+		Assert.assertNotNull(registryProcessor);
+		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
+
+		Assert.assertEquals(SimpleMessageListenerContainer.class.getName() + "#0",
+				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
+	}
+
+	@Test
+	public void testParseIncompatibleConfigParameterForSimpleContainer() throws Exception {
+		this.expectedException.expect(BeanDefinitionParsingException.class);
+		this.expectedException.expectMessage("'config-file' attribute is not allowed");
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-simple-with-wrong-parameters.xml", getClass()));
+	}
+
+	@Test
+	public void testParseIncompatibleConfigParameterForAkkaContainer() throws Exception {
+		this.expectedException.expect(BeanDefinitionParsingException.class);
+		this.expectedException.expectMessage("'task-executor' attribute is not allowed");
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka-with-wrong-parameters.xml", getClass()));
+	}
+
+	@Test
+	public void testParseMinimalConfigWithAkkaContainer() throws Exception {
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka.xml", getClass()));
+
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
+		Assert.assertNotNull(sqsDefinition);
+
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(ActorBasedMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+
+		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
+		Assert.assertNotNull(registryProcessor);
+		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
+
+		Assert.assertEquals(ActorBasedMessageListenerContainer.class.getName() + "#0",
+				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
+	}
+
+	@Test
+	public void testParseConfigWithAkkaContainerConfig() throws Exception {
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka-with-config-file.xml", getClass()));
+
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
+		Assert.assertNotNull(sqsDefinition);
+
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(ActorBasedMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+
+		Assert.assertEquals("test.conf", abstractContainerDefinition.getPropertyValues().getPropertyValue("configFile").getValue());
 	}
 
 	@Test
@@ -59,27 +158,29 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition sqsAsync = registry.getBeanDefinition("myClient");
 		Assert.assertNotNull(sqsAsync);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		@SuppressWarnings("unchecked") Map<String, Object> configuration =
-				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
-		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("amazonSqs");
-		Assert.assertEquals("myClient", reference.getBeanName());
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals("myClient",
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
 
 	@Test
-	public void testParseCustomTaskManager() throws Exception {
+	public void testParseCustomTaskExecutor() throws Exception {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
 
-		BeanDefinition sqsAsync = registry.getBeanDefinition("executor");
-		Assert.assertNotNull(sqsAsync);
+		BeanDefinition executor = registry.getBeanDefinition("executor");
+		Assert.assertNotNull(executor);
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		@SuppressWarnings("unchecked") Map<String, Object> configuration =
-				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
-		RuntimeBeanReference reference = (RuntimeBeanReference) configuration.get("taskManager");
-		Assert.assertEquals("executor", reference.getBeanName());
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals("executor",
+				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("taskExecutor").getValue()).getBeanName());
 	}
 
 	@Test
@@ -88,12 +189,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-properties.xml", getClass()));
 
-		BeanDefinition beanDefinition = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		@SuppressWarnings("unchecked") Map<String, Object> configuration =
-				(Map<String, Object>) beanDefinition.getPropertyValues().getPropertyValue("messageListenerContainerConfiguration").getValue();
-		Assert.assertEquals("false", configuration.get("autoStartup"));
-		Assert.assertEquals("9", configuration.get("maxNumberOfMessages"));
-		Assert.assertEquals("6", configuration.get("visibilityTimeout"));
-		Assert.assertEquals("3", configuration.get("waitTimeOut"));
+		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		Assert.assertNotNull(abstractContainerDefinition);
+
+		Assert.assertEquals("false", abstractContainerDefinition.getPropertyValues().getPropertyValue("autoStartup").getValue());
+		Assert.assertEquals("9", abstractContainerDefinition.getPropertyValues().getPropertyValue("maxNumberOfMessages").getValue());
+		Assert.assertEquals("6", abstractContainerDefinition.getPropertyValues().getPropertyValue("visibilityTimeout").getValue());
+		Assert.assertEquals("3", abstractContainerDefinition.getPropertyValues().getPropertyValue("waitTimeOut").getValue());
 	}
 }

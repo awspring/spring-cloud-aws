@@ -17,7 +17,6 @@
 package org.elasticspring.messaging.config.annotation;
 
 import org.elasticspring.messaging.listener.MessageListenerAdapter;
-import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -28,8 +27,6 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,11 +39,10 @@ public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 	private static final String DESTINATION_ATTRIBUTE_NAME = "queueName";
 	private static final String VALUE_ATTRIBUTE_NAME = "value";
 	private static final String MESSAGE_CONVERTER_ATTRIBUTE_NAME = "messageConverter";
+	private String parentBeanName;
 
-	private Map<String, Object> messageListenerContainerConfiguration = new HashMap<String, Object>();
-
-	public void setMessageListenerContainerConfiguration(Map<String, Object> messageListenerContainerConfiguration) {
-		this.messageListenerContainerConfiguration = messageListenerContainerConfiguration;
+	public void setParentBeanName(String parentBeanName) {
+		this.parentBeanName = parentBeanName;
 	}
 
 	@Override
@@ -60,12 +56,7 @@ public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 	}
 
 	private BeanDefinition getContainerBeanDefinition(String beanName, MethodMetadata methodMetadata) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(SimpleMessageListenerContainer.class);
-
-		for (Map.Entry<String, Object> entry : this.messageListenerContainerConfiguration.entrySet()) {
-			builder.addPropertyValue(entry.getKey(), entry.getValue());
-		}
-
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.childBeanDefinition(this.parentBeanName);
 		builder.addPropertyValue("destinationName", getDestinationName(methodMetadata));
 		builder.addPropertyValue("messageListener", getMessageListenerBeanDefinition(beanName, methodMetadata));
 		return builder.getBeanDefinition();
