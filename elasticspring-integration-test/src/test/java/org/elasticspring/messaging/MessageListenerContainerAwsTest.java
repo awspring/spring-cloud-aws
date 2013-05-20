@@ -19,9 +19,7 @@ package org.elasticspring.messaging;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import org.elasticspring.messaging.listener.MessageListener;
-import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
-import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
+import org.elasticspring.messaging.config.annotation.QueueListener;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,6 +47,7 @@ public class MessageListenerContainerAwsTest {
 
 	private static final int TOTAL_MESSAGES = BATCH_MESSAGE_SIZE * TOTAL_BATCHES;
 
+	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
 	private AmazonSQS amazonSqsClient;
 
@@ -57,6 +56,9 @@ public class MessageListenerContainerAwsTest {
 
 	@Autowired
 	private TaskExecutor taskExecutor;
+
+	@Autowired
+	private MessageReceiver messageReceiver;
 
 	@Before
 	public void setUp() throws InterruptedException {
@@ -71,28 +73,24 @@ public class MessageListenerContainerAwsTest {
 
 	@Test
 	public void testSimpleListen() throws Exception {
-		final CountDownLatch messageReceivedCount = new CountDownLatch(TOTAL_MESSAGES);
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-		container.setTaskExecutor(this.taskExecutor);
-		container.setAmazonSqs(this.amazonSqsClient);
-		container.setDestinationName(this.testStackEnvironment.getByLogicalId("LoadTestQueue"));
-		container.setDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqsClient));
-		container.setMaxNumberOfMessages(10);
-		container.setMessageListener(new MessageListener() {
-
-			@Override
-			public void onMessage(Message<String> message) {
-				Assert.assertNotNull(message);
-				messageReceivedCount.countDown();
-			}
-		});
-		container.setBeanName("test");
-		container.afterPropertiesSet();
-		container.start();
-		messageReceivedCount.await();
-		container.stop();
-		container.destroy();
+		this.messageReceiver.getCountDownLatch().await();
 	}
+
+	static class MessageReceiver {
+
+		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
+
+		@QueueListener(queueName = "#{testStackEnvironment.getByLogicalId('LoadTestQueue')}")
+		public void onMessage(String message) {
+			Assert.assertNotNull(message);
+			this.getCountDownLatch().countDown();
+		}
+
+		CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
+		}
+	}
+
 
 	private static class QueueMessageSender implements Runnable {
 

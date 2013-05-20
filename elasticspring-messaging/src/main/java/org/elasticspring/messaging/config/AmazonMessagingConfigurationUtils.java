@@ -20,10 +20,12 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.messaging.support.SuppressingExecutorServiceAdapter;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
@@ -42,13 +44,19 @@ public class AmazonMessagingConfigurationUtils {
 	public static final String SNS_CLIENT_BEAN_NAME = "SNS_CLIENT";
 
 	public static BeanDefinitionHolder registerAmazonSqsClient(
-			BeanDefinitionRegistry registry, Object source) {
+			BeanDefinitionRegistry registry, Object source, String taskExecutor) {
 
 		if (!registry.containsBeanDefinition(SQS_CLIENT_BEAN_NAME)) {
 			BeanDefinitionBuilder clientBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSAsyncClient.class);
 			clientBuilder.getRawBeanDefinition().setSource(source);
 			clientBuilder.getRawBeanDefinition().setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			clientBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+
+			if (StringUtils.hasText(taskExecutor)) {
+				BeanDefinitionBuilder executorBuilder = BeanDefinitionBuilder.genericBeanDefinition(SuppressingExecutorServiceAdapter.class);
+				executorBuilder.addConstructorArgReference(taskExecutor);
+				clientBuilder.addConstructorArgValue(executorBuilder.getBeanDefinition());
+			}
 
 			BeanDefinitionBuilder bufferedClientBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSBufferedAsyncClient.class);
 			bufferedClientBuilder.addConstructorArgValue(clientBuilder.getBeanDefinition());

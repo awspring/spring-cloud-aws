@@ -41,10 +41,11 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		BeanDefinitionBuilder containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
 		containerBuilder.setAbstract(true);
 
+		String taskExecutor = null;
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
+			taskExecutor = element.getAttribute("task-executor");
+			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), taskExecutor);
 		}
-
 
 		if (StringUtils.hasText(element.getAttribute("max-number-of-messages"))) {
 			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("max-number-of-messages"), element.getAttribute("max-number-of-messages"));
@@ -65,7 +66,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		if (StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
 			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("amazon-sqs"), element.getAttribute("amazon-sqs"));
 		} else {
-			BeanDefinitionHolder definitionHolder = AmazonMessagingConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(), element);
+			BeanDefinitionHolder definitionHolder = AmazonMessagingConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(), element, taskExecutor);
 			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("amazon-sqs"), definitionHolder.getBeanName());
 		}
 

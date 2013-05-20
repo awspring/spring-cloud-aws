@@ -100,7 +100,7 @@ public class TopicListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 		}
 
 		BeanDefinitionHolder definitionHolder = AmazonMessagingConfigurationUtils.
-				registerAmazonSqsClient(beanDefinitionRegistry, this);
+				registerAmazonSqsClient(beanDefinitionRegistry, this, null);
 		return definitionHolder.getBeanName();
 	}
 }

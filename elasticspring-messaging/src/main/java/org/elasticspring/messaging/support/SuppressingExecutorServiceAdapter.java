@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging;
+package org.elasticspring.messaging.support;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,15 +26,15 @@ import java.util.List;
  * @author Agim Emruli
  * @since 1.0
  */
-public class ExecutorServiceAdapter extends org.springframework.core.task.support.ExecutorServiceAdapter{
+public class SuppressingExecutorServiceAdapter extends ExecutorServiceAdapter{
 
 	/**
-	 * Create a new ExecutorServiceAdapter, using the given target executor.
+	 * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
 	 *
 	 * @param taskExecutor
 	 * 		the target executor to delegate to
 	 */
-	public ExecutorServiceAdapter(TaskExecutor taskExecutor) {
+	public SuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
 		super(taskExecutor);
 	}
 
