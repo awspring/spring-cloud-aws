@@ -29,11 +29,22 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import java.io.IOException;
 
 /**
+ * Abstract base class that provides support to inspect annotated beans and process them in the subclass. This class
+ * uses a {@link MetadataReader} to read the meta data (typically done with ASM) from the classes and provide them to
+ * the sub classes without actually loading the class.
+ * <p/>
+ * Subclasses can inspect the {@link AnnotationMetadata} and process the bean or create a new bean definition at all.
+ *
  * @author Agim Emruli
+ * @see QueueListenerBeanDefinitionRegistryPostProcessor
+ * @see TopicListenerBeanDefinitionRegistryPostProcessor
  * @since 1.0
  */
 public abstract class AbstractMessagingBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
+	/**
+	 * {@link MetadataReaderFactory} use by this instance.
+	 */
 	private final MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
 
 	@Override
@@ -41,12 +52,26 @@ public abstract class AbstractMessagingBeanDefinitionRegistryPostProcessor imple
 		// Do nothing, as we interested in modify the bean registry to register new bean definitions
 	}
 
+	/**
+	 * Provides the {@link MetadataReaderFactory} to sub classes if needed by them.
+	 *
+	 * @return - a {@link CachingMetadataReaderFactory} instantiated and maintained by this class.
+	 */
 	protected MetadataReaderFactory getMetadataReaderFactory() {
 		return this.metadataReaderFactory;
 	}
 
+	/**
+	 * Iterates through every bean inside the {@code BeanDefinitionRegistry} and parses the {@link AnnotationMetadata} for
+	 * every bean. Regardless if there are any {@link AnnotationMetadata} available, this class will call the subclasses
+	 * through {@link #processBeanDefinition(org.springframework.beans.factory.support.BeanDefinitionRegistry, String,
+	 * org.springframework.core.type.AnnotationMetadata)}
+	 *
+	 * @param registry
+	 * 		- the registry containing all bean definition which will be processes
+	 */
 	@Override
-	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
 		for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanDefinitionName);
 			MetadataReader reader;
@@ -62,5 +87,17 @@ public abstract class AbstractMessagingBeanDefinitionRegistryPostProcessor imple
 		}
 	}
 
+	/**
+	 * Template method that must be implemented by subclasses. This method will be called on each bean with or without
+	 * annotation metadata. Subclasses may inspect the {@link AnnotationMetadata} and register another bean inside the
+	 * {@link BeanDefinitionRegistry}
+	 *
+	 * @param registry
+	 * 		- the bean definition registry which may be used to inspect bean definition or register new ones
+	 * @param beanDefinitionName
+	 * 		-  the name of bean definition for which the {@link AnnotationMetadata} are provided
+	 * @param annotationMetadata
+	 * 		-  the annotation metadata which may contain annotation information
+	 */
 	protected abstract void processBeanDefinition(BeanDefinitionRegistry registry, String beanDefinitionName, AnnotationMetadata annotationMetadata);
 }
