@@ -18,7 +18,6 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
-import org.elasticspring.messaging.listener.ActorBasedMessageListenerContainer;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -26,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -62,91 +60,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		Assert.assertEquals(SimpleMessageListenerContainer.class.getName() + "#0",
 				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
-	}
-
-	@Test
-	public void testParseMinimalConfigWithExplicitSimpleContainer() throws Exception {
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-simple.xml", getClass()));
-
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
-		Assert.assertNotNull(sqsDefinition);
-
-		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
-
-		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
-
-		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		Assert.assertNotNull(registryProcessor);
-		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
-
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getName() + "#0",
-				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
-	}
-
-	@Test
-	public void testParseIncompatibleConfigParameterForSimpleContainer() throws Exception {
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("'config-file' attribute is not allowed");
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-simple-with-wrong-parameters.xml", getClass()));
-	}
-
-	@Test
-	public void testParseIncompatibleConfigParameterForAkkaContainer() throws Exception {
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("'task-executor' attribute is not allowed");
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka-with-wrong-parameters.xml", getClass()));
-	}
-
-	@Test
-	public void testParseMinimalConfigWithAkkaContainer() throws Exception {
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka.xml", getClass()));
-
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
-		Assert.assertNotNull(sqsDefinition);
-
-		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(ActorBasedMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
-
-		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
-
-		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		Assert.assertNotNull(registryProcessor);
-		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
-
-		Assert.assertEquals(ActorBasedMessageListenerContainer.class.getName() + "#0",
-				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
-	}
-
-	@Test
-	public void testParseConfigWithAkkaContainerConfig() throws Exception {
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-akka-with-config-file.xml", getClass()));
-
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
-		Assert.assertNotNull(sqsDefinition);
-
-		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(ActorBasedMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
-
-		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
-
-		Assert.assertEquals("test.conf", abstractContainerDefinition.getPropertyValues().getPropertyValue("configFile").getValue());
 	}
 
 	@Test

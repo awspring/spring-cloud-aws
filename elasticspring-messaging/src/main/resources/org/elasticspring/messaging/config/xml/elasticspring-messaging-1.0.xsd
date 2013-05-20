@@ -53,15 +53,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="container-type" use="optional" default="simple">
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="simple" />
-						<xsd:enumeration value="akka" />
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="config-file" use="optional" />
 			<xsd:attribute name="max-number-of-messages" type="xsd:nonNegativeInteger">
 			</xsd:attribute>
 			<xsd:attribute name="visibility-timeout" type="xsd:nonNegativeInteger">

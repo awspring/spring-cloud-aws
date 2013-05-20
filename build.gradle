@@ -15,6 +15,8 @@
  */
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -142,7 +144,6 @@ project('elasticspring-messaging') {
         }
         optional("javax.servlet:javax.servlet-api:3.0.1")
         optional("org.springframework:spring-web:${springFrameworkVersion}")
-        optional("com.typesafe.akka:akka-actor_2.10:2.1.2")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
     }
 }
@@ -184,8 +185,6 @@ project('elasticspring-integration-test') {
         testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
         testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
         testCompile("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
-        testCompile("com.typesafe.akka:akka-actor_2.10:2.1.2")
-
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }

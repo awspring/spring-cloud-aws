@@ -21,9 +21,28 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient">
+		<constructor-arg>
+			<bean class="com.amazonaws.services.sqs.AmazonSQSAsyncClient">
+				<constructor-arg
+						ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+				<constructor-arg>
+					<bean class="org.elasticspring.messaging.ExecutorServiceAdapter">
+						<constructor-arg ref="taskExecutor" />
+					</bean>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
 	</bean>
 
+
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="10" />
+		<property name="maxPoolSize" value="200" />
+		<property name="waitForTasksToCompleteOnShutdown" value="true" />
+		<property name="queueCapacity" value="0" />
+		<property name="rejectedExecutionHandler">
+			<bean class="java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy" />
+		</property>
+	</bean>
 </beans>

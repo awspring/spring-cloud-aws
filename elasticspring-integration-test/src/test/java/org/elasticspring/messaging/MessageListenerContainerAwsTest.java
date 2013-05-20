@@ -16,17 +16,11 @@
 
 package org.elasticspring.messaging;
 
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import org.elasticspring.messaging.listener.ActorBasedMessageListenerContainer;
 import org.elasticspring.messaging.listener.MessageListener;
+import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
@@ -34,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,12 +40,12 @@ import java.util.concurrent.CountDownLatch;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("AkkaMessageListenerContainerAwsTest-context.xml")
-public class AkkaMessageListenerContainerAwsTest {
+@ContextConfiguration("MessageListenerContainerAwsTest-context.xml")
+public class MessageListenerContainerAwsTest {
 
 	private static final int BATCH_MESSAGE_SIZE = 10;
 
-	private static final int TOTAL_BATCHES = 10;
+	private static final int TOTAL_BATCHES = 100;
 
 	private static final int TOTAL_MESSAGES = BATCH_MESSAGE_SIZE * TOTAL_BATCHES;
 
@@ -60,33 +55,25 @@ public class AkkaMessageListenerContainerAwsTest {
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
 
+	@Autowired
+	private TaskExecutor taskExecutor;
+
 	@Before
 	public void setUp() throws InterruptedException {
-		final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
-
-
-		ActorSystem actorSystem = ActorSystem.create();
-		ActorRef actorRef = actorSystem.actorOf(new Props(new UntypedActorFactory() {
-
-			@Override
-			public Actor create() throws Exception {
-				return new QueueMessageSender(AkkaMessageListenerContainerAwsTest.this.testStackEnvironment.getByLogicalId("LoadTestQueue"),
-						AkkaMessageListenerContainerAwsTest.this.amazonSqsClient, countDownLatch);
-			}
-		}));
+		CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
 
 		for (int batch = 0; batch < TOTAL_BATCHES; batch++) {
-			actorRef.tell(batch,actorRef);
+			this.taskExecutor.execute(new QueueMessageSender(this.testStackEnvironment.getByLogicalId("LoadTestQueue"), this.amazonSqsClient, countDownLatch));
 		}
 
 		countDownLatch.await();
-		actorSystem.shutdown();
 	}
 
 	@Test
 	public void testSimpleListen() throws Exception {
 		final CountDownLatch messageReceivedCount = new CountDownLatch(TOTAL_MESSAGES);
-		ActorBasedMessageListenerContainer container = new ActorBasedMessageListenerContainer();
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setTaskExecutor(this.taskExecutor);
 		container.setAmazonSqs(this.amazonSqsClient);
 		container.setDestinationName(this.testStackEnvironment.getByLogicalId("LoadTestQueue"));
 		container.setDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqsClient));
@@ -107,8 +94,7 @@ public class AkkaMessageListenerContainerAwsTest {
 		container.destroy();
 	}
 
-
-	private static class QueueMessageSender extends UntypedActor {
+	private static class QueueMessageSender implements Runnable {
 
 		private final String queueUrl;
 		private final AmazonSQS amazonSqs;
@@ -121,10 +107,10 @@ public class AkkaMessageListenerContainerAwsTest {
 		}
 
 		@Override
-		public void onReceive(Object message) throws Exception {
+		public void run() {
 			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();
 			for (int i = 0; i < 10; i++) {
-				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(message).append(i).toString()));
+				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(i).toString()));
 			}
 			this.amazonSqs.sendMessageBatch(new SendMessageBatchRequest(this.queueUrl, messages));
 			this.countDownLatch.countDown();

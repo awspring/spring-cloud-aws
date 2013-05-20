@@ -18,7 +18,6 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
-import org.elasticspring.messaging.listener.ActorBasedMessageListenerContainer;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -38,27 +37,14 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder containerBuilder;
 
-		if (!StringUtils.hasText(element.getAttribute("container-type")) || "simple".equals(element.getAttribute("container-type"))) {
-			if (StringUtils.hasText(element.getAttribute("config-file"))) {
-				parserContext.getReaderContext().error("'config-file' attribute is not allowed for container type simple or no container type at all", element);
-				return null;
-			}
+		BeanDefinitionBuilder containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
+		containerBuilder.setAbstract(true);
 
-			containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
-			configureSimpleMessageListenerContainer(element, containerBuilder);
-		} else {
-			if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-				parserContext.getReaderContext().error("'task-executor' attribute is not allowed for container type simple or no container type at all", element);
-				return null;
-			}
-
-			containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ActorBasedMessageListenerContainer.class);
-			configureAkkaMessageListenerContainer(element, containerBuilder);
+		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
 		}
 
-		containerBuilder.setAbstract(true);
 
 		if (StringUtils.hasText(element.getAttribute("max-number-of-messages"))) {
 			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("max-number-of-messages"), element.getAttribute("max-number-of-messages"));
@@ -93,18 +79,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 				beanDefinitionBuilder.getBeanDefinition());
 
 		return null;
-	}
-
-	private static void configureSimpleMessageListenerContainer(Element element, BeanDefinitionBuilder beanDefinitionBuilder) {
-		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			beanDefinitionBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
-		}
-	}
-
-	private static void configureAkkaMessageListenerContainer(Element element, BeanDefinitionBuilder beanDefinitionBuilder) {
-		if (StringUtils.hasText(element.getAttribute("config-file"))) {
-			beanDefinitionBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("config-file"), element.getAttribute("config-file"));
-		}
 	}
 
 	@Override
