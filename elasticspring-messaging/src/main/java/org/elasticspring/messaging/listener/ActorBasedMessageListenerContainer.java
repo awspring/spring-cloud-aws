@@ -67,11 +67,11 @@ public class ActorBasedMessageListenerContainer extends AbstractMessageListenerC
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 
-		Assert.notNull(getBeanName(),"beanName must not be null, please use this class inside a " +
+		Assert.notNull(getBeanName(), "beanName must not be null, please use this class inside a " +
 				"bean factory or set the bean name manually");
 
 		if (this.configFile != null) {
-			Assert.notNull(this.classLoader,"classLoader must not be null, please use this class inside a " +
+			Assert.notNull(this.classLoader, "classLoader must not be null, please use this class inside a " +
 					"bean factory or set the class loader manually");
 			this.actorSystem = ActorSystem.create(getBeanName(),
 					ConfigFactory.load(this.classLoader, this.configFile), this.classLoader);
@@ -99,13 +99,16 @@ public class ActorBasedMessageListenerContainer extends AbstractMessageListenerC
 		if (this.cancellable != null) {
 			this.cancellable.cancel();
 		}
+		if (this.actorSystem != null) {
+			this.actorSystem.shutdown();
+			this.actorSystem.awaitTermination();
+		}
 	}
 
 	@Override
 	public void destroy() {
 		super.destroy();
-		this.actorSystem.shutdown();
-		this.actorSystem.awaitTermination();
+		getAmazonSqs().shutdown();
 	}
 
 	private class AsynchronousMessageListener extends UntypedActor {

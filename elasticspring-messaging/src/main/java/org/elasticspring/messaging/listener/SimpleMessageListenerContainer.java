@@ -122,7 +122,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			executeMessage(new StringMessage(this.message.getBody()));
-			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
 		}
 	}

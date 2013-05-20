@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
-import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
@@ -41,7 +41,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private AmazonSQSAsync amazonSqs;
+	private AmazonSQS amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private MessageListener messageListener;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
@@ -75,11 +75,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.logger;
 	}
 
-	protected AmazonSQSAsync getAmazonSqs() {
+	protected AmazonSQS getAmazonSqs() {
 		return this.amazonSqs;
 	}
 
-	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
+	public void setAmazonSqs(AmazonSQS amazonSqs) {
 		this.amazonSqs = amazonSqs;
 	}
 

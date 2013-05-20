@@ -21,12 +21,9 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient">
-		<constructor-arg>
-			<bean class="com.amazonaws.services.sqs.AmazonSQSAsyncClient">
-				<constructor-arg
-						ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-			</bean>
-		</constructor-arg>
+	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
+
 </beans>

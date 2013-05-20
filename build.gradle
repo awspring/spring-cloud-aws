@@ -15,12 +15,6 @@
  */
 
 
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -190,6 +184,7 @@ project('elasticspring-integration-test') {
         testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
         testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
         testCompile("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
+        testCompile("com.typesafe.akka:akka-actor_2.10:2.1.2")
 
     }
 

@@ -42,7 +42,7 @@ public class SqsNotificationServiceTest {
 	private NotificationReceiver notificationReceiver;
 
 	@Test
-	public void testConvertAndSendWithoutSubject() throws Exception {
+	public void testConvertAndSendWithSubject() throws Exception {
 		String subject = "Hello";
 		String payload = "World";
 		this.notificationOperations.convertAndSendWithSubject(payload, subject);

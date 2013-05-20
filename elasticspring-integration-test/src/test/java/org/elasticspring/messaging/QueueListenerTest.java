@@ -20,6 +20,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.elasticspring.messaging.config.annotation.QueueListener;
 import org.elasticspring.support.TestStackEnvironment;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Agim Emruli
@@ -50,9 +52,8 @@ public class QueueListenerTest {
 	@Test
 	public void testSendAndReceive() throws Exception {
 		this.amazonSQS.sendMessage(new SendMessageRequest(this.testStackEnvironment.getByLogicalId("QueueListenerTest"), "hello world"));
-		this.messageListener.getCountDownLatch().await();
+		Assert.assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
 	}
-
 
 	public static class MessageListener {
 
