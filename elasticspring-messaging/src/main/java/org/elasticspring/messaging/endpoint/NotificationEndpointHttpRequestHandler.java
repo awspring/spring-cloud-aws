@@ -35,7 +35,6 @@ import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.HttpRequestHandlerServlet;
 
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,28 +45,102 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 /**
+ * {@link HttpRequestHandler} implementation that retrieves notification over the http protocol. This endpoint will
+ * auto-register itself on the application context respecting the endpoint address configured in the subscription. This
+ * endpoint supports message for confirmation subscription as well as notification messages. Unsubscribe message are
+ * ignored by this endpoint as this endpoint will never modify any subscription on itself.
+ * <p/>
+ * <b>Note:</b>This endpoint requires a servlet 3.0 compliant servlet container to aut-register a new {@link
+ * HttpRequestHandlerServlet} for this endpoint inside the application context
+ *
  * @author Agim Emruli
  * @since 1.0
  */
 public class NotificationEndpointHttpRequestHandler implements HttpRequestHandler, ServletContextAware, InitializingBean, BeanNameAware {
 
+	/**
+	 * The character set for the notification messages
+	 */
 	private static final String PAYLOAD_CHAR_SET = "UTF-8";
+
+	/**
+	 * The http request parameter name that contains the message type (e.g. Notification)
+	 */
 	public static final String MESSAGE_TYPE = "x-amz-sns-message-type";
+
+	/**
+	 * The topic arn to which the message is send.
+	 */
 	public static final String TOPIC_ARN_HEADER = "x-amz-sns-topic-arn";
 
+	/**
+	 * The notification message type whoch contains a message payload and an optional subject
+	 */
 	public static final String NOTIFICATION_MESSAGE_TYPE = "Notification";
+
+	/**
+	 * The subscription confirmation which is sent out to the endpoint to confirm the subscription
+	 */
 	public static final String SUBSCRIPTION_MESSAGE_TYPE = "SubscriptionConfirmation";
 
+	/**
+	 * The amazon sns client used to confirm subscription
+	 */
 	private final AmazonSNS amazonSNS;
+
+	/**
+	 * The message converter used to deserialize a notification message
+	 */
 	private final MessageConverter messageConverter;
+
+	/**
+	 * The target object which will be called on a notification message
+	 */
 	private final Object target;
+
+	/**
+	 * The listener method name that will be called
+	 */
 	private final String listenerMethod;
+
+	/**
+	 * The configured endpoint address for this endpoint
+	 */
 	private final String endpointAddress;
+
+	/**
+	 * The configured and resolved topic arn for this endpoint, will be used to check if the messages received are for
+	 * this
+	 * endpoint.
+	 */
 	private final String topicArn;
 
+	/**
+	 * The servlet context used to register the servlet
+	 */
 	private ServletContext servletContext;
+
+	/**
+	 * The bean name which will become the servlet name
+	 */
 	private String beanName;
 
+	/**
+	 * Constructs an endpoint with the specified parameters.
+	 *
+	 * @param amazonSns
+	 * 		the amazon sns client
+	 * @param messageConverter
+	 * 		the message converter user
+	 * @param target
+	 * 		the target object that will be called
+	 * @param listenerMethod
+	 * 		the listener method that will be called
+	 * @param endpointAddress
+	 * 		the endpoint address that will be called
+	 * @param topicArn
+	 * 		the topic arn that will be called
+	 */
 	public NotificationEndpointHttpRequestHandler(AmazonSNS amazonSns, MessageConverter messageConverter, Object target,
 												  String listenerMethod, String endpointAddress, String topicArn) {
 		this.amazonSNS = amazonSns;
@@ -88,8 +161,20 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 		this.beanName = name;
 	}
 
+	/**
+	 * Handles all incoming request and check if the message type is configured and the topic arn of the message matches
+	 * the configured topic arn. Dispatches the message to the particular message based method inside this class (e.g.
+	 * {@link #handleNotificationMessage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}
+	 *
+	 * @param request
+	 * 		- the http servlet request containing the message
+	 * @param response
+	 * 		- the response used to set the particular status code
+	 * @throws IOException
+	 * 		if there is an error reading the content of the message (e.g. stream closed)
+	 */
 	@Override
-	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		if (request.getHeader(MESSAGE_TYPE) == null) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No mandatory request header with name:'" + MESSAGE_TYPE + "'");
 			return;
@@ -110,6 +195,16 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 		}
 	}
 
+	/**
+	 * Handles notification messages by calling the target
+	 *
+	 * @param request
+	 * 		the request used to read the notification message
+	 * @param response
+	 * 		the response that is used to set the status flag
+	 * @throws IOException
+	 * 		in case of any error during message read operation
+	 */
 	private void handleNotificationMessage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		MethodInvoker methodInvoker = new MethodInvoker();
 		methodInvoker.setTargetObject(this.target);
@@ -146,6 +241,16 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 		}
 	}
 
+	/**
+	 * Handles the subscription message by reading the message and subscribing to the topic.
+	 *
+	 * @param request
+	 * 		the request containing the message
+	 * @param response
+	 * 		the response used to set the status code in case of any error
+	 * @throws IOException
+	 * 		in case of any error during message read operation
+	 */
 	private void handleSubscription(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		byte[] payload = FileCopyUtils.copyToByteArray(request.getInputStream());
 		try {

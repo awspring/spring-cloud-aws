@@ -18,7 +18,7 @@ package org.elasticspring.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.Subscription;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
@@ -32,16 +32,41 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
 /**
+ * {@link org.springframework.beans.factory.FactoryBean} implementation that creates Amazon SQS based endpoints for
+ * Amazon SNS topics. Creates a {@link SimpleMessageListenerContainer} to listen to the Amazon SQS queue that will
+ * receive notification messages.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
 public class QueueingNotificationEndpointFactoryBean extends AbstractNotificationEndpointFactoryBean<SimpleMessageListenerContainer> implements SmartLifecycle {
 
-	private final AmazonSQSAsync amazonSqs;
+	/**
+	 * The Amazon SQS client that will be used by the {@link SimpleMessageListenerContainer} to receive messages
+	 */
+	private final AmazonSQS amazonSqs;
 	private final DestinationResolver destinationResolver;
 	private SimpleMessageListenerContainer container;
 
-	public QueueingNotificationEndpointFactoryBean(AmazonSNS amazonSns, AmazonSQSAsync amazonSqs, String topicName,
+	/**
+	 * Constructs the factory bean with the collaborators and the configuration information.
+	 *
+	 * @param amazonSns
+	 * 		the {@link AmazonSNS} client used to retrieve Amazon SNS information
+	 * @param amazonSqs
+	 * 		the {@link AmazonSQS} client used by the message listener
+	 * @param topicName
+	 * 		the topic name for which this endpoint processes messages
+	 * @param protocol
+	 * 		the protocol which must be SQS
+	 * @param endpoint
+	 * 		the endpoint address (typically the queue name or queue url)
+	 * @param target
+	 * 		the target object that will be called
+	 * @param method
+	 * 		the target method that will be called
+	 */
+	public QueueingNotificationEndpointFactoryBean(AmazonSNS amazonSns, AmazonSQS amazonSqs, String topicName,
 												   TopicListener.NotificationProtocol protocol, String endpoint, Object target, String method) {
 		super(amazonSns, topicName, protocol, endpoint, target, method);
 		Assert.notNull(amazonSqs, "amazonSqs must not be null");

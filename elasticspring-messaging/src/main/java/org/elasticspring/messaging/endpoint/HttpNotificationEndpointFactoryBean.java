@@ -27,16 +27,46 @@ import org.springframework.web.context.ServletContextAware;
 import javax.servlet.ServletContext;
 
 /**
+ * Concrete {@link org.springframework.beans.factory.FactoryBean} implementation that creates {@link
+ * NotificationEndpointHttpRequestHandler} instance if there is a {@link TopicListener}  with a http/https protocol
+ * configured on a bean.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
 public class HttpNotificationEndpointFactoryBean extends AbstractNotificationEndpointFactoryBean<Object> implements ServletContextAware, BeanNameAware {
 
+	/**
+	 * The {@link org.elasticspring.messaging.support.converter.MessageConverter} used for the endpoint
+	 */
 	private final NotificationMessageConverter messageConverter = new NotificationMessageConverter();
+
+	/**
+	 * The servlet context that will be based to the endpoint implementation
+	 */
 	private ServletContext servletContext;
+
+	/**
+	 * The bean name used to configure the endpoint
+	 */
 	private String beanName;
 
-
+	/**
+	 * Creates a new instance for this endpoint factory bean. Checks if the protocol is supported by this endpoint.
+	 *
+	 * @param amazonSns
+	 * 		the amazon sns client
+	 * @param topicName
+	 * 		the topic name (logical or topic arn)
+	 * @param protocol
+	 * 		the protocol (must be http or https)
+	 * @param endpoint
+	 * 		the endpoint address (a http/s address
+	 * @param target
+	 * 		the target that will be called
+	 * @param method
+	 * 		the method name of the method that will be called
+	 */
 	public HttpNotificationEndpointFactoryBean(AmazonSNS amazonSns, String topicName,
 											   TopicListener.NotificationProtocol protocol, String endpoint, Object target, String method) {
 		super(amazonSns, topicName, protocol, endpoint, target, method);
