@@ -32,60 +32,149 @@ import org.elasticspring.messaging.support.destination.DynamicQueueDestinationRe
 import org.springframework.util.Assert;
 
 /**
+ * Implementation of the {@link QueueingOperations} interface using the {@link MessageConverter} and {@link
+ * DestinationResolver} as collaborators to send and receive the messages. This class uses the {@link AmazonSQS}
+ * instance to actually interact with the Amazon SQS service.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
 public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
+	/**
+	 * {@link AmazonSQS} client used by the instance
+	 */
 	private final AmazonSQS amazonSqs;
+
+	/**
+	 * {@link DestinationResolver} used by the instance. By default a {@link DynamicQueueDestinationResolver}
+	 */
 	private DestinationResolver destinationResolver;
+
+	/**
+	 * {@link MessageConverter} used by the instance. By default a {@link StringMessageConverter}
+	 */
 	private MessageConverter messageConverter = new StringMessageConverter();
+
+	/**
+	 * The default destination name for operations that don't provide a destination name
+	 */
 	private String defaultDestinationName;
 
+	/**
+	 * Constructs an instance of this class with the mandatory {@link AmazonSQS} instance. This
+	 * constructor will also
+	 * create {@link DynamicQueueDestinationResolver} which is wrapped with
+	 * a {@link CachingDestinationResolver} to
+	 * improve
+	 * the performance of the destination resolving process.
+	 *
+	 * @param amazonSqs
+	 * 		- the Amazon SQS client used by the instance, must not be null.
+	 */
 	public SimpleQueueingServiceTemplate(AmazonSQS amazonSqs) {
 		this.amazonSqs = amazonSqs;
 		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(this.amazonSqs));
 	}
 
+	/**
+	 * Configures a {@link DestinationResolver} overriding the default {@link DynamicQueueDestinationResolver}
+	 * for this instance. The destination resolver could add additional logic to retrieve physical destination names.
+	 *
+	 * @param destinationResolver
+	 * 		- the destination resolver. Must not be null
+	 */
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
 
+	/**
+	 * Configures the {@link MessageConverter} used by this instance to convert the payload into notification messages.
+	 * Overrides the default {@link StringMessageConverter} that convert String objects into notification messages.
+	 *
+	 * @param messageConverter
+	 * 		- the message converter to be used. Must not be null
+	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 	}
 
+	/**
+	 * Configures the default destination name for this instance. This name will be used by operations that do not receive
+	 * a destination name for the client (e.g. {@link #convertAndSend(Object)}. The value which might be a logical or
+	 * physical name (queue url) will be resolved during the method called to the physical name.
+	 *
+	 * @param defaultDestinationName
+	 * 		- the default destination name, either a topic arn or logical topic name.
+	 */
 	public void setDefaultDestinationName(String defaultDestinationName) {
 		this.defaultDestinationName = defaultDestinationName;
 	}
 
+	/**
+	 * Converts and sends the payload.
+	 *
+	 * @param payload
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * @throws java.lang.IllegalStateException
+	 * 		if the default destination name is not set
+	 */
 	@Override
-	public void convertAndSend(Object payLoad) {
+	public void convertAndSend(Object payload) {
 		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
-		this.convertAndSend(this.defaultDestinationName, payLoad);
+		this.convertAndSend(this.defaultDestinationName, payload);
 	}
 
+	/**
+	 * Converts and sends the payload.
+	 *
+	 * @param destinationName
+	 * 		- the logical or physical destination name, must not be null
+	 * @param payload
+	 * 		- the payload to be sent
+	 */
 	@Override
-	public void convertAndSend(String destinationName, Object payLoad) {
+	public void convertAndSend(String destinationName, Object payload) {
 		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
-		org.elasticspring.messaging.Message<String> message = this.messageConverter.toMessage(payLoad);
+		org.elasticspring.messaging.Message<String> message = this.messageConverter.toMessage(payload);
 		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
 		this.amazonSqs.sendMessage(request);
 	}
 
+	/**
+	 * Receives and converts the payload.
+	 *
+	 * @throws IllegalStateException
+	 * 		if the default destination name is not set
+	 */
 	@Override
 	public Object receiveAndConvert() {
 		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		return this.receiveAndConvert(this.defaultDestinationName);
 	}
 
+	/**
+	 * Receives and converts and casts the payload.
+	 *
+	 * @throws IllegalStateException
+	 * 		if the default destination name is not set
+	 * @throws IllegalArgumentException
+	 * 		if the expected type is null
+	 */
 	@Override
 	public <T> T receiveAndConvert(Class<T> expectedType) {
 		Assert.state(this.defaultDestinationName != null, "No default destination name configured for this template.");
 		return receiveAndConvert(this.defaultDestinationName, expectedType);
 	}
 
+	/**
+	 * Receives and converts a message with the provided destination name
+	 *
+	 * @param destinationName
+	 * 		- the logical or physical destination name which will pe polled for a new message
+	 * @return the converted object
+	 */
 	@Override
 	public Object receiveAndConvert(String destinationName) {
 		Assert.notNull(destinationName, "destinationName must not be null.");
@@ -106,6 +195,15 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 		return result;
 	}
 
+	/**
+	 * Receives and converts the object
+	 *
+	 * @param destinationName
+	 * 		- the logical or physical destination name which will pe polled for a new message
+	 * @param expectedType
+	 * 		the class of the expected type to which the message should be cast
+	 * @return the object of type as an instance of expectedType
+	 */
 	@Override
 	public <T> T receiveAndConvert(String destinationName, Class<T> expectedType) {
 		Assert.notNull(expectedType, "expectedType must not be null");

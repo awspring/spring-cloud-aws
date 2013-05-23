@@ -28,6 +28,9 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.util.StringUtils;
 
 /**
+ * Configuration utility class to register default Amazon Webservice SDK beans in case if there is no custom one
+ * provided in the configuration.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
@@ -43,6 +46,20 @@ public class AmazonMessagingConfigurationUtils {
 	 */
 	public static final String SNS_CLIENT_BEAN_NAME = "SNS_CLIENT";
 
+	/**
+	 * Registers an {@link com.amazonaws.services.sqs.AmazonSQSAsync} client instance under the default bean name {@link
+	 * #SQS_CLIENT_BEAN_NAME} of not already registered. Creates a {@link AmazonSQSBufferedAsyncClient} to improve
+	 * performance especially while listening to to messages from a queue.
+	 *
+	 * @param registry
+	 * 		- the bean definition registry to which the bean should be registered. This registry will be checked if there is
+	 * 		already a bean definition.
+	 * @param source
+	 * 		- the source for the bean definition (e.g. the XML element)
+	 * @param taskExecutor
+	 * 		- the task executor bean name used to create the client, might be null if no external task executor is used.
+	 * @return the {@link BeanDefinitionHolder} containing the definition along with the registered bean name
+	 */
 	public static BeanDefinitionHolder registerAmazonSqsClient(
 			BeanDefinitionRegistry registry, Object source, String taskExecutor) {
 
@@ -67,6 +84,17 @@ public class AmazonMessagingConfigurationUtils {
 		return new BeanDefinitionHolder(registry.getBeanDefinition(SQS_CLIENT_BEAN_NAME), SQS_CLIENT_BEAN_NAME);
 	}
 
+	/**
+	 * Registers a {@link com.amazonaws.services.sns.AmazonSNS} instance with the bean name {@link #SNS_CLIENT_BEAN_NAME}
+	 * if not already existing.
+	 *
+	 * @param registry
+	 * 		- the bean definition registry to which the bean should be registered. This registry will be checked if there is
+	 * 		already a bean definition.
+	 * @param source
+	 * 		- the source for the bean definition (e.g. the XML element)
+	 * @return the {@link BeanDefinitionHolder} containing the definition along with the registered bean name
+	 */
 	public static BeanDefinitionHolder registerAmazonSnsClient(
 			BeanDefinitionRegistry registry, Object source) {
 

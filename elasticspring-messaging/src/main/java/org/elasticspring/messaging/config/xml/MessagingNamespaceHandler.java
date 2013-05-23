@@ -19,9 +19,12 @@ package org.elasticspring.messaging.config.xml;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the ElasticSpring messaging namespace
+ *
  * @author Agim Emruli
  * @since 1.0
  */
+@SuppressWarnings("UnusedDeclaration")
 public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override

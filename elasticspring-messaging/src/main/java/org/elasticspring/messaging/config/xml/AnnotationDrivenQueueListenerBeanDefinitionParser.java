@@ -29,6 +29,9 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
+ * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} for the &lt;annotation-driven-queue-listener/&gt;
+ * element.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
