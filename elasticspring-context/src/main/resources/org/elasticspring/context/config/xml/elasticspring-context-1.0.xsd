@@ -93,6 +93,74 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="cache-manager">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a cache manager based on SpyMemcached that uses the AWS ElastiCache service.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="cache">
+					<xsd:annotation>
+						<xsd:documentation>
+							Defines a memcached endpoint with its address and name.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:attribute name="address" type="xsd:string" use="optional">
+							<xsd:annotation>
+								<xsd:documentation>
+									The address of the ElastiCache configuration endpoint with port.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="name" type="xsd:string" use="optional">
+							<xsd:annotation>
+								<xsd:documentation>
+									The name of the cache.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="allowClear" type="xsd:boolean" use="optional">
+							<xsd:annotation>
+								<xsd:documentation>
+									Defines if the given cache can be cleared.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="expiration" type="xsd:int" use="optional">
+							<xsd:annotation>
+								<xsd:documentation>
+									Defines the expiration time in seconds of a cache entry.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="cache" type="xsd:string" use="optional">
+							<xsd:annotation>
+								<xsd:documentation>
+									A reference to a bean that implements the org.springframework.cache.Cache interface.
+								</xsd:documentation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.cache.Cache" />
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id">
+				<xsd:annotation>
+					<xsd:documentation>
+						The id of the cache manager
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="locationAwareType">
 		<xsd:annotation>
 			<xsd:documentation>

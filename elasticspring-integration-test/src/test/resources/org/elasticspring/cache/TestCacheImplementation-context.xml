@@ -18,53 +18,52 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:cache="http://www.springframework.org/schema/cache"
-	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	   		http://www.springframework.org/schema/cache
-           	http://www.springframework.org/schema/cache/spring-cache-3.1.xsd">
+           	http://www.springframework.org/schema/cache/spring-cache-3.1.xsd
+           	http://www.elasticspring.org/schema/context
+           	http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<cache:annotation-driven />
 
-	<!-- generic cache manager -->
-	<!--<bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
-		<property name="caches">
-			<set>
-				<bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="longComputation"/>
-			</set>
-		</property>
-	</bean>-->
+	<els-context:cache-manager id="cacheManager">
+		<!-- TODO use the same name as aws for address -->
+		<els-context:cache address="cache1" name="defaultCache" allowClear="true" expiration="450" />
+		<els-context:cache address="cache2" name="cache2" allowClear="true" expiration="2000" />
+	</els-context:cache-manager>
 
 	<bean name="myService" class="org.elasticspring.cache.TestCacheImplementation$MyService" />
 
-	<bean name="cacheManager" class="com.google.code.ssm.spring.SSMCacheManager">
-		<property name="caches">
-			<set>
-				<bean class="com.google.code.ssm.spring.SSMCache">
-					<constructor-arg name="cache" index="0" ref="defaultCache" />
-					<!-- 5 minutes -->
-					<constructor-arg name="expiration" index="1" value="300" />
-					<!-- @CacheEvict(..., "allEntries" = true) doesn't work -->
-					<constructor-arg name="allowClear" index="2" value="false" />
-				</bean>
-			</set>
-		</property>
-	</bean>
+	<!--<bean name="cacheManager" class="com.google.code.ssm.spring.SSMCacheManager">-->
+		<!--<property name="caches">-->
+			<!--<set>-->
+				<!--<bean class="com.google.code.ssm.spring.SSMCache">-->
+					<!--<constructor-arg name="cache" index="0" ref="defaultCache" />-->
+					<!--&lt;!&ndash; 5 minutes &ndash;&gt;-->
+					<!--<constructor-arg name="expiration" index="1" value="300" />-->
+					<!--&lt;!&ndash; @CacheEvict(..., "allEntries" = true) doesn't work &ndash;&gt;-->
+					<!--<constructor-arg name="allowClear" index="2" value="false" />-->
+				<!--</bean>-->
+			<!--</set>-->
+		<!--</property>-->
+	<!--</bean>-->
 
-	<bean name="defaultCache" class="com.google.code.ssm.CacheFactory">
-		<property name="cacheName" value="defaultCache" />
-		<property name="cacheClientFactory">
-			<bean name="cacheClientFactory" class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />
-		</property>
-		<property name="addressProvider">
-			<bean class="com.google.code.ssm.config.DefaultAddressProvider">
-				<property name="address" value="eutest.plomhs.cfg.euw1.cache.amazonaws.com:11211" />
-			</bean>
-		</property>
-		<property name="configuration">
-			<bean class="com.google.code.ssm.providers.CacheConfiguration">
-				<property name="consistentHashing" value="true" />
-			</bean>
-		</property>
-	</bean>
+	<!--<bean name="defaultCache" class="com.google.code.ssm.CacheFactory">-->
+		<!--<property name="cacheName" value="defaultCache" />-->
+		<!--<property name="cacheClientFactory">-->
+			<!--<bean name="cacheClientFactory" class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />-->
+		<!--</property>-->
+		<!--<property name="addressProvider">-->
+			<!--<bean class="com.google.code.ssm.config.DefaultAddressProvider">-->
+				<!--<property name="address" value="eutest.plomhs.cfg.euw1.cache.amazonaws.com:11211" />-->
+			<!--</bean>-->
+		<!--</property>-->
+		<!--<property name="configuration">-->
+			<!--<bean class="com.google.code.ssm.providers.CacheConfiguration">-->
+				<!--<property name="consistentHashing" value="true" />-->
+			<!--</bean>-->
+		<!--</property>-->
+	<!--</bean>-->
 </beans>
