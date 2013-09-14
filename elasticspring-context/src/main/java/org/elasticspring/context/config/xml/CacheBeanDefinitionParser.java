@@ -50,8 +50,9 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			BeanDefinitionBuilder cacheManagerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SSMCacheManager.class);
 			cacheManagerDefinitionBuilder.addPropertyValue("caches", createCacheCollection(element));
 			parserContext.getRegistry().registerBeanDefinition(CACHE_MANAGER, cacheManagerDefinitionBuilder.getBeanDefinition());
+		} else {
+			parserContext.getReaderContext().error("Only one cache manager can be defined", element);
 		}
-		parserContext.getReaderContext().error("Only one cache manager can be defined", element);
 		return null;
 	}
 
