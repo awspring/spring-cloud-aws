@@ -30,8 +30,7 @@
 
 	<els-context:cache-manager id="cacheManager">
 		<!-- TODO use the same name as aws for address -->
-		<els-context:cache address="cache1" name="defaultCache" allowClear="true" expiration="450" />
-		<els-context:cache address="cache2" name="cache2" allowClear="true" expiration="2000" />
+		<els-context:cache address="cache1.plomhs.0001.euw1.cache.amazonaws.com:11211" name="cache1" allowClear="true" expiration="450" />
 	</els-context:cache-manager>
 
 	<bean name="myService" class="org.elasticspring.cache.TestCacheImplementation$MyService" />

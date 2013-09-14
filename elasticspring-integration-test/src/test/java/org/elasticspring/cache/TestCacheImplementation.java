@@ -55,7 +55,7 @@ public class TestCacheImplementation {
 
 	public static class MyService {
 
-		@Cacheable(value = "defaultCache", key = "#nb")
+		@Cacheable(value = "cache1", key = "#nb")
 		public int longComputation(int nb) throws InterruptedException {
 			Thread.sleep(2000L);
 			return nb * 10;
