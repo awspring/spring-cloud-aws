@@ -47,6 +47,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -220,13 +221,16 @@ public class ResourceLoaderAwsTest {
 
 
 	private List<String> createBuckets(String separator) throws Exception {
-		List<String> createdBuckets = new ArrayList<String>(Region.values().length);
-		for (Region region : Region.values()) {
+		List<Region> allSupportedRegions = new ArrayList<Region>(Arrays.asList(Region.values()));
+		allSupportedRegions.remove(Region.US_GovCloud);
+
+		List<String> createdBuckets = new ArrayList<String>(allSupportedRegions.size());
+		for (Region region : allSupportedRegions) {
 			String bucketName = "test" + separator + "elasticspring" + separator + UUID.randomUUID().toString().replace("-", separator);
 			this.completionService.submit(new CreateBucketCallable(region, this.amazonS3, bucketName));
 		}
 
-		for (Region ignore : Region.values()) {
+		for (Region ignore : allSupportedRegions) {
 			createdBuckets.add(this.completionService.take().get());
 		}
 
