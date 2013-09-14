@@ -24,8 +24,8 @@ allprojects {
     apply plugin: 'propdeps-maven'
 
     repositories {
-        maven { url 'http://repo.springsource.org/milestone' }
         mavenCentral()
+        maven { url 'http://repo.springsource.org/milestone' }
     }
 
     install {
