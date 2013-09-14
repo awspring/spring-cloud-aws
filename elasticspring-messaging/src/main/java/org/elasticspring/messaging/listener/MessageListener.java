@@ -19,10 +19,23 @@ package org.elasticspring.messaging.listener;
 import org.elasticspring.messaging.Message;
 
 /**
+ * Message Listener interface that can be implemented to receive messages from a message listener container instance
+ * (e.g. {@link SimpleMessageListenerContainer}. The message reception and also deletion is handled by the container
+ * itself. A container will typically retrieve the message, call this message listener instance and delete the message
+ * afterwards.
  *
+ * @author Agim Emruli
+ * @since 1.0
  */
 public interface MessageListener {
 
-	void onMessage(Message<String> message);
+	/**
+	 * Method called by the message listener container if there isa new message that should be processed by the listener.
+	 * The container itself will acknowledge (delete) the message once this listener returns without a exception.
+	 *
+	 * @param message
+	 * 		- the message received from the queueing system
+	 */
+	void onMessage(Message<String> message) throws Throwable;
 
 }

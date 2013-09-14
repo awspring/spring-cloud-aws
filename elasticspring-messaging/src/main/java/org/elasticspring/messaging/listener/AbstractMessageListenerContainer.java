@@ -31,6 +31,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * Abstract base class for message listener containers providing basic lifecycle capabilities and collaborator for the
+ * concrete sub classes. This class implements all lifecycle and configuration specific interface used by the Spring
+ * container to create, initialize and start the container.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
@@ -79,6 +83,14 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.amazonSqs;
 	}
 
+	/**
+	 * Configures the mandatory {@link AmazonSQS} client for this instance.
+	 * <b>Note:</b>The configured instance should have a buffering amazon SQS instance (see subclasses) functionality to
+	 * improve the performance during message reception and deletion on the queueing system.
+	 *
+	 * @param amazonSqs
+	 * 		the amazon sqs instance. Must not be null
+	 */
 	public void setAmazonSqs(AmazonSQS amazonSqs) {
 		this.amazonSqs = amazonSqs;
 	}
@@ -87,6 +99,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.messageListener;
 	}
 
+	/**
+	 * Configures the message listener that will be called if a new message is received.
+	 *
+	 * @param messageListener
+	 * 		the message listener instance. Must not be null
+	 */
 	public void setMessageListener(MessageListener messageListener) {
 		this.messageListener = messageListener;
 	}
@@ -95,6 +113,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.destinationName;
 	}
 
+	/**
+	 * Configures the destination name (logical or queue url) where this listener instance will poll for new message. The
+	 * destination name will be resolved by the {@link DestinationResolver} during container startup.
+	 *
+	 * @param destinationName
+	 * 		the destination name as a logical name (e.g. "myQueue") or a full queue url. Must not be null
+	 */
 	public void setDestinationName(String destinationName) {
 		this.destinationName = destinationName;
 	}
@@ -103,6 +128,14 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.destinationResolver;
 	}
 
+	/**
+	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
+	 * this
+	 * instance.
+	 *
+	 * @param destinationResolver
+	 * 		- the destination resolver. Must not be null
+	 */
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
@@ -120,6 +153,14 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.maxNumberOfMessages;
 	}
 
+	/**
+	 * Configure the maximum number of messages that should be retrieved during one poll to the Amazon SQS system. This
+	 * number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently not
+	 * supported by the queueing system.
+	 *
+	 * @param maxNumberOfMessages
+	 * 		the maximum number of messages (between 1-10)
+	 */
 	public void setMaxNumberOfMessages(Integer maxNumberOfMessages) {
 		this.maxNumberOfMessages = maxNumberOfMessages;
 	}
@@ -128,6 +169,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.visibilityTimeout;
 	}
 
+	/**
+	 * Configures the duration (in seconds) that the received messages are hidden from
+	 * subsequent poll requests after being retrieved from the system.
+	 *
+	 * @param visibilityTimeout
+	 * 		the visibility timeout in seconds
+	 */
 	public void setVisibilityTimeout(Integer visibilityTimeout) {
 		this.visibilityTimeout = visibilityTimeout;
 	}
@@ -136,6 +184,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.waitTimeOut;
 	}
 
+	/**
+	 * Configures the wait timeout that the poll request will wait for new message to arrive if the are currently no
+	 * messages on the queue. Higher values will reduce poll request to the system significantly.
+	 *
+	 * @param waitTimeOut
+	 * 		- the wait time out in seconds
+	 */
 	public void setWaitTimeOut(Integer waitTimeOut) {
 		this.waitTimeOut = waitTimeOut;
 	}
@@ -145,6 +200,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.autoStartup;
 	}
 
+	/**
+	 * Configures if this container should be automatically started. The default value is true
+	 *
+	 * @param autoStartup
+	 * 		- false if the container will be manually started
+	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
@@ -154,6 +215,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.phase;
 	}
 
+	/**
+	 * Configure a custom phase for the container to start. This allows to start other beans that also implements the
+	 * {@link SmartLifecycle} interface.
+	 *
+	 * @param phase
+	 * 		- the phase that defines the phase respecting the {@link org.springframework.core.Ordered} semantics
+	 */
 	public void setPhase(int phase) {
 		this.phase = phase;
 	}
@@ -162,6 +230,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.errorHandler;
 	}
 
+	/**
+	 * A custom error handler that will be called in case of any message listener error.
+	 *
+	 * @param errorHandler custom error handler implementation
+	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}

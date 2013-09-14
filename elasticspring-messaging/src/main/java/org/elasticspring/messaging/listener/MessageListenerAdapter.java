@@ -25,6 +25,16 @@ import org.springframework.util.MethodInvoker;
 
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * {@link MessageListener} implementation that calls any method through reflection on the target object. This instance
+ * will also convert the messages from a {@link Message} instance into a listener method specific object. This message
+ * listener implementation uses a {@link MessageConverter} to convert from the messaging specific message into the
+ * method parameter. The method parameter of the particular method inside the instance must match the converted object
+ * through the MessageConverter.
+ *
+ * @author Agim Emruli
+ * @since 1.0
+ */
 public class MessageListenerAdapter implements MessageListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageListenerAdapter.class);
@@ -32,6 +42,21 @@ public class MessageListenerAdapter implements MessageListener {
 	private final Object delegate;
 	private final String listenerMethod;
 
+	/**
+	 * Creates a new instance of the MessageListenerAdapter with the mandatory dependencies in order to process the
+	 * messages.
+	 *
+	 * @param messageConverter
+	 * 		- the message converter used to convert from the Amazon SDK specific message into the method parameter object.
+	 * 		The
+	 * 		method parameter might be a standard java type (e.g. java.lang.String) or any complex object.
+	 * @param delegate
+	 * 		- the actual target instance that contains the method that will be called. The method of the instance (and the
+	 * 		instance itself) must be thread safe because this implementation might call the method on the instance in a
+	 * 		parallel way.
+	 * @param listenerMethod
+	 * 		- the name of the public, non static method on the delegate that will be called by this MessageListener
+	 */
 	public MessageListenerAdapter(MessageConverter messageConverter, Object delegate, String listenerMethod) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		Assert.notNull(delegate, "delegate must not be null");
@@ -41,10 +66,20 @@ public class MessageListenerAdapter implements MessageListener {
 		this.listenerMethod = listenerMethod;
 	}
 
+	/**
+	 * Returns the delegate object for subclasses of this implementation.
+	 *
+	 * @return - the delegate object that contains the target method
+	 */
 	protected Object getDelegate() {
 		return this.delegate;
 	}
 
+	/**
+	 * Return the listener method for subclasses of this implementation
+	 *
+	 * @return - the public, non static method that should be called on the target object
+	 */
 	protected String getListenerMethod() {
 		return this.listenerMethod;
 	}
@@ -52,14 +87,14 @@ public class MessageListenerAdapter implements MessageListener {
 	@Override
 	public void onMessage(Message<String> message) {
 		MethodInvoker methodInvoker = new MethodInvoker();
-		methodInvoker.setTargetObject(this.delegate);
-		methodInvoker.setTargetMethod(this.listenerMethod);
+		methodInvoker.setTargetObject(getDelegate());
+		methodInvoker.setTargetMethod(getListenerMethod());
 		Object param = this.messageConverter.fromMessage(message);
 
 		prepareArguments(methodInvoker, param);
 
 		try {
-			LOGGER.debug("Preparing method invoker for object {} and method {} with argument(s) {}", this.delegate, this.listenerMethod, methodInvoker.getArguments());
+			LOGGER.debug("Preparing method invoker for object {} and method {} with argument(s) {}", getDelegate(), getListenerMethod(), methodInvoker.getArguments());
 			methodInvoker.prepare();
 		} catch (ClassNotFoundException e) {
 			throw new ListenerExecutionFailedException(e);
@@ -76,6 +111,16 @@ public class MessageListenerAdapter implements MessageListener {
 		}
 	}
 
+	/**
+	 * Template method that will be called by the {@link #onMessage(org.elasticspring.messaging.Message)} method to
+	 * prepare the arguments. Can be overridden by subclasses if the method arguments should be changed or extended (e.g.
+	 * extract values from the payload and add method argument to the invocation).
+	 *
+	 * @param methodInvoker
+	 * 		- the configured method invoker with the target object and the target method name
+	 * @param payload
+	 * 		-  the payload that has been produced by the MessageConverter based on the Amazon SQS message
+	 */
 	protected void prepareArguments(MethodInvoker methodInvoker, Object payload) {
 		methodInvoker.setArguments(new Object[]{payload});
 	}
