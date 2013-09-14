@@ -1,6 +1,3 @@
-// CHECKSTYLE:OFF
-// Checkstyle is disabled because in test 'testWriteFileAndCheckChecksum'
-// there is a needed while loop without a statement inside.
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -17,12 +14,15 @@
  * limitations under the License.
  */
 
+// CHECKSTYLE:OFF
+// Checkstyle is disabled because in test 'testWriteFileAndCheckChecksum'
+// there is a needed while loop without a statement inside.
+
+
 package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.Region;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.After;
 import org.junit.Assert;
@@ -47,13 +47,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Executors;
 
 /**
  * @author Agim Emruli
@@ -78,10 +72,6 @@ public class ResourceLoaderAwsTest {
 	private AmazonS3 amazonS3;
 
 	private final List<String> createdObjects = new ArrayList<String>();
-
-	private final CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newSingleThreadExecutor());
-
-	private static final String DEFAULT_FILENAME = "test.txt";
 
 	@Test
 	public void testWithInjectedApplicationContext() throws Exception {
@@ -176,79 +166,7 @@ public class ResourceLoaderAwsTest {
 		this.createdObjects.add("test-file.pdf");
 	}
 
-	@Test
-	public void testBucketNamesWithDotsOnAllS3Regions() throws Exception {
-		List<String> createdBuckets = null;
-		try {
-			createdBuckets = createBuckets(".");
 
-			for (String bucketName : createdBuckets) {
-				assertBucketContent(bucketName);
-			}
-		} finally {
-			deleteBucket(createdBuckets);
-		}
-	}
-
-	@Test
-	public void testBucketNamesWithoutDotsOnAllS3Regions() throws Exception {
-		List<String> createdBuckets = null;
-		try {
-			createdBuckets = createBuckets("-");
-
-			for (String bucketName : createdBuckets) {
-				assertBucketContent(bucketName);
-			}
-		} finally {
-			deleteBucket(createdBuckets);
-		}
-	}
-
-
-	private void assertBucketContent(String bucketName) throws IOException {
-		InputStream inputStream = null;
-		try {
-			Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test.txt");
-			inputStream = resource.getInputStream();
-			Assert.assertTrue(resource.contentLength() > 0);
-			Assert.assertNotNull(inputStream);
-		} finally {
-			if (inputStream != null) {
-				inputStream.close();
-			}
-		}
-	}
-
-
-	private List<String> createBuckets(String separator) throws Exception {
-		List<Region> allSupportedRegions = new ArrayList<Region>(Arrays.asList(Region.values()));
-		allSupportedRegions.remove(Region.US_GovCloud);
-
-		List<String> createdBuckets = new ArrayList<String>(allSupportedRegions.size());
-		for (Region region : allSupportedRegions) {
-			String bucketName = "test" + separator + "elasticspring" + separator + UUID.randomUUID().toString().replace("-", separator);
-			this.completionService.submit(new CreateBucketCallable(region, this.amazonS3, bucketName));
-		}
-
-		for (Region ignore : allSupportedRegions) {
-			createdBuckets.add(this.completionService.take().get());
-		}
-
-		return createdBuckets;
-	}
-
-	private void deleteBucket(List<String> bucketNames) throws InterruptedException {
-		if (bucketNames == null) {
-			return;
-		}
-		for (String bucketName : bucketNames) {
-			this.completionService.submit(new DeleteBucketCallable(this.amazonS3, bucketName));
-		}
-
-		for (String ignore : bucketNames) {
-			this.completionService.take();
-		}
-	}
 
 
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
@@ -260,45 +178,4 @@ public class ResourceLoaderAwsTest {
 		}
 
 	}
-
-	private static class CreateBucketCallable implements Callable<String> {
-
-		private final Region region;
-		private final AmazonS3 amazonS3;
-		private final String bucketName;
-
-		private CreateBucketCallable(Region region, AmazonS3 amazonS3, String bucketName) {
-			this.region = region;
-			this.amazonS3 = amazonS3;
-			this.bucketName = bucketName;
-		}
-
-		@Override
-		public String call() throws Exception {
-			Bucket bucket = this.amazonS3.createBucket(this.bucketName, this.region);
-			ObjectMetadata objectMetadata = new ObjectMetadata();
-			objectMetadata.setContentLength(this.region.name().getBytes().length);
-			this.amazonS3.putObject(this.bucketName, DEFAULT_FILENAME, new ByteArrayInputStream(this.region.name().getBytes()), objectMetadata);
-			return bucket.getName();
-		}
-	}
-
-	private static class DeleteBucketCallable implements Callable<String> {
-
-		private final AmazonS3 amazonS3;
-		private final String bucketName;
-
-		private DeleteBucketCallable(AmazonS3 amazonS3, String bucketName) {
-			this.amazonS3 = amazonS3;
-			this.bucketName = bucketName;
-		}
-
-		@Override
-		public String call() throws Exception {
-			this.amazonS3.deleteObject(this.bucketName, DEFAULT_FILENAME);
-			this.amazonS3.deleteBucket(this.bucketName);
-			return this.bucketName;
-		}
-	}
-
 }
