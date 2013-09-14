@@ -30,7 +30,7 @@
 
 	<els-context:cache-manager id="cacheManager">
 		<!-- TODO use the same name as aws for address -->
-		<els-context:cache cache="defaultCache" />
+		<els-context:cache cache="superCache" />
 	</els-context:cache-manager>
 
 	<bean name="myService" class="org.elasticspring.cache.TestCacheImplementation$MyService" />
@@ -38,7 +38,7 @@
 	<!--<bean name="cacheManager" class="com.google.code.ssm.spring.SSMCacheManager">-->
 		<!--<property name="caches">-->
 			<!--<set>-->
-				<bean class="com.google.code.ssm.spring.SSMCache">
+				<bean name="superCache" class="com.google.code.ssm.spring.SSMCache">
 					<constructor-arg name="cache" index="0" ref="defaultCache" />
 					<!-- 5 minutes -->
 					<constructor-arg name="expiration" index="1" value="300" />
