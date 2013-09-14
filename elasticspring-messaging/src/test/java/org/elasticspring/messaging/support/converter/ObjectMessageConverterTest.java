@@ -41,7 +41,7 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
 		Message<String> message = messageConverter.toMessage(sourceMessage);
-		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("UTF-8")));
+		Assert.assertTrue(Base64.isBase64(message.getPayload().getBytes("UTF-8")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
 		Assert.assertEquals(content, result.getContent());
 	}
@@ -52,7 +52,7 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
 		Message<String> message = messageConverter.toMessage(sourceMessage);
-		Assert.assertTrue(Base64.isArrayByteBase64(message.getPayload().getBytes("ISO-8859-1")));
+		Assert.assertTrue(Base64.isBase64(message.getPayload().getBytes("ISO-8859-1")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message);
 		Assert.assertEquals(content, result.getContent());
 	}
