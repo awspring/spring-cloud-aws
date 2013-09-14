@@ -38,13 +38,13 @@
 	<!--<bean name="cacheManager" class="com.google.code.ssm.spring.SSMCacheManager">-->
 		<!--<property name="caches">-->
 			<!--<set>-->
-				<!--<bean class="com.google.code.ssm.spring.SSMCache">-->
-					<!--<constructor-arg name="cache" index="0" ref="defaultCache" />-->
-					<!--&lt;!&ndash; 5 minutes &ndash;&gt;-->
-					<!--<constructor-arg name="expiration" index="1" value="300" />-->
-					<!--&lt;!&ndash; @CacheEvict(..., "allEntries" = true) doesn't work &ndash;&gt;-->
-					<!--<constructor-arg name="allowClear" index="2" value="false" />-->
-				<!--</bean>-->
+				<bean class="com.google.code.ssm.spring.SSMCache">
+					<constructor-arg name="cache" index="0" ref="defaultCache" />
+					<!-- 5 minutes -->
+					<constructor-arg name="expiration" index="1" value="300" />
+					<!-- @CacheEvict(..., "allEntries" = true) doesn't work -->
+					<constructor-arg name="allowClear" index="2" value="false" />
+				</bean>
 			<!--</set>-->
 		<!--</property>-->
 	<!--</bean>-->
