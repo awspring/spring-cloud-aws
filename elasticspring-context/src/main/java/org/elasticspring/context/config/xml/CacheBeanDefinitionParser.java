@@ -68,8 +68,8 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			} else {
 				String name = cacheElement.getAttribute("name");
 				String address = cacheElement.getAttribute("address");
-				boolean expiration = Boolean.TRUE.toString().toLowerCase().equals(cacheElement.getAttribute("expiration"));
-				boolean allowClear = Boolean.TRUE.toString().toLowerCase().equals(cacheElement.getAttribute("allowClear"));
+				int expiration = Integer.parseInt(cacheElement.getAttribute("expiration"));
+				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(cacheElement.getAttribute("allowClear"));
 				caches.add(createSSMCache(name, address, expiration, allowClear));
 			}
 		}
@@ -77,11 +77,11 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return caches;
 	}
 
-	private BeanDefinition createSSMCache(String name, String address, boolean expiration, boolean allowClear) {
+	private BeanDefinition createSSMCache(String name, String address, int expiration, boolean allowClear) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SSMCacheFactoryBean.class);
 		beanDefinitionBuilder.addConstructorArgValue(createCache(name, address));
 		beanDefinitionBuilder.addConstructorArgValue(expiration);
-		beanDefinitionBuilder.addConstructorArgValue(allowClear);
+		beanDefinitionBuilder.addPropertyValue("allowClear", allowClear);
 
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
