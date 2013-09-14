@@ -30,7 +30,7 @@
 
 	<els-context:cache-manager id="cacheManager">
 		<!-- TODO use the same name as aws for address -->
-		<els-context:cache address="cache1.plomhs.0001.euw1.cache.amazonaws.com:11211" name="cache1" allowClear="true" expiration="450" />
+		<els-context:cache cache="defaultCache" />
 	</els-context:cache-manager>
 
 	<bean name="myService" class="org.elasticspring.cache.TestCacheImplementation$MyService" />
@@ -49,20 +49,20 @@
 		<!--</property>-->
 	<!--</bean>-->
 
-	<!--<bean name="defaultCache" class="com.google.code.ssm.CacheFactory">-->
-		<!--<property name="cacheName" value="defaultCache" />-->
-		<!--<property name="cacheClientFactory">-->
-			<!--<bean name="cacheClientFactory" class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />-->
-		<!--</property>-->
-		<!--<property name="addressProvider">-->
-			<!--<bean class="com.google.code.ssm.config.DefaultAddressProvider">-->
-				<!--<property name="address" value="eutest.plomhs.cfg.euw1.cache.amazonaws.com:11211" />-->
-			<!--</bean>-->
-		<!--</property>-->
-		<!--<property name="configuration">-->
-			<!--<bean class="com.google.code.ssm.providers.CacheConfiguration">-->
-				<!--<property name="consistentHashing" value="true" />-->
-			<!--</bean>-->
-		<!--</property>-->
-	<!--</bean>-->
+	<bean name="defaultCache" class="com.google.code.ssm.CacheFactory">
+		<property name="cacheName" value="cache1" />
+		<property name="cacheClientFactory">
+			<bean name="cacheClientFactory" class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />
+		</property>
+		<property name="addressProvider">
+			<bean class="com.google.code.ssm.config.DefaultAddressProvider">
+				<property name="address" value="cache1.plomhs.0001.euw1.cache.amazonaws.com:11211" />
+			</bean>
+		</property>
+		<property name="configuration">
+			<bean class="com.google.code.ssm.providers.CacheConfiguration">
+				<property name="consistentHashing" value="true" />
+			</bean>
+		</property>
+	</bean>
 </beans>

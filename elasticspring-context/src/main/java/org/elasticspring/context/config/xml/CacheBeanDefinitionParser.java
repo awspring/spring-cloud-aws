@@ -23,6 +23,7 @@ import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
 import org.elasticspring.context.config.SSMCacheFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
@@ -56,15 +57,14 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return null;
 	}
 
-	private ManagedList<BeanDefinition> createCacheCollection(Element element) {
-		ManagedList<BeanDefinition> caches = new ManagedList<BeanDefinition>();
+	private ManagedList<Object> createCacheCollection(Element element) {
+		ManagedList<Object> caches = new ManagedList<Object>();
 		List<Element> cacheElements = DomUtils.getChildElementsByTagName(element, "cache");
 
 		for (Element cacheElement : cacheElements) {
 			String cacheBeanName = cacheElement.getAttribute("cache");
 			if (StringUtils.hasText(cacheBeanName)) {
-				// TODO add the bean ref
-				// caches.add(new RuntimeBeanReference(cacheBeanName));
+				caches.add(new RuntimeBeanReference(cacheBeanName));
 			} else {
 				String name = cacheElement.getAttribute("name");
 				String address = cacheElement.getAttribute("address");

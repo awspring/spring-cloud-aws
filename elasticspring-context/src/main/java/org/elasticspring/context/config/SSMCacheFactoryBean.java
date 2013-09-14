@@ -18,6 +18,7 @@ package org.elasticspring.context.config;
 
 import com.google.code.ssm.Cache;
 import com.google.code.ssm.spring.SSMCache;
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
@@ -35,6 +36,7 @@ public class SSMCacheFactoryBean extends AbstractFactoryBean<SSMCache> {
 		this.expiration = expiration;
 	}
 
+	@RuntimeUse
 	public void setAllowClear(boolean allowClear) {
 		this.allowClear = allowClear;
 	}
