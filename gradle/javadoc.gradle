@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+import org.gradle.external.javadoc.JavadocMemberLevel
 
 allprojects {
     ext.javadocLinks = [
@@ -33,7 +33,7 @@ allprojects {
 subprojects {
 
     javadoc {
-        options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+        options.memberLevel = JavadocMemberLevel.PROTECTED
         options.author = true
         options.header = project.name
         options.links(project.ext.javadocLinks)

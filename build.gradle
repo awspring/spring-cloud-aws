@@ -18,13 +18,15 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
-        classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.4")
+        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.4")
+        classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7")
     }
 }
 
@@ -309,8 +311,4 @@ reference {
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
     gradleVersion = '1.7'
-}
-
-dependencies {
-    compile gradleApi()
 }

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.internal.os.OperatingSystem
+
+
+
+import java.text.SimpleDateFormat
 
 ext.buildenvironment = [
         commitId: determineCommitId(),
@@ -23,7 +26,7 @@ ext.buildenvironment = [
         javaVersion: System.properties["java.version"],
         osName: System.properties["os.name"],
         osVersion: System.properties["os.version"],
-        timeStamp: new java.text.SimpleDateFormat("yyyy.MM.dd").format(new Date())
+        timeStamp: new SimpleDateFormat("yyyy.MM.dd").format(new Date())
 ]
 
 def String determineCommitId() {
@@ -49,7 +52,7 @@ def String determineCommitId() {
             def execResult = exec {
                 ignoreExitValue = true
                 commandLine = ["git", "log", "-1", "--format=%H"]
-                if (OperatingSystem.current().windows) {
+                if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
                     commandLine = ["cmd", "/c"] + commandLine
                 }
 
@@ -75,7 +78,7 @@ def String determineCommitId() {
         }
     }
     if (!commitId) {
-        throw new InvalidUserDataException("Could not determine commit id")
+        throw new InvalidUserDataException("Could not determine commit id") as Throwable
     }
     commitId
 }
@@ -84,7 +87,7 @@ def String determineHostName() {
     def hostName
     try {
         hostName = InetAddress.localHost.hostName
-    } catch (UnknownHostException e) {
+    } catch (UnknownHostException ignored) {
         hostName = "unknown"
     }
     hostName
