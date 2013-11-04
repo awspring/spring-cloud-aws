@@ -20,6 +20,7 @@ public class AmazonCloudFormationAwsTest {
 
 	@Test
 	public void contextConfiguration_minimalContextConfiguration_amazonStackResourceRegistryBeanExposed() {
+		// Assert
 		assertThat(this.amazonStackResourceRegistry, is(not(nullValue())));
 	}
 
