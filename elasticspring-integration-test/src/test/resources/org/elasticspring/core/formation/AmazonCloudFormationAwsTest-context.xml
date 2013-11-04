@@ -11,7 +11,11 @@
 	<!-- TODO configure via els-context namespace handler -->
 	<bean class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean">
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
-		<constructor-arg name="stackName" value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
+		<constructor-arg name="stackNameProvider">
+			<bean class="org.elasticspring.core.formation.support.StaticStackNameProvider">
+				<constructor-arg value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 
 </beans>

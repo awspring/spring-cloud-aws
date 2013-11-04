@@ -19,11 +19,11 @@ import java.util.Map;
 public class AmazonStackResourceRegistryFactoryBean extends AbstractFactoryBean<AmazonStackResourceRegistry> {
 
 	private final AmazonCloudFormationClient amazonCloudFormationClient;
-	private final String stackName;
+	private final StackNameProvider stackNameProvider;
 
-	public AmazonStackResourceRegistryFactoryBean(AmazonCloudFormationClient amazonCloudFormationClient, String stackName) {
+	public AmazonStackResourceRegistryFactoryBean(AmazonCloudFormationClient amazonCloudFormationClient, StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
-		this.stackName = stackName;
+		this.stackNameProvider = stackNameProvider;
 	}
 
 	@Override
@@ -33,7 +33,8 @@ public class AmazonStackResourceRegistryFactoryBean extends AbstractFactoryBean<
 
 	@Override
 	protected AmazonStackResourceRegistry createInstance() throws Exception {
-		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(this.stackName));
+		String stackName = this.stackNameProvider.getStackName();
+		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
 
 		return new StaticAmazonStackResourceRegistry(convertToStackResourceMappings(stackResourceSummaries));
