@@ -24,14 +24,14 @@ public class AmazonCloudFormationAwsTest {
 	}
 
 	@Test
-	public void lookupPhysicalId_logicalRdsInstanceNameProvided_returnsPhysicalRdsInstanceId() {
+	public void lookupPhysicalResourceId_logicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Arrange
 
 		// Act
-		String physicalRdsInstanceId = this.amazonStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+		String physicalResourceId = this.amazonStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
 		// Assert
-		assertThat(physicalRdsInstanceId, is(not(nullValue())));
+		assertThat(physicalResourceId, is(not(nullValue())));
 	}
 
 }
