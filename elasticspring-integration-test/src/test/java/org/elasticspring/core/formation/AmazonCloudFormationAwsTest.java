@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -21,19 +22,20 @@ public class AmazonCloudFormationAwsTest {
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
-	@Autowired(required = false)
-	private AmazonStackResourceRegistry amazonStackResourceRegistry;
+	@Autowired
+	@Qualifier("staticStackNameProviderBasedStackResourceRegistry")
+	private AmazonStackResourceRegistry staticStackNameProviderBasedStackResourceRegistry;
 
 	@Test
-	public void contextConfiguration_minimalContextConfiguration_amazonStackResourceRegistryBeanExposed() {
+	public void stackResourceRegistry_staticStackNameProvider_stackResourceRegistryBeanExposed() {
 		// Assert
-		assertThat(this.amazonStackResourceRegistry, is(not(nullValue())));
+		assertThat(this.staticStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_logicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void lookupPhysicalResourceId_staticStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Act
-		String physicalResourceId = this.amazonStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+		String physicalResourceId = this.staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
 		// Assert
 		assertThat(physicalResourceId, is(not(nullValue())));
@@ -47,7 +49,7 @@ public class AmazonCloudFormationAwsTest {
 		this.expectedException.expectMessage("No resource found with logical id 'nonExistingLogicalResourceId'");
 
 		// Act
-		this.amazonStackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId");
+		this.staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId");
 	}
 
 }

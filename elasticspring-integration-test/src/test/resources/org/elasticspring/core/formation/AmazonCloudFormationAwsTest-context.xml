@@ -9,7 +9,7 @@
 	</bean>
 
 	<!-- TODO configure via els-context namespace handler -->
-	<bean class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean">
+	<bean id="staticStackNameProviderBasedStackResourceRegistry" class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean">
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
 		<constructor-arg name="stackNameProvider">
 			<bean class="org.elasticspring.core.formation.support.StaticStackNameProvider">
