@@ -1,10 +1,9 @@
-package org.elasticspring.core.formation.support;
+package org.elasticspring.core.env.stack.config;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import org.elasticspring.core.env.ec2.InstanceIdProvider;
-import org.elasticspring.core.formation.StackNameProvider;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
@@ -13,14 +12,14 @@ import org.springframework.beans.factory.InitializingBean;
  *
  * @author Christian Stettler
  */
-public class AutoDetectingStackNameProvider implements StackNameProvider, InitializingBean {
+class AutoDetectingStackNameProvider implements StackNameProvider, InitializingBean {
 
 	private final AmazonCloudFormationClient amazonCloudFormationClient;
 	private final InstanceIdProvider instanceIdProvider;
 
 	private String stackName;
 
-	public AutoDetectingStackNameProvider(AmazonCloudFormationClient amazonCloudFormationClient, InstanceIdProvider instanceIdProvider) {
+	AutoDetectingStackNameProvider(AmazonCloudFormationClient amazonCloudFormationClient, InstanceIdProvider instanceIdProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.instanceIdProvider = instanceIdProvider;
 	}

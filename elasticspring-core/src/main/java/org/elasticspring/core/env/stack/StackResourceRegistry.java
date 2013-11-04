@@ -1,11 +1,11 @@
-package org.elasticspring.core.formation;
+package org.elasticspring.core.env.stack;
 
 /**
  * Represents a registry of logical stack resource ids mapped to physical resource ids.
  *
  * @author Christian Stettler
  */
-public interface AmazonStackResourceRegistry {
+public interface StackResourceRegistry {
 
 	/**
 	 * Returns the physical id of the resource identified by the provided logical resource id. If no resource with the

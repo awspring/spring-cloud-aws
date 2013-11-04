@@ -1,4 +1,4 @@
-package org.elasticspring.core.formation;
+package org.elasticspring.core.env.stack;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,19 +16,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 // TODO discuss where which types of tests should live (e.g. tests requiring amazon environment)
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("AmazonCloudFormationAwsTest-context.xml")
-public class AmazonCloudFormationAwsTest {
+@ContextConfiguration("StackResourceRegistryAwsTest-context.xml")
+public class StackResourceRegistryAwsTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Autowired
 	@Qualifier("staticStackNameProviderBasedStackResourceRegistry")
-	private AmazonStackResourceRegistry staticStackNameProviderBasedStackResourceRegistry;
+	private StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry;
 
 	@Autowired
 	@Qualifier("autoDetectingStackNameProviderBasedStackResourceRegistry")
-	private AmazonStackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry;
+	private StackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry;
 
 	@Test
 	public void stackResourceRegistry_staticStackNameProvider_stackResourceRegistryBeanExposed() {

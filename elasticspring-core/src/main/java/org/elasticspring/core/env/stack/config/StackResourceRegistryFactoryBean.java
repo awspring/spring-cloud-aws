@@ -1,9 +1,10 @@
-package org.elasticspring.core.formation;
+package org.elasticspring.core.env.stack.config;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import org.elasticspring.core.env.stack.StackResourceRegistry;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.HashMap;
@@ -11,33 +12,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Exposes a fully populated {@link AmazonStackResourceRegistry} instance representing the resources of
+ * Exposes a fully populated {@link org.elasticspring.core.env.stack.StackResourceRegistry} instance representing the resources of
  * the specified stack.
  *
  * @author Christian Stettler
  */
-public class AmazonStackResourceRegistryFactoryBean extends AbstractFactoryBean<AmazonStackResourceRegistry> {
+class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
 
 	private final AmazonCloudFormationClient amazonCloudFormationClient;
 	private final StackNameProvider stackNameProvider;
 
-	public AmazonStackResourceRegistryFactoryBean(AmazonCloudFormationClient amazonCloudFormationClient, StackNameProvider stackNameProvider) {
+	StackResourceRegistryFactoryBean(AmazonCloudFormationClient amazonCloudFormationClient, StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.stackNameProvider = stackNameProvider;
 	}
 
 	@Override
 	public Class<?> getObjectType() {
-		return AmazonStackResourceRegistry.class;
+		return StackResourceRegistry.class;
 	}
 
 	@Override
-	protected AmazonStackResourceRegistry createInstance() throws Exception {
+	protected StackResourceRegistry createInstance() throws Exception {
 		String stackName = this.stackNameProvider.getStackName();
 		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
 
-		return new StaticAmazonStackResourceRegistry(convertToStackResourceMappings(stackResourceSummaries));
+		return new StaticStackResourceRegistry(convertToStackResourceMappings(stackResourceSummaries));
 	}
 
 	private static Map<String, String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
@@ -51,11 +52,11 @@ public class AmazonStackResourceRegistryFactoryBean extends AbstractFactoryBean<
 	}
 
 
-	private static class StaticAmazonStackResourceRegistry implements AmazonStackResourceRegistry {
+	private static class StaticStackResourceRegistry implements StackResourceRegistry {
 
 		private final Map<String, String> physicalResourceIdsByLogicalResourceId;
 
-		private StaticAmazonStackResourceRegistry(Map<String, String> physicalResourceIdsByLogicalResourceId) {
+		private StaticStackResourceRegistry(Map<String, String> physicalResourceIdsByLogicalResourceId) {
 			this.physicalResourceIdsByLogicalResourceId = physicalResourceIdsByLogicalResourceId;
 		}
 
