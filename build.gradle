@@ -20,6 +20,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -50,7 +52,7 @@ subprojects {
 
     // Custom properties
     ext {
-        springFrameworkVersion = "4.0.0.M3"
+        springFrameworkVersion = "4.0.0.RC1"
         springRetryVersion = "1.0.2.RELEASE"
         junitVersion = '4.10'
         slf4jVersion = '1.7.2'
@@ -138,6 +140,7 @@ project('elasticspring-messaging') {
     description = 'elasticspring messaging'
     dependencies {
         compile project(":elasticspring-context")
+        compile("org.springframework:spring-messaging:${springFrameworkVersion}")
         optional("org.springframework:spring-oxm:${springFrameworkVersion}")
         optional("com.thoughtworks.xstream:xstream:1.4.2") {
             exclude module: "xpp3_min"
