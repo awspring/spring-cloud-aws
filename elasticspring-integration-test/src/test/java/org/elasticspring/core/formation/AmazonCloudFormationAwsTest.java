@@ -26,8 +26,6 @@ public class AmazonCloudFormationAwsTest {
 
 	@Test
 	public void lookupPhysicalResourceId_logicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
-		// Arrange
-
 		// Act
 		String physicalResourceId = this.amazonStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
