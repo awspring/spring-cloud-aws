@@ -13,6 +13,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+// TODO discuss where which types of tests should live (e.g. tests requiring amazon environment)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("AmazonCloudFormationAwsTest-context.xml")
 public class AmazonCloudFormationAwsTest {
