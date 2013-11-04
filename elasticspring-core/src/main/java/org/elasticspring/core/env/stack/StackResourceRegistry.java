@@ -9,12 +9,11 @@ public interface StackResourceRegistry {
 
 	/**
 	 * Returns the physical id of the resource identified by the provided logical resource id. If no resource with the
-	 * provided logical id exists, an exception is thrown.
+	 * provided logical id exists, null is returned.
 	 *
 	 * @param logicalResourceId the logical id of the resource
-	 * @return the physical id of the resource
-	 * @throws IllegalArgumentException if no resource with the provided logical id exists
+	 * @return the physical id of the resource, or null, if no resource for the logical id exists in this stack.
 	 */
-	String lookupPhysicalResourceId(String logicalResourceId) throws IllegalArgumentException;
+	String lookupPhysicalResourceId(String logicalResourceId);
 
 }

@@ -62,13 +62,7 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 
 		@Override
 		public String lookupPhysicalResourceId(String logicalResourceId) {
-			String physicalResourceId = this.physicalResourceIdsByLogicalResourceId.get(logicalResourceId);
-
-			if (physicalResourceId == null) {
-				throw new IllegalArgumentException("No resource found with logical id '" + logicalResourceId + "'");
-			}
-
-			return physicalResourceId;
+			return this.physicalResourceIdsByLogicalResourceId.get(logicalResourceId);
 		}
 
 	}
