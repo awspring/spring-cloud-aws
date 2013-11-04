@@ -16,8 +16,8 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticspring.messaging.Message;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class NotificationMessageConverter implements MessageConverter {
 				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute");
 			}
 
-			if (!"Notification".equals(jsonNode.get("Type").getTextValue())) {
+			if (!"Notification".equals(jsonNode.get("Type").asText())) {
 				throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification");
 			}
 
@@ -58,7 +58,7 @@ public class NotificationMessageConverter implements MessageConverter {
 	}
 
 	private static String nullSafeGetTextValue(JsonNode jsonNode, String attribute) {
-		return jsonNode.has(attribute) ? jsonNode.get(attribute).getValueAsText() : null;
+		return jsonNode.has(attribute) ? jsonNode.get(attribute).asText() : null;
 	}
 
 	public static class NotificationMessage {
