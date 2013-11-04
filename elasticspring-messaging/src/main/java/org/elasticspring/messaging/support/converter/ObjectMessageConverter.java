@@ -85,7 +85,7 @@ public class ObjectMessageConverter implements MessageConverter {
 	public Serializable fromMessage(Message<String> message) {
 		String messagePayload = message.getPayload();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);
-		if (!(Base64.isArrayByteBase64(rawContent))) {
+		if (!(Base64.isBase64(rawContent))) {
 			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!");
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);

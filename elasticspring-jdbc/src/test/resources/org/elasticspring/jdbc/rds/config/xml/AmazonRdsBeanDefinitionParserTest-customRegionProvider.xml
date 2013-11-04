@@ -27,7 +27,7 @@
 	</context:context-credentials>
 
 	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password"
-					 region-provider-ref="myRegionProvider" />
+					 region-provider="myRegionProvider" />
 
 	<bean id="myRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
 		<constructor-arg value="IRELAND" />

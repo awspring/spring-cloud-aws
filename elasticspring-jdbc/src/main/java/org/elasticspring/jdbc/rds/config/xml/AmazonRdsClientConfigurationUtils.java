@@ -49,12 +49,12 @@ class AmazonRdsClientConfigurationUtils {
 			builder.getRawBeanDefinition().setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 
-			if (StringUtils.hasText(source.getAttribute("region-provider-ref")) && StringUtils.hasText(source.getAttribute("region"))) {
-				parserContext.getReaderContext().error("region and region-provider-ref attribute must not be used together", source);
+			if (StringUtils.hasText(source.getAttribute("region-provider")) && StringUtils.hasText(source.getAttribute("region"))) {
+				parserContext.getReaderContext().error("region and region-provider attribute must not be used together", source);
 			}
 
-			if (StringUtils.hasText(source.getAttribute("region-provider-ref"))) {
-				builder.addPropertyReference("regionProvider", source.getAttribute("region-provider-ref"));
+			if (StringUtils.hasText(source.getAttribute("region-provider"))) {
+				builder.addPropertyReference("regionProvider", source.getAttribute("region-provider"));
 			} else {
 				if (StringUtils.hasText(source.getAttribute("region"))) {
 					BeanDefinitionBuilder regionProvider = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
