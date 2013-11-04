@@ -60,8 +60,15 @@ public class AmazonStackResourceRegistryFactoryBean extends AbstractFactoryBean<
 
 		@Override
 		public String lookupPhysicalResourceId(String logicalResourceId) {
-			return this.physicalResourceIdsByLogicalResourceId.get(logicalResourceId);
+			String physicalResourceId = this.physicalResourceIdsByLogicalResourceId.get(logicalResourceId);
+
+			if (physicalResourceId == null) {
+				throw new IllegalArgumentException("No resource found with logical id '" + logicalResourceId + "'");
+			}
+
+			return physicalResourceId;
 		}
+
 	}
 
 }
