@@ -5,6 +5,7 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import org.elasticspring.core.env.stack.StackResourceRegistry;
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Map;
  *
  * @author Christian Stettler
  */
+@RuntimeUse
 class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
 
 	private final AmazonCloudFormationClient amazonCloudFormationClient;
