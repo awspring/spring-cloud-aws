@@ -16,10 +16,10 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 
@@ -27,7 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 
 /**
  * {@link MessageListener} implementation that calls any method through reflection on the target object. This instance
- * will also convert the messages from a {@link Message} instance into a listener method specific object. This message
+ * will also convert the messages from a {@link org.springframework.messaging.Message} instance into a listener method specific object. This message
  * listener implementation uses a {@link MessageConverter} to convert from the messaging specific message into the
  * method parameter. The method parameter of the particular method inside the instance must match the converted object
  * through the MessageConverter.
@@ -89,7 +89,7 @@ public class MessageListenerAdapter implements MessageListener {
 		MethodInvoker methodInvoker = new MethodInvoker();
 		methodInvoker.setTargetObject(getDelegate());
 		methodInvoker.setTargetMethod(getListenerMethod());
-		Object param = this.messageConverter.fromMessage(message);
+		Object param = this.messageConverter.fromMessage(message,null);
 
 		prepareArguments(methodInvoker, param);
 
@@ -112,7 +112,7 @@ public class MessageListenerAdapter implements MessageListener {
 	}
 
 	/**
-	 * Template method that will be called by the {@link #onMessage(org.elasticspring.messaging.Message)} method to
+	 * Template method that will be called by the {@link #onMessage(org.springframework.messaging.Message)} method to
 	 * prepare the arguments. Can be overridden by subclasses if the method arguments should be changed or extended (e.g.
 	 * extract values from the payload and add method argument to the invocation).
 	 *

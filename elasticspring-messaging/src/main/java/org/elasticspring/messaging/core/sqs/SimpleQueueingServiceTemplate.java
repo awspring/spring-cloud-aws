@@ -22,17 +22,17 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.core.QueueingOperations;
-import org.elasticspring.messaging.support.converter.MessageConverter;
-import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of the {@link QueueingOperations} interface using the {@link MessageConverter} and {@link
+ * Implementation of the {@link QueueingOperations} interface using the {@link org.springframework.messaging.support.converter.MessageConverter} and {@link
  * DestinationResolver} as collaborators to send and receive the messages. This class uses the {@link AmazonSQS}
  * instance to actually interact with the Amazon SQS service.
  *
@@ -52,9 +52,9 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	private DestinationResolver destinationResolver;
 
 	/**
-	 * {@link MessageConverter} used by the instance. By default a {@link StringMessageConverter}
+	 * {@link org.springframework.messaging.support.converter.MessageConverter} used by the instance. By default a {@link SimpleMessageConverter}
 	 */
-	private MessageConverter messageConverter = new StringMessageConverter();
+	private MessageConverter messageConverter = new SimpleMessageConverter();
 
 	/**
 	 * The default destination name for operations that don't provide a destination name
@@ -89,8 +89,8 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	}
 
 	/**
-	 * Configures the {@link MessageConverter} used by this instance to convert the payload into notification messages.
-	 * Overrides the default {@link StringMessageConverter} that convert String objects into notification messages.
+	 * Configures the {@link org.springframework.messaging.support.converter.MessageConverter} used by this instance to convert the payload into notification messages.
+	 * Overrides the default {@link org.springframework.messaging.support.converter.SimpleMessageConverter} that convert String objects into notification messages.
 	 *
 	 * @param messageConverter
 	 * 		- the message converter to be used. Must not be null
@@ -115,7 +115,7 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	 * Converts and sends the payload.
 	 *
 	 * @param payload
-	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link org.springframework.messaging.support.converter.SimpleMessageConverter}
 	 * @throws java.lang.IllegalStateException
 	 * 		if the default destination name is not set
 	 */
@@ -137,8 +137,8 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 	public void convertAndSend(String destinationName, Object payload) {
 		Assert.notNull(destinationName, "destinationName must not be null.");
 		String destinationUrl = this.destinationResolver.resolveDestinationName(destinationName);
-		org.elasticspring.messaging.Message<String> message = this.messageConverter.toMessage(payload);
-		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload());
+		org.springframework.messaging.Message<?> message = this.messageConverter.toMessage(payload, null);
+		SendMessageRequest request = new SendMessageRequest(destinationUrl, message.getPayload().toString());
 		this.amazonSqs.sendMessage(request);
 	}
 
@@ -187,8 +187,9 @@ public class SimpleQueueingServiceTemplate implements QueueingOperations {
 
 		Message message = receiveMessageResult.getMessages().get(0);
 
-		org.elasticspring.messaging.Message<String> msg = new StringMessage(message.getBody());
-		Object result = this.messageConverter.fromMessage(msg);
+		String payload = message.getBody();
+		org.springframework.messaging.Message<String> msg = MessageBuilder.withPayload(payload).build();
+		Object result = this.messageConverter.fromMessage(msg,null);
 
 		this.amazonSqs.deleteMessage(new DeleteMessageRequest(destinationUrl, message.getReceiptHandle()));
 

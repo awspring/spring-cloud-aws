@@ -18,13 +18,13 @@ package org.elasticspring.messaging.core.sns;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
-import org.elasticspring.messaging.Message;
 import org.elasticspring.messaging.core.NotificationOperations;
-import org.elasticspring.messaging.support.converter.MessageConverter;
-import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -47,9 +47,9 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	private final AmazonSNS amazonSNS;
 
 	/**
-	 * {@link MessageConverter} used by the instance. By default a {@link StringMessageConverter}
+	 * {@link MessageConverter} used by the instance. By default a {@link SimpleMessageConverter}
 	 */
-	private MessageConverter messageConverter = new StringMessageConverter();
+	private MessageConverter messageConverter = new SimpleMessageConverter();
 
 	/**
 	 * {@link DestinationResolver} used by the instance. By default a {@link DynamicTopicDestinationResolver}
@@ -101,7 +101,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 
 	/**
 	 * Configures the {@link MessageConverter} used by this instance to convert the payload into notification messages.
-	 * Overrides the default {@link StringMessageConverter} that convert String objects into notification messages.
+	 * Overrides the default {@link SimpleMessageConverter} that convert String objects into notification messages.
 	 *
 	 * @param messageConverter
 	 * 		- the message converter to be used. Must not be null
@@ -114,7 +114,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	 * Converts and sends the payload.
 	 *
 	 * @param payload
-	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link SimpleMessageConverter}
 	 * @throws java.lang.IllegalStateException
 	 * 		if the default destination name is not set
 	 */
@@ -128,7 +128,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	 * Convert and send the payload with the additional subject.
 	 *
 	 * @param payload
-	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link SimpleMessageConverter}
 	 * @throws java.lang.IllegalStateException
 	 * 		if the default destination name is not set
 	 */
@@ -144,7 +144,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	 * @param destinationName
 	 * 		- the destination name, must not be null
 	 * @param payload
-	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link SimpleMessageConverter}
 	 * @throws java.lang.IllegalStateException
 	 * 		if the default destination name is not set
 	 */
@@ -159,7 +159,7 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	 * @param destinationName
 	 * 		- the destination name, must not be null
 	 * @param payload
-	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link StringMessageConverter}
+	 * 		- the payload that will be converted and sent (e.g. a String in combination with a {@link SimpleMessageConverter}
 	 * @param subject
 	 * 		- the optional subject
 	 * @throws java.lang.IllegalStateException
@@ -169,12 +169,12 @@ public class SimpleNotificationServiceTemplate implements NotificationOperations
 	public void convertAndSendWithSubject(String destinationName, Object payload, String subject) {
 		Assert.notNull("destinationName must not be null");
 		String topicArn = this.destinationResolver.resolveDestinationName(destinationName);
-		Message<String> message = this.messageConverter.toMessage(payload);
+		Message<?> message = this.messageConverter.toMessage(payload, null);
 
 		if (subject == null) {
-			this.amazonSNS.publish(new PublishRequest(topicArn, message.getPayload()));
+			this.amazonSNS.publish(new PublishRequest(topicArn, message.getPayload().toString()));
 		} else {
-			this.amazonSNS.publish(new PublishRequest(topicArn, message.getPayload(), subject));
+			this.amazonSNS.publish(new PublishRequest(topicArn, message.getPayload().toString(), subject));
 		}
 	}
 }

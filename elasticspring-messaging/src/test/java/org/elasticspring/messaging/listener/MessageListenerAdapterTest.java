@@ -17,13 +17,13 @@
 package org.elasticspring.messaging.listener;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.support.converter.ObjectMessageConverter;
-import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 
 import java.math.BigInteger;
 
@@ -41,7 +41,7 @@ public class MessageListenerAdapterTest {
 		TargetBean delegate = new TargetBean();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new ObjectMessageConverter(), delegate, "receiveIntegerMessage");
 		BigInteger myMessage = new BigInteger("1322465468735489");
-		Message<String> stringMessage = new ObjectMessageConverter().toMessage(myMessage);
+		Message<String> stringMessage = new ObjectMessageConverter().toMessage(myMessage, null);
 		adapter.onMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
@@ -49,8 +49,8 @@ public class MessageListenerAdapterTest {
 	@Test
 	public void testProcessStringMessage() throws Exception {
 		TargetBean delegate = new TargetBean();
-		MessageListenerAdapter adapter = new MessageListenerAdapter(new StringMessageConverter(), delegate, "receiveStringMessage");
-		Message<String> stringMessage = new StringMessage("stringMessage");
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "receiveStringMessage");
+		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		adapter.onMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
@@ -58,8 +58,8 @@ public class MessageListenerAdapterTest {
 	@Test
 	public void testProcessExceptionThrownInMethod() throws Exception {
 		TargetBean delegate = new TargetBean();
-		MessageListenerAdapter adapter = new MessageListenerAdapter(new StringMessageConverter(), delegate, "exceptionThrowingMethod");
-		Message<String> stringMessage = new StringMessage("stringMessage");
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "exceptionThrowingMethod");
+		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		try {
 			adapter.onMessage(stringMessage);
 		} catch (ListenerExecutionFailedException e) {
@@ -71,8 +71,8 @@ public class MessageListenerAdapterTest {
 	@Test
 	public void testMethodNotFound() throws Exception {
 		TargetBean delegate = new TargetBean();
-		MessageListenerAdapter adapter = new MessageListenerAdapter(new StringMessageConverter(), delegate, "nonAvailableMethod");
-		Message<String> stringMessage = new StringMessage("stringMessage");
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "nonAvailableMethod");
+		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		try {
 			adapter.onMessage(stringMessage);
 		} catch (ListenerExecutionFailedException e) {
@@ -84,8 +84,8 @@ public class MessageListenerAdapterTest {
 	@Test
 	public void testOverloadedMethod() throws Exception {
 		TargetBean delegate = new TargetBean();
-		MessageListenerAdapter adapter = new MessageListenerAdapter(new StringMessageConverter(), delegate, "overloadedMethod");
-		Message<String> stringMessage = new StringMessage("stringMessage");
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "overloadedMethod");
+		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		adapter.onMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
@@ -104,7 +104,7 @@ public class MessageListenerAdapterTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("delegate must not be null");
 		//noinspection ResultOfObjectAllocationIgnored
-		new MessageListenerAdapter(new StringMessageConverter(), null, "overloadedMethod");
+		new MessageListenerAdapter(new SimpleMessageConverter(), null, "overloadedMethod");
 	}
 
 	@Test
@@ -112,7 +112,7 @@ public class MessageListenerAdapterTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("listenerMethod must not be null");
 		//noinspection ResultOfObjectAllocationIgnored
-		new MessageListenerAdapter(new StringMessageConverter(), new TargetBean(), null);
+		new MessageListenerAdapter(new SimpleMessageConverter(), new TargetBean(), null);
 	}
 
 	private static class TargetBean {

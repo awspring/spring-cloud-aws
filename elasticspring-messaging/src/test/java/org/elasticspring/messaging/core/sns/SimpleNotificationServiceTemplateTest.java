@@ -21,8 +21,6 @@ import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
-import org.elasticspring.messaging.StringMessage;
-import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +28,10 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 
 /**
  * @author Agim Emruli
@@ -90,11 +92,11 @@ public class SimpleNotificationServiceTemplateTest {
 	public void testCustomMessageConverter() throws Exception {
 		AmazonSNS amazonSNS = Mockito.mock(AmazonSNS.class);
 		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
-		Mockito.when(messageConverter.toMessage(Mockito.anyString())).thenAnswer(new Answer<Object>() {
+		Mockito.when(messageConverter.toMessage(Mockito.anyString(), Mockito.any(MessageHeaders.class))).thenAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return new StringMessage(invocation.getArguments()[0].toString().toUpperCase());
+				return  MessageBuilder.withPayload(invocation.getArguments()[0].toString().toUpperCase()).build();
 			}
 		});
 
@@ -113,12 +115,12 @@ public class SimpleNotificationServiceTemplateTest {
 	@Test
 	public void testCustomMessageConverterWithSubject() throws Exception {
 		AmazonSNS amazonSNS = Mockito.mock(AmazonSNS.class);
-		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
-		Mockito.when(messageConverter.toMessage(Mockito.anyString())).thenAnswer(new Answer<Object>() {
+		SimpleMessageConverter messageConverter = Mockito.mock(SimpleMessageConverter.class);
+		Mockito.when(messageConverter.toMessage(Mockito.anyString(), Mockito.any(MessageHeaders.class))).thenAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return new StringMessage(invocation.getArguments()[0].toString().toUpperCase());
+				return MessageBuilder.withPayload(invocation.getArguments()[0].toString().toUpperCase()).build();
 			}
 		});
 

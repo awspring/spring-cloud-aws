@@ -18,7 +18,10 @@ package org.elasticspring.messaging.support.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.elasticspring.messaging.Message;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.converter.MessageConversionException;
+import org.springframework.messaging.support.converter.MessageConverter;
 
 import java.io.IOException;
 
@@ -30,28 +33,29 @@ public class NotificationMessageConverter implements MessageConverter {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+
 	@Override
-	public Message<String> toMessage(Object payload) {
+	public Message<?> toMessage(Object payload, MessageHeaders header) {
 		throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
 	}
 
 	@Override
-	public NotificationMessage fromMessage(Message<String> message) {
+	public NotificationMessage fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
-			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload(), JsonNode.class);
+			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload().toString(), JsonNode.class);
 			if (!jsonNode.has("Type")) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute");
+				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute",null);
 			}
 
 			if (!"Notification".equals(jsonNode.get("Type").asText())) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification");
+				throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",null);
 			}
 
 			if (!jsonNode.has("Message")) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message");
+				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",null);
 			}
 
-			return new NotificationMessage(nullSafeGetTextValue(jsonNode, "Message"),nullSafeGetTextValue(jsonNode, "Subject"));
+			return new NotificationMessage(nullSafeGetTextValue(jsonNode, "Message"), nullSafeGetTextValue(jsonNode, "Subject"));
 		} catch (IOException e) {
 			throw new MessageConversionException("Error reading payload :'" + message.getPayload() + "' from message", e);
 		}

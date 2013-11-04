@@ -24,9 +24,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.StringMessage;
 import org.elasticspring.messaging.core.QueueingOperations;
-import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -35,6 +33,9 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 
 import java.math.BigDecimal;
 
@@ -77,12 +78,13 @@ public class SimpleQueueServiceTemplateTest {
 
 		SimpleQueueingServiceTemplate template = new SimpleQueueingServiceTemplate(amazonSqs);
 
-		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
-		Mockito.when(messageConverter.toMessage(Mockito.anyString())).thenAnswer(new Answer<Object>() {
+		SimpleMessageConverter messageConverter = Mockito.mock(SimpleMessageConverter.class);
+		Mockito.when(messageConverter.toMessage(Mockito.anyString(), Mockito.any(MessageHeaders.class))).thenAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return new StringMessage(invocation.getArguments()[0].toString().toUpperCase());
+				String payload = invocation.getArguments()[0].toString().toUpperCase();
+				return MessageBuilder.withPayload(payload).build();
 			}
 		});
 		Mockito.when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("test"))).thenReturn(new GetQueueUrlResult().withQueueUrl("http://customQueue"));
@@ -142,12 +144,13 @@ public class SimpleQueueServiceTemplateTest {
 
 		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
-		MessageConverter messageConverter = Mockito.mock(MessageConverter.class);
-		Mockito.when(messageConverter.fromMessage(Mockito.<org.elasticspring.messaging.Message<String>>anyObject())).thenAnswer(new Answer<Object>() {
+		SimpleMessageConverter messageConverter = Mockito.mock(SimpleMessageConverter.class);
+		Mockito.when(messageConverter.fromMessage(Mockito.<org.springframework.messaging.Message<String>>anyObject(),Mockito.any(Class.class))).thenAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return ((org.elasticspring.messaging.Message) invocation.getArguments()[0]).getPayload().toString().toUpperCase();
+				org.springframework.messaging.Message<?> message = (org.springframework.messaging.Message<?>) invocation.getArguments()[0];
+				return message.getPayload().toString().toUpperCase();
 			}
 		});
 

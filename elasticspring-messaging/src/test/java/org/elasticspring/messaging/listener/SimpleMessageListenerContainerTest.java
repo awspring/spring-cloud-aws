@@ -98,7 +98,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageListener(new MessageListener() {
 
 			@Override
-			public void onMessage(org.elasticspring.messaging.Message<String> message) {
+			public void onMessage(org.springframework.messaging.Message<String> message) {
 				Assert.assertEquals("messageContent", message.getPayload());
 				countDownLatch.countDown();
 			}
@@ -136,7 +136,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageListener(new MessageListener() {
 
 			@Override
-			public void onMessage(org.elasticspring.messaging.Message<String> message) {
+			public void onMessage(org.springframework.messaging.Message<String> message) {
 				Assert.fail("Should not have been called");
 			}
 		});
@@ -182,7 +182,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageListener(new MessageListener() {
 
 			@Override
-			public void onMessage(org.elasticspring.messaging.Message<String> message) {
+			public void onMessage(org.springframework.messaging.Message<String> message) {
 				throw new IllegalArgumentException("expected exception");
 			}
 		});

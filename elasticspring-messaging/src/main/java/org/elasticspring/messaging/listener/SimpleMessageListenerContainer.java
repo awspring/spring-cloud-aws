@@ -19,9 +19,9 @@ package org.elasticspring.messaging.listener;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.elasticspring.messaging.StringMessage;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -82,7 +82,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		getTaskExecutor().execute(new AsynchronousMessageListener());
 	}
 
-	protected void executeMessage(org.elasticspring.messaging.Message<String> stringMessage) {
+	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 		try {
 			getMessageListener().onMessage(stringMessage);
 		} catch (Throwable throwable) {
@@ -121,7 +121,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
-			executeMessage(new StringMessage(this.message.getBody()));
+			String payload = this.message.getBody();
+			executeMessage(MessageBuilder.withPayload(payload).build());
 			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
 		}

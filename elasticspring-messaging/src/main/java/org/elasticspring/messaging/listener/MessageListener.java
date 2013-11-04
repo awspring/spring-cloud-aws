@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.elasticspring.messaging.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Message Listener interface that can be implemented to receive messages from a message listener container instance

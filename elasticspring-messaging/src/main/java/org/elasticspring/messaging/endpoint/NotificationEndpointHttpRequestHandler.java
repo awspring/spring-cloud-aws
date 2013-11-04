@@ -20,12 +20,12 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ConfirmSubscriptionRequest;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.elasticspring.messaging.StringMessage;
-import org.elasticspring.messaging.support.converter.MessageConverter;
 import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.FileCopyUtils;
@@ -74,7 +74,7 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 	public static final String TOPIC_ARN_HEADER = "x-amz-sns-topic-arn";
 
 	/**
-	 * The notification message type whoch contains a message payload and an optional subject
+	 * The notification message type which contains a message payload and an optional subject
 	 */
 	public static final String NOTIFICATION_MESSAGE_TYPE = "Notification";
 
@@ -212,9 +212,9 @@ public class NotificationEndpointHttpRequestHandler implements HttpRequestHandle
 
 		byte[] payload = FileCopyUtils.copyToByteArray(request.getInputStream());
 
+		String payload1 = new String(payload, Charset.forName(PAYLOAD_CHAR_SET));
 		NotificationMessageConverter.NotificationMessage notificationMessage = (NotificationMessageConverter.NotificationMessage)
-				this.messageConverter.fromMessage(new StringMessage(
-						new String(payload, Charset.forName(PAYLOAD_CHAR_SET))));
+				this.messageConverter.fromMessage(MessageBuilder.withPayload(payload1).build(),null);
 
 		if (ClassUtils.hasMethod(AopUtils.getTargetClass(this.target), this.listenerMethod, String.class, String.class)) {
 			methodInvoker.setArguments(new Object[]{notificationMessage.getBody(), notificationMessage.getSubject()});

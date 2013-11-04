@@ -26,22 +26,19 @@
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<bean id="stringMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSqsClient" index="0" />
-		<property name="defaultDestinationName" value="testQueue" />
+	<bean id="stringMessage" class="org.springframework.messaging.core.GenericMessagingTemplate">
+		<property name="destinationResolver" ref="destinationResolver"/>
 	</bean>
 
-	<bean id="objectMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSqsClient" index="0" />
-		<property name="defaultDestinationName" value="testQueue" />
+	<bean id="objectMessage" class="org.springframework.messaging.core.GenericMessagingTemplate">
+		<property name="destinationResolver" ref="destinationResolver"/>
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 		</property>
 	</bean>
 
-	<bean id="jsonMessage" class="org.elasticspring.messaging.core.sqs.SimpleQueueingServiceTemplate">
-		<constructor-arg ref="amazonSqsClient" index="0" />
-		<property name="defaultDestinationName" value="testQueue" />
+	<bean id="jsonMessage" class="org.springframework.messaging.core.GenericMessagingTemplate">
+		<property name="destinationResolver" ref="destinationResolver"/>
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">
 				<constructor-arg name="marshaller" ref="marshaller" />
@@ -56,6 +53,10 @@
 		<property name="streamDriver">
 			<bean class="com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver" />
 		</property>
+	</bean>
+
+	<bean id="destinationResolver" class="org.elasticspring.messaging.support.destination.QueueMessageChannelDestinationResolver">
+		<constructor-arg ref="amazonSqsClient" />
 	</bean>
 
 </beans>

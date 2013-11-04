@@ -17,7 +17,6 @@
 package org.elasticspring.messaging.config.annotation;
 
 import org.elasticspring.messaging.listener.MessageListenerAdapter;
-import org.elasticspring.messaging.support.converter.StringMessageConverter;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -25,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
+import org.springframework.messaging.support.converter.SimpleMessageConverter;
 import org.springframework.util.StringUtils;
 
 import java.util.Set;
@@ -121,7 +121,7 @@ public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 		if (StringUtils.hasText(getNullSafeAnnotationAttribute(ANNOTATION_TYPE, methodMetadata, MESSAGE_CONVERTER_ATTRIBUTE_NAME))) {
 			listenerBuilder.addConstructorArgValue(new RuntimeBeanReference(getNullSafeAnnotationAttribute(ANNOTATION_TYPE, methodMetadata, MESSAGE_CONVERTER_ATTRIBUTE_NAME)));
 		} else {
-			listenerBuilder.addConstructorArgValue(BeanDefinitionBuilder.rootBeanDefinition(StringMessageConverter.class).getBeanDefinition());
+			listenerBuilder.addConstructorArgValue(BeanDefinitionBuilder.rootBeanDefinition(SimpleMessageConverter.class).getBeanDefinition());
 		}
 
 		listenerBuilder.addConstructorArgReference(beanName);
