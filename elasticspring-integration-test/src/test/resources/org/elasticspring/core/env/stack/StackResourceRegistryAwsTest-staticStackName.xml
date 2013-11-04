@@ -1,21 +1,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   					   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
-		<constructor-arg ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
-
-	<!-- TODO configure via els-context namespace handler -->
-	<bean id="staticStackNameProviderBasedStackResourceRegistry" class="org.elasticspring.core.env.stack.config.StackResourceRegistryFactoryBean">
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
-		<constructor-arg name="stackNameProvider">
-			<bean class="org.elasticspring.core.env.stack.config.StaticStackNameProvider">
-				<constructor-arg value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
-			</bean>
-		</constructor-arg>
-	</bean>
+	<els-context:stack-configuration stack-name="IntegrationTestStack"/>
 
 </beans>
