@@ -20,8 +20,18 @@ public class AmazonCloudFormationAwsTest {
 
 	@Test
 	public void contextConfiguration_minimalContextConfiguration_amazonStackResourceRegistryBeanExposed() {
+		assertThat(this.amazonStackResourceRegistry, is(not(nullValue())));
+	}
+
+	@Test
+	public void lookupPhysicalId_logicalRdsInstanceNameProvided_returnsPhysicalRdsInstanceId() {
+		// Arrange
+
+		// Act
+		String physicalRdsInstanceId = this.amazonStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+
 		// Assert
-		assertThat(amazonStackResourceRegistry, is(not(nullValue())));
+		assertThat(physicalRdsInstanceId, is(not(nullValue())));
 	}
 
 }

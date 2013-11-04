@@ -2,7 +2,16 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
 
+	<import resource="classpath:Integration-test-context.xml" />
+
+	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
+		<constructor-arg ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+	</bean>
+
 	<!-- TODO configure via els-context namespace handler -->
-	<bean class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean"/>
+	<bean class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean">
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
+		<constructor-arg name="stackName" value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
+	</bean>
 
 </beans>
