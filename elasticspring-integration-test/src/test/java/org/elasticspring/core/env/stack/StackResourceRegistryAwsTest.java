@@ -1,11 +1,7 @@
 package org.elasticspring.core.env.stack;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -13,34 +9,40 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 // TODO discuss where which types of tests should live (e.g. tests requiring amazon environment)
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("StackResourceRegistryAwsTest-context.xml")
 public class StackResourceRegistryAwsTest {
-
-	@Autowired
-	@Qualifier("staticStackNameProviderBasedStackResourceRegistry")
-	private StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry;
-
-	@Autowired
-	@Qualifier("autoDetectingStackNameProviderBasedStackResourceRegistry")
-	private StackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry;
 
 	@Test
 	public void stackResourceRegistry_staticStackNameProvider_stackResourceRegistryBeanExposed() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
+
+		// Act
+		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+
 		// Assert
-		assertThat(this.staticStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
+		assertThat(staticStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
 	}
 
 	@Test
 	public void stackResourceRegistry_autoDetectingStackNameProvider_stackResourceRegistryBeanExposed() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
+
+		// Act
+		StackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+
 		// Assert
-		assertThat(this.autoDetectingStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
+		assertThat(autoDetectingStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
 	}
 
 	@Test
 	public void lookupPhysicalResourceId_staticStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
+		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+
 		// Act
-		String physicalResourceId = this.staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+		String physicalResourceId = staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
 		// Assert
 		assertThat(physicalResourceId, is(not(nullValue())));
@@ -48,8 +50,12 @@ public class StackResourceRegistryAwsTest {
 
 	@Test
 	public void lookupPhysicalResourceId_autoDetectingStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
+		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+
 		// Act
-		String physicalResourceId = this.autoDetectingStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+		String physicalResourceId = staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
 		// Assert
 		assertThat(physicalResourceId, is(not(nullValue())));
@@ -57,11 +63,19 @@ public class StackResourceRegistryAwsTest {
 
 	@Test
 	public void lookupPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_throwsException() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
+		StackResourceRegistry stackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+
 		// Act
-		String physicalResourceId = this.staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId");
+		String physicalResourceId = stackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId");
 
 		// Assert
 		assertThat(physicalResourceId, is(nullValue()));
+	}
+
+	private static ClassPathXmlApplicationContext loadApplicationContext(String configurationName) {
+		return new ClassPathXmlApplicationContext(StackResourceRegistryAwsTest.class.getSimpleName() + "-" + configurationName + ".xml", StackResourceRegistryAwsTest.class);
 	}
 
 }

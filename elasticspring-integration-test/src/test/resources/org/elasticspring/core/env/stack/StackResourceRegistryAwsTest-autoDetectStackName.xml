@@ -9,15 +9,6 @@
 	</bean>
 
 	<!-- TODO configure via els-context namespace handler -->
-	<bean id="staticStackNameProviderBasedStackResourceRegistry" class="org.elasticspring.core.env.stack.config.StackResourceRegistryFactoryBean">
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
-		<constructor-arg name="stackNameProvider">
-			<bean class="org.elasticspring.core.env.stack.config.StaticStackNameProvider">
-				<constructor-arg value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
-			</bean>
-		</constructor-arg>
-	</bean>
-
 	<bean id="autoDetectingStackNameProviderBasedStackResourceRegistry" class="org.elasticspring.core.env.stack.config.StackResourceRegistryFactoryBean">
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
 		<constructor-arg name="stackNameProvider">
