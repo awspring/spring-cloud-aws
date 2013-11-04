@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+// TODO change to test against resource id resolver (not stack resource registry)
 public class StackResourceRegistryAwsTest {
 
 	@Test
