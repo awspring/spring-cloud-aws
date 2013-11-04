@@ -26,6 +26,10 @@ public class AmazonCloudFormationAwsTest {
 	@Qualifier("staticStackNameProviderBasedStackResourceRegistry")
 	private AmazonStackResourceRegistry staticStackNameProviderBasedStackResourceRegistry;
 
+	@Autowired
+	@Qualifier("autoDetectingStackNameProviderBasedStackResourceRegistry")
+	private AmazonStackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry;
+
 	@Test
 	public void stackResourceRegistry_staticStackNameProvider_stackResourceRegistryBeanExposed() {
 		// Assert
@@ -33,9 +37,24 @@ public class AmazonCloudFormationAwsTest {
 	}
 
 	@Test
+	public void stackResourceRegistry_autoDetectingStackNameProvider_stackResourceRegistryBeanExposed() {
+		// Assert
+		assertThat(this.autoDetectingStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
+	}
+
+	@Test
 	public void lookupPhysicalResourceId_staticStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Act
 		String physicalResourceId = this.staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
+
+		// Assert
+		assertThat(physicalResourceId, is(not(nullValue())));
+	}
+
+	@Test
+	public void lookupPhysicalResourceId_autoDetectingStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+		// Act
+		String physicalResourceId = this.autoDetectingStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("RdsSingleMicroInstance");
 
 		// Assert
 		assertThat(physicalResourceId, is(not(nullValue())));

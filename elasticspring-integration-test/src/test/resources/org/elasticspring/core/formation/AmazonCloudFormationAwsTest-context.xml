@@ -18,4 +18,14 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="autoDetectingStackNameProviderBasedStackResourceRegistry" class="org.elasticspring.core.formation.AmazonStackResourceRegistryFactoryBean">
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
+		<constructor-arg name="stackNameProvider">
+			<bean class="org.elasticspring.core.formation.support.AutoDetectingStackNameProvider">
+				<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
+				<constructor-arg name="instanceIdProvider" ref="testStackEnvironment"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
 </beans>
