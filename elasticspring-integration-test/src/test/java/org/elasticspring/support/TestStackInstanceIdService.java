@@ -6,16 +6,17 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ import java.util.List;
  *
  * @author Christian Stettler
  */
-public class TestStackInstanceIdService implements InitializingBean, DisposableBean {
+public class TestStackInstanceIdService {
 
 	public static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
 	public static final int INSTANCE_ID_SERVICE_PORT = 12345;
@@ -38,22 +39,25 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 		this.instanceIdSource = instanceIdSource;
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void enable() {
 		startMetadataHttpServer(this.instanceIdSource.getInstanceId());
 		overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":" + INSTANCE_ID_SERVICE_PORT);
 	}
 
-	@Override
-	public void destroy() throws Exception {
+	public void disable() {
 		resetMetadataEndpointUrlOverwrite();
+		clearMetadataCache();
 		stopMetadataHttpServer();
 	}
 
-	private void startMetadataHttpServer(String instanceId) throws IOException {
-		this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
-		this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
-		this.httpServer.start();
+	private void startMetadataHttpServer(String instanceId) {
+		try {
+			this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
+			this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
+			this.httpServer.start();
+		} catch (IOException e) {
+			throw new IllegalStateException("Unable to start metadata http server", e);
+		}
 	}
 
 	private void stopMetadataHttpServer() {
@@ -76,6 +80,16 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 
 	private static void resetMetadataEndpointUrlOverwrite() {
 		System.clearProperty(EC2MetadataClient.EC2_METADATA_SERVICE_OVERRIDE);
+	}
+
+	private static void clearMetadataCache() {
+		try {
+			Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
+			metadataCacheField.setAccessible(true);
+			metadataCacheField.set(null, new HashMap<String, String>());
+		} catch (Exception e) {
+			throw new IllegalStateException("Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
+		}
 	}
 
 

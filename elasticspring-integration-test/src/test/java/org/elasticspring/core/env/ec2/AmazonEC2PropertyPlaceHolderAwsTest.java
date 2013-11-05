@@ -18,7 +18,10 @@ package org.elasticspring.core.env.ec2;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import org.elasticspring.support.TestStackEnvironment;
+import org.elasticspring.support.TestStackInstanceIdService;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,19 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
+
+	@Autowired
+	private TestStackInstanceIdService testStackInstanceIdService;
+
+	@Before
+	public void enableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.enable();
+	}
+
+	@After
+	public void disableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.disable();
+	}
 
 	@Test
 	public void testGetUserProperties() throws Exception {
