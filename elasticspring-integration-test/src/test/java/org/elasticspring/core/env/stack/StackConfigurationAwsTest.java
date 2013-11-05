@@ -1,6 +1,8 @@
 package org.elasticspring.core.env.stack;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.support.TestStackInstanceIdService;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +21,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-// TODO change to test against resource id resolver (not stack resource registry)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("StackConfigurationAwsTest-context.xml")
 public class StackConfigurationAwsTest {
@@ -47,6 +48,30 @@ public class StackConfigurationAwsTest {
 	}
 
 	@Test
+	public void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposed() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
+
+		// Act
+		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
+
+		// Assert
+		assertThat(resourceIdResolver, is(not(nullValue())));
+	}
+
+	@Test
+	public void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposedUnderInternalName() {
+		// Arrange
+		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
+
+		// Act
+		String beanName = applicationContext.getBeanNamesForType(ResourceIdResolver.class)[0];
+
+		// Assert
+		assertThat(beanName, is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
+	}
+
+	@Test
 	public void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
@@ -71,42 +96,42 @@ public class StackConfigurationAwsTest {
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
-		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
 
 		// Act
-		String physicalResourceId = staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket");
 
 		// Assert
 		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
-		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
 
 		// Act
-		String physicalResourceId = staticStackNameProviderBasedStackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket");
 
 		// Assert
 		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_throwsException() {
+	public void resourceIdResolverResolveToPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_returnsLogicalResourceIdAsPhysicalResourceId() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
-		StackResourceRegistry stackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
+		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
 
 		// Act
-		String physicalResourceId = stackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("nonExistingLogicalResourceId");
 
 		// Assert
-		assertThat(physicalResourceId, is(nullValue()));
+		assertThat(physicalResourceId, is("nonExistingLogicalResourceId"));
 	}
 
 	private ClassPathXmlApplicationContext loadApplicationContext(String configurationName) {
