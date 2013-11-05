@@ -12,6 +12,7 @@ import java.util.Collection;
 /**
  * Provides support for resolving logical resource ids to physical resource ids.
  */
+// TODO discuss whether to support more than one stack resource registry and how to deal with ordering/name conflicts
 public class ResourceIdResolver implements BeanFactoryAware, InitializingBean {
 
 	private StackResourceRegistry stackResourceRegistry;
