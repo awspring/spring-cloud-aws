@@ -1,8 +1,14 @@
 package org.elasticspring.core.env.stack;
 
+import org.elasticspring.support.TestStackInstanceIdService;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +20,24 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 // TODO change to test against resource id resolver (not stack resource registry)
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("StackConfigurationAwsTest-context.xml")
 public class StackConfigurationAwsTest {
 
 	private final List<ClassPathXmlApplicationContext> loadedApplicationContexts = new ArrayList<ClassPathXmlApplicationContext>();
+
+	@Autowired
+	private TestStackInstanceIdService testStackInstanceIdService;
+
+	@Before
+	public void enableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.enable();
+	}
+
+	@After
+	public void disableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.disable();
+	}
 
 	@After
 	public void destroyApplicationContexts() {
