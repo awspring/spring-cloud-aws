@@ -19,14 +19,19 @@ package org.elasticspring.messaging.endpoint;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Subscription;
+import com.amazonaws.services.sns.model.Topic;
+import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
-import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -75,7 +80,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	/**
 	 * The destination resolver used to resolve topic arn based on the logical name
 	 */
-	private DestinationResolver destinationResolver;
+	private DestinationResolver<MessageChannel> destinationResolver;
 
 	/**
 	 * Constructs this base class with all collaborators and configuration information. This constructor creates and uses
@@ -129,7 +134,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	 * @param destinationResolver
 	 * 		the destination resolver, must not be null
 	 */
-	public void setDestinationResolver(DestinationResolver destinationResolver) {
+	public void setDestinationResolver(DestinationResolver<MessageChannel> destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
 
@@ -144,7 +149,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	 */
 	@Override
 	protected T createInstance() throws Exception {
-		String topicArn = this.destinationResolver.resolveDestinationName(getTopicName());
+		String topicArn =  getTopicResourceName(null, getTopicName());
 		Subscription subscriptionForEndpoint = getSubscriptionForEndpoint(topicArn, null);
 		return doCreateEndpointInstance(subscriptionForEndpoint);
 	}
@@ -272,4 +277,26 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	public boolean isSingleton() {
 		return true;
 	}
+
+	private String getTopicResourceName(String marker, String topicName) {
+			ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
+			for (Topic topic : listTopicsResult.getTopics()) {
+				if (AmazonResourceName.isValidAmazonResourceName(topicName)) {
+					if (topic.getTopicArn().equals(topicName)) {
+						return topic.getTopicArn();
+					}
+				} else {
+					AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
+					if (resourceName.getResourceType().equals(topicName)) {
+						return topic.getTopicArn();
+					}
+				}
+			}
+
+			if (StringUtils.hasText(listTopicsResult.getNextToken())) {
+				return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
+			} else {
+				throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
+			}
+		}
 }

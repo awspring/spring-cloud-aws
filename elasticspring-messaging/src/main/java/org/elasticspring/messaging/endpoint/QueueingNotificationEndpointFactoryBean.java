@@ -20,14 +20,12 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.listener.MessageListenerAdapter;
 import org.elasticspring.messaging.listener.NotificationEndpointMessageListenerAdapter;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
-import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
-import org.elasticspring.messaging.support.destination.DestinationResolver;
-import org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
@@ -45,7 +43,6 @@ public class QueueingNotificationEndpointFactoryBean extends AbstractNotificatio
 	 * The Amazon SQS client that will be used by the {@link SimpleMessageListenerContainer} to receive messages
 	 */
 	private final AmazonSQS amazonSqs;
-	private final DestinationResolver destinationResolver;
 	private SimpleMessageListenerContainer container;
 
 	/**
@@ -72,7 +69,6 @@ public class QueueingNotificationEndpointFactoryBean extends AbstractNotificatio
 		Assert.notNull(amazonSqs, "amazonSqs must not be null");
 		Assert.isTrue(protocol == TopicListener.NotificationProtocol.SQS, "This endpoint only support sqs endpoints");
 		this.amazonSqs = amazonSqs;
-		this.destinationResolver = new CachingDestinationResolver(new DynamicQueueDestinationResolver(amazonSqs));
 	}
 
 	@Override
@@ -93,7 +89,7 @@ public class QueueingNotificationEndpointFactoryBean extends AbstractNotificatio
 
 	@Override
 	public String getEndpoint() {
-		String queueUrl = this.destinationResolver.resolveDestinationName(super.getEndpoint());
+		String queueUrl = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(super.getEndpoint())).getQueueUrl();
 		return this.amazonSqs.getQueueAttributes(new GetQueueAttributesRequest(queueUrl).withAttributeNames("QueueArn")).getAttributes().get("QueueArn");
 	}
 

@@ -55,7 +55,7 @@
 		</property>
 	</bean>
 
-	<bean id="destinationResolver" class="org.elasticspring.messaging.support.destination.QueueMessageChannelDestinationResolver">
+	<bean id="destinationResolver" class="org.elasticspring.messaging.support.destination.DynamicQueueDestinationResolver">
 		<constructor-arg ref="amazonSqsClient" />
 	</bean>
 

@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
  * <p/>
  * A class might contain multiple message listener methods which are listening to different queues. The queue name is
  * directly configured with the annotation itself. Queue names will be resolved with a {@link
- * org.elasticspring.messaging.support.destination.DestinationResolver} which will fetch the physical queue url based
+ * org.springframework.messaging.core.DestinationResolver} which will fetch the physical queue url based
  * on the logical queue name.
  *
  * @author Agim Emruli
@@ -55,7 +55,7 @@ public @interface QueueListener {
 
 	/**
 	 * The definition of queue name for the particular message listener method. This value will be resolved through an
-	 * {@link org.elasticspring.messaging.support.destination.DestinationResolver} at initialization time to fetch the
+	 * {@link org.springframework.messaging.core.DestinationResolver} at initialization time to fetch the
 	 * physical queue url.
 	 * <p/>
 	 * <b>Hint:</b>It is also possible to specify a queue url directly which contains the full url to the queue. It is not

@@ -24,7 +24,6 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sns.model.Topic;
 import org.elasticspring.messaging.config.annotation.TopicListener;
-import org.elasticspring.messaging.support.destination.DestinationResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +31,8 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Agim Emruli
@@ -46,11 +47,11 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 	public void testTopicDoesNotExist() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
-		DestinationResolver destinationResolver = Mockito.mock(DestinationResolver.class);
+		DestinationResolver<MessageChannel> destinationResolver = Mockito.mock(MockDestinationResolver.class);
 
-		Mockito.when(destinationResolver.resolveDestinationName("test")).thenThrow(new IllegalArgumentException("No topic found for name :'test'"));
 
 		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		Mockito.when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(amazonSns, "test",
 				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
@@ -188,4 +189,9 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 			return this.initialized;
 		}
 	}
+
+	interface MockDestinationResolver extends DestinationResolver<MessageChannel>{
+
+	}
+
 }

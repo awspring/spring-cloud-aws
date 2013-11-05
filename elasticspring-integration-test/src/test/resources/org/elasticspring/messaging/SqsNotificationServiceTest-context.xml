@@ -29,9 +29,8 @@
 	</bean>
 
 	<bean id="simpleNotificationServiceMessageTemplate"
-		  class="org.elasticspring.messaging.core.sns.SimpleNotificationServiceTemplate">
-		<constructor-arg ref="amazonSns" />
-		<property name="defaultDestinationName"
+		  class="org.springframework.messaging.core.GenericMessagingTemplate">
+		<property name="defaultDestination"
 				  value="#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}" />
 	</bean>
 

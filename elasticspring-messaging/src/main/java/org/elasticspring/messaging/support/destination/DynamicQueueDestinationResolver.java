@@ -22,11 +22,15 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import org.elasticspring.messaging.core.QueueMessageChannel;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  *
  */
-public class DynamicQueueDestinationResolver implements DestinationResolver {
+public class DynamicQueueDestinationResolver implements DestinationResolver<MessageChannel> {
 
 	private final AmazonSQS queueingService;
 	private boolean autoCreate;
@@ -35,29 +39,30 @@ public class DynamicQueueDestinationResolver implements DestinationResolver {
 		this.queueingService = queueingService;
 	}
 
+	public void setAutoCreate(boolean autoCreate) {
+		this.autoCreate = autoCreate;
+	}
+
 	@Override
-	public String resolveDestinationName(String destination) {
-		if (destination.startsWith("http")) {
-			return destination;
+	public QueueMessageChannel resolveDestination(String name) throws DestinationResolutionException {
+		if (name.startsWith("http")) {
+			return new QueueMessageChannel(this.queueingService, name);
 		}
 
 		if (this.autoCreate) {
-			CreateQueueResult createQueueResult = this.queueingService.createQueue(new CreateQueueRequest(destination));
-			return createQueueResult.getQueueUrl();
+			CreateQueueResult createQueueResult = this.queueingService.createQueue(new CreateQueueRequest(name));
+			return new QueueMessageChannel(this.queueingService, createQueueResult.getQueueUrl());
 		} else {
 			try {
-				GetQueueUrlResult getQueueUrlResult = this.queueingService.getQueueUrl(new GetQueueUrlRequest(destination));
-				return getQueueUrlResult.getQueueUrl();
+				GetQueueUrlResult getQueueUrlResult = this.queueingService.getQueueUrl(new GetQueueUrlRequest(name));
+				return new QueueMessageChannel(this.queueingService,getQueueUrlResult.getQueueUrl()) ;
 			} catch (AmazonServiceException e) {
 				if ("AWS.SimpleQueueService.NonExistentQueue".equals(e.getErrorCode())) {
-					throw new InvalidDestinationException(destination);
+					throw new InvalidDestinationException(name);
+				}else{
+					throw e;
 				}
 			}
 		}
-		return null;
-	}
-
-	public void setAutoCreate(boolean autoCreate) {
-		this.autoCreate = autoCreate;
 	}
 }
