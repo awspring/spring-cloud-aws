@@ -1,17 +1,21 @@
 package org.elasticspring.core.env;
 
 import org.elasticspring.core.env.stack.StackResourceRegistry;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
+
+import java.util.Collection;
 
 /**
  * Provides support for resolving logical resource ids to physical resource ids.
  */
-public class ResourceIdResolver {
+public class ResourceIdResolver implements BeanFactoryAware, InitializingBean {
 
-	private final StackResourceRegistry stackResourceRegistry;
-
-	public ResourceIdResolver(StackResourceRegistry stackResourceRegistry) {
-		this.stackResourceRegistry = stackResourceRegistry;
-	}
+	private StackResourceRegistry stackResourceRegistry;
+	private ListableBeanFactory beanFactory;
 
 	/**
 	 * Resolves the provided logical resource id to the corresponding physical resource id. If the logical resource id
@@ -36,6 +40,32 @@ public class ResourceIdResolver {
 		}
 
 		return logicalResourceId;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		if (!(beanFactory instanceof ListableBeanFactory)) {
+			throw new IllegalStateException("Bean factory must be of type '" + ListableBeanFactory.class.getName() + "'");
+		}
+
+		this.beanFactory = (ListableBeanFactory) beanFactory;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.stackResourceRegistry = findSingleOptionalStackResourceRegistry(this.beanFactory);
+	}
+
+	private static StackResourceRegistry findSingleOptionalStackResourceRegistry(ListableBeanFactory beanFactory) {
+		Collection<StackResourceRegistry> stackResourceRegistries = beanFactory.getBeansOfType(StackResourceRegistry.class).values();
+
+		if (stackResourceRegistries.size() > 1) {
+			throw new IllegalStateException("Multiple stack resource registries found");
+		} else if (stackResourceRegistries.size() == 1) {
+			return stackResourceRegistries.iterator().next();
+		} else {
+			return null;
+		}
 	}
 
 }
