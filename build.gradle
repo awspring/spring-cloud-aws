@@ -54,11 +54,12 @@ subprojects {
     ext {
         springFrameworkVersion = "4.0.0.RC1"
         springRetryVersion = "1.0.2.RELEASE"
-        junitVersion = '4.10'
+        junitVersion = '4.11'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
         awsSdkVersion = '1.5.7'
         mockitoVersion = '1.9.5'
+        hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
     }
 
@@ -68,7 +69,8 @@ subprojects {
         testRuntime("org.slf4j:slf4j-jcl:${slf4jVersion}")
         testRuntime("log4j:log4j:${log4jVersion}")
         testCompile("junit:junit:${junitVersion}")
-        testCompile("org.mockito:mockito-all:${mockitoVersion}")
+        testCompile("org.mockito:mockito-core:${mockitoVersion}")
+        testCompile("org.hamcrest:hamcrest-core:${hamcrestVersion}")
     }
 
 

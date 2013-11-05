@@ -18,69 +18,21 @@
 
 package org.elasticspring.core.env.ec2;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.MessageFormat;
+import com.amazonaws.util.EC2MetadataUtils;
 
 /**
+ * Provides the instance id of the current Amazon EC2 instance.
+ * <p/>
+ * This class can only be used within an Amazon EC2 environment.
  *
+ * @author Agim Emruli
+ * @author Christian Stettler
  */
 class AmazonEC2InstanceIdProvider implements InstanceIdProvider {
 
-	private static final String INSTANCE_ID_DEFAULT_URL = "http://169.254.169.254/latest/meta-data/instance-id";
-
-	private final String instanceIdUrl;
-
-	AmazonEC2InstanceIdProvider(String instanceIdUrl) {
-		this.instanceIdUrl = instanceIdUrl;
-	}
-
-	AmazonEC2InstanceIdProvider() {
-		this(INSTANCE_ID_DEFAULT_URL);
-	}
-
 	@Override
-	public String getCurrentInstanceId() throws IOException {
-		URLConnection con = new URL(this.instanceIdUrl).openConnection();
-		if (!(con instanceof HttpURLConnection)) {
-			throw new IOException(MessageFormat.format("Service URL [{0}] is not an HTTP URL", this.instanceIdUrl));
-		}
-
-		HttpURLConnection httpURLConnection = (HttpURLConnection) con;
-		httpURLConnection.setRequestMethod("GET");
-		InputStream inputStream = null;
-		BufferedReader bufferedReader = null;
-		InputStreamReader inputStreamReader = null;
-		String instanceId;
-		try {
-			httpURLConnection.connect();
-			inputStream = httpURLConnection.getInputStream();
-			inputStreamReader = new InputStreamReader(inputStream);
-			bufferedReader = new BufferedReader(inputStreamReader);
-			instanceId = bufferedReader.readLine();
-		} finally {
-			if (bufferedReader != null) {
-				bufferedReader.close();
-			}
-
-			if (inputStreamReader != null) {
-				inputStreamReader.close();
-			}
-
-			if (inputStream != null) {
-				inputStream.close();
-			}
-
-			httpURLConnection.disconnect();
-		}
-
-		return instanceId;
+	public String getCurrentInstanceId() {
+		return EC2MetadataUtils.getInstanceId();
 	}
-
 
 }
