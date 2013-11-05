@@ -17,16 +17,10 @@
 package org.elasticspring.messaging.support.destination;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.CreateTopicRequest;
-import com.amazonaws.services.sns.model.ListTopicsRequest;
-import com.amazonaws.services.sns.model.ListTopicsResult;
-import com.amazonaws.services.sns.model.Topic;
-import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
@@ -35,49 +29,15 @@ import org.springframework.util.StringUtils;
 public class DynamicTopicDestinationResolver implements DestinationResolver<MessageChannel> {
 
 	private final AmazonSNS amazonSns;
-	private boolean autoCreate;
+	private final DestinationResolver<String> topicArnDestinationResolver;
 
-	public DynamicTopicDestinationResolver(AmazonSNS amazonSNS) {
-		this.amazonSns = amazonSNS;
-	}
-
-	public void setAutoCreate(boolean autoCreate) {
-		this.autoCreate = autoCreate;
-	}
-
-	private String getTopicResourceName(String marker, String topicName) {
-		ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
-		for (Topic topic : listTopicsResult.getTopics()) {
-			if (AmazonResourceName.isValidAmazonResourceName(topicName)) {
-				if (topic.getTopicArn().equals(topicName)) {
-					return topic.getTopicArn();
-				}
-			} else {
-				AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-				if (resourceName.getResourceType().equals(topicName)) {
-					return topic.getTopicArn();
-				}
-			}
-		}
-
-		if (StringUtils.hasText(listTopicsResult.getNextToken())) {
-			return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
-		} else {
-			throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
-		}
+	public DynamicTopicDestinationResolver(AmazonSNS amazonSns) {
+		this.amazonSns = amazonSns;
+		this.topicArnDestinationResolver = new DynamicTopicArnDestinationResolver(amazonSns);
 	}
 
 	@Override
 	public TopicMessageChannel resolveDestination(String name) throws DestinationResolutionException {
-		if (this.autoCreate) {
-			return new TopicMessageChannel(this.amazonSns,this.amazonSns.createTopic(new CreateTopicRequest(name)).getTopicArn());
-		} else {
-			String topicArn = getTopicResourceName(null, name);
-			if (topicArn == null) {
-				throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use " +
-						"the right topic name or enable auto creation of topics for this DestinationResolver");
-			}
-			return new TopicMessageChannel(this.amazonSns,topicArn);
-		}
+		return new TopicMessageChannel(this.amazonSns, this.topicArnDestinationResolver.resolveDestination(name));
 	}
 }

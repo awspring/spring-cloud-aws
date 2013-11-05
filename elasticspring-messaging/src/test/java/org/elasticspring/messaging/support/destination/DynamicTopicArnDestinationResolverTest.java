@@ -22,7 +22,6 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Topic;
-import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +32,7 @@ import org.mockito.Mockito;
  * @author Agim Emruli
  * @since 1.0
  */
-public class DynamicTopicDestinationResolverTest {
+public class DynamicTopicArnDestinationResolverTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
@@ -46,7 +45,7 @@ public class DynamicTopicDestinationResolverTest {
 
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
 
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
 		resolver.resolveDestination("test");
 	}
 
@@ -59,7 +58,7 @@ public class DynamicTopicDestinationResolverTest {
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("foo"));
 		Mockito.when(sns.listTopics(new ListTopicsRequest("foo"))).thenReturn(new ListTopicsResult());
 
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
 		resolver.resolveDestination("test");
 	}
 
@@ -70,9 +69,8 @@ public class DynamicTopicDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
-		TopicMessageChannel messageChannel = resolver.resolveDestination("test");
-		Assert.assertEquals(topicArn, messageChannel.getTopicArn());
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		Assert.assertEquals(topicArn, resolver.resolveDestination("test"));
 	}
 
 	@Test
@@ -84,9 +82,8 @@ public class DynamicTopicDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.listTopics(new ListTopicsRequest("mark"))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
-		TopicMessageChannel messageChannel = resolver.resolveDestination("test");
-		Assert.assertEquals(topicArn, messageChannel.getTopicArn());
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		Assert.assertEquals(topicArn, resolver.resolveDestination(topicArn));
 	}
 
 	@Test
@@ -94,11 +91,10 @@ public class DynamicTopicDestinationResolverTest {
 		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
 
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		TopicMessageChannel messageChannel = resolver.resolveDestination(topicArn);
-		Assert.assertEquals(topicArn, messageChannel.getTopicArn());
+		Assert.assertEquals(topicArn, resolver.resolveDestination(topicArn));
 	}
 
 	@Test
@@ -108,9 +104,8 @@ public class DynamicTopicDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.createTopic(new CreateTopicRequest("test"))).thenReturn(new CreateTopicResult().withTopicArn(topicArn));
 
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
 		resolver.setAutoCreate(true);
-		TopicMessageChannel messageChannel = resolver.resolveDestination("test");
-		Assert.assertEquals(topicArn, messageChannel.getTopicArn());
+		Assert.assertEquals(topicArn, resolver.resolveDestination("test"));
 	}
 }

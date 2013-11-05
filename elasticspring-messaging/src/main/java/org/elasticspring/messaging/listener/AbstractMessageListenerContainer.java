@@ -17,8 +17,9 @@
 package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -49,6 +50,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private MessageListener messageListener;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private String destinationName;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private DestinationResolver<String> destinationResolver;
 	private String beanName;
 
 	//Optional settings with no defaults
@@ -119,6 +122,22 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	 */
 	public void setDestinationName(String destinationName) {
 		this.destinationName = destinationName;
+	}
+
+	protected DestinationResolver<String> getDestinationResolver() {
+		return this.destinationResolver;
+	}
+
+	/**
+	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
+	 * this
+	 * instance.
+	 *
+	 * @param destinationResolver
+	 * 		- the destination resolver. Must not be null
+	 */
+	public void setDestinationResolver(DestinationResolver<String> destinationResolver) {
+		this.destinationResolver = destinationResolver;
 	}
 
 	protected String getBeanName() {
@@ -214,8 +233,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	/**
 	 * A custom error handler that will be called in case of any message listener error.
 	 *
-	 * @param errorHandler
-	 * 		custom error handler implementation
+	 * @param errorHandler custom error handler implementation
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -247,6 +265,10 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	protected void initialize() {
 		synchronized (this.getLifecycleMonitor()) {
+			if (this.destinationResolver == null) {
+				this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
+			}
+
 			this.active = true;
 			this.getLifecycleMonitor().notifyAll();
 		}
@@ -256,7 +278,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	public void start() {
 		getLogger().debug("Starting container with name {}", getBeanName());
 		synchronized (this.getLifecycleMonitor()) {
-			String destinationUrl = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(getDestinationName())).getQueueUrl();
+			String destinationUrl = getDestinationResolver().resolveDestination(getDestinationName());
 			ReceiveMessageRequest request = new ReceiveMessageRequest(destinationUrl);
 			if (getMaxNumberOfMessages() != null) {
 				request.withMaxNumberOfMessages(getMaxNumberOfMessages());

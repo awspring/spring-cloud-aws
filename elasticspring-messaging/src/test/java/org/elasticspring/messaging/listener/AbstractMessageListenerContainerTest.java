@@ -20,13 +20,14 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.ErrorHandler;
 
@@ -94,7 +95,19 @@ public class AbstractMessageListenerContainerTest {
 		container.afterPropertiesSet();
 	}
 
+	@Test
+	public void testDestinationResolverIsCreatedIfNull() throws Exception {
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
+		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
+		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setDestinationName("testQueue");
+		container.afterPropertiesSet();
+
+		DestinationResolver destinationResolver = container.getDestinationResolver();
+		Assert.assertNotNull(destinationResolver);
+		Assert.assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
+	}
 
 	@Test
 	public void testDisposableBeanResetActiveFlag() throws Exception {
@@ -118,6 +131,21 @@ public class AbstractMessageListenerContainerTest {
 		Assert.assertEquals("test", container.getBeanName());
 	}
 
+	@Test
+	public void testCustomDestinationResolverSet() throws Exception {
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
+
+		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
+		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setDestinationName("testQueue");
+
+		DestinationResolver<String> destinationResolver = Mockito.mock(DynamicQueueUrlDestinationResolver.class);
+		container.setDestinationResolver(destinationResolver);
+
+		container.afterPropertiesSet();
+
+		Assert.assertEquals(destinationResolver, container.getDestinationResolver());
+	}
 
 	@Test
 	public void testMaxNumberOfMessages() throws Exception {
@@ -398,9 +426,4 @@ public class AbstractMessageListenerContainerTest {
 		protected void doStop() {
 		}
 	}
-
-	interface MockDestinationResolver extends DestinationResolver<MessageChannel>{
-
-	}
-
 }

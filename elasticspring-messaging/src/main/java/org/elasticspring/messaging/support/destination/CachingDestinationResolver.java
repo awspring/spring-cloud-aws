@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging.support.destination;
 
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 
@@ -25,22 +24,22 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  *
  */
-public class CachingDestinationResolver implements DestinationResolver<MessageChannel> {
+public class CachingDestinationResolver<P> implements DestinationResolver<P> {
 
-	private final ConcurrentHashMap<String, MessageChannel> destinationCache = new ConcurrentHashMap<String, MessageChannel>();
-	private final DestinationResolver<MessageChannel> delegate;
+	private final ConcurrentHashMap<String, P> destinationCache = new ConcurrentHashMap<String, P>();
+	private final DestinationResolver<P> delegate;
 
-	public CachingDestinationResolver(DestinationResolver<MessageChannel> delegate) {
+	public CachingDestinationResolver(DestinationResolver<P> delegate) {
 		this.delegate = delegate;
 	}
 
 	@Override
-	public MessageChannel resolveDestination(String name) throws DestinationResolutionException {
+	public P resolveDestination(String name) throws DestinationResolutionException {
 		if (this.destinationCache.contains(name)) {
 			return this.destinationCache.get(name);
 		}
 
-		MessageChannel result = this.delegate.resolveDestination(name);
+		P result = this.delegate.resolveDestination(name);
 		this.destinationCache.putIfAbsent(name, result);
 		return result;
 	}
