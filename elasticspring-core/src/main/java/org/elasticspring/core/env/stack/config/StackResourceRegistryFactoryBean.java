@@ -40,7 +40,7 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
 
-		return new StaticStackResourceRegistry(convertToStackResourceMappings(stackResourceSummaries));
+		return new StaticStackResourceRegistry(stackName, convertToStackResourceMappings(stackResourceSummaries));
 	}
 
 	private static Map<String, String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
@@ -54,12 +54,22 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 	}
 
 
+	/**
+	 * Stack resource registry containing a static mapping of logical resource ids to physical resource ids.
+	 */
 	private static class StaticStackResourceRegistry implements StackResourceRegistry {
 
+		private final String stackName;
 		private final Map<String, String> physicalResourceIdsByLogicalResourceId;
 
-		private StaticStackResourceRegistry(Map<String, String> physicalResourceIdsByLogicalResourceId) {
+		private StaticStackResourceRegistry(String stackName, Map<String, String> physicalResourceIdsByLogicalResourceId) {
+			this.stackName = stackName;
 			this.physicalResourceIdsByLogicalResourceId = physicalResourceIdsByLogicalResourceId;
+		}
+
+		@Override
+		public String getStackName() {
+			return this.stackName;
 		}
 
 		@Override

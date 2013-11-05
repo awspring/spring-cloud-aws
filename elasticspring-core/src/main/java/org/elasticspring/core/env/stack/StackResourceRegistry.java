@@ -8,6 +8,13 @@ package org.elasticspring.core.env.stack;
 public interface StackResourceRegistry {
 
 	/**
+	 * Returns the name of the stack represented by this stack resource registry.
+	 *
+	 * @return the name of the stack
+	 */
+	String getStackName();
+
+	/**
 	 * Returns the physical id of the resource identified by the provided logical resource id. If no resource with the
 	 * provided logical id exists, null is returned.
 	 *
