@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 // TODO change to test against resource id resolver (not stack resource registry)
-public class StackResourceRegistryAwsTest {
+public class StackConfigurationAwsTest {
 
 	private final List<ClassPathXmlApplicationContext> loadedApplicationContexts = new ArrayList<ClassPathXmlApplicationContext>();
 
@@ -26,7 +26,7 @@ public class StackResourceRegistryAwsTest {
 	}
 
 	@Test
-	public void stackResourceRegistry_staticStackNameProvider_stackResourceRegistryBeanExposedUnderStackName() {
+	public void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
 
@@ -38,7 +38,7 @@ public class StackResourceRegistryAwsTest {
 	}
 
 	@Test
-	public void stackResourceRegistry_autoDetectingStackNameProvider_stackResourceRegistryBeanExposedUnderGeneratedName() {
+	public void stackResourceRegistry_stackConfigurationWithoutStaticName_stackResourceRegistryBeanExposedUnderGeneratedName() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
 
@@ -50,7 +50,7 @@ public class StackResourceRegistryAwsTest {
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_staticStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void lookupPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
 		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
@@ -63,7 +63,7 @@ public class StackResourceRegistryAwsTest {
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_autoDetectingStackNameProviderAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void lookupPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
 		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(StackResourceRegistry.class);
@@ -89,7 +89,7 @@ public class StackResourceRegistryAwsTest {
 	}
 
 	private ClassPathXmlApplicationContext loadApplicationContext(String configurationName) {
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(StackResourceRegistryAwsTest.class.getSimpleName() + "-" + configurationName + ".xml", StackResourceRegistryAwsTest.class);
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(StackConfigurationAwsTest.class.getSimpleName() + "-" + configurationName + ".xml", StackConfigurationAwsTest.class);
 		this.loadedApplicationContexts.add(applicationContext);
 
 		return applicationContext;
