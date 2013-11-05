@@ -17,22 +17,13 @@
 package org.elasticspring.core.env.ec2;
 
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.remoting.support.SimpleHttpServerFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -49,39 +40,12 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 
 	@Test
 	public void testGetUserProperties() throws Exception {
-		SimpleHttpServerFactoryBean simpleHttpServerFactoryBean = new SimpleHttpServerFactoryBean();
-
-		Map<String, HttpHandler> contexts = new HashMap<String, HttpHandler>();
-		contexts.put("/latest/meta-data/instance-id", new InstanceIdHttpHandler(this.testStackEnvironment.getByLogicalId("UserTagAndUserDataInstance")));
-		simpleHttpServerFactoryBean.setContexts(contexts);
-		simpleHttpServerFactoryBean.afterPropertiesSet();
-
-		AmazonEC2InstanceIdProvider instanceIdProvider = new AmazonEC2InstanceIdProvider("http://localhost:8080/latest/meta-data/instance-id");
-
 		AmazonEC2UserTagPropertySource amazonEC2PropertySource = new AmazonEC2UserTagPropertySource("userTagPropertySource", this.amazonEC2Client);
-		amazonEC2PropertySource.setInstanceIdProvider(instanceIdProvider);
+
 		Assert.assertEquals("tagv1", amazonEC2PropertySource.getProperty("tag1").toString());
 		Assert.assertEquals("tagv2", amazonEC2PropertySource.getProperty("tag2").toString());
 		Assert.assertEquals("tagv3", amazonEC2PropertySource.getProperty("tag3").toString());
 		Assert.assertEquals("tagv4", amazonEC2PropertySource.getProperty("tag4").toString());
 	}
 
-	public static class InstanceIdHttpHandler implements HttpHandler {
-
-		private final String result;
-
-		public InstanceIdHttpHandler(String result) {
-			this.result = result;
-		}
-
-		@Override
-		public void handle(HttpExchange exchange) throws IOException {
-			exchange.sendResponseHeaders(200, this.result.length());
-			OutputStream outputStream = exchange.getResponseBody();
-			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-			outputStreamWriter.write(this.result);
-			outputStreamWriter.flush();
-			exchange.close();
-		}
-	}
 }
