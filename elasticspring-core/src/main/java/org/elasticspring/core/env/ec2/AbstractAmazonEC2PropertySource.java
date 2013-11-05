@@ -21,7 +21,6 @@ package org.elasticspring.core.env.ec2;
 import com.amazonaws.services.ec2.AmazonEC2;
 import org.springframework.core.env.PropertySource;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -48,13 +47,7 @@ abstract class AbstractAmazonEC2PropertySource extends PropertySource<AmazonEC2>
 	@Override
 	public Object getProperty(String name) {
 		if (this.propertyValues == null) {
-			String currentInstanceId;
-			try {
-				currentInstanceId = this.instanceIdProvider.getCurrentInstanceId();
-			} catch (IOException e) {
-				throw new RuntimeException("Error retrieving instance id", e);
-			}
-			this.propertyValues = createValueMap(currentInstanceId);
+			this.propertyValues = createValueMap(this.instanceIdProvider.getCurrentInstanceId());
 		}
 		return this.propertyValues.get(name);
 	}
