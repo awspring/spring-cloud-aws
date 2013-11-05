@@ -42,9 +42,11 @@ import java.io.InputStreamReader;
  */
 public class TestStackEnvironment implements InitializingBean, DisposableBean {
 
-	private final AmazonCloudFormation amazonCloudFormationClient;
-	private static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
+	public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
+	public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
 	private static final String TEMPLATE_PATH = "IntegrationTest.template";
+
+	private final AmazonCloudFormation amazonCloudFormationClient;
 	private DescribeStackResourcesResult stackResources;
 	private boolean stackCreatedByThisInstance;
 

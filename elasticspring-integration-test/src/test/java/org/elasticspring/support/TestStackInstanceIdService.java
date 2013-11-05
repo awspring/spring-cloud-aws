@@ -29,24 +29,18 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 
 	public static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
 	public static final int INSTANCE_ID_SERVICE_PORT = 12345;
-	public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
 
-	private final String stackName;
-	private final AmazonCloudFormationClient amazonCloudFormationClient;
+	private final InstanceIdSource instanceIdSource;
 
 	private HttpServer httpServer;
 
-	public TestStackInstanceIdService(String stackName, AmazonCloudFormationClient amazonCloudFormationClient) {
-		this.stackName = stackName;
-		this.amazonCloudFormationClient = amazonCloudFormationClient;
+	private TestStackInstanceIdService(InstanceIdSource instanceIdSource) {
+		this.instanceIdSource = instanceIdSource;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
-
-		Stack stack = getStack(describeStacksResult, this.stackName);
-		String instanceId = getOutputValue(stack, INSTANCE_ID_STACK_OUTPUT_KEY);
+		String instanceId = this.instanceIdSource.getInstanceId();
 
 		this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
 		this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
@@ -64,34 +58,12 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 		}
 	}
 
-	private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
-		for (Stack stack : describeStacksResult.getStacks()) {
-			if (stack.getStackName().equals(stackName)) {
-				return stack;
-			}
-		}
-
-		throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: " + allStackNames(describeStacksResult) + ")");
+	public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey, AmazonCloudFormationClient amazonCloudFormationClient) {
+		return new TestStackInstanceIdService(new AmazonStackOutputBasedInstanceIdSource(stackName, outputKey, amazonCloudFormationClient));
 	}
 
-	private static String getOutputValue(Stack stack, String outputKey) {
-		for (Output output : stack.getOutputs()) {
-			if (output.getOutputKey().equals(outputKey)) {
-				return output.getOutputValue();
-			}
-		}
-
-		throw new IllegalStateException("No output '" + outputKey + "' defined in stack '" + stack.getStackName() + "'");
-	}
-
-	private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
-		List<String> allStackNames = new ArrayList<String>();
-
-		for (Stack stack : describeStacksResult.getStacks()) {
-			allStackNames.add(stack.getStackName());
-		}
-
-		return allStackNames;
+	public static TestStackInstanceIdService fromInstanceId(String instanceId) {
+		return new TestStackInstanceIdService(new StaticInstanceIdSource(instanceId));
 	}
 
 	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
@@ -122,6 +94,96 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 			responseBody.write(this.instanceId.getBytes());
 			responseBody.flush();
 			responseBody.close();
+		}
+
+	}
+
+
+	/**
+	 * Utility interface for abstracting source for instance id.
+	 */
+	private interface InstanceIdSource {
+
+		String getInstanceId();
+
+	}
+
+
+	/**
+	 * Source for statically configured instance id.
+	 * <p/>
+	 * Useful for unit testing.
+	 */
+	private static class StaticInstanceIdSource implements InstanceIdSource {
+
+		private final String instanceId;
+
+		private StaticInstanceIdSource(String instanceId) {
+			this.instanceId = instanceId;
+		}
+
+		@Override
+		public String getInstanceId() {
+			return this.instanceId;
+		}
+
+	}
+
+
+	/**
+	 * Source for retrieving instance id from specified output key of specified stack. Requires specified stack to be
+	 * available.
+	 * <p/>
+	 * Useful for integration testing.
+	 */
+	private static class AmazonStackOutputBasedInstanceIdSource implements InstanceIdSource {
+
+		private final String stackName;
+		private final String outputKey;
+		private final AmazonCloudFormationClient amazonCloudFormationClient;
+
+		private AmazonStackOutputBasedInstanceIdSource(String stackName, String outputKey, AmazonCloudFormationClient amazonCloudFormationClient) {
+			this.stackName = stackName;
+			this.outputKey = outputKey;
+			this.amazonCloudFormationClient = amazonCloudFormationClient;
+		}
+
+		@Override
+		public String getInstanceId() {
+			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
+			Stack stack = getStack(describeStacksResult, this.stackName);
+
+			return getOutputValue(stack, this.outputKey);
+		}
+
+		private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
+			for (Stack stack : describeStacksResult.getStacks()) {
+				if (stack.getStackName().equals(stackName)) {
+					return stack;
+				}
+			}
+
+			throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: " + allStackNames(describeStacksResult) + ")");
+		}
+
+		private static String getOutputValue(Stack stack, String outputKey) {
+			for (Output output : stack.getOutputs()) {
+				if (output.getOutputKey().equals(outputKey)) {
+					return output.getOutputValue();
+				}
+			}
+
+			throw new IllegalStateException("No output '" + outputKey + "' defined in stack '" + stack.getStackName() + "'");
+		}
+
+		private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
+			List<String> allStackNames = new ArrayList<String>();
+
+			for (Stack stack : describeStacksResult.getStacks()) {
+				allStackNames.add(stack.getStackName());
+			}
+
+			return allStackNames;
 		}
 
 	}

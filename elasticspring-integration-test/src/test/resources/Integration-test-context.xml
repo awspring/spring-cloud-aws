@@ -37,8 +37,9 @@
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
 	</bean>
 
-	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService">
+	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService" factory-method="fromStackOutputKey">
 		<constructor-arg name="stackName" value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
+		<constructor-arg name="outputKey" value="#{T(org.elasticspring.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}"/>
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
 	</bean>
 
