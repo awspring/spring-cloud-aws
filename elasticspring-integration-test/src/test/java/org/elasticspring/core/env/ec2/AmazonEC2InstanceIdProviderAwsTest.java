@@ -15,14 +15,14 @@ public class AmazonEC2InstanceIdProviderAwsTest {
 	private TestStackInstanceIdService testStackInstanceIdService;
 
 	@Before
-	public void mockInstanceIdMetadataService() throws Exception {
+	public void enableInstanceIdMetadataService() {
 		this.testStackInstanceIdService = TestStackInstanceIdService.fromInstanceId("i-abcdefg");
-		this.testStackInstanceIdService.afterPropertiesSet();
+		this.testStackInstanceIdService.enable();
 	}
 
 	@After
-	public void resetInstanceIdMetadataService() throws Exception {
-		this.testStackInstanceIdService.destroy();
+	public void disableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.disable();
 	}
 
 	@Test
