@@ -40,19 +40,36 @@ public class TestStackInstanceIdService implements InitializingBean, DisposableB
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		String instanceId = this.instanceIdSource.getInstanceId();
-
-		this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
-		this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
-		this.httpServer.start();
-
+		startMetadataHttpServer(this.instanceIdSource.getInstanceId());
 		overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":" + INSTANCE_ID_SERVICE_PORT);
 	}
 
 	@Override
 	public void destroy() throws Exception {
 		resetMetadataEndpointUrlOverwrite();
+		stopMetadataHttpServer();
+	}
 
+	public void setInstanceId(String instanceId) {
+		try {
+			stopMetadataHttpServer();
+			startMetadataHttpServer(instanceId);
+		} catch (Exception e) {
+			throw new IllegalStateException("Unable to reset instance id '" + instanceId + "'", e);
+		}
+	}
+
+	public void resetInstanceId() {
+		setInstanceId(this.instanceIdSource.getInstanceId());
+	}
+
+	private void startMetadataHttpServer(String instanceId) throws IOException {
+		this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
+		this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
+		this.httpServer.start();
+	}
+
+	private void stopMetadataHttpServer() {
 		if (this.httpServer != null) {
 			this.httpServer.stop(0);
 		}
