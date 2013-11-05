@@ -17,7 +17,6 @@
 package org.elasticspring.support;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
@@ -43,15 +42,17 @@ import java.io.InputStreamReader;
  */
 public class TestStackEnvironment implements InitializingBean, DisposableBean {
 
-	private final AmazonCloudFormation amazonCloudFormation;
-	private static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
+	public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
+	public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
 	private static final String TEMPLATE_PATH = "IntegrationTest.template";
+
+	private final AmazonCloudFormation amazonCloudFormationClient;
 	private DescribeStackResourcesResult stackResources;
 	private boolean stackCreatedByThisInstance;
 
 	@Autowired
-	public TestStackEnvironment(AWSCredentialsProvider awsCredentialsProvider) {
-		this.amazonCloudFormation = new AmazonCloudFormationClient(awsCredentialsProvider);
+	public TestStackEnvironment(AmazonCloudFormationClient amazonCloudFormationClient) {
+		this.amazonCloudFormationClient = amazonCloudFormationClient;
 	}
 
 	@Override
@@ -61,16 +62,16 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 
 	private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
 		try {
-			DescribeStacksResult describeStacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(stackName));
+			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest().withStackName(stackName));
 			for (Stack stack : describeStacksResult.getStacks()) {
 				if (isAvailable(stack)) {
-					return this.amazonCloudFormation.describeStackResources(new DescribeStackResourcesRequest().withStackName(stack.getStackName()));
+					return this.amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withStackName(stack.getStackName()));
 				}
 				if (isError(stack)) {
 					if (this.stackCreatedByThisInstance) {
 						throw new IllegalArgumentException("Could not create stack");
 					}
-					this.amazonCloudFormation.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
+					this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
 					return getStackResources(stackName);
 				}
 				if (isInProgress(stack)) {
@@ -81,7 +82,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 			}
 		} catch (AmazonClientException e) {
 			String templateBody = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
-			this.amazonCloudFormation.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DO_NOTHING).
+			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DO_NOTHING).
 					withStackName(stackName));
 			this.stackCreatedByThisInstance = true;
 		}
@@ -113,7 +114,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 	@Override
 	public void destroy() throws Exception {
 		if (this.stackCreatedByThisInstance) {
-			this.amazonCloudFormation.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
+			this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
 		}
 	}
 }

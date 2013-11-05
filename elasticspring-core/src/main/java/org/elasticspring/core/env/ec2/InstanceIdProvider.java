@@ -16,13 +16,14 @@
 
 package org.elasticspring.core.env.ec2;
 
-import java.io.IOException;
-
 /**
+ * Returns the instance id of the current instance.
  *
+ * @author Agim Emruli
+ * @author Christian Stettler
  */
 public interface InstanceIdProvider {
 
-	String getCurrentInstanceId() throws IOException;
+	String getCurrentInstanceId();
 
 }
