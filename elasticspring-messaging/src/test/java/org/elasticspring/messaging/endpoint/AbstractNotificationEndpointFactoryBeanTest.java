@@ -31,7 +31,6 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 
 /**
@@ -47,11 +46,11 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 	public void testTopicDoesNotExist() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
-		DestinationResolver<MessageChannel> destinationResolver = Mockito.mock(MockDestinationResolver.class);
+		DestinationResolver<String> destinationResolver = Mockito.mock(MockDestinationResolver.class);
 
+		Mockito.when(destinationResolver.resolveDestination("test")).thenThrow(new IllegalArgumentException("No topic found for name :'test'"));
 
 		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
-		Mockito.when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(amazonSns, "test",
 				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
@@ -190,7 +189,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 		}
 	}
 
-	interface MockDestinationResolver extends DestinationResolver<MessageChannel>{
+	interface MockDestinationResolver extends DestinationResolver<String>{
 
 	}
 

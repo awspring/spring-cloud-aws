@@ -17,12 +17,16 @@
 package org.elasticspring.messaging;
 
 import org.elasticspring.messaging.config.annotation.TopicListener;
+import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -44,9 +48,15 @@ public class SqsNotificationServiceTest {
 
 	@Test
 	public void testConvertAndSendWithSubject() throws Exception {
-		String subject = "Hello";
+		final String subject = "Hello";
 		String payload = "World";
-		this.notificationOperations.convertAndSend(payload);
+		this.notificationOperations.convertAndSend(payload, new MessagePostProcessor() {
+
+			@Override
+			public Message<?> postProcessMessage(Message<?> message) {
+				return MessageBuilder.fromMessage(message).setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER,subject).build();
+			}
+		});
 		this.notificationReceiver.getCountDownLatch().await();
 		Assert.assertEquals(subject, this.notificationReceiver.getLastSubject());
 		Assert.assertEquals(payload, this.notificationReceiver.getLastMessage());

@@ -31,7 +31,12 @@
 	<bean id="simpleNotificationServiceMessageTemplate"
 		  class="org.springframework.messaging.core.GenericMessagingTemplate">
 		<property name="defaultDestination"
-				  value="#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}" />
+				  value="#{destinationResolver.resolveDestination(testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic'))}" />
+		<property name="destinationResolver" ref="destinationResolver"/>
+	</bean>
+
+	<bean name="destinationResolver" class="org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver">
+		<constructor-arg name="amazonSns" ref="amazonSns"/>
 	</bean>
 
 	<bean class="org.elasticspring.messaging.SqsNotificationServiceTest$NotificationReceiver" />

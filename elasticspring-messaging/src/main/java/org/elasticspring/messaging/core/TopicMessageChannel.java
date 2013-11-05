@@ -45,11 +45,11 @@ public class TopicMessageChannel implements MessageChannel {
 	@Override
 	public boolean send(Message<?> message, long timeout) {
 		this.amazonSns.publish(new PublishRequest(this.topicArn,
-				message.getPayload().toString(),message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString()));
+				message.getPayload().toString(),findNotificationSubject(message)));
 		return true;
 	}
 
-	public String getTopicArn() {
-		return this.topicArn;
+	public static String findNotificationSubject(Message<?> message) {
+		return message.getHeaders().containsKey(NOTIFICATION_SUBJECT_HEADER) ? message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString() : null;
 	}
 }

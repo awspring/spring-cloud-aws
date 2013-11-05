@@ -19,18 +19,13 @@ package org.elasticspring.messaging.endpoint;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
-import com.amazonaws.services.sns.model.ListTopicsRequest;
-import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Subscription;
-import com.amazonaws.services.sns.model.Topic;
-import org.elasticspring.core.naming.AmazonResourceName;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
-import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicTopicArnDestinationResolver;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -80,12 +75,12 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	/**
 	 * The destination resolver used to resolve topic arn based on the logical name
 	 */
-	private DestinationResolver<MessageChannel> destinationResolver;
+	private DestinationResolver<String> destinationResolver;
 
 	/**
 	 * Constructs this base class with all collaborators and configuration information. This constructor creates and uses
 	 * a
-	 * {@link DynamicTopicDestinationResolver} which will be used to resolve the topic arn based on the logical topic
+	 * {@link DynamicTopicArnDestinationResolver} which will be used to resolve the topic arn based on the logical topic
 	 * name.
 	 *
 	 * @param amazonSns
@@ -121,20 +116,20 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 		this.endpoint = endpoint;
 		this.target = target;
 		this.method = method;
-		this.destinationResolver = new CachingDestinationResolver<MessageChannel>(new DynamicTopicDestinationResolver(amazonSns));
+		this.destinationResolver = new CachingDestinationResolver<String>(new DynamicTopicArnDestinationResolver(amazonSns));
 	}
 
 	/**
 	 * Configures an alternative {@link DestinationResolver} to be used by this instance to actually retrieve the topic
 	 * arn
 	 * based on the logical name configured for this endpoint. By default, this classes uses a {@link
-	 * DynamicTopicDestinationResolver} in combination with a {@link CachingDestinationResolver} to resolve the names with
+	 * DynamicTopicArnDestinationResolver} in combination with a {@link CachingDestinationResolver} to resolve the names with
 	 * a minimum performance overhead.
 	 *
 	 * @param destinationResolver
 	 * 		the destination resolver, must not be null
 	 */
-	public void setDestinationResolver(DestinationResolver<MessageChannel> destinationResolver) {
+	public void setDestinationResolver(DestinationResolver<String> destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
 
@@ -149,7 +144,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	 */
 	@Override
 	protected T createInstance() throws Exception {
-		String topicArn =  getTopicResourceName(null, getTopicName());
+		String topicArn = this.destinationResolver.resolveDestination(getTopicName());
 		Subscription subscriptionForEndpoint = getSubscriptionForEndpoint(topicArn, null);
 		return doCreateEndpointInstance(subscriptionForEndpoint);
 	}
@@ -277,26 +272,4 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	public boolean isSingleton() {
 		return true;
 	}
-
-	private String getTopicResourceName(String marker, String topicName) {
-			ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
-			for (Topic topic : listTopicsResult.getTopics()) {
-				if (AmazonResourceName.isValidAmazonResourceName(topicName)) {
-					if (topic.getTopicArn().equals(topicName)) {
-						return topic.getTopicArn();
-					}
-				} else {
-					AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-					if (resourceName.getResourceType().equals(topicName)) {
-						return topic.getTopicArn();
-					}
-				}
-			}
-
-			if (StringUtils.hasText(listTopicsResult.getNextToken())) {
-				return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
-			} else {
-				throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
-			}
-		}
 }
