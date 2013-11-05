@@ -18,8 +18,8 @@ package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import junit.framework.Assert;
 import org.elasticspring.support.TestStackEnvironment;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
