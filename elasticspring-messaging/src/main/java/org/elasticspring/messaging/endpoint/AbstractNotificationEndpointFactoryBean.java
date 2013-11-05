@@ -121,7 +121,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 		this.endpoint = endpoint;
 		this.target = target;
 		this.method = method;
-		this.destinationResolver = new CachingDestinationResolver(new DynamicTopicDestinationResolver(amazonSns));
+		this.destinationResolver = new CachingDestinationResolver<MessageChannel>(new DynamicTopicDestinationResolver(amazonSns));
 	}
 
 	/**

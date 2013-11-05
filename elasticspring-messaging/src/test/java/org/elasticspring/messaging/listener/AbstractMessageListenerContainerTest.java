@@ -104,7 +104,7 @@ public class AbstractMessageListenerContainerTest {
 		container.setDestinationName("testQueue");
 		container.afterPropertiesSet();
 
-		DestinationResolver destinationResolver = container.getDestinationResolver();
+		DestinationResolver<String> destinationResolver = container.getDestinationResolver();
 		Assert.assertNotNull(destinationResolver);
 		Assert.assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
 	}
