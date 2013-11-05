@@ -33,12 +33,9 @@
 		<constructor-arg ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<!--suppress SpringBeanConstructorArgInspection -->
 	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
 	</bean>
-
 
 	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService">
 		<constructor-arg name="stackName" value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
