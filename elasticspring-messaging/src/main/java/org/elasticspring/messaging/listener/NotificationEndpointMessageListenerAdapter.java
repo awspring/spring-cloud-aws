@@ -17,6 +17,9 @@
 package org.elasticspring.messaging.listener;
 
 import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.MethodInvoker;
 
 /**
  * @author Agim Emruli
@@ -28,14 +31,14 @@ public class NotificationEndpointMessageListenerAdapter extends MessageListenerA
 		super(new NotificationMessageConverter(), delegate, listenerMethod);
 	}
 
-//	@Override
-//	protected void prepareArguments(MethodInvoker methodInvoker, Object payload) {
-//		NotificationMessageConverter.NotificationMessage notificationMessage = (NotificationMessageConverter.NotificationMessage) payload;
-//
-//		if (ClassUtils.hasMethod(AopUtils.getTargetClass(getDelegate()), getListenerMethod(), String.class, String.class)) {
-//			methodInvoker.setArguments(new Object[]{notificationMessage.getBody(), notificationMessage.getSubject()});
-//		} else {
-//			methodInvoker.setArguments(new Object[]{notificationMessage.getBody()});
-//		}
-//	}
+	@Override
+	protected void prepareArguments(MethodInvoker methodInvoker, Object payload) {
+		NotificationMessageConverter.NotificationMessage notificationMessage = (NotificationMessageConverter.NotificationMessage) payload;
+
+		if (ClassUtils.hasMethod(AopUtils.getTargetClass(getDelegate()), getListenerMethod(), String.class, String.class)) {
+			methodInvoker.setArguments(new Object[]{notificationMessage.getBody(), notificationMessage.getSubject()});
+		} else {
+			methodInvoker.setArguments(new Object[]{notificationMessage.getBody()});
+		}
+	}
 }
