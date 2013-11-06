@@ -25,6 +25,7 @@ public class GlobalBeanDefinitionUtils {
 	 * @param registry
 	 * 		the bean definition registry to register the resource id resolver with
 	 */
+	// TODO adjust utility method to return resource resolver bean name (allows other components to retrieve name and lazily create resource id resolver bean when needed)
 	public static void configureResourceIdResolver(BeanDefinitionRegistry registry) {
 		if (!(registry.containsBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME))) {
 			registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME, buildResourceIdResolverBeanDefinition());
