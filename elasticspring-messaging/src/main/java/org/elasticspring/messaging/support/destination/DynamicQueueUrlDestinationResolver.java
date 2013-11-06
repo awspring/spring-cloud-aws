@@ -44,6 +44,7 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
 	@Override
 	public String resolveDestination(String name) throws DestinationResolutionException {
+		//TODO: Consider util
 		if (name.startsWith("http")) {
 			return name;
 		}
@@ -56,6 +57,8 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 				GetQueueUrlResult getQueueUrlResult = this.queueingService.getQueueUrl(new GetQueueUrlRequest(name));
 				return getQueueUrlResult.getQueueUrl();
 			} catch (AmazonServiceException e) {
+				//TODO: Check for exception subclass
+				//TODO: Consider auto.creating only if the queue does not exist and autocreate is true
 				if ("AWS.SimpleQueueService.NonExistentQueue".equals(e.getErrorCode())) {
 					throw new InvalidDestinationException(name);
 				} else {

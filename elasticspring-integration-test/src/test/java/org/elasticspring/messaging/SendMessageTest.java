@@ -16,15 +16,12 @@
 
 package org.elasticspring.messaging;
 
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,7 +31,7 @@ import java.util.List;
 
 
 /**
- *
+ * TODO: Consider splitting test methods
  */
 @ContextConfiguration("SendMessageTest-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -42,33 +39,22 @@ public class SendMessageTest {
 
 
 	@Resource(name = "stringMessage")
-	private GenericMessagingTemplate stringQueueingOperations;
+	private QueueMessagingTemplate stringQueueingOperations;
 
 	@Resource(name = "objectMessage")
-	private GenericMessagingTemplate objectQueueingOperations;
+	private QueueMessagingTemplate objectQueueingOperations;
 
 	@Resource(name = "jsonMessage")
-	private GenericMessagingTemplate jsonQueueingOperations;
-
-	@Autowired
-	private DestinationResolver<MessageChannel> destinationResolver;
+	private QueueMessagingTemplate jsonQueueingOperations;
 
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
-
-	@Before
-	public void reconfigureDestinationResolver() throws Exception {
-		this.stringQueueingOperations.setDestinationResolver(this.destinationResolver);
-		this.objectQueueingOperations.setDestinationResolver(this.destinationResolver);
-		this.jsonQueueingOperations.setDestinationResolver(this.destinationResolver);
-	}
 
 	@Test
 	public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
 		String queueName = this.testStackEnvironment.getByLogicalId("StringQueue");
 		this.stringQueueingOperations.convertAndSend(queueName, messageContent);
-		Thread.sleep(5000);
 		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(queueName,String.class);
 		Assert.assertEquals(messageContent, receivedMessage);
 	}
@@ -76,21 +62,23 @@ public class SendMessageTest {
 	@Test
 	public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
-		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
+		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
 		this.objectQueueingOperations.convertAndSend(queueName, payload);
 
-		@SuppressWarnings("unchecked")
-		List<String> result = (List<String>) this.objectQueueingOperations.receiveAndConvert(queueName,List.class);
+		List<String> result = this.objectQueueingOperations.receiveAndConvert(queueName,StringList.class);
 		Assert.assertEquals("myString", result.get(0));
 	}
 
 	@Test
 	public void testSendAndReceiveJsonMessage() throws Exception {
-		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
+		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
 		this.jsonQueueingOperations.convertAndSend(queueName, "myString");
 
-		@SuppressWarnings("unchecked")
 		String result = this.jsonQueueingOperations.receiveAndConvert(queueName,String.class);
 		Assert.assertEquals("myString", result);
 	}
+
+
+	interface StringList extends List<String>{}
+
 }

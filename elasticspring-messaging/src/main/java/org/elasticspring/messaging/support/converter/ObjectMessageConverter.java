@@ -34,10 +34,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 
 /**
- *
+ * //TODO: Check need of Base64 encoding
+ * //TODO: Rename to Base64Object.....Converter
  */
 public class ObjectMessageConverter implements MessageConverter {
 
@@ -45,12 +45,12 @@ public class ObjectMessageConverter implements MessageConverter {
 	private static final String DEFAULT_ENCODING = "UTF-8";
 	private final Charset encoding;
 
-	public ObjectMessageConverter(String encoding) throws UnsupportedCharsetException {
+	public ObjectMessageConverter(String encoding) {
 		this.encoding = Charset.forName(encoding);
 	}
 
 	public ObjectMessageConverter() {
-		this.encoding = Charset.forName(DEFAULT_ENCODING);
+		this(DEFAULT_ENCODING);
 	}
 
 	@Override
