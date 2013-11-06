@@ -13,6 +13,7 @@ import java.util.Collection;
  * Provides support for resolving logical resource ids to physical resource ids.
  */
 // TODO discuss whether to support more than one stack resource registry and how to deal with ordering/name conflicts
+// TODO extract interface / move implementation to separate class in order to hide unwanted api
 public class ResourceIdResolver implements BeanFactoryAware, InitializingBean {
 
 	private StackResourceRegistry stackResourceRegistry;
