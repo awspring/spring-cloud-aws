@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ResourceIdResolverTest {
+public class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
@@ -22,7 +22,7 @@ public class ResourceIdResolverTest {
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId() throws Exception {
 		// Arrange
-		ResourceIdResolver resourceIdResolver = new ResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory());
 		resourceIdResolver.afterPropertiesSet();
 
@@ -36,7 +36,7 @@ public class ResourceIdResolverTest {
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId() throws Exception {
 		// Arrange
-		ResourceIdResolver resourceIdResolver = new ResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
 		resourceIdResolver.afterPropertiesSet();
 
@@ -50,7 +50,7 @@ public class ResourceIdResolverTest {
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry() throws Exception {
 		// Arrange
-		ResourceIdResolver resourceIdResolver = new ResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
 		resourceIdResolver.afterPropertiesSet();
 
@@ -64,7 +64,7 @@ public class ResourceIdResolverTest {
 	@Test
 	public void createInstance_multipleStackResourceRegistriesAvailable_throwsException() throws Exception {
 		// Arrange
-		ResourceIdResolver resourceIdResolver = new ResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry(), makeStackResourceRegistry()));
 
 		// Assert
