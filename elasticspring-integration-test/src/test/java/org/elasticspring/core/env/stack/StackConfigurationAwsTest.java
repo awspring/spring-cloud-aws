@@ -1,8 +1,7 @@
 package org.elasticspring.core.env.stack;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.support.TestStackInstanceIdService;
 import org.elasticspring.core.env.ResourceIdResolver;
+import org.elasticspring.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,18 +56,6 @@ public class StackConfigurationAwsTest {
 
 		// Assert
 		assertThat(resourceIdResolver, is(not(nullValue())));
-	}
-
-	@Test
-	public void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposedUnderInternalName() {
-		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
-
-		// Act
-		String beanName = applicationContext.getBeanNamesForType(ResourceIdResolver.class)[0];
-
-		// Assert
-		assertThat(beanName, is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
 	}
 
 	@Test

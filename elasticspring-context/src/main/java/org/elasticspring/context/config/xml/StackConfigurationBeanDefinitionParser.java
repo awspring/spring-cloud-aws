@@ -10,7 +10,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import static org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils.configureResourceIdResolver;
+import static org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils.registerResourceIdResolverBeanIfNeeded;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 
 /**
@@ -29,7 +29,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		configureResourceIdResolver(parserContext.getRegistry());
+		registerResourceIdResolverBeanIfNeeded(parserContext.getRegistry());
 
 		String amazonCloudFormationClientBeanName = buildAndRegisterAmazonCloudFormationClientBeanDefinition(parserContext);
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);

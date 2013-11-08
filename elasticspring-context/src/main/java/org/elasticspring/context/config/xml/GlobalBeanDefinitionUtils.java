@@ -12,21 +12,29 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  */
 public class GlobalBeanDefinitionUtils {
 
-	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
+	static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
 
 	private GlobalBeanDefinitionUtils() {
 	}
 
 	/**
-	 * Configures and registers a bean of type {@link ResourceIdResolver} with the given bean definition registry. The
-	 * bean is only registered once, and is registered under the name {@link GlobalBeanDefinitionUtils#RESOURCE_ID_RESOLVER_BEAN_NAME}.
-	 * Subsequent calls to this method have no effect.
+	 * Returns the name of the resource id resolver bean. This method is provided as utility method for bean definition
+	 * parsers that create bean definitions with a dependency to the global resource id resolver bean. If the resource
+	 * id resolver bean of type {@link ResourceIdResolver} has not yet been registered with the provided bean definition
+	 * registry, it is automatically registered.
 	 *
 	 * @param registry
-	 * 		the bean definition registry to register the resource id resolver with
+	 * 		the bean definition registry to check for an existing resource id resolver bean definition, and to register the
+	 * 		resource id resolver bean definition with, if needed
+	 * @return the bean name of the resource id resolver bean
 	 */
-	// TODO adjust utility method to return resource resolver bean name (allows other components to retrieve name and lazily create resource id resolver bean when needed)
-	public static void configureResourceIdResolver(BeanDefinitionRegistry registry) {
+	public static String retrieveResourceIdResolverBeanName(BeanDefinitionRegistry registry) {
+		registerResourceIdResolverBeanIfNeeded(registry);
+
+		return RESOURCE_ID_RESOLVER_BEAN_NAME;
+	}
+
+	static void registerResourceIdResolverBeanIfNeeded(BeanDefinitionRegistry registry) {
 		if (!(registry.containsBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME))) {
 			registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME, buildResourceIdResolverBeanDefinition());
 		}
