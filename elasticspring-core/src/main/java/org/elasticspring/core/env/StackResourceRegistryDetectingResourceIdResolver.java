@@ -61,7 +61,6 @@ public class StackResourceRegistryDetectingResourceIdResolver implements Resourc
 		this.stackResourceRegistry = findSingleOptionalStackResourceRegistry(this.beanFactory);
 	}
 
-	// TODO if no registry can be found, return pass-through registry
 	private static StackResourceRegistry findSingleOptionalStackResourceRegistry(ListableBeanFactory beanFactory) {
 		Collection<StackResourceRegistry> stackResourceRegistries = beanFactory.getBeansOfType(StackResourceRegistry.class).values();
 
