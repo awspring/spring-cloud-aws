@@ -953,7 +953,7 @@
 	<inspection_tool class="IncompatibleMask" enabled="true" level="WARNING" enabled_by_default="true" />
 	<inspection_tool class="IncompatibleMaskJS" enabled="true" level="WARNING" enabled_by_default="true" />
 	<inspection_tool class="InconsistentLanguageLevel" enabled="false" level="WARNING" enabled_by_default="false" />
-	<inspection_tool class="InconsistentResourceBundle" enabled="true" level="ERROR" enabled_by_default="true">
+	<inspection_tool class="InconsistentResourceBundle" enabled="false" level="ERROR" enabled_by_default="true">
 		<option name="REPORT_MISSING_TRANSLATIONS" value="true" />
 		<option name="REPORT_INCONSISTENT_PROPERTIES" value="true" />
 		<option name="REPORT_DUPLICATED_PROPERTIES" value="true" />
@@ -2148,7 +2148,7 @@
 	<inspection_tool class="UnnecessaryThis" enabled="false" level="WARNING" enabled_by_default="false" />
 	<inspection_tool class="UnnecessaryUnaryMinus" enabled="false" level="WARNING" enabled_by_default="false" />
 	<inspection_tool class="UnnecessaryUnboxing" enabled="true" level="WARNING" enabled_by_default="true" />
-	<inspection_tool class="UnparsedCustomBeanInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+	<inspection_tool class="UnparsedCustomBeanInspection" enabled="false" level="WARNING" enabled_by_default="true" />
 	<inspection_tool class="UnpredictableBigDecimalConstructorCall" enabled="true" level="WARNING"
 					 enabled_by_default="true">
 		<option name="ignoreReferences" value="true" />
