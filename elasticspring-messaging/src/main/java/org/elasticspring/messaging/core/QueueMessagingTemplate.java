@@ -28,7 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.channel.AbstractMessageChannel;
+import org.springframework.messaging.support.AbstractMessageChannel;
 
 import java.util.Map;
 
@@ -48,6 +48,16 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingTempl
 	@Override
 	protected PollableChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new QueueMessageChannel(this.amazonSqs, physicalResourceIdentifier);
+	}
+
+	@Override
+	protected Message<?> doReceive(String destination) {
+		return resolveMessageChannelByLogicalName(destination).receive();
+	}
+
+	@Override
+	protected Message<?> doSendAndReceive(String destination, Message<?> requestMessage) {
+		throw new UnsupportedOperationException("not supported yet");
 	}
 
 	public static class QueueMessageChannel extends AbstractMessageChannel implements PollableChannel {

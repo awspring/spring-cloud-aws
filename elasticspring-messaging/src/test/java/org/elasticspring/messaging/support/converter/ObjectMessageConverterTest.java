@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.converter.MessageConversionException;
-import org.springframework.messaging.support.converter.MessageConverter;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.MessageConverter;
 
 import java.io.Serializable;
 import java.nio.charset.UnsupportedCharsetException;

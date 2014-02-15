@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * <p/>
  * The requirements on a method are that they receive exactly one parameter that contains the payload of the message.
  * The payload might be a String or any other java object that is created by the {@link
- * org.springframework.messaging.support.converter.MessageConverter} from the physical message itself.
+ * org.springframework.messaging.converter.MessageConverter} from the physical message itself.
  * <p/>
  * The simplest method might look like this
  * <pre>
@@ -75,14 +75,14 @@ public @interface QueueListener {
 	String value() default "";
 
 	/**
-	 * An optional reference to a {@link org.springframework.messaging.support.converter.MessageConverter} used for the
+	 * An optional reference to a {@link org.springframework.messaging.converter.MessageConverter} used for the
 	 * queue
 	 * listener method to convert message payload into method parameters. This value of this annotation is actually a bean
 	 * name inside the application context to allow MessageConverter instances to be instantiated and configured inside
 	 * the
 	 * application context.
 	 *
-	 * @return - the bean name to an {@link org.springframework.messaging.support.converter.MessageConverter} instance
+	 * @return - the bean name to an {@link org.springframework.messaging.converter.MessageConverter} instance
 	 */
 	String messageConverter() default "";
 }

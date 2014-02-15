@@ -36,22 +36,11 @@ public abstract class AbstractMessageChannelMessagingTemplate extends AbstractMe
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	protected <P> Message<P> doReceive(String destination) {
-		return (Message<P>) resolveMessageChannelByLogicalName(destination).receive();
-	}
-
-	@Override
-	protected <S, R> Message<R> doSendAndReceive(String destination, Message<S> requestMessage) {
-		throw new UnsupportedOperationException("not supported yet");
-	}
-
-	@Override
 	protected void doSend(String destination, Message<?> message) {
 		resolveMessageChannelByLogicalName(destination).send(message);
 	}
 
-	private PollableChannel resolveMessageChannelByLogicalName(String destination) {
+	protected PollableChannel resolveMessageChannelByLogicalName(String destination) {
 		String physicalResourceId = this.destinationResolver.resolveDestination(destination);
 		return resolveMessageChannel(physicalResourceId);
 	}

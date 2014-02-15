@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 
 import java.math.BigInteger;
 

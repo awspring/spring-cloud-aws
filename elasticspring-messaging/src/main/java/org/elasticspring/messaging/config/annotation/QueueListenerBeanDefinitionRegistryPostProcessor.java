@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
-import org.springframework.messaging.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.util.StringUtils;
 
 import java.util.Set;
