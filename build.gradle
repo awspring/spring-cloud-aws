@@ -26,12 +26,13 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.4")
         classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7")
     }
 }
@@ -46,7 +47,6 @@ apply from: "gradle/maven.gradle"
 allprojects {
     group = 'org.elasticspring'
     apply plugin: "project-report"
-    apply plugin: "propdeps"
 }
 
 subprojects {
@@ -112,8 +112,8 @@ project('elasticspring-context') {
     dependencies {
         compile project(":elasticspring-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
-        optional("org.springframework:spring-context-support:${springFrameworkVersion}")
-        optional("javax.mail:mailapi:1.4.3") {
+        compile("org.springframework:spring-context-support:${springFrameworkVersion}")
+        compile("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
@@ -126,11 +126,11 @@ project('elasticspring-jdbc') {
         compile project(":elasticspring-context")
         compile("org.springframework:spring-jdbc:${springFrameworkVersion}")
 
-        optional("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
+        compile("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
             exclude module: "tomcat-juli"
         }
 
-        optional("org.springframework.retry:spring-retry:${springRetryVersion}") {
+        compile("org.springframework.retry:spring-retry:${springRetryVersion}") {
             exclude module: "spring-context"
         }
 
@@ -145,11 +145,11 @@ project('elasticspring-messaging') {
     description = 'elasticspring messaging'
     dependencies {
         compile project(":elasticspring-context")
-        optional("org.springframework:spring-oxm:${springFrameworkVersion}")
-        optional("com.thoughtworks.xstream:xstream:1.4.2") {
+        compile("org.springframework:spring-oxm:${springFrameworkVersion}")
+        compile("com.thoughtworks.xstream:xstream:1.4.2") {
             exclude module: "xpp3_min"
         }
-        optional("org.codehaus.jettison:jettison:1.3.1") {
+        compile("org.codehaus.jettison:jettison:1.3.1") {
             exclude module: "stax-api"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
