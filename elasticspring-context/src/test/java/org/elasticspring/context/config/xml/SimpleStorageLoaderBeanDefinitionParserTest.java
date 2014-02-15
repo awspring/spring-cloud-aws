@@ -16,16 +16,13 @@
 
 package org.elasticspring.context.config.xml;
 
-import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Alain Sahli

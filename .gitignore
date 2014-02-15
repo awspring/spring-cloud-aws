@@ -2,6 +2,15 @@
 build/
 /.gradle
 /config
+.idea/
+
+# Do not ignore them
+!.idea/copyright
+!.idea/inspectionProfiles
+!.idea/scopes
+!.idea/codeStyleSettings.xml
+!.idea/misc.xml
+!.idea/vcs.xml
 
 # Ignore files
 access.properties
