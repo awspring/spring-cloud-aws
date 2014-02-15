@@ -112,6 +112,11 @@
       <option name="nonNlsCommentPattern" value="NON-NLS" />
     </inspection_tool>
     <inspection_tool class="HardcodedLineSeparators" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="InconsistentResourceBundle" enabled="false" level="ERROR" enabled_by_default="false">
+      <option name="REPORT_MISSING_TRANSLATIONS" value="true" />
+      <option name="REPORT_INCONSISTENT_PROPERTIES" value="true" />
+      <option name="REPORT_DUPLICATED_PROPERTIES" value="true" />
+    </inspection_tool>
     <inspection_tool class="InstanceGuardedByStatic" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IntLiteralMayBeLongLiteral" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="JUnitTestClassNamingConvention" enabled="true" level="WARNING" enabled_by_default="true">
