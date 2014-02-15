@@ -34,15 +34,10 @@ To build reference documentation (results will be in `build/reference`):
 # Using IntelliJ IDEA
 
 ElasticSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
- project files, you have to execute the following Gradle task:
+ project files, you have to import the file within idea as a gradle project.
 
- 	./gradlew idea
-
- Then you can open the project through File --> Open... (select the elasticspring.ipr file locate at the project root).
- If for some reason you want to remove the [IntelliJ IDEA] [IntelliJ] project files you can run:
-
- 	./gradlew cleanIdea
-
+*Note:* Please make sure to revert all changes in the .idea config file directory, as the gradle plugin overwrites
+the configuration files kept in the scm.
 
 # Running integration tests
 ElasticSpring contains a test-suite which runs integration tests to ensure compatibility with the Amazon Webservices.
