@@ -97,5 +97,10 @@
 			"Properties": {
 			}
 		}
+	},
+	"Outputs" : {
+        "InstanceId" : {
+            "Value" : { "Ref" : "UserTagAndUserDataInstance" }
+        }
 	}
 }
