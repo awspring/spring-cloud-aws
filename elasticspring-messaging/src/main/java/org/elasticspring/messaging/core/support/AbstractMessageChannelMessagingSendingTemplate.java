@@ -18,7 +18,7 @@ package org.elasticspring.messaging.core.support;
 
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolver;
 
@@ -27,7 +27,7 @@ import org.springframework.messaging.core.DestinationResolver;
  * @author Alain Sahli
  * @since 1.0
  */
-public abstract class AbstractMessageChannelMessagingSendingTemplate extends AbstractMessageSendingTemplate<String> {
+public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends MessageChannel> extends AbstractMessageSendingTemplate<String> {
 
 	private final DestinationResolver<String> destinationResolver;
 
@@ -40,10 +40,10 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate extends Abs
 		resolveMessageChannelByLogicalName(destination).send(message);
 	}
 
-	protected PollableChannel resolveMessageChannelByLogicalName(String destination) {
+	protected T resolveMessageChannelByLogicalName(String destination) {
 		String physicalResourceId = this.destinationResolver.resolveDestination(destination);
 		return resolveMessageChannel(physicalResourceId);
 	}
 
-	protected abstract PollableChannel resolveMessageChannel(String physicalResourceIdentifier);
+	protected abstract T resolveMessageChannel(String physicalResourceIdentifier);
 }

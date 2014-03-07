@@ -18,8 +18,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   					   http://www.elasticspring.org/schema/messaging
+	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
@@ -28,15 +30,8 @@
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<bean id="simpleNotificationServiceMessageTemplate"
-		  class="org.springframework.messaging.core.GenericMessagingTemplate">
-		<property name="defaultDestination"
-				  value="#{destinationResolver.resolveDestination(testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic'))}" />
-		<property name="destinationResolver" ref="destinationResolver"/>
-	</bean>
-
-	<bean name="destinationResolver" class="org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver">
-		<constructor-arg name="amazonSns" ref="amazonSns"/>
+	<bean id="notificationMessagingTemplate" class="org.elasticspring.messaging.core.NotificationMessageTemplate">
+		<constructor-arg ref="amazonSns" />
 	</bean>
 
 	<bean class="org.elasticspring.messaging.SqsNotificationServiceTest$NotificationReceiver" />

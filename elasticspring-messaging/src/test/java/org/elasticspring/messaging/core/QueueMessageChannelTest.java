@@ -49,7 +49,7 @@ public class QueueMessageChannelTest {
 		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
-		MessageChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		MessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
 		// Act
 		boolean sent = messageChannel.send(stringMessage);
@@ -66,7 +66,7 @@ public class QueueMessageChannelTest {
 		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
-		MessageChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		MessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		Mockito.when(amazonSqs.sendMessage(new SendMessageRequest("http://testQueue", "message content").withDelaySeconds(0))).
 				thenThrow(new AmazonServiceException("wanted error"));
 
@@ -85,11 +85,11 @@ public class QueueMessageChannelTest {
 		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessagingTemplate.QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
-		PollableChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
 		//Act
 		Message<?> receivedMessage = messageChannel.receive();
@@ -106,11 +106,11 @@ public class QueueMessageChannelTest {
 		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessagingTemplate.QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
-		PollableChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
 		//Act
 		Message<?> receivedMessage = messageChannel.receive(2);
@@ -127,11 +127,11 @@ public class QueueMessageChannelTest {
 		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessagingTemplate.QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 
-		PollableChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
 		//Act
 		Message<?> receivedMessage = messageChannel.receive(2);
@@ -147,11 +147,11 @@ public class QueueMessageChannelTest {
 		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessagingTemplate.QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 
-		PollableChannel messageChannel = new QueueMessagingTemplate.QueueMessageChannel(amazonSqs, "http://testQueue");
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
 		//Act
 		Message<?> receivedMessage = messageChannel.receive(0);

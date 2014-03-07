@@ -32,6 +32,7 @@ import org.springframework.context.support.StaticApplicationContext;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class QueueListenerBeanDefinitionRegistryPostProcessorTest {
@@ -84,7 +85,7 @@ public class QueueListenerBeanDefinitionRegistryPostProcessorTest {
 		Assert.assertEquals("myQueue", definition.getPropertyValues().getPropertyValue("destinationName").getValue());
 
 		//Second property
-		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageListener").getValue();
+		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageHandler").getValue();
 		Assert.assertEquals("listenerMethod", messageListener.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 		RuntimeBeanReference messageListenerTarget = (RuntimeBeanReference) messageListener.getConstructorArgumentValues().
 				getArgumentValue(1, MinimalListenerConfiguration.class).getValue();
@@ -113,7 +114,7 @@ public class QueueListenerBeanDefinitionRegistryPostProcessorTest {
 		BeanDefinition definition = registry.getBeanDefinition("myParentBean$child#0");
 		Assert.assertNotNull(definition);
 
-		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageListener").getValue();
+		BeanDefinition messageListener = (BeanDefinition) definition.getPropertyValues().getPropertyValue("messageHandler").getValue();
 		Assert.assertEquals("listenerMethod", messageListener.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 
 		RuntimeBeanReference messageListenerTarget = (RuntimeBeanReference) messageListener.getConstructorArgumentValues().

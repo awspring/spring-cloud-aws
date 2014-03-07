@@ -22,7 +22,7 @@ import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.Subscription;
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
-import org.elasticspring.messaging.support.destination.DynamicTopicArnDestinationResolver;
+import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -80,7 +80,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	/**
 	 * Constructs this base class with all collaborators and configuration information. This constructor creates and uses
 	 * a
-	 * {@link DynamicTopicArnDestinationResolver} which will be used to resolve the topic arn based on the logical topic
+	 * {@link org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver} which will be used to resolve the topic arn based on the logical topic
 	 * name.
 	 *
 	 * @param amazonSns
@@ -116,14 +116,14 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 		this.endpoint = endpoint;
 		this.target = target;
 		this.method = method;
-		this.destinationResolver = new CachingDestinationResolver<String>(new DynamicTopicArnDestinationResolver(amazonSns));
+		this.destinationResolver = new CachingDestinationResolver<String>(new DynamicTopicDestinationResolver(amazonSns));
 	}
 
 	/**
 	 * Configures an alternative {@link DestinationResolver} to be used by this instance to actually retrieve the topic
 	 * arn
 	 * based on the logical name configured for this endpoint. By default, this classes uses a {@link
-	 * DynamicTopicArnDestinationResolver} in combination with a {@link CachingDestinationResolver} to resolve the names with
+	 * org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver} in combination with a {@link CachingDestinationResolver} to resolve the names with
 	 * a minimum performance overhead.
 	 *
 	 * @param destinationResolver

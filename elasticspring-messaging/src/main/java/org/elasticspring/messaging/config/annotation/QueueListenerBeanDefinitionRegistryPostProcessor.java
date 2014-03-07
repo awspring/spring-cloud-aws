@@ -35,6 +35,7 @@ import java.util.Set;
  * annotated method.
  *
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
@@ -101,7 +102,7 @@ public class QueueListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 	private BeanDefinition getContainerBeanDefinition(String beanName, MethodMetadata methodMetadata) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.childBeanDefinition(this.parentBeanName);
 		builder.addPropertyValue("destinationName", getDestinationName(methodMetadata));
-		builder.addPropertyValue("messageListener", getMessageListenerBeanDefinition(beanName, methodMetadata));
+		builder.addPropertyValue("messageHandler", getMessageListenerBeanDefinition(beanName, methodMetadata));
 		return builder.getBeanDefinition();
 	}
 

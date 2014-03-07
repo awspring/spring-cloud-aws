@@ -32,7 +32,7 @@ import org.mockito.Mockito;
  * @author Agim Emruli
  * @since 1.0
  */
-public class DynamicTopicArnDestinationResolverTest {
+public class DynamicTopicDestinationResolverTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
@@ -45,7 +45,7 @@ public class DynamicTopicArnDestinationResolverTest {
 
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
 
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		resolver.resolveDestination("test");
 	}
 
@@ -58,7 +58,7 @@ public class DynamicTopicArnDestinationResolverTest {
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("foo"));
 		Mockito.when(sns.listTopics(new ListTopicsRequest("foo"))).thenReturn(new ListTopicsResult());
 
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		resolver.resolveDestination("test");
 	}
 
@@ -69,7 +69,7 @@ public class DynamicTopicArnDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		Assert.assertEquals(topicArn, resolver.resolveDestination("test"));
 	}
 
@@ -82,7 +82,7 @@ public class DynamicTopicArnDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.listTopics(new ListTopicsRequest("mark"))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		Assert.assertEquals(topicArn, resolver.resolveDestination(topicArn));
 	}
 
@@ -91,7 +91,7 @@ public class DynamicTopicArnDestinationResolverTest {
 		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
 
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
 		Assert.assertEquals(topicArn, resolver.resolveDestination(topicArn));
@@ -104,7 +104,7 @@ public class DynamicTopicArnDestinationResolverTest {
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		Mockito.when(sns.createTopic(new CreateTopicRequest("test"))).thenReturn(new CreateTopicResult().withTopicArn(topicArn));
 
-		DynamicTopicArnDestinationResolver resolver = new DynamicTopicArnDestinationResolver(sns);
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		resolver.setAutoCreate(true);
 		Assert.assertEquals(topicArn, resolver.resolveDestination("test"));
 	}

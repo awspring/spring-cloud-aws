@@ -18,12 +18,13 @@ package org.elasticspring.messaging;
 
 import org.elasticspring.messaging.config.annotation.TopicListener;
 import org.elasticspring.messaging.core.TopicMessageChannel;
+import org.elasticspring.messaging.support.converter.NotificationMessageConverter;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.support.MessageBuilder;
@@ -41,7 +42,10 @@ import java.util.concurrent.CountDownLatch;
 public class SqsNotificationServiceTest {
 
 	@Autowired
-	private MessageSendingOperations<MessageChannel> notificationOperations;
+	private TestStackEnvironment testStackEnvironment;
+
+	@Autowired
+	private MessageSendingOperations<String> notificationOperations;
 
 	@Autowired
 	private NotificationReceiver notificationReceiver;
@@ -50,11 +54,12 @@ public class SqsNotificationServiceTest {
 	public void testConvertAndSendWithSubject() throws Exception {
 		final String subject = "Hello";
 		String payload = "World";
-		this.notificationOperations.convertAndSend(payload, new MessagePostProcessor() {
+		String queueName = this.testStackEnvironment.getByLogicalId("SqsReceivingSnsTopic");
+		this.notificationOperations.convertAndSend(queueName, payload, new MessagePostProcessor() {
 
 			@Override
 			public Message<?> postProcessMessage(Message<?> message) {
-				return MessageBuilder.fromMessage(message).setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER,subject).build();
+				return MessageBuilder.fromMessage(message).setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject).build();
 			}
 		});
 		this.notificationReceiver.getCountDownLatch().await();
@@ -71,10 +76,10 @@ public class SqsNotificationServiceTest {
 		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('SqsReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.SQS,
 				endpoint = "#{testStackEnvironment.getByLogicalId('NotificationQueue')}")
-		public void receiveNotification(String message,String subject) {
+		public void receiveNotification(NotificationMessageConverter.NotificationMessage notificationMessage) {
 			this.countDownLatch.countDown();
-			this.lastMessage = message;
-			this.lastSubject = subject;
+			this.lastMessage = notificationMessage.getBody();
+			this.lastSubject = notificationMessage.getSubject();
 		}
 
 		CountDownLatch getCountDownLatch() {

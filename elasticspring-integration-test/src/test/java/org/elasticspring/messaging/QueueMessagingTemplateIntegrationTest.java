@@ -29,14 +29,12 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 
-
 /**
- * TODO: Consider splitting test methods
+ * @author Alain Sahli
  */
-@ContextConfiguration("SendMessageTest-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class SendMessageTest {
-
+@ContextConfiguration
+public class QueueMessagingTemplateIntegrationTest {
 
 	@Resource(name = "stringMessage")
 	private QueueMessagingTemplate stringQueueingOperations;
@@ -55,7 +53,7 @@ public class SendMessageTest {
 		String messageContent = "testMessage";
 		String queueName = this.testStackEnvironment.getByLogicalId("StringQueue");
 		this.stringQueueingOperations.convertAndSend(queueName, messageContent);
-		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(queueName,String.class);
+		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(queueName, String.class);
 		Assert.assertEquals(messageContent, receivedMessage);
 	}
 
@@ -65,7 +63,7 @@ public class SendMessageTest {
 		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
 		this.objectQueueingOperations.convertAndSend(queueName, payload);
 
-		List<String> result = this.objectQueueingOperations.receiveAndConvert(queueName,StringList.class);
+		List<String> result = this.objectQueueingOperations.receiveAndConvert(queueName, StringList.class);
 		Assert.assertEquals("myString", result.get(0));
 	}
 
@@ -74,11 +72,11 @@ public class SendMessageTest {
 		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
 		this.jsonQueueingOperations.convertAndSend(queueName, "myString");
 
-		String result = this.jsonQueueingOperations.receiveAndConvert(queueName,String.class);
+		String result = this.jsonQueueingOperations.receiveAndConvert(queueName, String.class);
 		Assert.assertEquals("myString", result);
 	}
 
 
-	interface StringList extends List<String>{}
+	interface StringList extends List<String> {}
 
 }

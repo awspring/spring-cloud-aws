@@ -34,9 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-/**
- *
- */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("MessageListenerContainerAwsTest-context.xml")
 public class MessageListenerContainerAwsTest {
