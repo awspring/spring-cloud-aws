@@ -22,21 +22,24 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingTemplate;
+import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.core.MessageReceivingOperations;
 import org.springframework.messaging.support.AbstractMessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 
 import java.util.Map;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessagingTemplate extends AbstractMessageChannelMessagingTemplate {
+public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate implements MessageReceivingOperations<String> {
 
 	private final AmazonSQS amazonSqs;
 
@@ -51,13 +54,30 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingTempl
 	}
 
 	@Override
-	protected Message<?> doReceive(String destination) {
+	public Message<?> receive() throws MessagingException {
+		return receive(getRequiredDefaultDestination());
+	}
+
+	@Override
+	public Message<?> receive(String destination) throws MessagingException {
 		return resolveMessageChannelByLogicalName(destination).receive();
 	}
 
 	@Override
-	protected Message<?> doSendAndReceive(String destination, Message<?> requestMessage) {
-		throw new UnsupportedOperationException("not supported yet");
+	public <T> T receiveAndConvert(Class<T> targetClass) throws MessagingException {
+		return receiveAndConvert(getRequiredDefaultDestination(), targetClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T receiveAndConvert(String destination, Class<T> targetClass) throws MessagingException {
+		Message<?> message = receive(destination);
+		if (message != null) {
+			return (T) getMessageConverter().fromMessage(message, targetClass);
+		}
+		else {
+			return null;
+		}
 	}
 
 	public static class QueueMessageChannel extends AbstractMessageChannel implements PollableChannel {

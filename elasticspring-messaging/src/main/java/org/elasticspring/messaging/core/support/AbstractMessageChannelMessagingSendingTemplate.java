@@ -19,19 +19,19 @@ package org.elasticspring.messaging.core.support;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.AbstractMessagingTemplate;
+import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
-//TODO: Use composition to make sure sns does not have to receive operations which are not implemented
-public abstract class AbstractMessageChannelMessagingTemplate extends AbstractMessagingTemplate<String> {
+public abstract class AbstractMessageChannelMessagingSendingTemplate extends AbstractMessageSendingTemplate<String> {
 
 	private final DestinationResolver<String> destinationResolver;
 
-	protected AbstractMessageChannelMessagingTemplate(DestinationResolver<String> destinationResolver) {
+	protected AbstractMessageChannelMessagingSendingTemplate(DestinationResolver<String> destinationResolver) {
 		this.destinationResolver = new CachingDestinationResolver<String>(destinationResolver);
 	}
 
