@@ -51,6 +51,6 @@
 		<module name="RedundantModifier" />
 	</module>
 	<module name="SuppressionFilter">
-		<property name="file" value="gradle/checkstyle/suppression.xml" />
+		<property name="file" value="${checkstyleConfigDir}/suppression.xml" />
 	</module>
 </module>
