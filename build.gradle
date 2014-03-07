@@ -112,7 +112,7 @@ project('elasticspring-core') {
 
 
 project('elasticspring-context') {
-    description = 'elasticspring context'
+    description = "elasticspring context"
     dependencies {
         compile project(":elasticspring-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
@@ -121,11 +121,11 @@ project('elasticspring-context') {
             exclude module: "activation"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
-        optional("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
-        optional("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
+        compile("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
+        compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
             exclude module: "spymemcached"
         }
-        optional files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
+        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
     }
 }
 
@@ -199,7 +199,7 @@ project('elasticspring-integration-test') {
         testCompile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
             exclude module: "spymemcached"
         }
-        optional files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
+        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }
