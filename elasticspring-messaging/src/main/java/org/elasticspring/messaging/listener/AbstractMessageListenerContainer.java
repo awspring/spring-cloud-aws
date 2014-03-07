@@ -26,6 +26,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -47,7 +48,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQS amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private MessageListener messageListener;
+	private MessageHandler messageHandler;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private String destinationName;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
@@ -95,18 +96,18 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		this.amazonSqs = amazonSqs;
 	}
 
-	protected MessageListener getMessageListener() {
-		return this.messageListener;
+	protected MessageHandler getMessageHandler() {
+		return this.messageHandler;
 	}
 
 	/**
 	 * Configures the message listener that will be called if a new message is received.
 	 *
-	 * @param messageListener
+	 * @param messageHandler
 	 * 		the message listener instance. Must not be null
 	 */
-	public void setMessageListener(MessageListener messageListener) {
-		this.messageListener = messageListener;
+	public void setMessageHandler(MessageHandler messageHandler) {
+		this.messageHandler = messageHandler;
 	}
 
 	protected String getDestinationName() {
@@ -259,7 +260,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	protected void validateConfiguration() {
 		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
-		Assert.state(this.messageListener != null, "messageListener must not be null");
+		Assert.state(this.messageHandler != null, "messageHandler must not be null");
 		Assert.state(this.destinationName != null, "destinationName must not be null");
 	}
 

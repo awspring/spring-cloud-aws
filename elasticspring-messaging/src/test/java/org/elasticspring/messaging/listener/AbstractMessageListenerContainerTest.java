@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.ErrorHandler;
 
@@ -49,7 +50,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -63,7 +64,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -72,7 +73,7 @@ public class AbstractMessageListenerContainerTest {
 	@Test
 	public void testMessageListenerNullThrowsException() throws Exception {
 		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("messageListener must not be null");
+		this.expectedException.expectMessage("messageHandler must not be null");
 
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
@@ -90,7 +91,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 
 		container.afterPropertiesSet();
 	}
@@ -100,7 +101,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 		container.afterPropertiesSet();
 
@@ -114,7 +115,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -136,7 +137,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		DestinationResolver<String> destinationResolver = Mockito.mock(DynamicQueueUrlDestinationResolver.class);
@@ -193,7 +194,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -217,7 +218,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 		container.setMaxNumberOfMessages(11);
 		container.setVisibilityTimeout(22);
@@ -256,7 +257,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -293,7 +294,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -331,7 +332,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();

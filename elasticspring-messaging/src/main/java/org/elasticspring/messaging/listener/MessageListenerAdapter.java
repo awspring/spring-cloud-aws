@@ -19,6 +19,9 @@ package org.elasticspring.messaging.listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
@@ -26,8 +29,10 @@ import org.springframework.util.MethodInvoker;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * {@link MessageListener} implementation that calls any method through reflection on the target object. This instance
- * will also convert the messages from a {@link org.springframework.messaging.Message} instance into a listener method specific object. This message
+ * {@link org.springframework.messaging.MessageHandler} implementation that calls any method through reflection on the
+ * target object. This instance
+ * will also convert the messages from a {@link org.springframework.messaging.Message} instance into a listener method
+ * specific object. This message
  * listener implementation uses a {@link MessageConverter} to convert from the messaging specific message into the
  * method parameter. The method parameter of the particular method inside the instance must match the converted object
  * through the MessageConverter.
@@ -35,7 +40,7 @@ import java.lang.reflect.InvocationTargetException;
  * @author Agim Emruli
  * @since 1.0
  */
-public class MessageListenerAdapter implements MessageListener {
+public class MessageListenerAdapter implements MessageHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageListenerAdapter.class);
 	private final MessageConverter messageConverter;
@@ -55,7 +60,7 @@ public class MessageListenerAdapter implements MessageListener {
 	 * 		instance itself) must be thread safe because this implementation might call the method on the instance in a
 	 * 		parallel way.
 	 * @param listenerMethod
-	 * 		- the name of the public, non static method on the delegate that will be called by this MessageListener
+	 * 		- the name of the public, non static method on the delegate that will be called by this MessageHandler
 	 */
 	public MessageListenerAdapter(MessageConverter messageConverter, Object delegate, String listenerMethod) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
@@ -84,36 +89,10 @@ public class MessageListenerAdapter implements MessageListener {
 		return this.listenerMethod;
 	}
 
-	@Override
-	public void onMessage(Message<String> message) {
-		MethodInvoker methodInvoker = new MethodInvoker();
-		methodInvoker.setTargetObject(getDelegate());
-		methodInvoker.setTargetMethod(getListenerMethod());
-		Object param = this.messageConverter.fromMessage(message,null);
-
-		prepareArguments(methodInvoker, param);
-
-		try {
-			LOGGER.debug("Preparing method invoker for object {} and method {} with argument(s) {}", getDelegate(), getListenerMethod(), methodInvoker.getArguments());
-			methodInvoker.prepare();
-		} catch (ClassNotFoundException e) {
-			throw new ListenerExecutionFailedException(e);
-		} catch (NoSuchMethodException e) {
-			throw new ListenerExecutionFailedException(e);
-		}
-
-		try {
-			methodInvoker.invoke();
-		} catch (InvocationTargetException e) {
-			throw new ListenerExecutionFailedException(e.getTargetException());
-		} catch (IllegalAccessException e) {
-			throw new ListenerExecutionFailedException(e.getCause());
-		}
-	}
-
 	/**
-	 * Template method that will be called by the {@link #onMessage(org.springframework.messaging.Message)} method to
-	 * prepare the arguments. Can be overridden by subclasses if the method arguments should be changed or extended (e.g.
+	 * Template method that will be called by the {@link #handleMessage(org.springframework.messaging.Message)} method to
+	 * prepare the arguments. Can be overridden by subclasses if the method arguments should be changed or extended
+	 * (e.g.
 	 * extract values from the payload and add method argument to the invocation).
 	 *
 	 * @param methodInvoker
@@ -123,5 +102,32 @@ public class MessageListenerAdapter implements MessageListener {
 	 */
 	protected void prepareArguments(MethodInvoker methodInvoker, Object payload) {
 		methodInvoker.setArguments(new Object[]{payload});
+	}
+
+	@Override
+	public void handleMessage(Message<?> message) throws MessagingException {
+		MethodInvoker methodInvoker = new MethodInvoker();
+		methodInvoker.setTargetObject(getDelegate());
+		methodInvoker.setTargetMethod(getListenerMethod());
+		Object param = this.messageConverter.fromMessage(message, Object.class);
+
+		prepareArguments(methodInvoker, param);
+
+		try {
+			LOGGER.debug("Preparing method invoker for object {} and method {} with argument(s) {}", getDelegate(), getListenerMethod(), methodInvoker.getArguments());
+			methodInvoker.prepare();
+		} catch (ClassNotFoundException e) {
+			throw new MessageHandlingException(message, e);
+		} catch (NoSuchMethodException e) {
+			throw new MessageHandlingException(message, e);
+		}
+
+		try {
+			methodInvoker.invoke();
+		} catch (InvocationTargetException e) {
+			throw new MessageHandlingException(message, e.getTargetException());
+		} catch (IllegalAccessException e) {
+			throw new MessageHandlingException(message, e.getCause());
+		}
 	}
 }

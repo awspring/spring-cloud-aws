@@ -29,6 +29,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +46,7 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 
 		container.afterPropertiesSet();
@@ -59,7 +61,7 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
@@ -76,7 +78,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setTaskExecutor(taskExecutor);
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageListener(Mockito.mock(MessageListener.class));
+		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		container.setDestinationName("testQueue");
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
@@ -95,10 +97,10 @@ public class SimpleMessageListenerContainerTest {
 
 
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
-		container.setMessageListener(new MessageListener() {
+		container.setMessageHandler(new MessageHandler() {
 
 			@Override
-			public void onMessage(org.springframework.messaging.Message<String> message) {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				Assert.assertEquals("messageContent", message.getPayload());
 				countDownLatch.countDown();
 			}
@@ -133,10 +135,10 @@ public class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		container.setMessageListener(new MessageListener() {
+		container.setMessageHandler(new MessageHandler() {
 
 			@Override
-			public void onMessage(org.springframework.messaging.Message<String> message) {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				Assert.fail("Should not have been called");
 			}
 		});
@@ -179,10 +181,10 @@ public class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		container.setMessageListener(new MessageListener() {
+		container.setMessageHandler(new MessageHandler() {
 
 			@Override
-			public void onMessage(org.springframework.messaging.Message<String> message) {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				throw new IllegalArgumentException("expected exception");
 			}
 		});

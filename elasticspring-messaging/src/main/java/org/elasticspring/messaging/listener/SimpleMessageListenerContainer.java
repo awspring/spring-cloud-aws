@@ -84,7 +84,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 		try {
-			getMessageListener().onMessage(stringMessage);
+			getMessageHandler().handleMessage(stringMessage);
 		} catch (Throwable throwable) {
 			handleError(throwable);
 		}

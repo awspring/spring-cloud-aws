@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.converter.SimpleMessageConverter;
 
@@ -42,7 +43,7 @@ public class MessageListenerAdapterTest {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new ObjectMessageConverter(), delegate, "receiveIntegerMessage");
 		BigInteger myMessage = new BigInteger("1322465468735489");
 		Message<String> stringMessage = new ObjectMessageConverter().toMessage(myMessage, null);
-		adapter.onMessage(stringMessage);
+		adapter.handleMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
 
@@ -51,7 +52,7 @@ public class MessageListenerAdapterTest {
 		TargetBean delegate = new TargetBean();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "receiveStringMessage");
 		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
-		adapter.onMessage(stringMessage);
+		adapter.handleMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
 
@@ -61,8 +62,8 @@ public class MessageListenerAdapterTest {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "exceptionThrowingMethod");
 		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		try {
-			adapter.onMessage(stringMessage);
-		} catch (ListenerExecutionFailedException e) {
+			adapter.handleMessage(stringMessage);
+		} catch (MessageHandlingException e) {
 			assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
 		}
 		assertFalse(delegate.isMethodCalled());
@@ -74,8 +75,8 @@ public class MessageListenerAdapterTest {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "nonAvailableMethod");
 		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
 		try {
-			adapter.onMessage(stringMessage);
-		} catch (ListenerExecutionFailedException e) {
+			adapter.handleMessage(stringMessage);
+		} catch (MessageHandlingException e) {
 			assertTrue(NoSuchMethodException.class.isInstance(e.getCause()));
 		}
 		assertFalse(delegate.isMethodCalled());
@@ -86,7 +87,7 @@ public class MessageListenerAdapterTest {
 		TargetBean delegate = new TargetBean();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new SimpleMessageConverter(), delegate, "overloadedMethod");
 		Message<String> stringMessage = MessageBuilder.withPayload("stringMessage").build();
-		adapter.onMessage(stringMessage);
+		adapter.handleMessage(stringMessage);
 		assertTrue(delegate.isMethodCalled());
 	}
 
