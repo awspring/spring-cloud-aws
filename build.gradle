@@ -32,6 +32,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -121,8 +123,8 @@ project('elasticspring-context') {
             exclude module: "activation"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
-        compile("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
-        compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
+        compile("com.google.code.simple-spring-memcached:spring-cache:3.3.0")
+        compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.3.0") {
             exclude module: "spymemcached"
         }
         compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.jar")
