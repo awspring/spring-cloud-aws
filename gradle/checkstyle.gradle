@@ -20,10 +20,15 @@
 
 
 
+
+
+
+
 allprojects {
     apply plugin: 'checkstyle'
 
     checkstyle {
-        configFile = new File("$rootProject.buildDir.parent/gradle/checkstyle", "checkstyle.xml")
+        configFile = new File("$rootProject.buildDir.parent/gradle/checkstyle", "checkstyle.xml");
+        configProperties.checkstyleConfigDir = configFile.parentFile;
     }
 }
