@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config;
+package org.elasticspring.context.cache.config;
 
 import com.google.code.ssm.Cache;
 import com.google.code.ssm.spring.SSMCache;
@@ -23,15 +23,16 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
-public class SSMCacheFactoryBean extends AbstractFactoryBean<SSMCache> {
+public class ElasticacheManagerFactoryBean extends AbstractFactoryBean<SSMCache> {
 
 	private final Cache cache;
 	private final int expiration;
 	private boolean allowClear;
 
-	public SSMCacheFactoryBean(Cache cache, int expiration) {
+	public ElasticacheManagerFactoryBean(Cache cache, int expiration) {
 		this.cache = cache;
 		this.expiration = expiration;
 	}

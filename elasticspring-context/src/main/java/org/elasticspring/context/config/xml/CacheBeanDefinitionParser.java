@@ -21,7 +21,7 @@ import com.google.code.ssm.config.DefaultAddressProvider;
 import com.google.code.ssm.providers.CacheConfiguration;
 import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
-import org.elasticspring.context.config.SSMCacheFactoryBean;
+import org.elasticspring.context.cache.config.ElasticacheManagerFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -39,6 +39,7 @@ import java.util.List;
  * Parser for the {@code <els-context:cache-manager />} element.
  *
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
 public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
@@ -49,7 +50,7 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		if (!parserContext.getRegistry().containsBeanDefinition(CACHE_MANAGER)) {
 			BeanDefinitionBuilder cacheManagerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SSMCacheManager.class);
-			cacheManagerDefinitionBuilder.addPropertyValue("caches", createCacheCollection(element));
+			cacheManagerDefinitionBuilder.addPropertyValue("caches", createCacheCollection(element, parserContext));
 			parserContext.getRegistry().registerBeanDefinition(CACHE_MANAGER, cacheManagerDefinitionBuilder.getBeanDefinition());
 		} else {
 			parserContext.getReaderContext().error("Only one cache manager can be defined", element);
@@ -57,19 +58,24 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return null;
 	}
 
-	private ManagedList<Object> createCacheCollection(Element element) {
+	private ManagedList<Object> createCacheCollection(Element element, ParserContext parserContext) {
 		ManagedList<Object> caches = new ManagedList<Object>();
 		List<Element> cacheElements = DomUtils.getChildElementsByTagName(element, "cache");
 
 		for (Element cacheElement : cacheElements) {
+			if (StringUtils.hasText(cacheElement.getAttribute("cache")) && StringUtils.hasText(cacheElement.getAttribute("name"))) {
+				parserContext.getReaderContext().error("You can only configure a custom cache or a new cache but not both", element);
+				continue;
+			}
+
 			String cacheBeanName = cacheElement.getAttribute("cache");
 			if (StringUtils.hasText(cacheBeanName)) {
 				caches.add(new RuntimeBeanReference(cacheBeanName));
 			} else {
-				String name = cacheElement.getAttribute("name");
-				String address = cacheElement.getAttribute("address");
-				int expiration = Integer.parseInt(cacheElement.getAttribute("expiration"));
-				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(cacheElement.getAttribute("allowClear"));
+				String name = getRequiredAttribute("name", cacheElement, parserContext);
+				String address = getRequiredAttribute("address", cacheElement, parserContext);
+				int expiration = Integer.parseInt(getRequiredAttribute("expiration", cacheElement, parserContext));
+				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(getRequiredAttribute("allowClear", cacheElement, parserContext));
 				caches.add(createSSMCache(name, address, expiration, allowClear));
 			}
 		}
@@ -78,7 +84,7 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	}
 
 	private BeanDefinition createSSMCache(String name, String address, int expiration, boolean allowClear) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SSMCacheFactoryBean.class);
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ElasticacheManagerFactoryBean.class);
 		beanDefinitionBuilder.addConstructorArgValue(createCache(name, address));
 		beanDefinitionBuilder.addConstructorArgValue(expiration);
 		beanDefinitionBuilder.addPropertyValue("allowClear", allowClear);
@@ -111,5 +117,14 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private AbstractBeanDefinition createClientFactoryImpl() {
 		return BeanDefinitionBuilder.rootBeanDefinition(MemcacheClientFactoryImpl.class).getBeanDefinition();
+	}
+
+	private static String getRequiredAttribute(String attributeName, Element source, ParserContext parserContext) {
+		if (StringUtils.hasText(source.getAttribute(attributeName)) ) {
+			return source.getAttribute(attributeName);
+		}else{
+			parserContext.getReaderContext().error("Attribute '" + attributeName + "' is required for a manual cache configuration", source);
+			return null;
+		}
 	}
 }
