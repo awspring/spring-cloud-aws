@@ -75,7 +75,13 @@ public class Ec2MetadataRegionProviderTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("There is not EC2 meta data available, because the application is not running in the EC2 environment");
 
-		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider();
+		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider(){
+
+			@Override
+			protected String getAvailabilityZone() {
+				return null;
+			}
+		};
 
 		//Act
 		regionProvider.getRegion();
