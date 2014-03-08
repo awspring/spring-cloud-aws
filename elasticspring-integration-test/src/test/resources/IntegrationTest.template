@@ -5,15 +5,12 @@
 		"UserTagAndUserDataInstance": {
 			"Type": "AWS::EC2::Instance",
 			"Properties": {
-				"AvailabilityZone": "us-east-1a",
 				"DisableApiTermination": "FALSE",
-				"ImageId": "ami-70249819",
+				"ImageId": "ami-6a56b81d",
 				"UserData": {
 					"Fn::Base64": "data1=value1;data2=value2"
 				},
 				"InstanceType": "m1.small",
-				"KernelId": "aki-88aa75e1",
-				"Monitoring": "false",
 				"Tags": [
 					{
 						"Key": "tag1",
@@ -96,7 +93,30 @@
 			"Type": "AWS::SQS::Queue",
 			"Properties": {
 			}
-		}
+		},
+		"CacheSecurityGroup": {
+        	"Type": "AWS::ElastiCache::SecurityGroup",
+            "Properties": {
+            	"Description"  : "Default Security Group"
+            }
+        },
+        "CacheSecurityGroupIngress": {
+        	"Type": "AWS::ElastiCache::SecurityGroupIngress",
+            "Properties": {
+            	"CacheSecurityGroupName"  : { "Ref" : "CacheSecurityGroup" },
+                "EC2SecurityGroupName"    : "default"
+            }
+        },
+        "CacheCluster": {
+        	"Type" : "AWS::ElastiCache::CacheCluster",
+            "Properties" :
+            {
+            	"CacheNodeType" : "cache.t1.micro",
+            	"CacheSecurityGroupNames" : [ { "Ref" : "CacheSecurityGroup" } ],
+                "Engine" : "memcached",
+                "NumCacheNodes" : "1"
+            }
+        }
 	},
 	"Outputs" : {
         "InstanceId" : {

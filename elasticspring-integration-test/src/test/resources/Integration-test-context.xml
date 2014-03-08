@@ -31,6 +31,7 @@
 
 	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
 		<constructor-arg ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+		<property name="region" value="#{T(com.amazonaws.regions.Region).getRegion(T(com.amazonaws.regions.Regions).EU_WEST_1)}"/>
 	</bean>
 
 	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
