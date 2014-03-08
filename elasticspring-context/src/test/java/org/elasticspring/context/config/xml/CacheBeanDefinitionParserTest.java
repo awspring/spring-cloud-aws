@@ -16,6 +16,11 @@
 
 package org.elasticspring.context.config.xml;
 
+import com.amazonaws.services.elasticache.AmazonElastiCache;
+import com.amazonaws.services.elasticache.model.CacheCluster;
+import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
+import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
+import com.amazonaws.services.elasticache.model.Endpoint;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -28,10 +33,14 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.SocketUtils;
 
 import java.net.InetSocketAddress;
@@ -90,55 +99,19 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_manualCacheConfigWithMissingName_reportsError() throws Exception {
-		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("Attribute 'name' is required for a manual cache configuration");
-
-		//Act
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingName.xml", getClass());
-
-		//Assert
-	}
-
-	@Test
-	public void parseInternal_manualCacheConfigWithMissingAddress_reportsError() throws Exception {
-		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("Attribute 'address' is required for a manual cache configuration");
-
-		//Act
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingAddress.xml", getClass());
-
-		//Assert
-	}
-
-	@Test
-	public void parseInternal_manualCacheConfigWithMissingExpiration_reportsError() throws Exception {
-		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("Attribute 'expiration' is required for a manual cache configuration");
-
-		//Act
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingExpiration.xml", getClass());
-
-		//Assert
-	}
-
-	@Test
 	public void parseInternal_manualCacheConfigWithMissingAllowClear_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("Attribute 'allowClear' is required for a manual cache configuration");
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingAllowClear.xml", getClass());
 
 		//Act
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingAllowClear.xml", getClass());
+		CacheManager cacheManager = applicationContext.getBean(CacheManager.class);
+		Cache cache = cacheManager.getCache("memc");
+		cache.put("foo", "bar");
+		cache.evict("foo");
 
 		//Assert
+		Assert.assertNotNull(cacheManager);
+		Assert.assertNotNull(cache);
 	}
 
 	@Test
@@ -154,19 +127,6 @@ public class CacheBeanDefinitionParserTest {
 		//Assert
 		Assert.assertNotNull(cacheManager);
 		Assert.assertNotNull(cache);
-	}
-
-	@Test
-	public void parseInternal_customAndManualCacheConfig_reportsError() throws Exception {
-		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("You can only configure a custom cache or a new cache but not both");
-
-		//Act
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customAndManualCache.xml", getClass());
-
-		//Assert
 	}
 
 	@Test
@@ -188,5 +148,43 @@ public class CacheBeanDefinitionParserTest {
 
 		memcached.put("foo", "bar");
 		memcached.evict("foo");
+	}
+
+	@Test
+	public void parseInternal_clusterCacheConfiguration_returnsConfiguredClusterCache() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Register a mock object which will be used to replay service calls
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+		beanDefinitionBuilder.setFactoryMethod("mock");
+		beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
+		beanFactory.registerBeanDefinition(AmazonElastiCacheClientConfigurationUtils.ELASTICACHE_CLIENT_BEAN_NAME, beanDefinitionBuilder.getBeanDefinition());
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfig.xml", getClass()));
+
+
+		AmazonElastiCache client = beanFactory.getBean(AmazonElastiCacheClientConfigurationUtils.ELASTICACHE_CLIENT_BEAN_NAME, AmazonElastiCache.class);
+
+		//Replay invocation that will be called
+		Mockito.when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+				new DescribeCacheClustersResult().withCacheClusters(
+						new CacheCluster().withCacheClusterId("memcached").
+								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+								withCacheClusterStatus("available")
+				)
+		);
+
+		//Act
+		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+		Cache cache = cacheManager.getCache("memcached");
+		cache.put("foo", "bar");
+		cache.evict("foo");
+
+		//Assert
+		Assert.assertNotNull(cacheManager);
+		Assert.assertNotNull(cache);
 	}
 }

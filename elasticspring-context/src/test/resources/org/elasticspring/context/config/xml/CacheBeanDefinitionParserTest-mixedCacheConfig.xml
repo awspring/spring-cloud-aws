@@ -23,7 +23,7 @@
 	<els-context:cache-manager id="cacheManager">
 		<els-context:cache address="localhost:#{systemProperties['memcachedPort']}" expiration="10000" name="memc"
 						   allowClear="true" />
-		<els-context:cache cache="memcached" />
+		<els-context:cache-ref ref="memcached" />
 	</els-context:cache-manager>
 
 	<bean name="memcached" class="com.google.code.ssm.spring.SSMCache">

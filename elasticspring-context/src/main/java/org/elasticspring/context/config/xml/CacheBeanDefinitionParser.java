@@ -21,11 +21,14 @@ import com.google.code.ssm.config.DefaultAddressProvider;
 import com.google.code.ssm.providers.CacheConfiguration;
 import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
+import org.elasticspring.context.cache.config.ElastiCacheAddressProvider;
 import org.elasticspring.context.cache.config.SsmCacheFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -45,6 +48,9 @@ import java.util.List;
 public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static final String CACHE_MANAGER = "cacheManager";
+	private static final String CACHE_CLUSTER_ELEMENT_NAME = "cache-cluster";
+	private static final String CACHE_REF_ELEMENT_NAME = "cache-ref";
+	private static final String CACHE_ELEMENT_NAME = "cache";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -60,43 +66,44 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private ManagedList<Object> createCacheCollection(Element element, ParserContext parserContext) {
 		ManagedList<Object> caches = new ManagedList<Object>();
-		List<Element> cacheElements = DomUtils.getChildElementsByTagName(element, "cache");
+		List<Element> cacheElements = DomUtils.getChildElements(element);
 
 		for (Element cacheElement : cacheElements) {
-			if (StringUtils.hasText(cacheElement.getAttribute("cache")) && StringUtils.hasText(cacheElement.getAttribute("name"))) {
-				parserContext.getReaderContext().error("You can only configure a custom cache or a new cache but not both", element);
-				continue;
-			}
+			String elementName = cacheElement.getLocalName();
 
-			String cacheBeanName = cacheElement.getAttribute("cache");
-			if (StringUtils.hasText(cacheBeanName)) {
-				caches.add(new RuntimeBeanReference(cacheBeanName));
-			} else {
+			if (CACHE_REF_ELEMENT_NAME.equals(elementName)) {
+				caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
+			} else if (CACHE_CLUSTER_ELEMENT_NAME.equals(elementName)) {
+				int expiration = Integer.parseInt(getRequiredAttribute("expiration", cacheElement, parserContext));
+				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(getRequiredAttribute("allowClear", cacheElement, parserContext));
+				String cacheClusterId = getRequiredAttribute("cacheCluster", cacheElement, parserContext);
+				caches.add(createSSMCache(cacheClusterId, createElastiCacheAddressProvider(parserContext.getRegistry(), cacheElement,
+						cacheClusterId), expiration, allowClear));
+			} else if (CACHE_ELEMENT_NAME.equals(elementName)) {
 				String name = getRequiredAttribute("name", cacheElement, parserContext);
 				String address = getRequiredAttribute("address", cacheElement, parserContext);
 				int expiration = Integer.parseInt(getRequiredAttribute("expiration", cacheElement, parserContext));
 				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(getRequiredAttribute("allowClear", cacheElement, parserContext));
-				caches.add(createSSMCache(name, address, expiration, allowClear));
+				caches.add(createSSMCache(name, createDefaultAddressProvider(address), expiration, allowClear));
 			}
 		}
-
 		return caches;
 	}
 
-	private BeanDefinition createSSMCache(String name, String address, int expiration, boolean allowClear) {
+	private BeanDefinition createSSMCache(String name, BeanDefinition addressProvider, int expiration, boolean allowClear) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SsmCacheFactoryBean.class);
-		beanDefinitionBuilder.addConstructorArgValue(createCache(name, address));
+		beanDefinitionBuilder.addConstructorArgValue(createCache(name, addressProvider));
 		beanDefinitionBuilder.addConstructorArgValue(expiration);
 		beanDefinitionBuilder.addPropertyValue("allowClear", allowClear);
 
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private BeanDefinition createCache(String name, String address) {
+	private BeanDefinition createCache(String name, BeanDefinition addressProvider) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(CacheFactory.class);
 		beanDefinitionBuilder.addPropertyValue("cacheName", name);
 		beanDefinitionBuilder.addPropertyValue("cacheClientFactory", createClientFactoryImpl());
-		beanDefinitionBuilder.addPropertyValue("addressProvider", createDefaultAddressProvider(address));
+		beanDefinitionBuilder.addPropertyValue("addressProvider", addressProvider);
 		beanDefinitionBuilder.addPropertyValue("configuration", createCacheConfiguration());
 
 		return beanDefinitionBuilder.getBeanDefinition();
@@ -115,6 +122,14 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
+	private BeanDefinition createElastiCacheAddressProvider(BeanDefinitionRegistry beanDefinitionRegistry, Element source, String clusterId) {
+		BeanDefinitionHolder elastiCacheClient = AmazonElastiCacheClientConfigurationUtils.registerElastiCacheClient(beanDefinitionRegistry, source);
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ElastiCacheAddressProvider.class);
+		beanDefinitionBuilder.addConstructorArgReference(elastiCacheClient.getBeanName());
+		beanDefinitionBuilder.addConstructorArgValue(clusterId);
+		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
 	private AbstractBeanDefinition createClientFactoryImpl() {
 		return BeanDefinitionBuilder.rootBeanDefinition(MemcacheClientFactoryImpl.class).getBeanDefinition();
 	}
@@ -123,7 +138,7 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		if (StringUtils.hasText(source.getAttribute(attributeName)) ) {
 			return source.getAttribute(attributeName);
 		}else{
-			parserContext.getReaderContext().error("Attribute '" + attributeName + "' is required for a manual cache configuration", source);
+			parserContext.getReaderContext().error("Attribute '" + attributeName + "' is required", source);
 			return null;
 		}
 	}
