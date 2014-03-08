@@ -21,7 +21,7 @@ import com.google.code.ssm.config.DefaultAddressProvider;
 import com.google.code.ssm.providers.CacheConfiguration;
 import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
-import org.elasticspring.context.cache.config.ElasticacheManagerFactoryBean;
+import org.elasticspring.context.cache.config.SsmCacheFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -84,7 +84,7 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	}
 
 	private BeanDefinition createSSMCache(String name, String address, int expiration, boolean allowClear) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ElasticacheManagerFactoryBean.class);
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SsmCacheFactoryBean.class);
 		beanDefinitionBuilder.addConstructorArgValue(createCache(name, address));
 		beanDefinitionBuilder.addConstructorArgValue(expiration);
 		beanDefinitionBuilder.addPropertyValue("allowClear", allowClear);

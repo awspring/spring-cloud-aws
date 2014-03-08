@@ -26,13 +26,13 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @author Agim Emruli
  * @since 1.0
  */
-public class ElasticacheManagerFactoryBean extends AbstractFactoryBean<SSMCache> {
+public class SsmCacheFactoryBean extends AbstractFactoryBean<SSMCache> {
 
 	private final Cache cache;
 	private final int expiration;
 	private boolean allowClear;
 
-	public ElasticacheManagerFactoryBean(Cache cache, int expiration) {
+	public SsmCacheFactoryBean(Cache cache, int expiration) {
 		this.cache = cache;
 		this.expiration = expiration;
 	}
