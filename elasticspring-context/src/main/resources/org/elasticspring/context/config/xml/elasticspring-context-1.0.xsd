@@ -165,14 +165,15 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="US_STANDARD" />
-			<xsd:enumeration value="OREGON" />
-			<xsd:enumeration value="NORTHERN_CALIFORNIA" />
-			<xsd:enumeration value="IRELAND" />
-			<xsd:enumeration value="SINGAPORE" />
-			<xsd:enumeration value="SYDNEY" />
-			<xsd:enumeration value="TOKYO" />
-			<xsd:enumeration value="SAO_PAULO" />
+			<xsd:enumeration value="US_EAST_1" />
+			<xsd:enumeration value="US_WEST_1" />
+			<xsd:enumeration value="US_WEST_2" />
+			<xsd:enumeration value="EU_WEST_1" />
+			<xsd:enumeration value="AP_SOUTHEAST_1" />
+			<xsd:enumeration value="AP_SOUTHEAST_2" />
+			<xsd:enumeration value="AP_NORTHEAST_1" />
+			<xsd:enumeration value="SA_EAST_1" />
+			<xsd:enumeration value="CN_NORTH_1" />
 		</xsd:restriction>
 	</xsd:simpleType>
 

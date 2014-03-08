@@ -16,7 +16,8 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.core.region.Region;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import org.elasticspring.core.region.RegionProvider;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class StaticRegionProviderBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 		RegionProvider myRegionProvider = context.getBean("myRegionProvider", RegionProvider.class);
 		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.SAO_PAULO, myRegionProvider.getRegion());
+		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
 	}
 
 	@Test
@@ -40,7 +41,7 @@ public class StaticRegionProviderBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithExpression.xml", getClass());
 		RegionProvider myRegionProvider = context.getBean("myRegionProvider", RegionProvider.class);
 		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.SAO_PAULO, myRegionProvider.getRegion());
+		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
 	}
 
 	@Test
@@ -48,6 +49,6 @@ public class StaticRegionProviderBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithPlaceHolder.xml", getClass());
 		RegionProvider myRegionProvider = context.getBean("myRegionProvider", RegionProvider.class);
 		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.SAO_PAULO, myRegionProvider.getRegion());
+		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
 	}
 }

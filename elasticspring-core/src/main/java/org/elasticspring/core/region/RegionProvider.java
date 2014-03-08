@@ -16,6 +16,8 @@
 
 package org.elasticspring.core.region;
 
+import com.amazonaws.regions.Region;
+
 /**
  * Provider that can be used to retrieve the configured {@link Region}. A region can be typically configured on
  * application or component level and defines which Region will be used to access the services. Implementation of this
