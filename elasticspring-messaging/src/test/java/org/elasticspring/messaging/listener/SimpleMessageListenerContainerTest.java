@@ -38,6 +38,8 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -259,8 +261,9 @@ public class SimpleMessageListenerContainerTest {
 
 		Assert.assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
 		Mockito.verify(messageHandler, Mockito.times(2)).handleMessage(this.stringMessageCaptor.capture());
-		Assert.assertEquals("messageContent", this.stringMessageCaptor.getAllValues().get(1).getPayload());
-		Assert.assertEquals("anotherMessageContent", this.stringMessageCaptor.getAllValues().get(0).getPayload());
+		List<String> capturedPayloads = Arrays.asList(this.stringMessageCaptor.getAllValues().get(0).getPayload(), this.stringMessageCaptor.getAllValues().get(1).getPayload());
+		Assert.assertTrue(capturedPayloads.contains("messageContent"));
+		Assert.assertTrue(capturedPayloads.contains("anotherMessageContent"));
 	}
 
 	private static class TestMessageListener {
