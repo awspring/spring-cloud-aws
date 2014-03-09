@@ -19,15 +19,20 @@ package org.elasticspring.messaging.core.support;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
+import org.springframework.messaging.core.MessagePostProcessor;
+
+import java.util.Map;
 
 /**
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
  */
-public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends MessageChannel> extends AbstractMessageSendingTemplate<String> {
+public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends MessageChannel> extends AbstractMessageSendingTemplate<String> implements DestinationResolvingMessageSendingOperations<String> {
 
 	private final DestinationResolver<String> destinationResolver;
 
@@ -46,4 +51,16 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends M
 	}
 
 	protected abstract T resolveMessageChannel(String physicalResourceIdentifier);
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
+		String physicalResourceId = this.destinationResolver.resolveDestination(destinationName);
+		super.convertAndSend(physicalResourceId, payload, headers, postProcessor);
+	}
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
+		String physicalResourceId = this.destinationResolver.resolveDestination(destinationName);
+		super.convertAndSend(physicalResourceId, payload, headers);
+	}
 }

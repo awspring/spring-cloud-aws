@@ -19,7 +19,6 @@ package org.elasticspring.messaging;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import org.elasticspring.messaging.config.annotation.QueueListener;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -77,7 +77,7 @@ public class MessageListenerContainerAwsTest {
 
 		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
 
-		@QueueListener(queueName = "#{testStackEnvironment.getByLogicalId('LoadTestQueue')}")
+		@MessageMapping("IntegrationTestStack-LoadTestQueue-1FBSBZHDB9HUF")
 		public void onMessage(String message) {
 			Assert.assertNotNull(message);
 			this.getCountDownLatch().countDown();

@@ -36,7 +36,6 @@ import java.io.IOException;
  * Subclasses can inspect the {@link AnnotationMetadata} and process the bean or create a new bean definition at all.
  *
  * @author Agim Emruli
- * @see QueueListenerBeanDefinitionRegistryPostProcessor
  * @see TopicListenerBeanDefinitionRegistryPostProcessor
  * @since 1.0
  */

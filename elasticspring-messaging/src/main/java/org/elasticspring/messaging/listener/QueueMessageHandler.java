@@ -42,11 +42,10 @@ import java.util.Set;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
-
-	public static final String LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY = "LogicalResourceId";
 
 	private final MessageConverter messageConverter;
 
@@ -60,7 +59,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-		return Collections.singletonList(new PayloadArgumentResolver(this.messageConverter, new NoopValidator()));
+		return Collections.singletonList(new PayloadArgumentResolver(this.messageConverter, new NoOpValidator()));
 	}
 
 	@Override
@@ -85,7 +84,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		}
 
 		String logicalResourceId = annotation.value()[0];
-		return new MappingInformation(logicalResourceId, null);
+		return new MappingInformation(logicalResourceId);
 	}
 
 	@Override
@@ -95,7 +94,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected String getDestination(Message<?> message) {
-		return message.getHeaders().get(LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY).toString();
+		return message.getHeaders().get(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY).toString();
 	}
 
 	@Override
@@ -126,19 +125,13 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	protected static class MappingInformation implements Comparable<MappingInformation> {
 
 		private final String logicalResourceId;
-		private final String physicalResourceId;
 
-		private MappingInformation(String logicalResourceId, String physicalResourceId) {
+		private MappingInformation(String logicalResourceId) {
 			this.logicalResourceId = logicalResourceId;
-			this.physicalResourceId = physicalResourceId;
 		}
 
 		public String getLogicalResourceId() {
 			return this.logicalResourceId;
-		}
-
-		public String getPhysicalResourceId() {
-			return this.physicalResourceId;
 		}
 
 		@Override
@@ -156,7 +149,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 		@Override
 		public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
-			QueueMessageHandler.this.handleMessage(MessageBuilder.withPayload(returnValue).setHeader(LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, getValue(returnType)).build());
+			QueueMessageHandler.this.handleMessage(MessageBuilder.withPayload(returnValue).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, getValue(returnType)).build());
 		}
 
 		private String getValue(MethodParameter returnType) {
@@ -164,7 +157,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		}
 	}
 
-	private static final class NoopValidator implements Validator {
+	private static final class NoOpValidator implements Validator {
 
 		@Override
 		public boolean supports(Class<?> clazz) {

@@ -39,7 +39,7 @@ public class QueueMessageHandlerTest {
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		Assert.assertEquals("testContent", messageListener.getLastReceivedMessage());
@@ -54,12 +54,13 @@ public class QueueMessageHandlerTest {
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		Assert.assertEquals("TESTCONTENT", messageListener.getLastReceivedMessage());
 	}
 
+	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
 		private String lastReceivedMessage;

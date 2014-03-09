@@ -22,14 +22,25 @@ import org.elasticspring.messaging.support.destination.CachingDestinationResolve
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base class for message listener containers providing basic lifecycle capabilities and collaborator for the
@@ -37,9 +48,10 @@ import org.springframework.util.ErrorHandler;
  * container to create, initialize and start the container.
  *
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
-abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
+abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware, ApplicationContextAware {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
@@ -48,18 +60,17 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQS amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private MessageHandler messageHandler;
-	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private String destinationName;
-	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private DestinationResolver<String> destinationResolver;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private ApplicationContext applicationContext;
 	private String beanName;
+	private final Set<String> queues = new HashSet<String>();
+	private MessageHandler messageHandler;
 
 	//Optional settings with no defaults
 	private Integer maxNumberOfMessages;
 	private Integer visibilityTimeout;
 	private Integer waitTimeOut;
-
 
 	//Optional settings with defaults
 	private boolean autoStartup = true;
@@ -69,8 +80,25 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	//Settings that are changed at runtime
 	private boolean active;
 	private boolean running;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<String, ReceiveMessageRequest>();
 
-	private ReceiveMessageRequest receiveMessageRequest;
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	public Map<String, ReceiveMessageRequest> getMessageRequests() {
+		return Collections.unmodifiableMap(this.messageRequests);
+	}
+
+	public MessageHandler getMessageHandler() {
+		return this.messageHandler;
+	}
+
+	public void setMessageHandler(MessageHandler messageHandler) {
+		this.messageHandler = messageHandler;
+	}
 
 	protected Object getLifecycleMonitor() {
 		return this.lifecycleMonitor;
@@ -86,7 +114,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	/**
 	 * Configures the mandatory {@link AmazonSQS} client for this instance.
-	 * <b>Note:</b>The configured instance should have a buffering amazon SQS instance (see subclasses) functionality to
+	 * <b>Note:</b>The configured instance should have a buffering amazon SQS instance (see subclasses) functionality
+	 * to
 	 * improve the performance during message reception and deletion on the queueing system.
 	 *
 	 * @param amazonSqs
@@ -96,43 +125,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		this.amazonSqs = amazonSqs;
 	}
 
-	protected MessageHandler getMessageHandler() {
-		return this.messageHandler;
-	}
-
-	/**
-	 * Configures the message listener that will be called if a new message is received.
-	 *
-	 * @param messageHandler
-	 * 		the message listener instance. Must not be null
-	 */
-	public void setMessageHandler(MessageHandler messageHandler) {
-		this.messageHandler = messageHandler;
-	}
-
-	protected String getDestinationName() {
-		return this.destinationName;
-	}
-
-	/**
-	 * Configures the destination name (logical or queue url) where this listener instance will poll for new message. The
-	 * destination name will be resolved by the {@link DestinationResolver} during container startup.
-	 *
-	 * @param destinationName
-	 * 		the destination name as a logical name (e.g. "myQueue") or a full queue url. Must not be null
-	 */
-	public void setDestinationName(String destinationName) {
-		this.destinationName = destinationName;
-	}
-
 	protected DestinationResolver<String> getDestinationResolver() {
 		return this.destinationResolver;
 	}
 
 	/**
 	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
-	 * this
-	 * instance.
+	 * this instance.
 	 *
 	 * @param destinationResolver
 	 * 		- the destination resolver. Must not be null
@@ -156,7 +155,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	/**
 	 * Configure the maximum number of messages that should be retrieved during one poll to the Amazon SQS system. This
-	 * number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently not
+	 * number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently
+	 * not
 	 * supported by the queueing system.
 	 *
 	 * @param maxNumberOfMessages
@@ -234,7 +234,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	/**
 	 * A custom error handler that will be called in case of any message listener error.
 	 *
-	 * @param errorHandler custom error handler implementation
+	 * @param errorHandler
+	 * 		custom error handler implementation
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -243,12 +244,6 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	public boolean isActive() {
 		synchronized (this.getLifecycleMonitor()) {
 			return this.active;
-		}
-	}
-
-	protected ReceiveMessageRequest getReceiveMessageRequest() {
-		synchronized (this.getLifecycleMonitor()) {
-			return this.receiveMessageRequest;
 		}
 	}
 
@@ -261,7 +256,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected void validateConfiguration() {
 		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
 		Assert.state(this.messageHandler != null, "messageHandler must not be null");
-		Assert.state(this.destinationName != null, "destinationName must not be null");
+		Assert.state(this.applicationContext != null, "applicationContext must not be null");
 	}
 
 	protected void initialize() {
@@ -272,6 +267,24 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 			this.active = true;
 			this.getLifecycleMonitor().notifyAll();
+
+			registerQueues();
+		}
+	}
+
+	private void registerQueues() {
+		Map<String, Object> allBeans = this.applicationContext.getBeansOfType(Object.class);
+		for (Object bean : allBeans.values()) {
+			for (Method method : bean.getClass().getDeclaredMethods()) {
+				MessageMapping messageMapping = method.getAnnotation(MessageMapping.class);
+				if (messageMapping != null) {
+					String[] queueNames = messageMapping.value();
+					for (String queueName : queueNames) {
+						Assert.state(!this.queues.contains(queueName), "Queue name can only be mapped on one method");
+						this.queues.add(queueName);
+					}
+				}
+			}
 		}
 	}
 
@@ -279,22 +292,22 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	public void start() {
 		getLogger().debug("Starting container with name {}", getBeanName());
 		synchronized (this.getLifecycleMonitor()) {
-			String destinationUrl = getDestinationResolver().resolveDestination(getDestinationName());
-			ReceiveMessageRequest request = new ReceiveMessageRequest(destinationUrl);
-			if (getMaxNumberOfMessages() != null) {
-				request.withMaxNumberOfMessages(getMaxNumberOfMessages());
+			for (String queue : this.queues) {
+				String destinationUrl = getDestinationResolver().resolveDestination(queue);
+				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl);
+				if (getMaxNumberOfMessages() != null) {
+					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
+				}
+
+				if (getVisibilityTimeout() != null) {
+					receiveMessageRequest.withVisibilityTimeout(getVisibilityTimeout());
+				}
+
+				if (getWaitTimeOut() != null) {
+					receiveMessageRequest.setWaitTimeSeconds(getWaitTimeOut());
+				}
+				this.messageRequests.put(queue, receiveMessageRequest);
 			}
-
-			if (getVisibilityTimeout() != null) {
-				request.withVisibilityTimeout(getVisibilityTimeout());
-			}
-
-			if (getWaitTimeOut() != null) {
-				request.setWaitTimeSeconds(getWaitTimeOut());
-			}
-
-			this.receiveMessageRequest = request;
-
 
 			this.running = true;
 			this.getLifecycleMonitor().notifyAll();

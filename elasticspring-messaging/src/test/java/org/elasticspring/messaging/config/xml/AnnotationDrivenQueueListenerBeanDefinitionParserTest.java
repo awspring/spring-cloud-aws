@@ -17,7 +17,6 @@
 package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
-import org.elasticspring.messaging.config.annotation.QueueListenerBeanDefinitionRegistryPostProcessor;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -50,16 +49,9 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		Assert.assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
-
-		BeanDefinition registryProcessor = registry.getBeanDefinition(QueueListenerBeanDefinitionRegistryPostProcessor.class.getName() + "#0");
-		Assert.assertNotNull(registryProcessor);
-		Assert.assertEquals(1, registryProcessor.getPropertyValues().size());
-
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getName() + "#0",
-				registryProcessor.getPropertyValues().getPropertyValue("parentBeanName").getValue());
 	}
 
 	@Test
@@ -74,7 +66,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		Assert.assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(1, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals("myClient",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
@@ -91,7 +83,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		Assert.assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(2, abstractContainerDefinition.getPropertyValues().size());
+		Assert.assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals("executor",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("taskExecutor").getValue()).getBeanName());
 	}

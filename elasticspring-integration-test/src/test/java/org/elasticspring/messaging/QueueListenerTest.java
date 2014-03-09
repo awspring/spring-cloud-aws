@@ -18,7 +18,6 @@ package org.elasticspring.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.messaging.config.annotation.QueueListener;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,12 +34,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("QueueListenerTest-context.xml")
 public class QueueListenerTest {
 
+	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
 	private AmazonSQS amazonSQS;
 
@@ -60,9 +62,10 @@ public class QueueListenerTest {
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		@QueueListener("#{testStackEnvironment.getByLogicalId('QueueListenerTest')}")
+		@MessageMapping("IntegrationTestStack-QueueListenerTest-1CFORX29FTQOG")
 		public void receiveMessage(String message) {
 			LOGGER.debug("Received message with content {}", message);
+			Assert.assertEquals("hello world", message);
 			this.getCountDownLatch().countDown();
 		}
 

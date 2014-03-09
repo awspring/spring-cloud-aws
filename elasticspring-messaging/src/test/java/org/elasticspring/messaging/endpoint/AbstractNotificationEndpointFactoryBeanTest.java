@@ -53,7 +53,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(amazonSns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
+				TopicListener.NotificationProtocol.HTTP, "testQueue", new Object(), "notImportant");
 		factoryBean.setDestinationResolver(destinationResolver);
 		factoryBean.afterPropertiesSet();
 	}
@@ -71,7 +71,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 				new ListSubscriptionsByTopicResult());
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
+				TopicListener.NotificationProtocol.HTTP, "testQueue", new Object(), "notImportant");
 		factoryBean.afterPropertiesSet();
 	}
 
@@ -90,7 +90,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 				new ListSubscriptionsByTopicResult());
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
+				TopicListener.NotificationProtocol.HTTP, "testQueue", new Object(), "notImportant");
 		factoryBean.afterPropertiesSet();
 	}
 
@@ -104,7 +104,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 		Mockito.when(sns.listTopics(new ListTopicsRequest("mark"))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
 		Subscription subscription = new Subscription().withEndpoint("testQueue").
-				withProtocol(TopicListener.NotificationProtocol.SQS.getCanonicalName()).withTopicArn(topicArn);
+				withProtocol(TopicListener.NotificationProtocol.HTTP.getCanonicalName()).withTopicArn(topicArn);
 
 		Mockito.when(sns.listSubscriptionsByTopic(new ListSubscriptionsByTopicRequest(topicArn))).thenReturn(
 				new ListSubscriptionsByTopicResult().withNextToken("foo"));
@@ -112,7 +112,7 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 				new ListSubscriptionsByTopicResult().withSubscriptions(subscription));
 
 		AbstractNotificationEndpointFactoryBean<Subscription> factoryBean = new StubNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant");
+				TopicListener.NotificationProtocol.HTTP, "testQueue", new Object(), "notImportant");
 		factoryBean.afterPropertiesSet();
 
 		Assert.assertNotNull(factoryBean.getObject());
@@ -127,10 +127,10 @@ public class AbstractNotificationEndpointFactoryBeanTest {
 		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 		Mockito.when(sns.listSubscriptionsByTopic(new ListSubscriptionsByTopicRequest(topicArn))).thenReturn(
 				new ListSubscriptionsByTopicResult().withSubscriptions(new Subscription().withEndpoint("testQueue").
-						withProtocol(TopicListener.NotificationProtocol.SQS.getCanonicalName()).withTopicArn(topicArn)));
+						withProtocol(TopicListener.NotificationProtocol.HTTP.getCanonicalName()).withTopicArn(topicArn)));
 
 		AbstractNotificationEndpointFactoryBean<InitAndDestroyBean> factoryBean = new AbstractNotificationEndpointFactoryBean<InitAndDestroyBean>(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "testQueue", new Object(), "notImportant") {
+				TopicListener.NotificationProtocol.HTTP, "testQueue", new Object(), "notImportant") {
 
 			@Override
 			protected InitAndDestroyBean doCreateEndpointInstance(Subscription subscription) {

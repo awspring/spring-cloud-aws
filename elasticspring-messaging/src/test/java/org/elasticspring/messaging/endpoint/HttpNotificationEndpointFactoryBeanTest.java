@@ -69,14 +69,4 @@ public class HttpNotificationEndpointFactoryBeanTest {
 		Object object = httpNotificationEndpointFactoryBean.getObject();
 		Assert.assertNotNull(object);
 	}
-
-	@Test
-	public void testCreateEndpointWrongProtocol() throws Exception {
-		this.expectedException.expectMessage("This endpoint only support http and https endpoints");
-		this.expectedException.expect(IllegalArgumentException.class);
-		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
-		//noinspection ResultOfObjectAllocationIgnored
-		new HttpNotificationEndpointFactoryBean(sns, "test",
-				TopicListener.NotificationProtocol.SQS, "test", new Object(), "test");
-	}
 }

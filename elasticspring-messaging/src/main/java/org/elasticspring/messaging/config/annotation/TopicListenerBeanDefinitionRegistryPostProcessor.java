@@ -18,7 +18,6 @@ package org.elasticspring.messaging.config.annotation;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.endpoint.HttpNotificationEndpointFactoryBean;
-import org.elasticspring.messaging.endpoint.QueueingNotificationEndpointFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -32,20 +31,16 @@ import java.util.Set;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class TopicListenerBeanDefinitionRegistryPostProcessor extends AbstractMessagingBeanDefinitionRegistryPostProcessor {
 
 	private static final String ANNOTATION_TYPE = TopicListener.class.getName();
 	private String amazonSnsBeanName;
-	private String amazonSqsBeanName;
 
 	public void setAmazonSnsBeanName(String amazonSnsBeanName) {
 		this.amazonSnsBeanName = amazonSnsBeanName;
-	}
-
-	public void setAmazonSqsBeanName(String amazonSqsBeanName) {
-		this.amazonSqsBeanName = amazonSqsBeanName;
 	}
 
 	@Override
@@ -68,11 +63,6 @@ public class TopicListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 				beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(HttpNotificationEndpointFactoryBean.class);
 				beanDefinitionBuilder.addConstructorArgReference(getAmazonSnsBeanName(beanDefinitionRegistry));
 				break;
-			case SQS:
-				beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueingNotificationEndpointFactoryBean.class);
-				beanDefinitionBuilder.addConstructorArgReference(getAmazonSnsBeanName(beanDefinitionRegistry));
-				beanDefinitionBuilder.addConstructorArgReference(getAmazonSqsBeanName(beanDefinitionRegistry));
-				break;
 			default:
 				throw new IllegalArgumentException("The protocol :'" + protocol + "' is currently not supported");
 		}
@@ -94,13 +84,4 @@ public class TopicListenerBeanDefinitionRegistryPostProcessor extends AbstractMe
 		return definitionHolder.getBeanName();
 	}
 
-	private String getAmazonSqsBeanName(BeanDefinitionRegistry beanDefinitionRegistry) {
-		if (StringUtils.hasText(this.amazonSqsBeanName)) {
-			return this.amazonSqsBeanName;
-		}
-
-		BeanDefinitionHolder definitionHolder = AmazonMessagingConfigurationUtils.
-				registerAmazonSqsClient(beanDefinitionRegistry, this, null);
-		return definitionHolder.getBeanName();
-	}
 }

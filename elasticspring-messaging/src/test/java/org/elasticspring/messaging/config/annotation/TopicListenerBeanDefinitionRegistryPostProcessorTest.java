@@ -18,7 +18,6 @@ package org.elasticspring.messaging.config.annotation;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.endpoint.HttpNotificationEndpointFactoryBean;
-import org.elasticspring.messaging.endpoint.QueueingNotificationEndpointFactoryBean;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -126,71 +125,6 @@ public class TopicListenerBeanDefinitionRegistryPostProcessorTest {
 				getArgumentValue(5, String.class).getValue());
 	}
 
-	@Test
-	public void testCreateSqsEndpoint() throws Exception {
-		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
-		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
-
-		simpleBeanDefinitionRegistry.registerBeanDefinition("sqsEndpoint",
-				BeanDefinitionBuilder.rootBeanDefinition(SqsEndpoint.class).getBeanDefinition());
-		postProcessor.postProcessBeanDefinitionRegistry(simpleBeanDefinitionRegistry);
-
-		Assert.assertEquals(4, simpleBeanDefinitionRegistry.getBeanDefinitionCount());
-		BeanDefinition definition = simpleBeanDefinitionRegistry.getBeanDefinition(
-				QueueingNotificationEndpointFactoryBean.class.getName() + "#0");
-
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SNS_CLIENT_BEAN_NAME, ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME, ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals("test", definition.getConstructorArgumentValues().
-				getArgumentValue(2, String.class).getValue());
-		Assert.assertEquals(TopicListener.NotificationProtocol.SQS, definition.getConstructorArgumentValues().
-				getArgumentValue(3, TopicListener.NotificationProtocol.class).getValue());
-		Assert.assertEquals("myQueue", definition.getConstructorArgumentValues().
-				getArgumentValue(4, String.class).getValue());
-		Assert.assertEquals("sqsEndpoint", ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(5, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals("doReceiveNotification", definition.getConstructorArgumentValues().
-				getArgumentValue(6, String.class).getValue());
-
-		Assert.assertTrue(simpleBeanDefinitionRegistry.containsBeanDefinition(AmazonMessagingConfigurationUtils.SNS_CLIENT_BEAN_NAME));
-		Assert.assertTrue(simpleBeanDefinitionRegistry.containsBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME));
-	}
-
-	@Test
-	public void testCreateSqsWithCustomSnsAndSqs() throws Exception {
-		TopicListenerBeanDefinitionRegistryPostProcessor postProcessor = new TopicListenerBeanDefinitionRegistryPostProcessor();
-		SimpleBeanDefinitionRegistry simpleBeanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
-
-		simpleBeanDefinitionRegistry.registerBeanDefinition("sqsEndpoint",
-				BeanDefinitionBuilder.rootBeanDefinition(SqsEndpoint.class).getBeanDefinition());
-
-		postProcessor.setAmazonSnsBeanName("mySns");
-		postProcessor.setAmazonSqsBeanName("mySqs");
-
-		postProcessor.postProcessBeanDefinitionRegistry(simpleBeanDefinitionRegistry);
-
-		Assert.assertEquals(2, simpleBeanDefinitionRegistry.getBeanDefinitionCount());
-		BeanDefinition definition = simpleBeanDefinitionRegistry.getBeanDefinition(
-				QueueingNotificationEndpointFactoryBean.class.getName() + "#0");
-
-		Assert.assertEquals("mySns", ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals("mySqs", ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals("test", definition.getConstructorArgumentValues().
-				getArgumentValue(2, String.class).getValue());
-		Assert.assertEquals(TopicListener.NotificationProtocol.SQS, definition.getConstructorArgumentValues().
-				getArgumentValue(3, TopicListener.NotificationProtocol.class).getValue());
-		Assert.assertEquals("myQueue", definition.getConstructorArgumentValues().
-				getArgumentValue(4, String.class).getValue());
-		Assert.assertEquals("sqsEndpoint", ((RuntimeBeanReference) definition.getConstructorArgumentValues().
-				getArgumentValue(5, RuntimeBeanReference.class).getValue()).getBeanName());
-		Assert.assertEquals("doReceiveNotification", definition.getConstructorArgumentValues().
-				getArgumentValue(6, String.class).getValue());
-	}
-
 	static class HttpEndpoint {
 
 		@TopicListener(protocol = TopicListener.NotificationProtocol.HTTP, topicName = "test",
@@ -209,12 +143,4 @@ public class TopicListenerBeanDefinitionRegistryPostProcessorTest {
 		}
 	}
 
-	static class SqsEndpoint {
-
-		@TopicListener(protocol = TopicListener.NotificationProtocol.SQS, topicName = "test",
-				endpoint = "myQueue")
-		public void doReceiveNotification(String message) {
-			LoggerFactory.getLogger(getClass()).debug("Received message {}", message);
-		}
-	}
 }

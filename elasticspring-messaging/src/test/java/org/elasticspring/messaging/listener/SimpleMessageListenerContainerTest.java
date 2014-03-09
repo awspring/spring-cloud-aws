@@ -23,23 +23,38 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class SimpleMessageListenerContainerTest {
+
+	@Captor
+	private ArgumentCaptor<org.springframework.messaging.Message<String>> stringMessageCaptor;
+
+	@Before
+	public void setUp() throws Exception {
+		MockitoAnnotations.initMocks(this);
+	}
 
 	@Test
 	public void testWithDefaultTaskExecutorAndNoBeanName() throws Exception {
@@ -47,7 +62,7 @@ public class SimpleMessageListenerContainerTest {
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setDestinationName("testQueue");
+		container.setApplicationContext(new StaticApplicationContext());
 
 		container.afterPropertiesSet();
 
@@ -62,7 +77,7 @@ public class SimpleMessageListenerContainerTest {
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setDestinationName("testQueue");
+		container.setApplicationContext(new StaticApplicationContext());
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
@@ -79,7 +94,7 @@ public class SimpleMessageListenerContainerTest {
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
 		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setDestinationName("testQueue");
+		container.setApplicationContext(new StaticApplicationContext());
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
@@ -89,24 +104,24 @@ public class SimpleMessageListenerContainerTest {
 	@Test
 	public void testSimpleReceiveMessage() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-		container.setTaskExecutor(taskExecutor);
 
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
-		container.setMessageHandler(new MessageHandler() {
+		MessageHandler messageHandler = new MessageHandler() {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				Assert.assertEquals("messageContent", message.getPayload());
 				countDownLatch.countDown();
 			}
-		});
-
-		container.setDestinationName("testQueue");
+		};
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		container.setApplicationContext(applicationContext);
 		container.setBeanName("testContainerName");
 
 		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
@@ -135,15 +150,15 @@ public class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		container.setMessageHandler(new MessageHandler() {
+		MessageHandler messageHandler = new MessageHandler() {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				Assert.fail("Should not have been called");
 			}
-		});
-
-		container.setDestinationName("testQueue");
+		};
+		container.setMessageHandler(messageHandler);
+		container.setApplicationContext(new StaticApplicationContext());
 		container.setBeanName("testContainerName");
 
 		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
@@ -181,15 +196,15 @@ public class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		container.setMessageHandler(new MessageHandler() {
+		MessageHandler messageHandler = new MessageHandler() {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				throw new IllegalArgumentException("expected exception");
 			}
-		});
-
-		container.setDestinationName("testQueue");
+		};
+		container.setMessageHandler(messageHandler);
+		container.setApplicationContext(new StaticApplicationContext());
 		container.setBeanName("testContainerName");
 
 		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
@@ -204,4 +219,68 @@ public class SimpleMessageListenerContainerTest {
 
 		container.start();
 	}
+
+	@Test
+	public void listener_withMultipleMessageHandlers_shouldBeCalledCorrectly() throws Exception {
+		final CountDownLatch countDownLatch = new CountDownLatch(2);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
+
+			@Override
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+				super.executeMessage(stringMessage);
+				countDownLatch.countDown();
+			}
+		};
+		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		container.setAmazonSqs(sqs);
+
+		MessageHandler messageHandler = Mockito.mock(MessageHandler.class);
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
+		container.setApplicationContext(applicationContext);
+
+		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+				withQueueUrl("http://testQueue.amazonaws.com"));
+		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("anotherTestQueue"))).thenReturn(new GetQueueUrlResult().
+				withQueueUrl("http://anotherTestQueue.amazonaws.com"));
+
+		container.afterPropertiesSet();
+
+		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
+				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"))).
+				thenReturn(new ReceiveMessageResult());
+		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com"))).
+				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent"))).
+				thenReturn(new ReceiveMessageResult());
+
+		container.start();
+
+		Assert.assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		Mockito.verify(messageHandler, Mockito.times(2)).handleMessage(this.stringMessageCaptor.capture());
+		Assert.assertEquals("messageContent", this.stringMessageCaptor.getAllValues().get(1).getPayload());
+		Assert.assertEquals("anotherMessageContent", this.stringMessageCaptor.getAllValues().get(0).getPayload());
+	}
+
+	private static class TestMessageListener {
+
+		@SuppressWarnings("UnusedDeclaration")
+		@MessageMapping("testQueue")
+		private void handleMessage(String ignore) {
+
+		}
+
+	}
+
+	private static class AnotherTestMessageListener {
+
+		@SuppressWarnings("UnusedDeclaration")
+		@MessageMapping("anotherTestQueue")
+		private void handleMessage(String ignore) {
+
+		}
+
+	}
+
 }
