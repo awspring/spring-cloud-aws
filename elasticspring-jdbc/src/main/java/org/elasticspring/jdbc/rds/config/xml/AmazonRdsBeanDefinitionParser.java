@@ -17,7 +17,6 @@
 package org.elasticspring.jdbc.rds.config.xml;
 
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -33,7 +32,7 @@ import org.w3c.dom.Node;
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the datasource
  * element. Parses the element and constructs a fully configured {@link AmazonRdsDataSourceFactoryBean} bean
- * definition. Also creates a bean definition for the {@link AmazonRdsClientFactoryBean} if there is not already an
+ * definition. Also creates a bean definition for the {@link com.amazonaws.services.rds.AmazonRDSClient} if there is not already an
  * existing one this application context.
  *
  * @author Agim Emruli

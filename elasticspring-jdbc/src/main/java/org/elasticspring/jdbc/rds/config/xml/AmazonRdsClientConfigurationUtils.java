@@ -16,11 +16,12 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
+import com.amazonaws.services.rds.AmazonRDSClient;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
-import org.elasticspring.core.region.StaticRegionProvider;
-import org.elasticspring.jdbc.rds.AmazonRdsClientFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -28,7 +29,8 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
- * Utility class which configure the {@link AmazonRdsClientFactoryBean} to make it available in the application context
+ * Utility class which configure the {@link com.amazonaws.services.rds.AmazonRDSClient} to make it available in the
+ * application context
  *
  * @author Agim Emruli
  * @since 1.0
@@ -44,7 +46,7 @@ class AmazonRdsClientConfigurationUtils {
 			BeanDefinitionRegistry registry, Element source, ParserContext parserContext) {
 
 		if (!registry.containsBeanDefinition(RDS_CLIENT_BEAN_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsClientFactoryBean.class);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRDSClient.class);
 			builder.getRawBeanDefinition().setSource(source);
 			builder.getRawBeanDefinition().setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
@@ -54,13 +56,15 @@ class AmazonRdsClientConfigurationUtils {
 			}
 
 			if (StringUtils.hasText(source.getAttribute("region-provider"))) {
-				builder.addPropertyReference("regionProvider", source.getAttribute("region-provider"));
-			} else {
-				if (StringUtils.hasText(source.getAttribute("region"))) {
-					BeanDefinitionBuilder regionProvider = BeanDefinitionBuilder.rootBeanDefinition(StaticRegionProvider.class);
-					regionProvider.addConstructorArgValue(source.getAttribute("region"));
-					builder.addPropertyValue("regionProvider", regionProvider.getBeanDefinition());
-				}
+				BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
+				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(source.getAttribute("region-provider")));
+				beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
+				builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+			} else if (StringUtils.hasText(source.getAttribute("region"))) {
+				BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.Region");
+				beanDefinitionBuilder.setFactoryMethod("getRegion");
+				beanDefinitionBuilder.addConstructorArgValue(source.getAttribute("region"));
+				builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 			}
 
 			registry.registerBeanDefinition(RDS_CLIENT_BEAN_NAME, builder.getBeanDefinition());

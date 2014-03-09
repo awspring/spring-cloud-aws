@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
-
-
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -106,7 +94,7 @@ project('elasticspring-core') {
 
 
 project('elasticspring-context') {
-    description = 'elasticspring context'
+    description = "elasticspring context"
     dependencies {
         compile project(":elasticspring-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
@@ -115,6 +103,12 @@ project('elasticspring-context') {
             exclude module: "activation"
         }
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
+        testCompile("com.thimbleware.jmemcached:jmemcached-core:1.0.0")
+        compile("com.google.code.simple-spring-memcached:spring-cache:3.3.0")
+        compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.3.0") {
+            exclude module: "spymemcached"
+        }
+        testCompile("net.spy:spymemcached:2.10.6")
     }
 }
 
@@ -187,6 +181,11 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.7.1")
+        testCompile("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
+        testCompile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
+            exclude module: "spymemcached"
+        }
+        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
 
         testRuntime("javax.servlet:javax.servlet-api:3.0.1")
         testCompile("org.springframework:spring-web:${springFrameworkVersion}")
