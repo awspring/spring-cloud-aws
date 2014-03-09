@@ -1,6 +1,7 @@
 package org.elasticspring.context.config.xml;
 
 import org.elasticspring.core.env.ResourceIdResolver;
+import org.elasticspring.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -12,7 +13,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  */
 public class GlobalBeanDefinitionUtils {
 
-	static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
+	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
 
 	private GlobalBeanDefinitionUtils() {
 	}
@@ -41,7 +42,7 @@ public class GlobalBeanDefinitionUtils {
 	}
 
 	private static BeanDefinition buildResourceIdResolverBeanDefinition() {
-		return BeanDefinitionBuilder.genericBeanDefinition(ResourceIdResolver.class).getBeanDefinition();
+		return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class).getBeanDefinition();
 	}
 
 }

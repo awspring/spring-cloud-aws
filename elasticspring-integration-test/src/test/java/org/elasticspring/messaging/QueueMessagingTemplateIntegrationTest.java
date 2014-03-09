@@ -17,11 +17,9 @@
 package org.elasticspring.messaging;
 
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,34 +43,28 @@ public class QueueMessagingTemplateIntegrationTest {
 	@Resource(name = "jsonMessage")
 	private QueueMessagingTemplate jsonQueueingOperations;
 
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
-
 	@Test
 	public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
-		String queueName = this.testStackEnvironment.getByLogicalId("StringQueue");
-		this.stringQueueingOperations.convertAndSend(queueName, messageContent);
-		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(queueName, String.class);
+		this.stringQueueingOperations.convertAndSend("StringQueue", messageContent);
+		String receivedMessage = this.stringQueueingOperations.receiveAndConvert("StringQueue", String.class);
 		Assert.assertEquals(messageContent, receivedMessage);
 	}
 
 	@Test
 	public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
-		String queueName = this.testStackEnvironment.getByLogicalId("StreamQueue");
-		this.objectQueueingOperations.convertAndSend(queueName, payload);
+		this.objectQueueingOperations.convertAndSend("StreamQueue", payload);
 
-		List<String> result = this.objectQueueingOperations.receiveAndConvert(queueName, StringList.class);
+		List<String> result = this.objectQueueingOperations.receiveAndConvert("StreamQueue", StringList.class);
 		Assert.assertEquals("myString", result.get(0));
 	}
 
 	@Test
 	public void testSendAndReceiveJsonMessage() throws Exception {
-		String queueName = this.testStackEnvironment.getByLogicalId("JsonQueue");
-		this.jsonQueueingOperations.convertAndSend(queueName, "myString");
+		this.jsonQueueingOperations.convertAndSend("JsonQueue", "myString");
 
-		String result = this.jsonQueueingOperations.receiveAndConvert(queueName, String.class);
+		String result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", String.class);
 		Assert.assertEquals("myString", result);
 	}
 

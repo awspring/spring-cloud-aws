@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
@@ -73,7 +74,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("amazon-sqs"), definitionHolder.getBeanName());
 		}
 
-		addMessageHandler(parserContext, containerBuilder);
+		containerBuilder.addPropertyReference("resourceIdResolver", GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+		containerBuilder.addPropertyReference("messageHandler", getMessageHandlerBeanName(parserContext));
 
 		String beanName = parserContext.getReaderContext().generateBeanName(containerBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(beanName, containerBuilder.getBeanDefinition());
@@ -81,11 +83,11 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		return null;
 	}
 
-	private void addMessageHandler(ParserContext parserContext, BeanDefinitionBuilder containerBuilder) {
+	private String getMessageHandlerBeanName(ParserContext parserContext) {
 		BeanDefinitionBuilder queueMessageHandlerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
 		String messageHandlerBeanName = parserContext.getReaderContext().generateBeanName(queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(messageHandlerBeanName, queueMessageHandlerDefinitionBuilder.getBeanDefinition());
-		containerBuilder.addPropertyReference("messageHandler", messageHandlerBeanName);
+		return messageHandlerBeanName;
 	}
 
 	@Override

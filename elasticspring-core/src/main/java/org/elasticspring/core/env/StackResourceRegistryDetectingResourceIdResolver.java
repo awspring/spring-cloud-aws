@@ -28,7 +28,7 @@ public class StackResourceRegistryDetectingResourceIdResolver implements Resourc
 	 * Resolves the provided logical resource id to the corresponding physical resource id. If the logical resource id
 	 * refers to a resource part of any of the configured stacks, the corresponding physical resource id from the stack is
 	 * returned. If none of the configured stacks contain a resource with the provided logical resource id, or no stacks
-	 * are configured at all, the logical resource id as returned as the physical resource id.
+	 * are configured at all, the logical resource id is returned as the physical resource id.
 	 *
 	 * @param logicalResourceId
 	 * 		the logical resource id to be resolved

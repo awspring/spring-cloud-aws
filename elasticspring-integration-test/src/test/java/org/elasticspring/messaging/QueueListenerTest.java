@@ -16,9 +16,8 @@
 
 package org.elasticspring.messaging;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.elasticspring.support.TestStackEnvironment;
+import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,19 +41,15 @@ import java.util.concurrent.TimeUnit;
 @ContextConfiguration("QueueListenerTest-context.xml")
 public class QueueListenerTest {
 
-	@SuppressWarnings("SpringJavaAutowiringInspection")
-	@Autowired
-	private AmazonSQS amazonSQS;
-
 	@Autowired
 	private MessageListener messageListener;
 
 	@Autowired
-	private TestStackEnvironment testStackEnvironment;
+	private QueueMessagingTemplate queueMessagingTemplate;
 
 	@Test
 	public void testSendAndReceive() throws Exception {
-		this.amazonSQS.sendMessage(new SendMessageRequest(this.testStackEnvironment.getByLogicalId("QueueListenerTest"), "hello world"));
+		this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Hello world!").build());
 		Assert.assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
 	}
 
@@ -62,10 +58,11 @@ public class QueueListenerTest {
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		@MessageMapping("IntegrationTestStack-QueueListenerTest-1CFORX29FTQOG")
+		@RuntimeUse
+		@MessageMapping("QueueListenerTest")
 		public void receiveMessage(String message) {
 			LOGGER.debug("Received message with content {}", message);
-			Assert.assertEquals("hello world", message);
+			Assert.assertEquals("Hello world!", message);
 			this.getCountDownLatch().countDown();
 		}
 

@@ -17,10 +17,15 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   					   http://www.elasticspring.org/schema/context
+	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
+
+	<els-context:stack-configuration stack-name="IntegrationTestStack"/>
 
 	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
 		<constructor-arg
@@ -30,10 +35,12 @@
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
 		<constructor-arg ref="amazonSqsClient" />
+		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 	</bean>
 
 	<bean id="objectMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<constructor-arg ref="amazonSqsClient" />
+		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 		</property>
@@ -41,6 +48,7 @@
 
 	<bean id="jsonMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<constructor-arg ref="amazonSqsClient" />
+		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">
 				<constructor-arg name="marshaller" ref="marshaller" />

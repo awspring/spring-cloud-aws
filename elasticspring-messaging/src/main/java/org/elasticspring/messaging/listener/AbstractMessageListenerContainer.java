@@ -18,6 +18,7 @@ package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
@@ -70,13 +71,15 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	//Optional settings with no defaults
 	private Integer maxNumberOfMessages;
 	private Integer visibilityTimeout;
-	private Integer waitTimeOut;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private ResourceIdResolver resourceIdResolver;
 
+	private Integer waitTimeOut;
 	//Optional settings with defaults
 	private boolean autoStartup = true;
 	private int phase = Integer.MAX_VALUE;
-	private ErrorHandler errorHandler = new LoggingErrorHandler();
 
+	private ErrorHandler errorHandler = new LoggingErrorHandler();
 	//Settings that are changed at runtime
 	private boolean active;
 	private boolean running;
@@ -181,6 +184,16 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		this.visibilityTimeout = visibilityTimeout;
 	}
 
+	/**
+	 * This value must be set if no destination resolver has been set.
+	 * @param resourceIdResolver
+	 * 		the resourceIdResolver to use for resolving logical to physical ids in a CloudFormation environment.
+	 * 		Must not be null.
+	 */
+	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
+		this.resourceIdResolver = resourceIdResolver;
+	}
+
 	protected Integer getWaitTimeOut() {
 		return this.waitTimeOut;
 	}
@@ -262,7 +275,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected void initialize() {
 		synchronized (this.getLifecycleMonitor()) {
 			if (this.destinationResolver == null) {
-				this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
+				if (this.resourceIdResolver == null) {
+					this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
+				} else {
+					this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs, this.resourceIdResolver));
+				}
 			}
 
 			this.active = true;

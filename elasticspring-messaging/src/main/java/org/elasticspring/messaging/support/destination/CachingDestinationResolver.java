@@ -35,7 +35,7 @@ public class CachingDestinationResolver<P> implements DestinationResolver<P> {
 
 	@Override
 	public P resolveDestination(String name) throws DestinationResolutionException {
-		if (this.destinationCache.contains(name)) {
+		if (this.destinationCache.containsKey(name)) {
 			return this.destinationCache.get(name);
 		}
 

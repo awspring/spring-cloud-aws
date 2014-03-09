@@ -17,6 +17,7 @@
 package org.elasticspring.messaging.core;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.messaging.Message;
@@ -33,9 +34,13 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 
 	private final AmazonSQS amazonSqs;
 
-	public QueueMessagingTemplate(AmazonSQS amazonSqs) {
-		super(new DynamicQueueUrlDestinationResolver(amazonSqs));
+	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		super(new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver));
 		this.amazonSqs = amazonSqs;
+	}
+
+	public QueueMessagingTemplate(AmazonSQS amazonSqs) {
+		this(amazonSqs, null);
 	}
 
 	@Override

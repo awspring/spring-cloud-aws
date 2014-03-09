@@ -22,13 +22,11 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-/**
- *
- */
 public class DynamicQueueUrlDestinationResolverTest {
 
 	@Test
@@ -73,5 +71,18 @@ public class DynamicQueueUrlDestinationResolverTest {
 		} catch (InvalidDestinationException e) {
 			Assert.assertEquals(queueUrl, e.getDestinationName());
 		}
+	}
+
+	@Test
+	public void resolveDestination_withResourceIdResolver_shouldUseIt() throws Exception {
+		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
+		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId(Mockito.anyString())).thenReturn("http://queue.com");
+		DynamicQueueUrlDestinationResolver dynamicQueueUrlDestinationResolver = new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver);
+
+		String physicalResourceId = dynamicQueueUrlDestinationResolver.resolveDestination("testQueue");
+
+		Assert.assertEquals("http://queue.com", physicalResourceId);
+
 	}
 }
