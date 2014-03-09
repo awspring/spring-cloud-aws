@@ -16,6 +16,8 @@
 
 package org.elasticspring.core.region;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,6 +28,6 @@ public class StaticRegionProviderTest {
 
 	@Test
 	public void testGetRegion() throws Exception {
-		Assert.assertSame(Region.US_STANDARD, new StaticRegionProvider(Region.US_STANDARD).getRegion());
+		Assert.assertSame(Region.getRegion(Regions.US_EAST_1), new StaticRegionProvider(Regions.US_EAST_1).getRegion());
 	}
 }

@@ -27,6 +27,8 @@
 		<els-context:simple-credentials access-key="${accessKey}" secret-key="${secretKey}" />
 	</els-context:context-credentials>
 
+	<els-context:context-region region="EU_WEST_1" />
+
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 
 	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">

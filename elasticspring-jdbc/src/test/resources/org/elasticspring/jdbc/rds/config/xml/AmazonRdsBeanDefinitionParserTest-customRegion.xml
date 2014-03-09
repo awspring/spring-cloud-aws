@@ -26,5 +26,5 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" region="IRELAND" />
+	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" region="EU_WEST_1" />
 </beans>

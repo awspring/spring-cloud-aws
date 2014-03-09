@@ -30,6 +30,6 @@
 					 region-provider="myRegionProvider" />
 
 	<bean id="myRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
-		<constructor-arg value="IRELAND" />
+		<constructor-arg value="EU_WEST_1" />
 	</bean>
 </beans>
