@@ -2,8 +2,8 @@
 build/
 /.gradle
 /config
-.idea/
-out
+/.idea
+/out
 
 # Do not ignore them
 !.idea/copyright

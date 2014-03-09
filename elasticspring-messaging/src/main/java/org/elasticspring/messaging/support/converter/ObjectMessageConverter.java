@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,10 +19,13 @@ package org.elasticspring.messaging.support.converter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
-import org.elasticspring.messaging.Message;
-import org.elasticspring.messaging.StringMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.MessageConverter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,10 +34,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 
 /**
- *
+ * //TODO: Check need of Base64 encoding
+ * //TODO: Rename to Base64Object.....Converter
  */
 public class ObjectMessageConverter implements MessageConverter {
 
@@ -42,16 +45,16 @@ public class ObjectMessageConverter implements MessageConverter {
 	private static final String DEFAULT_ENCODING = "UTF-8";
 	private final Charset encoding;
 
-	public ObjectMessageConverter(String encoding) throws UnsupportedCharsetException {
+	public ObjectMessageConverter(String encoding) {
 		this.encoding = Charset.forName(encoding);
 	}
 
 	public ObjectMessageConverter() {
-		this.encoding = Charset.forName(DEFAULT_ENCODING);
+		this(DEFAULT_ENCODING);
 	}
 
 	@Override
-	public Message<String> toMessage(Object payload) {
+	public Message<String> toMessage(Object payload, MessageHeaders header) {
 		if (!(payload instanceof Serializable)) {
 			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
 		}
@@ -76,17 +79,16 @@ public class ObjectMessageConverter implements MessageConverter {
 		}
 
 		String messagePayload = new String(content.toByteArray(), 0, content.size(), this.encoding);
-
-		return new StringMessage(messagePayload);
+		return MessageBuilder.withPayload(messagePayload).build();
 
 	}
 
 	@Override
-	public Serializable fromMessage(Message<String> message) {
-		String messagePayload = message.getPayload();
+	public Serializable fromMessage(Message<?> message, Class<?> targetClass) {
+		String messagePayload = message.getPayload().toString();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);
 		if (!(Base64.isBase64(rawContent))) {
-			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!");
+			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!",null);
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
 		Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,24 @@ package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.elasticspring.messaging.StringMessage;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.ClassUtils;
+
+import java.util.Map;
 
 /**
- *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @since 1.0
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
+
+	private static final String DEFAULT_THREAD_NAME_PREFIX =
+			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
 
 	private TaskExecutor taskExecutor;
 
@@ -38,9 +48,31 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	@Override
+	protected void initialize() {
+		if (this.taskExecutor == null) {
+			this.taskExecutor = createDefaultTaskExecutor();
+		}
+
+		super.initialize();
+	}
+
+	/**
+	 * Create a default TaskExecutor. Called if no explicit TaskExecutor has been specified.
+	 * <p>The default implementation builds a {@link org.springframework.core.task.SimpleAsyncTaskExecutor}
+	 * with the specified bean name (or the class name, if no bean name specified) as thread name prefix.
+	 *
+	 * @see org.springframework.core.task.SimpleAsyncTaskExecutor#SimpleAsyncTaskExecutor(String)
+	 */
+	protected TaskExecutor createDefaultTaskExecutor() {
+		String beanName = getBeanName();
+		String threadNamePrefix = (beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
+		return new SimpleAsyncTaskExecutor(threadNamePrefix);
+	}
+
+	@Override
 	protected void doStart() {
 		synchronized (this.getLifecycleMonitor()) {
-			scheduleMessageListener();
+			scheduleMessageListeners();
 		}
 	}
 
@@ -49,32 +81,39 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	}
 
-	private void scheduleMessageListener() {
-		getTaskExecutor().execute(new AsyncMessageListener());
-	}
-
-	protected void executeMessage(org.elasticspring.messaging.Message<?> stringMessage) {
-		try {
-			getMessageListener().onMessage(stringMessage);
-		} catch (Throwable throwable) {
-			handleException(throwable);
+	private void scheduleMessageListeners() {
+		for (Map.Entry<String, ReceiveMessageRequest> messageRequest : getMessageRequests().entrySet()) {
+			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue()));
 		}
 	}
 
-	protected void handleException(Throwable throwable) {
-		getLogger().error("Error executing listener with exception:", throwable);
+	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+		try {
+			getMessageHandler().handleMessage(stringMessage);
+		} catch (Throwable throwable) {
+			handleError(throwable);
+		}
 	}
 
+	private class AsynchronousMessageListener implements Runnable {
 
-	private class AsyncMessageListener implements Runnable {
+		private final ReceiveMessageRequest receiveMessageRequest;
+		private final String logicalQueueName;
+
+		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest) {
+			this.logicalQueueName = logicalQueueName;
+			this.receiveMessageRequest = receiveMessageRequest;
+		}
 
 		@Override
 		public void run() {
 			while (isRunning()) {
-				synchronized (SimpleMessageListenerContainer.this.getLifecycleMonitor()) {
-					ReceiveMessageResult receiveMessageResult = getAmazonSQS().receiveMessage(getReceiveMessageRequest());
-					for (Message message : receiveMessageResult.getMessages()) {
-						getTaskExecutor().execute(new MessageExecutor(message));
+				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.receiveMessageRequest);
+				for (Message message : receiveMessageResult.getMessages()) {
+					if (isRunning()) {
+						getTaskExecutor().execute(new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl()));
+					} else {
+						break;
 					}
 				}
 			}
@@ -84,16 +123,22 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private class MessageExecutor implements Runnable {
 
 		private final Message message;
+		private final String logicalQueueName;
+		private final String queueUrl;
 
-		private MessageExecutor(Message message) {
+		private MessageExecutor(String logicalQueueName, Message message, String queueUrl) {
+			this.logicalQueueName = logicalQueueName;
 			this.message = message;
+			this.queueUrl = queueUrl;
 		}
 
 		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
-			executeMessage(new StringMessage(receiptHandle, this.message.getAttributes()));
-			getAmazonSQS().deleteMessageAsync(new DeleteMessageRequest(this.message.getMessageId(), receiptHandle));
+			String payload = this.message.getBody();
+			executeMessage(MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName).build());
+			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
 		}
 	}
 }

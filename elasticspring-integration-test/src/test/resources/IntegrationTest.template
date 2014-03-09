@@ -94,6 +94,72 @@
 			"Properties": {
 			}
 		},
+		"QueueListenerTest": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+			}
+		},
+		"NotificationQueue": {
+			"Type": "AWS::SQS::Queue"
+		},
+		"SqsReceivingSnsTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [ "NotificationQueue", "Arn" ]
+						},
+						"Protocol": "sqs"
+					}
+				]
+			}
+		},
+		"SnsToSqsPolicy": {
+			"Type": "AWS::SQS::QueuePolicy",
+			"Properties": {
+				"PolicyDocument": {
+					"Version": "2008-10-17",
+					"Id": "SnsToSqsPolicy",
+					"Statement": [
+						{
+							"Sid": "Allow-Sns-SendMessage",
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": "*"
+							},
+							"Action": [ "sqs:SendMessage" ],
+							"Resource": {
+								"Fn::GetAtt": [ "NotificationQueue", "Arn" ]
+							},
+							"Condition": {
+								"ArnEquals": {
+									"aws:SourceArn": {
+										"Ref": "SqsReceivingSnsTopic"
+									}
+								}
+							}
+						}
+					]
+				},
+				"Queues": [
+					{
+						"Ref": "NotificationQueue"
+					}
+				]
+			}
+		},
+		"HttpReceivingSnsTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": "http://notimportant.elasticspring.com/endpoint",
+						"Protocol": "http"
+					}
+				]
+			}
+		},
 		"CacheSecurityGroup": {
         	"Type": "AWS::ElastiCache::SecurityGroup",
             "Properties": {

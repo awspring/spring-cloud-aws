@@ -18,6 +18,7 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/context"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:beans="http://www.springframework.org/schema/beans"
 			targetNamespace="http://www.elasticspring.org/schema/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -225,7 +226,6 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
-
 	<xsd:element name="cache-manager">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -314,4 +314,28 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:element name="stack-configuration">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an Amazon Cloud Formation stack and enables lookup of physical ids by logical ids for
+				resources defined in the specified stack.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="stack-name" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								The name of the stack to be configured. The corresponding stack must exist and must be
+								available. If no stack name is configured, the stack name is automatically detected
+								based on the stack the current Amazon EC2 instance is part of.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 </xsd:schema>

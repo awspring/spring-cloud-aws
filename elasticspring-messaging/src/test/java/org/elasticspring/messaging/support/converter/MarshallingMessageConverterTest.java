@@ -18,12 +18,13 @@ package org.elasticspring.messaging.support.converter;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-import org.elasticspring.messaging.Message;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -49,9 +50,9 @@ public class MarshallingMessageConverterTest {
 
 		TestPerson testPerson = new TestPerson("Agim", "Emruli", new SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).parse("1984-12-18"));
 		MessageConverter messageConverter = new MarshallingMessageConverter(xStreamMarshaller, xStreamMarshaller);
-		Message<String> result = messageConverter.toMessage(testPerson);
+		Message<?> result = messageConverter.toMessage(testPerson, null);
 
-		TestPerson candidate = (TestPerson) messageConverter.fromMessage(result);
+		TestPerson candidate = (TestPerson) messageConverter.fromMessage(result,TestPerson.class);
 		Assert.assertEquals(testPerson, candidate);
 	}
 

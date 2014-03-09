@@ -35,5 +35,6 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("context-resource-loader", new SimpleStorageLoaderBeanDefinitionParser());
 		registerBeanDefinitionParser("cache-manager", new CacheBeanDefinitionParser());
 		registerBeanDefinitionParser("context-region", new ContextRegionBeanDefinitionParser());
+		registerBeanDefinitionParser("stack-configuration", new StackConfigurationBeanDefinitionParser());
 	}
 }

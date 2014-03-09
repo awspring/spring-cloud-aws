@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright 2013 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns="http://www.elasticspring.org/schema/messaging"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			targetNamespace="http://www.elasticspring.org/schema/messaging"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
+	<xsd:import namespace="http://www.elasticspring.org/schema/context"
+				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
+
+
+	<xsd:element name="annotation-driven-queue-listener">
+		<xsd:annotation>
+			<xsd:documentation>
+				Scans the classes annotated with org.elasticspring.messaging.config.annotation.QueueListener and
+				registers them as endpoints for receiving messages from SQS.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-sqs" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-messages" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="visibility-timeout" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="wait-time-out" type="xsd:nonNegativeInteger">
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:boolean">
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="annotation-driven-topic-listener">
+		<xsd:annotation>
+			<xsd:documentation>
+				Scans the classes annotated with org.elasticspring.messaging.config.annotation.TopicListener and
+				registers them as endpoints for receiving messages from SNS.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="amazon-sns" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-sqs" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
