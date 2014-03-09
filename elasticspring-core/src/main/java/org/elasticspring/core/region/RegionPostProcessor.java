@@ -18,41 +18,48 @@ package org.elasticspring.core.region;
 
 import com.amazonaws.AmazonWebServiceClient;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.util.Assert;
+import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 
-public class RegionPostProcessor implements BeanPostProcessor, BeanFactoryAware {
+/**
+ * {@link org.springframework.beans.factory.config.BeanPostProcessor} that inspects beans and sets the region for all
+ * {@link com.amazonaws.AmazonWebServiceClient} instances. This post processor can reconfigure the default region to a
+ * particular one.
+ *
+ * @author Agim Emruli
+ */
+public class RegionPostProcessor implements MergedBeanDefinitionPostProcessor {
 
 	private final RegionProvider regionProvider;
-	private ConfigurableListableBeanFactory listableBeanFactory;
 
+	/**
+	 * Configures the post processor with the respective class
+	 *
+	 * @param regionProvider
+	 * 		- the region provider that will be used, might be a static or dynamic one.
+	 */
 	public RegionPostProcessor(RegionProvider regionProvider) {
 		this.regionProvider = regionProvider;
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isInstanceOf(ConfigurableListableBeanFactory.class,beanFactory);
-		this.listableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
-	}
-
-	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		BeanDefinition beanDefinition = this.listableBeanFactory.getBeanDefinition(beanName);
-		if (bean instanceof AmazonWebServiceClient &&  !(beanDefinition.getPropertyValues().contains("region") ||
-				beanDefinition.getPropertyValues().contains("endpoint"))) {
-			AmazonWebServiceClient webServiceClient = (AmazonWebServiceClient) bean;
-			webServiceClient.setRegion(this.regionProvider.getRegion());
-		}
 		return bean;
 	}
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
+	}
+
+	@Override
+	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		//Check if we the class to be created is a AmazonWebserviceClient
+		if (AmazonWebServiceClient.class.isAssignableFrom(beanType)) {
+			if (!(beanDefinition.getPropertyValues().contains("region") ||
+					beanDefinition.getPropertyValues().contains("endpoint"))) {
+				beanDefinition.getPropertyValues().add("region", this.regionProvider.getRegion());
+			}
+		}
 	}
 }

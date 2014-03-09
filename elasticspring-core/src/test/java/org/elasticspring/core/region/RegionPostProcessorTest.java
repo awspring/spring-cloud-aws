@@ -17,65 +17,116 @@
 package org.elasticspring.core.region;
 
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+
+import java.net.URI;
 
 public class RegionPostProcessorTest {
 
 	@Test
-	public void postProcessBeforeInitialization_nonConfiguredBean_isRegionConfigured() throws Exception {
+	public void postProcessAfterInitialization_nonConfiguredBean_isRegionConfigured() throws Exception {
 		//Arrange
-		RegionPostProcessor regionPostProcessor = new RegionPostProcessor(new StaticRegionProvider(Regions.EU_WEST_1));
-		AmazonWebServiceClient webServiceClient = Mockito.mock(AmazonWebServiceClient.class);
-		ConfigurableListableBeanFactory beanFactory = Mockito.mock(ConfigurableListableBeanFactory.class);
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition();
-		Mockito.when(beanFactory.getBeanDefinition("testClient")).thenReturn(beanDefinitionBuilder.getBeanDefinition());
-		regionPostProcessor.setBeanFactory(beanFactory);
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-testNonConfiguredBean.xml", getClass()));
 
 		//Act
-		regionPostProcessor.postProcessBeforeInitialization(webServiceClient, "testClient");
+		applicationContext.refresh();
 
 		//Assert
-		Mockito.verify(webServiceClient, Mockito.times(1)).setRegion(Region.getRegion(Regions.EU_WEST_1));
+		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
+		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), webserviceClient.getRegion());
 	}
 
 	@Test
-	public void postProcessBeforeInitialization_configuredRegionBean_isRegionConfigured() throws Exception {
+	public void postProcessAfterInitialization_configuredRegionBean_isRegionNotReConfigured() throws Exception {
 		//Arrange
-		RegionPostProcessor regionPostProcessor = new RegionPostProcessor(new StaticRegionProvider(Regions.EU_WEST_1));
-		AmazonWebServiceClient webServiceClient = Mockito.mock(AmazonWebServiceClient.class);
-		ConfigurableListableBeanFactory beanFactory = Mockito.mock(ConfigurableListableBeanFactory.class);
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition();
-		beanDefinitionBuilder.addPropertyValue("region", Region.getRegion(Regions.AP_NORTHEAST_1));
-		Mockito.when(beanFactory.getBeanDefinition("testClient")).thenReturn(beanDefinitionBuilder.getBeanDefinition());
-		regionPostProcessor.setBeanFactory(beanFactory);
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-testConfiguredBean.xml", getClass()));
 
 		//Act
-		regionPostProcessor.postProcessBeforeInitialization(webServiceClient, "testClient");
+		applicationContext.refresh();
 
 		//Assert
-		Mockito.verify(webServiceClient,Mockito.times(0)).setRegion(Mockito.any(Region.class));
+		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
+		Assert.assertEquals(Region.getRegion(Regions.US_WEST_2), webserviceClient.getRegion());
 	}
 
 	@Test
-	public void postProcessBeforeInitialization_configuredEndpointBean_isRegionConfigured() throws Exception {
+	public void postProcessAfterInitialization_configuredEndpointBean_isRegionNotReConfigured() throws Exception {
 		//Arrange
-		RegionPostProcessor regionPostProcessor = new RegionPostProcessor(new StaticRegionProvider(Regions.EU_WEST_1));
-		AmazonWebServiceClient webServiceClient = Mockito.mock(AmazonWebServiceClient.class);
-		ConfigurableListableBeanFactory beanFactory = Mockito.mock(ConfigurableListableBeanFactory.class);
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition();
-		beanDefinitionBuilder.addPropertyValue("endpoint", Region.getRegion(Regions.AP_NORTHEAST_1).getServiceEndpoint("sqs"));
-		Mockito.when(beanFactory.getBeanDefinition("testClient")).thenReturn(beanDefinitionBuilder.getBeanDefinition());
-		regionPostProcessor.setBeanFactory(beanFactory);
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-testConfiguredEndpointBean.xml", getClass()));
 
 		//Act
-		regionPostProcessor.postProcessBeforeInitialization(webServiceClient, "testClient");
+		applicationContext.refresh();
 
 		//Assert
-		Mockito.verify(webServiceClient,Mockito.times(0)).setEndpoint(Mockito.any(String.class));
+		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
+		Assert.assertNull(webserviceClient.getRegion());
+		Assert.assertEquals("test.amazonaws.com", webserviceClient.getEndpoint());
+	}
+
+	@Test
+	public void postProcessAfterInitialization_nonConfiguredNestedClient_isRegionConfigured() throws Exception {
+		//Arrange
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-testWithNestedClient.xml", getClass()));
+
+		//Act
+		applicationContext.refresh();
+
+		//Assert
+		SimpleObjectHolder objectHolder = applicationContext.getBean(SimpleObjectHolder.class);
+		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), objectHolder.getSimpleWebserviceClient().getRegion());
+	}
+
+	static class SimpleWebserviceClient extends AmazonWebServiceClient {
+
+		private Region region;
+
+		SimpleWebserviceClient() {
+			super(new ClientConfiguration());
+		}
+
+		Region getRegion() {
+			return this.region;
+		}
+
+		@Override
+		public void setRegion(Region region) throws IllegalArgumentException {
+			this.region = region;
+		}
+
+		@Override
+		public void setEndpoint(String endpoint) throws IllegalArgumentException {
+			this.endpoint = URI.create(endpoint);
+		}
+
+		String getEndpoint() {
+			return this.endpoint.toString();
+		}
+	}
+
+	static class SimpleObjectHolder {
+		private final SimpleWebserviceClient simpleWebserviceClient;
+
+		SimpleObjectHolder(SimpleWebserviceClient simpleWebserviceClient) {
+			this.simpleWebserviceClient = simpleWebserviceClient;
+		}
+
+		SimpleWebserviceClient getSimpleWebserviceClient() {
+			return this.simpleWebserviceClient;
+		}
 	}
 }
