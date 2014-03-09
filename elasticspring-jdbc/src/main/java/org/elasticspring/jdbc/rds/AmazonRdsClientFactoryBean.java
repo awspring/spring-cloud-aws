@@ -19,11 +19,8 @@ package org.elasticspring.jdbc.rds;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
-import org.elasticspring.core.region.Region;
 import org.elasticspring.core.region.RegionProvider;
-import org.elasticspring.core.region.ServiceEndpoint;
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.jdbc.rds.config.endpoint.AmazonRdsServiceEndpoint;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 
@@ -54,10 +51,10 @@ public class AmazonRdsClientFactoryBean extends AbstractFactoryBean<AmazonRDS> {
 	}
 
 	/**
-	 * Sets the optional {@link Region} to be used for this AmazonRDSClient
+	 * Sets the optional {@link com.amazonaws.regions.Region} to be used for this AmazonRDSClient
 	 *
 	 * @param region
-	 * 		- a valid {@link Region} identifying the database host
+	 * 		- a valid {@link com.amazonaws.regions.Region} identifying the database host
 	 */
 	@RuntimeUse
 	public void setRegionProvider(RegionProvider region) {
@@ -73,14 +70,14 @@ public class AmazonRdsClientFactoryBean extends AbstractFactoryBean<AmazonRDS> {
 	protected AmazonRDS createInstance() throws Exception {
 		AmazonRDSClient amazonRDSClient = new AmazonRDSClient(this.awsCredentialsProvider);
 		if (this.regionProvider != null) {
-			ServiceEndpoint serviceEndpoint = new AmazonRdsServiceEndpoint(this.regionProvider.getRegion());
-			amazonRDSClient.setEndpoint(serviceEndpoint.getEndpoint());
+			amazonRDSClient.setRegion(this.regionProvider.getRegion());
 		}
 		return amazonRDSClient;
 	}
 
 	/**
-	 * Issues a shutdown call on the underlying implementation which will free up all (cached) connections by the client.
+	 * Issues a shutdown call on the underlying implementation which will free up all (cached) connections by the
+	 * client.
 	 *
 	 * @param instance
 	 * 		- the instance of the AmazonRDS client, created by the {@link #createInstance()} method

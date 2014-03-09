@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright 2013 the original author or authors.
   ~
@@ -17,14 +15,13 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.elasticspring.org/schema/jdbc"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:context="http://www.elasticspring.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.elasticspring.org/schema/jdbc http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<context:context-credentials>
-		<context:simple-credentials access-key="foo" secret-key="bar" />
-	</context:context-credentials>
+	<context:context-region region-provider="myRegionProvider" />
 
-	<jdbc:retry-interceptor db-instance-identifier="test" id="interceptor" region="EU_WEST_1" />
+	<bean id="myRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+		<constructor-arg value="EU_WEST_1" />
+	</bean>
 </beans>

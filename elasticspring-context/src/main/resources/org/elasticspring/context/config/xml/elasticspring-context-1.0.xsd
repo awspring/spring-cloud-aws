@@ -18,7 +18,6 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/context"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
-			xmlns:beans="http://www.springframework.org/schema/beans"
 			targetNamespace="http://www.elasticspring.org/schema/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -89,6 +88,32 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="locationAwareType" />
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="context-region">
+		<xsd:annotation>
+			<xsd:documentation source="java:org.elasticspring.context.credentials.ContextRegionBeanDefinitionParser">
+				<![CDATA[
+				Configures the application context wide region provider used for all webservice access to the amazon webservices
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.elasticspring.core.region.RegionProvider" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="locationAwareType">
+					<xsd:attribute name="auto-detect" type="xsd:boolean" default="false">
+						<xsd:annotation>
+							<xsd:documentation>Defines that the region should be auto detected through the EC2 meta data
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -165,14 +190,15 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="US_STANDARD" />
-			<xsd:enumeration value="OREGON" />
-			<xsd:enumeration value="NORTHERN_CALIFORNIA" />
-			<xsd:enumeration value="IRELAND" />
-			<xsd:enumeration value="SINGAPORE" />
-			<xsd:enumeration value="SYDNEY" />
-			<xsd:enumeration value="TOKYO" />
-			<xsd:enumeration value="SAO_PAULO" />
+			<xsd:enumeration value="US_EAST_1" />
+			<xsd:enumeration value="US_WEST_1" />
+			<xsd:enumeration value="US_WEST_2" />
+			<xsd:enumeration value="EU_WEST_1" />
+			<xsd:enumeration value="AP_SOUTHEAST_1" />
+			<xsd:enumeration value="AP_SOUTHEAST_2" />
+			<xsd:enumeration value="AP_NORTHEAST_1" />
+			<xsd:enumeration value="SA_EAST_1" />
+			<xsd:enumeration value="CN_NORTH_1" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -208,30 +234,6 @@
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
 					<xsd:attribute name="region" type="regionType" />
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="stack-configuration">
-		<xsd:annotation>
-			<xsd:documentation>
-				Configures an Amazon Cloud Formation stack and enables lookup of physical ids by logical ids for
-				resources defined in the specified stack.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="stack-name" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								The name of the stack to be configured. The corresponding stack must exist and must be
-								available. If no stack name is configured, the stack name is automatically detected
-								based on the stack the current Amazon EC2 instance is part of.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

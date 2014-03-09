@@ -18,10 +18,11 @@
 
 
 
+
+
 allprojects {
 
     apply plugin: 'maven'
-    apply plugin: 'propdeps-maven'
 
     repositories {
         mavenCentral()
