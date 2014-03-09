@@ -16,6 +16,8 @@
 
 package org.elasticspring.core.region;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 
 /**
@@ -36,8 +38,8 @@ public class StaticRegionProvider implements RegionProvider {
 	 * 		- the region that will be statically returned in {@link #getRegion()}
 	 */
 	@RuntimeUse
-	public StaticRegionProvider(Region configuredRegion) {
-		this.configuredRegion = configuredRegion;
+	public StaticRegionProvider(Regions configuredRegion) {
+		this.configuredRegion = Region.getRegion(configuredRegion);
 	}
 
 	/**

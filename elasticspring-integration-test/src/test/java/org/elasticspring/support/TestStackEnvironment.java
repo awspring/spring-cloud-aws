@@ -28,6 +28,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.OnFailure;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackResource;
+import org.elasticspring.core.env.ec2.InstanceIdProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,12 @@ import java.io.InputStreamReader;
 /**
  *
  */
-public class TestStackEnvironment implements InitializingBean, DisposableBean {
+public class TestStackEnvironment implements InitializingBean, DisposableBean, InstanceIdProvider {
 
 	public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
 	public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
+
+	private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
 	private static final String TEMPLATE_PATH = "IntegrationTest.template";
 
 	private final AmazonCloudFormation amazonCloudFormationClient;
@@ -58,6 +61,11 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.stackResources = getStackResources(DEFAULT_STACK_NAME);
+	}
+
+	@Override
+	public String getCurrentInstanceId() {
+		return getByLogicalId(EC2_INSTANCE_NAME);
 	}
 
 	private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
