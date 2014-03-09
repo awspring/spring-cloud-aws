@@ -49,7 +49,7 @@ public class ElastiCacheAwsTest {
 		if (EC2MetadataUtils.getAvailabilityZone() != null) {
 			cache.put("foo","bar");
 			String cachedValue = (String) cache.get("foo").get();
-			Assert.assertEquals("foo", cachedValue);
+			Assert.assertEquals("bar", cachedValue);
 		}
 
 	}

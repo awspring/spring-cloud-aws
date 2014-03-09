@@ -36,6 +36,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -130,7 +132,7 @@ project('elasticspring-context') {
         compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.3.0") {
             exclude module: "spymemcached"
         }
-        compile("net.spy:spymemcached:2.10.6")
+        testCompile("net.spy:spymemcached:2.10.6")
     }
 }
 
