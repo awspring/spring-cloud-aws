@@ -16,6 +16,7 @@
 
 package org.elasticspring.context.cache;
 
+import com.amazonaws.util.EC2MetadataUtils;
 import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,5 +45,12 @@ public class ElastiCacheAwsTest {
 
 		Cache cache = this.cacheManager.getCache(cacheCluster);
 		Assert.assertNotNull(cache);
+
+		if (EC2MetadataUtils.getAvailabilityZone() != null) {
+			cache.put("foo","bar");
+			String cachedValue = (String) cache.get("foo").get();
+			Assert.assertEquals("foo", cachedValue);
+		}
+
 	}
 }
