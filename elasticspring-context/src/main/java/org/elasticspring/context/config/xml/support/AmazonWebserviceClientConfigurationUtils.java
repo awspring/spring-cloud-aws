@@ -68,7 +68,7 @@ public class AmazonWebserviceClientConfigurationUtils {
 		return beanDefinitionHolder;
 	}
 
-	private static String getBeanName(String serviceClassName) {
+	public static String getBeanName(String serviceClassName) {
 		String shortClassName = ClassUtils.getShortName(serviceClassName);
 		return StringUtils.delete(shortClassName, SERVICE_IMPLEMENTATION_SUFFIX);
 	}

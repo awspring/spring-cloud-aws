@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
+import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -32,7 +33,8 @@ import org.w3c.dom.Node;
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the datasource
  * element. Parses the element and constructs a fully configured {@link AmazonRdsDataSourceFactoryBean} bean
- * definition. Also creates a bean definition for the {@link com.amazonaws.services.rds.AmazonRDSClient} if there is not already an
+ * definition. Also creates a bean definition for the {@link com.amazonaws.services.rds.AmazonRDSClient} if there is not
+ * already an
  * existing one this application context.
  *
  * @author Agim Emruli
@@ -41,30 +43,9 @@ import org.w3c.dom.Node;
 public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
+	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
-
-
-	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
-
-		BeanDefinitionHolder holder = AmazonRdsClientConfigurationUtils.registerAmazonRdsClient(parserContext.getRegistry(), element, parserContext);
-
-		//Constructor (mandatory) args
-		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
-		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
-		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
-
-		//optional args
-		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
-			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
-		}
-
-		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
-
-		return datasourceBuilder.getBeanDefinition();
-	}
 
 	/**
 	 * Creates a {@link org.elasticspring.jdbc.datasource.DataSourceFactory} implementation. Uses the
@@ -87,5 +68,32 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 		}
 
 		return datasourceFactoryBuilder.getBeanDefinition();
+	}
+
+	@Override
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
+
+		if (StringUtils.hasText(element.getAttribute("region-provider")) && StringUtils.hasText(element.getAttribute("region"))) {
+			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
+		}
+
+		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
+				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
+
+
+		//Constructor (mandatory) args
+		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
+
+		//optional args
+		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
+			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
+		}
+
+		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
+
+		return datasourceBuilder.getBeanDefinition();
 	}
 }

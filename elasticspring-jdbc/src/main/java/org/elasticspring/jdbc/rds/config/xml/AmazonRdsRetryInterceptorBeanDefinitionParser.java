@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
+import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;
@@ -58,6 +59,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 	 * Attribute name to a custom back off policy
 	 */
 	private static final String BACK_OFF_POLICY = "back-off-policy";
+	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -99,7 +101,10 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingl
 
 	private static BeanDefinition buildDatabaseInstancePolicy(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DatabaseInstanceStatusRetryPolicy.class);
-		BeanDefinitionHolder holder = AmazonRdsClientConfigurationUtils.registerAmazonRdsClient(parserContext.getRegistry(), element, parserContext);
+
+		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
+				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
+
 		beanDefinitionBuilder.addConstructorArgReference(holder.getBeanName());
 		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
 		return beanDefinitionBuilder.getBeanDefinition();
