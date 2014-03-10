@@ -16,11 +16,6 @@
 
 package org.elasticspring.context.config.xml;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.auth.STSSessionCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -42,7 +37,11 @@ import java.util.List;
  * @author Agim Emruli
  * @since 1.0
  */
-class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+
+	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.internal.StaticCredentialsProvider";
+	private static final String STS_SESSION_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.STSSessionCredentialsProvider";
+	private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
 
 	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
 	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-key";
@@ -69,15 +68,15 @@ class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser
 
 		for (Element credentialsProviderElement : elements) {
 			if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {
-				credentialsProviders.add(getCredentialsProvider(StaticCredentialsProvider.class, getCredentials(credentialsProviderElement, parserContext)));
+				credentialsProviders.add(getCredentialsProvider(STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getCredentials(credentialsProviderElement, parserContext)));
 			}
 
 			if ("security-token-credentials".equals(credentialsProviderElement.getLocalName())) {
-				credentialsProviders.add(getCredentialsProvider(STSSessionCredentialsProvider.class, getCredentials(credentialsProviderElement, parserContext)));
+				credentialsProviders.add(getCredentialsProvider(STS_SESSION_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getCredentials(credentialsProviderElement, parserContext)));
 			}
 
 			if ("instance-profile-credentials".equals(credentialsProviderElement.getLocalName())) {
-				credentialsProviders.add(getCredentialsProvider(InstanceProfileCredentialsProvider.class));
+				credentialsProviders.add(getCredentialsProvider(INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME));
 			}
 		}
 
@@ -85,8 +84,8 @@ class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser
 
 	}
 
-	private static BeanDefinition getCredentialsProvider(Class<? extends AWSCredentialsProvider> credentialsProviderClass, Object... constructorArg) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(credentialsProviderClass);
+	private static BeanDefinition getCredentialsProvider(String credentialsProviderClassName, Object... constructorArg) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(credentialsProviderClassName);
 		for (Object o : constructorArg) {
 			beanDefinitionBuilder.addConstructorArgValue(o);
 		}
@@ -104,10 +103,10 @@ class CredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser
 	 * 		- Used to report any errors if there is no ACCESS_KEY_ATTRIBUTE_NAME or SECRET_KEY_ATTRIBUTE_NAME available with
 	 * 		a
 	 * 		valid value
-	 * @return - the bean definition with an {@link BasicAWSCredentials} class
+	 * @return - the bean definition with an {@link com.amazonaws.auth.BasicAWSCredentials} class
 	 */
 	private static BeanDefinition getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(BasicAWSCredentials.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition("com.amazonaws.auth.BasicAWSCredentials");
 		builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
 		builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
 		return builder.getBeanDefinition();

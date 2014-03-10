@@ -1,8 +1,24 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.elasticspring.context.config.xml;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
@@ -24,6 +40,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	private static final String STATIC_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.StaticStackNameProvider";
 	private static final String AUTO_DETECTING_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.AutoDetectingStackNameProvider";
 	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.ec2.AmazonEC2InstanceIdProvider";
+	private static final String CLOUD_FORMATION_CLASS_NAME = "com.amazonaws.services.cloudformation.AmazonCloudFormationClient";
 
 	private static final String STACK_NAME_ATTRIBUTE_NAME = "stack-name";
 
@@ -31,7 +48,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		registerResourceIdResolverBeanIfNeeded(parserContext.getRegistry());
 
-		String amazonCloudFormationClientBeanName = buildAndRegisterAmazonCloudFormationClientBeanDefinition(parserContext);
+		String amazonCloudFormationClientBeanName = buildAndRegisterAmazonCloudFormationClientBeanDefinition(parserContext, element);
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);
 
 		builder.addConstructorArgReference(amazonCloudFormationClientBeanName);
@@ -63,19 +80,11 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		return autoDetectingStackNameProviderBeanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private String buildAndRegisterAmazonCloudFormationClientBeanDefinition(ParserContext parserContext) {
-		AbstractBeanDefinition amazonCloudFormationClientBeanDefinition = buildAmazonCloudFormationClientBeanDefinition();
-		String amazonCloudFormationClientBeanName = parserContext.getReaderContext().generateBeanName(amazonCloudFormationClientBeanDefinition);
-		parserContext.getRegistry().registerBeanDefinition(amazonCloudFormationClientBeanName, amazonCloudFormationClientBeanDefinition);
-
-		return amazonCloudFormationClientBeanName;
-	}
-
-	private static AbstractBeanDefinition buildAmazonCloudFormationClientBeanDefinition() {
-		BeanDefinitionBuilder amazonCloudFormationClientBeanDefinitionBuilder = genericBeanDefinition(AmazonCloudFormationClient.class);
-		amazonCloudFormationClientBeanDefinitionBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-
-		return amazonCloudFormationClientBeanDefinitionBuilder.getBeanDefinition();
+	private String buildAndRegisterAmazonCloudFormationClientBeanDefinition(ParserContext parserContext, Element element) {
+		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+				registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
+						element.getAttribute("region-provider"), element.getAttribute("region"));
+		return beanDefinitionHolder.getBeanName();
 	}
 
 	private static AbstractBeanDefinition buildInstanceIdProviderBeanDefinition() {
