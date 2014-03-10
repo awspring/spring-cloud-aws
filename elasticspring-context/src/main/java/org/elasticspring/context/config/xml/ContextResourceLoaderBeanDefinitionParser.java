@@ -16,13 +16,12 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.context.config.AmazonS3FactoryBean;
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
-import org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor;
-import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
@@ -38,21 +37,30 @@ import org.w3c.dom.Element;
 public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static final String RESOURCE_RESOLVER_CLASS_NAME = "org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver";
+	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
+	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.elasticspring.context.support.io.ResourceLoaderBeanPostProcessor";
 	private static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (!parserContext.getRegistry().containsBeanDefinition(AMAZON_S3_BEAN_NAME)) {
-			buildAmazonS3Definition(parserContext);
-		}
+		BeanDefinitionHolder amazonS3ClientBeanDefinitionHolder = registerAmazonS3Client(parserContext, element);
 
-		builder.addConstructorArgReference(AMAZON_S3_BEAN_NAME);
+		builder.addConstructorArgReference(amazonS3ClientBeanDefinitionHolder.getBeanName());
 
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinitionBuilder.addConstructorArgReference(PathMatchingSimpleStorageResourcePatternResolver.class.getName());
-		AbstractBeanDefinition beanDefinition = beanDefinitionBuilder.getBeanDefinition();
-		String beanName = parserContext.getReaderContext().generateBeanName(beanDefinition);
-		parserContext.getRegistry().registerBeanDefinition(beanName, beanDefinition);
+		registerPostProcessor(parserContext);
+	}
+
+	private BeanDefinitionHolder registerAmazonS3Client(ParserContext parserContext, Element element) {
+		return AmazonWebserviceClientConfigurationUtils.
+					registerAmazonWebserviceClient(parserContext.getRegistry(), AMAZON_S3_CLIENT_CLASS_NAME,
+							element.getAttribute("region-provider"), element.getAttribute("region"));
+	}
+
+	private void registerPostProcessor(ParserContext parserContext) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_BEAN_POST_PROCESSOR);
+		beanDefinitionBuilder.addConstructorArgReference(RESOURCE_RESOLVER_CLASS_NAME);
+
+		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(),parserContext.getRegistry());
 	}
 
 	@Override
@@ -63,13 +71,5 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 	@Override
 	protected String getBeanClassName(Element element) {
 		return RESOURCE_RESOLVER_CLASS_NAME;
-	}
-
-	private static void buildAmazonS3Definition(ParserContext parserContext) {
-		BeanDefinitionBuilder amazonsS3Builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonS3FactoryBean.class);
-		amazonsS3Builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-
-		parserContext.getRegistry().registerBeanDefinition(AMAZON_S3_BEAN_NAME, amazonsS3Builder.getBeanDefinition());
-
 	}
 }
