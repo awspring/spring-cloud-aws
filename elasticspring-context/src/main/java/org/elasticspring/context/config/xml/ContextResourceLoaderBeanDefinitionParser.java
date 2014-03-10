@@ -35,8 +35,9 @@ import org.w3c.dom.Element;
  * @since 1.0
  */
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
-public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
+public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
+	private static final String RESOURCE_RESOLVER_CLASS_NAME = "org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver";
 	private static final String AMAZON_S3_BEAN_NAME = "AMAZON_S3";
 
 	@Override
@@ -56,12 +57,12 @@ public class SimpleStorageLoaderBeanDefinitionParser extends AbstractSimpleBeanD
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return PathMatchingSimpleStorageResourcePatternResolver.class.getName();
+		return RESOURCE_RESOLVER_CLASS_NAME;
 	}
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return PathMatchingSimpleStorageResourcePatternResolver.class;
+	protected String getBeanClassName(Element element) {
+		return RESOURCE_RESOLVER_CLASS_NAME;
 	}
 
 	private static void buildAmazonS3Definition(ParserContext parserContext) {

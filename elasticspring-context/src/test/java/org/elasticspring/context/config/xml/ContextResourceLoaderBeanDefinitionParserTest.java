@@ -28,7 +28,7 @@ import org.springframework.core.io.ResourceLoader;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageLoaderBeanDefinitionParserTest {
+public class ContextResourceLoaderBeanDefinitionParserTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
