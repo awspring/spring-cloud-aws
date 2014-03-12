@@ -34,11 +34,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 /**
- * Tests for {@link CredentialsBeanDefinitionParser}
+ * Tests for {@link ContextCredentialsBeanDefinitionParser}
  *
  * @author Agim Emruli
  */
-public class CredentialsBeanDefinitionParserTest {
+public class ContextCredentialsBeanDefinitionParserTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();

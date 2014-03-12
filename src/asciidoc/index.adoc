@@ -1,0 +1,5 @@
+= ElasticSpring Reference Documentation
+Agim Emruli; Alain Sahli; Christian Stettler
+
+== Introduction to ElasticSpring
+ElasticSpring is a cloud-development framework based on the popular Spring Framework.

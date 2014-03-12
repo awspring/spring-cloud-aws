@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7")
+        classpath("org.asciidoctor:asciidoctor-gradle-plugin:0.7.0")
     }
 }
 
@@ -203,7 +205,7 @@ project('elasticspring-integration-test') {
 
 description = 'ElasticSpring'
 
-apply plugin: "docbook-reference"
+apply plugin: 'asciidoctor'
 
 // don't publish the default jar for the root project
 configurations.archives.artifacts.clear()
@@ -247,7 +249,7 @@ task docsZip(type: Zip) {
         into "javadoc-api"
     }
 
-    from(reference) {
+    from(asciidoctor) {
         into "elasticspring-reference"
     }
 }
@@ -316,9 +318,17 @@ artifacts {
     archives distZip
 }
 
-reference {
-    sourceDir = file("src/reference/docbook")
-    pdfFilename = "elasticspring-reference.pdf"
+
+asciidoctor {
+    options = [
+            eruby: 'erubis',
+            attributes: [
+                    'source-highlighter': 'coderay',
+                    toc: 'right',
+                    idprefix: '',
+                    idseparator: '-'
+            ]
+    ]
 }
 
 
