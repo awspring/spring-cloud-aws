@@ -16,27 +16,27 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.springframework.core.MethodParameter;
+import org.elasticspring.messaging.support.converter.JsonMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.comparator.ComparableComparator;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,24 +47,40 @@ import java.util.Set;
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
 
-	private final MessageConverter messageConverter;
+	private MessageSendingOperations<String> sendToMessageTemplate;
 
-	public QueueMessageHandler() {
-		this(new StringMessageConverter());
+	public MessageSendingOperations<String> getSendToMessageTemplate() {
+		return this.sendToMessageTemplate;
 	}
 
-	public QueueMessageHandler(MessageConverter messageConverter) {
-		this.messageConverter = messageConverter;
+	/**
+	 * This sendToMessageTemplate will be used to send the return value. Note that {@link
+	 * org.springframework.messaging.core.MessageSendingOperations#convertAndSend(D, Object)} will be used
+	 * and therefore a converter must be set on the {@literal sendToMessageTemplate}.
+	 *
+	 * @param sendToMessageTemplate to use for sending the return value.
+	 * @see org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler
+	 * @see org.springframework.messaging.handler.annotation.SendTo
+	 */
+	@SuppressWarnings("JavadocReference")
+	public void setSendToMessageTemplate(MessageSendingOperations<String> sendToMessageTemplate) {
+		this.sendToMessageTemplate = sendToMessageTemplate;
 	}
 
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-		return Collections.singletonList(new PayloadArgumentResolver(this.messageConverter, new NoOpValidator()));
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
+		resolvers.add(new PayloadArgumentResolver(new JsonMessageConverter(), new NoOpValidator()));
+		resolvers.addAll(getCustomArgumentResolvers());
+		return resolvers;
 	}
 
 	@Override
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
-		return Collections.singletonList(new SendToHandlerMethodReturnValueHandler());
+		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
+		handlers.add(new SendToHandlerMethodReturnValueHandler(this.sendToMessageTemplate));
+		handlers.addAll(this.getCustomReturnValueHandlers());
+		return handlers;
 	}
 
 	@Override
@@ -74,22 +90,24 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected MappingInformation getMappingForMethod(Method method, Class<?> handlerType) {
-		MessageMapping annotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
-		if (annotation == null) {
+		MessageMapping messageMappingAnnotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
+		if (messageMappingAnnotation == null) {
 			return null;
 		}
 
-		if (annotation.value().length != 1) {
-			throw new IllegalStateException("@MessageMapping annotation must have exactly one destination");
+		if (messageMappingAnnotation.value().length < 1) {
+			throw new IllegalStateException("@MessageMapping annotation must have at least one destination");
 		}
 
-		String logicalResourceId = annotation.value()[0];
-		return new MappingInformation(logicalResourceId);
+		Set<String> logicalResourceIds = new HashSet<String>(messageMappingAnnotation.value().length);
+		logicalResourceIds.addAll(Arrays.asList(messageMappingAnnotation.value()));
+
+		return new MappingInformation(logicalResourceIds);
 	}
 
 	@Override
 	protected Set<String> getDirectLookupDestinations(MappingInformation mapping) {
-		return Collections.singleton(mapping.getLogicalResourceId());
+		return mapping.getLogicalResourceIds();
 	}
 
 	@Override
@@ -99,7 +117,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected MappingInformation getMatchingMapping(MappingInformation mapping, Message<?> message) {
-		if (getDestination(message).equals(mapping.getLogicalResourceId())) {
+		if (mapping.getLogicalResourceIds().contains(getDestination(message))) {
 			return mapping;
 		} else {
 			return null;
@@ -122,38 +140,22 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	}
 
 	@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
-	protected static class MappingInformation implements Comparable<MappingInformation> {
+	static class MappingInformation implements Comparable<MappingInformation> {
 
-		private final String logicalResourceId;
+		private final Set<String> logicalResourceIds;
 
-		private MappingInformation(String logicalResourceId) {
-			this.logicalResourceId = logicalResourceId;
+		private MappingInformation(Set<String> logicalResourceIds) {
+			this.logicalResourceIds = Collections.unmodifiableSet(logicalResourceIds);
 		}
 
-		public String getLogicalResourceId() {
-			return this.logicalResourceId;
+		public Set<String> getLogicalResourceIds() {
+			return this.logicalResourceIds;
 		}
 
+		@SuppressWarnings("NullableProblems")
 		@Override
 		public int compareTo(MappingInformation o) {
-			return this.logicalResourceId.compareTo(o.getLogicalResourceId());
-		}
-	}
-
-	private class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
-
-		@Override
-		public boolean supportsReturnType(MethodParameter returnType) {
-			return returnType.getMethodAnnotation(SendTo.class) != null;
-		}
-
-		@Override
-		public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
-			QueueMessageHandler.this.handleMessage(MessageBuilder.withPayload(returnValue).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, getValue(returnType)).build());
-		}
-
-		private String getValue(MethodParameter returnType) {
-			return returnType.getMethodAnnotation(SendTo.class).value()[0];
+			return 0;
 		}
 	}
 

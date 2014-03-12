@@ -50,18 +50,7 @@
 		<constructor-arg ref="amazonSqsClient" />
 		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.MarshallingMessageConverter">
-				<constructor-arg name="marshaller" ref="marshaller" />
-				<constructor-arg name="unmarshaller" ref="marshaller" />
-				<constructor-arg name="encoding" value="UTF-8" />
-			</bean>
-		</property>
-	</bean>
-
-	<bean id="marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
-		<property name="mode" value="#{T(com.thoughtworks.xstream.XStream).NO_REFERENCES}" />
-		<property name="streamDriver">
-			<bean class="com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver" />
+			<bean class="org.elasticspring.messaging.support.converter.JsonMessageConverter"/>
 		</property>
 	</bean>
 </beans>

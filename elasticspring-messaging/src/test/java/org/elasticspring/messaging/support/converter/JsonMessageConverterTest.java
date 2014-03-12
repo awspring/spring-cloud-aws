@@ -16,65 +16,48 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.oxm.Marshaller;
-import org.springframework.oxm.Unmarshaller;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
-import java.nio.charset.UnsupportedCharsetException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- *
- */
-public class MarshallingMessageConverterTest {
+public class JsonMessageConverterTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
 	public void testSerializeBean() throws Exception {
-		XStreamMarshaller xStreamMarshaller = new XStreamMarshaller();
-		xStreamMarshaller.setStreamDriver(new JettisonMappedXmlDriver());
-		xStreamMarshaller.setMode(XStream.NO_REFERENCES);
 
 		TestPerson testPerson = new TestPerson("Agim", "Emruli", new SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).parse("1984-12-18"));
-		MessageConverter messageConverter = new MarshallingMessageConverter(xStreamMarshaller, xStreamMarshaller);
+		MessageConverter messageConverter = new JsonMessageConverter();
 		Message<?> result = messageConverter.toMessage(testPerson, null);
 
-		TestPerson candidate = (TestPerson) messageConverter.fromMessage(result,TestPerson.class);
+		TestPerson candidate = (TestPerson) messageConverter.fromMessage(result, TestPerson.class);
 		Assert.assertEquals(testPerson, candidate);
 	}
 
-	@Test
-	public void testWrongCharset() throws Exception {
-		this.expectedException.expect(UnsupportedCharsetException.class);
-		Marshaller marshaller = Mockito.mock(Marshaller.class);
-		Unmarshaller unmarshaller = Mockito.mock(Unmarshaller.class);
-		//noinspection ResultOfObjectAllocationIgnored
-		new MarshallingMessageConverter(marshaller, unmarshaller, "FOO");
-	}
-
-	private static class TestPerson {
+	public static class TestPerson {
 
 		private final String firstName;
 		private final String lastName;
-		private final Date birthdate;
+		private final Date birthDate;
 
-		private TestPerson(String firstName, String lastName, Date birthdate) {
+		@JsonCreator
+		public TestPerson(@JsonProperty("firstName") String firstName,
+						  @JsonProperty("lastName")String lastName,
+						  @JsonProperty("birthDate") Date birthDate) {
 			this.firstName = firstName;
 			this.lastName = lastName;
-			this.birthdate = birthdate;
+			this.birthDate = birthDate;
 		}
 
 		@Override
@@ -88,7 +71,7 @@ public class MarshallingMessageConverterTest {
 
 			TestPerson that = (TestPerson) obj;
 
-			if (this.getBirthdate() != null ? !this.getBirthdate().equals(that.getBirthdate()) : that.getBirthdate() != null) {
+			if (this.getBirthDate() != null ? !this.getBirthDate().equals(that.getBirthDate()) : that.getBirthDate() != null) {
 				return false;
 			}
 			if (this.getFirstName() != null ? !this.getFirstName().equals(that.getFirstName()) : that.getFirstName() != null) {
@@ -102,7 +85,7 @@ public class MarshallingMessageConverterTest {
 		public int hashCode() {
 			int result = this.getFirstName() != null ? this.getFirstName().hashCode() : 0;
 			result = 31 * result + (this.getLastName() != null ? this.getLastName().hashCode() : 0);
-			result = 31 * result + (this.getBirthdate() != null ? this.getBirthdate().hashCode() : 0);
+			result = 31 * result + (this.getBirthDate() != null ? this.getBirthDate().hashCode() : 0);
 			return result;
 		}
 
@@ -114,8 +97,8 @@ public class MarshallingMessageConverterTest {
 			return this.lastName;
 		}
 
-		public Date getBirthdate() {
-			return this.birthdate;
+		public Date getBirthDate() {
+			return this.birthDate;
 		}
 	}
 }

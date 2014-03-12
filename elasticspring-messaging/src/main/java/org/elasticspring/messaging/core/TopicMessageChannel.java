@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageChannel;
  */
 public class TopicMessageChannel implements MessageChannel {
 
+	// TODO consider a method that sets the header with this key. For the moment the user needs to know this constant.
 	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
 
 	private final AmazonSNS amazonSns;
@@ -49,7 +50,7 @@ public class TopicMessageChannel implements MessageChannel {
 		return true;
 	}
 
-	public static String findNotificationSubject(Message<?> message) {
+	private static String findNotificationSubject(Message<?> message) {
 		return message.getHeaders().containsKey(NOTIFICATION_SUBJECT_HEADER) ? message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString() : null;
 	}
 }

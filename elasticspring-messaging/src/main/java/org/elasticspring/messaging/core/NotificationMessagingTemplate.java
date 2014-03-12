@@ -17,6 +17,7 @@
 package org.elasticspring.messaging.core;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.messaging.MessageChannel;
@@ -25,13 +26,17 @@ import org.springframework.messaging.MessageChannel;
  * @author Alain Sahli
  * @since 1.0
  */
-public class NotificationMessageTemplate extends AbstractMessageChannelMessagingSendingTemplate<MessageChannel> {
+public class NotificationMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<MessageChannel> {
 
 	private final AmazonSNS amazonSns;
 
-	public NotificationMessageTemplate(AmazonSNS amazonSns) {
-		super(new DynamicTopicDestinationResolver(amazonSns));
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
+		super(new DynamicTopicDestinationResolver(amazonSns, resourceIdResolver));
 		this.amazonSns = amazonSns;
+	}
+
+	public NotificationMessagingTemplate(AmazonSNS amazonSns) {
+		this(amazonSns, null);
 	}
 
 	@Override
