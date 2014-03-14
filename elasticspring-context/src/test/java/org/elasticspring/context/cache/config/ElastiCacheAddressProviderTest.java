@@ -22,6 +22,7 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -38,6 +39,26 @@ public class ElastiCacheAddressProviderTest {
 		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
 				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("someHost").withPort(23)).withCacheClusterStatus("available")));
 		ElastiCacheAddressProvider elastiCacheAddressProvider = new ElastiCacheAddressProvider(amazonElastiCache, "memcached");
+
+		// Act
+		List<InetSocketAddress> addresses = elastiCacheAddressProvider.getAddresses();
+
+		// Assert
+		Assert.assertNotNull(addresses);
+		Assert.assertEquals(new InetSocketAddress("someHost", 23), addresses.get(0));
+	}
+
+	@Test
+	public void getAddresses_availableClusterWithLogicalName_returnsConfigurationEndpointWithPhysicalName() throws Exception {
+		// Arrange
+		AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCacheClient.class);
+		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
+				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("someHost").withPort(23)).withCacheClusterStatus("available")));
+
+		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
+		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
+
+		ElastiCacheAddressProvider elastiCacheAddressProvider = new ElastiCacheAddressProvider(amazonElastiCache, resourceIdResolver, "test");
 
 		// Act
 		List<InetSocketAddress> addresses = elastiCacheAddressProvider.getAddresses();
