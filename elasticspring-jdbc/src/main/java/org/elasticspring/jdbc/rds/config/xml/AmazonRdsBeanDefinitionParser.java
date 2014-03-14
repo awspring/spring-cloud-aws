@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.rds.config.xml;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
@@ -84,6 +85,11 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 
 		//Constructor (mandatory) args
 		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
+
+		//Register registry to enable cloud formation support
+		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
+		datasourceBuilder.addConstructorArgReference(resourceResolverBeanName);
+
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
 

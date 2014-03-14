@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.jdbc.datasource.DataSourceFactory;
 import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.elasticspring.jdbc.datasource.DynamicDataSource;
@@ -61,6 +62,29 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	/**
+	 * Constructor that additionally retrieves a {@link org.elasticspring.core.env.ResourceIdResolver} instance. The
+	 * constructor itself resolves the physical name of the resource before delegating to {@link
+	 * #AmazonRdsDataSourceFactoryBean(com.amazonaws.services.rds.AmazonRDS, String, String)}
+	 *
+	 * @param amazonRDS
+	 * 		- The amazonRDS instance used to connect to the service. This object will be used to actually retrieve the
+	 * 		datasource metadata from the Amazon RDS service.
+	 * @param resourceIdResolver
+	 * 		- {@link org.elasticspring.core.env.ResourceIdResolver} instance used to resolve the logical name of the
+	 * 		datasource to the physical name
+	 * @param dbInstanceIdentifier
+	 * 		- the unique database instance identifier in the Amazon RDS service
+	 * @param password
+	 * 		- The password used to connect to the datasource. For security reasons the password is not available in the
+	 * 		metadata (in contrast to the user) so it must be provided in order to connect to the database with JDBC.
+	 */
+	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRDS, ResourceIdResolver resourceIdResolver,
+										  String dbInstanceIdentifier, String password) {
+		this(amazonRDS, resourceIdResolver.resolveToPhysicalResourceId(dbInstanceIdentifier), password);
+	}
+
+
+	/**
 	 * Constructor which retrieves all mandatory objects to allow the object to be constructed. This are the minimal
 	 * configuration options which uses defaults or no values for all optional elements.
 	 *
@@ -80,7 +104,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	/**
-	 * Allows to configure a different DataSourceFactory in order to use a different DataSource implementation. Uses the
+	 * Allows to configure a different DataSourceFactory in order to use a different DataSource implementation. Uses
+	 * the
 	 * {@link TomcatJdbcDataSourceFactory} by default if not configured.
 	 *
 	 * @param dataSourceFactory
@@ -105,8 +130,10 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	/**
-	 * Allows to configure a different TaskExecutor which will be passed to the DynamicDataSource in order to retrieve the
-	 * DataSourceStatus status. Uses a {@link SimpleAsyncTaskExecutor} by default which will create a thread to retrieve
+	 * Allows to configure a different TaskExecutor which will be passed to the DynamicDataSource in order to retrieve
+	 * the
+	 * DataSourceStatus status. Uses a {@link SimpleAsyncTaskExecutor} by default which will create a thread to
+	 * retrieve
 	 * the datasource status.
 	 *
 	 * @param taskExecutor
@@ -139,12 +166,6 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		return dynamicDataSource;
 	}
 
-	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
-		return new DataSourceInformation(DatabaseType.valueOf(dbInstance.getEngine().toUpperCase()),
-				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
-				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
-	}
-
 	@Override
 	protected void destroyInstance(DataSource instance) throws Exception {
 		if (instance instanceof DynamicDataSource) {
@@ -152,9 +173,17 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		}
 	}
 
+	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
+		return new DataSourceInformation(DatabaseType.valueOf(dbInstance.getEngine().toUpperCase()),
+				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
+				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
+	}
+
 	/**
-	 * SPI implementation of the {@link org.elasticspring.jdbc.datasource.DynamicDataSource.DataSourceStatus} interface.
-	 * Check the datasource status through the AWS RDS metadata and returns <code>true</code> once the datasource is available.
+	 * SPI implementation of the {@link org.elasticspring.jdbc.datasource.DynamicDataSource.DataSourceStatus}
+	 * interface.
+	 * Check the datasource status through the AWS RDS metadata and returns <code>true</code> once the datasource is
+	 * available.
 	 */
 	static class AmazonRdsInstanceStatus implements DynamicDataSource.DataSourceStatus {
 

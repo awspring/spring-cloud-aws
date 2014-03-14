@@ -22,6 +22,7 @@ import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.jdbc.datasource.DataSourceFactory;
 import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.elasticspring.jdbc.datasource.support.DatabaseType;
@@ -47,7 +48,8 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 
 
 	@Test
-	public void testDataBaseInstanceNotFound() throws Exception {
+	public void afterPropertiesSet_noInstanceFound_reportsIllegalStateException() throws Exception {
+		//Arrange
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("No database instance with id:'test'");
 
@@ -55,12 +57,54 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenThrow(new DBInstanceNotFoundException("foo"));
 
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "foo");
+
+		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
-		amazonRdsDataSourceFactoryBean.getObject();
+
+		//Assert
 	}
 
 	@Test
-	public void testUserNameNotSet() throws Exception {
+	public void newInstance_withResourceIdResolver_createsInstanceWithResolvedName() throws Exception {
+		//Arrange
+		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
+		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
+
+		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("bar");
+
+		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("bar"))).thenReturn(
+				new DescribeDBInstancesResult().
+						withDBInstances(new DBInstance().
+								withDBInstanceStatus("available").
+								withDBName("test").
+								withDBInstanceIdentifier("bar").
+								withEngine("mysql").
+								withMasterUsername("admin").
+								withEndpoint(new Endpoint().
+										withAddress("localhost").
+										withPort(3306)
+								)
+						)
+		);
+
+		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, resourceIdResolver,"test", "secret");
+		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
+
+		//Act
+		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+
+		//Assert
+		DataSource dataSource = amazonRdsDataSourceFactoryBean.getObject();
+		Assert.assertNotNull(dataSource);
+
+		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
+	}
+
+	@Test
+	public void afterPropertiesSet_noUserNameSet_createsInstanceWithUserNameFromMetaData() throws Exception {
+		//Arrange
 		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
@@ -82,15 +126,19 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
 		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
-		amazonRdsDataSourceFactoryBean.getObject();
 
+		//Act
+		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+
+		//Assert
+		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
+		Assert.assertNotNull(datasource);
 
 		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
 	}
 
 	@Test
-	public void testDestroyInstance() throws Exception {
+	public void destroyInstance_shutdownInitiated_destroysDynamicDataSource() throws Exception {
 		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 		DataSource dataSource = Mockito.mock(DataSource.class);
@@ -125,7 +173,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 	}
 
 	@Test
-	public void testUserNameSet() throws Exception {
+	public void afterPropertiesSet_customUserNameSet_createsInstanceWithCustomUserNameAndIgnoresMetaDataUserName() throws Exception {
 		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
 		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
 
@@ -155,8 +203,9 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
 	}
 
+	@SuppressWarnings("NonBooleanMethodNameMayNotStartWithQuestion")
 	@Test
-	public void testAmazonRdsInstanceStatus() throws Exception {
+	public void isDataSourceAvailable_statusChangeToRebooting_reportsCorrectDataSourceAvailability() throws Exception {
 		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
 		AmazonRdsDataSourceFactoryBean.AmazonRdsInstanceStatus amazonRdsInstanceStatus = new AmazonRdsDataSourceFactoryBean.AmazonRdsInstanceStatus(amazonRDS, "test");
 
