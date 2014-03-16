@@ -16,6 +16,7 @@
 
 package org.elasticspring.jdbc.config.xml;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
@@ -107,6 +108,10 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 
 		beanDefinitionBuilder.addConstructorArgReference(holder.getBeanName());
 		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
+
+		String resourceIdResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
+		beanDefinitionBuilder.addPropertyReference("resourceIdResolver", resourceIdResolverBeanName);
+
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 

@@ -15,6 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:jdbc="http://www.elasticspring.org/schema/jdbc"
@@ -42,7 +43,7 @@
 	<!--suppress UnparsedCustomBeanInspection -->
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
-	<jdbc:retry-interceptor db-instance-identifier="#{testStackEnvironment.getByLogicalId('RdsSingleMicroInstance')}"
+	<jdbc:retry-interceptor db-instance-identifier="RdsSingleMicroInstance"
 							id="myInterceptor" back-off-policy="backOffPolicy" max-number-of-retries="10" />
 
 	<bean id="backOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
