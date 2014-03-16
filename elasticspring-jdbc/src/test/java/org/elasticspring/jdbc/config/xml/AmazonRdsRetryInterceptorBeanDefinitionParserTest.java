@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.rds.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import org.aopalliance.intercept.MethodInterceptor;

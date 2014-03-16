@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.rds.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
@@ -41,7 +41,7 @@ import org.w3c.dom.Node;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
+class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";

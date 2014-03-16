@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.rds.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -48,7 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.sql.DataSource;
 
 /**
- * Tests for the {@link AmazonRdsBeanDefinitionParser} bean definition parser
+ * Tests for the {@link org.elasticspring.jdbc.config.xml.AmazonRdsBeanDefinitionParser} bean definition parser
  *
  * @author Agim Emruli
  * @since 1.0

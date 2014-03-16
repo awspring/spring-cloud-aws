@@ -17,8 +17,6 @@
 package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.jdbc.rds.config.xml.AmazonRdsBeanDefinitionParser;
-import org.elasticspring.jdbc.rds.config.xml.AmazonRdsRetryInterceptorBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 

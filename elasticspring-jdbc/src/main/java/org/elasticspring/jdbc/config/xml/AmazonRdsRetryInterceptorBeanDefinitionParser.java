@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.rds.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
@@ -38,7 +38,7 @@ import org.w3c.dom.Element;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	/**
 	 * Class name for the RetryTemplate. String because retry support is optional
