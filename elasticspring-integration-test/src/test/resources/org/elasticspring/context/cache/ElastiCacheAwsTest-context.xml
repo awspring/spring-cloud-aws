@@ -24,8 +24,11 @@
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<!--suppress UnparsedCustomBeanInspection -->
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
+
+	<!--suppress UnparsedCustomBeanInspection -->
 	<els-context:cache-manager>
-		<els-context:cache-cluster expiration="10000" cacheCluster="#{testStackEnvironment.getByLogicalId('CacheCluster')}"/>
+		<els-context:cache-cluster expiration="10000" cacheCluster="CacheCluster"/>
 	</els-context:cache-manager>
 
 </beans>
