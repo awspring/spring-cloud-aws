@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc.rds.config.xml;
+package org.elasticspring.jdbc.config.xml;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
@@ -40,7 +41,7 @@ import org.w3c.dom.Node;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
+class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";
@@ -93,6 +94,10 @@ public class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser 
 		}
 
 		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
+
+		//Register registry to enable cloud formation support
+		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
+		datasourceBuilder.addPropertyReference("resourceIdResolver",resourceResolverBeanName);
 
 		return datasourceBuilder.getBeanDefinition();
 	}

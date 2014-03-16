@@ -22,6 +22,7 @@ import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
 import com.google.code.ssm.config.AddressProvider;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +30,19 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @author Agim Emruli
+ */
 public class ElastiCacheAddressProvider implements AddressProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheAddressProvider.class);
 
 	private final AmazonElastiCache amazonElastiCache;
 	private final String cacheClusterId;
+
+	public ElastiCacheAddressProvider(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, String cacheClusterId) {
+		this(amazonElastiCache, resourceIdResolver.resolveToPhysicalResourceId(cacheClusterId));
+	}
 
 	public ElastiCacheAddressProvider(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
 		this.amazonElastiCache = amazonElastiCache;

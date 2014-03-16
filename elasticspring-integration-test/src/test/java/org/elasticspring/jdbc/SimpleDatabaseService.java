@@ -28,12 +28,12 @@ import javax.sql.DataSource;
  */
 @Service
 @Transactional
-public class SimpleDatabaseService implements DatabaseService {
+class SimpleDatabaseService implements DatabaseService {
 
 	private final JdbcTemplate jdbcTemplate;
 
 	@Autowired
-	public SimpleDatabaseService(DataSource dataSource) {
+	SimpleDatabaseService(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 

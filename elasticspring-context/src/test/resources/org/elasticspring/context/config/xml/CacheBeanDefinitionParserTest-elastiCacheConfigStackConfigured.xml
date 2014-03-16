@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright 2013 the original author or authors.
   ~
@@ -15,20 +16,14 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   	http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+           	http://www.elasticspring.org/schema/context
+           	http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<import resource="classpath:Integration-test-context.xml" />
-
-	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
-
-	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:cache-manager>
-		<els-context:cache-cluster expiration="10000" cacheCluster="CacheCluster"/>
+	<els-context:cache-manager id="cacheManager">
+		<els-context:cache-cluster cacheCluster="testMemcached" expiration="1000"/>
 	</els-context:cache-manager>
-
 </beans>

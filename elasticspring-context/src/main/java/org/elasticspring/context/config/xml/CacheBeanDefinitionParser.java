@@ -126,6 +126,7 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		BeanDefinitionHolder elastiCacheClient = AmazonElastiCacheClientConfigurationUtils.registerElastiCacheClient(beanDefinitionRegistry, source);
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ElastiCacheAddressProvider.class);
 		beanDefinitionBuilder.addConstructorArgReference(elastiCacheClient.getBeanName());
+		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
 		return beanDefinitionBuilder.getBeanDefinition();
 	}

@@ -40,10 +40,7 @@ public class ElastiCacheAwsTest {
 
 	@Test
 	public void cacheManagerInitialized() throws Exception {
-		String cacheCluster = this.testStackEnvironment.getByLogicalId("CacheCluster");
-		Assert.assertNotNull(cacheCluster);
-
-		Cache cache = this.cacheManager.getCache(cacheCluster);
+		Cache cache = this.cacheManager.getCache("CacheCluster");
 		Assert.assertNotNull(cache);
 
 		if (EC2MetadataUtils.getAvailabilityZone() != null) {
@@ -51,6 +48,5 @@ public class ElastiCacheAwsTest {
 			String cachedValue = (String) cache.get("foo").get();
 			Assert.assertEquals("bar", cachedValue);
 		}
-
 	}
 }

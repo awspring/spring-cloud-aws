@@ -2,13 +2,14 @@
 <project version="4">
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
-    <list size="6">
+    <list size="7">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
       <item index="1" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.QueueListener" />
       <item index="2" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.TopicListener" />
       <item index="3" class="java.lang.String" itemvalue="org.mockito.Captor" />
       <item index="4" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Autowired" />
       <item index="5" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Value" />
+      <item index="6" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
   </component>
   <component name="IdProvider" IDEtalkID="11DA1DB66DD62DDA1ED602B7079FE97C" />
