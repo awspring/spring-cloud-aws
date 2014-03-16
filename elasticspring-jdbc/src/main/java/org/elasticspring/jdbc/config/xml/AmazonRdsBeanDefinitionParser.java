@@ -85,11 +85,6 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 		//Constructor (mandatory) args
 		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
-
-		//Register registry to enable cloud formation support
-		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
-		datasourceBuilder.addConstructorArgReference(resourceResolverBeanName);
-
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
 
@@ -99,6 +94,10 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		}
 
 		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
+
+		//Register registry to enable cloud formation support
+		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
+		datasourceBuilder.addPropertyReference("resourceIdResolver",resourceResolverBeanName);
 
 		return datasourceBuilder.getBeanDefinition();
 	}

@@ -23,7 +23,6 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.junit.Assert;
@@ -36,7 +35,6 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -142,9 +140,8 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 
 		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
-		Assert.assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME,((RuntimeBeanReference) definition.getConstructorArgumentValues().getArgumentValue(1,String.class).getValue()).getBeanName());
-		Assert.assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
-		Assert.assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(3, String.class).getValue());
+		Assert.assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
+		Assert.assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 		Assert.assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
 
 		DataSource dataSource = beanFactory.getBean(DataSource.class);

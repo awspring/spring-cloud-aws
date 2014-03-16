@@ -88,9 +88,10 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 						)
 		);
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, resourceIdResolver,"test", "secret");
+		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS,"test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
 		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
+		amazonRdsDataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
