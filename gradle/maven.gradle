@@ -16,6 +16,8 @@
 
 
 
+
+
 allprojects {
 
     apply plugin: 'maven'
@@ -27,9 +29,9 @@ allprojects {
 
     install {
         repositories.mavenInstaller {
-            // eliminate test-scoped dependencies (no need in maven central poms)
-            pom.dependencies.removeAll { dep ->
-                dep.scope == "test"
+
+            pom.whenConfigured {pom ->
+                pom.dependencies.removeAll { it.scope == "test" }
             }
 
             pom.project {

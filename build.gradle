@@ -18,6 +18,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -201,6 +203,7 @@ project('elasticspring-integration-test') {
 
     test.onlyIf { System.getProperty("els.config.dir") != null }
     test.systemProperty("els.config.dir", System.getProperty("els.config.dir"))
+    configurations.archives.artifacts.clear()
 }
 
 
