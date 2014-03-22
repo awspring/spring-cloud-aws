@@ -16,39 +16,35 @@
 
 
 
-
-
-
-
 allprojects {
     apply plugin: 'java'
 
     //Configure java compiler
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
+    compileJava {
         options.compilerArgs = [
                 '-Xlint:all', //Enable all warnings
                 '-Xlint:-options', //Disable options warning because we will have differences between the compiler and source code loevel
                 '-Xlint:-serial', // Disable serialversionuid warnings
                 '-Werror']
+        options.encoding = 'UTF-8'
+
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
     }
 
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-
-    tasks.withType(Jar).all {
+    jar {
         manifest {
-            attributes("Implementation-Title": "ElasticSpring",
-                    "Implementation-Version": project.version,
-                    "Implementation-Vendor": "ElasticSpring",
-                    "Implementation-URL": "http://elasticspring.org",
-                    "Created-By": "Gradle:" + project.getGradle().gradleVersion + " , " +
-                            "Java Version: " + rootProject.ext.buildenvironment.javaVersion + ", " +
-                            "User: " + rootProject.ext.buildenvironment.username + ", " +
-                            "Host: " + rootProject.ext.buildenvironment.hostname + ", " +
-                            "OS: " + rootProject.ext.buildenvironment.osVersion,
-                    "Build-Date": rootProject.ext.buildenvironment.timeStamp,
-                    "Build-Commit": rootProject.ext.buildenvironment.commitId)
+            attributes["Implementation-Title"] = "ElasticSpring"
+            attributes["Implementation-Version"] = project.version
+            attributes["Implementation-Vendor"] = "ElasticSpring"
+            attributes["Implementation-URL"] = "http://elasticspring.org"
+            attributes["Created-By"] = "Gradle:" + project.getGradle().gradleVersion + " , " +
+                    "Java Version: " + rootProject.ext.buildenvironment.javaVersion + ", " +
+                    "User: " + rootProject.ext.buildenvironment.username + ", " +
+                    "Host: " + rootProject.ext.buildenvironment.hostname + ", " +
+                    "OS: " + rootProject.ext.buildenvironment.osVersion
+            attributes["Build-Date"] = rootProject.ext.buildenvironment.timeStamp
+            attributes["Build-Commit"] = rootProject.ext.buildenvironment.commitId
         }
     }
 }
