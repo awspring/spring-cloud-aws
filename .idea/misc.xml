@@ -12,6 +12,9 @@
       <item index="6" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
   </component>
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$" />
+  </component>
   <component name="IdProvider" IDEtalkID="11DA1DB66DD62DDA1ED602B7079FE97C" />
   <component name="ProjectResources">
     <resource url="http://www.springframework.org/schema/util/spring-util-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-beans/4.0.0.RC1/jar/bab1f389bfd168ac6a116d0a0efb256864f7c857/spring-beans-4.0.0.RC1.jar!/org/springframework/beans/factory/xml/spring-util-3.1.xsd" />
@@ -25,7 +28,7 @@
     <resource url="http://www.springframework.org/schema/aop/spring-aop-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-aop/4.0.0.RC1/jar/b39243f23d065bab1e50ea571d3b7a44f9aaca9c/spring-aop-4.0.0.RC1.jar!/org/springframework/aop/config/spring-aop-3.1.xsd" />
     <resource url="http://jakarta.apache.org/log4j/" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.7" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
