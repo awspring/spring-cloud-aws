@@ -145,8 +145,9 @@ public class TestStackInstanceIdService {
 
 	/**
 	 * Source for statically configured instance id.
-	 * <p/>
+	 * <p>
 	 * Useful for unit testing.
+	 * </p>
 	 */
 	private static class StaticInstanceIdSource implements InstanceIdSource {
 
@@ -167,8 +168,9 @@ public class TestStackInstanceIdService {
 	/**
 	 * Source for retrieving instance id from specified output key of specified stack. Requires specified stack to be
 	 * available.
-	 * <p/>
+	 * <p>
 	 * Useful for integration testing.
+	 * </p>
 	 */
 	private static class AmazonStackOutputBasedInstanceIdSource implements InstanceIdSource {
 

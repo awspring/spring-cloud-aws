@@ -41,7 +41,6 @@ import java.util.Map;
  * might be retryable even if there is a permanent error. This is typically the case in a master a/z failover where
  * the source instance might not be available but a second attempt might succeed because the DNS record has been updated
  * to the failover instance.
- * <p/>
  * <p>In contrast to a {@link SimpleRetryPolicy} this class also checks recursively the
  * cause of the exception if there is a retryable implementation.</p>
  *
@@ -136,7 +135,6 @@ public class SqlRetryPolicy implements RetryPolicy {
 	 * Configures the maximum number of retries. This number should be a trade-off between having enough retries to
 	 * survive a database outage due to failure and a responsive and not stalling application. The default value for the
 	 * maximum number is 3.
-	 * <p/>
 	 * <p><b>Note:</b>Consider using a {@link BackOffPolicy} which ensures that there is
 	 * enough time left between the retry attempts instead of increasing this value to a high number. The back-off policy
 	 * ensures that there is a delay in between the retry operations.</p>

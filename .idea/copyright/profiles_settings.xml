@@ -1,5 +1,3 @@
 <component name="CopyrightManager">
-  <settings default="ASL2">
-    <module2copyright />
-  </settings>
+  <settings default="ASL2" />
 </component>

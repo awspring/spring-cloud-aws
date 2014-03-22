@@ -49,9 +49,10 @@ import java.nio.charset.Charset;
  * auto-register itself on the application context respecting the endpoint address configured in the subscription. This
  * endpoint supports message for confirmation subscription as well as notification messages. Unsubscribe message are
  * ignored by this endpoint as this endpoint will never modify any subscription on itself.
- * <p/>
+ * <p>
  * <b>Note:</b>This endpoint requires a servlet 3.0 compliant servlet container to aut-register a new {@link
  * HttpRequestHandlerServlet} for this endpoint inside the application context
+ * </p>
  *
  * @author Agim Emruli
  * @since 1.0

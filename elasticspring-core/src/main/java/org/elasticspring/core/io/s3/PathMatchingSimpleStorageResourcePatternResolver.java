@@ -43,12 +43,10 @@ import java.util.Set;
  * A {@link ResourcePatternResolver} implementation which allows an ant-style path matching when
  * loading S3 resources. Ant wildcards (*, ** and ?) are allowed in both, bucket name and object
  * name.
- * <p/>
- * <p><b>WARNING:</b></p>
- * <p>Be aware that when you are using wildcards in the bucket name it can take a very long
- * time to parse all files.<br/>
- * Moreover this implementation does not return truncated results. This means that when handling huge
- * buckets it could lead to serious performance problems. For more information look at the
+ * <p><b>WARNING:</b>
+ * Be aware that when you are using wildcards in the bucket name it can take a very long time to parse all
+ * files.Moreover this implementation does not return truncated results. This means that when handling
+ * huge buckets it could lead to serious performance problems. For more information look at the
  * {@code findProgressivelyWithPartialMatch} method.</p>
  *
  * @author Alain Sahli
@@ -98,6 +96,8 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	 * Set the PathMatcher implementation to use for this
 	 * resource pattern resolver. Default is AntPathMatcher.
 	 *
+	 * @param pathMatcher
+	 * 		The pathMatches implementation used, must not be null
 	 * @see org.springframework.util.AntPathMatcher
 	 */
 	public void setPathMatcher(PathMatcher pathMatcher) {

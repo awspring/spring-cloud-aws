@@ -32,8 +32,9 @@ import java.io.IOException;
  * Abstract base class that provides support to inspect annotated beans and process them in the subclass. This class
  * uses a {@link MetadataReader} to read the meta data (typically done with ASM) from the classes and provide them to
  * the sub classes without actually loading the class.
- * <p/>
+ * <p>
  * Subclasses can inspect the {@link AnnotationMetadata} and process the bean or create a new bean definition at all.
+ * </p>
  *
  * @author Agim Emruli
  * @see TopicListenerBeanDefinitionRegistryPostProcessor

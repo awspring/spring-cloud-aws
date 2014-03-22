@@ -40,13 +40,14 @@ import java.text.MessageFormat;
  * Relational Database service instance. This factory bean retrieves all the metadata from the AWS RDS service in
  * order to create and configure a datasource. This class uses the {@link AmazonRDS} service to retrieve the metadata
  * and the {@link DataSourceFactory} to actually create the datasource.
- * <p/>
+ * <p>
  * The created datasource of this implementation is a {@link DynamicDataSource} which allows the creation of a "proxy"
  * datasource to allow this factory bean to complete. The DynamicDataSource class will use the {@link
  * org.elasticspring.jdbc.datasource.DynamicDataSource.DataSourceStatus} implementation provided by this class to
  * actually check whenever this datasource is available. If you want to make sure that the datasource is available
  * before this class returns the object, then pass a {@link org.springframework.core.task.SyncTaskExecutor} which will
  * effectively wait till the datasource is available before returning the object.
+ * </p>
  *
  * @author Agim Emruli
  * @since 1.0

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,10 @@ import java.sql.SQLException;
 /**
  * Dynamic datasource with regards to the configuration and initialization. This datasource is useful if the
  * configuration is not available at configuration time and if the datasource initialization is time consuming.
- * <p/>
  * <p><b>Configuration: </b>This datasource retrieves all information like host name, port and user through through
  * the {@link DataSourceInformation} object and uses the {@link DataSourceFactory} class to actually instantiate the
  * class. The passed in DataSourceFactory will typically create a datasource connection pool through an
  * well-known connection pool like Apache Commons DBCP or Tomcat JDBC.
- * <p/>
  * <p><b>Initialization:</b> This class uses a {@link DataSourceStatus} strategy before actually trying to initialize
  * the
  * datasource. This is especially useful if the datasource is in a "non-available" state because it is bootstrapped
