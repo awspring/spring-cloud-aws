@@ -26,9 +26,10 @@ import java.util.Arrays;
  * different type of resource inside the Amazon Webservices. These resource are represented by a service and could be
  * bound into a particular region, if the service is region based. Also most of the resources will be typically bound
  * to an account if the resource is scoped ot an account.
- * <p/>
+ * <p>
  * More information on resources are available on
  * <a href="http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">the Amazon Webservice Manual</a>
+ * </p>
  *
  * @author Agim Emruli
  * @since 1.0

@@ -43,10 +43,9 @@ import java.util.Set;
  * A {@link ResourcePatternResolver} implementation which allows an ant-style path matching when
  * loading S3 resources. Ant wildcards (*, ** and ?) are allowed in both, bucket name and object
  * name.
- * <p/>
- * <p><b>WARNING:</b></p>
- * <p>Be aware that when you are using wildcards in the bucket name it can take a very long
- * time to parse all files.<br/>
+ * <p><b>WARNING:</b>
+ * Be aware that when you are using wildcards in the bucket name it can take a very long
+ * time to parse all files.<br></br>
  * Moreover this implementation does not return truncated results. This means that when handling huge
  * buckets it could lead to serious performance problems. For more information look at the
  * {@code findProgressivelyWithPartialMatch} method.</p>
