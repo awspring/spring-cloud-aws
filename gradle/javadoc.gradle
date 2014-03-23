@@ -15,9 +15,6 @@
  */
 
 
-
-import org.gradle.external.javadoc.JavadocMemberLevel
-
 allprojects {
     ext.javadocLinks = [
             "http://docs.oracle.com/javase/6/docs/api/",
@@ -26,7 +23,6 @@ allprojects {
             "http://docs.spring.io/spring/docs/4.0.x/javadoc-api/"
     ] as String[]
 }
-
 
 subprojects {
 
