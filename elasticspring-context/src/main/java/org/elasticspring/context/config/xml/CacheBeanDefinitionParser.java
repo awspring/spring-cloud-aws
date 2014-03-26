@@ -23,6 +23,7 @@ import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
 import org.elasticspring.context.cache.config.ElastiCacheAddressProvider;
 import org.elasticspring.context.cache.config.SsmCacheFactoryBean;
+import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -123,7 +124,8 @@ public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	}
 
 	private BeanDefinition createElastiCacheAddressProvider(BeanDefinitionRegistry beanDefinitionRegistry, Element source, String clusterId) {
-		BeanDefinitionHolder elastiCacheClient = AmazonElastiCacheClientConfigurationUtils.registerElastiCacheClient(beanDefinitionRegistry, source);
+		BeanDefinitionHolder elastiCacheClient = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
+				"com.amazonaws.services.elasticache.AmazonElastiCacheClient",source.getAttribute("region-provider"),source.getAttribute("region"));
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ElastiCacheAddressProvider.class);
 		beanDefinitionBuilder.addConstructorArgReference(elastiCacheClient.getBeanName());
 		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry));
