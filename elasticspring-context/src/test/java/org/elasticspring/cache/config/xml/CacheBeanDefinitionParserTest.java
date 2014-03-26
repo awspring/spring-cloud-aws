@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml;
+package org.elasticspring.cache.config.xml;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
@@ -28,6 +28,7 @@ import com.thimbleware.jmemcached.LocalCacheElement;
 import com.thimbleware.jmemcached.MemCacheDaemon;
 import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.AfterClass;

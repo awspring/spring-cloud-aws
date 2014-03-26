@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.cache.config;
+package org.elasticspring.cache.config;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.model.CacheCluster;

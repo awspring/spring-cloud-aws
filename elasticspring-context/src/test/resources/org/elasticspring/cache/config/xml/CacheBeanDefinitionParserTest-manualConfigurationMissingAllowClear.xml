@@ -17,18 +17,14 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   	http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
-
-	<import resource="classpath:Integration-test-context.xml" />
-
-	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
+	   xmlns:els-cache="http://www.elasticspring.org/schema/cache"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.elasticspring.org/schema/cache
+	   http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:cache-manager>
-		<els-context:cache-cluster expiration="10000" cacheCluster="CacheCluster"/>
-	</els-context:cache-manager>
-
+	<els-cache:cache-manager id="cacheManager">
+		<els-cache:cache address="localhost:#{systemProperties['memcachedPort']}" expiration="10000" name="memc" />
+	</els-cache:cache-manager>
 </beans>

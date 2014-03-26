@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml;
+package org.elasticspring.cache.config.xml;
 
 import com.google.code.ssm.CacheFactory;
 import com.google.code.ssm.config.DefaultAddressProvider;
 import com.google.code.ssm.providers.CacheConfiguration;
 import com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl;
 import com.google.code.ssm.spring.SSMCacheManager;
-import org.elasticspring.context.cache.config.ElastiCacheAddressProvider;
-import org.elasticspring.context.cache.config.SsmCacheFactoryBean;
+import org.elasticspring.cache.config.ElastiCacheAddressProvider;
+import org.elasticspring.cache.config.SsmCacheFactoryBean;
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -40,13 +41,13 @@ import org.w3c.dom.Element;
 import java.util.List;
 
 /**
- * Parser for the {@code <els-context:cache-manager />} element.
+ * Parser for the {@code <els-cache:cache-manager />} element.
  *
  * @author Alain Sahli
  * @author Agim Emruli
  * @since 1.0
  */
-public class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
+class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static final String CACHE_MANAGER = "cacheManager";
 	private static final String CACHE_CLUSTER_ELEMENT_NAME = "cache-cluster";

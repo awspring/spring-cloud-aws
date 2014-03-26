@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml;
+package org.elasticspring.cache.config.xml;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the ElasticSpring context
- * namespace.
- *
  * @author Agim Emruli
- * @since 1.0
  */
-@RuntimeUse
-public class ContextNamespaceHandler extends NamespaceHandlerSupport {
+public class CacheNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("context-credentials", new ContextCredentialsBeanDefinitionParser());
-		registerBeanDefinitionParser("context-resource-loader", new ContextResourceLoaderBeanDefinitionParser());
-		registerBeanDefinitionParser("context-region", new ContextRegionBeanDefinitionParser());
-		registerBeanDefinitionParser("stack-configuration", new StackConfigurationBeanDefinitionParser());
+		registerBeanDefinitionParser("cache-manager", new CacheBeanDefinitionParser());
 	}
 }

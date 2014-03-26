@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.cache.config;
+package org.elasticspring.cache.config;
 
 import com.google.code.ssm.Cache;
 import com.google.code.ssm.spring.SSMCache;

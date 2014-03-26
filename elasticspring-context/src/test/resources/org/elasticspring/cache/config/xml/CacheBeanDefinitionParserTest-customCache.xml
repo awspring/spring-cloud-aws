@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright 2013 the original author or authors.
   ~
@@ -15,21 +16,21 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-cache="http://www.elasticspring.org/schema/cache"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+           	http://www.elasticspring.org/schema/cache
+           	http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
 
-	<els-context:cache-manager id="cacheManager">
-		<els-context:cache address="localhost:#{systemProperties['memcachedPort']}" expiration="10000" name="memc"
-						   allowClear="true" />
-		<els-context:cache-ref ref="memcached" />
-	</els-context:cache-manager>
+	<els-cache:cache-manager id="cacheManager">
+		<els-cache:cache-ref ref="memc" />
+	</els-cache:cache-manager>
 
-	<bean name="memcached" class="com.google.code.ssm.spring.SSMCache">
+	<bean name="memc" class="com.google.code.ssm.spring.SSMCache">
 		<constructor-arg name="cache">
 			<bean class="com.google.code.ssm.CacheFactory">
-				<property name="cacheName" value="memcached" />
+				<property name="cacheName" value="memc" />
 				<property name="cacheClientFactory">
 					<bean class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />
 				</property>
