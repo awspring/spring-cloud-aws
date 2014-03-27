@@ -26,6 +26,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.ClassUtils;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Agim Emruli
@@ -38,6 +39,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
 
 	private TaskExecutor taskExecutor;
+
+	private volatile CountDownLatch stopLatch;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -78,12 +81,17 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	@Override
 	protected void doStop() {
-
+		try {
+			this.stopLatch.await();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	private void scheduleMessageListeners() {
+		this.stopLatch = new CountDownLatch(getMessageRequests().size());
 		for (Map.Entry<String, ReceiveMessageRequest> messageRequest : getMessageRequests().entrySet()) {
-			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue()));
+			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue(), this.stopLatch));
 		}
 	}
 
@@ -98,25 +106,52 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private class AsynchronousMessageListener implements Runnable {
 
 		private final ReceiveMessageRequest receiveMessageRequest;
+		private final CountDownLatch messageBatchLatch;
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest) {
+		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest, CountDownLatch messageBatchLatch) {
 			this.logicalQueueName = logicalQueueName;
 			this.receiveMessageRequest = receiveMessageRequest;
+			this.messageBatchLatch = messageBatchLatch;
 		}
 
 		@Override
 		public void run() {
 			while (isRunning()) {
 				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.receiveMessageRequest);
+				CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
-						getTaskExecutor().execute(new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl()));
+						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl());
+						getTaskExecutor().execute(new CountingRunnableDecorator(messageBatchLatch, messageExecutor));
 					} else {
 						break;
 					}
 				}
+				try {
+					messageBatchLatch.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
+			this.messageBatchLatch.countDown();
+		}
+	}
+
+	private static class CountingRunnableDecorator implements Runnable {
+
+		private final CountDownLatch countDownLatch;
+		private final Runnable runnable;
+
+		private CountingRunnableDecorator(CountDownLatch countDownLatch, Runnable runnable) {
+			this.countDownLatch = countDownLatch;
+			this.runnable = runnable;
+		}
+
+		@Override
+		public void run() {
+			this.runnable.run();
+			this.countDownLatch.countDown();
 		}
 	}
 

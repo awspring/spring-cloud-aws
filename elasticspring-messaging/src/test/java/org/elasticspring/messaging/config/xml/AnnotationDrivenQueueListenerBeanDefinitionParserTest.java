@@ -17,6 +17,7 @@
 package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
+import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -86,6 +87,20 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Assert.assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals("executor",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("taskExecutor").getValue()).getBeanName());
+	}
+
+	@Test
+	public void testParse_withSendToMessageTemplateAttribute_mustBeSetOnTheBeanDefinition() throws Exception {
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-with-send-to-message-template.xml", getClass()));
+
+		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
+		Assert.assertNotNull(queueMessageHandler);
+
+		Assert.assertEquals(1, queueMessageHandler.getPropertyValues().size());
+		Assert.assertEquals("messageTemplate",
+				((RuntimeBeanReference) queueMessageHandler.getPropertyValues().getPropertyValue("sendToMessageTemplate").getValue()).getBeanName());
 	}
 
 	@Test

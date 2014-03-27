@@ -79,6 +79,11 @@
 			"Properties": {
 			}
 		},
+		"SendToQueue": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+			}
+		},
 		"JsonQueue": {
 			"Type": "AWS::SQS::Queue",
 			"Properties": {

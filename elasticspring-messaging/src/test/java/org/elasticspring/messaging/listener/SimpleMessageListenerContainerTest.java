@@ -32,8 +32,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -192,7 +192,7 @@ public class SimpleMessageListenerContainerTest {
 				super.stop();
 			}
 		};
-		SyncTaskExecutor taskExecutor = new SyncTaskExecutor();
+		AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 		container.setTaskExecutor(taskExecutor);
 
 		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);

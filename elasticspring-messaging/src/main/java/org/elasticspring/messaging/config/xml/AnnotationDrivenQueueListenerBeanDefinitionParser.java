@@ -75,7 +75,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		}
 
 		containerBuilder.addPropertyReference("resourceIdResolver", GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-		containerBuilder.addPropertyReference("messageHandler", getMessageHandlerBeanName(parserContext));
+		containerBuilder.addPropertyReference("messageHandler", getMessageHandlerBeanName(element, parserContext));
 
 		String beanName = parserContext.getReaderContext().generateBeanName(containerBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(beanName, containerBuilder.getBeanDefinition());
@@ -83,8 +83,13 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		return null;
 	}
 
-	private String getMessageHandlerBeanName(ParserContext parserContext) {
+	private String getMessageHandlerBeanName(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder queueMessageHandlerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
+
+		if (StringUtils.hasText(element.getAttribute("send-to-message-template"))) {
+			queueMessageHandlerDefinitionBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("send-to-message-template"), element.getAttribute("send-to-message-template"));
+		}
+
 		String messageHandlerBeanName = parserContext.getReaderContext().generateBeanName(queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(messageHandlerBeanName, queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		return messageHandlerBeanName;

@@ -64,6 +64,19 @@
 					</xsd:attribute>
 					<xsd:attribute name="auto-startup" type="xsd:boolean">
 					</xsd:attribute>
+					<xsd:attribute name="send-to-message-template" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								A reference to a bean that implements the org.springframework.messaging.core.MessageSendingOperations interface.
+								This message template will be used to send return values of methods annotated with @SendTo.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.core.MessageSendingOperations" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

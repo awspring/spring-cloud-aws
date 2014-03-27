@@ -27,9 +27,6 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Alain Sahli
- */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class QueueMessagingTemplateIntegrationTest {
