@@ -18,7 +18,7 @@ package org.elasticspring.cache.config.xml;
 
 import org.elasticspring.cache.config.SsmCacheFactoryBean;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
