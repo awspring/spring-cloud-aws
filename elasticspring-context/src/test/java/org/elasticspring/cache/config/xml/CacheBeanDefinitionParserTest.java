@@ -38,6 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -237,5 +238,23 @@ public class CacheBeanDefinitionParserTest {
 		//Assert
 		Assert.assertNotNull(cacheManager);
 		Assert.assertNotNull(cache);
+	}
+
+	@Test
+	public void parseInternal_clusterCacheConfigurationWithRegion_returnsConfiguredClusterCacheWithRegion() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigRegionConfigured.xml", getClass()));
+
+
+		//Act
+		BeanDefinition beanDefinition = beanFactory.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()));
+
+		//Assert
+		Assert.assertNotNull(beanDefinition);
+		Assert.assertNotNull(beanDefinition.getPropertyValues().get("region"));
 	}
 }

@@ -18,6 +18,7 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/cache"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:els-context="http://www.elasticspring.org/schema/context"
 			targetNamespace="http://www.elasticspring.org/schema/cache"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -91,6 +92,7 @@
 	<xsd:complexType name="cacheClusterType">
 		<xsd:complexContent>
 			<xsd:extension base="abstractCacheConfiguration">
+				<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
 				<xsd:attribute name="cacheCluster" type="xsd:string" use="required">
 					<xsd:annotation>
 						<xsd:documentation>
