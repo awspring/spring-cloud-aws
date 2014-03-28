@@ -86,9 +86,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="locationAwareType" />
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="locationAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -105,31 +103,26 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="locationAwareType">
-					<xsd:attribute name="auto-detect" type="xsd:boolean" default="false">
-						<xsd:annotation>
-							<xsd:documentation>Defines that the region should be auto detected through the EC2 meta data
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attribute name="auto-detect" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>Defines that the region should be auto detected through the EC2 meta data
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="locationAwareType">
+	<xsd:attributeGroup name="locationAttributeGroup">
 		<xsd:annotation>
 			<xsd:documentation>
-				Abstract type which can be extended by components which are location and hence region aware. This type
+				Attribute group that can be used by components which are region aware. This group
 				allows users to configure the particular region.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="region" type="regionType" use="optional">
 			<xsd:annotation>
-				<xsd:documentation>The region that will be used by this context loader. As Amazon S3 has a global
-					region this setting is optional and only useful to use the more direct endpoint to access the S3
-					resource. The resources are however (in contrast to other services) visible with every region.
+				<xsd:documentation>The region that will be used, must be one of the valid regions.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -143,8 +136,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-	</xsd:complexType>
-
+	</xsd:attributeGroup>
 
 	<xsd:complexType name="simpleCredentialsType">
 		<xsd:attribute name="access-key" use="required">
@@ -225,95 +217,6 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
-	<xsd:element name="cache-manager">
-		<xsd:annotation>
-			<xsd:documentation>
-				Configures a cache manager based on SpyMemcached that uses the AWS ElastiCache service.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:all>
-				<xsd:element name="cache-ref" type="cacheRefType" minOccurs="0" />
-				<xsd:element name="cache-cluster" type="cacheClusterType" minOccurs="0" />
-				<xsd:element name="cache" type="cacheConfigurationType" minOccurs="0" />
-			</xsd:all>
-			<xsd:attribute name="id" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						The id of the cache manager
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:complexType name="abstractCacheConfiguration" abstract="true">
-		<xsd:attribute name="allowClear" type="xsd:boolean" use="optional" default="false">
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines if the given cache can be cleared.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="expiration" type="xsd:int" use="required">
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines the expiration time in seconds of a cache entry.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-
-	<xsd:complexType name="cacheConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="abstractCacheConfiguration">
-				<xsd:attribute name="address" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							The address of the cache
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="name" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							The name of the cache.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="cacheClusterType">
-		<xsd:complexContent>
-			<xsd:extension base="abstractCacheConfiguration">
-				<xsd:attribute name="cacheCluster" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							Defines the cache cluster name
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="cacheRefType">
-		<xsd:attribute name="ref" type="xsd:string" use="required">
-			<xsd:annotation>
-				<xsd:documentation>
-					A reference to a bean that implements the org.springframework.cache.Cache interface.
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.cache.Cache" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-
 	<xsd:element name="stack-configuration">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -322,19 +225,16 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="locationAwareType">
-					<xsd:attribute name="stack-name" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								The name of the stack to be configured. The corresponding stack must exist and must be
-								available. If no stack name is configured, the stack name is automatically detected
-								based on the stack the current Amazon EC2 instance is part of.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attribute name="stack-name" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The name of the stack to be configured. The corresponding stack must exist and must be
+						available. If no stack name is configured, the stack name is automatically detected
+						based on the stack the current Amazon EC2 instance is part of.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 </xsd:schema>

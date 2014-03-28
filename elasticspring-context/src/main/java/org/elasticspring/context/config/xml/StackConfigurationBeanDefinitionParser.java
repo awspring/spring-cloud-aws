@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;

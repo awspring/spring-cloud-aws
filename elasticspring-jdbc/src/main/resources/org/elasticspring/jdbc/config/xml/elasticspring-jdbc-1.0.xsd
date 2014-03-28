@@ -40,48 +40,47 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="els-context:locationAwareType">
-					<xsd:sequence>
-						<xsd:element name="pool-attributes" type="poolAttributesType" minOccurs="0" maxOccurs="1">
-							<xsd:annotation>
-								<xsd:documentation>
-									The pool properties used for the underlying connection pool
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-					</xsd:sequence>
-					<xsd:attribute name="id" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+			<xsd:sequence>
+				<xsd:element name="pool-attributes" type="poolAttributesType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							The pool properties used for the underlying connection pool
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+
+			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The unique identifier for a bean. A bean id may not be used more than once
 					within the same <beans> element.
 								]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The name of the database identifier in Amazon RDS
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="username" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="username" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The user name that will be used to connect to the database
 												]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="password" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="password" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The password that will be used to connect to the database
 						]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -99,44 +98,41 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="els-context:locationAwareType">
-					<xsd:attribute name="id" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 										The unique identifier for a bean. A bean id may not be used more than once
 										within the same <beans> element.
 													]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The name of the database identifier in Amazon RDS instance. Should be the same as the database instance used inside the operations that will be retried.
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The maximum number of retries the interceptor will re-execute the call after an error happened
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 					The reference to a BackOffPolicy which defines what should happen between retry approaches. Normally a back-off-policy will sleep in between the retry attempts.
 						]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.retry.backoff.BackOffPolicy" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.retry.backoff.BackOffPolicy" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

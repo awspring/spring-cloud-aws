@@ -23,7 +23,7 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
-import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.junit.Assert;
 import org.junit.Rule;

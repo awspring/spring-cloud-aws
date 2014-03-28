@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.cache;
+package org.elasticspring.cache;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import org.elasticspring.support.TestStackEnvironment;

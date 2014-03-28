@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.junit.Assert;
@@ -41,7 +42,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(),null,null);
+				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), null, null);
 
 		//Act
 		beanFactory.preInstantiateSingletons();

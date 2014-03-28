@@ -17,7 +17,7 @@
 package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;

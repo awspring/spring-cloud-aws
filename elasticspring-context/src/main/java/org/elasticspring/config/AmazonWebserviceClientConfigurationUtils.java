@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml.support;
+package org.elasticspring.config;
 
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
