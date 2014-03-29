@@ -22,12 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  *
  */
 @Service
-@Transactional
 class SimpleDatabaseService implements DatabaseService {
 
 	private final JdbcTemplate jdbcTemplate;
@@ -38,7 +39,17 @@ class SimpleDatabaseService implements DatabaseService {
 	}
 
 	@Override
-	public boolean checkDatabase() {
-		return this.jdbcTemplate.queryForObject("SELECT 1", Long.class) == 1;
+	@Transactional(readOnly = true)
+	public Date getLastUpdate(Date lastAccessDatabase) {
+		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Timestamp.class,lastAccessDatabase);
+	}
+
+	@Override
+	public Date updateLastAccessDatabase() {
+		this.jdbcTemplate.update("DROP TABLE IF EXISTS INTEGRATION_TEST");
+		this.jdbcTemplate.update("CREATE TABLE IF NOT EXISTS INTEGRATION_TEST(lastTest timestamp)");
+		Date date = new Date();
+		this.jdbcTemplate.update("INSERT INTO INTEGRATION_TEST(lastTest) VALUES(?)", date);
+		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Date.class, date);
 	}
 }

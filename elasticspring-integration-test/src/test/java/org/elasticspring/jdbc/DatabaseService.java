@@ -16,11 +16,15 @@
 
 package org.elasticspring.jdbc;
 
+import java.util.Date;
+
 /**
  *
  */
 interface DatabaseService {
 
-	boolean checkDatabase();
+	Date getLastUpdate(Date lastAccessDatabase);
+
+	Date updateLastAccessDatabase();
 
 }

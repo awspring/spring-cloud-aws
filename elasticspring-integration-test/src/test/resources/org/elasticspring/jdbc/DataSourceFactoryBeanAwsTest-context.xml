@@ -34,7 +34,7 @@
 
 	<jdbc:dataSource id="dataSource"
 					 db-instance-identifier="RdsSingleMicroInstance"
-					 password="secret23">
+					 password="secret23" read-replica-support="true">
 		<jdbc:pool-attributes initialSize="1"
 							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
 							  testOnBorrow="true" validationQuery="SELECT 1" />
@@ -47,7 +47,7 @@
 							id="myInterceptor" back-off-policy="backOffPolicy" max-number-of-retries="10" />
 
 	<bean id="backOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
-		<property name="backOffPeriod" value="120000" />
+		<property name="backOffPeriod" value="12" />
 	</bean>
 
 	<context:component-scan base-package="org.elasticspring.jdbc" />
