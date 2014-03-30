@@ -81,6 +81,13 @@
 						]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="read-replica-support" type="xsd:boolean" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Defines if the read replica support should be enabled for mysql
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

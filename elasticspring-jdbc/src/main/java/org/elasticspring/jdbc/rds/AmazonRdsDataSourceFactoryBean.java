@@ -54,7 +54,7 @@ import java.text.MessageFormat;
  */
 public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSource> {
 
-	private final AmazonRDS amazonRDS;
+	private final AmazonRDS amazonRds;
 	private final String dbInstanceIdentifier;
 	private final String password;
 
@@ -67,8 +67,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * Constructor which retrieves all mandatory objects to allow the object to be constructed. This are the minimal
 	 * configuration options which uses defaults or no values for all optional elements.
 	 *
-	 * @param amazonRDS
-	 * 		- The amazonRDS instance used to connect to the service. This object will be used to actually retrieve the
+	 * @param amazonRds
+	 * 		- The amazonRds instance used to connect to the service. This object will be used to actually retrieve the
 	 * 		datasource metadata from the Amazon RDS service.
 	 * @param dbInstanceIdentifier
 	 * 		- the unique database instance identifier in the Amazon RDS service
@@ -76,8 +76,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * 		- The password used to connect to the datasource. For security reasons the password is not available in the
 	 * 		metadata (in contrast to the user) so it must be provided in order to connect to the database with JDBC.
 	 */
-	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRDS, String dbInstanceIdentifier, String password) {
-		this.amazonRDS = amazonRDS;
+	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRds, String dbInstanceIdentifier, String password) {
+		this.amazonRds = amazonRds;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
 		this.password = password;
 	}
@@ -127,7 +127,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * Configures an optional {@link org.elasticspring.core.env.ResourceIdResolver} used to resolve a logical name to a
 	 * physical one.
 	 *
-	 * @param resourceIdResolver - the resourceIdResolver instance, might be null or not called at all
+	 * @param resourceIdResolver
+	 * 		- the resourceIdResolver instance, might be null or not called at all
 	 */
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
 		this.resourceIdResolver = resourceIdResolver;
@@ -140,23 +141,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	@Override
 	protected DataSource createInstance() throws Exception {
-
-		DBInstance instance;
-		try {
-			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(getDbInstanceIdentifier()));
-			instance = describeDBInstancesResult.getDBInstances().get(0);
-		} catch (DBInstanceNotFoundException e) {
-			throw new IllegalStateException(MessageFormat.format("No database instance with id:''{0}'' found. Please specify a valid db instance",
-					getDbInstanceIdentifier()));
-		}
-
-		DynamicDataSource dynamicDataSource = new DynamicDataSource(fromRdsInstance(instance), this.dataSourceFactory, new AmazonRdsInstanceStatus(this.amazonRDS, instance.getDBInstanceIdentifier()), this.taskExecutor);
-		dynamicDataSource.afterPropertiesSet();
-		return dynamicDataSource;
-	}
-
-	protected String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) :  this.dbInstanceIdentifier;
+		return createDataSourceInstance(getDbInstanceIdentifier());
 	}
 
 	@Override
@@ -164,6 +149,45 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		if (instance instanceof DynamicDataSource) {
 			((DynamicDataSource) instance).destroyDataSource();
 		}
+	}
+
+	/**
+	 * Creates a data source based in the instance name. The physical information for the data source is retrieved by
+	 * the name passed as identifier. This method does distinguish between regular amazon rds instances and
+	 * read-replicas because both meta-data is retrieved on the same way.
+	 *
+	 * @param identifier - the database identifier for the data source configured in amazon rds
+	 * @return a fully configured and initialized {@link org.elasticspring.jdbc.datasource.DynamicDataSource}
+	 * @throws java.lang.IllegalStateException if no database has been found
+	 */
+	protected DataSource createDataSourceInstance(String identifier) throws Exception {
+		DBInstance instance = getDbInstance(identifier);
+
+		DynamicDataSource dynamicDataSource = new DynamicDataSource(fromRdsInstance(instance), this.dataSourceFactory, new AmazonRdsInstanceStatus(this.amazonRds, instance.getDBInstanceIdentifier()), this.taskExecutor);
+		dynamicDataSource.afterPropertiesSet();
+		return dynamicDataSource;
+	}
+
+	/**
+	 * Retrieves the {@link com.amazonaws.services.rds.model.DBInstance} information
+	 * @param identifier - the database identifier used
+	 * @return - the db instance
+	 * @throws IllegalStateException if the db instance is not found
+	 */
+	protected DBInstance getDbInstance(String identifier) throws IllegalStateException{
+		DBInstance instance;
+		try {
+			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRds.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(identifier));
+			instance = describeDBInstancesResult.getDBInstances().get(0);
+		} catch (DBInstanceNotFoundException e) {
+			throw new IllegalStateException(MessageFormat.format("No database instance with id:''{0}'' found. Please specify a valid db instance",
+					identifier));
+		}
+		return instance;
+	}
+
+	protected String getDbInstanceIdentifier() {
+		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) : this.dbInstanceIdentifier;
 	}
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {

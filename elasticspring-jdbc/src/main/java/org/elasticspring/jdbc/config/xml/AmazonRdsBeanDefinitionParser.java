@@ -20,6 +20,7 @@ import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import org.elasticspring.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -73,7 +74,12 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
+		BeanDefinitionBuilder datasourceBuilder;
+		if (Boolean.TRUE.toString().equalsIgnoreCase(element.getAttribute("read-replica-support"))) {
+			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
+		} else{
+			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
+		}
 
 		if (StringUtils.hasText(element.getAttribute("region-provider")) && StringUtils.hasText(element.getAttribute("region"))) {
 			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
@@ -97,7 +103,7 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 		//Register registry to enable cloud formation support
 		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
-		datasourceBuilder.addPropertyReference("resourceIdResolver",resourceResolverBeanName);
+		datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
 
 		return datasourceBuilder.getBeanDefinition();
 	}

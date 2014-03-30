@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Date;
+
 /**
  * AWS backed integration test for the datasource feature of the jdbc module
  *
@@ -38,6 +40,8 @@ public class DataSourceFactoryBeanAwsTest {
 
 	@Test
 	public void testExistingDataSourceInstance() throws Exception {
-		Assert.assertTrue(this.databaseService.checkDatabase());
+		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
+		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
+		Assert.assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
 	}
 }
