@@ -27,12 +27,12 @@ import java.util.Map;
  * {@link org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource} implementation that routes to different
  * read only data source in a random fashion if the current transaction is read-only. This is useful for database
  * platforms that support read-replicas (like MySQL) to scale up the access to the database for read-only accesses.
- * <p/>
+ * <p>
  * <b>Note:</b> In order to use read-only replicas it is necessary to wrap this data source with a {@link
  * org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy} to ensure that the connection is not fetched
  * during transaction creation, but during the first physical access. See the LazyConnectionDataSourceProxy
  * documentation for more details.
- *
+ * </p>
  * @author Agim Emruli
  * @see org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy
  */
