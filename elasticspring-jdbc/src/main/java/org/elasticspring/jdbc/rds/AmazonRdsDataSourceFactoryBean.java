@@ -159,6 +159,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * @param identifier - the database identifier for the data source configured in amazon rds
 	 * @return a fully configured and initialized {@link org.elasticspring.jdbc.datasource.DynamicDataSource}
 	 * @throws java.lang.IllegalStateException if no database has been found
+	 * @throws java.lang.Exception in case of underlying exceptions
 	 */
 	protected DataSource createDataSourceInstance(String identifier) throws Exception {
 		DBInstance instance = getDbInstance(identifier);
