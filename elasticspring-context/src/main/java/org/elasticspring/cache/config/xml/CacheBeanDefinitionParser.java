@@ -16,9 +16,9 @@
 
 package org.elasticspring.cache.config.xml;
 
-import org.elasticspring.cache.config.SsmCacheFactoryBean;
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.elasticspring.cache.SimpleSpringMemcached;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -48,12 +49,8 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	private static final String CACHE_REF_ELEMENT_NAME = "cache-ref";
 	private static final String CACHE_ELEMENT_NAME = "cache";
 
-	private static final String CACHE_FACTORY_CLASS_NAME = "com.google.code.ssm.CacheFactory";
-	private static final String CACHE_CONFIGURATION_CLASS_NAME = "com.google.code.ssm.providers.CacheConfiguration";
-	private static final String DEFAULT_ADDRESS_PROVIDER_CLASS_NAME = "com.google.code.ssm.config.DefaultAddressProvider";
-	private static final String ELASTICACHE_ADDRESS_PROVIDER_CLASS_NAME = "org.elasticspring.cache.config.ElastiCacheAddressProvider";
-	private static final String MEMCACHE_CLIENT_CLASS_NAME = "com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl";
-	private static final String SSM_CACHE_MANAGER_CLASS_NAME = "com.google.code.ssm.spring.SSMCacheManager";
+	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.elasticspring.cache.ElasticMemcachedFactoryBean";
+	private static final String MEMCACHE_CLIENT_FACTORY_BEAN = "net.spy.memcached.spring.MemcachedClientFactoryBean";
 
 	private static String getRequiredAttribute(String attributeName, Element source, ParserContext parserContext) {
 		if (StringUtils.hasText(source.getAttribute(attributeName))) {
@@ -67,7 +64,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		if (!parserContext.getRegistry().containsBeanDefinition(CACHE_MANAGER)) {
-			BeanDefinitionBuilder cacheManagerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SSM_CACHE_MANAGER_CLASS_NAME);
+			BeanDefinitionBuilder cacheManagerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SimpleCacheManager.class);
 			cacheManagerDefinitionBuilder.addPropertyValue("caches", createCacheCollection(element, parserContext));
 			parserContext.getRegistry().registerBeanDefinition(CACHE_MANAGER, cacheManagerDefinitionBuilder.getBeanDefinition());
 		} else {
@@ -86,65 +83,41 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			if (CACHE_REF_ELEMENT_NAME.equals(elementName)) {
 				caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
 			} else if (CACHE_CLUSTER_ELEMENT_NAME.equals(elementName)) {
-				int expiration = Integer.parseInt(getRequiredAttribute("expiration", cacheElement, parserContext));
-				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(getRequiredAttribute("allowClear", cacheElement, parserContext));
 				String cacheClusterId = getRequiredAttribute("cacheCluster", cacheElement, parserContext);
-				caches.add(createSSMCache(cacheClusterId, createElastiCacheAddressProvider(parserContext.getRegistry(), cacheElement,
-						cacheClusterId), expiration, allowClear));
+				caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(parserContext.getRegistry(), cacheElement,
+						cacheClusterId), cacheElement.getAttribute("expiration")));
 			} else if (CACHE_ELEMENT_NAME.equals(elementName)) {
 				String name = getRequiredAttribute("name", cacheElement, parserContext);
 				String address = getRequiredAttribute("address", cacheElement, parserContext);
-				int expiration = Integer.parseInt(getRequiredAttribute("expiration", cacheElement, parserContext));
-				boolean allowClear = Boolean.TRUE.toString().equalsIgnoreCase(getRequiredAttribute("allowClear", cacheElement, parserContext));
-				caches.add(createSSMCache(name, createDefaultAddressProvider(address), expiration, allowClear));
+				caches.add(createCache(name, createStaticMemcachedFactoryBean(address), cacheElement.getAttribute("expiration")));
 			}
 		}
 		return caches;
 	}
 
-	private BeanDefinition createSSMCache(String name, BeanDefinition addressProvider, int expiration, boolean allowClear) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SsmCacheFactoryBean.class);
-		beanDefinitionBuilder.addConstructorArgValue(createCache(name, addressProvider));
-		beanDefinitionBuilder.addConstructorArgValue(expiration);
-		beanDefinitionBuilder.addPropertyValue("allowClear", allowClear);
-
+	private static BeanDefinition createCache(String name, BeanDefinition memCachedClient, String expiration) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SimpleSpringMemcached.class);
+		beanDefinitionBuilder.addConstructorArgValue(memCachedClient);
+		beanDefinitionBuilder.addConstructorArgValue(name);
+		if (StringUtils.hasText(expiration)) {
+			beanDefinitionBuilder.addPropertyValue("expiration", expiration);
+		}
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private BeanDefinition createCache(String name, BeanDefinition addressProvider) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(CACHE_FACTORY_CLASS_NAME);
-		beanDefinitionBuilder.addPropertyValue("cacheName", name);
-		beanDefinitionBuilder.addPropertyValue("cacheClientFactory", createClientFactoryImpl());
-		beanDefinitionBuilder.addPropertyValue("addressProvider", addressProvider);
-		beanDefinitionBuilder.addPropertyValue("configuration", createCacheConfiguration());
-
+	private static BeanDefinition createStaticMemcachedFactoryBean(String address) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(MEMCACHE_CLIENT_FACTORY_BEAN);
+		beanDefinitionBuilder.addPropertyValue("servers", address);
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private AbstractBeanDefinition createCacheConfiguration() {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(CACHE_CONFIGURATION_CLASS_NAME);
-		// TODO why do we set this flag to true? Shouldn't this be configurable?
-		beanDefinitionBuilder.addPropertyValue("consistentHashing", true);
-		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private BeanDefinition createDefaultAddressProvider(String address) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DEFAULT_ADDRESS_PROVIDER_CLASS_NAME);
-		beanDefinitionBuilder.addConstructorArgValue(address);
-		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private BeanDefinition createElastiCacheAddressProvider(BeanDefinitionRegistry beanDefinitionRegistry, Element source, String clusterId) {
+	private static BeanDefinition createElastiCacheFactoryBean(BeanDefinitionRegistry beanDefinitionRegistry, Element source, String clusterId) {
 		BeanDefinitionHolder elastiCacheClient = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
 				"com.amazonaws.services.elasticache.AmazonElastiCacheClient", source.getAttribute("region-provider"), source.getAttribute("region"));
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_ADDRESS_PROVIDER_CLASS_NAME);
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN);
 		beanDefinitionBuilder.addConstructorArgReference(elastiCacheClient.getBeanName());
-		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
+		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry));
 		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private AbstractBeanDefinition createClientFactoryImpl() {
-		return BeanDefinitionBuilder.rootBeanDefinition(MEMCACHE_CLIENT_CLASS_NAME).getBeanDefinition();
 	}
 }

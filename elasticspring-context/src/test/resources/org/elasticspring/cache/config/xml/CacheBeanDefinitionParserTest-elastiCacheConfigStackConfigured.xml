@@ -24,6 +24,6 @@
            	http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
 
 	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache-cluster cacheCluster="testMemcached" expiration="1000"/>
+		<els-cache:cache-cluster cacheCluster="testMemcached" />
 	</els-cache:cache-manager>
 </beans>

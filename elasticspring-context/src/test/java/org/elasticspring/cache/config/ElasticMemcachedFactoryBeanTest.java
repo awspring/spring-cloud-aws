@@ -22,49 +22,59 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
+import net.spy.memcached.MemcachedClient;
+import org.elasticspring.cache.ElasticMemcachedFactoryBean;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.net.InetSocketAddress;
-import java.util.List;
-
-public class ElastiCacheAddressProviderTest {
+public class ElasticMemcachedFactoryBeanTest {
 
 	@Test
-	public void getAddresses_availableCluster_returnsConfigurationEndpoint() throws Exception {
+	public void getObject_availableCluster_returnsConfiguredMemcachedClient() throws Exception {
 		// Arrange
+		int memcacheServerPort = TestMemcacheServer.startServer();
 		AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCacheClient.class);
+
 		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
-				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("someHost").withPort(23)).withCacheClusterStatus("available")));
-		ElastiCacheAddressProvider elastiCacheAddressProvider = new ElastiCacheAddressProvider(amazonElastiCache, "memcached");
+				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
+		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "memcached");
 
 		// Act
-		List<InetSocketAddress> addresses = elastiCacheAddressProvider.getAddresses();
+		elastiCacheAddressProvider.afterPropertiesSet();
+		MemcachedClient memcachedClient = elastiCacheAddressProvider.getObject();
 
 		// Assert
-		Assert.assertNotNull(addresses);
-		Assert.assertEquals(new InetSocketAddress("someHost", 23), addresses.get(0));
+		Assert.assertNotNull(memcachedClient);
+		Assert.assertNull(memcachedClient.get("getObject_availableCluster_returnsConfiguredMemcachedClient"));
+
+		memcachedClient.shutdown();
+
 	}
 
 	@Test
-	public void getAddresses_availableClusterWithLogicalName_returnsConfigurationEndpointWithPhysicalName() throws Exception {
+	public void getObject_availableClusterWithLogicalName_returnsConfigurationMemcacheClientWithPhysicalName() throws Exception {
 		// Arrange
+		int memcacheServerPort = TestMemcacheServer.startServer();
+
 		AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCacheClient.class);
 		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
-				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("someHost").withPort(23)).withCacheClusterStatus("available")));
+				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
 
 		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
 		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
 
-		ElastiCacheAddressProvider elastiCacheAddressProvider = new ElastiCacheAddressProvider(amazonElastiCache, resourceIdResolver, "test");
+		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "test", resourceIdResolver);
 
 		// Act
-		List<InetSocketAddress> addresses = elastiCacheAddressProvider.getAddresses();
+		elastiCacheAddressProvider.afterPropertiesSet();
+		MemcachedClient memcachedClient = elastiCacheAddressProvider.getObject();
 
 		// Assert
-		Assert.assertNotNull(addresses);
-		Assert.assertEquals(new InetSocketAddress("someHost", 23), addresses.get(0));
+		Assert.assertNotNull(memcachedClient);
+		Assert.assertNull(memcachedClient.get("getObject_availableClusterWithLogicalName_returnsConfigurationEndpointWithPhysicalName"));
+
+		memcachedClient.shutdown();
 	}
 }

@@ -52,17 +52,11 @@
 	</xsd:element>
 
 	<xsd:complexType name="abstractCacheConfiguration" abstract="true">
-		<xsd:attribute name="allowClear" type="xsd:boolean" use="optional" default="false">
+		<xsd:attribute name="expiration" type="xsd:int" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines if the given cache can be cleared.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="expiration" type="xsd:int" use="required">
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines the expiration time in seconds of a cache entry.
+					Defines optionally the expiration time in seconds of a cache entry. Otherwise an expiration of '0'
+					is assumed
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
