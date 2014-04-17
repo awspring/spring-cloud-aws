@@ -22,6 +22,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -110,9 +112,10 @@ project('elasticspring-context') {
         compile("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
+        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
+
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("com.thimbleware.jmemcached:jmemcached-core:1.0.0")
-        compile("net.spy:spymemcached:2.10.6")
     }
 }
 

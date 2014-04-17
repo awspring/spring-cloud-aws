@@ -31,8 +31,8 @@
 	<bean id="memcached" class="org.elasticspring.cache.SimpleSpringMemcached">
 		<constructor-arg name="cacheName" value="memcached" />
 		<constructor-arg>
-			<bean class="net.spy.memcached.spring.MemcachedClientFactoryBean">
-				<property name="servers" value="localhost:#{systemProperties['memcachedPort']}" />
+			<bean class="org.elasticspring.cache.StaticMemcachedFactoryBean">
+				<constructor-arg name="address" value="localhost:#{systemProperties['memcachedPort']}" />
 			</bean>
 		</constructor-arg>
 	</bean>

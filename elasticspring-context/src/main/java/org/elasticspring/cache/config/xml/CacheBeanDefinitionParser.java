@@ -50,7 +50,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	private static final String CACHE_ELEMENT_NAME = "cache";
 
 	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.elasticspring.cache.ElasticMemcachedFactoryBean";
-	private static final String MEMCACHE_CLIENT_FACTORY_BEAN = "net.spy.memcached.spring.MemcachedClientFactoryBean";
+	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.elasticspring.cache.StaticMemcachedFactoryBean";
 
 	private static String getRequiredAttribute(String attributeName, Element source, ParserContext parserContext) {
 		if (StringUtils.hasText(source.getAttribute(attributeName))) {
@@ -106,8 +106,8 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	}
 
 	private static BeanDefinition createStaticMemcachedFactoryBean(String address) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(MEMCACHE_CLIENT_FACTORY_BEAN);
-		beanDefinitionBuilder.addPropertyValue("servers", address);
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(MEMCACHE_CLIENT_CLASS_NAME);
+		beanDefinitionBuilder.addConstructorArgValue(address);
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
