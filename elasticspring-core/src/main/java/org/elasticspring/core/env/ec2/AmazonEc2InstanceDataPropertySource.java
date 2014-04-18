@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,31 +16,35 @@
 
 package org.elasticspring.core.env.ec2;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeInstanceAttributeRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceAttributeResult;
+import com.amazonaws.util.EC2MetadataUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
+import org.springframework.core.env.PropertySource;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- *
+ * @author Agim Emruli
  */
-public class AmazonEC2UserDataPropertySource extends AbstractAmazonEC2PropertySource {
+public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> {
 
-	public static final String USER_DATA_ATTRIBUTE_NAME = "userData";
-	private static final String USER_DATA_ATTRIBUTE_SEPARATOR = ";";
-	private static final Charset USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
-	private Charset userDataAttributeEncoding = USER_DATA_ATTRIBUTE_ENCODING;
-	private String userDataAttributeSeparator = USER_DATA_ATTRIBUTE_SEPARATOR;
+	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
+
+	private static final String DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR = ";";
+	private static final Charset DEFAULT_USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
+
+	private String userDataAttributeSeparator = DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR;
+	private Charset userDataAttributeEncoding = DEFAULT_USER_DATA_ATTRIBUTE_ENCODING;
 	private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
-	public AmazonEC2UserDataPropertySource(String name, AmazonEC2 amazonEC2) {
-		super(name, amazonEC2);
+	private volatile Map<String, String> cachedUserData;
+
+	public AmazonEc2InstanceDataPropertySource(String name) {
+		super(name, new Object());
 	}
 
 	public void setUserDataAttributeEncoding(String userDataAttributeEncoding) {
@@ -56,11 +60,18 @@ public class AmazonEC2UserDataPropertySource extends AbstractAmazonEC2PropertySo
 	}
 
 	@Override
-	protected Map<String, String> createValueMap(String instanceId) {
-		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-		DescribeInstanceAttributeResult attributes = this.source.describeInstanceAttribute(new DescribeInstanceAttributeRequest(instanceId, USER_DATA_ATTRIBUTE_NAME));
-		if (attributes != null) {
-			String encodedUserData = attributes.getInstanceAttribute().getUserData();
+	public Object getProperty(String name) {
+		Map<String, String> userData = getUserData();
+		if (userData.containsKey(name)) {
+			return userData.get(name);
+		}
+		return EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/" + name);
+	}
+
+	private Map<String, String> getUserData() {
+		if (this.cachedUserData == null) {
+ 			Map<String,String> userDataMap = new LinkedHashMap<String, String>();
+			String encodedUserData = EC2MetadataUtils.getUserData();
 			if (StringUtils.hasText(encodedUserData)) {
 				byte[] bytes = Base64.decodeBase64(encodedUserData);
 				String userData = new String(bytes, this.userDataAttributeEncoding);
@@ -69,10 +80,12 @@ public class AmazonEC2UserDataPropertySource extends AbstractAmazonEC2PropertySo
 					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.userDataValueSeparator);
 					String key = userDataAttributesParts[0];
 					String value = userDataAttributesParts[1];
-					result.put(key, value);
+					userDataMap.put(key, value);
 				}
 			}
+			this.cachedUserData = Collections.unmodifiableMap(userDataMap);
 		}
-		return result;
+
+		return this.cachedUserData;
 	}
 }

@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("AmazonEC2PropertyPlaceHolderAwsTest-context.xml")
-public class AmazonEC2PropertyPlaceHolderAwsTest {
+public class AmazonEc2InstanceUserTagPropertySourceAwsTest {
 
 	@Autowired
 	private AmazonEC2 amazonEC2Client;
@@ -56,12 +56,12 @@ public class AmazonEC2PropertyPlaceHolderAwsTest {
 
 	@Test
 	public void testGetUserProperties() throws Exception {
-		AmazonEC2UserTagPropertySource amazonEC2PropertySource = new AmazonEC2UserTagPropertySource("userTagPropertySource", this.amazonEC2Client);
+		AmazonEc2InstanceUserTagPropertySource amazonEC2PropertySource =
+				new AmazonEc2InstanceUserTagPropertySource("userTagPropertySource", this.amazonEC2Client, this.testStackEnvironment);
 
 		Assert.assertEquals("tagv1", amazonEC2PropertySource.getProperty("tag1").toString());
 		Assert.assertEquals("tagv2", amazonEC2PropertySource.getProperty("tag2").toString());
 		Assert.assertEquals("tagv3", amazonEC2PropertySource.getProperty("tag3").toString());
 		Assert.assertEquals("tagv4", amazonEC2PropertySource.getProperty("tag4").toString());
 	}
-
 }
