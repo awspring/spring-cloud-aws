@@ -16,8 +16,8 @@
 
 package org.elasticspring.cache.config;
 
-import net.spy.memcached.MemcachedClientIF;
 import org.elasticspring.cache.StaticMemcachedFactoryBean;
+import org.elasticspring.cache.memcached.MemcachedClientIF;
 import org.junit.Assert;
 import org.junit.Test;
 

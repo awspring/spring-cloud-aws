@@ -16,9 +16,9 @@
 
 package org.elasticspring.cache;
 
-import net.spy.memcached.AddrUtil;
-import net.spy.memcached.MemcachedClient;
-import net.spy.memcached.MemcachedClientIF;
+import org.elasticspring.cache.memcached.AddrUtil;
+import org.elasticspring.cache.memcached.MemcachedClient;
+import org.elasticspring.cache.memcached.MemcachedClientIF;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**

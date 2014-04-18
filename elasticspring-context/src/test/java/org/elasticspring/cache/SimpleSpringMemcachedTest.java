@@ -16,7 +16,7 @@
 
 package org.elasticspring.cache;
 
-import net.spy.memcached.MemcachedClientIF;
+import org.elasticspring.cache.memcached.MemcachedClientIF;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

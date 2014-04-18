@@ -24,6 +24,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -105,6 +107,31 @@ project('elasticspring-core') {
 
 project('elasticspring-context') {
     description = "elasticspring context"
+
+    def memcachedClientVersion = "1.0.1"
+
+    configurations {
+        jarjar
+        memCachedClient
+    }
+
+    task memCachedClientRepackJar(type: Jar) { repackJar ->
+        repackJar.baseName = "elasticspring-memcached-repack"
+        repackJar.version = memcachedClientVersion
+
+        doLast() {
+            project.ant {
+                taskdef name: "jarjar", classname: "com.tonicsystems.jarjar.JarJarTask", classpath: configurations.jarjar.asPath
+                jarjar(destfile: repackJar.archivePath) {
+                    zipfileset(src: "${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
+                    rule(pattern: "net.spy.memcached.**", result: "org.elasticspring.cache.memcached.@1")
+                }
+            }
+        }
+    }
+
+    tasks.compileJava.dependsOn(memCachedClientRepackJar)
+
     dependencies {
         compile project(":elasticspring-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
@@ -112,10 +139,19 @@ project('elasticspring-context') {
         compile("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
-        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
+        compile files(memCachedClientRepackJar.archivePath)
 
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("com.thimbleware.jmemcached:jmemcached-core:1.0.0")
+
+        jarjar("com.googlecode.jarjar:jarjar:1.3")
+    }
+
+    jar {
+        dependsOn memCachedClientRepackJar
+        from(zipTree(memCachedClientRepackJar.archivePath)) {
+            include "org/elasticspring/cache/memcached/**"
+        }
     }
 }
 

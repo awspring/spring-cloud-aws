@@ -16,7 +16,7 @@
 
 package org.elasticspring.cache;
 
-import net.spy.memcached.MemcachedClientIF;
+import org.elasticspring.cache.memcached.MemcachedClientIF;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.Assert;
