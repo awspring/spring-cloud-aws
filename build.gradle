@@ -226,7 +226,6 @@ project('elasticspring-integration-test') {
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
         testRuntime("org.aspectj:aspectjweaver:1.6.8")
-        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
 
         testRuntime("javax.servlet:javax.servlet-api:3.0.1")
         testCompile("org.springframework:spring-web:${springFrameworkVersion}")
