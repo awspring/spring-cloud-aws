@@ -78,9 +78,16 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 				String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
 				for (String userDataAttribute : userDataAttributes) {
 					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.userDataValueSeparator);
-					String key = userDataAttributesParts[0];
-					String value = userDataAttributesParts[1];
-					userDataMap.put(key, value);
+					if (userDataAttributesParts != null && userDataAttributesParts.length > 0) {
+						String key = userDataAttributesParts[0];
+
+						String value = null;
+						if (userDataAttributesParts.length > 1) {
+							value = userDataAttributesParts[1];
+						}
+
+						userDataMap.put(key, value);
+					}
 				}
 			}
 			this.cachedUserData = Collections.unmodifiableMap(userDataMap);

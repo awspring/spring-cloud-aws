@@ -27,14 +27,15 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceUserTagPropertySourceTest {
+public class AmazonEc2InstanceUserTagsFactoryBeanTest {
 
 	@Test
-	public void getProperty_userTagDataAvailable_resolvesKeys() throws Exception {
+	public void getObject_userTagDataAvailable_objectContainsAllAvailableKeys() throws Exception {
 		//Arrange
 		AmazonEC2 amazonEC2 = Mockito.mock(AmazonEC2.class);
 
@@ -52,12 +53,15 @@ public class AmazonEc2InstanceUserTagPropertySourceTest {
 
 		Mockito.when(amazonEC2.describeTags(describeTagsRequest)).thenReturn(describeTagsResult);
 
+		AmazonEc2InstanceUserTagsFactoryBean amazonEc2InstanceUserTagsFactoryBean = new AmazonEc2InstanceUserTagsFactoryBean(amazonEC2, instanceIdProvider);
+
 		//Act
-		AmazonEc2InstanceUserTagPropertySource amazonEc2InstanceUserTagPropertySource = new AmazonEc2InstanceUserTagPropertySource("test", amazonEC2, instanceIdProvider);
+		amazonEc2InstanceUserTagsFactoryBean.afterPropertiesSet();
+		Map<String, String> resultMap = amazonEc2InstanceUserTagsFactoryBean.getObject();
 
 		//Assert
-		Assert.assertEquals("valueA", amazonEc2InstanceUserTagPropertySource.getProperty("keyA"));
-		Assert.assertEquals("valueB", amazonEc2InstanceUserTagPropertySource.getProperty("keyB"));
-		Assert.assertNull(amazonEc2InstanceUserTagPropertySource.getProperty("keyC"));
+		Assert.assertEquals("valueA", resultMap.get("keyA"));
+		Assert.assertEquals("valueB", resultMap.get("keyB"));
+		Assert.assertFalse(resultMap.containsKey("keyC"));
 	}
 }

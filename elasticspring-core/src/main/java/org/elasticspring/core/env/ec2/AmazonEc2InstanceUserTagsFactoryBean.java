@@ -21,7 +21,7 @@ import com.amazonaws.services.ec2.model.DescribeTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.TagDescription;
-import org.springframework.core.env.MapPropertySource;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,16 +30,26 @@ import java.util.Map;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceUserTagPropertySource extends MapPropertySource {
+public class AmazonEc2InstanceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
-	public AmazonEc2InstanceUserTagPropertySource(String name, AmazonEC2 amazonEc2, InstanceIdProvider idProvider) {
-		super(name, createSourceMap(amazonEc2, idProvider));
+	private final AmazonEC2 amazonEc2;
+	private final InstanceIdProvider idProvider;
+
+	public AmazonEc2InstanceUserTagsFactoryBean(AmazonEC2 amazonEc2, InstanceIdProvider idProvider) {
+		this.amazonEc2 = amazonEc2;
+		this.idProvider = idProvider;
 	}
 
-	private static Map<String, Object> createSourceMap(AmazonEC2 amazonEc2, InstanceIdProvider idProvider) {
-		LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-		DescribeTagsResult tags = amazonEc2.describeTags(new DescribeTagsRequest().withFilters(
-				new Filter("resource-id", Collections.singletonList(idProvider.getCurrentInstanceId())),
+	@Override
+	public Class<?> getObjectType() {
+		return Map.class;
+	}
+
+	@Override
+	protected Map<String, String> createInstance() throws Exception {
+		LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
+		DescribeTagsResult tags = this.amazonEc2.describeTags(new DescribeTagsRequest().withFilters(
+				new Filter("resource-id", Collections.singletonList(this.idProvider.getCurrentInstanceId())),
 				new Filter("resource-type", Collections.singletonList("instance"))));
 		for (TagDescription tag : tags.getTags()) {
 			properties.put(tag.getKey(), tag.getValue());

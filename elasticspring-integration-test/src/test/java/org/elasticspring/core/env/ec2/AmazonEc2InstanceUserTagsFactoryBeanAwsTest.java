@@ -16,8 +16,6 @@
 
 package org.elasticspring.core.env.ec2;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import org.elasticspring.support.TestStackEnvironment;
 import org.elasticspring.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Assert;
@@ -33,16 +31,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("AmazonEC2PropertyPlaceHolderAwsTest-context.xml")
-public class AmazonEc2InstanceUserTagPropertySourceAwsTest {
-
-	@Autowired
-	private AmazonEC2 amazonEC2Client;
-
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
+public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 
 	@Autowired
 	private TestStackInstanceIdService testStackInstanceIdService;
+
+	@Autowired
+	private SimpleConfigurationBean simpleConfigurationBean;
 
 	@Before
 	public void enableInstanceIdMetadataService() {
@@ -56,12 +51,9 @@ public class AmazonEc2InstanceUserTagPropertySourceAwsTest {
 
 	@Test
 	public void testGetUserProperties() throws Exception {
-		AmazonEc2InstanceUserTagPropertySource amazonEC2PropertySource =
-				new AmazonEc2InstanceUserTagPropertySource("userTagPropertySource", this.amazonEC2Client, this.testStackEnvironment);
-
-		Assert.assertEquals("tagv1", amazonEC2PropertySource.getProperty("tag1").toString());
-		Assert.assertEquals("tagv2", amazonEC2PropertySource.getProperty("tag2").toString());
-		Assert.assertEquals("tagv3", amazonEC2PropertySource.getProperty("tag3").toString());
-		Assert.assertEquals("tagv4", amazonEC2PropertySource.getProperty("tag4").toString());
+		Assert.assertEquals("tagv1", this.simpleConfigurationBean.getValue1());
+		Assert.assertEquals("tagv2", this.simpleConfigurationBean.getValue2());
+		Assert.assertEquals("tagv3", this.simpleConfigurationBean.getValue3());
+		Assert.assertEquals("tagv4", this.simpleConfigurationBean.getValue4());
 	}
 }
