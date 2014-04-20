@@ -113,6 +113,22 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="context-instance-placeholder">
+		<xsd:annotation>
+			<xsd:documentation
+					source="java:org.elasticspring.context.config.xml.ContextInstanceDataPlaceholderResolverBeanDefinitionParser">
+				<![CDATA[
+				Configures a property placeholder that is capable to resolver instance data specific placeholder (like instance id)
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports
+							type="org.elasticspring.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:attributeGroup name="locationAttributeGroup">
 		<xsd:annotation>
 			<xsd:documentation>
