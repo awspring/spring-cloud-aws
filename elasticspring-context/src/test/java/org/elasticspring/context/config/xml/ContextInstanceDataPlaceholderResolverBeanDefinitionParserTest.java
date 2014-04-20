@@ -41,4 +41,19 @@ public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
 		BeanFactoryPostProcessor postProcessor = beanFactory.getBean("AmazonEc2InstanceDataPropertySourcePostProcessor", BeanFactoryPostProcessor.class);
 		Assert.assertNotNull(postProcessor);
 	}
+
+	@Test
+	public void parseInternal_singleElementWithUserTagsMapDefined_userTagMapCreatedAlongWithPostProcessor() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-userTagsMap.xml", getClass()));
+
+		//Assert
+		Assert.assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
+		Assert.assertTrue(beanFactory.containsBeanDefinition("AmazonEC2"));
+	}
+
 }

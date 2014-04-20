@@ -127,6 +127,29 @@
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attribute name="user-tags-map" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>Exposed map that contains all user tags to be accessed via EL expression
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="instance-id-provider" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>Instance id provider, by default the instance id is taken from the instance
+						meta-data. Might be changed with another strategy
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.elasticspring.core.env.ec2.InstanceIdProvider" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+
 	</xsd:element>
 
 	<xsd:attributeGroup name="locationAttributeGroup">
