@@ -34,7 +34,7 @@
 
 	<jdbc:dataSource id="dataSource"
 					 db-instance-identifier="RdsSingleMicroInstance"
-					 password="secret23" read-replica-support="true">
+					 password="secret23" read-replica-support="true" user-tags-map="dbTags">
 		<jdbc:pool-attributes initialSize="1"
 							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
 							  testOnBorrow="true" validationQuery="SELECT 1" />
