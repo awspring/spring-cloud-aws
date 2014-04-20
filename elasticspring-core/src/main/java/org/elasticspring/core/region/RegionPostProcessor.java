@@ -44,6 +44,9 @@ public class RegionPostProcessor implements MergedBeanDefinitionPostProcessor {
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (bean instanceof RegionAware) {
+			((RegionAware) bean).setRegion(this.regionProvider.getRegion());
+		}
 		return bean;
 	}
 
