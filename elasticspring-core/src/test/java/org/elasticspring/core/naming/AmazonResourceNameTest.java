@@ -16,6 +16,8 @@
 
 package org.elasticspring.core.naming;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,6 +69,29 @@ public class AmazonResourceNameTest {
 	}
 
 	@Test
+	public void testDynamoDbBuilder() throws Exception {
+		AmazonResourceName.Builder builder = new AmazonResourceName.Builder();
+		builder.withService("dynamodb");
+		builder.withRegion(Region.getRegion(Regions.US_EAST_1));
+		builder.withAccount("123456789012");
+		builder.withResourceType("table");
+		builder.withResourceName("books_table");
+		builder.withResourceTypeDelimiter("/");
+		Assert.assertEquals("arn:aws:dynamodb:us-east-1:123456789012:table/books_table", builder.build().toString());
+	}
+
+	@Test
+	public void testElasticBeansTalkBuilder() throws Exception {
+		AmazonResourceName.Builder builder = new AmazonResourceName.Builder();
+		builder.withService("elasticbeanstalk");
+		builder.withRegion(Region.getRegion(Regions.US_EAST_1));
+		builder.withResourceType("solutionstack");
+		builder.withResourceName("32bit Amazon Linux running Tomcat 7");
+		builder.withResourceTypeDelimiter("/");
+		Assert.assertEquals("arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7", builder.build().toString());
+	}
+
+	@Test
 	public void testElasticBeansTalk() throws Exception {
 		String arn = "arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7";
 		AmazonResourceName resourceName = AmazonResourceName.fromString(arn);
@@ -77,6 +102,7 @@ public class AmazonResourceNameTest {
 		Assert.assertEquals("32bit Amazon Linux running Tomcat 7", resourceName.getResourceName());
 		Assert.assertEquals(arn, resourceName.toString());
 	}
+
 
 	@Test
 	public void testIamService() throws Exception {
