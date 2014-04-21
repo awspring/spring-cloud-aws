@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.OnFailure;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackResource;
+import com.amazonaws.services.cloudformation.model.Tag;
 import org.elasticspring.core.env.ec2.InstanceIdProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -90,8 +91,8 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 			}
 		} catch (AmazonClientException e) {
 			String templateBody = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
-			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DO_NOTHING).
-					withStackName(stackName));
+			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DELETE).
+					withStackName(stackName).withTags(new Tag().withKey("tag1").withValue("value1")));
 			this.stackCreatedByThisInstance = true;
 		}
 
@@ -124,5 +125,9 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 		if (this.stackCreatedByThisInstance) {
 			this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
 		}
+	}
+
+	public boolean isStackCreatedAutomatically() {
+		return this.stackCreatedByThisInstance;
 	}
 }
