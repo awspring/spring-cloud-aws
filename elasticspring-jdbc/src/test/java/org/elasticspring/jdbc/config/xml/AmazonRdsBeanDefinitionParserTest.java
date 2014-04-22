@@ -16,12 +16,18 @@
 
 package org.elasticspring.jdbc.config.xml;
 
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.GetUserResult;
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
+import com.amazonaws.services.rds.model.ListTagsForResourceResult;
+import com.amazonaws.services.rds.model.Tag;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
@@ -46,6 +52,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.sql.DataSource;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * Tests for the {@link org.elasticspring.jdbc.config.xml.AmazonRdsBeanDefinitionParser} bean definition parser
@@ -274,5 +282,39 @@ public class AmazonRdsBeanDefinitionParserTest {
 		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegionProviderAndRegion.xml", getClass());
 
 		//Assert
+	}
+
+	@Test
+	public void parseInternal_userTagsDefined_createsUserTagBeanDefinition() throws Exception {
+
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+		beanDefinitionBuilder.setFactoryMethod("mock");
+		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
+		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
+
+		BeanDefinitionBuilder identityBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+		identityBuilder.setFactoryMethod("mock");
+		identityBuilder.addConstructorArgValue(AmazonIdentityManagement.class);
+		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonIdentityManagement.class.getName()), identityBuilder.getBeanDefinition());
+
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-userTags.xml", getClass()));
+
+		AmazonRDS client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), AmazonRDS.class);
+		AmazonIdentityManagement amazonIdentityManagement = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonIdentityManagement.class.getName()), AmazonIdentityManagement.class);
+
+		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		Mockito.when(client.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
+				new Tag().withKey("key1").withValue("value2")
+		));
+
+		//Act
+		Map<?,?> dsTags = beanFactory.getBean("dsTags", Map.class);
+
+		//Assert
+		Assert.assertEquals("value2", dsTags.get("key1"));
 	}
 }

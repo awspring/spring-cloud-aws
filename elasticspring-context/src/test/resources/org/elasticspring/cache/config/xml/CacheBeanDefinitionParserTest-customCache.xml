@@ -27,26 +27,13 @@
 		<els-cache:cache-ref ref="memc" />
 	</els-cache:cache-manager>
 
-	<bean name="memc" class="com.google.code.ssm.spring.SSMCache">
-		<constructor-arg name="cache">
-			<bean class="com.google.code.ssm.CacheFactory">
-				<property name="cacheName" value="memc" />
-				<property name="cacheClientFactory">
-					<bean class="com.google.code.ssm.providers.spymemcached.MemcacheClientFactoryImpl" />
-				</property>
-				<property name="addressProvider">
-					<bean class="com.google.code.ssm.config.DefaultAddressProvider">
-						<property name="address" value="localhost:#{systemProperties['memcachedPort']}" />
-					</bean>
-				</property>
-				<property name="configuration">
-					<bean class="com.google.code.ssm.providers.CacheConfiguration">
-						<property name="consistentHashing" value="true" />
-					</bean>
-				</property>
+
+	<bean id="memc" class="org.elasticspring.cache.SimpleSpringMemcached">
+		<constructor-arg name="cacheName" value="memc" />
+		<constructor-arg>
+			<bean class="org.elasticspring.cache.StaticMemcachedFactoryBean">
+				<constructor-arg name="address" value="localhost:#{systemProperties['memcachedPort']}" />
 			</bean>
 		</constructor-arg>
-		<constructor-arg name="expiration" value="300" />
-		<constructor-arg name="allowClear" value="false" />
 	</bean>
 </beans>

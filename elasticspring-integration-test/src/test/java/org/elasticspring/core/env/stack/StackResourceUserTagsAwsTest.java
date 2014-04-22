@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.elasticspring.jdbc;
+package org.elasticspring.core.env.stack;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import org.elasticspring.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,32 +25,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Date;
-
 /**
- * AWS backed integration test for the datasource feature of the jdbc module
- *
  * @author Agim Emruli
- * @since 1.0
  */
-@ContextConfiguration("DataSourceFactoryBeanAwsTest-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class DataSourceFactoryBeanAwsTest {
+@ContextConfiguration
+public class StackResourceUserTagsAwsTest {
+
+	@Value("#{stackTags['tag1']}")
+	private String stackTag1;
+
+	@Value("#{stackTags['tag2']}")
+	private String stackTag2;
 
 	@Autowired
-	private DatabaseService databaseService;
-
-	@Value("#{dbTags['aws:cloudformation:logical-id']}")
-	private String dbLogicalName;
-
-	@Autowired
-	private AWSCredentialsProvider provider;
+	private TestStackEnvironment testStackEnvironment;
 
 	@Test
-	public void testExistingDataSourceInstance() throws Exception {
-		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
-		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
-		Assert.assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
-		Assert.assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
+	public void getObject_retrieveAttributesOfStackStartedByTestEnvironment_returnsStackUserTags() throws Exception {
+		if (this.testStackEnvironment.isStackCreatedAutomatically()) {
+			Assert.assertEquals("value1", this.stackTag1);
+			Assert.assertEquals("value2", this.stackTag2);
+		}
 	}
 }

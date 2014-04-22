@@ -22,14 +22,9 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
-import com.thimbleware.jmemcached.CacheImpl;
-import com.thimbleware.jmemcached.Key;
-import com.thimbleware.jmemcached.LocalCacheElement;
-import com.thimbleware.jmemcached.MemCacheDaemon;
-import com.thimbleware.jmemcached.storage.CacheStorage;
-import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.elasticspring.cache.config.TestMemcacheServer;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -46,44 +41,27 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.SocketUtils;
-
-import java.net.InetSocketAddress;
 
 /**
  * @author Agim Emruli
  */
 public class CacheBeanDefinitionParserTest {
 
-	@SuppressWarnings("StaticNonFinalField")
-	private static MemCacheDaemon<LocalCacheElement> daemon;
-
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 
 	@BeforeClass
 	public static void setupMemcachedServerAndClient() throws Exception {
-		System.setProperty("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.SLF4JLogger");
-
 		// Get next free port for the test server
-		int availableTcpPort = SocketUtils.findAvailableTcpPort();
+		int availableTcpPort = TestMemcacheServer.startServer();
 
 		// Set the port as system property to easily fetch it in the Spring config
 		System.setProperty("memcachedPort", String.valueOf(availableTcpPort));
-
-		daemon = new MemCacheDaemon<LocalCacheElement>();
-		CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024, 1024 * 1024 * 1024);
-		daemon.setCache(new CacheImpl(storage));
-		daemon.setAddr(new InetSocketAddress(availableTcpPort));
-		daemon.setVerbose(true);
-		daemon.start();
 	}
 
 	@AfterClass
 	public static void tearDownMemcachedServerAndClient() throws Exception {
-		daemon.stop();
-
-		System.clearProperty("net.spy.log.LoggerImpl");
+		TestMemcacheServer.stopServer();
 		System.clearProperty("memcachedPort");
 	}
 
@@ -104,19 +82,19 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_manualCacheConfigWithMissingAllowClear_reportsError() throws Exception {
+	public void parseInternal_manualCacheConfigWithExpiration_returnsConfiguredCacheThatRespectExpiration() throws Exception {
 		//Arrange
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualConfigurationMissingAllowClear.xml", getClass());
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-manualCacheConfigWithExpiration.xml", getClass());
 
 		//Act
 		CacheManager cacheManager = applicationContext.getBean(CacheManager.class);
 		Cache cache = cacheManager.getCache("memc");
 		cache.put("foo", "bar");
-		cache.evict("foo");
 
 		//Assert
 		Assert.assertNotNull(cacheManager);
 		Assert.assertNotNull(cache);
+		Assert.assertNull(cache.get("foo"));
 	}
 
 	@Test

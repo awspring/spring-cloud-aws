@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.elasticspring.core.env.ec2;
 
 import org.elasticspring.support.TestStackInstanceIdService;
@@ -10,7 +26,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class AmazonEC2InstanceIdProviderAwsTest {
+public class AmazonEc2InstanceIdProviderAwsTest {
 
 	private TestStackInstanceIdService testStackInstanceIdService;
 
@@ -28,10 +44,10 @@ public class AmazonEC2InstanceIdProviderAwsTest {
 	@Test
 	public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService() throws IOException {
 		// Arrange
-		AmazonEC2InstanceIdProvider amazonEC2InstanceIdProvider = new AmazonEC2InstanceIdProvider();
+		AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();
 
 		// Act
-		String currentInstanceId = amazonEC2InstanceIdProvider.getCurrentInstanceId();
+		String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
 
 		// Assert
 		assertThat(currentInstanceId, is("i-abcdefg"));

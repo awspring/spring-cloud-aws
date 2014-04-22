@@ -14,44 +14,50 @@
  * limitations under the License.
  */
 
-package org.elasticspring.cache.config;
+package org.elasticspring.cache;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
-import com.google.code.ssm.config.AddressProvider;
+import org.elasticspring.cache.memcached.MemcachedClient;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Agim Emruli
  */
-public class ElastiCacheAddressProvider implements AddressProvider {
+public class ElasticMemcachedFactoryBean extends AbstractFactoryBean<MemcachedClient> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheAddressProvider.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticMemcachedFactoryBean.class);
 
 	private final AmazonElastiCache amazonElastiCache;
 	private final String cacheClusterId;
+	private final ResourceIdResolver resourceIdResolver;
 
-	public ElastiCacheAddressProvider(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, String cacheClusterId) {
-		this(amazonElastiCache, resourceIdResolver.resolveToPhysicalResourceId(cacheClusterId));
-	}
-
-	public ElastiCacheAddressProvider(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
+	public ElasticMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, ResourceIdResolver resourceIdResolver) {
 		this.amazonElastiCache = amazonElastiCache;
+		this.resourceIdResolver = resourceIdResolver;
 		this.cacheClusterId = cacheClusterId;
 	}
 
+	public ElasticMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
+		this(amazonElastiCache, cacheClusterId, null);
+	}
+
 	@Override
-	public List<InetSocketAddress> getAddresses() {
-		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId(this.cacheClusterId));
+	public Class<MemcachedClient> getObjectType() {
+		return MemcachedClient.class;
+	}
+
+	@Override
+	protected MemcachedClient createInstance() throws Exception {
+		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName()));
 
 		CacheCluster cacheCluster = describeCacheClustersResult.getCacheClusters().get(0);
 		if (!"available".equals(cacheCluster.getCacheClusterStatus())) {
@@ -60,6 +66,15 @@ public class ElastiCacheAddressProvider implements AddressProvider {
 		Endpoint configurationEndpoint = cacheCluster.getConfigurationEndpoint();
 
 		// We return every time one configuration endpoint. The amazon memcached client will connect to all nodes.
-		return Collections.singletonList(new InetSocketAddress(configurationEndpoint.getAddress(),configurationEndpoint.getPort()));
+		return new MemcachedClient(new InetSocketAddress(configurationEndpoint.getAddress(), configurationEndpoint.getPort()));
+	}
+
+	private String getCacheClusterName() {
+		return this.resourceIdResolver != null ?  this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId) : this.cacheClusterId;
+	}
+
+	@Override
+	protected void destroyInstance(MemcachedClient instance) throws Exception {
+		instance.shutdown();
 	}
 }
