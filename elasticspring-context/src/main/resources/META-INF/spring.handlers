@@ -16,3 +16,4 @@
 
 http\://www.elasticspring.org/schema/context=org.elasticspring.context.config.xml.ContextNamespaceHandler
 http\://www.elasticspring.org/schema/cache=org.elasticspring.cache.config.xml.CacheNamespaceHandler
+http\://www.elasticspring.org/schema/mail=org.elasticspring.mail.config.xml.MailNamespaceHandler
