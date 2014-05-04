@@ -280,6 +280,7 @@
       <option name="m_onlyLookAtBlocks" value="false" />
     </inspection_tool>
     <inspection_tool class="UnconditionalWait" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="UnnecessarilyQualifiedStaticallyImportedElement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryBlockStatement" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreSwitchBranches" value="false" />
     </inspection_tool>
