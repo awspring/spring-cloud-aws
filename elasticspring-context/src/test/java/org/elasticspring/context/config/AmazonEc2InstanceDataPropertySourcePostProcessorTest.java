@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,34 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 	@SuppressWarnings("StaticNonFinalField")
 	private static HttpServer httpServer;
 
+	@Test
+	public void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource() throws Exception {
+		//Arrange
+		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
+		staticApplicationContext.registerSingleton("process", AmazonEc2InstanceDataPropertySourcePostProcessor.class);
+
+		//Act
+		staticApplicationContext.refresh();
+
+		//Assert
+		Assert.assertNotNull(staticApplicationContext.getEnvironment().getPropertySources().get(
+				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME));
+	}
+
+	@Test
+	public void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration() throws Exception {
+		//Arrange
+		ConfigurableListableBeanFactory staticApplicationContext = new DefaultListableBeanFactory();
+		AmazonEc2InstanceDataPropertySourcePostProcessor processor = new AmazonEc2InstanceDataPropertySourcePostProcessor();
+		Environment environment = Mockito.mock(Environment.class);
+		processor.setEnvironment(environment);
+
+		//Act
+		processor.postProcessBeanFactory(staticApplicationContext);
+
+		//Assert
+	}
+
 	@BeforeClass
 	public static void setupHttpServer() throws Exception {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
@@ -63,33 +91,5 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 
 	private static void resetMetadataEndpointUrlOverwrite() {
 		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
-
-	@Test
-	public void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource() throws Exception {
-		//Arrange
-		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		staticApplicationContext.registerSingleton("process",AmazonEc2InstanceDataPropertySourcePostProcessor.class);
-
-		//Act
-		staticApplicationContext.refresh();
-
-		//Assert
-		Assert.assertNotNull(staticApplicationContext.getEnvironment().getPropertySources().get(
-				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME));
-	}
-
-	@Test
-	public void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration() throws Exception {
-		//Arrange
-		ConfigurableListableBeanFactory staticApplicationContext = new DefaultListableBeanFactory();
-		AmazonEc2InstanceDataPropertySourcePostProcessor processor = new AmazonEc2InstanceDataPropertySourcePostProcessor();
-		Environment environment = Mockito.mock(Environment.class);
-		processor.setEnvironment(environment);
-
-		//Act
-		processor.postProcessBeanFactory(staticApplicationContext);
-
-		//Assert
 	}
 }

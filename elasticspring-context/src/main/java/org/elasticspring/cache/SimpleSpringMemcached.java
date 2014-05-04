@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ public class SimpleSpringMemcached implements Cache {
 	private int expiration;
 
 	public SimpleSpringMemcached(MemcachedClientIF memcachedClientIF, String cacheName) {
-		Assert.notNull(memcachedClientIF,"memcachedClient is mandatory");
-		Assert.notNull(cacheName,"cacheName is mandatory");
+		Assert.notNull(memcachedClientIF, "memcachedClient is mandatory");
+		Assert.notNull(cacheName, "cacheName is mandatory");
 		this.memcachedClientIF = memcachedClientIF;
 		this.cacheName = cacheName;
 	}
@@ -47,21 +47,17 @@ public class SimpleSpringMemcached implements Cache {
 		return this.memcachedClientIF;
 	}
 
-	public void setExpiration(int expiration) {
-		this.expiration = expiration;
-	}
-
 	@Override
 	public ValueWrapper get(Object key) {
-		Assert.notNull(key,"key parameter is mandatory");
+		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
 		Object result = this.memcachedClientIF.get((String) key);
-		return result != null ?  new SimpleValueWrapper(result) : null;
+		return result != null ? new SimpleValueWrapper(result) : null;
 	}
 
 	@Override
 	public <T> T get(Object key, Class<T> type) {
-		Assert.notNull(key,"key parameter is mandatory");
+		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
 		Object result = this.memcachedClientIF.get((String) key);
 		if (result == null) {
@@ -73,14 +69,14 @@ public class SimpleSpringMemcached implements Cache {
 
 	@Override
 	public void put(Object key, Object value) {
-		Assert.notNull(key,"key parameter is mandatory");
+		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
 		this.memcachedClientIF.add((String) key, this.expiration, value);
 	}
 
 	@Override
 	public void evict(Object key) {
-		Assert.notNull(key,"key parameter is mandatory");
+		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
 		this.memcachedClientIF.delete((String) key);
 	}
@@ -88,5 +84,9 @@ public class SimpleSpringMemcached implements Cache {
 	@Override
 	public void clear() {
 		this.memcachedClientIF.flush();
+	}
+
+	public void setExpiration(int expiration) {
+		this.expiration = expiration;
 	}
 }

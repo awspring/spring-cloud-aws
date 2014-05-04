@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		AbstractBeanDefinition stackNameProviderBeanDefinition = StringUtils.isEmpty(stackName) ? buildAutoDetectingStackNameProviderBeanDefinition(amazonCloudFormationClientBeanName) : buildStaticStackNameProviderBeanDefinition(stackName);
 		builder.addConstructorArgValue(stackNameProviderBeanDefinition);
 
-		buildAndRegisterStackUserTagsIfNeeded(element, parserContext,amazonCloudFormationClientBeanName,stackNameProviderBeanDefinition);
+		buildAndRegisterStackUserTagsIfNeeded(element, parserContext, amazonCloudFormationClientBeanName, stackNameProviderBeanDefinition);
 	}
 
 	@Override
@@ -69,6 +69,13 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	@Override
 	protected String getBeanClassName(Element element) {
 		return STACK_RESOURCE_REGISTRY_FACTORY_BEAN_CLASS_NAME;
+	}
+
+	private String buildAndRegisterAmazonCloudFormationClientBeanDefinition(ParserContext parserContext, Element element) {
+		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+				registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
+						element.getAttribute("region-provider"), element.getAttribute("region"));
+		return beanDefinitionHolder.getBeanName();
 	}
 
 	private static AbstractBeanDefinition buildStaticStackNameProviderBeanDefinition(String stackName) {
@@ -84,13 +91,6 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		autoDetectingStackNameProviderBeanDefinitionBuilder.addConstructorArgValue(buildInstanceIdProviderBeanDefinition());
 
 		return autoDetectingStackNameProviderBeanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private String buildAndRegisterAmazonCloudFormationClientBeanDefinition(ParserContext parserContext, Element element) {
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
-						element.getAttribute("region-provider"), element.getAttribute("region"));
-		return beanDefinitionHolder.getBeanName();
 	}
 
 	private static AbstractBeanDefinition buildInstanceIdProviderBeanDefinition() {

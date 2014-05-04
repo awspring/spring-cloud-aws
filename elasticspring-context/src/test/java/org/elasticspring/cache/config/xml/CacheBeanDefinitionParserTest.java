@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,21 +49,6 @@ public class CacheBeanDefinitionParserTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
-
-	@BeforeClass
-	public static void setupMemcachedServerAndClient() throws Exception {
-		// Get next free port for the test server
-		int availableTcpPort = TestMemcacheServer.startServer();
-
-		// Set the port as system property to easily fetch it in the Spring config
-		System.setProperty("memcachedPort", String.valueOf(availableTcpPort));
-	}
-
-	@AfterClass
-	public static void tearDownMemcachedServerAndClient() throws Exception {
-		TestMemcacheServer.stopServer();
-		System.clearProperty("memcachedPort");
-	}
 
 	@Test
 	public void parseInternal_manualCacheConfig_returnsConfiguredCache() throws Exception {
@@ -234,5 +219,20 @@ public class CacheBeanDefinitionParserTest {
 		//Assert
 		Assert.assertNotNull(beanDefinition);
 		Assert.assertNotNull(beanDefinition.getPropertyValues().get("region"));
+	}
+
+	@BeforeClass
+	public static void setupMemcachedServerAndClient() throws Exception {
+		// Get next free port for the test server
+		int availableTcpPort = TestMemcacheServer.startServer();
+
+		// Set the port as system property to easily fetch it in the Spring config
+		System.setProperty("memcachedPort", String.valueOf(availableTcpPort));
+	}
+
+	@AfterClass
+	public static void tearDownMemcachedServerAndClient() throws Exception {
+		TestMemcacheServer.stopServer();
+		System.clearProperty("memcachedPort");
 	}
 }

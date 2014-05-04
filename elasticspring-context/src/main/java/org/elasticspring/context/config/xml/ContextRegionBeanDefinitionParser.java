@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,6 @@ import org.w3c.dom.Element;
 public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	static final String CONTEXT_REGION_PROVIDER_BEAN_NAME = "regionProvider";
-
-	private static boolean isAutoDetect(Element element) {
-		return StringUtils.hasText(element.getAttribute("auto-detect")) &&
-				Boolean.TRUE.toString().equalsIgnoreCase(element.getAttribute("auto-detect"));
-	}
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
@@ -74,5 +69,10 @@ public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionPar
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
+	}
+
+	private static boolean isAutoDetect(Element element) {
+		return StringUtils.hasText(element.getAttribute("auto-detect")) &&
+				Boolean.TRUE.toString().equalsIgnoreCase(element.getAttribute("auto-detect"));
 	}
 }

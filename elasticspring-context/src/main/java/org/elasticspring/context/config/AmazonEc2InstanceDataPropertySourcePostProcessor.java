@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.core.env.Environment;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySourcePostProcessor implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor{
+public class AmazonEc2InstanceDataPropertySourcePostProcessor implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor {
 
 	static final String INSTANCE_DATA_PROPERTY_SOURCE_NAME = "InstanceData";
 	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
@@ -52,8 +52,8 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessor implements Priorit
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (this.environment instanceof ConfigurableEnvironment) {
 			((ConfigurableEnvironment) this.environment).getPropertySources().addLast(new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME));
-		}else {
-			LOGGER.warn("Environment is not of type '{}' property source with instance data is not available",ConfigurableEnvironment.class.getName());
+		} else {
+			LOGGER.warn("Environment is not of type '{}' property source with instance data is not available", ConfigurableEnvironment.class.getName());
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("context-credentials", new ContextCredentialsBeanDefinitionParser());
 		registerBeanDefinitionParser("context-resource-loader", new ContextResourceLoaderBeanDefinitionParser());
 		registerBeanDefinitionParser("context-region", new ContextRegionBeanDefinitionParser());
-		registerBeanDefinitionParser("context-instance-placeholder",new ContextInstanceDataPlaceholderResolverBeanDefinitionParser());
+		registerBeanDefinitionParser("context-instance-placeholder", new ContextInstanceDataPlaceholderResolverBeanDefinitionParser());
 		registerBeanDefinitionParser("stack-configuration", new StackConfigurationBeanDefinitionParser());
 	}
 }
