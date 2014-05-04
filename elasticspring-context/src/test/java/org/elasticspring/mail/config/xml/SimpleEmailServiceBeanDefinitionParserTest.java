@@ -16,80 +16,79 @@
 
 package org.elasticspring.mail.config.xml;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.net.URISyntaxException;
+
+import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.util.ReflectionUtils.findField;
+import static org.springframework.util.ReflectionUtils.makeAccessible;
 
 /**
  * @author Agim Emruli
  */
 public class SimpleEmailServiceBeanDefinitionParserTest {
 
+
 	@Test
-	public void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail() throws IllegalAccessException, URISyntaxException {
+	public void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail() throws Exception {
 		//Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
 		//Act
-		AmazonSimpleEmailService emailService = context.getBean(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailService.class);
+		AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
 
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		//Assert
-		Field field = ReflectionUtils.findField(AmazonSimpleEmailServiceClient.class, "endpoint");
-		ReflectionUtils.makeAccessible(field);
-		Assert.assertEquals( new URI("https","email.us-east-1.amazonaws.com",null,null),field.get(emailService));
+		assertEquals("https://email.us-east-1.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
 
-		Assert.assertTrue(mailSender instanceof JavaMailSender);
+		assertTrue(mailSender instanceof JavaMailSender);
 	}
 
 	@Test
-	public void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion() throws IllegalAccessException, URISyntaxException {
+	public void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion() throws Exception {
 		//Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-region.xml", getClass());
 
 		//Act
-		AmazonSimpleEmailService emailService = context.getBean(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailService.class);
+		AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
 
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		//Assert
-		Field field = ReflectionUtils.findField(AmazonSimpleEmailServiceClient.class, "endpoint");
-		ReflectionUtils.makeAccessible(field);
-		Assert.assertEquals( new URI("https","email.eu-west-1.amazonaws.com",null,null),field.get(emailService));
+		assertEquals("https://email.eu-west-1.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
 
-		Assert.assertTrue(mailSender instanceof JavaMailSender);
+		assertTrue(mailSender instanceof JavaMailSender);
 	}
 
 	@Test
-	public void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider() throws IllegalAccessException, URISyntaxException {
+	public void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider() throws Exception {
 		//Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-regionProvider.xml", getClass());
 
 		//Act
-		AmazonSimpleEmailService emailService = context.getBean(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailService.class);
+		AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
 
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		//Assert
-		Field field = ReflectionUtils.findField(AmazonSimpleEmailServiceClient.class, "endpoint");
-		ReflectionUtils.makeAccessible(field);
-		Assert.assertEquals( new URI("https","email.ap-southeast-2.amazonaws.com",null,null),field.get(emailService));
+		assertEquals("https://email.ap-southeast-2.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
 
-		Assert.assertTrue(mailSender instanceof JavaMailSender);
+		assertTrue(mailSender instanceof JavaMailSender);
 	}
 
+	private static String getEndpointUrlFromWebserviceClient(AmazonSimpleEmailServiceClient client) throws Exception {
+		Field field = findField(AmazonSimpleEmailServiceClient.class, "endpoint");
+		makeAccessible(field);
+		URI endpointUri = (URI) field.get(client);
+		return endpointUri.toASCIIString();
+	}
 }
