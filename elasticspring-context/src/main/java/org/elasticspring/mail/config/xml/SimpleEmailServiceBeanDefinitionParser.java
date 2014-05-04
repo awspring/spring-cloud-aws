@@ -29,8 +29,16 @@ import org.w3c.dom.Element;
  */
 class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	@SuppressWarnings("StaticNonFinalField")
-	public static boolean isJavaMailPresent = ClassUtils.isPresent("javax.mail.Session", SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
+	private static final boolean JAVA_MAIL_PRESENT = ClassUtils.isPresent("javax.mail.Session", SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
+
+	@Override
+	protected String getBeanClassName(Element element) {
+		if (JAVA_MAIL_PRESENT) {
+			return "org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender";
+		}
+
+		return "org.elasticspring.mail.simplemail.SimpleEmailServiceMailSender";
+	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -40,14 +48,5 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 				element.getAttribute("region"));
 
 		builder.addConstructorArgReference(holder.getBeanName());
-	}
-
-	@Override
-	protected String getBeanClassName(Element element) {
-		if (isJavaMailPresent) {
-			return "org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender";
-		}
-
-		return "org.elasticspring.mail.simplemail.SimpleEmailServiceMailSender";
 	}
 }
