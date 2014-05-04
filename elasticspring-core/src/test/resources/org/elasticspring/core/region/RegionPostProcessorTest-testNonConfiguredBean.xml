@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2013-2014 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
@@ -26,8 +26,8 @@
 		<constructor-arg ref="regionProvider" />
 	</bean>
 
-	<bean id="regionProvider" class="org.elasticspring.core.region.StaticRegionProvider" >
-		<constructor-arg value="SA_EAST_1"/>
+	<bean id="regionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+		<constructor-arg value="SA_EAST_1" />
 	</bean>
 
 </beans>

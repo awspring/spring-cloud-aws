@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class Ec2MetadataRegionProviderTest {
 	@Test
 	public void getRegion_availabilityZoneWithMatchingRegion_returnsRegion() throws Exception {
 		//Arrange
-		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider(){
+		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
 			@Override
 			protected String getAvailabilityZone() {
@@ -46,7 +46,7 @@ public class Ec2MetadataRegionProviderTest {
 		Region region = regionProvider.getRegion();
 
 		//Assert
-		Assert.assertEquals(Region.getRegion(Regions.EU_WEST_1),region);
+		Assert.assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class Ec2MetadataRegionProviderTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("There is not EC2 meta data available, because the application is not running in the EC2 environment");
 
-		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider(){
+		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
 			@Override
 			protected String getAvailabilityZone() {

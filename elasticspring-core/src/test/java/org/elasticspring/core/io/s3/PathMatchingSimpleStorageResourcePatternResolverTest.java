@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Mockito;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.ClassUtils;
@@ -98,19 +97,19 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 	@Test
 	public void testWithCustomClassLoader() throws Exception {
-		AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
 		Assert.assertSame(ClassUtils.getDefaultClassLoader(), new PathMatchingSimpleStorageResourcePatternResolver(amazonS3).getClassLoader());
 
 
-		ClassLoader classLoader = Mockito.mock(ClassLoader.class);
+		ClassLoader classLoader = mock(ClassLoader.class);
 		Assert.assertSame(classLoader, new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, classLoader).getClassLoader());
 	}
 
 	@Test
 	public void testWithCustomPathMatcher() throws Exception {
-		AmazonS3 amazonS3 = Mockito.mock(AmazonS3.class);
-		PathMatcher pathMatcher = Mockito.mock(PathMatcher.class);
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		PathMatcher pathMatcher = mock(PathMatcher.class);
 
 		PathMatchingSimpleStorageResourcePatternResolver patternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3);
 		patternResolver.setPathMatcher(pathMatcher);
@@ -223,9 +222,10 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 		// Requests for all
 		ObjectListing fullObjectListing = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/test.txt"),
-				createS3ObjectSummaryWithKey("fooOne/bazOne/test.txt"), createS3ObjectSummaryWithKey("fooTwo/barTwo/test.txt"),
-				createS3ObjectSummaryWithKey("fooThree/baz/test.txt"), createS3ObjectSummaryWithKey("foFour/barFour/test.txt")),
-				Collections.<String>emptyList(), false);
+						createS3ObjectSummaryWithKey("fooOne/bazOne/test.txt"), createS3ObjectSummaryWithKey("fooTwo/barTwo/test.txt"),
+						createS3ObjectSummaryWithKey("fooThree/baz/test.txt"), createS3ObjectSummaryWithKey("foFour/barFour/test.txt")),
+				Collections.<String>emptyList(), false
+		);
 		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, null)))).thenReturn(fullObjectListing);
 
 		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());

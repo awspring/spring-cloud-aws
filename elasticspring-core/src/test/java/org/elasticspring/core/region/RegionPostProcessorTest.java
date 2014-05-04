@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,17 +108,18 @@ public class RegionPostProcessorTest {
 			this.region = region;
 		}
 
+		String getEndpoint() {
+			return this.endpoint.toString();
+		}
+
 		@Override
 		public void setEndpoint(String endpoint) throws IllegalArgumentException {
 			this.endpoint = URI.create(endpoint);
 		}
-
-		String getEndpoint() {
-			return this.endpoint.toString();
-		}
 	}
 
 	static class SimpleObjectHolder {
+
 		private final SimpleWebserviceClient simpleWebserviceClient;
 
 		SimpleObjectHolder(SimpleWebserviceClient simpleWebserviceClient) {

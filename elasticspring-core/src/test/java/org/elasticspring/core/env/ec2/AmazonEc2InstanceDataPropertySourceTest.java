@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,30 +44,6 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 
 	@SuppressWarnings("StaticNonFinalField")
 	private static HttpServer httpServer;
-
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
-		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
-		httpServer = HttpServer.create(address, -1);
-		httpServer.start();
-		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
-	}
-
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
-		if (httpServer != null) {
-			httpServer.stop(10);
-		}
-		resetMetadataEndpointUrlOverwrite();
-	}
-
-	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
-		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
-	}
-
-	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
 
 	@Test
 	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
@@ -131,12 +107,35 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}
 
-
 	@After
 	public void clearMetadataCache() throws Exception {
 		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
 		metadataCacheField.setAccessible(true);
-		metadataCacheField.set(null, new HashMap<String, String>());
+		metadataCacheField.set(null, new HashMap<String,String>());
+	}
+
+	@BeforeClass
+	public static void setupHttpServer() throws Exception {
+		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
+		httpServer = HttpServer.create(address, -1);
+		httpServer.start();
+		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
+	}
+
+	@AfterClass
+	public static void shutdownHttpServer() throws Exception {
+		if (httpServer != null) {
+			httpServer.stop(10);
+		}
+		resetMetadataEndpointUrlOverwrite();
+	}
+
+	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
+	}
+
+	private static void resetMetadataEndpointUrlOverwrite() {
+		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 
 	private static class StringWritingHttpHandler implements HttpHandler {
