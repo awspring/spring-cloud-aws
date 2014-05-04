@@ -20,7 +20,8 @@ import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
-import org.springframework.util.Assert;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
  * @author Agim Emruli
@@ -32,7 +33,7 @@ class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
 		super(new ClientConfiguration());
-		Assert.notNull(awsCredentialsProvider);
+		notNull(awsCredentialsProvider);
 	}
 
 	public Region getRegion() {

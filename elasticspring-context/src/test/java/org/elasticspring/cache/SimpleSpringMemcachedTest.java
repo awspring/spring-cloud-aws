@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@
 package org.elasticspring.cache;
 
 import org.elasticspring.cache.memcached.MemcachedClientIF;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.springframework.cache.Cache;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -35,14 +41,14 @@ public class SimpleSpringMemcachedTest {
 	@Test
 	public void getName_configuredName_configuredNameReturned() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		String cacheName = cache.getName();
 
 		//Assert
-		Assert.assertEquals("test", cacheName);
+		assertEquals("test", cacheName);
 	}
 
 	@Test
@@ -51,7 +57,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("cacheName is mandatory");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 
 		//Act
 		//noinspection ResultOfObjectAllocationIgnored
@@ -78,70 +84,70 @@ public class SimpleSpringMemcachedTest {
 	@Test
 	public void getNativeCache_withConfiguredMemcachedClient_returnsConfiguredMemcachedClient() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		Object nativeCache = cache.getNativeCache();
 
 		//Assert
-		Assert.assertSame(client, nativeCache);
+		assertSame(client, nativeCache);
 	}
 
 	@Test
 	public void get_withoutTypeParameterAndFoundInstance_returnsValueWrapperWithInstance() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		Mockito.when(client.get("test")).thenReturn("cachedValue");
+		when(client.get("test")).thenReturn("cachedValue");
 
 		//Act
 		Cache.ValueWrapper valueWrapper = cache.get("test");
 
 		//Assert
-		Assert.assertSame("cachedValue", valueWrapper.get());
+		assertSame("cachedValue", valueWrapper.get());
 	}
 
 	@Test
 	public void get_withoutTypeParameterAndNonFoundInstance_returnsValue() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		Cache.ValueWrapper valueWrapper = cache.get("test");
 
 		//Assert
-		Assert.assertNull(valueWrapper);
+		assertNull(valueWrapper);
 	}
 
 	@Test
 	public void get_withTypeParameterAndFoundInstance_returnsConvertedValue() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		Mockito.when(client.get("test")).thenReturn("cachedValue");
+		when(client.get("test")).thenReturn("cachedValue");
 
 		//Act
 		String cachedElement = cache.get("test", String.class);
 
 		//Assert
-		Assert.assertEquals("cachedValue", cachedElement);
+		assertEquals("cachedValue", cachedElement);
 	}
 
 	@Test
 	public void get_withTypeParameterAndNonFoundInstance_returnsValue() throws Exception {
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		String cachedElement = cache.get("test", String.class);
 
 		//Assert
-		Assert.assertNull(cachedElement);
+		assertNull(cachedElement);
 	}
 
 	@Test
@@ -151,10 +157,10 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("java.lang.Long is not assignable to class java.lang.String");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		Mockito.when(client.get("test")).thenReturn(23L);
+		when(client.get("test")).thenReturn(23L);
 
 		//Act
 		cache.get("test", String.class);
@@ -169,7 +175,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("java.lang.Long is not assignable to class java.lang.String");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -185,7 +191,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("java.lang.Long is not assignable to class java.lang.String");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -201,7 +207,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("key parameter is mandatory");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -217,7 +223,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("key parameter is mandatory");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -233,7 +239,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("key parameter is mandatory");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -249,7 +255,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("java.lang.Long is not assignable to class java.lang.String");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -262,35 +268,35 @@ public class SimpleSpringMemcachedTest {
 	public void put_nullCacheValueWithDefaultExpiration_keyStoredInCache() throws Exception {
 
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		cache.put("test", null);
 
 		//Assert
-		Mockito.verify(client, Mockito.times(1)).add("test", 0, null);
+		verify(client, times(1)).add("test", 0, null);
 	}
 
 	@Test
 	public void put_withDefaultExpiration_keyStoredInCache() throws Exception {
 
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		cache.put("test", "cachedElement");
 
 		//Assert
-		Mockito.verify(client, Mockito.times(1)).add("test", 0, "cachedElement");
+		verify(client, times(1)).add("test", 0, "cachedElement");
 	}
 
 	@Test
 	public void put_withCustomExpiration_keyStoredInCache() throws Exception {
 
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 		cache.setExpiration(42);
 
@@ -298,7 +304,7 @@ public class SimpleSpringMemcachedTest {
 		cache.put("test", "cachedElement");
 
 		//Assert
-		Mockito.verify(client, Mockito.times(1)).add("test", 42, "cachedElement");
+		verify(client, times(1)).add("test", 42, "cachedElement");
 	}
 
 	@Test
@@ -308,7 +314,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("key parameter is mandatory");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -324,7 +330,7 @@ public class SimpleSpringMemcachedTest {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("java.lang.Long is not assignable to class java.lang.String");
 
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
@@ -337,28 +343,28 @@ public class SimpleSpringMemcachedTest {
 	public void evict_withCacheKey_deletedObjectInCache() throws Exception {
 
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		cache.evict("test");
 
 		//Assert
-		Mockito.verify(client, Mockito.times(1)).delete("test");
+		verify(client, times(1)).delete("test");
 	}
 
 	@Test
 	public void clear_withDefaultSettings_flushesCache() throws Exception {
 
 		//Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		//Act
 		cache.clear();
 
 		//Assert
-		Mockito.verify(client, Mockito.times(1)).flush();
+		verify(client, times(1)).flush();
 	}
 
 }

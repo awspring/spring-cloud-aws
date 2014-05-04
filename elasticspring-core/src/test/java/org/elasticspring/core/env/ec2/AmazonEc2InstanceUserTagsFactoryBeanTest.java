@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,15 @@ import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.ResourceType;
 import com.amazonaws.services.ec2.model.TagDescription;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -37,10 +40,10 @@ public class AmazonEc2InstanceUserTagsFactoryBeanTest {
 	@Test
 	public void getObject_userTagDataAvailable_objectContainsAllAvailableKeys() throws Exception {
 		//Arrange
-		AmazonEC2 amazonEC2 = Mockito.mock(AmazonEC2.class);
+		AmazonEC2 amazonEC2 = mock(AmazonEC2.class);
 
-		InstanceIdProvider instanceIdProvider = Mockito.mock(InstanceIdProvider.class);
-		Mockito.when(instanceIdProvider.getCurrentInstanceId()).thenReturn("1234567890");
+		InstanceIdProvider instanceIdProvider = mock(InstanceIdProvider.class);
+		when(instanceIdProvider.getCurrentInstanceId()).thenReturn("1234567890");
 
 		DescribeTagsRequest describeTagsRequest = new DescribeTagsRequest().withFilters(
 				new Filter("resource-id", Collections.singletonList("1234567890")),
@@ -51,7 +54,7 @@ public class AmazonEc2InstanceUserTagsFactoryBeanTest {
 				new TagDescription().withKey("keyB").withResourceType(ResourceType.Instance).withValue("valueB")
 		);
 
-		Mockito.when(amazonEC2.describeTags(describeTagsRequest)).thenReturn(describeTagsResult);
+		when(amazonEC2.describeTags(describeTagsRequest)).thenReturn(describeTagsResult);
 
 		AmazonEc2InstanceUserTagsFactoryBean amazonEc2InstanceUserTagsFactoryBean = new AmazonEc2InstanceUserTagsFactoryBean(amazonEC2, instanceIdProvider);
 
@@ -60,8 +63,8 @@ public class AmazonEc2InstanceUserTagsFactoryBeanTest {
 		Map<String, String> resultMap = amazonEc2InstanceUserTagsFactoryBean.getObject();
 
 		//Assert
-		Assert.assertEquals("valueA", resultMap.get("keyA"));
-		Assert.assertEquals("valueB", resultMap.get("keyB"));
-		Assert.assertFalse(resultMap.containsKey("keyC"));
+		assertEquals("valueA", resultMap.get("keyA"));
+		assertEquals("valueB", resultMap.get("keyB"));
+		assertFalse(resultMap.containsKey("keyC"));
 	}
 }

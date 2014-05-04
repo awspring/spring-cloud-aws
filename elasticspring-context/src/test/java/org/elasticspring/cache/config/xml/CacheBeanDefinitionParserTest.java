@@ -27,7 +27,6 @@ import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +40,10 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -62,8 +65,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(cache);
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
 	}
 
 	@Test
@@ -77,9 +80,9 @@ public class CacheBeanDefinitionParserTest {
 		cache.put("foo", "bar");
 
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(cache);
-		Assert.assertNull(cache.get("foo"));
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
+		assertNull(cache.get("foo"));
 	}
 
 	@Test
@@ -93,8 +96,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.put("foo", "bar");
 		cache.evict("foo");
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(cache);
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
 	}
 
 	@Test
@@ -108,8 +111,8 @@ public class CacheBeanDefinitionParserTest {
 		Cache memcached = cacheManager.getCache("memcached");
 
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(memcached);
+		assertNotNull(cacheManager);
+		assertNotNull(memcached);
 
 		memc.put("foo", "bar");
 		memc.evict("foo");
@@ -137,7 +140,7 @@ public class CacheBeanDefinitionParserTest {
 		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
 		//Replay invocation that will be called
-		Mockito.when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -152,8 +155,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(cache);
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
 	}
 
 	@Test
@@ -181,10 +184,10 @@ public class CacheBeanDefinitionParserTest {
 
 		ResourceIdResolver resourceIdResolver = beanFactory.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ResourceIdResolver.class);
 
-		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("testMemcached")).thenReturn("memcached");
+		when(resourceIdResolver.resolveToPhysicalResourceId("testMemcached")).thenReturn("memcached");
 
 		//Replay invocation that will be called
-		Mockito.when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -199,8 +202,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		//Assert
-		Assert.assertNotNull(cacheManager);
-		Assert.assertNotNull(cache);
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
 	}
 
 	@Test
@@ -217,8 +220,8 @@ public class CacheBeanDefinitionParserTest {
 		BeanDefinition beanDefinition = beanFactory.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()));
 
 		//Assert
-		Assert.assertNotNull(beanDefinition);
-		Assert.assertNotNull(beanDefinition.getPropertyValues().get("region"));
+		assertNotNull(beanDefinition);
+		assertNotNull(beanDefinition.getPropertyValues().get("region"));
 	}
 
 	@BeforeClass

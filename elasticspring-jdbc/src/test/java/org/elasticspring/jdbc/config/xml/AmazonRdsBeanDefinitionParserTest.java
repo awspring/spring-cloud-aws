@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.jdbc.datasource.DynamicDataSource;
 import org.elasticspring.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -54,6 +53,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.sql.DataSource;
 import java.util.Date;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the {@link org.elasticspring.jdbc.config.xml.AmazonRdsBeanDefinitionParser} bean definition parser
@@ -82,7 +86,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 		AmazonRDS client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), AmazonRDS.class);
 
-		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+		when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -101,7 +105,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 
 		//Assert
-		Assert.assertTrue(dataSource instanceof DynamicDataSource);
+		assertTrue(dataSource instanceof DynamicDataSource);
 	}
 
 	@Test
@@ -122,7 +126,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinition beanDefinition = beanFactory.getBeanDefinition("dataSource");
 
 		//Assert
-		Assert.assertEquals(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class.getName(), beanDefinition.getBeanClassName());
+		assertEquals(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class.getName(), beanDefinition.getBeanClassName());
 	}
 
 	@Test
@@ -150,7 +154,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 		AmazonRDS client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), AmazonRDS.class);
 
-		Mockito.when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+		when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -165,15 +169,15 @@ public class AmazonRdsBeanDefinitionParserTest {
 		);
 
 		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
-		Assert.assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
-		Assert.assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
-		Assert.assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
+		assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
+		assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
+		assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
 
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 
 		//Assert
-		Assert.assertNotNull(dataSource);
-		Assert.assertTrue(dataSource instanceof DynamicDataSource);
+		assertNotNull(dataSource);
+		assertTrue(dataSource instanceof DynamicDataSource);
 	}
 
 	@Test
@@ -191,26 +195,26 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanDefinition dataSourceFactory = (BeanDefinition) definition.getPropertyValues().getPropertyValue("dataSourceFactory").getValue();
 
 		//Assert
-		Assert.assertEquals("foo=bar", dataSourceFactory.getPropertyValues().getPropertyValue("connectionProperties").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultAutoCommit").getValue());
-		Assert.assertEquals("mySchema", dataSourceFactory.getPropertyValues().getPropertyValue("defaultCatalog").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultReadOnly").getValue());
-		Assert.assertEquals("2", dataSourceFactory.getPropertyValues().getPropertyValue("defaultTransactionIsolation").getValue());
-		Assert.assertEquals("10", dataSourceFactory.getPropertyValues().getPropertyValue("initialSize").getValue());
-		Assert.assertEquals("SET CURRENT SCHEMA", dataSourceFactory.getPropertyValues().getPropertyValue("initSQL").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("logAbandoned").getValue());
-		Assert.assertEquals("10", dataSourceFactory.getPropertyValues().getPropertyValue("maxActive").getValue());
-		Assert.assertEquals("5", dataSourceFactory.getPropertyValues().getPropertyValue("maxIdle").getValue());
-		Assert.assertEquals("10000", dataSourceFactory.getPropertyValues().getPropertyValue("maxWait").getValue());
-		Assert.assertEquals("60000", dataSourceFactory.getPropertyValues().getPropertyValue("minEvictableIdleTimeMillis").getValue());
-		Assert.assertEquals("20", dataSourceFactory.getPropertyValues().getPropertyValue("minIdle").getValue());
-		Assert.assertEquals("61", dataSourceFactory.getPropertyValues().getPropertyValue("removeAbandonedTimeout").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testOnBorrow").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testOnReturn").getValue());
-		Assert.assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testWhileIdle").getValue());
-		Assert.assertEquals("4000", dataSourceFactory.getPropertyValues().getPropertyValue("timeBetweenEvictionRunsMillis").getValue());
-		Assert.assertEquals("SELECT 1", dataSourceFactory.getPropertyValues().getPropertyValue("validationQuery").getValue());
-		Assert.assertEquals("myValidator", dataSourceFactory.getPropertyValues().getPropertyValue("validatorClassName").getValue());
+		assertEquals("foo=bar", dataSourceFactory.getPropertyValues().getPropertyValue("connectionProperties").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultAutoCommit").getValue());
+		assertEquals("mySchema", dataSourceFactory.getPropertyValues().getPropertyValue("defaultCatalog").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("defaultReadOnly").getValue());
+		assertEquals("2", dataSourceFactory.getPropertyValues().getPropertyValue("defaultTransactionIsolation").getValue());
+		assertEquals("10", dataSourceFactory.getPropertyValues().getPropertyValue("initialSize").getValue());
+		assertEquals("SET CURRENT SCHEMA", dataSourceFactory.getPropertyValues().getPropertyValue("initSQL").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("logAbandoned").getValue());
+		assertEquals("10", dataSourceFactory.getPropertyValues().getPropertyValue("maxActive").getValue());
+		assertEquals("5", dataSourceFactory.getPropertyValues().getPropertyValue("maxIdle").getValue());
+		assertEquals("10000", dataSourceFactory.getPropertyValues().getPropertyValue("maxWait").getValue());
+		assertEquals("60000", dataSourceFactory.getPropertyValues().getPropertyValue("minEvictableIdleTimeMillis").getValue());
+		assertEquals("20", dataSourceFactory.getPropertyValues().getPropertyValue("minIdle").getValue());
+		assertEquals("61", dataSourceFactory.getPropertyValues().getPropertyValue("removeAbandonedTimeout").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testOnBorrow").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testOnReturn").getValue());
+		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testWhileIdle").getValue());
+		assertEquals("4000", dataSourceFactory.getPropertyValues().getPropertyValue("timeBetweenEvictionRunsMillis").getValue());
+		assertEquals("SELECT 1", dataSourceFactory.getPropertyValues().getPropertyValue("validationQuery").getValue());
+		assertEquals("myValidator", dataSourceFactory.getPropertyValues().getPropertyValue("validatorClassName").getValue());
 	}
 
 	@Test
@@ -232,7 +236,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		BeanWrapper beanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(poolProperties);
 
 		for (PropertyValue propertyValue : dataSourceFactory.getPropertyValues().getPropertyValueList()) {
-			Assert.assertEquals(beanWrapper.getPropertyValue(propertyValue.getName()).toString(), propertyValue.getValue());
+			assertEquals(beanWrapper.getPropertyValue(propertyValue.getName()).toString(), propertyValue.getValue());
 		}
 	}
 
@@ -250,7 +254,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 		//Assert
 		//have to use reflection utils
-		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+		assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
 	}
 
 	@Test
@@ -267,7 +271,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 		//Assert
 		//have to use reflection utils
-		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+		assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
 
 	}
 
@@ -306,8 +310,8 @@ public class AmazonRdsBeanDefinitionParserTest {
 		AmazonRDS client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), AmazonRDS.class);
 		AmazonIdentityManagement amazonIdentityManagement = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonIdentityManagement.class.getName()), AmazonIdentityManagement.class);
 
-		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
-		Mockito.when(client.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(client.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
 				new Tag().withKey("key1").withValue("value2")
 		));
 
@@ -315,6 +319,6 @@ public class AmazonRdsBeanDefinitionParserTest {
 		Map<?,?> dsTags = beanFactory.getBean("dsTags", Map.class);
 
 		//Assert
-		Assert.assertEquals("value2", dsTags.get("key1"));
+		assertEquals("value2", dsTags.get("key1"));
 	}
 }

@@ -20,12 +20,14 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ResourceLoader;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alain Sahli
@@ -46,7 +48,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		ResourceLoader resourceLoader = applicationContext.getBean(ResourceLoader.class);
 
 		//Assert
-		Assert.assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
 	}
 
 	@Test
@@ -59,8 +61,8 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		AmazonS3Client webServiceClient = applicationContext.getBean(AmazonS3Client.class);
 
 		//Assert
-		Assert.assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
-		Assert.assertEquals(Region.getRegion(Regions.EU_WEST_1), webServiceClient.getRegion().toAWSRegion());
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+		assertEquals(Region.getRegion(Regions.EU_WEST_1), webServiceClient.getRegion().toAWSRegion());
 	}
 
 	@Test
@@ -73,7 +75,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		AmazonS3Client webServiceClient = applicationContext.getBean(AmazonS3Client.class);
 
 		//Assert
-		Assert.assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
-		Assert.assertEquals(Region.getRegion(Regions.US_WEST_2), webServiceClient.getRegion().toAWSRegion());
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+		assertEquals(Region.getRegion(Regions.US_WEST_2), webServiceClient.getRegion().toAWSRegion());
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,18 @@
 
 package org.elasticspring.core.io.s3;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import static org.elasticspring.core.io.s3.SimpleStorageNameUtils.getBucketNameFromLocation;
+import static org.elasticspring.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObject;
+import static org.elasticspring.core.io.s3.SimpleStorageNameUtils.getObjectNameFromLocation;
+import static org.elasticspring.core.io.s3.SimpleStorageNameUtils.isSimpleStorageResource;
+import static org.elasticspring.core.io.s3.SimpleStorageNameUtils.stripProtocol;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -31,107 +39,107 @@ public class SimpleStorageNameUtilsTest {
 
 	@Test
 	public void testIsSimpleStorageResource() throws Exception {
-		Assert.assertTrue(SimpleStorageNameUtils.isSimpleStorageResource("s3://foo/bar"));
-		Assert.assertTrue(SimpleStorageNameUtils.isSimpleStorageResource("S3://foo/bar"));
-		Assert.assertFalse(SimpleStorageNameUtils.isSimpleStorageResource("f3://foo/bar"));
-		Assert.assertFalse(SimpleStorageNameUtils.isSimpleStorageResource("s4://foo/bar"));
+		assertTrue(isSimpleStorageResource("s3://foo/bar"));
+		assertTrue(isSimpleStorageResource("S3://foo/bar"));
+		assertFalse(isSimpleStorageResource("f3://foo/bar"));
+		assertFalse(isSimpleStorageResource("s4://foo/bar"));
 	}
 
 	@Test
 	public void testIsSimpleStorageResourceNUll() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage(" must not be null");
-		SimpleStorageNameUtils.isSimpleStorageResource(null);
+		isSimpleStorageResource(null);
 	}
 
 	@Test
 	public void testGetBucketNameFromLocation() throws Exception {
-		Assert.assertEquals("foo", SimpleStorageNameUtils.getBucketNameFromLocation("s3://foo/bar"));
-		Assert.assertEquals("fo*", SimpleStorageNameUtils.getBucketNameFromLocation("s3://fo*/bar"));
+		assertEquals("foo", getBucketNameFromLocation("s3://foo/bar"));
+		assertEquals("fo*", getBucketNameFromLocation("s3://fo*/bar"));
 
-		Assert.assertEquals("foo", SimpleStorageNameUtils.getBucketNameFromLocation("s3://foo/bar/baz/boo/"));
-		Assert.assertEquals("fo*", SimpleStorageNameUtils.getBucketNameFromLocation("s3://fo*/bar/baz/boo/"));
+		assertEquals("foo", getBucketNameFromLocation("s3://foo/bar/baz/boo/"));
+		assertEquals("fo*", getBucketNameFromLocation("s3://fo*/bar/baz/boo/"));
 	}
 
 	@Test
 	public void testGetBucketNameNotNull() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage(" must not be null");
-		SimpleStorageNameUtils.getBucketNameFromLocation(null);
+		getBucketNameFromLocation(null);
 	}
 
 	@Test
 	public void testNonLocationForBucket() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("not a valid S3 location");
-		SimpleStorageNameUtils.getBucketNameFromLocation("foo://fo*");
+		getBucketNameFromLocation("foo://fo*");
 	}
 
 	@Test
 	public void testNonValidBucket() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("valid bucket name");
-		SimpleStorageNameUtils.getBucketNameFromLocation("s3://fo*");
+		getBucketNameFromLocation("s3://fo*");
 	}
 
 	@Test
 	public void testEmptyValidBucket() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("valid bucket name");
-		SimpleStorageNameUtils.getBucketNameFromLocation("s3:///");
+		getBucketNameFromLocation("s3:///");
 	}
 
 	@Test
 	public void testGetObjectNameNull() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage(" must not be null");
-		SimpleStorageNameUtils.getObjectNameFromLocation(null);
+		getObjectNameFromLocation(null);
 	}
 
 	@Test
 	public void testGetObjectNameFromLocation() throws Exception {
-		Assert.assertEquals("bar", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/bar"));
-		Assert.assertEquals("ba*", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/ba*"));
+		assertEquals("bar", getObjectNameFromLocation("s3://foo/bar"));
+		assertEquals("ba*", getObjectNameFromLocation("s3://foo/ba*"));
 
-		Assert.assertEquals("bar/baz/boo", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/bar/baz/boo/"));
-		Assert.assertEquals("bar/ba*/boo", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/bar/ba*/boo/"));
-		Assert.assertEquals("bar/baz/boo.txt", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/bar/baz/boo.txt/"));
-		Assert.assertEquals("bar/ba*/boo.txt", SimpleStorageNameUtils.getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/"));
+		assertEquals("bar/baz/boo", getObjectNameFromLocation("s3://foo/bar/baz/boo/"));
+		assertEquals("bar/ba*/boo", getObjectNameFromLocation("s3://foo/bar/ba*/boo/"));
+		assertEquals("bar/baz/boo.txt", getObjectNameFromLocation("s3://foo/bar/baz/boo.txt/"));
+		assertEquals("bar/ba*/boo.txt", getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/"));
 	}
 
 	@Test
 	public void testEmptyValidBucketForLocation() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("valid bucket name");
-		SimpleStorageNameUtils.getObjectNameFromLocation("s3:///");
+		getObjectNameFromLocation("s3:///");
 	}
 
 	@Test
 	public void testEmptyValidBucketForLocationWithKey() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("valid bucket name");
-		SimpleStorageNameUtils.getObjectNameFromLocation("s3:///foo");
+		getObjectNameFromLocation("s3:///foo");
 	}
 
 	@Test
 	public void testGetLocationForObjectNameAndBucket() throws Exception {
-		Assert.assertEquals("s3://foo/bar", SimpleStorageNameUtils.getLocationForBucketAndObject("foo", "bar"));
-		Assert.assertEquals("s3://foo/bar/baz", SimpleStorageNameUtils.getLocationForBucketAndObject("foo", "bar/baz"));
-		Assert.assertEquals("s3://foo/bar/baz.txt", SimpleStorageNameUtils.getLocationForBucketAndObject("foo", "bar/baz.txt"));
+		assertEquals("s3://foo/bar", getLocationForBucketAndObject("foo", "bar"));
+		assertEquals("s3://foo/bar/baz", getLocationForBucketAndObject("foo", "bar/baz"));
+		assertEquals("s3://foo/bar/baz.txt", getLocationForBucketAndObject("foo", "bar/baz.txt"));
 	}
 
 	@Test
 	public void testStripProtocol() throws Exception {
-		Assert.assertEquals("foo/bar", SimpleStorageNameUtils.stripProtocol("s3://foo/bar"));
-		Assert.assertEquals("foo/bar/baz", SimpleStorageNameUtils.stripProtocol("s3://foo/bar/baz"));
-		Assert.assertEquals("foo/bar.txt", SimpleStorageNameUtils.stripProtocol("s3://foo/bar.txt"));
-		Assert.assertEquals("", SimpleStorageNameUtils.stripProtocol("s3://"));
+		assertEquals("foo/bar", stripProtocol("s3://foo/bar"));
+		assertEquals("foo/bar/baz", stripProtocol("s3://foo/bar/baz"));
+		assertEquals("foo/bar.txt", stripProtocol("s3://foo/bar.txt"));
+		assertEquals("", stripProtocol("s3://"));
 	}
 
 	@Test
 	public void testStripProtocolNull() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage(" must not be null");
-		SimpleStorageNameUtils.stripProtocol(null);
+		stripProtocol(null);
 	}
 }

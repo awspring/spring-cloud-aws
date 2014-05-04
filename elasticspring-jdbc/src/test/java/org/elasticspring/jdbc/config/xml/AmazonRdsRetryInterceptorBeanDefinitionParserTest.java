@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.elasticspring.jdbc.config.xml;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -26,6 +25,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -39,7 +41,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 		//Get bean so it will be initialized
 		MethodInterceptor interceptor = classPathXmlApplicationContext.getBean(MethodInterceptor.class);
 
-		Assert.assertNotNull(interceptor);
+		assertNotNull(interceptor);
 
 	}
 
@@ -52,7 +54,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 		AmazonRDS amazonRDS = classPathXmlApplicationContext.getBean(AmazonRDS.class);
 
 		//have to use reflection utils
-		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+		assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
 
 	}
 
@@ -65,7 +67,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 		AmazonRDS amazonRDS = classPathXmlApplicationContext.getBean(AmazonRDS.class);
 
 		//have to use reflection utils
-		Assert.assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
+		assertEquals("https://rds.eu-west-1.amazonaws.com", ReflectionTestUtils.getField(amazonRDS, "endpoint").toString());
 
 	}
 
@@ -74,7 +76,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customBackOffPolicy.xml", getClass());
 		BeanDefinition beanDefinition = classPathXmlApplicationContext.getBeanFactory().getBeanDefinition("interceptor");
 		BeanDefinition retryOperations = (BeanDefinition) beanDefinition.getPropertyValues().getPropertyValue("retryOperations").getValue();
-		Assert.assertEquals("policy", ((RuntimeBeanReference) retryOperations.getPropertyValues().getPropertyValue("backOffPolicy").getValue()).getBeanName());
+		assertEquals("policy", ((RuntimeBeanReference) retryOperations.getPropertyValues().getPropertyValue("backOffPolicy").getValue()).getBeanName());
 	}
 
 	@Test
@@ -85,7 +87,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 		BeanDefinition compositeRetryPolicy = (BeanDefinition) retryOperations.getPropertyValues().getPropertyValue("retryPolicy").getValue();
 		@SuppressWarnings("unchecked") List<BeanDefinition> policies = (List<BeanDefinition>) compositeRetryPolicy.getPropertyValues().getPropertyValue("policies").getValue();
 		BeanDefinition sqlPolicy = policies.get(1);
-		Assert.assertEquals("4", sqlPolicy.getPropertyValues().getPropertyValue("maxNumberOfRetries").getValue().toString());
+		assertEquals("4", sqlPolicy.getPropertyValues().getPropertyValue("maxNumberOfRetries").getValue().toString());
 
 	}
 }

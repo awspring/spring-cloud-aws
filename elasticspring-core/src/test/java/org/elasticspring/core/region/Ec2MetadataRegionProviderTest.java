@@ -18,10 +18,11 @@ package org.elasticspring.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Agim Emruli
@@ -46,7 +47,7 @@ public class Ec2MetadataRegionProviderTest {
 		Region region = regionProvider.getRegion();
 
 		//Assert
-		Assert.assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
+		assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
 	}
 
 	@Test

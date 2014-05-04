@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -39,7 +41,7 @@ public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
 
 		//Assert
 		BeanFactoryPostProcessor postProcessor = beanFactory.getBean("AmazonEc2InstanceDataPropertySourcePostProcessor", BeanFactoryPostProcessor.class);
-		Assert.assertNotNull(postProcessor);
+		assertNotNull(postProcessor);
 	}
 
 	@Test
@@ -52,8 +54,8 @@ public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-userTagsMap.xml", getClass()));
 
 		//Assert
-		Assert.assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
-		Assert.assertTrue(beanFactory.containsBeanDefinition("AmazonEC2"));
+		assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
+		assertTrue(beanFactory.containsBeanDefinition("AmazonEC2"));
 	}
 
 }

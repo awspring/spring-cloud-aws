@@ -16,9 +16,7 @@
 
 package org.elasticspring.context.support.io;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -29,6 +27,11 @@ import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -42,9 +45,9 @@ public class ResourceLoaderTest {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinition.addConstructorArgValue(resourceLoader);
@@ -54,13 +57,13 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		FieldInjectionTarget fieldInjectionTarget = staticApplicationContext.getBean(FieldInjectionTarget.class);
-		Assert.assertNotNull(fieldInjectionTarget.getApplicationContext());
+		assertNotNull(fieldInjectionTarget.getApplicationContext());
 		Resource applicationContextResource = fieldInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		Assert.assertSame(resource, applicationContextResource);
+		assertSame(resource, applicationContextResource);
 
-		Assert.assertNotNull(fieldInjectionTarget.getResourceLoader());
+		assertNotNull(fieldInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = fieldInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 	@Test
@@ -69,9 +72,9 @@ public class ResourceLoaderTest {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinition.addConstructorArgValue(resourceLoader);
@@ -81,13 +84,13 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		MethodInjectionTarget methodInjectionTarget = staticApplicationContext.getBean(MethodInjectionTarget.class);
-		Assert.assertNotNull(methodInjectionTarget.getApplicationContext());
+		assertNotNull(methodInjectionTarget.getApplicationContext());
 		Resource applicationContextResource = methodInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		Assert.assertSame(resource, applicationContextResource);
+		assertSame(resource, applicationContextResource);
 
-		Assert.assertNotNull(methodInjectionTarget.getResourceLoader());
+		assertNotNull(methodInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = methodInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 	@Test
@@ -96,9 +99,9 @@ public class ResourceLoaderTest {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinition.addConstructorArgValue(resourceLoader);
@@ -108,22 +111,22 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		ConstructorInjectionTarget constructorInjectionTarget = staticApplicationContext.getBean(ConstructorInjectionTarget.class);
-		Assert.assertNotNull(constructorInjectionTarget.getApplicationContext());
+		assertNotNull(constructorInjectionTarget.getApplicationContext());
 		Resource applicationContextResource = constructorInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		Assert.assertSame(resource, applicationContextResource);
+		assertSame(resource, applicationContextResource);
 
-		Assert.assertNotNull(constructorInjectionTarget.getResourceLoader());
+		assertNotNull(constructorInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = constructorInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 	@Test
 	public void testResourceLoaderAwareBean() throws Exception {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinition.addConstructorArgValue(resourceLoader);
@@ -133,18 +136,18 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		ResourceLoaderAwareBean resourceLoaderAwareBean = staticApplicationContext.getBean(ResourceLoaderAwareBean.class);
-		Assert.assertNotNull(resourceLoaderAwareBean.getResourceLoader());
+		assertNotNull(resourceLoaderAwareBean.getResourceLoader());
 		Resource resourceLoaderResource = resourceLoaderAwareBean.getResourceLoader().getResource("s3://bucket/object");
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 	@Test
 	public void testApplicationContextAwareBean() throws Exception {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinition.addConstructorArgValue(resourceLoader);
@@ -154,19 +157,19 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		ApplicationContextAwareBean applicationContextAware = staticApplicationContext.getBean(ApplicationContextAwareBean.class);
-		Assert.assertNotNull(applicationContextAware.getApplicationContext());
+		assertNotNull(applicationContextAware.getApplicationContext());
 		Resource resourceLoaderResource = applicationContextAware.getApplicationContext().getResource("s3://bucket/object");
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 
 	@Test
 	public void testWithCustomResourceLoaderForApplicationContext() throws Exception {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
 
-		Resource resource = Mockito.mock(Resource.class);
-		Mockito.when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		Resource resource = mock(Resource.class);
+		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
 
 		staticApplicationContext.setResourceLoader(resourceLoader);
 		staticApplicationContext.registerSingleton("client", ApplicationContextAwareBean.class);
@@ -175,8 +178,8 @@ public class ResourceLoaderTest {
 
 		ApplicationContextAwareBean applicationContextAwareBean = staticApplicationContext.getBean(ApplicationContextAwareBean.class);
 		Resource resourceLoaderResource = applicationContextAwareBean.getApplicationContext().getResource("s3://bucket/object");
-		Assert.assertNotNull(resourceLoaderResource);
-		Assert.assertSame(resource, resourceLoaderResource);
+		assertNotNull(resourceLoaderResource);
+		assertSame(resource, resourceLoaderResource);
 	}
 
 	private static final class FieldInjectionTarget {

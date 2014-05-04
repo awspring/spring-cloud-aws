@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.elasticspring.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertSame;
 
 /**
  *
@@ -28,6 +29,6 @@ public class StaticRegionProviderTest {
 
 	@Test
 	public void testGetRegion() throws Exception {
-		Assert.assertSame(Region.getRegion(Regions.US_EAST_1), new StaticRegionProvider(Regions.US_EAST_1).getRegion());
+		assertSame(Region.getRegion(Regions.US_EAST_1), new StaticRegionProvider(Regions.US_EAST_1).getRegion());
 	}
 }

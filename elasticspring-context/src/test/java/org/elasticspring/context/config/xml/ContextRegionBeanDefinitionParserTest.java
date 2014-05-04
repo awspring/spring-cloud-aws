@@ -21,12 +21,16 @@ import com.amazonaws.regions.Regions;
 import org.elasticspring.core.region.Ec2MetadataRegionProvider;
 import org.elasticspring.core.region.RegionPostProcessor;
 import org.elasticspring.core.region.RegionProvider;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -46,9 +50,9 @@ public class ContextRegionBeanDefinitionParserTest {
 		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
-		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		Assert.assertNotNull(regionPostProcessor);
+		assertNotNull(myRegionProvider);
+		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -61,9 +65,9 @@ public class ContextRegionBeanDefinitionParserTest {
 		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
-		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		Assert.assertNotNull(regionPostProcessor);
+		assertNotNull(myRegionProvider);
+		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -76,9 +80,9 @@ public class ContextRegionBeanDefinitionParserTest {
 		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
-		Assert.assertNotNull(myRegionProvider);
-		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		Assert.assertNotNull(regionPostProcessor);
+		assertNotNull(myRegionProvider);
+		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -91,9 +95,9 @@ public class ContextRegionBeanDefinitionParserTest {
 		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
-		Assert.assertNotNull(myRegionProvider);
-		Assert.assertTrue(myRegionProvider instanceof Ec2MetadataRegionProvider);
-		Assert.assertNotNull(regionPostProcessor);
+		assertNotNull(myRegionProvider);
+		assertTrue(myRegionProvider instanceof Ec2MetadataRegionProvider);
+		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -107,10 +111,10 @@ public class ContextRegionBeanDefinitionParserTest {
 		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
-		Assert.assertNotNull(defaultRegionProvider);
-		Assert.assertNotNull(myRegionProvider);
-		Assert.assertSame(defaultRegionProvider, myRegionProvider);
-		Assert.assertNotNull(regionPostProcessor);
+		assertNotNull(defaultRegionProvider);
+		assertNotNull(myRegionProvider);
+		assertSame(defaultRegionProvider, myRegionProvider);
+		assertNotNull(regionPostProcessor);
 	}
 
 	@Test

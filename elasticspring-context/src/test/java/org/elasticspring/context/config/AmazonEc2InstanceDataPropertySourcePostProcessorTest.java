@@ -19,10 +19,8 @@ package org.elasticspring.context.config;
 import com.amazonaws.SDKGlobalConfiguration;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
@@ -30,6 +28,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.SocketUtils;
 
 import java.net.InetSocketAddress;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Agim Emruli
@@ -51,7 +52,7 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 		staticApplicationContext.refresh();
 
 		//Assert
-		Assert.assertNotNull(staticApplicationContext.getEnvironment().getPropertySources().get(
+		assertNotNull(staticApplicationContext.getEnvironment().getPropertySources().get(
 				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME));
 	}
 
@@ -60,7 +61,7 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 		//Arrange
 		ConfigurableListableBeanFactory staticApplicationContext = new DefaultListableBeanFactory();
 		AmazonEc2InstanceDataPropertySourcePostProcessor processor = new AmazonEc2InstanceDataPropertySourcePostProcessor();
-		Environment environment = Mockito.mock(Environment.class);
+		Environment environment = mock(Environment.class);
 		processor.setEnvironment(environment);
 
 		//Act

@@ -20,13 +20,15 @@ import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 import java.net.URI;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class RegionPostProcessorTest {
 
@@ -42,7 +44,7 @@ public class RegionPostProcessorTest {
 
 		//Assert
 		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
-		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), webserviceClient.getRegion());
+		assertEquals(Region.getRegion(Regions.SA_EAST_1), webserviceClient.getRegion());
 	}
 
 	@Test
@@ -57,7 +59,7 @@ public class RegionPostProcessorTest {
 
 		//Assert
 		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
-		Assert.assertEquals(Region.getRegion(Regions.US_WEST_2), webserviceClient.getRegion());
+		assertEquals(Region.getRegion(Regions.US_WEST_2), webserviceClient.getRegion());
 	}
 
 	@Test
@@ -72,8 +74,8 @@ public class RegionPostProcessorTest {
 
 		//Assert
 		SimpleWebserviceClient webserviceClient = applicationContext.getBean(SimpleWebserviceClient.class);
-		Assert.assertNull(webserviceClient.getRegion());
-		Assert.assertEquals("test.amazonaws.com", webserviceClient.getEndpoint());
+		assertNull(webserviceClient.getRegion());
+		assertEquals("test.amazonaws.com", webserviceClient.getEndpoint());
 	}
 
 	@Test
@@ -88,7 +90,7 @@ public class RegionPostProcessorTest {
 
 		//Assert
 		SimpleObjectHolder objectHolder = applicationContext.getBean(SimpleObjectHolder.class);
-		Assert.assertEquals(Region.getRegion(Regions.SA_EAST_1), objectHolder.getSimpleWebserviceClient().getRegion());
+		assertEquals(Region.getRegion(Regions.SA_EAST_1), objectHolder.getSimpleWebserviceClient().getRegion());
 	}
 
 	static class SimpleWebserviceClient extends AmazonWebServiceClient {

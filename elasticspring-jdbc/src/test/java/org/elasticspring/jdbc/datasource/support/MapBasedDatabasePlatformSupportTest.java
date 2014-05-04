@@ -16,13 +16,14 @@
 
 package org.elasticspring.jdbc.datasource.support;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit test class for {@link org.elasticspring.jdbc.datasource.support.MapBasedDatabasePlatformSupport}
@@ -37,7 +38,7 @@ public class MapBasedDatabasePlatformSupportTest {
 
 	@Test
 	public void testGetDriverClassNameForDatabase() throws Exception {
-		Assert.assertEquals("com.mysql.jdbc.Driver", new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.MYSQL));
+		assertEquals("com.mysql.jdbc.Driver", new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.MYSQL));
 	}
 
 	@Test
@@ -58,7 +59,7 @@ public class MapBasedDatabasePlatformSupportTest {
 	public void testGetDatabaseUrlForDatabase() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
 		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL, "localhost", 3306, "testDb");
-		Assert.assertEquals("jdbc:mysql://localhost:3306/testDb", url);
+		assertEquals("jdbc:mysql://localhost:3306/testDb", url);
 	}
 
 	@Test
@@ -67,7 +68,7 @@ public class MapBasedDatabasePlatformSupportTest {
 		this.expectedException.expectMessage("Error constructing URI from Host:'localhost<'");
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
 		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL, "localhost<", 3306, "testDb");
-		Assert.assertEquals("jdbc:mysql://localhost:3306/testDb", url);
+		assertEquals("jdbc:mysql://localhost:3306/testDb", url);
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.STSSessionCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,6 +31,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link ContextCredentialsBeanDefinitionParser}
@@ -50,23 +53,23 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		//Check that the result of the factory bean is available
 		AWSCredentialsProvider awsCredentialsProvider = applicationContext.getBean(AWSCredentialsProvider.class);
 
-		Assert.assertTrue(AWSCredentialsProviderChain.class.isInstance(awsCredentialsProvider));
+		assertTrue(AWSCredentialsProviderChain.class.isInstance(awsCredentialsProvider));
 
 		// Using reflection to really test if the chain is stable
 		AWSCredentialsProviderChain awsCredentialsProviderChain = (AWSCredentialsProviderChain) awsCredentialsProvider;
 
 		@SuppressWarnings("unchecked") List<AWSCredentialsProvider> providerChain = (List<AWSCredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProviderChain, "credentialsProviders");
 
-		Assert.assertNotNull(providerChain);
-		Assert.assertEquals(3, providerChain.size());
+		assertNotNull(providerChain);
+		assertEquals(3, providerChain.size());
 
-		Assert.assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
-		Assert.assertTrue(STSSessionCredentialsProvider.class.isInstance(providerChain.get(1)));
-		Assert.assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
+		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
+		assertTrue(STSSessionCredentialsProvider.class.isInstance(providerChain.get(1)));
+		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
 
 		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(2);
-		Assert.assertEquals("staticAccessKey", staticCredentialsProvider.getCredentials().getAWSAccessKeyId());
-		Assert.assertEquals("staticSecretKey", staticCredentialsProvider.getCredentials().getAWSSecretKey());
+		assertEquals("staticAccessKey", staticCredentialsProvider.getCredentials().getAWSAccessKeyId());
+		assertEquals("staticSecretKey", staticCredentialsProvider.getCredentials().getAWSSecretKey());
 
 	}
 
@@ -101,8 +104,8 @@ public class ContextCredentialsBeanDefinitionParserTest {
 
 		AWSCredentialsProvider awsCredentialsProvider = applicationContext.getBean(AWSCredentialsProvider.class);
 		AWSCredentials credentials = awsCredentialsProvider.getCredentials();
-		Assert.assertEquals("foo", credentials.getAWSAccessKeyId());
-		Assert.assertEquals("bar", credentials.getAWSSecretKey());
+		assertEquals("foo", credentials.getAWSAccessKeyId());
+		assertEquals("bar", credentials.getAWSSecretKey());
 	}
 
 	@Test
@@ -111,7 +114,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 
 		AWSCredentialsProvider awsCredentialsProvider = applicationContext.getBean(AWSCredentialsProvider.class);
 		AWSCredentials credentials = awsCredentialsProvider.getCredentials();
-		Assert.assertEquals("foo", credentials.getAWSAccessKeyId());
-		Assert.assertEquals("bar", credentials.getAWSSecretKey());
+		assertEquals("foo", credentials.getAWSAccessKeyId());
+		assertEquals("bar", credentials.getAWSSecretKey());
 	}
 }
