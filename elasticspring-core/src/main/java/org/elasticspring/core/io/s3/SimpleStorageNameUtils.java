@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class SimpleStorageNameUtils {
 
 	static boolean isSimpleStorageResource(String location) {
 		Assert.notNull(location, "Location must not be null");
-		return location.toLowerCase().startsWith(SimpleStorageNameUtils.S3_PROTOCOL_PREFIX);
+		return location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX);
 	}
 
 	static String getBucketNameFromLocation(String location) {
