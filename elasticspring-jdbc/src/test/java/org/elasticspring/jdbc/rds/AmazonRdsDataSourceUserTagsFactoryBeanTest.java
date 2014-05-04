@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
 		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
 
@@ -70,7 +70,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
 		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
@@ -93,7 +93,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
 		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
 
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 
 
 		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));

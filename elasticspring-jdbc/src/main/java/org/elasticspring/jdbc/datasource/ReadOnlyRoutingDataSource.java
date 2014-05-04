@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.Map;
  * during transaction creation, but during the first physical access. See the LazyConnectionDataSourceProxy
  * documentation for more details.
  * </p>
+ *
  * @author Agim Emruli
  * @see org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy
  */
@@ -41,13 +42,8 @@ public class ReadOnlyRoutingDataSource extends AbstractRoutingDataSource {
 	private final List<Object> dataSources = new ArrayList<Object>();
 	private List<Object> dataSourceKeys;
 
-	private static int getRandom(int high) {
-		//noinspection UnsecureRandomNumberGeneration
-		return (int) (Math.random() * high);
-	}
-
 	@Override
-	public void setTargetDataSources(Map<Object, Object> targetDataSources) {
+	public void setTargetDataSources(Map<Object,Object> targetDataSources) {
 		super.setTargetDataSources(targetDataSources);
 		this.dataSourceKeys = new ArrayList<Object>(targetDataSources.keySet());
 		this.dataSources.addAll(targetDataSources.values());
@@ -70,5 +66,10 @@ public class ReadOnlyRoutingDataSource extends AbstractRoutingDataSource {
 
 	public List<Object> getDataSources() {
 		return this.dataSources;
+	}
+
+	private static int getRandom(int high) {
+		//noinspection UnsecureRandomNumberGeneration
+		return (int) (Math.random() * high);
 	}
 }

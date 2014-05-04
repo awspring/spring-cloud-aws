@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,19 +76,19 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("bar"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
-								withDBInstanceStatus("available").
-								withDBName("test").
-								withDBInstanceIdentifier("bar").
-								withEngine("mysql").
-								withMasterUsername("admin").
-								withEndpoint(new Endpoint().
-										withAddress("localhost").
-										withPort(3306)
-								)
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("bar").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										)
 						)
 		);
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS,"test", "secret");
+		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
 		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 		amazonRdsDataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
@@ -112,15 +112,15 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
-								withDBInstanceStatus("available").
-								withDBName("test").
-								withDBInstanceIdentifier("test").
-								withEngine("mysql").
-								withMasterUsername("admin").
-								withEndpoint(new Endpoint().
-										withAddress("localhost").
-										withPort(3306)
-								)
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("test").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										)
 						)
 		);
 
@@ -147,15 +147,15 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
-								withDBInstanceStatus("available").
-								withDBName("test").
-								withDBInstanceIdentifier("test").
-								withEngine("mysql").
-								withMasterUsername("admin").
-								withEndpoint(new Endpoint().
-										withAddress("localhost").
-										withPort(3306)
-								)
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("test").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										)
 						)
 		);
 
@@ -181,15 +181,15 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
-								withDBInstanceStatus("available").
-								withDBName("test").
-								withDBInstanceIdentifier("test").
-								withEngine("mysql").
-								withMasterUsername("admin").
-								withEndpoint(new Endpoint().
-										withAddress("localhost").
-										withPort(3306)
-								)
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("test").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										)
 						)
 		);
 
@@ -212,7 +212,8 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 
 		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().withDBInstanceStatus("available")), new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("rebooting")));
+						withDBInstances(new DBInstance().withDBInstanceStatus("available")), new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("rebooting"))
+		);
 
 		Assert.assertTrue(amazonRdsInstanceStatus.isDataSourceAvailable());
 		Assert.assertFalse(amazonRdsInstanceStatus.isDataSourceAvailable());

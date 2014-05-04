@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2013-2014 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.elasticspring.org/schema/jdbc"
-	   xmlns:context="http://www.elasticspring.org/schema/context"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jdbc="http://www.elasticspring.org/schema/jdbc" xmlns:context="http://www.elasticspring.org/schema/context"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	   http://www.elasticspring.org/schema/jdbc http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
@@ -26,6 +26,6 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" read-replica-support="true"/>
+	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" read-replica-support="true" />
 
 </beans>

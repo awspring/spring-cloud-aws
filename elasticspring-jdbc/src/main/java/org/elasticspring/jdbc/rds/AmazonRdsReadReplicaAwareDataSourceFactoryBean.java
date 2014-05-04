@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,8 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 	 * requested after the transaction start and not while starting a transaction.
 	 *
 	 * @return a ReadOnlyRoutingDataSource that is wrapped with a LazyConnectionDataSourceProxy
-	 * @throws Exception if the underlying data source setup throws any exception
+	 * @throws Exception
+	 * 		if the underlying data source setup throws any exception
 	 * @see org.elasticspring.jdbc.datasource.DynamicDataSource
 	 */
 	@Override
@@ -73,8 +74,8 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 			return super.createInstance();
 		}
 
-		HashMap<Object, Object> replicaMap = new HashMap<Object, Object>(
-					dbInstance.getReadReplicaDBInstanceIdentifiers().size());
+		HashMap<Object,Object> replicaMap = new HashMap<Object,Object>(
+				dbInstance.getReadReplicaDBInstanceIdentifiers().size());
 
 		for (String replicaName : dbInstance.getReadReplicaDBInstanceIdentifiers()) {
 			replicaMap.put(replicaName, createDataSourceInstance(replicaName));

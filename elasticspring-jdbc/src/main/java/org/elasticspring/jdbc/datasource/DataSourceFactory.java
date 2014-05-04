@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public interface DataSourceFactory {
 	 * 		- the {@link DataSourceInformation} parameter object which holds all dynamic information for the datasource
 	 * 		creation.
 	 * @return - a fully initialized datasource instance which can be used by the application to actually interact with a
-	 *         database platform
+	 * database platform
 	 */
 	DataSource createDataSource(DataSourceInformation dataSourceInformation);
 

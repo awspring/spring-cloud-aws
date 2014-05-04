@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,12 @@ public class MapBasedDatabasePlatformSupportTest {
 	private static class SimpleDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
 		@Override
-		protected Map<DatabaseType, String> getDriverClassNameMappings() {
+		protected Map<DatabaseType,String> getDriverClassNameMappings() {
 			return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
 		}
 
 		@Override
-		protected Map<DatabaseType, String> getSchemeNames() {
+		protected Map<DatabaseType,String> getSchemeNames() {
 			return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
 		}
 	}
