@@ -20,13 +20,13 @@
 	   xmlns:els-mail="http://www.elasticspring.org/schema/mail"
 	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-                           http://www.springframework.org/schema/util http://www.springframework.org/schema/context/spring-util.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
                            http://www.elasticspring.org/schema/mail http://www.elasticspring.org/schema/mail/elasticspring-mail-1.0.xsd">
 
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-mail:mail-sender />
+	<els-mail:mail-sender id="testSender" />
 
 	<util:properties id="mail" location="file://${els.config.dir}/mail.properties" />
 
