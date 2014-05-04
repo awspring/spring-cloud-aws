@@ -20,13 +20,25 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.mail.internet.MimeMessage;
+
 /**
- *
+ * Test that uses the Amazon Simple Mail service to send mail.
+ * <p><br>Note:</br>This test is a fire and forget test as the amazon simple
+ * mail service does not provide timely feedback if a message is send or not. Using the {@link
+ * com.amazonaws.services.simpleemail.AmazonSimpleEmailService} method to get the send statistics, does not help as the
+ * statistics there are only updated after a couple of minutes. Using an IMAP/POP3 account is to complicated for the
+ * test to be implemented in terms of mailbox setup etc. The main purpose of this test is to ensure that the api is
+ * correctly implemented and the webservice acknowledges the message.</p>
  */
 @ContextConfiguration("MailSenderAwsTest-context.xml")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -35,6 +47,9 @@ public class MailSenderAwsTest {
 	@Autowired
 	private MailSender mailSender;
 
+	@Autowired
+	private JavaMailSender javaMailSender;
+
 	@Value("#{mail.senderAddress}")
 	private String senderAddress;
 
@@ -42,7 +57,7 @@ public class MailSenderAwsTest {
 	private String recipientAddress;
 
 	@Test
-	public void testSendMail() throws Exception {
+	public void send_sendMailWithoutAnyAttachmentUsingTheSimpleMailApi_noExceptionThrownDuringSendAndForget() throws Exception {
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 		simpleMailMessage.setFrom(this.senderAddress);
 		simpleMailMessage.setTo(this.recipientAddress);
@@ -50,5 +65,21 @@ public class MailSenderAwsTest {
 		simpleMailMessage.setText("test content");
 
 		this.mailSender.send(simpleMailMessage);
+	}
+
+	@Test
+	public void send_sendMailWithAttachmentUsingTheJavaMailMimeMessageFormat_noExceptionThrownDuringMessaegConstructionAndSend() throws Exception {
+		this.javaMailSender.send(new MimeMessagePreparator() {
+
+			@Override
+			public void prepare(MimeMessage mimeMessage) throws Exception {
+				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+				helper.addTo(MailSenderAwsTest.this.recipientAddress);
+				helper.setFrom(MailSenderAwsTest.this.senderAddress);
+				helper.addAttachment("test.txt", new ByteArrayResource("attachment content".getBytes("UTF-8")));
+				helper.setSubject("test subject with attachment");
+				helper.setText("mime body", false);
+			}
+		});
 	}
 }
