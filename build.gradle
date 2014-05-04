@@ -16,6 +16,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -48,7 +60,7 @@ subprojects {
         junitVersion = '4.11'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
-        awsSdkVersion = '1.7.1'
+        awsSdkVersion = '1.7.6'
         mockitoVersion = '1.9.5'
         hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
@@ -97,6 +109,31 @@ project('elasticspring-core') {
 
 project('elasticspring-context') {
     description = "elasticspring context"
+
+    def memcachedClientVersion = "1.0.1"
+
+    configurations {
+        jarjar
+        memCachedClient
+    }
+
+    task memCachedClientRepackJar(type: Jar) { repackJar ->
+        repackJar.baseName = "elasticspring-memcached-repack"
+        repackJar.version = memcachedClientVersion
+
+        doLast() {
+            project.ant {
+                taskdef name: "jarjar", classname: "com.tonicsystems.jarjar.JarJarTask", classpath: configurations.jarjar.asPath
+                jarjar(destfile: repackJar.archivePath) {
+                    zipfileset(src: "${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
+                    rule(pattern: "net.spy.memcached.**", result: "org.elasticspring.cache.memcached.@1")
+                }
+            }
+        }
+    }
+
+    tasks.compileJava.dependsOn(memCachedClientRepackJar)
+
     dependencies {
         compile project(":elasticspring-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
@@ -104,13 +141,19 @@ project('elasticspring-context') {
         compile("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
+        compile files(memCachedClientRepackJar.archivePath)
+
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("com.thimbleware.jmemcached:jmemcached-core:1.0.0")
-        compile("com.google.code.simple-spring-memcached:spring-cache:3.3.0")
-        compile("com.google.code.simple-spring-memcached:spymemcached-provider:3.3.0") {
-            exclude module: "spymemcached"
+
+        jarjar("com.googlecode.jarjar:jarjar:1.3")
+    }
+
+    jar {
+        dependsOn memCachedClientRepackJar
+        from(zipTree(memCachedClientRepackJar.archivePath)) {
+            include "org/elasticspring/cache/memcached/**"
         }
-        testCompile("net.spy:spymemcached:2.10.6")
     }
 }
 
@@ -182,12 +225,7 @@ project('elasticspring-integration-test') {
             exclude module: "spring-context"
         }
         testCompile("org.springframework:spring-context-support:${springFrameworkVersion}")
-        testRuntime("org.aspectj:aspectjweaver:1.7.1")
-        testCompile("com.google.code.simple-spring-memcached:spring-cache:3.1.0")
-        testCompile("com.google.code.simple-spring-memcached:spymemcached-provider:3.1.0") {
-            exclude module: "spymemcached"
-        }
-        compile files("${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
+        testRuntime("org.aspectj:aspectjweaver:1.6.8")
 
         testRuntime("javax.servlet:javax.servlet-api:3.0.1")
         testCompile("org.springframework:spring-web:${springFrameworkVersion}")
@@ -199,6 +237,7 @@ project('elasticspring-integration-test') {
 
     test.onlyIf { System.getProperty("els.config.dir") != null }
     test.systemProperty("els.config.dir", System.getProperty("els.config.dir"))
+    configurations.archives.artifacts.clear()
 }
 
 
@@ -334,5 +373,5 @@ asciidoctor {
 
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
-    gradleVersion = '1.10'
+    gradleVersion = '1.11'
 }

@@ -16,8 +16,10 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.core.env.stack.config.StackResourceUserTagsFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -33,13 +35,14 @@ import static org.springframework.beans.factory.support.BeanDefinitionBuilder.ge
  * Parser for the {@code <els-context:stack-configuration />} element.
  *
  * @author Christian Stettler
+ * @author Agim Emruli
  */
 class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static final String STACK_RESOURCE_REGISTRY_FACTORY_BEAN_CLASS_NAME = "org.elasticspring.core.env.stack.config.StackResourceRegistryFactoryBean";
 	private static final String STATIC_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.StaticStackNameProvider";
 	private static final String AUTO_DETECTING_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.AutoDetectingStackNameProvider";
-	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.ec2.AmazonEC2InstanceIdProvider";
+	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.ec2.AmazonEc2InstanceIdProvider";
 	private static final String CLOUD_FORMATION_CLASS_NAME = "com.amazonaws.services.cloudformation.AmazonCloudFormationClient";
 
 	private static final String STACK_NAME_ATTRIBUTE_NAME = "stack-name";
@@ -52,7 +55,10 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);
 
 		builder.addConstructorArgReference(amazonCloudFormationClientBeanName);
-		builder.addConstructorArgValue(StringUtils.isEmpty(stackName) ? buildAutoDetectingStackNameProviderBeanDefinition(amazonCloudFormationClientBeanName) : buildStaticStackNameProviderBeanDefinition(stackName));
+		AbstractBeanDefinition stackNameProviderBeanDefinition = StringUtils.isEmpty(stackName) ? buildAutoDetectingStackNameProviderBeanDefinition(amazonCloudFormationClientBeanName) : buildStaticStackNameProviderBeanDefinition(stackName);
+		builder.addConstructorArgValue(stackNameProviderBeanDefinition);
+
+		buildAndRegisterStackUserTagsIfNeeded(element, parserContext,amazonCloudFormationClientBeanName,stackNameProviderBeanDefinition);
 	}
 
 	@Override
@@ -93,4 +99,12 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		return instanceIdProviderBeanDefinitionBuilder.getBeanDefinition();
 	}
 
+	private static void buildAndRegisterStackUserTagsIfNeeded(Element element, ParserContext parserContext, String cloudformationBeanName, BeanDefinition stackNameProvider) {
+		if (StringUtils.hasText(element.getAttribute("user-tags-map"))) {
+			BeanDefinitionBuilder builder = genericBeanDefinition(StackResourceUserTagsFactoryBean.class);
+			builder.addConstructorArgReference(cloudformationBeanName);
+			builder.addConstructorArgValue(stackNameProvider);
+			parserContext.getRegistry().registerBeanDefinition(element.getAttribute("user-tags-map"), builder.getBeanDefinition());
+		}
+	}
 }

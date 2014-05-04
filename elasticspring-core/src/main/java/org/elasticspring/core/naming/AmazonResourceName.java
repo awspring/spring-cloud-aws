@@ -16,6 +16,7 @@
 
 package org.elasticspring.core.naming;
 
+import com.amazonaws.regions.Region;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -26,9 +27,10 @@ import java.util.Arrays;
  * different type of resource inside the Amazon Webservices. These resource are represented by a service and could be
  * bound into a particular region, if the service is region based. Also most of the resources will be typically bound
  * to an account if the resource is scoped ot an account.
- * <p/>
+ * <p>
  * More information on resources are available on
  * <a href="http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">the Amazon Webservice Manual</a>
+ * </p>
  *
  * @author Agim Emruli
  * @since 1.0
@@ -185,5 +187,50 @@ public class AmazonResourceName {
 
 	private static String trimToNull(String input) {
 		return StringUtils.hasText(input) ? input : null;
+	}
+
+
+	@SuppressWarnings("ClassNamingConvention")
+	public static class Builder {
+		private String service;
+		private String region;
+		private String account;
+		private String resourceType;
+		private String resourceName;
+		private String actualResourceTypeDelimiter;
+
+		public Builder withService(String service) {
+			this.service = service;
+			return this;
+		}
+
+		public Builder withRegion(Region region) {
+			this.region = region.getName();
+			return this;
+		}
+
+		public Builder withAccount(String account) {
+			this.account = account;
+			return this;
+		}
+
+		public Builder withResourceType(String resourceType) {
+			this.resourceType = resourceType;
+			return this;
+		}
+
+		public Builder withResourceName(String resourceName) {
+			this.resourceName = resourceName;
+			return this;
+		}
+
+		public Builder withResourceTypeDelimiter(String resourceTypeDelimiter) {
+			this.actualResourceTypeDelimiter = resourceTypeDelimiter;
+			return this;
+		}
+
+		public AmazonResourceName build(){
+			return new AmazonResourceName(this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
+		}
 	}
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.jdbc.rds.InstanceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,8 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	 */
 	private final AmazonRDS amazonRDS;
 
+	private ResourceIdResolver resourceIdResolver;
+
 	/**
 	 * Constructs this strategy implementation with it default and mandatory collaborators.
 	 *
@@ -74,6 +77,14 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 		Assert.notNull(amazonRDS, "amazonRDS must not be null.");
 		this.amazonRDS = amazonRDS;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
+	}
+
+	/**
+	 * Configures an option {@link org.elasticspring.core.env.ResourceIdResolver} to resolve logical name to physical name
+	 * @param resourceIdResolver - the resourceIdResolver to be used, may be null
+	 */
+	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
+		this.resourceIdResolver = resourceIdResolver;
 	}
 
 	/**
@@ -97,7 +108,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 		try {
 			describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier((String) context.getAttribute(DB_INSTANCE_ATTRIBUTE_NAME)));
 		} catch (DBInstanceNotFoundException e) {
-			LOGGER.warn("Database Instance with name {} has been removed or is not configured correctly, no retry possible", this.dbInstanceIdentifier);
+			LOGGER.warn("Database Instance with name {} has been removed or is not configured correctly, no retry possible", getDbInstanceIdentifier());
 			//Database has been deleted while operating, hence we can not retry
 			return false;
 		}
@@ -117,18 +128,22 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	@Override
 	public RetryContext open(RetryContext parent) {
 		RetryContextSupport context = new RetryContextSupport(parent);
-		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, this.dbInstanceIdentifier);
+		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, getDbInstanceIdentifier());
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Starting RetryContext for database instance with identifier {}", this.dbInstanceIdentifier);
+			LOGGER.trace("Starting RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
 		}
 		return context;
+	}
+
+	private String getDbInstanceIdentifier() {
+		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) :  this.dbInstanceIdentifier;
 	}
 
 	@Override
 	public void close(RetryContext context) {
 		context.removeAttribute(DB_INSTANCE_ATTRIBUTE_NAME);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Closing RetryContext for database instance with identifier {}", this.dbInstanceIdentifier);
+			LOGGER.trace("Closing RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
 		}
 	}
 

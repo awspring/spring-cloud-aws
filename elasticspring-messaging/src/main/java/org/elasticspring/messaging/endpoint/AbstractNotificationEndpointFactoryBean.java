@@ -205,7 +205,7 @@ abstract class AbstractNotificationEndpointFactoryBean<T> extends AbstractFactor
 	 *
 	 * @param instance
 	 * 		the instance which has been created by {@link #createInstance()}
-	 * @throws Exception
+	 * @throws Exception if the underlying disposable bean throws one
 	 */
 	@Override
 	protected final void destroyInstance(Object instance) throws Exception {

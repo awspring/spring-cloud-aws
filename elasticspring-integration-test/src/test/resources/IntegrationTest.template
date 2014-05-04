@@ -48,6 +48,13 @@
 				]
 			}
 		},
+		"RdsSingleMicroInstanceReplicaInstance" : {
+              "Type" : "AWS::RDS::DBInstance",
+              "Properties" : {
+                "SourceDBInstanceIdentifier" : { "Ref" : "RdsSingleMicroInstance" },
+                "DBInstanceClass": "db.m1.small"
+              }
+        },
 		"AllowAllGroup": {
 			"Type": "AWS::RDS::DBSecurityGroup",
 			"Properties": {

@@ -16,11 +16,7 @@
 
 
 
-
-
-
-
-allprojects {
+subprojects {
     apply plugin: 'checkstyle'
 
     checkstyle {

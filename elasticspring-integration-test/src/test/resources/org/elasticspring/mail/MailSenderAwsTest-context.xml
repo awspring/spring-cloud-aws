@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2010-2012 the original author or authors.
+  ~ Copyright 2013 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,19 +17,16 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-mail="http://www.elasticspring.org/schema/mail"
 	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+                           http://www.elasticspring.org/schema/mail http://www.elasticspring.org/schema/mail/elasticspring-mail-1.0.xsd">
+
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<bean id="mailSender" class="org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender">
-		<constructor-arg>
-			<bean class="com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient">
-				<constructor-arg
-						ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-			</bean>
-		</constructor-arg>
-	</bean>
+	<els-mail:mail-sender id="testSender" />
 
 	<util:properties id="mail" location="file://${els.config.dir}/mail.properties" />
 

@@ -2,14 +2,18 @@
 <project version="4">
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
-    <list size="6">
+    <list size="7">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
       <item index="1" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.QueueListener" />
       <item index="2" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.TopicListener" />
       <item index="3" class="java.lang.String" itemvalue="org.mockito.Captor" />
       <item index="4" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Autowired" />
       <item index="5" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Value" />
+      <item index="6" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
+  </component>
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$" />
   </component>
   <component name="IdProvider" IDEtalkID="11DA1DB66DD62DDA1ED602B7079FE97C" />
   <component name="ProjectResources">
@@ -24,7 +28,7 @@
     <resource url="http://www.springframework.org/schema/aop/spring-aop-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-aop/4.0.0.RC1/jar/b39243f23d065bab1e50ea571d3b7a44f9aaca9c/spring-aop-4.0.0.RC1.jar!/org/springframework/aop/config/spring-aop-3.1.xsd" />
     <resource url="http://jakarta.apache.org/log4j/" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.7" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

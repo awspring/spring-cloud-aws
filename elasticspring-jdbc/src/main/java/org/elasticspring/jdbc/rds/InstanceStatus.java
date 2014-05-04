@@ -46,7 +46,14 @@ public enum InstanceStatus {
 	 * reboot. A second attempt is likely to succeed especially in the combination with a replicated Multi A/Z instance.
 	 */
 	@RuntimeUse
-	REBOOTING(true, false);
+	REBOOTING(true, false),
+
+	/**
+	 * Database state which defines that the database instance is modifying. The database is still available and usable,
+	 * but a modification is in progress. This can be the case if an read-replica instance is added to the database itself.
+	 */
+	@RuntimeUse
+	MODIFYING(true,true);
 
 	/**
 	 * boolean flag indicating if a second attempt to execute the operation will succeed
