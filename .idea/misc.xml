@@ -1,35 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
-    <list size="7">
+    <list size="1">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
-      <item index="1" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.QueueListener" />
-      <item index="2" class="java.lang.String" itemvalue="org.elasticspring.messaging.config.annotation.TopicListener" />
-      <item index="3" class="java.lang.String" itemvalue="org.mockito.Captor" />
-      <item index="4" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Autowired" />
-      <item index="5" class="java.lang.String" itemvalue="org.springframework.beans.factory.annotation.Value" />
-      <item index="6" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
   </component>
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$" />
   </component>
-  <component name="IdProvider" IDEtalkID="11DA1DB66DD62DDA1ED602B7079FE97C" />
-  <component name="ProjectResources">
-    <resource url="http://www.springframework.org/schema/util/spring-util-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-beans/4.0.0.RC1/jar/bab1f389bfd168ac6a116d0a0efb256864f7c857/spring-beans-4.0.0.RC1.jar!/org/springframework/beans/factory/xml/spring-util-3.1.xsd" />
-    <resource url="http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd" location="$PROJECT_DIR$/elasticspring-messaging/src/main/resources/org/elasticspring/messaging/config/xml/elasticspring-messaging-1.0.xsd" />
-    <resource url="http://www.springframework.org/schema/tx/spring-tx-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-tx/4.0.0.RC1/jar/6101ac3f779c4aecdd1a892be3b13a8d453ab9d5/spring-tx-4.0.0.RC1.jar!/org/springframework/transaction/config/spring-tx-3.1.xsd" />
-    <resource url="http://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd" location="$PROJECT_DIR$/elasticspring-jdbc/src/main/resources/org/elasticspring/jdbc/config/xml/elasticspring-jdbc-1.0.xsd" />
-    <resource url="http://www.springframework.org/schema/context/spring-context-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-context/4.0.0.RC1/jar/f0225eebfbba710c1d6d48bcddda1c146d60cb58/spring-context-4.0.0.RC1.jar!/org/springframework/context/config/spring-context-3.1.xsd" />
-    <resource url="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" location="$PROJECT_DIR$/elasticspring-context/src/main/resources/org/elasticspring/context/config/xml/elasticspring-context-1.0.xsd" />
-    <resource url="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-beans/4.0.0.RC1/jar/bab1f389bfd168ac6a116d0a0efb256864f7c857/spring-beans-4.0.0.RC1.jar!/org/springframework/beans/factory/xml/spring-tool-3.1.xsd" />
-    <resource url="log4j.dtd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
-    <resource url="http://www.springframework.org/schema/aop/spring-aop-3.1.xsd" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/org.springframework/spring-aop/4.0.0.RC1/jar/b39243f23d065bab1e50ea571d3b7a44f9aaca9c/spring-aop-4.0.0.RC1.jar!/org/springframework/aop/config/spring-aop-3.1.xsd" />
-    <resource url="http://jakarta.apache.org/log4j/" location="$USER_HOME$/.gradle/caches/artifacts-26/filestore/log4j/log4j/1.2.17/bundle/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar!/org/apache/log4j/xml/log4j.dtd" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/out" />
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="Remote" factoryName="Remote">
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="false" />
+      <option name="SHMEM_ADDRESS" value="javadebug" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <module name="" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <patterns />
+      <method />
+    </configuration>
+    <list size="0" />
+    <configuration name="&lt;template&gt;" type="TestNG" default="true" selected="false">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration name="&lt;template&gt;" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" default="true" selected="false">
+      <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
+    </configuration>
+    <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
+      <Host>localhost</Host>
+      <Port>5050</Port>
+    </configuration>
   </component>
 </project>
 
