@@ -16,12 +16,15 @@
 
 package org.elasticspring.messaging.listener;
 
+import org.elasticspring.messaging.support.SnsPayloadArgumentResolver;
 import org.elasticspring.messaging.support.converter.JsonMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
+import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
@@ -55,14 +58,13 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	/**
 	 * This sendToMessageTemplate will be used to send the return value. Note that {@link
-	 * org.springframework.messaging.core.MessageSendingOperations#convertAndSend(D, Object)} will be used
+	 * org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object)} will be used
 	 * and therefore a converter must be set on the {@literal sendToMessageTemplate}.
 	 *
 	 * @param sendToMessageTemplate to use for sending the return value.
 	 * @see org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler
 	 * @see org.springframework.messaging.handler.annotation.SendTo
 	 */
-	@SuppressWarnings("JavadocReference")
 	public void setSendToMessageTemplate(MessageSendingOperations<String> sendToMessageTemplate) {
 		this.sendToMessageTemplate = sendToMessageTemplate;
 	}
@@ -70,16 +72,23 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
-		resolvers.add(new PayloadArgumentResolver(new JsonMessageConverter(), new NoOpValidator()));
 		resolvers.addAll(getCustomArgumentResolvers());
+
+		resolvers.add(new HeaderMethodArgumentResolver(null, null));
+		resolvers.add(new HeadersMethodArgumentResolver());
+		resolvers.add(new SnsPayloadArgumentResolver());
+		resolvers.add(new PayloadArgumentResolver(new JsonMessageConverter(), new NoOpValidator()));
+
 		return resolvers;
 	}
 
 	@Override
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
 		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
-		handlers.add(new SendToHandlerMethodReturnValueHandler(this.sendToMessageTemplate));
 		handlers.addAll(this.getCustomReturnValueHandlers());
+
+		handlers.add(new SendToHandlerMethodReturnValueHandler(this.sendToMessageTemplate));
+
 		return handlers;
 	}
 

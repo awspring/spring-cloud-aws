@@ -54,6 +54,7 @@ import java.util.Set;
  */
 abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware, ApplicationContextAware {
 
+	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
 
@@ -311,7 +312,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.getLifecycleMonitor()) {
 			for (String queue : this.queues) {
 				String destinationUrl = getDestinationResolver().resolveDestination(queue);
-				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl);
+				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES);
 				if (getMaxNumberOfMessages() != null) {
 					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
 				}

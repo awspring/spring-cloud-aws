@@ -17,12 +17,13 @@
 package org.elasticspring.messaging.support.converter;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.elasticspring.messaging.support.NotificationMessage;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author Agim Emruli
@@ -46,7 +47,7 @@ public class NotificationMessageConverterTest {
 		jsonObject.put("Subject", "Hello");
 		jsonObject.put("Message", "World");
 		String payload = jsonObject.toString();
-		NotificationMessageConverter.NotificationMessage notificationMessage =
+		NotificationMessage notificationMessage =
 				new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 		Assert.assertEquals("Hello", notificationMessage.getSubject());
 		Assert.assertEquals("World", notificationMessage.getBody());
@@ -58,7 +59,7 @@ public class NotificationMessageConverterTest {
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Message", "Hello World");
 		String payload = jsonObject.toString();
-		NotificationMessageConverter.NotificationMessage notificationMessage =
+		NotificationMessage notificationMessage =
 				new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 		Assert.assertEquals("Hello World", notificationMessage.getBody());
 		Assert.assertNull(notificationMessage.getSubject());
@@ -103,4 +104,5 @@ public class NotificationMessageConverterTest {
 		String message = "foo";
 		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(message).build(),null);
 	}
+
 }

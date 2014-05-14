@@ -94,10 +94,11 @@ public class HttpNotificationServiceTest {
 			return this.lastSubject;
 		}
 
+		// TODO Alain: use @MessageMapping and create a new annotation @TopicAttributes for the protocol and endpoint
 		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('HttpReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.HTTP,
 				endpoint = "http://notimportant.elasticspring.com/endpoint")
-		public void receiveNotification(String body,String subject) {
+		public void receiveNotification(String body, String subject) {
 			this.lastMessage = body;
 			this.lastSubject = subject;
 		}

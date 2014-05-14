@@ -16,16 +16,15 @@
 
 package org.elasticspring.messaging;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
-import org.elasticspring.messaging.core.TopicMessageChannel;
+import org.elasticspring.messaging.support.NotificationMessage;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -90,11 +89,12 @@ public class NotificationMessagingTemplateIntegrationTest {
 			this.subject = null;
 		}
 
+		@RuntimeUse
 		@MessageMapping("NotificationQueue")
-		private void messageListener(@Payload String message, @Header(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER) String subject) {
+		private void messageListener(NotificationMessage message) {
 			this.countDownLatch.countDown();
-			this.message = message;
-			this.subject = subject;
+			this.message = message.getBody();
+			this.subject = message.getSubject();
 		}
 
 	}

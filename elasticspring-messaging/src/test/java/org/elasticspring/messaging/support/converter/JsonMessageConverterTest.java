@@ -24,10 +24,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.MessageBuilder;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import static org.junit.Assert.assertNull;
 
 public class JsonMessageConverterTest {
 
@@ -36,13 +41,60 @@ public class JsonMessageConverterTest {
 
 	@Test
 	public void testSerializeBean() throws Exception {
-
 		TestPerson testPerson = new TestPerson("Agim", "Emruli", new SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).parse("1984-12-18"));
 		MessageConverter messageConverter = new JsonMessageConverter();
 		Message<?> result = messageConverter.toMessage(testPerson, null);
 
 		TestPerson candidate = (TestPerson) messageConverter.fromMessage(result, TestPerson.class);
 		Assert.assertEquals(testPerson, candidate);
+	}
+
+	@Test
+	public void toMessage_withNullPayload_shouldReturnNull() throws Exception {
+		// Arrange
+		JsonMessageConverter messageConverter = new JsonMessageConverter();
+
+		// Act
+		Message<String> result = messageConverter.toMessage(null, null);
+
+		// Assert
+		assertNull(result);
+	}
+
+	@Test
+	public void toMessage_withInvalidPayload_shouldReturnNull() throws Exception {
+		// Arrange
+		JsonMessageConverter messageConverter = new JsonMessageConverter();
+
+		// Act
+		Message<String> result = messageConverter.toMessage(new ByteArrayInputStream(new byte[1024]), null);
+
+		// Assert
+		assertNull(result);
+	}
+
+	@Test
+	public void fromMessage_withNullPayload_shouldReturnNull() throws Exception {
+		// Arrange
+		JsonMessageConverter messageConverter = new JsonMessageConverter();
+
+		// Act
+		Object result = messageConverter.fromMessage(null, null);
+
+		// Assert
+		assertNull(result);
+	}
+
+	@Test
+	public void fromMessage_withInvalidPayload_shouldReturnNull() throws Exception {
+		// Arrange
+		JsonMessageConverter messageConverter = new JsonMessageConverter();
+
+		// Act
+		Object result = messageConverter.fromMessage(MessageBuilder.withPayload("json{]").build(), InputStream.class);
+
+		// Assert
+		assertNull(result);
 	}
 
 	public static class TestPerson {
