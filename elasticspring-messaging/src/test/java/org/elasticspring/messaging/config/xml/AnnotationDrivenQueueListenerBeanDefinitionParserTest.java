@@ -27,7 +27,16 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -45,10 +54,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
 		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
-		Assert.assertNotNull(sqsDefinition);
+		assertNotNull(sqsDefinition);
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
+		assertNotNull(abstractContainerDefinition);
 
 		Assert.assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
@@ -62,10 +71,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sqs.xml", getClass()));
 
 		BeanDefinition sqsAsync = registry.getBeanDefinition("myClient");
-		Assert.assertNotNull(sqsAsync);
+		assertNotNull(sqsAsync);
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
+		assertNotNull(abstractContainerDefinition);
 
 		Assert.assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals("myClient",
@@ -79,10 +88,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
 
 		BeanDefinition executor = registry.getBeanDefinition("executor");
-		Assert.assertNotNull(executor);
+		assertNotNull(executor);
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
+		assertNotNull(abstractContainerDefinition);
 
 		Assert.assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
 		Assert.assertEquals("executor",
@@ -96,7 +105,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-with-send-to-message-template.xml", getClass()));
 
 		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
-		Assert.assertNotNull(queueMessageHandler);
+		assertNotNull(queueMessageHandler);
 
 		Assert.assertEquals(1, queueMessageHandler.getPropertyValues().size());
 		Assert.assertEquals("messageTemplate",
@@ -110,11 +119,63 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-properties.xml", getClass()));
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		Assert.assertNotNull(abstractContainerDefinition);
+		assertNotNull(abstractContainerDefinition);
 
 		Assert.assertEquals("false", abstractContainerDefinition.getPropertyValues().getPropertyValue("autoStartup").getValue());
 		Assert.assertEquals("9", abstractContainerDefinition.getPropertyValues().getPropertyValue("maxNumberOfMessages").getValue());
 		Assert.assertEquals("6", abstractContainerDefinition.getPropertyValues().getPropertyValue("visibilityTimeout").getValue());
 		Assert.assertEquals("3", abstractContainerDefinition.getPropertyValues().getPropertyValue("waitTimeOut").getValue());
 	}
+
+	@Test
+	public void testParseCustomArgumentResolvers() throws Exception {
+		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-argument-resolvers.xml", getClass()));
+		applicationContext.refresh();
+		
+		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
+		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().size());
+		assertTrue(TestHandlerMethodArgumentResolver.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().get(0)));
+	}
+
+	@Test
+	public void testParseCustomReturnValueHandlers() throws Exception {
+		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-return-value-handlers.xml", getClass()));
+		applicationContext.refresh();
+
+		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
+		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().size());
+		assertTrue(TestHandlerMethodReturnValueHandler.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().get(0)));
+
+	}
+
+	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
+
+		@Override
+		public boolean supportsParameter(MethodParameter parameter) {
+			return false;
+		}
+
+		@Override
+		public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+			return null;
+		}
+	}
+
+	private static class TestHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
+
+		@Override
+		public boolean supportsReturnType(MethodParameter returnType) {
+			return false;
+		}
+
+		@Override
+		public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
+
+		}
+	}
+
 }

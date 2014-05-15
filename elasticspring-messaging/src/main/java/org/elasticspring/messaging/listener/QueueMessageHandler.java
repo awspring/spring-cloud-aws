@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.support.SnsPayloadArgumentResolver;
 import org.elasticspring.messaging.support.converter.JsonMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -65,6 +66,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	 * @see org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler
 	 * @see org.springframework.messaging.handler.annotation.SendTo
 	 */
+	@RuntimeUse
 	public void setSendToMessageTemplate(MessageSendingOperations<String> sendToMessageTemplate) {
 		this.sendToMessageTemplate = sendToMessageTemplate;
 	}

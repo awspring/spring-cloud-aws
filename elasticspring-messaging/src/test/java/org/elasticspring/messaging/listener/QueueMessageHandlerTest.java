@@ -23,9 +23,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.core.MethodParameter;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
@@ -33,13 +37,21 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.support.MessageBuilder;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -180,6 +192,54 @@ public class QueueMessageHandlerTest {
 		assertNotNull(messageReceiver.getHeaders());
 		assertEquals("ID", messageReceiver.getHeaders().get("SenderId"));
 		assertEquals("testQueue", messageReceiver.getHeaders().get(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY));
+	}
+
+	@Test
+	public void receiveMessage_withCustomArgumentResolvers_shouldCallThemBeforeTheDefaultOnes() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
+
+		HandlerMethodArgumentResolver handlerMethodArgumentResolver = mock(HandlerMethodArgumentResolver.class);
+		when(handlerMethodArgumentResolver.supportsParameter(any(MethodParameter.class))).thenReturn(true);
+		when(handlerMethodArgumentResolver.resolveArgument(any(MethodParameter.class), any(Message.class))).thenReturn("Hello from a sender");
+		MutablePropertyValues properties = new MutablePropertyValues(
+				Collections.singletonList(new PropertyValue("customArgumentResolvers", handlerMethodArgumentResolver)));
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class, properties);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		// Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
+				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+
+		// Assert
+		verify(handlerMethodArgumentResolver, times(1)).resolveArgument(any(MethodParameter.class), any(Message.class));
+	}
+
+	@Test
+	public void receiveMessage_withCustomReturnValueHandlers_shouldCallThemBeforeTheDefaultOnes() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
+
+		HandlerMethodReturnValueHandler handlerMethodReturnValueHandler = mock(HandlerMethodReturnValueHandler.class);
+		when(handlerMethodReturnValueHandler.supportsReturnType(any(MethodParameter.class))).thenReturn(true);
+		MutablePropertyValues properties = new MutablePropertyValues(
+				Collections.singletonList(new PropertyValue("customReturnValueHandlers", handlerMethodReturnValueHandler)));
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class, properties);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		// Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
+				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+
+		// Assert
+		verify(handlerMethodReturnValueHandler, times(1)).handleReturnValue(any(Object.class), any(MethodParameter.class), any(Message.class));
+
 	}
 
 	@SuppressWarnings("UnusedDeclaration")

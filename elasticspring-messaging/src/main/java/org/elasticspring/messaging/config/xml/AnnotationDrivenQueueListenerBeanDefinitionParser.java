@@ -23,10 +23,12 @@ import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -90,9 +92,46 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			queueMessageHandlerDefinitionBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("send-to-message-template"), element.getAttribute("send-to-message-template"));
 		}
 
+		ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
+		if (argumentResolvers != null) {
+			queueMessageHandlerDefinitionBuilder.addPropertyValue("customArgumentResolvers", argumentResolvers);
+		}
+
+		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, parserContext);
+		if (returnValueHandlers != null) {
+			queueMessageHandlerDefinitionBuilder.addPropertyValue("customReturnValueHandlers", returnValueHandlers);
+		}
+
 		String messageHandlerBeanName = parserContext.getReaderContext().generateBeanName(queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(messageHandlerBeanName, queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		return messageHandlerBeanName;
+	}
+
+	private ManagedList<?> getArgumentResolvers(Element element, ParserContext parserContext) {
+		Element resolversElement = DomUtils.getChildElementByTagName(element, "argument-resolvers");
+		if (resolversElement != null) {
+			return extractBeanSubElements(resolversElement, parserContext);
+		}
+		return null;
+	}
+
+	private ManagedList<?> getReturnValueHandlers(Element element, ParserContext parserContext) {
+		Element handlersElement = DomUtils.getChildElementByTagName(element, "return-value-handlers");
+		if (handlersElement != null) {
+			return extractBeanSubElements(handlersElement, parserContext);
+		}
+		return null;
+	}
+
+	private ManagedList<BeanDefinitionHolder> extractBeanSubElements(Element parentElement, ParserContext parserContext) {
+		ManagedList<BeanDefinitionHolder> list = new ManagedList<BeanDefinitionHolder>();
+		list.setSource(parserContext.extractSource(parentElement));
+		for (Element beanElement : DomUtils.getChildElementsByTagName(parentElement, "bean")) {
+			BeanDefinitionHolder beanDef = parserContext.getDelegate().parseBeanDefinitionElement(beanElement);
+			beanDef = parserContext.getDelegate().decorateBeanDefinitionIfRequired(beanElement, beanDef);
+			list.add(beanDef);
+		}
+		return list;
 	}
 
 	@Override
