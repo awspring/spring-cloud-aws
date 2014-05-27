@@ -101,6 +101,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected MappingInformation getMappingForMethod(Method method, Class<?> handlerType) {
+		// TODO support meta annotations
 		MessageMapping messageMappingAnnotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
 		if (messageMappingAnnotation == null) {
 			return null;

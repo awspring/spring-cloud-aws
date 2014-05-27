@@ -79,6 +79,12 @@ public class SimpleSpringMemcached implements Cache {
 	}
 
 	@Override
+	public ValueWrapper putIfAbsent(Object key, Object value) {
+		// TODO alsa: implement correctly
+		return null;
+	}
+
+	@Override
 	public void evict(Object key) {
 		Assert.notNull(key,"key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
