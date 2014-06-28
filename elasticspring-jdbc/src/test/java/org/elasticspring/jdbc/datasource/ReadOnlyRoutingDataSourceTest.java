@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.elasticspring.jdbc.datasource;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
@@ -32,6 +30,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Agim Emruli
  */
@@ -41,10 +44,10 @@ public class ReadOnlyRoutingDataSourceTest {
 	public void getConnection_NoReadReplicaAvailableNoTransactionActive_returnsDefaultDataSource() throws Exception {
 
 		//Arrange
-		DataSource defaultDataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
+		DataSource defaultDataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
 
-		Mockito.when(defaultDataSource.getConnection()).thenReturn(connection);
+		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
 		readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
@@ -58,17 +61,17 @@ public class ReadOnlyRoutingDataSourceTest {
 		Connection connectionReturned = dataSource.getConnection();
 
 		//Assert
-		Assert.assertSame(connection, ((ConnectionProxy) connectionReturned).getTargetConnection());
+		assertSame(connection, ((ConnectionProxy) connectionReturned).getTargetConnection());
 	}
 
 	@Test
 	public void getConnection_NoReadReplicaAvailableReadOnlyTransactionActive_returnsDefaultDataSource() throws Exception {
 
 		//Arrange
-		DataSource defaultDataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
+		DataSource defaultDataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
 
-		Mockito.when(defaultDataSource.getConnection()).thenReturn(connection);
+		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
 		readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
@@ -90,32 +93,32 @@ public class ReadOnlyRoutingDataSourceTest {
 				try {
 					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
 				} catch (SQLException e) {
-					Assert.fail(e.getMessage());
+					fail(e.getMessage());
 				}
 				return null;
 			}
 		});
 
 		//Assert
-		Assert.assertSame(connection, connectionReturned);
+		assertSame(connection, connectionReturned);
 	}
 
 	@Test
 	public void getConnection_ReadReplicaAvailableReadOnlyTransactionActive_returnsReadReplicaDataSource() throws Exception {
 
 		//Arrange
-		DataSource defaultDataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
+		DataSource defaultDataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
 
-		DataSource readOnlyDataSource = Mockito.mock(DataSource.class);
-		Connection readOnlyConnection = Mockito.mock(Connection.class);
+		DataSource readOnlyDataSource = mock(DataSource.class);
+		Connection readOnlyConnection = mock(Connection.class);
 
 
-		Mockito.when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
-		Mockito.when(defaultDataSource.getConnection()).thenReturn(connection);
+		when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
+		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1",readOnlyDataSource));
+		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
 		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
 		readOnlyRoutingDataSource.afterPropertiesSet();
 
@@ -134,32 +137,32 @@ public class ReadOnlyRoutingDataSourceTest {
 				try {
 					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
 				} catch (SQLException e) {
-					Assert.fail(e.getMessage());
+					fail(e.getMessage());
 				}
 				return null;
 			}
 		});
 
 		//Assert
-		Assert.assertSame(readOnlyConnection, connectionReturned);
+		assertSame(readOnlyConnection, connectionReturned);
 	}
 
 	@Test
 	public void getConnection_ReadReplicaAvailableWriteTransactionActive_returnsDefaultDataSource() throws Exception {
 
 		//Arrange
-		DataSource defaultDataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
+		DataSource defaultDataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
 
-		DataSource readOnlyDataSource = Mockito.mock(DataSource.class);
-		Connection readOnlyConnection = Mockito.mock(Connection.class);
+		DataSource readOnlyDataSource = mock(DataSource.class);
+		Connection readOnlyConnection = mock(Connection.class);
 
 
-		Mockito.when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
-		Mockito.when(defaultDataSource.getConnection()).thenReturn(connection);
+		when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
+		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1",readOnlyDataSource));
+		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
 		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
 		readOnlyRoutingDataSource.afterPropertiesSet();
 
@@ -178,13 +181,13 @@ public class ReadOnlyRoutingDataSourceTest {
 				try {
 					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
 				} catch (SQLException e) {
-					Assert.fail(e.getMessage());
+					fail(e.getMessage());
 				}
 				return null;
 			}
 		});
 
 		//Assert
-		Assert.assertSame(connection, connectionReturned);
+		assertSame(connection, connectionReturned);
 	}
 }

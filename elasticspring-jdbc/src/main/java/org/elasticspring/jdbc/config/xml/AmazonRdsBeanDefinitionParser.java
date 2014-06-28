@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,44 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	private static final String USER_TAG_FACTORY_BEAN_CLASS_NAME = "org.elasticspring.jdbc.rds.AmazonRdsDataSourceUserTagsFactoryBean";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
+
+	@Override
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder datasourceBuilder;
+		if (Boolean.TRUE.toString().equalsIgnoreCase(element.getAttribute("read-replica-support"))) {
+			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
+		} else {
+			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
+		}
+
+		if (StringUtils.hasText(element.getAttribute("region-provider")) && StringUtils.hasText(element.getAttribute("region"))) {
+			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
+		}
+
+		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
+				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
+
+
+		//Constructor (mandatory) args
+		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
+		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
+
+		//optional args
+		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
+			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
+		}
+
+		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
+
+		//Register registry to enable cloud formation support
+		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
+		datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
+
+		registerUserTagsMapIfNecessary(element, parserContext, holder);
+
+		return datasourceBuilder.getBeanDefinition();
+	}
 
 	/**
 	 * Creates a {@link org.elasticspring.jdbc.datasource.DataSourceFactory} implementation. Uses the
@@ -109,43 +147,5 @@ class AmazonRdsBeanDefinitionParser extends AbstractBeanDefinitionParser {
 		builder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
 
 		parserContext.getRegistry().registerBeanDefinition(element.getAttribute("user-tags-map"), builder.getBeanDefinition());
-	}
-
-	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder datasourceBuilder;
-		if (Boolean.TRUE.toString().equalsIgnoreCase(element.getAttribute("read-replica-support"))) {
-			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
-		} else {
-			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
-		}
-
-		if (StringUtils.hasText(element.getAttribute("region-provider")) && StringUtils.hasText(element.getAttribute("region"))) {
-			parserContext.getReaderContext().error("region and region-provider attribute must not be used together", element);
-		}
-
-		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
-
-
-		//Constructor (mandatory) args
-		datasourceBuilder.addConstructorArgReference(holder.getBeanName());
-		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
-		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
-
-		//optional args
-		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
-			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
-		}
-
-		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));
-
-		//Register registry to enable cloud formation support
-		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
-		datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
-
-		registerUserTagsMapIfNecessary(element, parserContext, holder);
-
-		return datasourceBuilder.getBeanDefinition();
 	}
 }

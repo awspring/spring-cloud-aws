@@ -25,7 +25,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-context:stack-configuration stack-name="IntegrationTestStack"/>
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
 	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
 		<constructor-arg
@@ -35,12 +35,14 @@
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
 		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 	</bean>
 
 	<bean id="objectMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 		</property>
@@ -48,7 +50,8 @@
 
 	<bean id="jsonMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
 			<bean class="org.elasticspring.messaging.support.converter.JsonMessageConverter"/>
 		</property>

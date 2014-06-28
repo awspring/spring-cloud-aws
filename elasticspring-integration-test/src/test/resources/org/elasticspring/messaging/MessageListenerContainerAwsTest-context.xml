@@ -28,7 +28,7 @@
 	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
-	<els-context:stack-configuration stack-name="IntegrationTestStack"/>
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 	<els-messaging:annotation-driven-queue-listener task-executor="taskExecutor" />
 
 	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

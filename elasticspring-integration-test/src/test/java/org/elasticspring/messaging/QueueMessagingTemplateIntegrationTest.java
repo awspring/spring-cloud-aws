@@ -66,6 +66,8 @@ public class QueueMessagingTemplateIntegrationTest {
 	}
 
 
-	interface StringList extends List<String> {}
+	interface StringList extends List<String> {
+
+	}
 
 }

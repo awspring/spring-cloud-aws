@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,11 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 	private static final String EC2_CLIENT_CLASS_NAME = "com.amazonaws.services.ec2.AmazonEC2Client";
 
 	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+		return POST_PROCESSOR_BEAN_NAME;
+	}
+
+	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(POST_PROCESSOR_CLASS_NAME);
 
@@ -50,20 +55,15 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 
 			userTagsBuilder.addConstructorArgReference(ec2Client.getBeanName());
 
-			if(StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
+			if (StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
 				userTagsBuilder.addConstructorArgReference(element.getAttribute("instance-id-provider"));
 			}
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(
-					new BeanDefinitionHolder(userTagsBuilder.getBeanDefinition(),element.getAttribute("user-tags-map")),
+					new BeanDefinitionHolder(userTagsBuilder.getBeanDefinition(), element.getAttribute("user-tags-map")),
 					parserContext.getRegistry());
 		}
 
 		return postProcessorBuilder.getBeanDefinition();
-	}
-
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return POST_PROCESSOR_BEAN_NAME;
 	}
 }

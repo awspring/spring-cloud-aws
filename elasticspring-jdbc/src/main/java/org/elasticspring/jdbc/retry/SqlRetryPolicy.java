@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,20 +62,6 @@ public class SqlRetryPolicy implements RetryPolicy {
 	private int maxNumberOfRetries = 3;
 
 	/**
-	 * Returns all the exceptions for which a retry is useful
-	 *
-	 * @return - Map containing all retryable exceptions for the {@link BinaryExceptionClassifier}
-	 */
-	private static Map<Class<? extends Throwable>, Boolean> getSqlRetryAbleExceptions() {
-		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
-		retryableExceptions.put(SQLTransientException.class, true);
-		retryableExceptions.put(SQLRecoverableException.class, true);
-		retryableExceptions.put(TransientDataAccessException.class, true);
-		retryableExceptions.put(SQLNonTransientConnectionException.class, true);
-		return retryableExceptions;
-	}
-
-	/**
 	 * Returns if this method is retryable based on the {@link RetryContext}. If there is no Throwable registered, then
 	 * this method returns <code>true</code> without checking any further conditions. If there is a Throwable registered,
 	 * this class checks if the registered Throwable is a retryable Exception in the context of SQL exception. If not
@@ -86,7 +72,7 @@ public class SqlRetryPolicy implements RetryPolicy {
 	 * @param context
 	 * 		- the retry context holding information about the retryable operation (number of retries, throwable if any)
 	 * @return <code>true</code> if there is no throwable registered, if there is a retryable exception and the number of maximum
-	 *         numbers of retries have not been reached.
+	 * numbers of retries have not been reached.
 	 */
 	@Override
 	public boolean canRetry(RetryContext context) {
@@ -95,6 +81,21 @@ public class SqlRetryPolicy implements RetryPolicy {
 			return true;
 		}
 		return context.getRetryCount() <= this.maxNumberOfRetries && isRetryAbleException(candidate);
+	}
+
+	@Override
+	public RetryContext open(RetryContext parent) {
+		return new RetryContextSupport(parent);
+	}
+
+	@Override
+	public void close(RetryContext context) {
+
+	}
+
+	@Override
+	public void registerThrowable(RetryContext context, Throwable throwable) {
+		((RetryContextSupport) context).registerThrowable(throwable);
 	}
 
 	private boolean isRetryAbleException(Throwable throwable) {
@@ -115,22 +116,6 @@ public class SqlRetryPolicy implements RetryPolicy {
 		}
 	}
 
-
-	@Override
-	public RetryContext open(RetryContext parent) {
-		return new RetryContextSupport(parent);
-	}
-
-	@Override
-	public void close(RetryContext context) {
-
-	}
-
-	@Override
-	public void registerThrowable(RetryContext context, Throwable throwable) {
-		((RetryContextSupport) context).registerThrowable(throwable);
-	}
-
 	/**
 	 * Configures the maximum number of retries. This number should be a trade-off between having enough retries to
 	 * survive a database outage due to failure and a responsive and not stalling application. The default value for the
@@ -144,5 +129,19 @@ public class SqlRetryPolicy implements RetryPolicy {
 	 */
 	public void setMaxNumberOfRetries(int maxNumberOfRetries) {
 		this.maxNumberOfRetries = maxNumberOfRetries;
+	}
+
+	/**
+	 * Returns all the exceptions for which a retry is useful
+	 *
+	 * @return - Map containing all retryable exceptions for the {@link BinaryExceptionClassifier}
+	 */
+	private static Map<Class<? extends Throwable>, Boolean> getSqlRetryAbleExceptions() {
+		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+		retryableExceptions.put(SQLTransientException.class, true);
+		retryableExceptions.put(SQLRecoverableException.class, true);
+		retryableExceptions.put(TransientDataAccessException.class, true);
+		retryableExceptions.put(SQLNonTransientConnectionException.class, true);
+		return retryableExceptions;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,17 @@ import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import org.elasticspring.core.env.ResourceIdResolver;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.context.RetryContextSupport;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test class for {@link DatabaseInstanceStatusRetryPolicy}
@@ -45,10 +48,10 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	@Test
 	public void canRetry_retryPossibleDueToAvailableDatabase_returnsTrue() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(amazonRDS, "test");
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
 				thenReturn(new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("available")));
 
 		RetryContext retryContext = policy.open(new RetryContextSupport(null));
@@ -57,21 +60,21 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		policy.registerThrowable(retryContext, new TransientDataAccessResourceException("not available"));
 
 		//Assert
-		Assert.assertTrue(policy.canRetry(retryContext));
+		assertTrue(policy.canRetry(retryContext));
 		policy.close(retryContext);
 	}
 
 	@Test
 	public void canRetry_withResourceIdResolver_returnsTrue() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
-		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
+		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(amazonRDS, "foo");
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
 				thenReturn(new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("available")));
 
-		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("foo")).thenReturn("test");
+		when(resourceIdResolver.resolveToPhysicalResourceId("foo")).thenReturn("test");
 
 		policy.setResourceIdResolver(resourceIdResolver);
 
@@ -82,18 +85,18 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		policy.registerThrowable(retryContext, new TransientDataAccessResourceException("not available"));
 
 		//Assert
-		Assert.assertTrue(policy.canRetry(retryContext));
+		assertTrue(policy.canRetry(retryContext));
 		policy.close(retryContext);
 	}
 
 	@Test
 	public void canRetry_retryNotPossibleDueToNoDatabase_returnsFalse() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(amazonRDS, "test");
 
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
 				thenThrow(new DBInstanceNotFoundException("test"));
 
 		RetryContext retryContext = policy.open(new RetryContextSupport(null));
@@ -102,7 +105,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		policy.registerThrowable(retryContext, new TransientDataAccessResourceException("not available"));
 
 		//Assert
-		Assert.assertFalse(policy.canRetry(retryContext));
+		assertFalse(policy.canRetry(retryContext));
 		policy.close(retryContext);
 	}
 
@@ -112,12 +115,12 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		this.expectedException.expect(IllegalStateException.class);
 		this.expectedException.expectMessage("Multiple databases found for same identifier");
 
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(amazonRDS, "test");
 
 		DescribeDBInstancesResult describeDBInstancesResult = new DescribeDBInstancesResult().withDBInstances(new DBInstance(), new DBInstance());
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).
 				thenReturn(describeDBInstancesResult);
 
 		RetryContext retryContext = policy.open(new RetryContextSupport(null));
@@ -132,7 +135,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	@Test
 	public void canRetry_noExceptionRegistered_returnsTrue() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(amazonRDS, "test");
 
@@ -142,6 +145,6 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		policy.open(retryContext);
 
 		//Assert
-		Assert.assertTrue(policy.canRetry(retryContext));
+		assertTrue(policy.canRetry(retryContext));
 	}
 }

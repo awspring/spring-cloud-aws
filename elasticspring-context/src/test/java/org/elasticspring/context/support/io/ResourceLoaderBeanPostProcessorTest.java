@@ -1,11 +1,11 @@
 /*
- * Copyright [2011] [Agim Emruli]
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,16 @@
 package org.elasticspring.context.support.io;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ResourceLoader;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 /**
  *
@@ -31,11 +36,11 @@ public class ResourceLoaderBeanPostProcessorTest {
 
 	@Test
 	public void testCreateApplicationContextProxy() throws Exception {
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
 		ResourceLoaderBeanPostProcessor resourceLoaderBeanPostProcessor = new ResourceLoaderBeanPostProcessor(resourceLoader);
 
-		ApplicationContext context = Mockito.mock(ApplicationContext.class, Mockito.withSettings().extraInterfaces(ResourceLoader.class, BeanFactory.class));
-		Mockito.when(context.getClassLoader()).thenReturn(getClass().getClassLoader());
+		ApplicationContext context = mock(ApplicationContext.class, withSettings().extraInterfaces(ResourceLoader.class, BeanFactory.class));
+		when(context.getClassLoader()).thenReturn(getClass().getClassLoader());
 
 		ApplicationContext proxyApplicationContext = resourceLoaderBeanPostProcessor.decorateApplicationContext(context);
 
@@ -44,19 +49,19 @@ public class ResourceLoaderBeanPostProcessorTest {
 		proxyApplicationContext.getResource("s3://bucket/object");
 		proxyApplicationContext.getClassLoader();
 
-		Mockito.verify(context, Mockito.times(1)).getBean(Object.class);
-		Mockito.verify(context, Mockito.times(1)).getStartupDate();
+		verify(context, times(1)).getBean(Object.class);
+		verify(context, times(1)).getStartupDate();
 
 		//Test resource loader method calls goes to our custom resource loader
-		Mockito.verify(resourceLoader, Mockito.times(1)).getResource("s3://bucket/object");
-		Mockito.verify(resourceLoader, Mockito.times(1)).getClassLoader();
+		verify(resourceLoader, times(1)).getResource("s3://bucket/object");
+		verify(resourceLoader, times(1)).getClassLoader();
 
 	}
 
 
 	@Test
 	public void testDoesSetCustomResourceLoaderForGenericApplicationContext() throws Exception {
-		ResourceLoader resourceLoader = Mockito.mock(ResourceLoader.class);
+		ResourceLoader resourceLoader = mock(ResourceLoader.class);
 		ResourceLoaderBeanPostProcessor resourceLoaderBeanPostProcessor = new ResourceLoaderBeanPostProcessor(resourceLoader);
 
 		GenericApplicationContext genericApplicationContext = new GenericApplicationContext();
@@ -68,6 +73,6 @@ public class ResourceLoaderBeanPostProcessorTest {
 		genericApplicationContext.getResource("s3://bucket/object");
 
 		//Test resource loader method calls goes to our custom resource loader
-		Mockito.verify(resourceLoader, Mockito.times(1)).getResource("s3://bucket/object");
+		verify(resourceLoader, times(1)).getResource("s3://bucket/object");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,20 @@ import org.elasticspring.jdbc.datasource.DataSourceInformation;
 import org.elasticspring.jdbc.datasource.DynamicDataSource;
 import org.elasticspring.jdbc.datasource.ReadOnlyRoutingDataSource;
 import org.elasticspring.jdbc.datasource.support.DatabaseType;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -43,10 +49,10 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 	@Test
 	public void afterPropertiesSet_instanceWithoutReadReplica_createsNoDataSourceRouter() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -70,20 +76,20 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 
 		//Assert
 		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		Assert.assertNotNull(datasource);
-		Assert.assertTrue(datasource instanceof DynamicDataSource);
+		assertNotNull(datasource);
+		assertTrue(datasource instanceof DynamicDataSource);
 
-		Mockito.verify(dataSourceFactory, Mockito.times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
+		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
 	}
 
 	@Test
 	public void afterPropertiesSet_instanceWithReadReplica_createsDataSourceRouter() throws Exception {
 		//Arrange
-		AmazonRDS amazonRDS = Mockito.mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		AmazonRDS amazonRDS = mock(AmazonRDS.class);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
 
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -98,7 +104,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 						)
 		);
 
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read1"))).thenReturn(
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read1"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -113,7 +119,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 						)
 		);
 
-		Mockito.when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read2"))).thenReturn(
+		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read2"))).thenReturn(
 				new DescribeDBInstancesResult().
 						withDBInstances(new DBInstance().
 										withDBInstanceStatus("available").
@@ -128,11 +134,11 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 						)
 		);
 
-		DataSource createdDataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
+		DataSource createdDataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
 
-		Mockito.when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(createdDataSource);
-		Mockito.when(createdDataSource.getConnection()).thenReturn(connection);
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(createdDataSource);
+		when(createdDataSource.getConnection()).thenReturn(connection);
 
 		AmazonRdsReadReplicaAwareDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
@@ -143,10 +149,10 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 
 		//Assert
 		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		Assert.assertNotNull(datasource);
-		Assert.assertTrue(datasource instanceof LazyConnectionDataSourceProxy);
+		assertNotNull(datasource);
+		assertTrue(datasource instanceof LazyConnectionDataSourceProxy);
 
 		ReadOnlyRoutingDataSource source = (ReadOnlyRoutingDataSource) ((LazyConnectionDataSourceProxy) datasource).getTargetDataSource();
-		Assert.assertEquals(3, source.getDataSources().size());
+		assertEquals(3, source.getDataSources().size());
 	}
 }

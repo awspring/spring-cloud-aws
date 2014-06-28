@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.elasticspring.cache.config;
 
 import org.elasticspring.cache.StaticMemcachedFactoryBean;
 import org.elasticspring.cache.memcached.MemcachedClientIF;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Agim Emruli
@@ -37,8 +39,8 @@ public class StaticMemcachedFactoryBeanTest {
 		MemcachedClientIF memcachedClient = staticMemcachedFactoryBean.getObject();
 
 		// Assert
-		Assert.assertNotNull(memcachedClient);
-		Assert.assertNull(memcachedClient.get("getObject_availableCluster_returnsConfiguredMemcachedClient"));
+		assertNotNull(memcachedClient);
+		assertNull(memcachedClient.get("getObject_availableCluster_returnsConfiguredMemcachedClient"));
 
 		memcachedClient.shutdown();
 
