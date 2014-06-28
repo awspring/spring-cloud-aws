@@ -23,20 +23,14 @@ import org.elasticspring.messaging.support.destination.CachingDestinationResolve
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,7 +46,7 @@ import java.util.Set;
  * @author Alain Sahli
  * @since 1.0
  */
-abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware, ApplicationContextAware {
+abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
 
 	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -63,11 +57,10 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private AmazonSQS amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private DestinationResolver<String> destinationResolver;
-	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private ApplicationContext applicationContext;
 	private String beanName;
 	private final Set<String> queues = new HashSet<String>();
-	private MessageHandler messageHandler;
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private QueueMessageHandler messageHandler;
 
 	//Optional settings with no defaults
 	private Integer maxNumberOfMessages;
@@ -87,20 +80,15 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<String, ReceiveMessageRequest>();
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
 	public Map<String, ReceiveMessageRequest> getMessageRequests() {
 		return Collections.unmodifiableMap(this.messageRequests);
 	}
 
-	public MessageHandler getMessageHandler() {
+	public QueueMessageHandler getMessageHandler() {
 		return this.messageHandler;
 	}
 
-	public void setMessageHandler(MessageHandler messageHandler) {
+	public void setMessageHandler(QueueMessageHandler messageHandler) {
 		this.messageHandler = messageHandler;
 	}
 
@@ -187,6 +175,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	/**
 	 * This value must be set if no destination resolver has been set.
+	 *
 	 * @param resourceIdResolver
 	 * 		the resourceIdResolver to use for resolving logical to physical ids in a CloudFormation environment.
 	 * 		Must not be null.
@@ -270,7 +259,6 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected void validateConfiguration() {
 		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
 		Assert.state(this.messageHandler != null, "messageHandler must not be null");
-		Assert.state(this.applicationContext != null, "applicationContext must not be null");
 	}
 
 	protected void initialize() {
@@ -291,17 +279,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	}
 
 	private void registerQueues() {
-		Map<String, Object> allBeans = this.applicationContext.getBeansOfType(Object.class);
-		for (Object bean : allBeans.values()) {
-			for (Method method : bean.getClass().getDeclaredMethods()) {
-				MessageMapping messageMapping = method.getAnnotation(MessageMapping.class);
-				if (messageMapping != null) {
-					String[] queueNames = messageMapping.value();
-					for (String queueName : queueNames) {
-						Assert.state(!this.queues.contains(queueName), "Queue name can only be mapped on one method");
-						this.queues.add(queueName);
-					}
-				}
+		for (QueueMessageHandler.MappingInformation mapping : this.messageHandler.getHandlerMethods().keySet()) {
+			Set<String> queueNames = mapping.getLogicalResourceIds();
+			for (String queueName : queueNames) {
+				Assert.state(!this.queues.contains(queueName), "Queue name can only be mapped on one method");
+				this.queues.add(queueName);
 			}
 		}
 	}

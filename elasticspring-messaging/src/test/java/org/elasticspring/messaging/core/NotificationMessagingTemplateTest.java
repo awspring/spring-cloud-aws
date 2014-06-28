@@ -36,8 +36,8 @@ public class NotificationMessagingTemplateTest {
 		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
 		Mockito.when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
 
 		// Act
 		notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
