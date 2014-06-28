@@ -18,16 +18,17 @@ package org.elasticspring.messaging.support.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.elasticspring.messaging.support.NotificationMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class NotificationMessageConverter implements MessageConverter {
@@ -41,7 +42,9 @@ public class NotificationMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public NotificationMessage fromMessage(Message<?> message, Class<?> targetClass) {
+	public Object fromMessage(Message<?> message, Class<?> targetClass) {
+		Assert.notNull(message, "message must not be null");
+		Assert.notNull(targetClass, "targetClass must not be null");
 		try {
 			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload().toString(), JsonNode.class);
 			if (!jsonNode.has("Type")) {
@@ -56,7 +59,7 @@ public class NotificationMessageConverter implements MessageConverter {
 				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",null);
 			}
 
-			return new NotificationMessage(nullSafeGetTextValue(jsonNode, "Message"), nullSafeGetTextValue(jsonNode, "Subject"));
+			return nullSafeGetTextValue(jsonNode, "Message");
 		} catch (IOException e) {
 			throw new MessageConversionException("Error reading payload :'" + message.getPayload() + "' from message", e);
 		}

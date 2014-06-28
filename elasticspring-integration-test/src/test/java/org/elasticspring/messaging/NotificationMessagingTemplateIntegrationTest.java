@@ -17,8 +17,8 @@
 package org.elasticspring.messaging;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
-import org.elasticspring.messaging.support.NotificationMessage;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,10 +91,10 @@ public class NotificationMessagingTemplateIntegrationTest {
 
 		@RuntimeUse
 		@MessageMapping("NotificationQueue")
-		private void messageListener(NotificationMessage message) {
+		private void messageListener(@NotificationMessage String message) {
 			this.countDownLatch.countDown();
-			this.message = message.getBody();
-			this.subject = message.getSubject();
+			this.message = message;
+			//this.subject = message.getSubject();
 		}
 
 	}
