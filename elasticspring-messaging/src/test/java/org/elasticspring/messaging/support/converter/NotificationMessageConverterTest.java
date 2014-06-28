@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,17 +36,10 @@ public class NotificationMessageConverterTest {
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
 	@Test
 	public void testWriteMessageNotSupported() throws Exception {
 		this.expectedException.expect(UnsupportedOperationException.class);
 		new NotificationMessageConverter().toMessage("test", null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void fromMessage_withoutTargetClass_shouldThrowAnException() throws Exception {
-		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload("Hello").build(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -56,7 +48,25 @@ public class NotificationMessageConverterTest {
 	}
 
 	@Test
-	public void fromMessage_withStringMessage_shouldReturnMessage() throws Exception {
+	public void fromMessage_withMessageAndSubject_shouldReturnMessage() throws Exception {
+		// Arrange
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "Hello");
+		jsonObject.put("Message", "World");
+		String payload = jsonObject.toString();
+
+		// Act
+		Object notificationRequest = new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+
+		// Assert
+		assertTrue(NotificationMessageConverter.NotificationRequest.class.isInstance(notificationRequest));
+		assertEquals("Hello", ((NotificationMessageConverter.NotificationRequest) notificationRequest).getSubject());
+		assertEquals("World", ((NotificationMessageConverter.NotificationRequest) notificationRequest).getMessage());
+	}
+
+	@Test
+	public void fromMessage_withMessageOnly_shouldReturnMessage() throws Exception {
 		// Arrange
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("Type", "Notification");
@@ -64,11 +74,11 @@ public class NotificationMessageConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object message = new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		Object notificationRequest = new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 
 		// Assert
-		assertTrue(String.class.isInstance(message));
-		assertEquals("World", message);
+		assertTrue(NotificationMessageConverter.NotificationRequest.class.isInstance(notificationRequest));
+		assertEquals("World", ((NotificationMessageConverter.NotificationRequest) notificationRequest).getMessage());
 	}
 
 	@Test
@@ -78,7 +88,7 @@ public class NotificationMessageConverterTest {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 	}
 
 	@Test
@@ -89,7 +99,7 @@ public class NotificationMessageConverterTest {
 		jsonObject.put("Type", "Subscription");
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 	}
 
 	@Test
@@ -100,7 +110,7 @@ public class NotificationMessageConverterTest {
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
 	}
 
 	@Test
@@ -108,7 +118,7 @@ public class NotificationMessageConverterTest {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("Error reading payload");
 		String message = "foo";
-		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(message).build(), String.class);
+		new NotificationMessageConverter().fromMessage(MessageBuilder.withPayload(message).build(), null);
 	}
 
 	private static class DummyObject {

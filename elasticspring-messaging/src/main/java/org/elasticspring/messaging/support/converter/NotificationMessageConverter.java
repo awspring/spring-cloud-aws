@@ -44,7 +44,7 @@ public class NotificationMessageConverter implements MessageConverter {
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		Assert.notNull(message, "message must not be null");
-		Assert.notNull(targetClass, "targetClass must not be null");
+
 		try {
 			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload().toString(), JsonNode.class);
 			if (!jsonNode.has("Type")) {
@@ -59,7 +59,7 @@ public class NotificationMessageConverter implements MessageConverter {
 				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",null);
 			}
 
-			return nullSafeGetTextValue(jsonNode, "Message");
+			return new NotificationRequest(nullSafeGetTextValue(jsonNode, "Subject"), nullSafeGetTextValue(jsonNode, "Message"));
 		} catch (IOException e) {
 			throw new MessageConversionException("Error reading payload :'" + message.getPayload() + "' from message", e);
 		}
@@ -67,6 +67,24 @@ public class NotificationMessageConverter implements MessageConverter {
 
 	private static String nullSafeGetTextValue(JsonNode jsonNode, String attribute) {
 		return jsonNode.has(attribute) ? jsonNode.get(attribute).asText() : null;
+	}
+
+	public static class NotificationRequest {
+		private final String subject;
+		private final String message;
+
+		public NotificationRequest(String subject, String message) {
+			this.subject = subject;
+			this.message = message;
+		}
+
+		public String getSubject() {
+			return this.subject;
+		}
+
+		public String getMessage() {
+			return this.message;
+		}
 	}
 
 }
