@@ -120,34 +120,4 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-
-	<xsd:element name="annotation-driven-topic-listener">
-		<xsd:annotation>
-			<xsd:documentation>
-				Scans the classes annotated with org.elasticspring.messaging.config.annotation.TopicListener and
-				registers them as endpoints for receiving messages from SNS.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
-			<xsd:attribute name="amazon-sns" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="amazon-sqs" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
 </xsd:schema>
