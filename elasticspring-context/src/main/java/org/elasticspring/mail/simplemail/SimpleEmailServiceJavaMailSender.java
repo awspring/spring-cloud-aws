@@ -73,7 +73,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	@Override
 	public void send(MimeMessage[] mimeMessages) throws MailException {
-		Map<Object,Exception> failedMessages = new HashMap<Object,Exception>();
+		Map<Object, Exception> failedMessages = new HashMap<Object, Exception>();
 
 		for (MimeMessage mimeMessage : mimeMessages) {
 			try {

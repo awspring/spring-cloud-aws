@@ -118,7 +118,7 @@ public class ReadOnlyRoutingDataSourceTest {
 		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object,Object>singletonMap("read1", readOnlyDataSource));
+		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
 		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
 		readOnlyRoutingDataSource.afterPropertiesSet();
 
@@ -162,7 +162,7 @@ public class ReadOnlyRoutingDataSourceTest {
 		when(defaultDataSource.getConnection()).thenReturn(connection);
 
 		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object,Object>singletonMap("read1", readOnlyDataSource));
+		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
 		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
 		readOnlyRoutingDataSource.afterPropertiesSet();
 

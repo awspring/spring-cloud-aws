@@ -81,7 +81,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 *
 	 * @return Map containing the driver class name for every database platform
 	 */
-	protected abstract Map<DatabaseType,String> getDriverClassNameMappings();
+	protected abstract Map<DatabaseType, String> getDriverClassNameMappings();
 
 
 	/**
@@ -91,5 +91,5 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 *
 	 * @return Map containing the schema (and sub-scheme) names for every support database platform
 	 */
-	protected abstract Map<DatabaseType,String> getSchemeNames();
+	protected abstract Map<DatabaseType, String> getSchemeNames();
 }

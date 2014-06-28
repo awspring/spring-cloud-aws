@@ -59,8 +59,8 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 		return new StaticStackResourceRegistry(stackName, convertToStackResourceMappings(stackResourceSummaries));
 	}
 
-	private static Map<String,String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
-		Map<String,String> stackResourceMappings = new HashMap<String,String>();
+	private static Map<String, String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
+		Map<String, String> stackResourceMappings = new HashMap<String, String>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
 			stackResourceMappings.put(stackResourceSummary.getLogicalResourceId(), stackResourceSummary.getPhysicalResourceId());
@@ -76,9 +76,9 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 	private static class StaticStackResourceRegistry implements StackResourceRegistry {
 
 		private final String stackName;
-		private final Map<String,String> physicalResourceIdsByLogicalResourceId;
+		private final Map<String, String> physicalResourceIdsByLogicalResourceId;
 
-		private StaticStackResourceRegistry(String stackName, Map<String,String> physicalResourceIdsByLogicalResourceId) {
+		private StaticStackResourceRegistry(String stackName, Map<String, String> physicalResourceIdsByLogicalResourceId) {
 			this.stackName = stackName;
 			this.physicalResourceIdsByLogicalResourceId = physicalResourceIdsByLogicalResourceId;
 		}

@@ -75,12 +75,12 @@ public class MapBasedDatabasePlatformSupportTest {
 	private static class SimpleDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
 		@Override
-		protected Map<DatabaseType,String> getDriverClassNameMappings() {
+		protected Map<DatabaseType, String> getDriverClassNameMappings() {
 			return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
 		}
 
 		@Override
-		protected Map<DatabaseType,String> getSchemeNames() {
+		protected Map<DatabaseType, String> getSchemeNames() {
 			return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
 		}
 	}

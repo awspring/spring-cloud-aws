@@ -27,8 +27,8 @@ import java.util.Map;
  */
 public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
-	private final Map<DatabaseType,String> driverClassNameMappings;
-	private final Map<DatabaseType,String> schemeNames;
+	private final Map<DatabaseType, String> driverClassNameMappings;
+	private final Map<DatabaseType, String> schemeNames;
 
 	/**
 	 * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with the configuration information
@@ -39,12 +39,12 @@ public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSuppo
 	}
 
 	@Override
-	protected Map<DatabaseType,String> getDriverClassNameMappings() {
+	protected Map<DatabaseType, String> getDriverClassNameMappings() {
 		return this.driverClassNameMappings;
 	}
 
 	@Override
-	protected Map<DatabaseType,String> getSchemeNames() {
+	protected Map<DatabaseType, String> getSchemeNames() {
 		return this.schemeNames;
 	}
 }

@@ -58,7 +58,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 	@Override
 	public void send(SimpleMailMessage[] simpleMessages) throws MailException {
 
-		Map<Object,Exception> failedMessages = new HashMap<Object,Exception>();
+		Map<Object, Exception> failedMessages = new HashMap<Object, Exception>();
 
 		for (SimpleMailMessage simpleMessage : simpleMessages) {
 			try {

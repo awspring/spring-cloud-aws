@@ -113,7 +113,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	public void clearMetadataCache() throws Exception {
 		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
 		metadataCacheField.setAccessible(true);
-		metadataCacheField.set(null, new HashMap<String,String>());
+		metadataCacheField.set(null, new HashMap<String, String>());
 	}
 
 	@BeforeClass

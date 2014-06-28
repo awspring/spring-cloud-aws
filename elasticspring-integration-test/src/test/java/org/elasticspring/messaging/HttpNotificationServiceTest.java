@@ -97,7 +97,7 @@ public class HttpNotificationServiceTest {
 		@TopicListener(topicName = "#{testStackEnvironment.getByLogicalId('HttpReceivingSnsTopic')}",
 				protocol = TopicListener.NotificationProtocol.HTTP,
 				endpoint = "http://notimportant.elasticspring.com/endpoint")
-		public void receiveNotification(String body,String subject) {
+		public void receiveNotification(String body, String subject) {
 			this.lastMessage = body;
 			this.lastSubject = subject;
 		}

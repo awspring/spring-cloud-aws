@@ -43,7 +43,7 @@ public class ReadOnlyRoutingDataSource extends AbstractRoutingDataSource {
 	private List<Object> dataSourceKeys;
 
 	@Override
-	public void setTargetDataSources(Map<Object,Object> targetDataSources) {
+	public void setTargetDataSources(Map<Object, Object> targetDataSources) {
 		super.setTargetDataSources(targetDataSources);
 		this.dataSourceKeys = new ArrayList<Object>(targetDataSources.keySet());
 		this.dataSources.addAll(targetDataSources.values());

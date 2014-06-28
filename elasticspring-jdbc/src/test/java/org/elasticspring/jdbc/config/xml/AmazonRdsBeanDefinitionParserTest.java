@@ -316,7 +316,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 		));
 
 		//Act
-		Map<?,?> dsTags = beanFactory.getBean("dsTags", Map.class);
+		Map<?, ?> dsTags = beanFactory.getBean("dsTags", Map.class);
 
 		//Assert
 		assertEquals("value2", dsTags.get("key1"));

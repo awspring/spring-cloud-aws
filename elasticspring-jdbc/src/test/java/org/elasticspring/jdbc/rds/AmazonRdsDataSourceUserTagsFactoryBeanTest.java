@@ -60,7 +60,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
 		assertEquals("value1", userTagMap.get("key1"));
@@ -84,7 +84,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
 		assertTrue(userTagMap.isEmpty());
@@ -107,7 +107,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
 		assertEquals("value1", userTagMap.get("key1"));

@@ -136,8 +136,8 @@ public class SqlRetryPolicy implements RetryPolicy {
 	 *
 	 * @return - Map containing all retryable exceptions for the {@link BinaryExceptionClassifier}
 	 */
-	private static Map<Class<? extends Throwable>,Boolean> getSqlRetryAbleExceptions() {
-		Map<Class<? extends Throwable>,Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>,Boolean>();
+	private static Map<Class<? extends Throwable>, Boolean> getSqlRetryAbleExceptions() {
+		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
 		retryableExceptions.put(SQLTransientException.class, true);
 		retryableExceptions.put(SQLRecoverableException.class, true);
 		retryableExceptions.put(TransientDataAccessException.class, true);

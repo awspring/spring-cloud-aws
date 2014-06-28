@@ -68,12 +68,12 @@ public class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setDatabasePlatformSupport(new MapBasedDatabasePlatformSupport() {
 
 			@Override
-			protected Map<DatabaseType,String> getDriverClassNameMappings() {
+			protected Map<DatabaseType, String> getDriverClassNameMappings() {
 				return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.driver");
 			}
 
 			@Override
-			protected Map<DatabaseType,String> getSchemeNames() {
+			protected Map<DatabaseType, String> getSchemeNames() {
 				return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:sql");
 			}
 		});

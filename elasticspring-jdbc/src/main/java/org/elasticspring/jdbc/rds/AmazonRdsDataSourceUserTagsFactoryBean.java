@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String,String>> implements RegionAware {
+public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> implements RegionAware {
 
 	private final AmazonRDS amazonRds;
 	private final String dbInstanceIdentifier;
@@ -55,8 +55,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<
 	}
 
 	@Override
-	protected Map<String,String> createInstance() throws Exception {
-		LinkedHashMap<String,String> userTags = new LinkedHashMap<String,String>();
+	protected Map<String, String> createInstance() throws Exception {
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
 		ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
 		for (Tag tag : tagsForResource.getTagList()) {
 			userTags.put(tag.getKey(), tag.getValue());

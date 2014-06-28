@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * @author Agim Emruli
  */
-public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String,String>> {
+public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
 	private final AmazonCloudFormation amazonCloudFormation;
 	private final StackNameProvider stackNameProvider;
@@ -45,8 +45,8 @@ public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<St
 	}
 
 	@Override
-	protected Map<String,String> createInstance() throws Exception {
-		LinkedHashMap<String,String> userTags = new LinkedHashMap<String,String>();
+	protected Map<String, String> createInstance() throws Exception {
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
 		DescribeStacksResult stacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
 		for (Stack stack : stacksResult.getStacks()) {
 			for (Tag tag : stack.getTags()) {
