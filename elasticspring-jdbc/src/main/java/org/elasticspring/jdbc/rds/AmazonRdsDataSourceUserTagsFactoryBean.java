@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,13 +54,18 @@ public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<
 		return Map.class;
 	}
 
-	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
-		this.resourceIdResolver = resourceIdResolver;
+	@Override
+	protected Map<String, String> createInstance() throws Exception {
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
+		ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
+		for (Tag tag : tagsForResource.getTagList()) {
+			userTags.put(tag.getKey(), tag.getValue());
+		}
+		return userTags;
 	}
 
-	@Override
-	public void setRegion(Region region) {
-		this.region = region;
+	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
+		this.resourceIdResolver = resourceIdResolver;
 	}
 
 	private String getDbInstanceIdentifier() {
@@ -75,13 +80,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<
 	}
 
 	@Override
-	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
-		ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
-		for (Tag tag : tagsForResource.getTagList()) {
-			userTags.put(tag.getKey(), tag.getValue());
-		}
-		return userTags;
+	public void setRegion(Region region) {
+		this.region = region;
 	}
 
 	/**

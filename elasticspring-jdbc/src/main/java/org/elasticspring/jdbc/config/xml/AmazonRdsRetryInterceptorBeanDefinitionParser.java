@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.elasticspring.jdbc.config.xml;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;
@@ -61,6 +61,11 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 	 */
 	private static final String BACK_OFF_POLICY = "back-off-policy";
 	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";
+
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return RdbmsRetryOperationsInterceptor.class;
+	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -121,10 +126,5 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 			beanDefinitionBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(MAX_NUMBER_OF_RETRIES), element.getAttribute(MAX_NUMBER_OF_RETRIES));
 		}
 		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return RdbmsRetryOperationsInterceptor.class;
 	}
 }

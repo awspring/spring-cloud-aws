@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package org.elasticspring.context.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link CredentialsProviderFactoryBean}
@@ -58,8 +60,8 @@ public class CredentialsProviderFactoryBeanTest {
 
 	@Test
 	public void testCreateWithMultiple() throws Exception {
-		AWSCredentialsProvider first = Mockito.mock(AWSCredentialsProvider.class);
-		AWSCredentialsProvider second = Mockito.mock(AWSCredentialsProvider.class);
+		AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
+		AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
 
 		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Arrays.asList(first, second));
 		credentialsProviderFactoryBean.afterPropertiesSet();
@@ -69,10 +71,10 @@ public class CredentialsProviderFactoryBeanTest {
 		BasicAWSCredentials foo = new BasicAWSCredentials("foo", "foo");
 		BasicAWSCredentials bar = new BasicAWSCredentials("bar", "bar");
 
-		Mockito.when(first.getCredentials()).thenReturn(null, foo);
-		Mockito.when(second.getCredentials()).thenReturn(bar);
+		when(first.getCredentials()).thenReturn(null, foo);
+		when(second.getCredentials()).thenReturn(bar);
 
-		Assert.assertEquals(bar, provider.getCredentials());
-		Assert.assertEquals(foo, provider.getCredentials());
+		assertEquals(bar, provider.getCredentials());
+		assertEquals(foo, provider.getCredentials());
 	}
 }

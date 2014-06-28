@@ -140,7 +140,7 @@ public class ResourceLoaderAwsTest {
 				outputStream.write(buffer, 0, bytesRead);
 			}
 		} finally {
-   			inputStream.close();
+			inputStream.close();
 			outputStream.close();
 		}
 
@@ -165,8 +165,6 @@ public class ResourceLoaderAwsTest {
 		Assert.assertEquals(DigestUtils.md5DigestAsHex(originalMd5Checksum), DigestUtils.md5DigestAsHex(downloadedMd5Checksum));
 		this.createdObjects.add("test-file.pdf");
 	}
-
-
 
 
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.

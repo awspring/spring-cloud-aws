@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@ import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.elasticspring.jdbc.datasource.support.DatabaseType;
 import org.elasticspring.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -33,6 +32,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Unit test class for {@link TomcatJdbcDataSourceFactory}
@@ -49,11 +54,11 @@ public class TomcatJdbcDataSourceFactoryTest {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
-		Assert.assertNotNull(dataSource);
+		assertNotNull(dataSource);
 
-		Assert.assertEquals("com.mysql.jdbc.Driver", dataSource.getDriverClassName());
-		Assert.assertEquals("jdbc:mysql://localhost:3306/test", dataSource.getUrl());
-		Assert.assertEquals("user", dataSource.getUsername());
+		assertEquals("com.mysql.jdbc.Driver", dataSource.getDriverClassName());
+		assertEquals("jdbc:mysql://localhost:3306/test", dataSource.getUrl());
+		assertEquals("user", dataSource.getUsername());
 	}
 
 	@Test
@@ -76,11 +81,11 @@ public class TomcatJdbcDataSourceFactoryTest {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
-		Assert.assertNotNull(dataSource);
+		assertNotNull(dataSource);
 
-		Assert.assertEquals("com.mysql.driver", dataSource.getDriverClassName());
-		Assert.assertEquals("jdbc:sql://localhost:3306/test", dataSource.getUrl());
-		Assert.assertEquals("user", dataSource.getUsername());
+		assertEquals("com.mysql.driver", dataSource.getDriverClassName());
+		assertEquals("jdbc:sql://localhost:3306/test", dataSource.getUrl());
+		assertEquals("user", dataSource.getUsername());
 	}
 
 	@Test
@@ -91,12 +96,12 @@ public class TomcatJdbcDataSourceFactoryTest {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL,
 				"localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
-		Assert.assertNotNull(dataSource);
+		assertNotNull(dataSource);
 
 		ConnectionPool pool = dataSource.createPool();
-		Assert.assertFalse(pool.isClosed());
+		assertFalse(pool.isClosed());
 		tomcatJdbcDataSourceFactory.closeDataSource(dataSource);
-		Assert.assertTrue(pool.isClosed());
+		assertTrue(pool.isClosed());
 	}
 
 	@Test
@@ -104,7 +109,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolationName("READ_COMMITTED");
 
-		Assert.assertEquals(Connection.TRANSACTION_READ_COMMITTED, tomcatJdbcDataSourceFactory.getDefaultTransactionIsolation());
+		assertEquals(Connection.TRANSACTION_READ_COMMITTED, tomcatJdbcDataSourceFactory.getDefaultTransactionIsolation());
 	}
 
 	@Test
@@ -163,7 +168,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 
 		for (PropertyDescriptor propertyDescriptor : source.getPropertyDescriptors()) {
 			if (propertyDescriptor.getWriteMethod() != null && target.isReadableProperty(propertyDescriptor.getName()) && !ignoredProperties.contains(propertyDescriptor.getName())) {
-				Assert.assertEquals(source.getPropertyValue(propertyDescriptor.getName()), target.getPropertyValue(propertyDescriptor.getName()));
+				assertEquals(source.getPropertyValue(propertyDescriptor.getName()), target.getPropertyValue(propertyDescriptor.getName()));
 			}
 		}
 
@@ -176,30 +181,30 @@ public class TomcatJdbcDataSourceFactoryTest {
 
 		try {
 			tomcatJdbcDataSourceFactory.setDriverClassName("foo");
-			Assert.fail("Expecting IllegalStateException");
+			fail("Expecting IllegalStateException");
 		} catch (UnsupportedOperationException e) {
-			Assert.assertTrue(e.getMessage().contains("at runtime"));
+			assertTrue(e.getMessage().contains("at runtime"));
 		}
 
 		try {
 			tomcatJdbcDataSourceFactory.setUrl("foo");
-			Assert.fail("Expecting IllegalStateException");
+			fail("Expecting IllegalStateException");
 		} catch (UnsupportedOperationException e) {
-			Assert.assertTrue(e.getMessage().contains("at runtime"));
+			assertTrue(e.getMessage().contains("at runtime"));
 		}
 
 		try {
 			tomcatJdbcDataSourceFactory.setUsername("foo");
-			Assert.fail("Expecting IllegalStateException");
+			fail("Expecting IllegalStateException");
 		} catch (UnsupportedOperationException e) {
-			Assert.assertTrue(e.getMessage().contains("at runtime"));
+			assertTrue(e.getMessage().contains("at runtime"));
 		}
 
 		try {
 			tomcatJdbcDataSourceFactory.setPassword("foo");
-			Assert.fail("Expecting IllegalStateException");
+			fail("Expecting IllegalStateException");
 		} catch (UnsupportedOperationException e) {
-			Assert.assertTrue(e.getMessage().contains("at runtime"));
+			assertTrue(e.getMessage().contains("at runtime"));
 		}
 	}
 }

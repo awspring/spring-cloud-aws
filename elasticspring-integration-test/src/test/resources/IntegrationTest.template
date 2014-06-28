@@ -48,13 +48,15 @@
 				]
 			}
 		},
-		"RdsSingleMicroInstanceReplicaInstance" : {
-              "Type" : "AWS::RDS::DBInstance",
-              "Properties" : {
-                "SourceDBInstanceIdentifier" : { "Ref" : "RdsSingleMicroInstance" },
-                "DBInstanceClass": "db.m1.small"
-              }
-        },
+		"RdsSingleMicroInstanceReplicaInstance": {
+			"Type": "AWS::RDS::DBInstance",
+			"Properties": {
+				"SourceDBInstanceIdentifier": {
+					"Ref": "RdsSingleMicroInstance"
+				},
+				"DBInstanceClass": "db.m1.small"
+			}
+		},
 		"AllowAllGroup": {
 			"Type": "AWS::RDS::DBSecurityGroup",
 			"Properties": {
@@ -168,32 +170,39 @@
 			}
 		},
 		"CacheSecurityGroup": {
-        	"Type": "AWS::ElastiCache::SecurityGroup",
-            "Properties": {
-            	"Description"  : "Default Security Group"
-            }
-        },
-        "CacheSecurityGroupIngress": {
-        	"Type": "AWS::ElastiCache::SecurityGroupIngress",
-            "Properties": {
-            	"CacheSecurityGroupName"  : { "Ref" : "CacheSecurityGroup" },
-                "EC2SecurityGroupName"    : "default"
-            }
-        },
-        "CacheCluster": {
-        	"Type" : "AWS::ElastiCache::CacheCluster",
-            "Properties" :
-            {
-            	"CacheNodeType" : "cache.t1.micro",
-            	"CacheSecurityGroupNames" : [ { "Ref" : "CacheSecurityGroup" } ],
-                "Engine" : "memcached",
-                "NumCacheNodes" : "1"
-            }
-        }
+			"Type": "AWS::ElastiCache::SecurityGroup",
+			"Properties": {
+				"Description": "Default Security Group"
+			}
+		},
+		"CacheSecurityGroupIngress": {
+			"Type": "AWS::ElastiCache::SecurityGroupIngress",
+			"Properties": {
+				"CacheSecurityGroupName": {
+					"Ref": "CacheSecurityGroup"
+				},
+				"EC2SecurityGroupName": "default"
+			}
+		},
+		"CacheCluster": {
+			"Type": "AWS::ElastiCache::CacheCluster",
+			"Properties": {
+				"CacheNodeType": "cache.t1.micro",
+				"CacheSecurityGroupNames": [
+					{
+						"Ref": "CacheSecurityGroup"
+					}
+				],
+				"Engine": "memcached",
+				"NumCacheNodes": "1"
+			}
+		}
 	},
-	"Outputs" : {
-        "InstanceId" : {
-            "Value" : { "Ref" : "UserTagAndUserDataInstance" }
-        }
+	"Outputs": {
+		"InstanceId": {
+			"Value": {
+				"Ref": "UserTagAndUserDataInstance"
+			}
+		}
 	}
 }

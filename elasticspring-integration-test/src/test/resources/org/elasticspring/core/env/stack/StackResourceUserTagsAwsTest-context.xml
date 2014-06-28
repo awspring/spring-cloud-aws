@@ -23,5 +23,5 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags"/>
+	<els-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags" />
 </beans>

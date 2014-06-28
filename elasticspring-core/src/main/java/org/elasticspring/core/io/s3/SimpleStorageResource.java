@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,9 +69,9 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 	private final AmazonS3 amazonS3;
 
 	/**
-	* <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
-	* reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
-	*/
+	 * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
+	 * reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
+	 */
 	private TaskExecutor taskExecutor;
 
 	private ObjectMetadata objectMetadata;
@@ -281,14 +281,14 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		private static class UploadPartResultCallable implements Callable<UploadPartResult> {
 
 			private final AmazonS3 amazonS3;
-			@SuppressWarnings("FieldMayBeFinal")
-			private byte[] content;
 			private final int contentLength;
 			private final int partNumber;
 			private final boolean last;
 			private final String bucketName;
 			private final String key;
 			private final String uploadId;
+			@SuppressWarnings("FieldMayBeFinal")
+			private byte[] content;
 
 			private UploadPartResultCallable(AmazonS3 amazon, byte[] content, int writtenDataSize, String bucketName, String key, String uploadId, int partNumber, boolean last) {
 				this.amazonS3 = amazon;

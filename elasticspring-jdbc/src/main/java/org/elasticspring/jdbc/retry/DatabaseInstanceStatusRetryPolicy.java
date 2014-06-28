@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,9 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 
 	/**
 	 * Configures an option {@link org.elasticspring.core.env.ResourceIdResolver} to resolve logical name to physical name
-	 * @param resourceIdResolver - the resourceIdResolver to be used, may be null
+	 *
+	 * @param resourceIdResolver
+	 * 		- the resourceIdResolver to be used, may be null
 	 */
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
 		this.resourceIdResolver = resourceIdResolver;
@@ -95,12 +97,38 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	 * @param context
 	 * 		- the retry context which may contain a registered exception
 	 * @return <code>true</code> if there is no exception registered or if there is a retry useful which is verified by the {@link
-	 *         InstanceStatus} enum.
+	 * InstanceStatus} enum.
 	 */
 	@Override
 	public boolean canRetry(RetryContext context) {
 		//noinspection ThrowableResultOfMethodCallIgnored
 		return (context.getLastThrowable() == null || isDatabaseAvailable(context));
+	}
+
+	@Override
+	public RetryContext open(RetryContext parent) {
+		RetryContextSupport context = new RetryContextSupport(parent);
+		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, getDbInstanceIdentifier());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Starting RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
+		}
+		return context;
+	}
+
+	@Override
+	public void close(RetryContext context) {
+		context.removeAttribute(DB_INSTANCE_ATTRIBUTE_NAME);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Closing RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
+		}
+	}
+
+	@Override
+	public void registerThrowable(RetryContext context, Throwable throwable) {
+		((RetryContextSupport) context).registerThrowable(throwable);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Registered Throwable of Type {} for RetryContext", throwable.getClass().getName());
+		}
 	}
 
 	private boolean isDatabaseAvailable(RetryContext context) {
@@ -125,33 +153,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 		}
 	}
 
-	@Override
-	public RetryContext open(RetryContext parent) {
-		RetryContextSupport context = new RetryContextSupport(parent);
-		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, getDbInstanceIdentifier());
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Starting RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
-		}
-		return context;
-	}
-
 	private String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) :  this.dbInstanceIdentifier;
-	}
-
-	@Override
-	public void close(RetryContext context) {
-		context.removeAttribute(DB_INSTANCE_ATTRIBUTE_NAME);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Closing RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
-		}
-	}
-
-	@Override
-	public void registerThrowable(RetryContext context, Throwable throwable) {
-		((RetryContextSupport) context).registerThrowable(throwable);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Registered Throwable of Type {} for RetryContext", throwable.getClass().getName());
-		}
+		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) : this.dbInstanceIdentifier;
 	}
 }

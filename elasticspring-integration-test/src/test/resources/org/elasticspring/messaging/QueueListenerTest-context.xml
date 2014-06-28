@@ -27,13 +27,15 @@
 	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
-	<els-context:stack-configuration stack-name="IntegrationTestStack"/>
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 	<els-messaging:annotation-driven-queue-listener />
 
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
-		<constructor-arg ref="#{T(org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils).SQS_CLIENT_BEAN_NAME}" />
-		<constructor-arg ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils).SQS_CLIENT_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 	</bean>
 
 	<bean class="org.elasticspring.messaging.QueueListenerTest$MessageListener" />
