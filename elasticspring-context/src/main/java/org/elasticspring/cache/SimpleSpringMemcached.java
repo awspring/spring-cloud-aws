@@ -78,10 +78,19 @@ public class SimpleSpringMemcached implements Cache {
 		this.memcachedClientIF.add((String) key, this.expiration, value);
 	}
 
+	/**
+	 * <b>IMPORTANT:</b> This operation is not atomic as the underlying implementation (memcached) does not provide a
+	 * way to do it.
+	 */
 	@Override
 	public ValueWrapper putIfAbsent(Object key, Object value) {
-		// TODO alsa: implement correctly
-		return null;
+		ValueWrapper valueWrapper = get(key);
+		if (valueWrapper == null) {
+			put(key, value);
+			return null;
+		} else {
+			return valueWrapper;
+		}
 	}
 
 	@Override

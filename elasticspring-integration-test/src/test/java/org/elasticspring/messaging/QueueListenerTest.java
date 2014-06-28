@@ -63,7 +63,7 @@ public class QueueListenerTest {
 	private QueueMessagingTemplate queueMessagingTemplate;
 
 	@Autowired
-	private AmazonSQS amazonSQS;
+	private AmazonSQS amazonSqs;
 
 	@Test
 	public void testSendAndReceive() throws Exception {

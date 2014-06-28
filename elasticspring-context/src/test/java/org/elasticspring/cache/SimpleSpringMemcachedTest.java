@@ -24,6 +24,9 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.springframework.cache.Cache;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 /**
  * @author Agim Emruli
  */
@@ -42,7 +45,7 @@ public class SimpleSpringMemcachedTest {
 		String cacheName = cache.getName();
 
 		//Assert
-		Assert.assertEquals("test", cacheName);
+		assertEquals("test", cacheName);
 	}
 
 	@Test
@@ -113,7 +116,7 @@ public class SimpleSpringMemcachedTest {
 		Cache.ValueWrapper valueWrapper = cache.get("test");
 
 		//Assert
-		Assert.assertNull(valueWrapper);
+		assertNull(valueWrapper);
 	}
 
 	@Test
@@ -128,7 +131,7 @@ public class SimpleSpringMemcachedTest {
 		String cachedElement = cache.get("test", String.class);
 
 		//Assert
-		Assert.assertEquals("cachedValue", cachedElement);
+		assertEquals("cachedValue", cachedElement);
 	}
 
 	@Test
@@ -141,7 +144,7 @@ public class SimpleSpringMemcachedTest {
 		String cachedElement = cache.get("test", String.class);
 
 		//Assert
-		Assert.assertNull(cachedElement);
+		assertNull(cachedElement);
 	}
 
 	@Test
@@ -361,4 +364,30 @@ public class SimpleSpringMemcachedTest {
 		Mockito.verify(client, Mockito.times(1)).flush();
 	}
 
+	@Test
+	public void putIfAbsent_withNewValue_shouldPutTheNewValueAndReturnNull() throws Exception {
+		// Arrange
+		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+
+		// Act
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
+
+		// Assert
+		assertNull(valueWrapper);
+	}
+
+	@Test
+	public void putIfAbsent_withExistingValue_shouldNotPutTheValueAndReturnTheExistingOne() throws Exception {
+		// Arrange
+		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		Mockito.when(client.get("key")).thenReturn("value");
+
+		// Act
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
+
+		// Assert
+		assertEquals("value", valueWrapper.get());
+	}
 }
