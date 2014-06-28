@@ -31,10 +31,9 @@ import java.io.IOException;
  * @author Alain Sahli
  * @since 1.0
  */
-public class NotificationMessageConverter implements MessageConverter {
+public class NotificationRequestConverter implements MessageConverter {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
-
 
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders header) {

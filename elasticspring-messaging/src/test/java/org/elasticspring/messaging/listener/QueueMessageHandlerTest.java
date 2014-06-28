@@ -16,7 +16,10 @@
 
 package org.elasticspring.messaging.listener;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.elasticspring.messaging.config.annotation.NotificationMessage;
+import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -242,6 +245,32 @@ public class QueueMessageHandlerTest {
 
 	}
 
+	@Test
+	public void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("notificationMessageReceiver", NotificationMessageReceiver.class);
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+		NotificationMessageReceiver notificationMessageReceiver = applicationContext.getBean(NotificationMessageReceiver.class);
+
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "Hi!");
+		jsonObject.put("Message", "Hello World!");
+		String payload = jsonObject.toString();
+
+		// Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload(payload)
+				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+
+		// Assert
+		assertEquals("Hi!", notificationMessageReceiver.getSubject());
+		assertEquals("Hello World!", notificationMessageReceiver.getMessage());
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
@@ -340,6 +369,7 @@ public class QueueMessageHandlerTest {
 		private String payload;
 		private Map<String, String> headers;
 
+		@RuntimeUse
 		public String getPayload() {
 			return this.payload;
 		}
@@ -355,5 +385,26 @@ public class QueueMessageHandlerTest {
 			this.headers = headers;
 		}
 
+	}
+
+	private static class NotificationMessageReceiver {
+
+		private String subject;
+		private String message;
+
+		@RuntimeUse
+		@MessageMapping("testQueue")
+		public void receive(@NotificationSubject String subject, @NotificationMessage String message) {
+			this.subject = subject;
+			this.message = message;
+		}
+
+		public String getSubject() {
+			return this.subject;
+		}
+
+		public String getMessage() {
+			return this.message;
+		}
 	}
 }

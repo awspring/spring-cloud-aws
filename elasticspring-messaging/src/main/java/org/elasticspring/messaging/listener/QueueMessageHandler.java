@@ -18,6 +18,7 @@ package org.elasticspring.messaging.listener;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.support.NotificationMessageArgumentResolver;
+import org.elasticspring.messaging.support.NotificationSubjectArgumentResolver;
 import org.elasticspring.messaging.support.converter.JsonMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
@@ -79,6 +80,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new HeaderMethodArgumentResolver(null, null));
 		resolvers.add(new HeadersMethodArgumentResolver());
 		resolvers.add(new NotificationMessageArgumentResolver());
+		resolvers.add(new NotificationSubjectArgumentResolver());
 		resolvers.add(new PayloadArgumentResolver(new JsonMessageConverter(), new NoOpValidator()));
 
 		return resolvers;
