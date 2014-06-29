@@ -1,6 +1,7 @@
 package org.elasticspring.messaging.support;
 
-import org.codehaus.jettison.json.JSONObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.junit.Test;
@@ -80,7 +81,7 @@ public class NotificationMessageArgumentResolverTest {
 		Method methodWithNotificationMessageArgument = this.getClass().getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();

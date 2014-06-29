@@ -16,7 +16,8 @@
 
 package org.elasticspring.messaging.support;
 
-import org.codehaus.jettison.json.JSONObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.junit.Test;
@@ -96,7 +97,7 @@ public class NotificationSubjectArgumentResolverTest {
 		Method methodWithNotificationSubjectArgument = this.getClass().getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationSubjectArgument, 0);
 
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "My subject!");
 		jsonObject.put("Message", "message");
