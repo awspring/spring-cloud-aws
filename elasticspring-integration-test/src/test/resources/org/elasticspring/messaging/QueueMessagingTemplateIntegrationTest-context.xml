@@ -25,6 +25,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
+	<!--suppress UnparsedCustomBeanInspection -->
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
 	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
@@ -53,7 +54,10 @@
 		<constructor-arg
 				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 		<property name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.JsonMessageConverter"/>
+			<bean class="org.springframework.messaging.converter.MappingJackson2MessageConverter">
+				<!-- Needed for the deserialization part because otherwise the message contains a byte array inside a String -->
+				<property name="serializedPayloadClass" value="java.lang.String" />
+			 </bean>
 		</property>
 	</bean>
 </beans>

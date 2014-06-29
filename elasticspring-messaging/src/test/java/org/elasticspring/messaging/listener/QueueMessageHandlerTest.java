@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging.listener;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
@@ -35,6 +36,8 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -91,7 +94,9 @@ public class QueueMessageHandlerTest {
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
 		DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
-		messageHandler.handleMessage(MessageBuilder.withPayload(messagePayload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+		MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
+		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue")));
+		messageHandler.handleMessage(message);
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
 		Assert.assertNotNull(messageListener.getLastReceivedMessage());
@@ -309,12 +314,12 @@ public class QueueMessageHandlerTest {
 		}
 	}
 
-	private static class DummyKeyValueHolder {
+	public static class DummyKeyValueHolder {
 
 		private final String key;
 		private final String value;
 
-		private DummyKeyValueHolder(String key, String value) {
+		public DummyKeyValueHolder(@JsonProperty("key") String key, @JsonProperty("value") String value) {
 			this.key = key;
 			this.value = value;
 		}
