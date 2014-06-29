@@ -21,7 +21,6 @@ import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
 import org.elasticspring.messaging.core.TopicMessageChannel;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +32,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alain Sahli
@@ -63,10 +65,10 @@ public class NotificationMessagingTemplateIntegrationTest {
 		this.notificationMessagingTemplate.send("SqsReceivingSnsTopic", MessageBuilder.withPayload(message)
 				.setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "A subject").build());
 
-				// Assert
-				Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		Assert.assertEquals(message, this.notificationReceiver.getMessage());
-		Assert.assertEquals("A subject", this.notificationReceiver.getSubject());
+		// Assert
+		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals("A subject", this.notificationReceiver.getSubject());
 	}
 
 	@RuntimeUse
