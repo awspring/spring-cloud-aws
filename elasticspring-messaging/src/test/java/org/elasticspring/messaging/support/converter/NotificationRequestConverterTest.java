@@ -16,7 +16,8 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import org.codehaus.jettison.json.JSONObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -50,7 +51,7 @@ public class NotificationRequestConverterTest {
 	@Test
 	public void fromMessage_withMessageAndSubject_shouldReturnMessage() throws Exception {
 		// Arrange
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "Hello");
 		jsonObject.put("Message", "World");
@@ -68,7 +69,7 @@ public class NotificationRequestConverterTest {
 	@Test
 	public void fromMessage_withMessageOnly_shouldReturnMessage() throws Exception {
 		// Arrange
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Message", "World");
 		String payload = jsonObject.toString();
@@ -85,7 +86,7 @@ public class NotificationRequestConverterTest {
 	public void testNoTypeSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("does not contain a Type attribute");
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
 		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
@@ -95,7 +96,7 @@ public class NotificationRequestConverterTest {
 	public void testWrongTypeSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("is not a valid notification");
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Subscription");
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
@@ -106,7 +107,7 @@ public class NotificationRequestConverterTest {
 	public void testNoMessageAvailableSupplied() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("does not contain a message");
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "Hello World!");
 		String payload = jsonObject.toString();
