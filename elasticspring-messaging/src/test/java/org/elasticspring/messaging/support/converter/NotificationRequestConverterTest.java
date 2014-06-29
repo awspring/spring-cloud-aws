@@ -117,7 +117,7 @@ public class NotificationRequestConverterTest {
 	@Test
 	public void testNoValidJson() throws Exception {
 		this.expectedException.expect(MessageConversionException.class);
-		this.expectedException.expectMessage("Error reading payload");
+		this.expectedException.expectMessage("Could not read JSON");
 		String message = "foo";
 		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(message).build(), null);
 	}

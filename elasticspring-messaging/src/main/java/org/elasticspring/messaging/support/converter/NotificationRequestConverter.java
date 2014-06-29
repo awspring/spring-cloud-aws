@@ -16,15 +16,14 @@
 
 package org.elasticspring.messaging.support.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
-import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Agim Emruli
@@ -33,7 +32,7 @@ import java.io.IOException;
  */
 public class NotificationRequestConverter implements MessageConverter {
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
 
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders header) {
@@ -44,31 +43,25 @@ public class NotificationRequestConverter implements MessageConverter {
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		Assert.notNull(message, "message must not be null");
 
-		try {
-			JsonNode jsonNode = this.objectMapper.readValue(message.getPayload().toString(), JsonNode.class);
-			if (!jsonNode.has("Type")) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute",null);
-			}
-
-			if (!"Notification".equals(jsonNode.get("Type").asText())) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",null);
-			}
-
-			if (!jsonNode.has("Message")) {
-				throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",null);
-			}
-
-			return new NotificationRequest(nullSafeGetTextValue(jsonNode, "Subject"), nullSafeGetTextValue(jsonNode, "Message"));
-		} catch (IOException e) {
-			throw new MessageConversionException("Error reading payload :'" + message.getPayload() + "' from message", e);
+		@SuppressWarnings("unchecked")
+		Map<String, String> jsonAttributes = (Map<String, String>) this.jsonMapper.fromMessage(message, Map.class);
+		if (!jsonAttributes.containsKey("Type")) {
+			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
 		}
-	}
 
-	private static String nullSafeGetTextValue(JsonNode jsonNode, String attribute) {
-		return jsonNode.has(attribute) ? jsonNode.get(attribute).asText() : null;
+		if (!"Notification".equals(jsonAttributes.get("Type"))) {
+			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification", null);
+		}
+
+		if (!jsonAttributes.containsKey("Message")) {
+			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message", null);
+		}
+
+		return new NotificationRequest(jsonAttributes.get("Subject"), jsonAttributes.get("Message"));
 	}
 
 	public static class NotificationRequest {
+
 		private final String subject;
 		private final String message;
 
