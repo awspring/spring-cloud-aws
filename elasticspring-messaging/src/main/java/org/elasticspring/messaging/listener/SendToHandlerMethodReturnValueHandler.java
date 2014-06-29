@@ -18,7 +18,7 @@ package org.elasticspring.messaging.listener;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.util.Assert;
@@ -28,9 +28,9 @@ import org.springframework.util.Assert;
 */
 public class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	private final MessageSendingOperations<String> messageTemplate;
+	private final DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
-	public SendToHandlerMethodReturnValueHandler(MessageSendingOperations<String> messageTemplate) {
+	public SendToHandlerMethodReturnValueHandler(DestinationResolvingMessageSendingOperations<?> messageTemplate) {
 		this.messageTemplate = messageTemplate;
 	}
 

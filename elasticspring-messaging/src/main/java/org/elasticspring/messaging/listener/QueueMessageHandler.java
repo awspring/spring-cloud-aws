@@ -22,7 +22,6 @@ import org.elasticspring.messaging.support.NotificationSubjectArgumentResolver;
 import org.elasticspring.messaging.support.converter.JsonMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
@@ -52,24 +51,11 @@ import java.util.Set;
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
 
-	private MessageSendingOperations<String> sendToMessageTemplate;
+	private HandlerMethodReturnValueHandler defaultReturnValueHandler;
 
-	public MessageSendingOperations<String> getSendToMessageTemplate() {
-		return this.sendToMessageTemplate;
-	}
-
-	/**
-	 * This sendToMessageTemplate will be used to send the return value. Note that {@link
-	 * org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object)} will be used
-	 * and therefore a converter must be set on the {@literal sendToMessageTemplate}.
-	 *
-	 * @param sendToMessageTemplate to use for sending the return value.
-	 * @see org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler
-	 * @see org.springframework.messaging.handler.annotation.SendTo
-	 */
 	@RuntimeUse
-	public void setSendToMessageTemplate(MessageSendingOperations<String> sendToMessageTemplate) {
-		this.sendToMessageTemplate = sendToMessageTemplate;
+	public void setDefaultReturnValueHandler(HandlerMethodReturnValueHandler defaultReturnValueHandler) {
+		this.defaultReturnValueHandler = defaultReturnValueHandler;
 	}
 
 	@Override
@@ -90,8 +76,9 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
 		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
 		handlers.addAll(this.getCustomReturnValueHandlers());
-
-		handlers.add(new SendToHandlerMethodReturnValueHandler(this.sendToMessageTemplate));
+		if (this.defaultReturnValueHandler != null) {
+			handlers.add(this.defaultReturnValueHandler);
+		}
 
 		return handlers;
 	}

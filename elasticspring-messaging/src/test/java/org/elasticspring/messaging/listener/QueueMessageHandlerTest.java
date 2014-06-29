@@ -16,7 +16,8 @@
 
 package org.elasticspring.messaging.listener;
 
-import org.codehaus.jettison.json.JSONObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
@@ -34,7 +35,7 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -65,7 +66,7 @@ import static org.mockito.Mockito.when;
 public class QueueMessageHandlerTest {
 
 	@Mock
-	private MessageSendingOperations<String> messageTemplate;
+	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	@Test
 	public void receiveMessage_methodAnnotatedWithMessageMappingAnnotation_methodInvokedForIncomingMessage() throws Exception {
@@ -115,7 +116,7 @@ public class QueueMessageHandlerTest {
 
 	private AbstractBeanDefinition getQueueMessageHandlerBeanDefinition() {
 		BeanDefinitionBuilder queueMessageHandlerBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
-		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("sendToMessageTemplate", this.messageTemplate);
+		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("defaultReturnValueHandler", new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
 		return queueMessageHandlerBeanDefinitionBuilder.getBeanDefinition();
 	}
 
@@ -256,7 +257,7 @@ public class QueueMessageHandlerTest {
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		NotificationMessageReceiver notificationMessageReceiver = applicationContext.getBean(NotificationMessageReceiver.class);
 
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "Hi!");
 		jsonObject.put("Message", "Hello World!");

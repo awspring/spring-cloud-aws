@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -107,9 +108,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
 		assertNotNull(queueMessageHandler);
 
-		Assert.assertEquals(1, queueMessageHandler.getPropertyValues().size());
-		Assert.assertEquals("messageTemplate",
-				((RuntimeBeanReference) queueMessageHandler.getPropertyValues().getPropertyValue("sendToMessageTemplate").getValue()).getBeanName());
+		assertEquals(1, queueMessageHandler.getPropertyValues().size());
+		AbstractBeanDefinition returnValueHandler = (AbstractBeanDefinition) queueMessageHandler.getPropertyValues().getPropertyValue("defaultReturnValueHandler").getValue();
+		assertEquals("messageTemplate",
+				((RuntimeBeanReference) returnValueHandler.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 	}
 
 	@Test
@@ -133,7 +135,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-argument-resolvers.xml", getClass()));
 		applicationContext.refresh();
-		
+
 		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
 		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().size());
 		assertTrue(TestHandlerMethodArgumentResolver.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().get(0)));

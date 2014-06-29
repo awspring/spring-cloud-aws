@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.MethodParameter;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 public class SendToHandlerMethodReturnValueHandlerTest {
 
 	@Mock
-	private MessageSendingOperations<String> messageTemplate;
+	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
