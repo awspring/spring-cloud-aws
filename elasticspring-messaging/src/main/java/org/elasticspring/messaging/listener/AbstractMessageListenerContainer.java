@@ -19,6 +19,7 @@ package org.elasticspring.messaging.listener;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.elasticspring.core.env.ResourceIdResolver;
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
@@ -148,8 +149,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	/**
 	 * Configure the maximum number of messages that should be retrieved during one poll to the Amazon SQS system. This
 	 * number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently
-	 * not
-	 * supported by the queueing system.
+	 * not supported by the queueing system.
 	 *
 	 * @param maxNumberOfMessages
 	 * 		the maximum number of messages (between 1-10)
@@ -180,6 +180,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	 * 		the resourceIdResolver to use for resolving logical to physical ids in a CloudFormation environment.
 	 * 		Must not be null.
 	 */
+	@RuntimeUse
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
 		this.resourceIdResolver = resourceIdResolver;
 	}
@@ -343,12 +344,17 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.lifecycleMonitor) {
 			stop();
 			this.active = false;
+			doDestroy();
 		}
 	}
 
 	protected abstract void doStart();
 
 	protected abstract void doStop();
+
+	protected void doDestroy() {
+
+	}
 
 	protected void handleError(Throwable throwable) {
 		if (getErrorHandler() != null) {

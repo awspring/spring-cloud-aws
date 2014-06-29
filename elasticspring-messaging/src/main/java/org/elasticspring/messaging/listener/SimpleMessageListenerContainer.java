@@ -20,9 +20,9 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
 
 import java.util.Map;
@@ -37,10 +37,12 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
+	public static final int DEFAULT_WORKER_THREADS = 2;
 
 	private TaskExecutor taskExecutor;
 
 	private volatile CountDownLatch stopLatch;
+	private boolean defaultTaskExecutor;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -53,6 +55,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	@Override
 	protected void initialize() {
 		if (this.taskExecutor == null) {
+			this.defaultTaskExecutor = true;
 			this.taskExecutor = createDefaultTaskExecutor();
 		}
 
@@ -69,8 +72,23 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	 */
 	protected TaskExecutor createDefaultTaskExecutor() {
 		String beanName = getBeanName();
-		String threadNamePrefix = (beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
-		return new SimpleAsyncTaskExecutor(threadNamePrefix);
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setThreadNamePrefix(beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
+		int spinningThreads = this.getMessageRequests().size();
+
+		if (spinningThreads > 0) {
+			threadPoolTaskExecutor.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
+
+			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null ? getMaxNumberOfMessages() : DEFAULT_WORKER_THREADS;
+			threadPoolTaskExecutor.setMaxPoolSize(spinningThreads * maxNumberOfMessagePerBatch);
+		}
+
+		// No use of a thread pool executor queue to avoid retaining message to long in memory
+		threadPoolTaskExecutor.setQueueCapacity(0);
+		threadPoolTaskExecutor.afterPropertiesSet();
+
+		return threadPoolTaskExecutor;
+
 	}
 
 	@Override
@@ -86,6 +104,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			this.stopLatch.await();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+		}
+	}
+
+	@Override
+	protected void doDestroy() {
+		if (this.defaultTaskExecutor) {
+			((ThreadPoolTaskExecutor) this.taskExecutor).destroy();
 		}
 	}
 
