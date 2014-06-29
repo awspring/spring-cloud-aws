@@ -370,7 +370,7 @@ public class SimpleSpringMemcachedTest {
 	@Test
 	public void putIfAbsent_withNewValue_shouldPutTheNewValueAndReturnNull() throws Exception {
 		// Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		// Act
@@ -383,9 +383,9 @@ public class SimpleSpringMemcachedTest {
 	@Test
 	public void putIfAbsent_withExistingValue_shouldNotPutTheValueAndReturnTheExistingOne() throws Exception {
 		// Arrange
-		MemcachedClientIF client = Mockito.mock(MemcachedClientIF.class);
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
-		Mockito.when(client.get("key")).thenReturn("value");
+		when(client.get("key")).thenReturn("value");
 
 		// Act
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
