@@ -27,6 +27,6 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, null)).getMessage();
+		return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, String.class)).getMessage();
 	}
 }
