@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Agim Emruli
  * @author Alain Sahli
@@ -56,7 +58,7 @@ public class AbstractMessageListenerContainerTest {
 		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
-		Assert.assertTrue(container.isActive());
+		assertTrue(container.isActive());
 	}
 
 	@Test
@@ -92,7 +94,7 @@ public class AbstractMessageListenerContainerTest {
 
 		DestinationResolver<String> destinationResolver = container.getDestinationResolver();
 		Assert.assertNotNull(destinationResolver);
-		Assert.assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
+		assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
 	}
 
 	@Test
@@ -158,7 +160,7 @@ public class AbstractMessageListenerContainerTest {
 	@Test
 	public void testIsAutoStartup() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		Assert.assertTrue(container.isAutoStartup());
+		assertTrue(container.isAutoStartup());
 		container.setAutoStartup(false);
 		Assert.assertFalse(container.isAutoStartup());
 	}
@@ -185,13 +187,13 @@ public class AbstractMessageListenerContainerTest {
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.start();
-		Assert.assertTrue(container.isRunning());
+		assertTrue(container.isRunning());
 
 		container.stop();
 		Assert.assertFalse(container.isRunning());
 
 		//Container can still be active an restarted later (e.g. paused for a while)
-		Assert.assertTrue(container.isActive());
+		assertTrue(container.isActive());
 	}
 
 	@Test
@@ -291,7 +293,7 @@ public class AbstractMessageListenerContainerTest {
 		container.start();
 
 		try {
-			Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 		} catch (InterruptedException e) {
 			Assert.fail("Expected doStart() method to be called");
 		}
@@ -328,7 +330,7 @@ public class AbstractMessageListenerContainerTest {
 		container.stop();
 
 		try {
-			Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 		} catch (InterruptedException e) {
 			Assert.fail("Expected doStart() method to be called");
 		}
@@ -366,7 +368,7 @@ public class AbstractMessageListenerContainerTest {
 			@Override
 			public void run() {
 				try {
-					Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+					assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 				} catch (InterruptedException e) {
 					Assert.fail("Expected doStart() method to be called");
 				}
@@ -436,6 +438,18 @@ public class AbstractMessageListenerContainerTest {
 		Mockito.verify(errorHandler, Mockito.times(1)).handleError(throwable);
 	}
 
+	@Test
+	public void doDestroy_WhenContainerIsDestroyed_shouldBeCalled() throws Exception {
+		// Arrange
+		DestroyAwareAbstractMessageListenerContainer abstractMessageListenerContainer = new DestroyAwareAbstractMessageListenerContainer();
+
+		// Act
+		abstractMessageListenerContainer.destroy();
+
+		// Assert
+		assertTrue(abstractMessageListenerContainer.isDestroyCalled());
+	}
+
 	private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
 
 		@Override
@@ -462,6 +476,30 @@ public class AbstractMessageListenerContainerTest {
 		@MessageMapping("anotherTestQueue")
 		public void listenerMethod(String ignore) {
 
+		}
+	}
+
+	private static class DestroyAwareAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
+
+		private boolean destroyCalled;
+
+		@Override
+		protected void doStart() {
+
+		}
+
+		@Override
+		protected void doStop() {
+
+		}
+
+		@Override
+		protected void doDestroy() {
+			this.destroyCalled = true;
+		}
+
+		private boolean isDestroyCalled() {
+			return this.destroyCalled;
 		}
 	}
 }
