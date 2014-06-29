@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging.config;
 
-import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
@@ -41,10 +40,6 @@ public class AmazonMessagingConfigurationUtils {
 	 */
 	public static final String SQS_CLIENT_BEAN_NAME = "SQS_CLIENT";
 
-	/**
-	 * Default bean name used inside the application context for the Amazon SNS client
-	 */
-	public static final String SNS_CLIENT_BEAN_NAME = "SNS_CLIENT";
 
 	/**
 	 * Registers an {@link com.amazonaws.services.sqs.AmazonSQSAsync} client instance under the default bean name {@link
@@ -82,31 +77,5 @@ public class AmazonMessagingConfigurationUtils {
 		}
 
 		return new BeanDefinitionHolder(registry.getBeanDefinition(SQS_CLIENT_BEAN_NAME), SQS_CLIENT_BEAN_NAME);
-	}
-
-	/**
-	 * Registers a {@link com.amazonaws.services.sns.AmazonSNS} instance with the bean name {@link #SNS_CLIENT_BEAN_NAME}
-	 * if not already existing.
-	 *
-	 * @param registry
-	 * 		- the bean definition registry to which the bean should be registered. This registry will be checked if there is
-	 * 		already a bean definition.
-	 * @param source
-	 * 		- the source for the bean definition (e.g. the XML element)
-	 * @return the {@link BeanDefinitionHolder} containing the definition along with the registered bean name
-	 */
-	public static BeanDefinitionHolder registerAmazonSnsClient(
-			BeanDefinitionRegistry registry, Object source) {
-
-		if (!registry.containsBeanDefinition(SNS_CLIENT_BEAN_NAME)) {
-			BeanDefinitionBuilder clientBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSNSClient.class);
-			clientBuilder.getRawBeanDefinition().setSource(source);
-			clientBuilder.getRawBeanDefinition().setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			clientBuilder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-
-			registry.registerBeanDefinition(SNS_CLIENT_BEAN_NAME, clientBuilder.getBeanDefinition());
-		}
-
-		return new BeanDefinitionHolder(registry.getBeanDefinition(SNS_CLIENT_BEAN_NAME), SNS_CLIENT_BEAN_NAME);
 	}
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2012 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,13 +20,19 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -37,28 +43,28 @@ public class SimpleEmailServiceMailSenderTest {
 
 	@Test
 	public void testSendSimpleMailWithMinimalProperties() throws Exception {
-		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
-		Mockito.when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
+		when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
 
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		Assert.assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
-		Assert.assertEquals(simpleMailMessage.getTo()[0], sendEmailRequest.getDestination().getToAddresses().get(0));
-		Assert.assertEquals(simpleMailMessage.getSubject(), sendEmailRequest.getMessage().getSubject().getData());
-		Assert.assertEquals(simpleMailMessage.getText(), sendEmailRequest.getMessage().getBody().getText().getData());
-		Assert.assertEquals(0, sendEmailRequest.getDestination().getCcAddresses().size());
-		Assert.assertEquals(0, sendEmailRequest.getDestination().getBccAddresses().size());
+		assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
+		assertEquals(simpleMailMessage.getTo()[0], sendEmailRequest.getDestination().getToAddresses().get(0));
+		assertEquals(simpleMailMessage.getSubject(), sendEmailRequest.getMessage().getSubject().getData());
+		assertEquals(simpleMailMessage.getText(), sendEmailRequest.getMessage().getBody().getText().getData());
+		assertEquals(0, sendEmailRequest.getDestination().getCcAddresses().size());
+		assertEquals(0, sendEmailRequest.getDestination().getBccAddresses().size());
 	}
 
 	@Test
 	public void testSendSimpleMailWithCCandBCC() throws Exception {
-		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
@@ -66,41 +72,41 @@ public class SimpleEmailServiceMailSenderTest {
 		simpleMailMessage.setCc("cc@domain.com");
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
-		Mockito.when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
+		when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
 
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		Assert.assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
-		Assert.assertEquals(simpleMailMessage.getTo()[0], sendEmailRequest.getDestination().getToAddresses().get(0));
-		Assert.assertEquals(simpleMailMessage.getSubject(), sendEmailRequest.getMessage().getSubject().getData());
-		Assert.assertEquals(simpleMailMessage.getText(), sendEmailRequest.getMessage().getBody().getText().getData());
-		Assert.assertEquals(simpleMailMessage.getBcc()[0], sendEmailRequest.getDestination().getBccAddresses().get(0));
-		Assert.assertEquals(simpleMailMessage.getCc()[0], sendEmailRequest.getDestination().getCcAddresses().get(0));
+		assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
+		assertEquals(simpleMailMessage.getTo()[0], sendEmailRequest.getDestination().getToAddresses().get(0));
+		assertEquals(simpleMailMessage.getSubject(), sendEmailRequest.getMessage().getSubject().getData());
+		assertEquals(simpleMailMessage.getText(), sendEmailRequest.getMessage().getBody().getText().getData());
+		assertEquals(simpleMailMessage.getBcc()[0], sendEmailRequest.getDestination().getBccAddresses().get(0));
+		assertEquals(simpleMailMessage.getCc()[0], sendEmailRequest.getDestination().getCcAddresses().get(0));
 	}
 
 	@Test
 	public void testSendMultipleMails() throws Exception {
-		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
-		Mockito.when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
+		when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
 
 		mailSender.send(new SimpleMailMessage[]{createSimpleMailMessage(), createSimpleMailMessage()});
-		Mockito.verify(emailService, Mockito.times(2)).sendEmail(Matchers.any(SendEmailRequest.class));
+		verify(emailService, times(2)).sendEmail(Matchers.any(SendEmailRequest.class));
 	}
 
 	@Test
 	public void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
-		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage firstMessage = createSimpleMailMessage();
 		firstMessage.setBcc("bcc@domain.com");
 
 		SimpleMailMessage failureMail = createSimpleMailMessage();
-		Mockito.when(emailService.sendEmail(Matchers.isA(SendEmailRequest.class))).
+		when(emailService.sendEmail(Matchers.isA(SendEmailRequest.class))).
 				thenReturn(new SendEmailResult()).
 				thenThrow(new AmazonClientException("error")).
 				thenReturn(new SendEmailResult());
@@ -109,20 +115,20 @@ public class SimpleEmailServiceMailSenderTest {
 
 		try {
 			mailSender.send(new SimpleMailMessage[]{firstMessage, failureMail, thirdMessage});
-			Assert.fail("Exception expected due to error while sending mail");
+			fail("Exception expected due to error while sending mail");
 		} catch (MailSendException e) {
-			Assert.assertEquals(1, e.getFailedMessages().size());
-			Assert.assertTrue(e.getFailedMessages().containsKey(failureMail));
+			assertEquals(1, e.getFailedMessages().size());
+			assertTrue(e.getFailedMessages().containsKey(failureMail));
 		}
 	}
 
 	@Test
 	public void testShutDownOfResources() throws Exception {
-		AmazonSimpleEmailService emailService = Mockito.mock(AmazonSimpleEmailService.class);
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		mailSender.destroy();
-		Mockito.verify(emailService, Mockito.times(1)).shutdown();
+		verify(emailService, times(1)).shutdown();
 	}
 
 	private SimpleMailMessage createSimpleMailMessage() {

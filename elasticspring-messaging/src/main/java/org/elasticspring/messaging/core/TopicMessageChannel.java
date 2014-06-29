@@ -46,7 +46,7 @@ public class TopicMessageChannel implements MessageChannel {
 	@Override
 	public boolean send(Message<?> message, long timeout) {
 		this.amazonSns.publish(new PublishRequest(this.topicArn,
-				message.getPayload().toString(),findNotificationSubject(message)));
+				message.getPayload().toString(), findNotificationSubject(message)));
 		return true;
 	}
 

@@ -32,17 +32,21 @@
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 
 	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
-		<constructor-arg ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
+		<constructor-arg
+				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
 	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient" />
 	</bean>
 
-	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService" factory-method="fromStackOutputKey">
-		<constructor-arg name="stackName" value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
-		<constructor-arg name="outputKey" value="#{T(org.elasticspring.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}"/>
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient"/>
+	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService"
+		  factory-method="fromStackOutputKey">
+		<constructor-arg name="stackName"
+						 value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}" />
+		<constructor-arg name="outputKey"
+						 value="#{T(org.elasticspring.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}" />
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient" />
 	</bean>
 
 </beans>

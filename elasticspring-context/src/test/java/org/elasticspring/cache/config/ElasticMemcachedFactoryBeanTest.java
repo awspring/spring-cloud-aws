@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,12 @@ import com.amazonaws.services.elasticache.model.Endpoint;
 import org.elasticspring.cache.ElasticMemcachedFactoryBean;
 import org.elasticspring.cache.memcached.MemcachedClient;
 import org.elasticspring.core.env.ResourceIdResolver;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ElasticMemcachedFactoryBeanTest {
 
@@ -35,9 +38,9 @@ public class ElasticMemcachedFactoryBeanTest {
 	public void getObject_availableCluster_returnsConfiguredMemcachedClient() throws Exception {
 		// Arrange
 		int memcacheServerPort = TestMemcacheServer.startServer();
-		AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCacheClient.class);
+		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
 
-		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
+		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
 				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
 		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "memcached");
 
@@ -46,8 +49,8 @@ public class ElasticMemcachedFactoryBeanTest {
 		MemcachedClient memcachedClient = elastiCacheAddressProvider.getObject();
 
 		// Assert
-		Assert.assertNotNull(memcachedClient);
-		Assert.assertNull(memcachedClient.get("getObject_availableCluster_returnsConfiguredMemcachedClient"));
+		assertNotNull(memcachedClient);
+		assertNull(memcachedClient.get("getObject_availableCluster_returnsConfiguredMemcachedClient"));
 
 		memcachedClient.shutdown();
 
@@ -58,12 +61,12 @@ public class ElasticMemcachedFactoryBeanTest {
 		// Arrange
 		int memcacheServerPort = TestMemcacheServer.startServer();
 
-		AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCacheClient.class);
-		Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
+		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
+		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
 				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
 
-		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
-		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
+		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
 
 		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "test", resourceIdResolver);
 
@@ -72,8 +75,8 @@ public class ElasticMemcachedFactoryBeanTest {
 		MemcachedClient memcachedClient = elastiCacheAddressProvider.getObject();
 
 		// Assert
-		Assert.assertNotNull(memcachedClient);
-		Assert.assertNull(memcachedClient.get("getObject_availableClusterWithLogicalName_returnsConfigurationEndpointWithPhysicalName"));
+		assertNotNull(memcachedClient);
+		assertNull(memcachedClient.get("getObject_availableClusterWithLogicalName_returnsConfigurationEndpointWithPhysicalName"));
 
 		memcachedClient.shutdown();
 	}

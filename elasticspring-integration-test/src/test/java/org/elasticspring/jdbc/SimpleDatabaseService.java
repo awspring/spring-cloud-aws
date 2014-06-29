@@ -41,7 +41,7 @@ class SimpleDatabaseService implements DatabaseService {
 	@Override
 	@Transactional(readOnly = true)
 	public Date getLastUpdate(Date lastAccessDatabase) {
-		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Timestamp.class,lastAccessDatabase);
+		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Timestamp.class, lastAccessDatabase);
 	}
 
 	@Override

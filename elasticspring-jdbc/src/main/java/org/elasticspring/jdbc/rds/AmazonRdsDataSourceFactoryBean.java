@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,10 +156,13 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * the name passed as identifier. This method does distinguish between regular amazon rds instances and
 	 * read-replicas because both meta-data is retrieved on the same way.
 	 *
-	 * @param identifier - the database identifier for the data source configured in amazon rds
+	 * @param identifier
+	 * 		- the database identifier for the data source configured in amazon rds
 	 * @return a fully configured and initialized {@link org.elasticspring.jdbc.datasource.DynamicDataSource}
-	 * @throws java.lang.IllegalStateException if no database has been found
-	 * @throws java.lang.Exception in case of underlying exceptions
+	 * @throws java.lang.IllegalStateException
+	 * 		if no database has been found
+	 * @throws java.lang.Exception
+	 * 		in case of underlying exceptions
 	 */
 	protected DataSource createDataSourceInstance(String identifier) throws Exception {
 		DBInstance instance = getDbInstance(identifier);
@@ -171,11 +174,14 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	/**
 	 * Retrieves the {@link com.amazonaws.services.rds.model.DBInstance} information
-	 * @param identifier - the database identifier used
+	 *
+	 * @param identifier
+	 * 		- the database identifier used
 	 * @return - the db instance
-	 * @throws IllegalStateException if the db instance is not found
+	 * @throws IllegalStateException
+	 * 		if the db instance is not found
 	 */
-	protected DBInstance getDbInstance(String identifier) throws IllegalStateException{
+	protected DBInstance getDbInstance(String identifier) throws IllegalStateException {
 		DBInstance instance;
 		try {
 			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRds.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(identifier));

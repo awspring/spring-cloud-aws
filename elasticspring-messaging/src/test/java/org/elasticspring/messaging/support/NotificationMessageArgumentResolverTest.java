@@ -1,6 +1,8 @@
 package org.elasticspring.messaging.support;
 
-import org.codehaus.jettison.json.JSONObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.junit.Test;
 import org.springframework.core.MethodParameter;
@@ -29,6 +31,8 @@ public class NotificationMessageArgumentResolverTest {
 		assertTrue(result);
 	}
 
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
 	private void methodWithNotificationMessageArgument(@NotificationMessage String message) {
 	}
 
@@ -36,8 +40,8 @@ public class NotificationMessageArgumentResolverTest {
 	public void supportsParameter_withWrongMethodParameter_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
-		Method methodWithWrongMessageArgument = this.getClass().getDeclaredMethod("methodWithWrongMessageArgument", String.class);
-		MethodParameter methodParameter = new MethodParameter(methodWithWrongMessageArgument, 0);
+		Method methodWithMissingAnnotation = this.getClass().getDeclaredMethod("methodWithMissingAnnotation", String.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation, 0);
 
 		// Act
 		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
@@ -46,7 +50,28 @@ public class NotificationMessageArgumentResolverTest {
 		assertFalse(result);
 	}
 
-	private void methodWithWrongMessageArgument(String test) {
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithMissingAnnotation(String test) {
+	}
+
+	@Test
+	public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
+		// Arrange
+		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
+		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Long.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
+
+		// Act
+		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
+
+		// Assert
+		assertFalse(result);
+	}
+
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithWrongParameterType(@NotificationMessage Long test) {
 	}
 
 	@Test
@@ -56,7 +81,7 @@ public class NotificationMessageArgumentResolverTest {
 		Method methodWithNotificationMessageArgument = this.getClass().getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 
-		JSONObject jsonObject = new JSONObject();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();

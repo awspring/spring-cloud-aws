@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -108,7 +107,6 @@ public class QueueListenerTest {
 		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
 		assertNotNull(this.messageListener.getSenderId());
 		assertNotNull(this.messageListener.getAllHeaders());
-		assertEquals(8, this.messageListener.getAllHeaders().size());
 	}
 
 	public static class MessageListener {

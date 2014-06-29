@@ -24,7 +24,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-context:context-instance-placeholder/>
+	<els-context:context-instance-placeholder />
 
 	<bean class="org.elasticspring.core.env.ec2.SimpleConfigurationBean">
 		<property name="value1" value="#{environment.key1}" />

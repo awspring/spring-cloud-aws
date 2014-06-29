@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.util.SocketUtils;
@@ -35,6 +34,9 @@ import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 /**
  * @author Agim Emruli
  */
@@ -44,6 +46,75 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 
 	@SuppressWarnings("StaticNonFinalField")
 	private static HttpServer httpServer;
+
+	@Test
+	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
+		//Arrange
+		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA:valueA;keyB:valueB".getBytes("UTF-8")).getBytes()));
+
+		//Act
+		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+
+		//Assert
+		assertEquals("valueA", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
+		assertEquals("valueB", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+
+		httpServer.removeContext("/latest/user-data/");
+	}
+
+	@Test
+	public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
+		//Arrange
+		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA=valueD,keyB=valueE".getBytes("ISO-8859-1")).getBytes()));
+
+		//Act
+		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+
+		amazonEc2InstanceDataPropertySource.setUserDataAttributeEncoding("ISO-8859-1");
+		amazonEc2InstanceDataPropertySource.setUserDataAttributeSeparator(",");
+		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
+
+		//Assert
+		assertEquals("valueD", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
+		assertEquals("valueE", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+
+		httpServer.removeContext("/latest/user-data/");
+	}
+
+	@Test
+	public void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
+		//Arrange
+		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
+
+		//Act
+		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+
+		//Assert
+		assertEquals("i1234567", amazonEc2InstanceDataPropertySource.getProperty("instance-id"));
+
+		httpServer.removeContext("/latest/meta-data/instance-id");
+	}
+
+	@Test
+	public void getProperty_unknownAttribute_returnsNull() throws Exception {
+		//Arrange
+		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
+
+		//Act
+		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+
+		//Assert
+		assertNull(amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"));
+
+		httpServer.removeContext("/latest/meta-data/instance-id");
+	}
+
+	@After
+	public void clearMetadataCache() throws Exception {
+		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
+		metadataCacheField.setAccessible(true);
+		metadataCacheField.set(null, new HashMap<String, String>());
+	}
 
 	@BeforeClass
 	public static void setupHttpServer() throws Exception {
@@ -67,76 +138,6 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 
 	private static void resetMetadataEndpointUrlOverwrite() {
 		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
-
-	@Test
-	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA:valueA;keyB:valueB".getBytes("UTF-8")).getBytes()));
-
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
-
-		//Assert
-		Assert.assertEquals("valueA", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		Assert.assertEquals("valueB", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
-
-		httpServer.removeContext("/latest/user-data/");
-	}
-
-	@Test
-	public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA=valueD,keyB=valueE".getBytes("ISO-8859-1")).getBytes()));
-
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
-
-		amazonEc2InstanceDataPropertySource.setUserDataAttributeEncoding("ISO-8859-1");
-		amazonEc2InstanceDataPropertySource.setUserDataAttributeSeparator(",");
-		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
-
-		//Assert
-		Assert.assertEquals("valueD", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		Assert.assertEquals("valueE", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
-
-		httpServer.removeContext("/latest/user-data/");
-	}
-
-	@Test
-	public void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
-
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
-
-		//Assert
-		Assert.assertEquals("i1234567", amazonEc2InstanceDataPropertySource.getProperty("instance-id"));
-
-		httpServer.removeContext("/latest/meta-data/instance-id");
-	}
-
-	@Test
-	public void getProperty_unknownAttribute_returnsNull() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
-
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
-
-		//Assert
-		Assert.assertNull(amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"));
-
-		httpServer.removeContext("/latest/meta-data/instance-id");
-	}
-
-
-	@After
-	public void clearMetadataCache() throws Exception {
-		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
-		metadataCacheField.setAccessible(true);
-		metadataCacheField.set(null, new HashMap<String, String>());
 	}
 
 	private static class StringWritingHttpHandler implements HttpHandler {

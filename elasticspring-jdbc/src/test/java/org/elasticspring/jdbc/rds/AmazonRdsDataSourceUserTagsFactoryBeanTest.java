@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,15 @@ import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
 import org.elasticspring.core.env.ResourceIdResolver;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Date;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -41,73 +44,73 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 	@Test
 	public void getObject_instanceWithTagsConfiguredWithCustomResourceResolverAndCustomRegion_mapWithTagsReturned() throws Exception {
 		//Arrange
-		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
-		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
-		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRDS amazonRds = mock(AmazonRDS.class);
+		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
 
-		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
-		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
-		Mockito.when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test"))).thenReturn(new ListTagsForResourceResult().withTagList(
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test"))).thenReturn(new ListTagsForResourceResult().withTagList(
 				new Tag().withKey("key1").withValue("value1"),
 				new Tag().withKey("key2").withValue("value2")
 		));
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
-		Assert.assertEquals("value1", userTagMap.get("key1"));
-		Assert.assertEquals("value2", userTagMap.get("key2"));
+		assertEquals("value1", userTagMap.get("key1"));
+		assertEquals("value2", userTagMap.get("key2"));
 	}
 
 	@Test
 	public void getObject_instanceWithOutTags_emptyMapReturned() throws Exception {
 		//Arrange
-		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
-		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
-		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRDS amazonRds = mock(AmazonRDS.class);
+		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
 
-		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
-		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
-		Mockito.when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test"))).thenReturn(new ListTagsForResourceResult());
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test"))).thenReturn(new ListTagsForResourceResult());
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
-		Assert.assertTrue(userTagMap.isEmpty());
+		assertTrue(userTagMap.isEmpty());
 	}
 
 	@Test
 	public void getObject_instanceWithTagsAndNoResourceIdResolverAndDefaultRegion_mapWithTagsReturned() throws Exception {
 		//Arrange
-		AmazonRDS amazonRds = Mockito.mock(AmazonRDS.class);
-		AmazonIdentityManagement amazonIdentityManagement = Mockito.mock(AmazonIdentityManagement.class);
+		AmazonRDS amazonRds = mock(AmazonRDS.class);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
 
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test",amazonIdentityManagement);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds, "test", amazonIdentityManagement);
 
 
-		Mockito.when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
-		Mockito.when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
 				new Tag().withKey("key1").withValue("value1"),
 				new Tag().withKey("key2").withValue("value2")
 		));
 
 		//Act
 		factoryBean.afterPropertiesSet();
-		Map<String,String> userTagMap = factoryBean.getObject();
+		Map<String, String> userTagMap = factoryBean.getObject();
 
 		//Assert
-		Assert.assertEquals("value1", userTagMap.get("key1"));
-		Assert.assertEquals("value2", userTagMap.get("key2"));
+		assertEquals("value1", userTagMap.get("key1"));
+		assertEquals("value2", userTagMap.get("key2"));
 	}
 }

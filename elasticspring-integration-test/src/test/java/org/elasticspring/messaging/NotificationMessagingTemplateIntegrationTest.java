@@ -18,8 +18,9 @@ package org.elasticspring.messaging;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
+import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
-import org.junit.Assert;
+import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alain Sahli
@@ -58,14 +62,16 @@ public class NotificationMessagingTemplateIntegrationTest {
 		String message = "Message content for SQS";
 
 		// Act
-		this.notificationMessagingTemplate.send("SqsReceivingSnsTopic", MessageBuilder.withPayload(message).build());
+		this.notificationMessagingTemplate.send("SqsReceivingSnsTopic", MessageBuilder.withPayload(message)
+				.setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "A subject").build());
 
 		// Assert
-		Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		Assert.assertEquals(message, this.notificationReceiver.getMessage());
-		Assert.assertNull(this.notificationReceiver.getSubject());
+		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals("A subject", this.notificationReceiver.getSubject());
 	}
 
+	@RuntimeUse
 	private static class NotificationReceiver {
 
 		private CountDownLatch countDownLatch;
@@ -91,10 +97,10 @@ public class NotificationMessagingTemplateIntegrationTest {
 
 		@RuntimeUse
 		@MessageMapping("NotificationQueue")
-		private void messageListener(@NotificationMessage String message) {
-			this.countDownLatch.countDown();
+		private void messageListener(@NotificationSubject String subject, @NotificationMessage String message) {
+			this.subject = subject;
 			this.message = message;
-			//this.subject = message.getSubject();
+			this.countDownLatch.countDown();
 		}
 
 	}

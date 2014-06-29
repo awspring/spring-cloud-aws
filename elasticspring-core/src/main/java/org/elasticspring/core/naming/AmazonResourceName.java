@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,31 @@ public class AmazonResourceName {
 		return this.resourceName;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("arn");
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append("aws");
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append(this.service);
+		builder.append(RESOURCE_NAME_DELIMITER);
+		if (this.region != null) {
+			builder.append(this.region);
+		}
+		builder.append(RESOURCE_NAME_DELIMITER);
+		if (this.account != null) {
+			builder.append(this.account);
+		}
+		builder.append(RESOURCE_NAME_DELIMITER);
+		builder.append(this.resourceType);
+		if (this.resourceName != null) {
+			builder.append(this.actualResourceTypeDelimiter);
+			builder.append(this.resourceName);
+		}
+		return builder.toString();
+	}
+
 	public static AmazonResourceName fromString(String name) {
 		Assert.notNull(name, "name must not be null");
 		String[] tokens = name.split(RESOURCE_NAME_DELIMITER);
@@ -160,31 +185,6 @@ public class AmazonResourceName {
 		}
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("arn");
-		builder.append(RESOURCE_NAME_DELIMITER);
-		builder.append("aws");
-		builder.append(RESOURCE_NAME_DELIMITER);
-		builder.append(this.service);
-		builder.append(RESOURCE_NAME_DELIMITER);
-		if (this.region != null) {
-			builder.append(this.region);
-		}
-		builder.append(RESOURCE_NAME_DELIMITER);
-		if (this.account != null) {
-			builder.append(this.account);
-		}
-		builder.append(RESOURCE_NAME_DELIMITER);
-		builder.append(this.resourceType);
-		if (this.resourceName != null) {
-			builder.append(this.actualResourceTypeDelimiter);
-			builder.append(this.resourceName);
-		}
-		return builder.toString();
-	}
-
 	private static String trimToNull(String input) {
 		return StringUtils.hasText(input) ? input : null;
 	}
@@ -192,6 +192,7 @@ public class AmazonResourceName {
 
 	@SuppressWarnings("ClassNamingConvention")
 	public static class Builder {
+
 		private String service;
 		private String region;
 		private String account;
@@ -229,7 +230,7 @@ public class AmazonResourceName {
 			return this;
 		}
 
-		public AmazonResourceName build(){
+		public AmazonResourceName build() {
 			return new AmazonResourceName(this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
 		}
 	}

@@ -18,7 +18,9 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
+import org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -88,17 +90,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	private String getMessageHandlerBeanName(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder queueMessageHandlerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
 
-		if (StringUtils.hasText(element.getAttribute("send-to-message-template"))) {
-			queueMessageHandlerDefinitionBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("send-to-message-template"), element.getAttribute("send-to-message-template"));
-		}
+		queueMessageHandlerDefinitionBuilder.addPropertyValue("defaultReturnValueHandler", createSendToHandlerMethodReturnValueHandlerBeanDefinition(element, parserContext));
 
 		ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
-		if (argumentResolvers != null) {
+		if (!argumentResolvers.isEmpty()) {
 			queueMessageHandlerDefinitionBuilder.addPropertyValue("customArgumentResolvers", argumentResolvers);
 		}
 
 		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, parserContext);
-		if (returnValueHandlers != null) {
+		if (!returnValueHandlers.isEmpty()) {
 			queueMessageHandlerDefinitionBuilder.addPropertyValue("customReturnValueHandlers", returnValueHandlers);
 		}
 
@@ -107,20 +107,37 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		return messageHandlerBeanName;
 	}
 
+	private AbstractBeanDefinition createSendToHandlerMethodReturnValueHandlerBeanDefinition(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SendToHandlerMethodReturnValueHandler.class);
+		if (StringUtils.hasText(element.getAttribute("send-to-message-template"))) {
+			beanDefinitionBuilder.addConstructorArgReference(element.getAttribute("send-to-message-template"));
+		} else {
+			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessagingTemplate.class);
+			BeanDefinitionHolder amazonSqsClient = AmazonMessagingConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(), element, element.getAttribute("task-executor"));
+			templateBuilder.addConstructorArgReference(amazonSqsClient.getBeanName());
+			templateBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+			beanDefinitionBuilder.addConstructorArgValue(templateBuilder.getBeanDefinition());
+		}
+
+		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
 	private ManagedList<?> getArgumentResolvers(Element element, ParserContext parserContext) {
 		Element resolversElement = DomUtils.getChildElementByTagName(element, "argument-resolvers");
 		if (resolversElement != null) {
 			return extractBeanSubElements(resolversElement, parserContext);
+		} else {
+			return new ManagedList<Object>(0);
 		}
-		return null;
 	}
 
 	private ManagedList<?> getReturnValueHandlers(Element element, ParserContext parserContext) {
 		Element handlersElement = DomUtils.getChildElementByTagName(element, "return-value-handlers");
 		if (handlersElement != null) {
 			return extractBeanSubElements(handlersElement, parserContext);
+		} else {
+			return new ManagedList<Object>(0);
 		}
-		return null;
 	}
 
 	private ManagedList<BeanDefinitionHolder> extractBeanSubElements(Element parentElement, ParserContext parserContext) {

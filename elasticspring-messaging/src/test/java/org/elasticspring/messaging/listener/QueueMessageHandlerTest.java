@@ -16,7 +16,12 @@
 
 package org.elasticspring.messaging.listener;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.elasticspring.messaging.config.annotation.NotificationMessage;
+import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +36,9 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -62,7 +69,7 @@ import static org.mockito.Mockito.when;
 public class QueueMessageHandlerTest {
 
 	@Mock
-	private MessageSendingOperations<String> messageTemplate;
+	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	@Test
 	public void receiveMessage_methodAnnotatedWithMessageMappingAnnotation_methodInvokedForIncomingMessage() throws Exception {
@@ -87,7 +94,9 @@ public class QueueMessageHandlerTest {
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
 		DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
-		messageHandler.handleMessage(MessageBuilder.withPayload(messagePayload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+		MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
+		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue")));
+		messageHandler.handleMessage(message);
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
 		Assert.assertNotNull(messageListener.getLastReceivedMessage());
@@ -112,7 +121,7 @@ public class QueueMessageHandlerTest {
 
 	private AbstractBeanDefinition getQueueMessageHandlerBeanDefinition() {
 		BeanDefinitionBuilder queueMessageHandlerBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
-		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("sendToMessageTemplate", this.messageTemplate);
+		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("defaultReturnValueHandler", new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
 		return queueMessageHandlerBeanDefinitionBuilder.getBeanDefinition();
 	}
 
@@ -242,6 +251,32 @@ public class QueueMessageHandlerTest {
 
 	}
 
+	@Test
+	public void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("notificationMessageReceiver", NotificationMessageReceiver.class);
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+		NotificationMessageReceiver notificationMessageReceiver = applicationContext.getBean(NotificationMessageReceiver.class);
+
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "Hi!");
+		jsonObject.put("Message", "Hello World!");
+		String payload = jsonObject.toString();
+
+		// Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload(payload)
+				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+
+		// Assert
+		assertEquals("Hi!", notificationMessageReceiver.getSubject());
+		assertEquals("Hello World!", notificationMessageReceiver.getMessage());
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
@@ -279,12 +314,12 @@ public class QueueMessageHandlerTest {
 		}
 	}
 
-	private static class DummyKeyValueHolder {
+	public static class DummyKeyValueHolder {
 
 		private final String key;
 		private final String value;
 
-		private DummyKeyValueHolder(String key, String value) {
+		public DummyKeyValueHolder(@JsonProperty("key") String key, @JsonProperty("value") String value) {
 			this.key = key;
 			this.value = value;
 		}
@@ -340,6 +375,7 @@ public class QueueMessageHandlerTest {
 		private String payload;
 		private Map<String, String> headers;
 
+		@RuntimeUse
 		public String getPayload() {
 			return this.payload;
 		}
@@ -355,5 +391,26 @@ public class QueueMessageHandlerTest {
 			this.headers = headers;
 		}
 
+	}
+
+	private static class NotificationMessageReceiver {
+
+		private String subject;
+		private String message;
+
+		@RuntimeUse
+		@MessageMapping("testQueue")
+		public void receive(@NotificationSubject String subject, @NotificationMessage String message) {
+			this.subject = subject;
+			this.message = message;
+		}
+
+		public String getSubject() {
+			return this.subject;
+		}
+
+		public String getMessage() {
+			return this.message;
+		}
 	}
 }

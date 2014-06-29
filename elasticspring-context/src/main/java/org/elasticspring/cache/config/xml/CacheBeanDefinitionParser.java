@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,15 +52,6 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.elasticspring.cache.ElasticMemcachedFactoryBean";
 	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.elasticspring.cache.StaticMemcachedFactoryBean";
 
-	private static String getRequiredAttribute(String attributeName, Element source, ParserContext parserContext) {
-		if (StringUtils.hasText(source.getAttribute(attributeName))) {
-			return source.getAttribute(attributeName);
-		} else {
-			parserContext.getReaderContext().error("Attribute '" + attributeName + "' is required", source);
-			return null;
-		}
-	}
-
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		if (!parserContext.getRegistry().containsBeanDefinition(CACHE_MANAGER)) {
@@ -93,6 +84,15 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			}
 		}
 		return caches;
+	}
+
+	private static String getRequiredAttribute(String attributeName, Element source, ParserContext parserContext) {
+		if (StringUtils.hasText(source.getAttribute(attributeName))) {
+			return source.getAttribute(attributeName);
+		} else {
+			parserContext.getReaderContext().error("Attribute '" + attributeName + "' is required", source);
+			return null;
+		}
 	}
 
 	private static BeanDefinition createCache(String name, BeanDefinition memCachedClient, String expiration) {

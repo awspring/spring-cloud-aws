@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@
 package org.elasticspring.jdbc.datasource;
 
 import org.elasticspring.jdbc.datasource.support.DatabaseType;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.mockito.Mockito;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -31,6 +29,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test class for {@see DynamicDataSource}
@@ -49,43 +53,43 @@ public class DynamicDataSourceTest {
 	@Test
 	public void testGetConnectionWithReadyDataSource() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
-		DataSource dataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
-		Mockito.when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
-		Mockito.when(dataSource.getConnection()).thenReturn(connection);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+		DataSource dataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
+		when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
+		when(dataSource.getConnection()).thenReturn(connection);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
 		dynamicDataSource.afterPropertiesSet();
 
 		Connection borrowedConnection = dynamicDataSource.getConnection();
-		Assert.assertNotNull(borrowedConnection);
+		assertNotNull(borrowedConnection);
 	}
 
 	@Test
 	public void testGetConnectionWithReadyUsernameAndPassword() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
-		DataSource dataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
-		Mockito.when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
-		Mockito.when(dataSource.getConnection("user", "password")).thenReturn(connection);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+		DataSource dataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
+		when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
+		when(dataSource.getConnection("user", "password")).thenReturn(connection);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
 		dynamicDataSource.afterPropertiesSet();
 
 		Connection borrowedConnection = dynamicDataSource.getConnection("user", "password");
-		Assert.assertNotNull(borrowedConnection);
+		assertNotNull(borrowedConnection);
 	}
 
 	@Test
 	public void testGetConnectionNonReadyDataSourceConcurrent() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
-		DataSource dataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
-		Mockito.when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
-		Mockito.when(dataSource.getConnection()).thenReturn(connection);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+		DataSource dataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
+		when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
+		when(dataSource.getConnection()).thenReturn(connection);
 
 		final CountDownLatch countDownLatch = new CountDownLatch(20);
 
@@ -102,9 +106,9 @@ public class DynamicDataSourceTest {
 					try {
 						Connection result = dynamicDataSource.getConnection();
 						countDownLatch.countDown();
-						Assert.assertNotNull(result);
+						assertNotNull(result);
 					} catch (SQLException e) {
-						Assert.fail(e.getMessage());
+						fail(e.getMessage());
 					}
 				}
 			});
@@ -119,11 +123,11 @@ public class DynamicDataSourceTest {
 	@Test
 	public void testGetConnectionTerminatesWhileShuttingDown() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
-		DataSource dataSource = Mockito.mock(DataSource.class);
-		Connection connection = Mockito.mock(Connection.class);
-		Mockito.when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
-		Mockito.when(dataSource.getConnection()).thenReturn(connection);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+		DataSource dataSource = mock(DataSource.class);
+		Connection connection = mock(Connection.class);
+		when(dataSourceFactory.createDataSource(dataSourceInformation)).thenReturn(dataSource);
+		when(dataSource.getConnection()).thenReturn(connection);
 
 		final CountDownLatch countDownLatch = new CountDownLatch(5);
 
@@ -143,11 +147,11 @@ public class DynamicDataSourceTest {
 					try {
 						countDownLatch.countDown();
 						dynamicDataSource.getConnection();
-						Assert.fail("Datasource has been already closed, hence to connection should be returned");
+						fail("Datasource has been already closed, hence to connection should be returned");
 					} catch (IllegalStateException ise) {
-						Assert.assertTrue(ise.getMessage().contains("closed"));
+						assertTrue(ise.getMessage().contains("closed"));
 					} catch (SQLException e) {
-						Assert.fail(e.getMessage());
+						fail(e.getMessage());
 					}
 				}
 			});
@@ -164,7 +168,7 @@ public class DynamicDataSourceTest {
 		this.expectedException.expectMessage("closed");
 
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
 		dynamicDataSource.afterPropertiesSet();
@@ -179,7 +183,7 @@ public class DynamicDataSourceTest {
 		this.expectedException.expectMessage("closed");
 
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
 		DynamicDataSource dynamicDataSource = new DynamicDataSource(dataSourceInformation, dataSourceFactory, new SimpleDataSourceStatus(true), new SimpleAsyncTaskExecutor());
 		dynamicDataSource.getConnection();
@@ -189,7 +193,7 @@ public class DynamicDataSourceTest {
 	@Test
 	public void testDynamicDataSourceDestroyedWhileInitializing() throws Exception {
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "testDb", "admin", "secret");
-		DataSourceFactory dataSourceFactory = Mockito.mock(DataSourceFactory.class);
+		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
 		final CountDownLatch taskCountDownLatch = new CountDownLatch(1);
 

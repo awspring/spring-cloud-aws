@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.aop.ProxyMethodInvocation;
@@ -29,6 +28,11 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryException;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test class for {@link RdbmsRetryOperationsInterceptor}
@@ -42,10 +46,10 @@ public class RdbmsRetryOperationsInterceptorTest {
 
 	@Test
 	public void testRetryContextIsAvailable() throws Throwable {
-		RetryContext retryContext = Mockito.mock(RetryContext.class);
+		RetryContext retryContext = mock(RetryContext.class);
 		RetrySynchronizationManager.register(retryContext);
 
-		MethodInvocation methodInvocation = Mockito.mock(MethodInvocation.class);
+		MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
 		try {
 			RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
@@ -54,16 +58,16 @@ public class RdbmsRetryOperationsInterceptorTest {
 			RetrySynchronizationManager.clear();
 		}
 
-		Mockito.verify(methodInvocation, Mockito.times(1)).proceed();
+		verify(methodInvocation, times(1)).proceed();
 	}
 
 	@Test
 	public void testRetryContextIsNotAvailable() throws Throwable {
 
-		ProxyMethodInvocation methodInvocation = Mockito.mock(ProxyMethodInvocation.class);
+		ProxyMethodInvocation methodInvocation = mock(ProxyMethodInvocation.class);
 
-		Mockito.when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
-		Mockito.when(methodInvocation.proceed()).then(new Answer<Object>() {
+		when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
+		when(methodInvocation.proceed()).then(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -76,7 +80,7 @@ public class RdbmsRetryOperationsInterceptorTest {
 		RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
 		interceptor.invoke(methodInvocation);
 
-		Mockito.verify(methodInvocation, Mockito.times(1)).invocableClone();
+		verify(methodInvocation, times(1)).invocableClone();
 	}
 
 	@Test
@@ -87,7 +91,7 @@ public class RdbmsRetryOperationsInterceptorTest {
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		try {
 			RdbmsRetryOperationsInterceptor operationsInterceptor = new RdbmsRetryOperationsInterceptor();
-			MethodInvocation methodInvocation = Mockito.mock(MethodInvocation.class);
+			MethodInvocation methodInvocation = mock(MethodInvocation.class);
 			operationsInterceptor.invoke(methodInvocation);
 		} finally {
 			TransactionSynchronizationManager.setActualTransactionActive(false);

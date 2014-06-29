@@ -36,13 +36,16 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 /**
@@ -64,12 +67,12 @@ public class SimpleMessageListenerContainerTest {
 	public void testWithDefaultTaskExecutorAndNoBeanName() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
-		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setMessageHandler(mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
 
-		SimpleAsyncTaskExecutor taskExecutor = (SimpleAsyncTaskExecutor) container.getTaskExecutor();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
 		Assert.assertNotNull(taskExecutor);
 		Assert.assertEquals(SimpleMessageListenerContainer.class.getSimpleName() + "-", taskExecutor.getThreadNamePrefix());
 	}
@@ -78,12 +81,12 @@ public class SimpleMessageListenerContainerTest {
 	public void testWithDefaultTaskExecutorAndBeanName() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
-		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
-		SimpleAsyncTaskExecutor taskExecutor = (SimpleAsyncTaskExecutor) container.getTaskExecutor();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
 		Assert.assertNotNull(taskExecutor);
 		Assert.assertEquals("testContainerName-", taskExecutor.getThreadNamePrefix());
 	}
@@ -94,8 +97,8 @@ public class SimpleMessageListenerContainerTest {
 		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 		container.setTaskExecutor(taskExecutor);
 
-		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
@@ -106,7 +109,7 @@ public class SimpleMessageListenerContainerTest {
 	public void testSimpleReceiveMessage() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 
@@ -149,7 +152,7 @@ public class SimpleMessageListenerContainerTest {
 		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 		container.setTaskExecutor(taskExecutor);
 
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
@@ -194,7 +197,7 @@ public class SimpleMessageListenerContainerTest {
 		AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 		container.setTaskExecutor(taskExecutor);
 
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
@@ -231,7 +234,7 @@ public class SimpleMessageListenerContainerTest {
 				countDownLatch.countDown();
 			}
 		};
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 		QueueMessageHandler messageHandler = new QueueMessageHandler();
@@ -277,7 +280,7 @@ public class SimpleMessageListenerContainerTest {
 			}
 		};
 
-		AmazonSQSAsync sqs = Mockito.mock(AmazonSQSAsync.class);
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
 		QueueMessageHandler messageHandler = spy(new QueueMessageHandler());
@@ -306,6 +309,40 @@ public class SimpleMessageListenerContainerTest {
 		Mockito.verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
 		assertEquals("ID", this.stringMessageCaptor.getValue().getHeaders().get("SenderId"));
 
+	}
+
+	@Test
+	public void doDestroy_whenContainerCallsDestroy_DestroysDefaultTaskExecutor() throws Exception {
+		// Arrange
+		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
+		simpleMessageListenerContainer.setAmazonSqs(sqs);
+		QueueMessageHandler messageHandler = mock(QueueMessageHandler.class);
+		simpleMessageListenerContainer.setMessageHandler(messageHandler);
+		simpleMessageListenerContainer.afterPropertiesSet();
+		simpleMessageListenerContainer.start();
+
+		// Act
+		simpleMessageListenerContainer.destroy();
+
+		// Assert
+		assertTrue(((ThreadPoolTaskExecutor) simpleMessageListenerContainer.getTaskExecutor()).getThreadPoolExecutor().isTerminated());
+	}
+
+	@Test
+	public void afterPropertiesSet_whenCalled_taskExecutorIsActive() throws Exception {
+		// Arrange
+		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
+		simpleMessageListenerContainer.setAmazonSqs(sqs);
+		QueueMessageHandler messageHandler = mock(QueueMessageHandler.class);
+		simpleMessageListenerContainer.setMessageHandler(messageHandler);
+
+		// Act
+		simpleMessageListenerContainer.afterPropertiesSet();
+
+		// Assert
+		assertFalse(((ThreadPoolTaskExecutor) simpleMessageListenerContainer.getTaskExecutor()).getThreadPoolExecutor().isTerminated());
 	}
 
 	private static class TestMessageListener {

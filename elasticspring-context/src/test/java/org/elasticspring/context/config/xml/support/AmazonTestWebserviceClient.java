@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,20 @@ import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
-import org.springframework.util.Assert;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
-* @author Agim Emruli
-* Test stub used by {@link org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtilsTest}
-*/
+ * @author Agim Emruli
+ *         Test stub used by {@link org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtilsTest}
+ */
 class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	private Region region;
 
 	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
 		super(new ClientConfiguration());
-		Assert.notNull(awsCredentialsProvider);
+		notNull(awsCredentialsProvider);
 	}
 
 	public Region getRegion() {

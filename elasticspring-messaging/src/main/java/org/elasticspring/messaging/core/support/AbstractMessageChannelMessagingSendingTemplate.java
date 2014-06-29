@@ -76,7 +76,7 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 	@Override
 	public void send(String destinationName, Message<?> message) throws MessagingException {
 		D channel = resolveMessageChannelByLogicalName(destinationName);
-		convertAndSend(channel, message);
+		doSend(channel, message);
 	}
 
 	protected D resolveMessageChannelByLogicalName(String destination) {
