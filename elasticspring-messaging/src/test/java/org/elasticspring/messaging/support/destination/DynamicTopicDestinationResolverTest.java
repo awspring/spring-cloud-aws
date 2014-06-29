@@ -22,6 +22,7 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Topic;
+import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,5 +108,19 @@ public class DynamicTopicDestinationResolverTest {
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		resolver.setAutoCreate(true);
 		Assert.assertEquals(topicArn, resolver.resolveDestination("test"));
+	}
+
+	@Test
+	public void resolveDestination_withResourceIdResolver_shouldCallIt() throws Exception {
+		AmazonSNS sns = Mockito.mock(AmazonSNS.class);
+		ResourceIdResolver resourceIdResolver = Mockito.mock(ResourceIdResolver.class);
+
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns, resourceIdResolver);
+		Mockito.when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		String logicalTopicName = "myTopic";
+		Mockito.when(resourceIdResolver.resolveToPhysicalResourceId(logicalTopicName)).thenReturn(physicalTopicName);
+
+		Assert.assertEquals(physicalTopicName, resolver.resolveDestination(logicalTopicName));
 	}
 }

@@ -55,7 +55,7 @@ subprojects {
 
     // Custom properties
     ext {
-        springFrameworkVersion = "4.0.1.RELEASE"
+        springFrameworkVersion = "4.1.0.BUILD-SNAPSHOT"
         springRetryVersion = "1.0.2.RELEASE"
         junitVersion = '4.11'
         slf4jVersion = '1.7.2'
@@ -64,6 +64,10 @@ subprojects {
         mockitoVersion = '1.9.5'
         hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
+    }
+
+    repositories {
+        maven { url 'http://repo.spring.io/snapshot' }
     }
 
     //Default dependencies
@@ -184,12 +188,6 @@ project('elasticspring-messaging') {
         compile project(":elasticspring-context")
         compile("org.springframework:spring-messaging:${springFrameworkVersion}")
         compile("org.springframework:spring-oxm:${springFrameworkVersion}")
-        compile("com.thoughtworks.xstream:xstream:1.4.2") {
-            exclude module: "xpp3_min"
-        }
-        compile("org.codehaus.jettison:jettison:1.3.1") {
-            exclude module: "stax-api"
-        }
         compile("javax.servlet:javax.servlet-api:3.0.1")
         compile("org.springframework:spring-web:${springFrameworkVersion}")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")

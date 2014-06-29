@@ -22,15 +22,14 @@ import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingS
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.core.MessageReceivingOperations;
+import org.springframework.messaging.core.DestinationResolvingMessageReceivingOperations;
 
 /**
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<PollableChannel> implements MessageReceivingOperations<String> {
+public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel> implements DestinationResolvingMessageReceivingOperations<QueueMessageChannel>{
 
 	private final AmazonSQS amazonSqs;
 
@@ -44,7 +43,7 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	}
 
 	@Override
-	protected PollableChannel resolveMessageChannel(String physicalResourceIdentifier) {
+	protected QueueMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new QueueMessageChannel(this.amazonSqs, physicalResourceIdentifier);
 	}
 
@@ -54,8 +53,13 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	}
 
 	@Override
-	public Message<?> receive(String destination) throws MessagingException {
-		return resolveMessageChannelByLogicalName(destination).receive();
+	public Message<?> receive(QueueMessageChannel destination) throws MessagingException {
+		return destination.receive();
+	}
+
+	@Override
+	public Message<?> receive(String destinationName) throws MessagingException {
+		return resolveMessageChannelByLogicalName(destinationName).receive();
 	}
 
 	@Override
@@ -65,8 +69,8 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T receiveAndConvert(String destination, Class<T> targetClass) throws MessagingException {
-		Message<?> message = receive(destination);
+	public <T> T receiveAndConvert(QueueMessageChannel destination, Class<T> targetClass) throws MessagingException {
+		Message<?> message = destination.receive();
 		if (message != null) {
 			return (T) getMessageConverter().fromMessage(message, targetClass);
 		} else {
@@ -74,4 +78,9 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 		}
 	}
 
+	@Override
+	public <T> T receiveAndConvert(String destinationName, Class<T> targetClass) throws MessagingException {
+		QueueMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+		return receiveAndConvert(channel, targetClass);
+	}
 }

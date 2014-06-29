@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.config.xml;
+package org.elasticspring.messaging.config.annotation;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the ElasticSpring messaging namespace
- *
- * @author Agim Emruli
- * @since 1.0
+ * @author Alain Sahli
  */
-@SuppressWarnings("UnusedDeclaration")
-public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface NotificationSubject {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("annotation-driven-queue-listener", new AnnotationDrivenQueueListenerBeanDefinitionParser());
-	}
 }

@@ -18,12 +18,15 @@
 <xsd:schema xmlns="http://www.elasticspring.org/schema/messaging"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:beans="http://www.springframework.org/schema/beans"
 			xmlns:els-context="http://www.elasticspring.org/schema/context"
 			targetNamespace="http://www.elasticspring.org/schema/messaging"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
 				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+				schemaLocation="http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" />
 	<xsd:import namespace="http://www.elasticspring.org/schema/context"
 				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
 
@@ -36,6 +39,47 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:all minOccurs="0">
+				<xsd:element name="argument-resolvers" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+	Configures HandlerMethodArgumentResolver types to support custom queue messaging method argument types.
+    Using this option does not override the built-in support for resolving handler method arguments.
+						]]></xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element ref="beans:bean" minOccurs="1" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation><![CDATA[
+	The HandlerMethodArgumentResolver bean definition.
+									]]></xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+
+				<xsd:element name="return-value-handlers" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+	Configures HandlerMethodReturnValueHandler types to support custom queue messaging method return value handling.
+    Using this option does not override the built-in support for handling return values.
+						]]></xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element ref="beans:bean" minOccurs="1" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation><![CDATA[
+	The HandlerMethodReturnValueHandler bean definition.
+									]]></xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:all>
 			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
 
 			<xsd:attribute name="task-executor" type="xsd:string">
@@ -60,32 +104,16 @@
 			<xsd:attribute name="visibility-timeout" type="xsd:nonNegativeInteger" />
 			<xsd:attribute name="wait-time-out" type="xsd:nonNegativeInteger" />
 			<xsd:attribute name="auto-startup" type="xsd:boolean" />
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="annotation-driven-topic-listener">
-		<xsd:annotation>
-			<xsd:documentation>
-				Scans the classes annotated with org.elasticspring.messaging.config.annotation.TopicListener and
-				registers them as endpoints for receiving messages from SNS.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
-			<xsd:attribute name="amazon-sns" type="xsd:string">
+			<xsd:attribute name="send-to-message-template" type="xsd:string" use="optional">
 				<xsd:annotation>
+					<xsd:documentation>
+						A reference to a bean that implements the
+						org.springframework.messaging.core.MessageSendingOperations interface.
+						This message template will be used to send return values of methods annotated with @SendTo.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="amazon-sqs" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
+							<tool:expected-type type="org.springframework.messaging.core.MessageSendingOperations" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

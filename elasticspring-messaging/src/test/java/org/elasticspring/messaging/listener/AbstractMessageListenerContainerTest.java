@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.util.ErrorHandler;
@@ -37,6 +36,8 @@ import org.springframework.util.ErrorHandler;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -54,11 +55,10 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
-		Assert.assertTrue(container.isActive());
+		assertTrue(container.isActive());
 	}
 
 	@Test
@@ -67,8 +67,7 @@ public class AbstractMessageListenerContainerTest {
 		this.expectedException.expectMessage("amazonSqs must not be null");
 
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
 	}
@@ -81,20 +80,6 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setApplicationContext(new StaticApplicationContext());
-
-		container.afterPropertiesSet();
-	}
-
-	@Test
-	public void testApplicationContextNullThrowsException() throws Exception {
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("applicationContext must not be null");
-
-		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-
-		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 
 		container.afterPropertiesSet();
 	}
@@ -104,13 +89,12 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
 
 		DestinationResolver<String> destinationResolver = container.getDestinationResolver();
 		Assert.assertNotNull(destinationResolver);
-		Assert.assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
+		assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
 	}
 
 	@Test
@@ -118,8 +102,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
 		container.destroy();
@@ -140,8 +123,7 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(Mockito.mock(AmazonSQSAsync.class));
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		DestinationResolver<String> destinationResolver = Mockito.mock(DynamicQueueUrlDestinationResolver.class);
 		container.setDestinationResolver(destinationResolver);
@@ -178,7 +160,7 @@ public class AbstractMessageListenerContainerTest {
 	@Test
 	public void testIsAutoStartup() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		Assert.assertTrue(container.isAutoStartup());
+		assertTrue(container.isAutoStartup());
 		container.setAutoStartup(false);
 		Assert.assertFalse(container.isAutoStartup());
 	}
@@ -197,8 +179,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
 
@@ -206,13 +187,13 @@ public class AbstractMessageListenerContainerTest {
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.start();
-		Assert.assertTrue(container.isRunning());
+		assertTrue(container.isRunning());
 
 		container.stop();
 		Assert.assertFalse(container.isRunning());
 
 		//Container can still be active an restarted later (e.g. paused for a while)
-		Assert.assertTrue(container.isActive());
+		assertTrue(container.isActive());
 	}
 
 	@Test
@@ -220,15 +201,18 @@ public class AbstractMessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
+		container.setMessageHandler(messageHandler);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageListener", MessageListener.class);
-		container.setApplicationContext(applicationContext);
 		container.setMaxNumberOfMessages(11);
 		container.setVisibilityTimeout(22);
 		container.setWaitTimeOut(33);
 
+		messageHandler.setApplicationContext(applicationContext);
+		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
 		Mockito.when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
@@ -249,16 +233,18 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		messageHandler.setApplicationContext(applicationContext);
+		container.setMessageHandler(messageHandler);
 		applicationContext.registerSingleton("messageListener", MessageListener.class);
 		applicationContext.registerSingleton("anotherMessageListener", AnotherMessageListener.class);
-		container.setApplicationContext(applicationContext);
 
 		container.setMaxNumberOfMessages(11);
 		container.setVisibilityTimeout(22);
 		container.setWaitTimeOut(33);
 
+		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
 		Mockito.when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
@@ -298,8 +284,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
 
 		Mockito.when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
@@ -308,7 +293,7 @@ public class AbstractMessageListenerContainerTest {
 		container.start();
 
 		try {
-			Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 		} catch (InterruptedException e) {
 			Assert.fail("Expected doStart() method to be called");
 		}
@@ -334,8 +319,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
 
 		Mockito.when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
@@ -346,7 +330,7 @@ public class AbstractMessageListenerContainerTest {
 		container.stop();
 
 		try {
-			Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 		} catch (InterruptedException e) {
 			Assert.fail("Expected doStart() method to be called");
 		}
@@ -371,8 +355,7 @@ public class AbstractMessageListenerContainerTest {
 
 		AmazonSQSAsync mock = Mockito.mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(mock);
-		container.setMessageHandler(Mockito.mock(MessageHandler.class));
-		container.setApplicationContext(new StaticApplicationContext());
+		container.setMessageHandler(Mockito.mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
 
 		Mockito.when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
@@ -385,7 +368,7 @@ public class AbstractMessageListenerContainerTest {
 			@Override
 			public void run() {
 				try {
-					Assert.assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+					assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
 				} catch (InterruptedException e) {
 					Assert.fail("Expected doStart() method to be called");
 				}
@@ -455,6 +438,18 @@ public class AbstractMessageListenerContainerTest {
 		Mockito.verify(errorHandler, Mockito.times(1)).handleError(throwable);
 	}
 
+	@Test
+	public void doDestroy_WhenContainerIsDestroyed_shouldBeCalled() throws Exception {
+		// Arrange
+		DestroyAwareAbstractMessageListenerContainer abstractMessageListenerContainer = new DestroyAwareAbstractMessageListenerContainer();
+
+		// Act
+		abstractMessageListenerContainer.destroy();
+
+		// Assert
+		assertTrue(abstractMessageListenerContainer.isDestroyCalled());
+	}
+
 	private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
 
 		@Override
@@ -481,6 +476,30 @@ public class AbstractMessageListenerContainerTest {
 		@MessageMapping("anotherTestQueue")
 		public void listenerMethod(String ignore) {
 
+		}
+	}
+
+	private static class DestroyAwareAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
+
+		private boolean destroyCalled;
+
+		@Override
+		protected void doStart() {
+
+		}
+
+		@Override
+		protected void doStop() {
+
+		}
+
+		@Override
+		protected void doDestroy() {
+			this.destroyCalled = true;
+		}
+
+		private boolean isDestroyCalled() {
+			return this.destroyCalled;
 		}
 	}
 }

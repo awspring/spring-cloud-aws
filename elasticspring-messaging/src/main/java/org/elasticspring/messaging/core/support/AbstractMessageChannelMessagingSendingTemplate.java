@@ -32,7 +32,7 @@ import java.util.Map;
  * @author Alain Sahli
  * @since 1.0
  */
-public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends MessageChannel> extends AbstractMessageSendingTemplate<String> implements DestinationResolvingMessageSendingOperations<String> {
+public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends MessageChannel> extends AbstractMessageSendingTemplate<D> implements DestinationResolvingMessageSendingOperations<D> {
 
 	private final DestinationResolver<String> destinationResolver;
 
@@ -40,27 +40,49 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<T extends M
 		this.destinationResolver = new CachingDestinationResolver<String>(destinationResolver);
 	}
 
+	public void setDefaultDestination(String defaultDestination) {
+		super.setDefaultDestination(resolveMessageChannelByLogicalName(defaultDestination));
+	}
+
 	@Override
-	protected void doSend(String destination, Message<?> message) {
-		resolveMessageChannelByLogicalName(destination).send(message);
+	protected void doSend(D destination, Message<?> message) {
+		destination.send(message);
 	}
-
-	protected T resolveMessageChannelByLogicalName(String destination) {
-		String physicalResourceId = this.destinationResolver.resolveDestination(destination);
-		return resolveMessageChannel(physicalResourceId);
-	}
-
-	protected abstract T resolveMessageChannel(String physicalResourceIdentifier);
 
 	@Override
 	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
-		String physicalResourceId = this.destinationResolver.resolveDestination(destinationName);
-		super.convertAndSend(physicalResourceId, payload, headers, postProcessor);
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel, payload);
+	}
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor) throws MessagingException {
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel, payload,postProcessor);
 	}
 
 	@Override
 	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
-		String physicalResourceId = this.destinationResolver.resolveDestination(destinationName);
-		super.convertAndSend(physicalResourceId, payload, headers);
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel,payload,headers);
 	}
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload) throws MessagingException {
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel, payload);
+	}
+
+	@Override
+	public void send(String destinationName, Message<?> message) throws MessagingException {
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		doSend(channel, message);
+	}
+
+	protected D resolveMessageChannelByLogicalName(String destination) {
+		String physicalResourceId = this.destinationResolver.resolveDestination(destination);
+		return resolveMessageChannel(physicalResourceId);
+	}
+
+	protected abstract D resolveMessageChannel(String physicalResourceIdentifier);
 }

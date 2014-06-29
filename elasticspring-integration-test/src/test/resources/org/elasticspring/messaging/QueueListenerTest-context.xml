@@ -28,7 +28,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
-	<els-messaging:annotation-driven-queue-listener />
+	<els-messaging:annotation-driven-queue-listener send-to-message-template="stringMessage" />
 
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
@@ -39,5 +39,6 @@
 	</bean>
 
 	<bean class="org.elasticspring.messaging.QueueListenerTest$MessageListener" />
+	<bean class="org.elasticspring.messaging.QueueListenerTest$MessageListenerWithSendTo" />
 
 </beans>

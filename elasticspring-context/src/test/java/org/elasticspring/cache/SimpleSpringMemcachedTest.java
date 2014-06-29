@@ -367,4 +367,30 @@ public class SimpleSpringMemcachedTest {
 		verify(client, times(1)).flush();
 	}
 
+	@Test
+	public void putIfAbsent_withNewValue_shouldPutTheNewValueAndReturnNull() throws Exception {
+		// Arrange
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
+		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+
+		// Act
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
+
+		// Assert
+		assertNull(valueWrapper);
+	}
+
+	@Test
+	public void putIfAbsent_withExistingValue_shouldNotPutTheValueAndReturnTheExistingOne() throws Exception {
+		// Arrange
+		MemcachedClientIF client = mock(MemcachedClientIF.class);
+		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		when(client.get("key")).thenReturn("value");
+
+		// Act
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
+
+		// Assert
+		assertEquals("value", valueWrapper.get());
+	}
 }

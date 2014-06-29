@@ -20,12 +20,13 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Agim Emruli
@@ -36,8 +37,12 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
+	public static final int DEFAULT_WORKER_THREADS = 2;
 
 	private TaskExecutor taskExecutor;
+
+	private volatile CountDownLatch stopLatch;
+	private boolean defaultTaskExecutor;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -50,6 +55,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	@Override
 	protected void initialize() {
 		if (this.taskExecutor == null) {
+			this.defaultTaskExecutor = true;
 			this.taskExecutor = createDefaultTaskExecutor();
 		}
 
@@ -66,8 +72,23 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	 */
 	protected TaskExecutor createDefaultTaskExecutor() {
 		String beanName = getBeanName();
-		String threadNamePrefix = (beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
-		return new SimpleAsyncTaskExecutor(threadNamePrefix);
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setThreadNamePrefix(beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
+		int spinningThreads = this.getMessageRequests().size();
+
+		if (spinningThreads > 0) {
+			threadPoolTaskExecutor.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
+
+			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null ? getMaxNumberOfMessages() : DEFAULT_WORKER_THREADS;
+			threadPoolTaskExecutor.setMaxPoolSize(spinningThreads * maxNumberOfMessagePerBatch);
+		}
+
+		// No use of a thread pool executor queue to avoid retaining message to long in memory
+		threadPoolTaskExecutor.setQueueCapacity(0);
+		threadPoolTaskExecutor.afterPropertiesSet();
+
+		return threadPoolTaskExecutor;
+
 	}
 
 	@Override
@@ -79,12 +100,24 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	@Override
 	protected void doStop() {
+		try {
+			this.stopLatch.await();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
 
+	@Override
+	protected void doDestroy() {
+		if (this.defaultTaskExecutor) {
+			((ThreadPoolTaskExecutor) this.taskExecutor).destroy();
+		}
 	}
 
 	private void scheduleMessageListeners() {
+		this.stopLatch = new CountDownLatch(getMessageRequests().size());
 		for (Map.Entry<String, ReceiveMessageRequest> messageRequest : getMessageRequests().entrySet()) {
-			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue()));
+			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue(), this.stopLatch));
 		}
 	}
 
@@ -99,25 +132,52 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private class AsynchronousMessageListener implements Runnable {
 
 		private final ReceiveMessageRequest receiveMessageRequest;
+		private final CountDownLatch messageBatchLatch;
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest) {
+		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest, CountDownLatch messageBatchLatch) {
 			this.logicalQueueName = logicalQueueName;
 			this.receiveMessageRequest = receiveMessageRequest;
+			this.messageBatchLatch = messageBatchLatch;
 		}
 
 		@Override
 		public void run() {
 			while (isRunning()) {
 				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.receiveMessageRequest);
+				CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
-						getTaskExecutor().execute(new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl()));
+						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl());
+						getTaskExecutor().execute(new CountingRunnableDecorator(messageBatchLatch, messageExecutor));
 					} else {
 						break;
 					}
 				}
+				try {
+					messageBatchLatch.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
+			this.messageBatchLatch.countDown();
+		}
+	}
+
+	private static class CountingRunnableDecorator implements Runnable {
+
+		private final CountDownLatch countDownLatch;
+		private final Runnable runnable;
+
+		private CountingRunnableDecorator(CountDownLatch countDownLatch, Runnable runnable) {
+			this.countDownLatch = countDownLatch;
+			this.runnable = runnable;
+		}
+
+		@Override
+		public void run() {
+			this.runnable.run();
+			this.countDownLatch.countDown();
 		}
 	}
 
@@ -137,9 +197,17 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			String payload = this.message.getBody();
-			executeMessage(MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName).build());
+			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
+			copyAttributesToHeaders(messageBuilder);
+			executeMessage(messageBuilder.build());
 			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
+		}
+
+		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
+			for (Map.Entry<String, String> attribute : this.message.getAttributes().entrySet()) {
+				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
+			}
 		}
 	}
 }
