@@ -33,32 +33,32 @@ import java.lang.annotation.RetentionPolicy;
 public @interface NotificationUnsubscribeConfirmationMapping {
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#value()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#value()
 	 */
 	String[] value() default {};
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#method()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#method()
 	 */
 	RequestMethod[] method() default {};
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#params()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#params()
 	 */
 	String[] params() default {};
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#headers()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#headers()
 	 */
 	String[] headers() default {};
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#consumes()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#consumes()
 	 */
 	String[] consumes() default {};
 
 	/**
-	 * @see {@link org.springframework.web.bind.annotation.RequestMapping#produces()}
+	 * @see org.springframework.web.bind.annotation.RequestMapping#produces()
 	 */
 	String[] produces() default {};
 
