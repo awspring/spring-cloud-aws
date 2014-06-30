@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
@@ -42,12 +41,11 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver i
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 								  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-		RequestAttributes attributes = RequestContextHolder.currentRequestAttributes();
-		if (attributes.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
-			attributes.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(HashMap.class, createInputMessage(webRequest)),RequestAttributes.SCOPE_REQUEST);
+		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
+			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(HashMap.class, createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
 		}
 
-		HashMap<String, String> content = (HashMap<String, String>) attributes.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
+		HashMap<String, String> content = (HashMap<String, String>) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
 		return doResolverArgumentFromNotificationMessage(content);
 	}
 
