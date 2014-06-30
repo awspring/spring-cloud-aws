@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.HashMap;
 /**
  * @author Agim Emruli
  */
-public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver{
+public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	private final AmazonSNS amazonSns;
 
@@ -39,8 +39,12 @@ public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNot
 
 	@Override
 	protected Object doResolverArgumentFromNotificationMessage(HashMap<String, String> content) {
-		return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn"),content.get("Token"));
+		if (!"SubscriptionConfirmation".equals(content.get("Type")) && !"UnsubscribeConfirmation".equals(content.get("Type"))) {
+			throw new IllegalArgumentException("NotificationStatus is only available for subscription and unsubscription requests");
+		}
+		return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn"), content.get("Token"));
 	}
+
 	private static class AmazonSnsNotificationStatus implements NotificationStatus {
 
 		private final AmazonSNS amazonSns;
@@ -57,9 +61,6 @@ public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNot
 		public void confirmSubscription() {
 			this.amazonSns.confirmSubscription(this.topicArn, this.confirmationToken);
 		}
-
-		@Override
-		public void cancelSubscription(){ throw new UnsupportedOperationException(); }
 
 	}
 }

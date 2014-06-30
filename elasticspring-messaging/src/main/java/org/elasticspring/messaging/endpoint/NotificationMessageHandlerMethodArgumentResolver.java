@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.HashMap;
 /**
  * @author Agim Emruli
  */
-public class NotificationMessageHeaderResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver{
+public class NotificationMessageHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -33,6 +33,9 @@ public class NotificationMessageHeaderResolver extends AbstractNotificationMessa
 
 	@Override
 	protected Object doResolverArgumentFromNotificationMessage(HashMap<String, String> content) {
+		if (!"Notification".equals(content.get("Type"))) {
+			throw new IllegalArgumentException("@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
+		}
 		return content.get("Message");
 	}
 }
