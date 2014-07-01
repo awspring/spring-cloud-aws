@@ -34,7 +34,12 @@ To build reference documentation (results will be in `build/reference`):
 # Using IntelliJ IDEA
 
 ElasticSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
- project files, you have to import the file within idea as a gradle project.
+project files, you have to import the file within idea as a gradle project. Before importing the project you have 
+to execute the command 
+
+	./gradlew check
+	
+before importing.	
 
 *Note:* Please make sure to revert all changes in the .idea config file directory, as the gradle plugin overwrites
 the configuration files kept in the scm.
