@@ -18,6 +18,7 @@ package org.elasticspring.messaging.endpoint;
 
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
+import org.springframework.util.ClassUtils;
 
 import java.util.HashMap;
 
@@ -28,7 +29,8 @@ public class NotificationSubjectHandlerMethodArgumentResolver extends AbstractNo
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return parameter.getParameterAnnotation(NotificationSubject.class) != null;
+		return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
+				ClassUtils.isAssignable(String.class, parameter.getParameterType()));
 	}
 
 	@Override

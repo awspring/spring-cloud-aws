@@ -16,15 +16,21 @@
 
 package org.elasticspring.messaging.endpoint;
 
+import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
+import java.lang.reflect.Method;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class NotificationMessageHandlerMethodArgumentResolverTest {
 
@@ -64,5 +70,24 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 
 		//Assert
 		assertEquals("asdasd", argument);
+	}
+
+	@Test
+	public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
+		// Arrange
+		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
+		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Integer.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
+
+		// Act
+		boolean supportsParameter = resolver.supportsParameter(methodParameter);
+
+		// Assert
+		assertFalse(supportsParameter);
+	}
+
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithWrongParameterType(@NotificationMessage Integer message) {
 	}
 }
