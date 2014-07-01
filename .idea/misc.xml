@@ -4,16 +4,18 @@
     <disable_hints />
   </component>
   <component name="EntryPointsManager">
-    <entry_points version="2.0">
-      <entry_point TYPE="method" FQNAME="org.elasticspring.core.env.stack.config.AutoDetectingStackNameProvider AutoDetectingStackNameProvider(com.amazonaws.services.cloudformation.AmazonCloudFormationClient amazonCloudFormationClient, org.elasticspring.core.env.ec2.InstanceIdProvider instanceIdProvider)" />
-    </entry_points>
-    <list size="1">
+    <entry_points version="2.0" />
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
+      <item index="1" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationMessageMapping" />
+      <item index="2" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationSubscriptionMapping" />
+      <item index="3" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping" />
     </list>
   </component>
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$" />
   </component>
+  <component name="IdProvider" IDEtalkID="8FF1EBBC0AF379FA888F1F4BEFA823A0" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />

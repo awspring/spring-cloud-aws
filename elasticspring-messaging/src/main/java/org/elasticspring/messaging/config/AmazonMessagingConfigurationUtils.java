@@ -18,6 +18,7 @@ package org.elasticspring.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.messaging.support.SuppressingExecutorServiceAdapter;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -38,7 +39,8 @@ public class AmazonMessagingConfigurationUtils {
 	/**
 	 * Default bean name used inside the application context for the Amazon SQS client
 	 */
-	public static final String SQS_CLIENT_BEAN_NAME = "SQS_CLIENT";
+	public static final String SQS_CLIENT_BEAN_NAME =
+			AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.sqs.AmazonSQSClient");
 
 
 	/**

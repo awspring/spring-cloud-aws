@@ -14,41 +14,13 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.config.annotation;
-
-import org.elasticspring.core.support.documentation.RuntimeUse;
+package org.elasticspring.messaging.endpoint;
 
 /**
  * @author Agim Emruli
- * @since 1.0
  */
-public @interface TopicListener {
+public interface NotificationStatus {
 
-	String topicName();
+	void confirmSubscription();
 
-	NotificationProtocol protocol();
-
-	String endpoint();
-
-	/**
-	 * @author Agim Emruli
-	 * @since 1.0
-	 */
-	enum NotificationProtocol {
-
-		@RuntimeUse
-		HTTP("http"),
-		@RuntimeUse
-		HTTPS("https");
-
-		private final String canonicalName;
-
-		NotificationProtocol(String canonicalName) {
-			this.canonicalName = canonicalName;
-		}
-
-		public String getCanonicalName() {
-			return this.canonicalName;
-		}
-	}
 }
