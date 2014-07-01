@@ -29,6 +29,7 @@ public class GlobalBeanDefinitionUtils {
 	 * 		resource id resolver bean definition with, if needed
 	 * @return the bean name of the resource id resolver bean
 	 */
+	@SuppressWarnings("SameReturnValue")
 	public static String retrieveResourceIdResolverBeanName(BeanDefinitionRegistry registry) {
 		registerResourceIdResolverBeanIfNeeded(registry);
 

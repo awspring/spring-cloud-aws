@@ -473,7 +473,7 @@ public class AbstractMessageListenerContainerTest {
 
 	private static class MessageListener {
 
-		@SuppressWarnings("UnusedDeclaration")
+		@SuppressWarnings({"UnusedDeclaration", "EmptyMethod"})
 		@MessageMapping("testQueue")
 		public void listenerMethod(String ignore) {
 
@@ -482,7 +482,7 @@ public class AbstractMessageListenerContainerTest {
 
 	private static class AnotherMessageListener {
 
-		@SuppressWarnings("UnusedDeclaration")
+		@SuppressWarnings({"UnusedDeclaration", "EmptyMethod"})
 		@MessageMapping("anotherTestQueue")
 		public void listenerMethod(String ignore) {
 

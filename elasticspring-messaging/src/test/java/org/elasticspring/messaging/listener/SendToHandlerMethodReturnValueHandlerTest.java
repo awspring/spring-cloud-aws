@@ -132,18 +132,21 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 
+	@SuppressWarnings("SameReturnValue")
 	@RuntimeUse
 	@SendTo("testQueue")
 	private String validSendToMethod() {
 		return "Elastic Hello!";
 	}
 
+	@SuppressWarnings("SameReturnValue")
 	@RuntimeUse
 	@SendTo
 	private String anotherValidSendToMethod() {
 		return "Another Elastic Hello!";
 	}
 
+	@SuppressWarnings("SameReturnValue")
 	@RuntimeUse
 	private String invalidSendToMethod() {
 		return "Just Hello!";

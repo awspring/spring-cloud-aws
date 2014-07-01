@@ -44,8 +44,8 @@ import java.util.List;
  */
 public class TestStackInstanceIdService {
 
-	public static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
-	public static final int INSTANCE_ID_SERVICE_PORT = 12345;
+	private static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
+	private static final int INSTANCE_ID_SERVICE_PORT = 12345;
 
 	private final InstanceIdSource instanceIdSource;
 

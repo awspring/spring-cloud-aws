@@ -19,7 +19,6 @@ package org.elasticspring.messaging;
 import com.amazonaws.services.sqs.AmazonSQS;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -40,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -74,8 +74,8 @@ public class QueueListenerTest {
 		this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Hello world!").build());
 
 		// Assert
-		Assert.assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		Assert.assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
 	}
 
 	@Test
@@ -89,9 +89,9 @@ public class QueueListenerTest {
 		this.queueMessagingTemplate.send("SendToQueue", MessageBuilder.withPayload("Please answer!").build());
 
 		// Assert
-		Assert.assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		Assert.assertEquals("Please answer!", this.messageListenerWithSendTo.getReceivedMessages().get(0));
-		Assert.assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Please answer!", this.messageListenerWithSendTo.getReceivedMessages().get(0));
+		assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
 	}
 
 	@Test

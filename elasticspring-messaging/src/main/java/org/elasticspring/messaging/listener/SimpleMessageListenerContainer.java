@@ -35,7 +35,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
 
-	public static final int DEFAULT_WORKER_THREADS = 2;
+	private static final int DEFAULT_WORKER_THREADS = 2;
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
 	private TaskExecutor taskExecutor;

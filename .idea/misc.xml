@@ -4,7 +4,9 @@
     <disable_hints />
   </component>
   <component name="EntryPointsManager">
-    <entry_points version="2.0" />
+    <entry_points version="2.0">
+      <entry_point TYPE="method" FQNAME="org.elasticspring.core.env.stack.config.AutoDetectingStackNameProvider AutoDetectingStackNameProvider(com.amazonaws.services.cloudformation.AmazonCloudFormationClient amazonCloudFormationClient, org.elasticspring.core.env.ec2.InstanceIdProvider instanceIdProvider)" />
+    </entry_points>
     <list size="1">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
     </list>
