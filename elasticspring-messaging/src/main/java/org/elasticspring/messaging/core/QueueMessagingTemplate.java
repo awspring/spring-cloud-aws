@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.messaging.core.DestinationResolvingMessageReceivingOp
  * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel> implements DestinationResolvingMessageReceivingOperations<QueueMessageChannel>{
+public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel> implements DestinationResolvingMessageReceivingOperations<QueueMessageChannel> {
 
 	private final AmazonSQS amazonSqs;
 
@@ -58,11 +58,6 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	}
 
 	@Override
-	public Message<?> receive(String destinationName) throws MessagingException {
-		return resolveMessageChannelByLogicalName(destinationName).receive();
-	}
-
-	@Override
 	public <T> T receiveAndConvert(Class<T> targetClass) throws MessagingException {
 		return receiveAndConvert(getRequiredDefaultDestination(), targetClass);
 	}
@@ -76,6 +71,11 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public Message<?> receive(String destinationName) throws MessagingException {
+		return resolveMessageChannelByLogicalName(destinationName).receive();
 	}
 
 	@Override

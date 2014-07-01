@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,34 +52,30 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
-
+	private final Set<String> queues = new HashSet<String>();
+	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<String, ReceiveMessageRequest>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQS amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private DestinationResolver<String> destinationResolver;
 	private String beanName;
-	private final Set<String> queues = new HashSet<String>();
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private QueueMessageHandler messageHandler;
-
 	//Optional settings with no defaults
 	private Integer maxNumberOfMessages;
 	private Integer visibilityTimeout;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private ResourceIdResolver resourceIdResolver;
-
 	private Integer waitTimeOut;
 	//Optional settings with defaults
 	private boolean autoStartup = true;
 	private int phase = Integer.MAX_VALUE;
-
 	private ErrorHandler errorHandler = new LoggingErrorHandler();
 	//Settings that are changed at runtime
 	private boolean active;
 	private boolean running;
-	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<String, ReceiveMessageRequest>();
 
 	public Map<String, ReceiveMessageRequest> getMessageRequests() {
 		return Collections.unmodifiableMap(this.messageRequests);
@@ -216,6 +212,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	}
 
 	@Override
+	public void stop(Runnable callback) {
+		this.stop();
+		callback.run();
+	}
+
+	@Override
 	public int getPhase() {
 		return this.phase;
 	}
@@ -331,12 +333,6 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.getLifecycleMonitor()) {
 			return this.running;
 		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.stop();
-		callback.run();
 	}
 
 	@Override

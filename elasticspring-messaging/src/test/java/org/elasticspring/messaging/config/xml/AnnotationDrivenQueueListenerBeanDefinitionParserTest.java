@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.elasticspring.messaging.config.xml;
 import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -60,8 +59,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
+		assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
 
@@ -77,8 +76,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals("myClient",
+		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
+		assertEquals("myClient",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
 
@@ -94,8 +93,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
-		Assert.assertEquals("executor",
+		assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
+		assertEquals("executor",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("taskExecutor").getValue()).getBeanName());
 	}
 
@@ -123,10 +122,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
-		Assert.assertEquals("false", abstractContainerDefinition.getPropertyValues().getPropertyValue("autoStartup").getValue());
-		Assert.assertEquals("9", abstractContainerDefinition.getPropertyValues().getPropertyValue("maxNumberOfMessages").getValue());
-		Assert.assertEquals("6", abstractContainerDefinition.getPropertyValues().getPropertyValue("visibilityTimeout").getValue());
-		Assert.assertEquals("3", abstractContainerDefinition.getPropertyValues().getPropertyValue("waitTimeOut").getValue());
+		assertEquals("false", abstractContainerDefinition.getPropertyValues().getPropertyValue("autoStartup").getValue());
+		assertEquals("9", abstractContainerDefinition.getPropertyValues().getPropertyValue("maxNumberOfMessages").getValue());
+		assertEquals("6", abstractContainerDefinition.getPropertyValues().getPropertyValue("visibilityTimeout").getValue());
+		assertEquals("3", abstractContainerDefinition.getPropertyValues().getPropertyValue("waitTimeOut").getValue());
 	}
 
 	@Test

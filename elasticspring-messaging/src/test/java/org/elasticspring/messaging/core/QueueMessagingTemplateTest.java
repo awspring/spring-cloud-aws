@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -138,7 +138,7 @@ public class QueueMessagingTemplateTest {
 
 
 	private AmazonSQS createAmazonSqs() {
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 
 		GetQueueUrlResult queueUrl = new GetQueueUrlResult();
 		queueUrl.setQueueUrl("http://queue-url.com");

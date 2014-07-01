@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 package org.elasticspring.messaging.listener;
 
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
@@ -32,17 +30,22 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import java.lang.reflect.Method;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * @author Alain Sahli
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SendToHandlerMethodReturnValueHandlerTest {
 
-	@Mock
-	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
-
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
+	@Mock
+	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	@Test
 	public void supportsReturnType_methodAnnotatedWithSendTo_trueIsReturned() throws Exception {
@@ -55,7 +58,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
 		// Assert
-		Assert.assertTrue(supports);
+		assertTrue(supports);
 	}
 
 	@Test
@@ -69,7 +72,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
 		// Assert
-		Assert.assertFalse(supports);
+		assertFalse(supports);
 	}
 
 	@Test
@@ -83,7 +86,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
 		// Assert
-		Assert.assertTrue(supports);
+		assertTrue(supports);
 	}
 
 	@Test
@@ -111,7 +114,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 		sendToHandlerMethodReturnValueHandler.handleReturnValue("Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
 		// Assert
-		Mockito.verify(this.messageTemplate, Mockito.times(1)).convertAndSend(Mockito.eq("testQueue"), Mockito.eq("Elastic Hello!"));
+		verify(this.messageTemplate, times(1)).convertAndSend(eq("testQueue"), eq("Elastic Hello!"));
 	}
 
 	@Test
@@ -125,7 +128,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 		sendToHandlerMethodReturnValueHandler.handleReturnValue("Another Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
 		// Assert
-		Mockito.verify(this.messageTemplate, Mockito.times(1)).convertAndSend(Mockito.eq("Another Elastic Hello!"));
+		verify(this.messageTemplate, times(1)).convertAndSend(eq("Another Elastic Hello!"));
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,11 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.messaging.support.MessageBuilder;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Alain Sahli
@@ -33,17 +36,17 @@ public class NotificationMessagingTemplateTest {
 	@Test
 	public void send_validTextMessage_usesTopicChannel() throws Exception {
 		// Arrange
-		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		Mockito.when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
 		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
 
 		// Act
 		notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
 
 		// Assert
-		Mockito.verify(amazonSns).publish(new PublishRequest(physicalTopicName,
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
 				"Message content", null));
 	}
 }

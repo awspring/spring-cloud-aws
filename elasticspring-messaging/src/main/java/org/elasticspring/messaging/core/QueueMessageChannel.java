@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,14 +34,14 @@ import java.util.Map;
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
-*/
+ */
 public class QueueMessageChannel extends AbstractMessageChannel implements PollableChannel {
 
+	static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 	private static final String RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME = "ReceiptHandle";
 	private static final String MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME = "MessageId";
 	private final AmazonSQS amazonSqs;
 	private final String queueUrl;
-	static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 
 	public QueueMessageChannel(AmazonSQS amazonSqs, String queueUrl) {
 		this.amazonSqs = amazonSqs;
@@ -81,11 +81,6 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		return message;
 	}
 
-	// returns 0 if there is a negative value for the delay seconds
-	private static int getDelaySeconds(long timeout) {
-		return Math.max(Long.valueOf(timeout).intValue(), 0);
-	}
-
 	private Message<String> createMessage(com.amazonaws.services.sqs.model.Message message) {
 		MessageBuilder<String> builder = MessageBuilder.withPayload(message.getBody());
 		builder.setHeader(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
@@ -96,5 +91,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		}
 
 		return builder.build();
+	}
+
+	// returns 0 if there is a negative value for the delay seconds
+	private static int getDelaySeconds(long timeout) {
+		return Math.max(Long.valueOf(timeout).intValue(), 0);
 	}
 }

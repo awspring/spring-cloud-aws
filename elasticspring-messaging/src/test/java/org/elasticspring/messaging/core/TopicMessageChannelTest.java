@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package org.elasticspring.messaging.core;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Alain Sahli
@@ -33,7 +36,7 @@ public class TopicMessageChannelTest {
 	@Test
 	public void sendMessage_validTextMessageAndSubject_returnsTrue() throws Exception {
 		// Arrange
-		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("Message content").setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "Subject").build();
 		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
@@ -42,15 +45,15 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(stringMessage);
 
 		// Assert
-		Mockito.verify(amazonSns, Mockito.only()).publish(new PublishRequest("topicArn",
+		verify(amazonSns, only()).publish(new PublishRequest("topicArn",
 				"Message content", "Subject"));
-		Assert.assertTrue(sent);
+		assertTrue(sent);
 	}
 
 	@Test
 	public void sendMessage_validTextMessageWithoutSubject_returnsTrue() throws Exception {
 		// Arrange
-		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("Message content").build();
 		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
@@ -59,15 +62,15 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(stringMessage);
 
 		// Assert
-		Mockito.verify(amazonSns, Mockito.only()).publish(new PublishRequest("topicArn",
+		verify(amazonSns, only()).publish(new PublishRequest("topicArn",
 				"Message content", null));
-		Assert.assertTrue(sent);
+		assertTrue(sent);
 	}
 
 	@Test
 	public void sendMessage_validTextMessageAndTimeout_timeoutIsIgnored() throws Exception {
 		// Arrange
-		AmazonSNS amazonSns = Mockito.mock(AmazonSNS.class);
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("Message content").build();
 		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
@@ -76,8 +79,8 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(stringMessage, 10);
 
 		// Assert
-		Mockito.verify(amazonSns, Mockito.only()).publish(new PublishRequest("topicArn",
+		verify(amazonSns, only()).publish(new PublishRequest("topicArn",
 				"Message content", null));
-		Assert.assertTrue(sent);
+		assertTrue(sent);
 	}
 }

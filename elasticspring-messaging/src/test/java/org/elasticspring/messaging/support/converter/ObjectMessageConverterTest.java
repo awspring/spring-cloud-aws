@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@
 package org.elasticspring.messaging.support.converter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.MessageBuilder;
 
 import java.io.Serializable;
 import java.nio.charset.UnsupportedCharsetException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -43,9 +45,9 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
 		Message<?> message = messageConverter.toMessage(sourceMessage, null);
-		Assert.assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
-		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message,MySerializableClass.class);
-		Assert.assertEquals(content, result.getContent());
+		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
+		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
+		assertEquals(content, result.getContent());
 	}
 
 	@Test
@@ -54,9 +56,9 @@ public class ObjectMessageConverterTest {
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
 		Message<?> message = messageConverter.toMessage(sourceMessage, null);
-		Assert.assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
-		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message,MySerializableClass.class);
-		Assert.assertEquals(content, result.getContent());
+		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
+		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
+		assertEquals(content, result.getContent());
 	}
 
 	@Test(expected = UnsupportedCharsetException.class)
@@ -71,7 +73,7 @@ public class ObjectMessageConverterTest {
 		this.expectedException.expectMessage("not a valid base64 encoded stream");
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		messageConverter.fromMessage(MessageBuilder.withPayload("test€").build(),null);
+		messageConverter.fromMessage(MessageBuilder.withPayload("test€").build(), null);
 	}
 
 	@Test
@@ -80,7 +82,7 @@ public class ObjectMessageConverterTest {
 		this.expectedException.expectMessage("Error reading payload");
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(),null);
+		messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(), null);
 	}
 
 	private static class MySerializableClass implements Serializable {
