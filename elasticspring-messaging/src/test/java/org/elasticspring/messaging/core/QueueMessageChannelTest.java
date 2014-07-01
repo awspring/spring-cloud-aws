@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,9 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -33,6 +31,15 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -46,7 +53,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_validTextMessage_returnsTrue() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
 		MessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
@@ -55,19 +62,19 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(stringMessage);
 
 		// Assert
-		Mockito.verify(amazonSqs, Mockito.only()).
+		verify(amazonSqs, only()).
 				sendMessage(new SendMessageRequest("http://testQueue", "message content").withDelaySeconds(0));
-		Assert.assertTrue(sent);
+		assertTrue(sent);
 	}
 
 	@Test
 	public void sendMessage_serviceThrowsError_throwsMessagingException() throws Exception {
 		//Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
 		MessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
-		Mockito.when(amazonSqs.sendMessage(new SendMessageRequest("http://testQueue", "message content").withDelaySeconds(0))).
+		when(amazonSqs.sendMessage(new SendMessageRequest("http://testQueue", "message content").withDelaySeconds(0))).
 				thenThrow(new AmazonServiceException("wanted error"));
 
 		//Assert
@@ -81,8 +88,8 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withoutTimeout_returnsTextMessage() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
-		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
 				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
@@ -95,15 +102,15 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		//Assert
-		Assert.assertNotNull(receivedMessage);
-		Assert.assertEquals("content", receivedMessage.getPayload());
+		assertNotNull(receivedMessage);
+		assertEquals("content", receivedMessage.getPayload());
 	}
 
 	@Test
 	public void receiveMessage_withSpecifiedTimeout_returnsTextMessage() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
-		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
 				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
@@ -116,15 +123,15 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(2);
 
 		//Assert
-		Assert.assertNotNull(receivedMessage);
-		Assert.assertEquals("content", receivedMessage.getPayload());
+		assertNotNull(receivedMessage);
+		assertEquals("content", receivedMessage.getPayload());
 	}
 
 	@Test
 	public void receiveMessage_withSpecifiedTimeout_returnsNull() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
-		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
 				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
@@ -137,14 +144,14 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(2);
 
 		//Assert
-		Assert.assertNull(receivedMessage);
+		assertNull(receivedMessage);
 	}
 
 	@Test
 	public void receiveMessage_withoutDefaultTimeout_returnsNull() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = Mockito.mock(AmazonSQS.class);
-		Mockito.when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
 				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
@@ -157,6 +164,6 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(0);
 
 		//Assert
-		Assert.assertNull(receivedMessage);
+		assertNull(receivedMessage);
 	}
 }

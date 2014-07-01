@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2013-2014 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema xmlns="http://www.elasticspring.org/schema/messaging"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
 			xmlns:beans="http://www.springframework.org/schema/beans"
 			xmlns:els-context="http://www.elasticspring.org/schema/context"
+			xmlns="http://www.elasticspring.org/schema/messaging"
 			targetNamespace="http://www.elasticspring.org/schema/messaging"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 

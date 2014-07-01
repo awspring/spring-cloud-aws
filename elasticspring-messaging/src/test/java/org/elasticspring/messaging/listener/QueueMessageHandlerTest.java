@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
@@ -55,6 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -99,7 +98,7 @@ public class QueueMessageHandlerTest {
 		messageHandler.handleMessage(message);
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
-		Assert.assertNotNull(messageListener.getLastReceivedMessage());
+		assertNotNull(messageListener.getLastReceivedMessage());
 		assertEquals("myKey", messageListener.getLastReceivedMessage().getKey());
 		assertEquals("A value", messageListener.getLastReceivedMessage().getValue());
 	}
@@ -116,7 +115,7 @@ public class QueueMessageHandlerTest {
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		assertEquals("testContent", messageListener.getLastReceivedMessage());
-		Mockito.verify(this.messageTemplate).convertAndSend(Mockito.eq("sendTo"), Mockito.eq("TESTCONTENT"));
+		verify(this.messageTemplate).convertAndSend(eq("sendTo"), eq("TESTCONTENT"));
 	}
 
 	private AbstractBeanDefinition getQueueMessageHandlerBeanDefinition() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.MessageBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -51,6 +51,37 @@ public class ObjectMessageConverter implements MessageConverter {
 
 	public ObjectMessageConverter() {
 		this(DEFAULT_ENCODING);
+	}
+
+	@Override
+	public Serializable fromMessage(Message<?> message, Class<?> targetClass) {
+		String messagePayload = message.getPayload().toString();
+		byte[] rawContent = messagePayload.getBytes(this.encoding);
+		if (!(Base64.isBase64(rawContent))) {
+			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!", null);
+		}
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
+		Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
+		Serializable result = null;
+		ObjectInputStream objectInputStream = null;
+		try {
+			objectInputStream = new ObjectInputStream(base64InputStream);
+			result = (Serializable) objectInputStream.readObject();
+		} catch (ClassNotFoundException e) {
+			throw new MessageConversionException("Error loading class from message payload, make sure class is in classpath!", e);
+		} catch (IOException e) {
+			throw new MessageConversionException("Error reading payload from binary representation", e);
+		} finally {
+			if (objectInputStream != null) {
+				try {
+					objectInputStream.close();
+				} catch (IOException e) {
+					LOGGER.warn("Error closing object output stream while reading message payload", e);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	@Override
@@ -81,36 +112,5 @@ public class ObjectMessageConverter implements MessageConverter {
 		String messagePayload = new String(content.toByteArray(), 0, content.size(), this.encoding);
 		return MessageBuilder.withPayload(messagePayload).build();
 
-	}
-
-	@Override
-	public Serializable fromMessage(Message<?> message, Class<?> targetClass) {
-		String messagePayload = message.getPayload().toString();
-		byte[] rawContent = messagePayload.getBytes(this.encoding);
-		if (!(Base64.isBase64(rawContent))) {
-			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!",null);
-		}
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
-		Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
-		Serializable result = null;
-		ObjectInputStream objectInputStream = null;
-		try {
-			objectInputStream = new ObjectInputStream(base64InputStream);
-			result = (Serializable) objectInputStream.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new MessageConversionException("Error loading class from message payload, make sure class is in classpath!", e);
-		} catch (IOException e) {
-			throw new MessageConversionException("Error reading payload from binary representation", e);
-		} finally {
-			if (objectInputStream != null) {
-				try {
-					objectInputStream.close();
-				} catch (IOException e) {
-					LOGGER.warn("Error closing object output stream while reading message payload", e);
-				}
-			}
-		}
-
-		return result;
 	}
 }

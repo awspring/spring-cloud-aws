@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,6 @@ public class NotificationRequestConverter implements MessageConverter {
 	private final MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders header) {
-		throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
-	}
-
-	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		Assert.notNull(message, "message must not be null");
 
@@ -58,6 +53,11 @@ public class NotificationRequestConverter implements MessageConverter {
 		}
 
 		return new NotificationRequest(jsonAttributes.get("Subject"), jsonAttributes.get("Message"));
+	}
+
+	@Override
+	public Message<?> toMessage(Object payload, MessageHeaders header) {
+		throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
 	}
 
 	public static class NotificationRequest {

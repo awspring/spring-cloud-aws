@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,21 +50,9 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 	}
 
 	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
+	public void send(String destinationName, Message<?> message) throws MessagingException {
 		D channel = resolveMessageChannelByLogicalName(destinationName);
-		convertAndSend(channel, payload);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor) throws MessagingException {
-		D channel = resolveMessageChannelByLogicalName(destinationName);
-		convertAndSend(channel, payload,postProcessor);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
-		D channel = resolveMessageChannelByLogicalName(destinationName);
-		convertAndSend(channel,payload,headers);
+		doSend(channel, message);
 	}
 
 	@Override
@@ -74,9 +62,21 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 	}
 
 	@Override
-	public void send(String destinationName, Message<?> message) throws MessagingException {
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
 		D channel = resolveMessageChannelByLogicalName(destinationName);
-		doSend(channel, message);
+		convertAndSend(channel, payload, headers);
+	}
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor) throws MessagingException {
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel, payload, postProcessor);
+	}
+
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
+		D channel = resolveMessageChannelByLogicalName(destinationName);
+		convertAndSend(channel, payload);
 	}
 
 	protected D resolveMessageChannelByLogicalName(String destination) {

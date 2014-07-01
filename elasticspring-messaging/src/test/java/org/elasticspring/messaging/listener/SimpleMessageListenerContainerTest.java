@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@ import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.support.StaticApplicationContext;
@@ -44,9 +41,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author Agim Emruli
@@ -60,7 +62,7 @@ public class SimpleMessageListenerContainerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
+		initMocks(this);
 	}
 
 	@Test
@@ -73,8 +75,8 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
-		Assert.assertNotNull(taskExecutor);
-		Assert.assertEquals(SimpleMessageListenerContainer.class.getSimpleName() + "-", taskExecutor.getThreadNamePrefix());
+		assertNotNull(taskExecutor);
+		assertEquals(SimpleMessageListenerContainer.class.getSimpleName() + "-", taskExecutor.getThreadNamePrefix());
 	}
 
 	@Test
@@ -87,8 +89,8 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
-		Assert.assertNotNull(taskExecutor);
-		Assert.assertEquals("testContainerName-", taskExecutor.getThreadNamePrefix());
+		assertNotNull(taskExecutor);
+		assertEquals("testContainerName-", taskExecutor.getThreadNamePrefix());
 	}
 
 	@Test
@@ -102,7 +104,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
-		Assert.assertEquals(taskExecutor, container.getTaskExecutor());
+		assertEquals(taskExecutor, container.getTaskExecutor());
 	}
 
 	@Test
@@ -118,7 +120,7 @@ public class SimpleMessageListenerContainerTest {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
-				Assert.assertEquals("messageContent", message.getPayload());
+				assertEquals("messageContent", message.getPayload());
 				countDownLatch.countDown();
 			}
 		};
@@ -129,12 +131,12 @@ public class SimpleMessageListenerContainerTest {
 		container.setBeanName("testContainerName");
 		messageHandler.afterPropertiesSet();
 
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.afterPropertiesSet();
 
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
 						new Message().withBody("messageContent"))).
 				thenReturn(new ReceiveMessageResult());
@@ -159,18 +161,18 @@ public class SimpleMessageListenerContainerTest {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
-				Assert.fail("Should not have been called");
+				fail("Should not have been called");
 			}
 		};
 		container.setMessageHandler(messageHandler);
 		container.setBeanName("testContainerName");
 
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.afterPropertiesSet();
 
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
 				thenAnswer(new Answer<ReceiveMessageResult>() {
 
 					@Override
@@ -189,7 +191,7 @@ public class SimpleMessageListenerContainerTest {
 
 			@Override
 			protected void handleError(Throwable throwable) {
-				Assert.assertNotNull(throwable);
+				assertNotNull(throwable);
 				assertTrue(IllegalArgumentException.class.isInstance(throwable));
 				super.stop();
 			}
@@ -210,12 +212,12 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 		container.setBeanName("testContainerName");
 
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.afterPropertiesSet();
 
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
 						new Message().withBody("messageContent"))).
 				thenReturn(new ReceiveMessageResult());
@@ -243,19 +245,19 @@ public class SimpleMessageListenerContainerTest {
 		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://testQueue.amazonaws.com"));
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("anotherTestQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("anotherTestQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://anotherTestQueue.amazonaws.com"));
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"))).
 				thenReturn(new ReceiveMessageResult());
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent"))).
 				thenReturn(new ReceiveMessageResult());
 
@@ -289,14 +291,14 @@ public class SimpleMessageListenerContainerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
-		Mockito.when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 				withQueueUrl("http://testQueue.amazonaws.com"));
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		Mockito.when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID"))));
 
 		// Act
@@ -306,7 +308,7 @@ public class SimpleMessageListenerContainerTest {
 		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
 		container.stop();
 
-		Mockito.verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
+		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
 		assertEquals("ID", this.stringMessageCaptor.getValue().getHeaders().get("SenderId"));
 
 	}

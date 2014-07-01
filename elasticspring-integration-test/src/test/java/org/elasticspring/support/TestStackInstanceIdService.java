@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ import java.util.List;
  */
 public class TestStackInstanceIdService {
 
-	public static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
-	public static final int INSTANCE_ID_SERVICE_PORT = 12345;
+	private static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
+	private static final int INSTANCE_ID_SERVICE_PORT = 12345;
 
 	private final InstanceIdSource instanceIdSource;
 

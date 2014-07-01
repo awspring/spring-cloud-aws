@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,9 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
 
+	private static final int DEFAULT_WORKER_THREADS = 2;
 	private static final String DEFAULT_THREAD_NAME_PREFIX =
 			ClassUtils.getShortName(SimpleMessageListenerContainer.class) + "-";
-	public static final int DEFAULT_WORKER_THREADS = 2;
-
 	private TaskExecutor taskExecutor;
 
 	private volatile CountDownLatch stopLatch;
@@ -60,6 +59,29 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		}
 
 		super.initialize();
+	}
+
+	@Override
+	protected void doStart() {
+		synchronized (this.getLifecycleMonitor()) {
+			scheduleMessageListeners();
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		try {
+			this.stopLatch.await();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	@Override
+	protected void doDestroy() {
+		if (this.defaultTaskExecutor) {
+			((ThreadPoolTaskExecutor) this.taskExecutor).destroy();
+		}
 	}
 
 	/**
@@ -89,29 +111,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		return threadPoolTaskExecutor;
 
-	}
-
-	@Override
-	protected void doStart() {
-		synchronized (this.getLifecycleMonitor()) {
-			scheduleMessageListeners();
-		}
-	}
-
-	@Override
-	protected void doStop() {
-		try {
-			this.stopLatch.await();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	@Override
-	protected void doDestroy() {
-		if (this.defaultTaskExecutor) {
-			((ThreadPoolTaskExecutor) this.taskExecutor).destroy();
-		}
 	}
 
 	private void scheduleMessageListeners() {
@@ -164,6 +163,38 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		}
 	}
 
+	private class MessageExecutor implements Runnable {
+
+		private final Message message;
+		private final String logicalQueueName;
+		private final String queueUrl;
+
+		private MessageExecutor(String logicalQueueName, Message message, String queueUrl) {
+			this.logicalQueueName = logicalQueueName;
+			this.message = message;
+			this.queueUrl = queueUrl;
+		}
+
+		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
+			for (Map.Entry<String, String> attribute : this.message.getAttributes().entrySet()) {
+				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
+			}
+		}
+
+		@Override
+		public void run() {
+			String receiptHandle = this.message.getReceiptHandle();
+			String payload = this.message.getBody();
+			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
+			copyAttributesToHeaders(messageBuilder);
+			executeMessage(messageBuilder.build());
+			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
+		}
+
+
+	}
+
 	private static class CountingRunnableDecorator implements Runnable {
 
 		private final CountDownLatch countDownLatch;
@@ -178,36 +209,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		public void run() {
 			this.runnable.run();
 			this.countDownLatch.countDown();
-		}
-	}
-
-	private class MessageExecutor implements Runnable {
-
-		private final Message message;
-		private final String logicalQueueName;
-		private final String queueUrl;
-
-		private MessageExecutor(String logicalQueueName, Message message, String queueUrl) {
-			this.logicalQueueName = logicalQueueName;
-			this.message = message;
-			this.queueUrl = queueUrl;
-		}
-
-		@Override
-		public void run() {
-			String receiptHandle = this.message.getReceiptHandle();
-			String payload = this.message.getBody();
-			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
-			copyAttributesToHeaders(messageBuilder);
-			executeMessage(messageBuilder.build());
-			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
-			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
-		}
-
-		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
-			for (Map.Entry<String, String> attribute : this.message.getAttributes().entrySet()) {
-				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
-			}
 		}
 	}
 }
