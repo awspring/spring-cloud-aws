@@ -270,7 +270,7 @@ public class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	public void messageExecutor_withMessageWitAttributes_shouldPassThemAsHeaders() throws Exception {
+	public void messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders() throws Exception {
 		// Arrange
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
@@ -299,7 +299,8 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID"))));
+				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID")))).
+				thenReturn(new ReceiveMessageResult());
 
 		// Act
 		container.start();
