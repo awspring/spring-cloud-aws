@@ -16,11 +16,11 @@
 
 package org.elasticspring.messaging.core.support;
 
-import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
+import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
@@ -37,7 +37,7 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 	private final DestinationResolver<String> destinationResolver;
 
 	protected AbstractMessageChannelMessagingSendingTemplate(DestinationResolver<String> destinationResolver) {
-		this.destinationResolver = new CachingDestinationResolver<String>(destinationResolver);
+		this.destinationResolver = new CachingDestinationResolverProxy<String>(destinationResolver);
 	}
 
 	public void setDefaultDestination(String defaultDestination) {

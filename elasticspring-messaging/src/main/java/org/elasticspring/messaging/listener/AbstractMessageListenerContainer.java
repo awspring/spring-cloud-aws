@@ -20,7 +20,6 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -268,9 +268,9 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.getLifecycleMonitor()) {
 			if (this.destinationResolver == null) {
 				if (this.resourceIdResolver == null) {
-					this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
+					this.destinationResolver = new CachingDestinationResolverProxy<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
 				} else {
-					this.destinationResolver = new CachingDestinationResolver<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs, this.resourceIdResolver));
+					this.destinationResolver = new CachingDestinationResolverProxy<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs, this.resourceIdResolver));
 				}
 			}
 

@@ -20,13 +20,13 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import org.elasticspring.messaging.support.destination.CachingDestinationResolver;
 import org.elasticspring.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.util.ErrorHandler;
@@ -102,7 +102,7 @@ public class AbstractMessageListenerContainerTest {
 
 		DestinationResolver<String> destinationResolver = container.getDestinationResolver();
 		assertNotNull(destinationResolver);
-		assertTrue(CachingDestinationResolver.class.isInstance(destinationResolver));
+		assertTrue(CachingDestinationResolverProxy.class.isInstance(destinationResolver));
 	}
 
 	@Test
