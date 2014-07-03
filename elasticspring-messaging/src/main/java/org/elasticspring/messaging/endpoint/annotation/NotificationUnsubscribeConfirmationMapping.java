@@ -28,38 +28,13 @@ import java.lang.annotation.RetentionPolicy;
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping(headers = "x-amz-sns-message-type=UnsubscribeConfirmation")
+@RequestMapping(headers = "x-amz-sns-message-type=UnsubscribeConfirmation", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationUnsubscribeConfirmationMapping {
 
 	/**
 	 * @see org.springframework.web.bind.annotation.RequestMapping#value()
+	 * @return the configured url of the topic subscription
 	 */
 	String[] value() default {};
-
-	/**
-	 * @see org.springframework.web.bind.annotation.RequestMapping#method()
-	 */
-	RequestMethod[] method() default {};
-
-	/**
-	 * @see org.springframework.web.bind.annotation.RequestMapping#params()
-	 */
-	String[] params() default {};
-
-	/**
-	 * @see org.springframework.web.bind.annotation.RequestMapping#headers()
-	 */
-	String[] headers() default {};
-
-	/**
-	 * @see org.springframework.web.bind.annotation.RequestMapping#consumes()
-	 */
-	String[] consumes() default {};
-
-	/**
-	 * @see org.springframework.web.bind.annotation.RequestMapping#produces()
-	 */
-	String[] produces() default {};
-
 }
