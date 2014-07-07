@@ -16,7 +16,9 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.messaging.config.AmazonMessagingConfigurationUtils;
+import com.amazonaws.regions.Region;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Rule;
@@ -48,28 +50,37 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
-	public void testParseMinimalConfigWithDefaultContainer() throws Exception {
+	public void parseInternal_minimalConfiguration_shouldProduceContainerWithDefaultAmazonSqsBean() throws Exception {
+		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME);
+		//Assert
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
+				getBeanName(AnnotationDrivenQueueListenerBeanDefinitionParser.AMAZON_BUFFER_CLIENT_CLASS_NAME));
 		assertNotNull(sqsDefinition);
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
 		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals(AmazonMessagingConfigurationUtils.SQS_CLIENT_BEAN_NAME,
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AnnotationDrivenQueueListenerBeanDefinitionParser.AMAZON_BUFFER_CLIENT_CLASS_NAME),
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
 
 	@Test
-	public void testParseCustomAmazonSqsClient() throws Exception {
+	public void parseInternal_customSqsClient_shouldProduceContainerWithCustomSqsClientUsed() throws Exception {
+		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sqs.xml", getClass()));
 
+		//Assert
 		BeanDefinition sqsAsync = registry.getBeanDefinition("myClient");
 		assertNotNull(sqsAsync);
 
@@ -82,11 +93,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testParseCustomTaskExecutor() throws Exception {
+	public void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor() throws Exception {
+		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
 
+		//Assert
 		BeanDefinition executor = registry.getBeanDefinition("executor");
 		assertNotNull(executor);
 
@@ -99,11 +114,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testParse_withSendToMessageTemplateAttribute_mustBeSetOnTheBeanDefinition() throws Exception {
+	public void parseInternal_withSendToMessageTemplateAttribute_mustBeSetOnTheBeanDefinition() throws Exception {
+		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-with-send-to-message-template.xml", getClass()));
 
+		//Assert
 		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
 		assertNotNull(queueMessageHandler);
 
@@ -114,11 +133,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testParseCustomProperties() throws Exception {
+	public void parseInternal_withCustomProperties_customPropertiesConfiguredOnContainer() throws Exception {
+		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-properties.xml", getClass()));
 
+		//Assert
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
@@ -129,28 +152,74 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testParseCustomArgumentResolvers() throws Exception {
+	public void parseInternal_customArgumentResolvers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
+		//Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-argument-resolvers.xml", getClass()));
+
+		//Act
 		applicationContext.refresh();
 
+		//Assert
 		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
 		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().size());
 		assertTrue(TestHandlerMethodArgumentResolver.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().get(0)));
 	}
 
 	@Test
-	public void testParseCustomReturnValueHandlers() throws Exception {
+	public void parseInternal_customReturnValueHandlers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
+		//Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-return-value-handlers.xml", getClass()));
+
+		//Act
 		applicationContext.refresh();
 
+		//Assert
 		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
 		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().size());
 		assertTrue(TestHandlerMethodReturnValueHandler.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().get(0)));
+	}
 
+	@Test
+	public void parseInternal_customerRegionConfigured_regionConfiguredAndParsedForInternalCreatedSqsClient() throws Exception {
+		//Arrange
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
+
+		//Assert
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
+				getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName())));
+		assertNotNull(sqsDefinition);
+
+		BeanDefinition regionProviderDefinition = (BeanDefinition) sqsDefinition.getPropertyValues().getPropertyValue("region").getValue();
+
+		assertEquals(Region.class.getName(), regionProviderDefinition.getBeanClassName());
+		assertEquals("EU_WEST_1", regionProviderDefinition.getConstructorArgumentValues().getArgumentValue(0, String.class).getValue());
+	}
+
+	@Test
+	public void parseInternal_customerRegionProviderConfigured_regionProviderConfiguredAndParsedForInternalCreatedSqsClient() throws Exception {
+		//Arrange
+		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
+
+		//Assert
+		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
+				getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName())));
+		assertNotNull(sqsDefinition);
+
+		BeanDefinition regionProviderDefinition = (BeanDefinition) sqsDefinition.getPropertyValues().getPropertyValue("region").getValue();
+
+		assertEquals("provider", ((RuntimeBeanReference) regionProviderDefinition.getPropertyValues().getPropertyValue("targetObject").getValue()).getBeanName());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
@@ -178,5 +247,4 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		}
 	}
-
 }
