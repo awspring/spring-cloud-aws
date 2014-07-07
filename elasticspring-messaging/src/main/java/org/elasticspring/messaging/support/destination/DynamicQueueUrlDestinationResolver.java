@@ -16,12 +16,12 @@
 
 package org.elasticspring.messaging.support.destination;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
@@ -65,20 +65,15 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 		}
 
 		if (this.autoCreate) {
+			//Auto-create is fine to be called even if the queue exists.
 			CreateQueueResult createQueueResult = this.amazonSqs.createQueue(new CreateQueueRequest(name));
 			return createQueueResult.getQueueUrl();
 		} else {
 			try {
 				GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(name));
 				return getQueueUrlResult.getQueueUrl();
-			} catch (AmazonServiceException e) {
-				//TODO: Check for exception subclass
-				//TODO: Consider auto.creating only if the queue does not exist and autocreate is true
-				if ("AWS.SimpleQueueService.NonExistentQueue".equals(e.getErrorCode())) {
-					throw new InvalidDestinationException(name);
-				} else {
-					throw e;
-				}
+			} catch (QueueDoesNotExistException e) {
+				throw new DestinationResolutionException(e.getMessage(), e);
 			}
 		}
 	}

@@ -22,10 +22,13 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.junit.Test;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,15 +67,15 @@ public class DynamicQueueUrlDestinationResolverTest {
 	@Test
 	public void testInvalidDestinationName() throws Exception {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
-		AmazonServiceException exception = new AmazonServiceException("AWS.SimpleQueueService.NonExistentQueue");
+		AmazonServiceException exception = new QueueDoesNotExistException("AWS.SimpleQueueService.NonExistentQueue");
 		exception.setErrorCode("AWS.SimpleQueueService.NonExistentQueue");
 		String queueUrl = "invalidName";
 		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueUrl))).thenThrow(exception);
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(amazonSqs);
 		try {
 			dynamicQueueDestinationResolver.resolveDestination(queueUrl);
-		} catch (InvalidDestinationException e) {
-			assertEquals(queueUrl, e.getDestinationName());
+		} catch (DestinationResolutionException e) {
+			assertTrue(e.getMessage().startsWith("AWS.SimpleQueueService.NonExistentQueue"));
 		}
 	}
 
