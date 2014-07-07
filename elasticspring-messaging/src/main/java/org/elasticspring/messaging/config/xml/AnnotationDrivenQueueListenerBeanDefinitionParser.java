@@ -165,8 +165,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 
 	/**
 	 * Registers an {@link com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient} client instance under the default bean name {@link
-	 * #BUFFERED_SQS_CLIENT_BEAN_NAME} of not already registered. Creates a {@link com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient} to improve
-	 * performance especially while listening to to messages from a queue.
+	 * #BUFFERED_SQS_CLIENT_BEAN_NAME} if not already registered. Creates a {@link com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient} to improve
+	 * performance especially while listening to messages from a queue.
 	 *
 	 * @param registry
 	 * 		- the bean definition registry to which the bean should be registered. This registry will be checked if there is
