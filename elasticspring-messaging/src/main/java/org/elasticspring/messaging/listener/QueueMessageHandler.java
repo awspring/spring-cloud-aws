@@ -112,7 +112,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected String getDestination(Message<?> message) {
-		return message.getHeaders().get(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY).toString();
+		return message.getHeaders().get(Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY).toString();
 	}
 
 	@Override
@@ -169,5 +169,19 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		@Override
 		public void validate(Object target, Errors errors) {
 		}
+	}
+
+	/**
+	 * @author Alain Sahli
+	 * @author Agim Emruli
+	 */
+	public static final class Headers {
+
+		public static final String LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY = "LogicalResourceId";
+
+		private Headers() {
+			// Avoid instantiation
+		}
+
 	}
 }

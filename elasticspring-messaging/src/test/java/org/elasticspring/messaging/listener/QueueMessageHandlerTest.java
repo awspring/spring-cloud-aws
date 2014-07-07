@@ -38,7 +38,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -78,7 +77,7 @@ public class QueueMessageHandlerTest {
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		assertEquals("testContent", messageListener.getLastReceivedMessage());
@@ -94,7 +93,7 @@ public class QueueMessageHandlerTest {
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
 		DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
 		MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
-		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue")));
+		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue")));
 		messageHandler.handleMessage(message);
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
@@ -111,7 +110,7 @@ public class QueueMessageHandlerTest {
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		assertEquals("testContent", messageListener.getLastReceivedMessage());
@@ -134,10 +133,10 @@ public class QueueMessageHandlerTest {
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		IncomingMessageHandlerWithMultipleQueueNames incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithMultipleQueueNames.class);
 
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue one!").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueOne").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue one!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueOne").build());
 		assertEquals("Hello from queue one!", incomingMessageHandler.getLastReceivedMessage());
 
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue two!").setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueTwo").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue two!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueTwo").build());
 		assertEquals("Hello from queue two!", incomingMessageHandler.getLastReceivedMessage());
 	}
 
@@ -154,7 +153,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender").setHeader("SenderId", "elsUnitTest")
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
 
 		// Assert
 		assertEquals("Hello from a sender", messageReceiver.getPayload());
@@ -174,7 +173,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
 
 		// Assert
 		assertEquals("Hello from a sender", messageReceiver.getPayload());
@@ -194,12 +193,12 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").setHeader("SenderId", "ID").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").setHeader("SenderId", "ID").build());
 
 		// Assert
 		assertNotNull(messageReceiver.getHeaders());
 		assertEquals("ID", messageReceiver.getHeaders().get("SenderId"));
-		assertEquals("testQueue", messageReceiver.getHeaders().get(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY));
+		assertEquals("testQueue", messageReceiver.getHeaders().get(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY));
 	}
 
 	@Test
@@ -220,7 +219,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
 
 		// Assert
 		verify(handlerMethodArgumentResolver, times(1)).resolveArgument(any(MethodParameter.class), any(Message.class));
@@ -243,7 +242,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
 
 		// Assert
 		verify(handlerMethodReturnValueHandler, times(1)).handleReturnValue(any(Object.class), any(MethodParameter.class), any(Message.class));
@@ -269,7 +268,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload(payload)
-				.setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
 
 		// Assert
 		assertEquals("Hi!", notificationMessageReceiver.getSubject());
@@ -385,7 +384,7 @@ public class QueueMessageHandlerTest {
 
 		@RuntimeUse
 		@MessageMapping("testQueue")
-		public void receive(@Payload String payload, @Headers Map<String, String> headers) {
+		public void receive(@Payload String payload, @org.springframework.messaging.handler.annotation.Headers Map<String, String> headers) {
 			this.payload = payload;
 			this.headers = headers;
 		}

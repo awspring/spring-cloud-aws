@@ -16,26 +16,12 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath("org.asciidoctor:asciidoctor-gradle-plugin:0.7.0")
+        classpath("org.asciidoctor:asciidoctor-gradle-plugin:0.7.2")
     }
 }
 
@@ -58,11 +44,11 @@ subprojects {
     // Custom properties
     ext {
         springFrameworkVersion = "4.1.0.BUILD-SNAPSHOT"
-        springRetryVersion = "1.0.2.RELEASE"
+        springRetryVersion = "1.1.0.RELEASE"
         junitVersion = '4.11'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
-        awsSdkVersion = '1.7.6'
+        awsSdkVersion = '1.8.2'
         mockitoVersion = '1.9.5'
         hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
@@ -211,7 +197,6 @@ project('elasticspring-integration-test') {
 
         testRuntime("mysql:mysql-connector-java:5.1.16")
         testRuntime("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
-        testRuntime("org.springframework:spring-oxm:${springFrameworkVersion}")
         testRuntime("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
@@ -223,10 +208,6 @@ project('elasticspring-integration-test') {
 
         testRuntime("javax.servlet:javax.servlet-api:3.0.1")
         testCompile("org.springframework:spring-web:${springFrameworkVersion}")
-
-        testCompile("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
-        testCompile("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
-        testCompile("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
     }
 
     test.onlyIf { System.getProperty("els.config.dir") != null }
@@ -238,7 +219,7 @@ project('elasticspring-integration-test') {
 
 description = 'ElasticSpring'
 
-apply plugin: 'asciidoctor'
+apply plugin: 'org.asciidoctor.gradle.asciidoctor'
 
 // don't publish the default jar for the root project
 configurations.archives.artifacts.clear()

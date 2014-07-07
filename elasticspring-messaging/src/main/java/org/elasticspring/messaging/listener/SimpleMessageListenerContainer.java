@@ -185,14 +185,14 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
 			String payload = this.message.getBody();
-			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).setHeader(QueueMessageHeaders.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
+			MessageBuilder<String> messageBuilder = MessageBuilder.
+					withPayload(payload).
+					setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
 			copyAttributesToHeaders(messageBuilder);
 			executeMessage(messageBuilder.build());
 			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
 		}
-
-
 	}
 
 	private static class CountingRunnableDecorator implements Runnable {
