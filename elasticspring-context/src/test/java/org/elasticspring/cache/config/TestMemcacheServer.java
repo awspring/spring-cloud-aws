@@ -29,6 +29,8 @@ import java.net.InetSocketAddress;
 /**
  * @author Agim Emruli
  */
+// Suppression as this is not a util class
+@SuppressWarnings({"UtilityClassWithoutPrivateConstructor", "NonFinalUtilityClass"})
 public class TestMemcacheServer {
 
 	@SuppressWarnings("StaticNonFinalField")

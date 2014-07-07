@@ -22,14 +22,16 @@ import org.springframework.util.Assert;
  * Utility class that provides utility method to work with s3 storage resources
  *
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
-class SimpleStorageNameUtils {
+final class SimpleStorageNameUtils {
 
 	private static final String S3_PROTOCOL_PREFIX = "s3://";
 	private static final String PATH_DELIMITER = "/";
 
 	private SimpleStorageNameUtils() {
+		// Avoid instantiation
 	}
 
 	static boolean isSimpleStorageResource(String location) {
