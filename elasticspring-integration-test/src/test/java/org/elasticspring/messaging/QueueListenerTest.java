@@ -16,7 +16,7 @@
 
 package org.elasticspring.messaging;
 
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public class QueueListenerTest {
 	private QueueMessagingTemplate queueMessagingTemplate;
 
 	@Autowired
-	private AmazonSQS amazonSqs;
+	private AmazonSQSAsyncClient amazonSqs;
 
 	@Test
 	public void testSendAndReceive() throws Exception {
@@ -112,8 +112,8 @@ public class QueueListenerTest {
 	public static class MessageListener {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-		private CountDownLatch countDownLatch = new CountDownLatch(1);
 		private final List<String> receivedMessages = new ArrayList<String>();
+		private CountDownLatch countDownLatch = new CountDownLatch(1);
 		private String senderId;
 		private Map<String, Object> allHeaders;
 
@@ -127,12 +127,12 @@ public class QueueListenerTest {
 			this.getCountDownLatch().countDown();
 		}
 
-		public void setCountDownLatch(CountDownLatch countDownLatch) {
-			this.countDownLatch = countDownLatch;
-		}
-
 		CountDownLatch getCountDownLatch() {
 			return this.countDownLatch;
+		}
+
+		public void setCountDownLatch(CountDownLatch countDownLatch) {
+			this.countDownLatch = countDownLatch;
 		}
 
 		public List<String> getReceivedMessages() {

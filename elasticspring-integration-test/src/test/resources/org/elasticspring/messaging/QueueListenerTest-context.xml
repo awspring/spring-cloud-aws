@@ -33,7 +33,7 @@
 	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
 		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
 		<constructor-arg
-				ref="#{T(org.elasticspring.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParser).AMAZON_BUFFER_CLIENT_CLASS_NAME}" />
+				ref="#{T(org.elasticspring.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParser).BUFFERED_SQS_CLIENT_BEAN_NAME}" />
 		<constructor-arg
 				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
 	</bean>

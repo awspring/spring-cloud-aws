@@ -17,6 +17,7 @@
 package org.elasticspring.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import org.elasticspring.core.support.documentation.RuntimeUse;
@@ -47,7 +48,7 @@ public class MessageListenerContainerAwsTest {
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
-	private AmazonSQS amazonSqsClient;
+	private AmazonSQSAsyncClient amazonSqsClient;
 
 	@Autowired
 	private TestStackEnvironment testStackEnvironment;
@@ -76,8 +77,6 @@ public class MessageListenerContainerAwsTest {
 
 	static class MessageReceiver {
 
-		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
-
 		@RuntimeUse
 		@MessageMapping("LoadTestQueue")
 		public void onMessage(String message) {
@@ -85,9 +84,13 @@ public class MessageListenerContainerAwsTest {
 			this.getCountDownLatch().countDown();
 		}
 
+		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
+
 		CountDownLatch getCountDownLatch() {
 			return this.countDownLatch;
 		}
+
+
 	}
 
 
