@@ -188,6 +188,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 
 			if (StringUtils.hasText(taskExecutor)) {
 				BeanDefinitionBuilder executorBuilder = BeanDefinitionBuilder.genericBeanDefinition(SuppressingExecutorServiceAdapter.class);
+				executorBuilder.addConstructorArgReference(taskExecutor);
 				sqsClient.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(executorBuilder.getBeanDefinition());
 			}
 

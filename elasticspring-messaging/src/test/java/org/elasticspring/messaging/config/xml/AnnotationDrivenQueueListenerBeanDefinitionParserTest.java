@@ -18,6 +18,7 @@ package org.elasticspring.messaging.config.xml;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
@@ -27,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -95,22 +97,25 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
 
 		//Assert
-		BeanDefinition executor = registry.getBeanDefinition("executor");
+		BeanDefinition executor = beanFactory.getBeanDefinition("executor");
 		assertNotNull(executor);
 
-		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
+		BeanDefinition abstractContainerDefinition = beanFactory.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
 		assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
 		assertEquals("executor",
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("taskExecutor").getValue()).getBeanName());
+
+		AmazonSQSBufferedAsyncClient bufferedAsyncClient = beanFactory.getBean(AmazonSQSBufferedAsyncClient.class);
+		assertNotNull(bufferedAsyncClient);
 	}
 
 	@Test
