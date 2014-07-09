@@ -15,7 +15,7 @@
  */
 
 // CHECKSTYLE:OFF
-// Checkstyle is disabled because in test 'testWriteFileAndCheckChecksum'
+// Checkstyle is disabled because in test 'testUploadBigFileAndCompareChecksum'
 // there is a needed while loop without a statement inside.
 
 
@@ -23,9 +23,8 @@ package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.elasticspring.support.TestStackEnvironment;
+import org.elasticspring.core.env.stack.StackResourceRegistry;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,123 +36,116 @@ import org.springframework.core.io.WritableResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.FileCopyUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("ResourceLoaderAwsTest-context.xml")
+@ContextConfiguration
 public class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";
-
+	private final List<String> createdObjects = new ArrayList<String>();
 	@Autowired
 	private ApplicationContext applicationContext;
-
 	@Autowired
 	private ResourceLoader resourceLoader;
-
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
-
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
 	private AmazonS3 amazonS3;
-
-	private final List<String> createdObjects = new ArrayList<String>();
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Autowired
+	private StackResourceRegistry stackResourceRegistry;
 
 	@Test
-	public void testWithInjectedApplicationContext() throws Exception {
-		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		uploadFile(bucketName, "test");
-		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/test");
-		Assert.assertTrue(resource.exists());
+	public void testUploadAndDownloadOfSmallFileWithInjectedApplicationContext() throws Exception {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		uploadFileTestFile(bucketName, "testUploadAndDownloadOfSmallFileWithInjectedApplicationContext", "Test Content");
+		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedApplicationContext");
+		assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
-		Assert.assertNotNull(inputStream);
-		Assert.assertTrue(resource.contentLength() > 0);
-		inputStream.close();
+		assertNotNull(inputStream);
+		assertEquals("Test Content", FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
+		assertEquals("Test Content".length(), resource.contentLength());
 	}
 
-	private void uploadFile(String bucketName, String objectKey) {
+	@Test
+	public void testUploadAndDownloadOfSmallFileWithInjectedResourceLoader() throws Exception {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		uploadFileTestFile(bucketName, "testUploadAndDownloadOfSmallFileWithInjectedResourceLoader", "hello world");
+		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
+		assertTrue(resource.exists());
+		InputStream inputStream = resource.getInputStream();
+		assertNotNull(inputStream);
+		assertEquals("hello world", FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
+		assertEquals("hello world".length(), resource.contentLength());
+	}
+
+	private void uploadFileTestFile(String bucketName, String objectKey, String content) throws UnsupportedEncodingException {
 		ObjectMetadata objectMetadata = new ObjectMetadata();
-		objectMetadata.setContentLength("hello world".length());
-		this.amazonS3.putObject(bucketName, objectKey, new ByteArrayInputStream("hello world".getBytes()), objectMetadata);
+		objectMetadata.setContentLength(content.length());
+		this.amazonS3.putObject(bucketName, objectKey, new ByteArrayInputStream(content.getBytes("UTF-8")), objectMetadata);
 		this.createdObjects.add(objectKey);
 	}
 
 	@Test
-	public void testWithInjectedResourceLoader() throws Exception {
-		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		uploadFile(bucketName, "test");
-		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/test");
-		Assert.assertTrue(resource.exists());
-		InputStream inputStream = resource.getInputStream();
-		Assert.assertNotNull(inputStream);
-		Assert.assertTrue(resource.contentLength() > 0);
-		inputStream.close();
-	}
-
-	@Test
-	public void testWriteFile() throws Exception {
-		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/newFile");
-		Assert.assertTrue(WritableResource.class.isInstance(resource));
+	public void testUploadFileWithMoreThenFiveMegabytes() throws Exception {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/testUploadFileWithMoreThenFiveMegabytes");
+		assertTrue(WritableResource.class.isInstance(resource));
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
-		for (int i = 0; i < 6; i++) {
-			for (int j = 0; j < (1024 * 1024); j++) {
-				outputStream.write("c".getBytes("UTF-8"));
-			}
+		for (int i = 0; i < (1024 * 1024 * 6); i++) {
+			outputStream.write("c".getBytes("UTF-8"));
 		}
 		outputStream.close();
-		this.createdObjects.add("newFile");
+		this.createdObjects.add("testUploadFileWithMoreThenFiveMegabytes");
 	}
 
 	@Test
-	public void testWriteFileAndCheckChecksum() throws IOException, NoSuchAlgorithmException {
-		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
-		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.pdf");
-		Assert.assertTrue(WritableResource.class.isInstance(resource));
+	public void testUploadBigFileAndCompareChecksum() throws IOException, NoSuchAlgorithmException {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
+		assertTrue(WritableResource.class.isInstance(resource));
 
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
-		ClassPathResource testFileResource = new ClassPathResource("/org/elasticspring/context/support/io/test-file.pdf");
+		ClassPathResource testFileResource = new ClassPathResource("test-file.jpg", getClass());
 		InputStream inputStream = new FileInputStream(testFileResource.getFile());
 
-		byte[] buffer = new byte[1024];
 		MessageDigest md = MessageDigest.getInstance("MD5");
-		try {
-			inputStream = new DigestInputStream(inputStream, md);
-			int bytesRead;
-			while ((bytesRead = inputStream.read(buffer)) != -1) {
-				outputStream.write(buffer, 0, bytesRead);
-			}
-		} finally {
-			inputStream.close();
-			outputStream.close();
-		}
+
+		inputStream = new DigestInputStream(inputStream, md);
+		FileCopyUtils.copy(inputStream, outputStream);
 
 		byte[] originalMd5Checksum = md.digest();
 
-		Resource downloadedResource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.pdf");
+		Resource downloadedResource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
 		InputStream downloadedInputStream = downloadedResource.getInputStream();
 
 		md.reset();
 		try {
 			downloadedInputStream = new DigestInputStream(downloadedInputStream, md);
 			//noinspection StatementWithEmptyBody
-			while (downloadedInputStream.read(buffer) != -1) {
+			while (downloadedInputStream.read() != -1) {
 				// go through the input stream until EOF to compute MD5 checksum.
 			}
 		} finally {
@@ -162,15 +154,15 @@ public class ResourceLoaderAwsTest {
 
 		byte[] downloadedMd5Checksum = md.digest();
 
-		Assert.assertEquals(DigestUtils.md5DigestAsHex(originalMd5Checksum), DigestUtils.md5DigestAsHex(downloadedMd5Checksum));
-		this.createdObjects.add("test-file.pdf");
+		assertEquals(DigestUtils.md5DigestAsHex(originalMd5Checksum), DigestUtils.md5DigestAsHex(downloadedMd5Checksum));
+		this.createdObjects.add("test-file.jpg");
 	}
 
 
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
 	@After
 	public void tearDown() {
-		String bucketName = this.testStackEnvironment.getByLogicalId("EmptyBucket");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 		for (String createdObject : this.createdObjects) {
 			this.amazonS3.deleteObject(bucketName, createdObject);
 		}
