@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,19 +39,29 @@ public class ElastiCacheAwsTest {
 	@Autowired
 	private CachingService cachingService;
 
+	@Autowired
+	private CacheManager cacheManager;
+
 	@Before
 	public void resetInvocationCount() throws Exception {
+		//Clear cache before running tests,
+		Cache cacheCluster = this.cacheManager.getCache("CacheCluster");
+		cacheCluster.clear();
+
 		this.cachingService.resetInvocationCount();
 	}
 
 	@Test
 	@IfAmazonWebserviceEnvironment
-	public void cacheManagerInitialized() throws Exception {
+	public void expensiveServiceWithCacheManager() throws Exception {
 		assertEquals(0, this.cachingService.getInvocationCount().get());
+
 		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
 		assertEquals(1, this.cachingService.getInvocationCount().get());
+
 		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
 		assertEquals(1, this.cachingService.getInvocationCount().get());
+
 		assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
 		assertEquals(2, this.cachingService.getInvocationCount().get());
 	}
