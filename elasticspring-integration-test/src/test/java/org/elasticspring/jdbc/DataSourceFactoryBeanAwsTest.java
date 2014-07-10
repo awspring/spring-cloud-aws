@@ -16,8 +16,6 @@
 
 package org.elasticspring.jdbc;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * AWS backed integration test for the datasource feature of the jdbc module
@@ -43,14 +43,15 @@ public class DataSourceFactoryBeanAwsTest {
 	@Value("#{dbTags['aws:cloudformation:logical-id']}")
 	private String dbLogicalName;
 
-	@Autowired
-	private AWSCredentialsProvider provider;
-
 	@Test
-	public void testExistingDataSourceInstance() throws Exception {
+	public void testWriteAndReadWithReadReplicaEnabled() throws Exception {
 		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
 		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
-		Assert.assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
-		Assert.assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
+		assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
+	}
+
+	@Test
+	public void testDatabaseInstanceUserProperties() throws Exception {
+		assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
 	}
 }
