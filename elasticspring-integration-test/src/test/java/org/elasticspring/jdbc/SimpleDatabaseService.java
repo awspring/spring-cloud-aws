@@ -26,15 +26,16 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- *
+ * @author Agim Emruli
  */
 @Service
-class SimpleDatabaseService implements DatabaseService {
+public class SimpleDatabaseService implements DatabaseService {
 
 	private final JdbcTemplate jdbcTemplate;
 
+	@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 	@Autowired
-	SimpleDatabaseService(DataSource dataSource) {
+	public SimpleDatabaseService(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 

@@ -5,11 +5,12 @@
   </component>
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
-    <list size="4">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="org.elasticspring.core.support.documentation.RuntimeUse" />
       <item index="1" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationMessageMapping" />
       <item index="2" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationSubscriptionMapping" />
       <item index="3" class="java.lang.String" itemvalue="org.elasticspring.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping" />
+      <item index="4" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
   </component>
   <component name="FrameworkDetectionExcludesConfiguration">
