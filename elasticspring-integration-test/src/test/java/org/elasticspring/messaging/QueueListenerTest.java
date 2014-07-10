@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging;
 
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
@@ -49,7 +48,7 @@ import static org.junit.Assert.assertTrue;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("QueueListenerTest-context.xml")
+@ContextConfiguration
 public class QueueListenerTest {
 
 	@Autowired
@@ -61,11 +60,8 @@ public class QueueListenerTest {
 	@Autowired
 	private QueueMessagingTemplate queueMessagingTemplate;
 
-	@Autowired
-	private AmazonSQSAsyncClient amazonSqs;
-
 	@Test
-	public void testSendAndReceive() throws Exception {
+	public void messageMapping_singleMessageOnQueue_messageReceived() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
 		this.messageListener.getReceivedMessages().clear();

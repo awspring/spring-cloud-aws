@@ -17,7 +17,6 @@
 package org.elasticspring.messaging;
 
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,6 +26,11 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
+/**
+ * @author Agim Emruli
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class QueueMessagingTemplateIntegrationTest {
@@ -45,7 +49,7 @@ public class QueueMessagingTemplateIntegrationTest {
 		String messageContent = "testMessage";
 		this.stringQueueingOperations.convertAndSend("StringQueue", messageContent);
 		String receivedMessage = this.stringQueueingOperations.receiveAndConvert("StringQueue", String.class);
-		Assert.assertEquals(messageContent, receivedMessage);
+		assertEquals(messageContent, receivedMessage);
 	}
 
 	@Test
@@ -54,7 +58,7 @@ public class QueueMessagingTemplateIntegrationTest {
 		this.objectQueueingOperations.convertAndSend("StreamQueue", payload);
 
 		List<String> result = this.objectQueueingOperations.receiveAndConvert("StreamQueue", StringList.class);
-		Assert.assertEquals("myString", result.get(0));
+		assertEquals("myString", result.get(0));
 	}
 
 	@Test
@@ -62,7 +66,7 @@ public class QueueMessagingTemplateIntegrationTest {
 		this.jsonQueueingOperations.convertAndSend("JsonQueue", "myString");
 
 		String result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", String.class);
-		Assert.assertEquals("myString", result);
+		assertEquals("myString", result);
 	}
 
 
