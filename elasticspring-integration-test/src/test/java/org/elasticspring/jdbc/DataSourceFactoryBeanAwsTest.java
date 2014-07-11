@@ -33,7 +33,7 @@ import static org.junit.Assert.assertEquals;
  * @author Agim Emruli
  * @since 1.0
  */
-@ContextConfiguration("DataSourceFactoryBeanAwsTest-context.xml")
+@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DataSourceFactoryBeanAwsTest {
 

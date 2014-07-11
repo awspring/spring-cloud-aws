@@ -39,8 +39,10 @@ import javax.mail.internet.MimeMessage;
  * statistics there are only updated after a couple of minutes. Using an IMAP/POP3 account is to complicated for the
  * test to be implemented in terms of mailbox setup etc. The main purpose of this test is to ensure that the api is
  * correctly implemented and the webservice acknowledges the message.</p>
+ *
+ * @author Agim Emruli
  */
-@ContextConfiguration("MailSenderAwsTest-context.xml")
+@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MailSenderAwsTest {
 

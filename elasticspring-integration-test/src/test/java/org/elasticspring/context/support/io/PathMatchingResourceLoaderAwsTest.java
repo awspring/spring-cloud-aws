@@ -18,7 +18,7 @@ package org.elasticspring.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.elasticspring.support.TestStackEnvironment;
+import org.elasticspring.core.env.stack.StackResourceRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,39 +28,36 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
 @SuppressWarnings("SpringJavaAutowiringInspection")
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("PathMatchingResourceLoaderAwsTest-context.xml")
+@ContextConfiguration
 public class PathMatchingResourceLoaderAwsTest {
-
-	@Autowired
-	private ResourcePatternResolver resourceLoader;
-
-	@Autowired
-	private AmazonS3 amazonS3;
-
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
-
-	private final CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newFixedThreadPool(10));
 
 	private static final List<String> FILES_FOR_HIERARCHY = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
 			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");
+	private final ExecutorService executor = Executors.newFixedThreadPool(10);
+	@Autowired
+	private ResourcePatternResolver resourceLoader;
+	@Autowired
+	private AmazonS3 amazonS3;
+	@Autowired
+	private StackResourceRegistry stackResourceRegistry;
 
 	@Test
 	public void testWildcardsInKey() throws Exception {
-		String bucketName = this.testStackEnvironment.getByLogicalId("PathMatcherBucket");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("PathMatcherBucket");
 		createTestFiles(bucketName);
 
 		String protocolAndBucket = "s3://" + bucketName;
@@ -77,9 +74,9 @@ public class PathMatchingResourceLoaderAwsTest {
 
 	@Test
 	public void testWildcardsInBucket() throws Exception {
-		String firstBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket01");
-		String secondBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket02");
-		String thirdBucket = this.testStackEnvironment.getByLogicalId("PathMatcherBucket03");
+		String firstBucket = this.stackResourceRegistry.lookupPhysicalResourceId("PathMatcherBucket01");
+		String secondBucket = this.stackResourceRegistry.lookupPhysicalResourceId("PathMatcherBucket02");
+		String thirdBucket = this.stackResourceRegistry.lookupPhysicalResourceId("PathMatcherBucket03");
 		String bucketPrefix = firstBucket.substring(0, firstBucket.lastIndexOf("-") - 2);
 		try {
 			createTestFiles(firstBucket, secondBucket, thirdBucket);
@@ -92,30 +89,24 @@ public class PathMatchingResourceLoaderAwsTest {
 	}
 
 	private void createTestFiles(String... bucketNames) throws InterruptedException {
-		int createdFiles = 0;
+		List<CreateFileCallable> callables = new ArrayList<CreateFileCallable>();
+
 		for (String bucketName : bucketNames) {
 			for (String fileName : FILES_FOR_HIERARCHY) {
-				this.completionService.submit(new CreateFileCallable(bucketName, fileName, this.amazonS3));
-				createdFiles++;
+				callables.add(new CreateFileCallable(bucketName, fileName, this.amazonS3));
 			}
 		}
-
-		for (int i = 0; i < createdFiles; i++) {
-			this.completionService.take();
-		}
+		this.executor.invokeAll(callables);
 	}
 
 	private void deleteTestFiles(String... bucketNames) throws InterruptedException {
-		int createdFiles = 0;
+		List<DeleteFileCallable> deleteFileCallables = new ArrayList<DeleteFileCallable>();
 		for (String bucketName : bucketNames) {
 			for (String fileName : FILES_FOR_HIERARCHY) {
-				this.completionService.submit(new DeleteFileCallable(bucketName, fileName, this.amazonS3));
-				createdFiles++;
+				deleteFileCallables.add(new DeleteFileCallable(bucketName, fileName, this.amazonS3));
 			}
 		}
-		for (int i = 0; i < createdFiles; i++) {
-			this.completionService.take();
-		}
+		this.executor.invokeAll(deleteFileCallables);
 	}
 
 	private static class CreateFileCallable implements Callable<String> {
@@ -149,7 +140,6 @@ public class PathMatchingResourceLoaderAwsTest {
 			this.amazonS3 = amazonS3;
 			this.bucketName = bucketName;
 		}
-
 
 		@Override
 		public String call() throws Exception {

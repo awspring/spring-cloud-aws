@@ -16,37 +16,53 @@
 
 package org.elasticspring.cache;
 
-import com.amazonaws.util.EC2MetadataUtils;
-import org.elasticspring.support.TestStackEnvironment;
-import org.junit.Assert;
+import org.elasticspring.support.profile.AmazonWebserviceProfileValueSource;
+import org.elasticspring.support.profile.IfAmazonWebserviceEnvironment;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@ProfileValueSourceConfiguration(AmazonWebserviceProfileValueSource.class)
 public class ElastiCacheAwsTest {
-
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
+	private CachingService cachingService;
+
+	@Autowired
 	private CacheManager cacheManager;
 
-	@Test
-	public void cacheManagerInitialized() throws Exception {
-		Cache cache = this.cacheManager.getCache("CacheCluster");
-		Assert.assertNotNull(cache);
+	@Before
+	public void resetInvocationCount() throws Exception {
+		//Clear cache before running tests,
+		Cache cacheCluster = this.cacheManager.getCache("CacheCluster");
+		cacheCluster.clear();
 
-		if (EC2MetadataUtils.getAvailabilityZone() != null) {
-			cache.put("foo", "bar");
-			String cachedValue = (String) cache.get("foo").get();
-			Assert.assertEquals("bar", cachedValue);
-		}
+		this.cachingService.resetInvocationCount();
+	}
+
+	@Test
+	@IfAmazonWebserviceEnvironment
+	public void expensiveServiceWithCacheManager() throws Exception {
+		assertEquals(0, this.cachingService.getInvocationCount().get());
+
+		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
+		assertEquals(1, this.cachingService.getInvocationCount().get());
+
+		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
+		assertEquals(1, this.cachingService.getInvocationCount().get());
+
+		assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
+		assertEquals(2, this.cachingService.getInvocationCount().get());
 	}
 }
