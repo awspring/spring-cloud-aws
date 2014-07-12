@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
@@ -92,7 +93,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
@@ -113,7 +115,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
@@ -134,7 +137,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 
@@ -154,7 +158,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 

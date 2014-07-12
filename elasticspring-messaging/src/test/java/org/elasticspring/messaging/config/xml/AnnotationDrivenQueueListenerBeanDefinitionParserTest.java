@@ -72,7 +72,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertNotNull(abstractContainerDefinition);
 
 		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName()),
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSBufferedAsyncClient.class.getName()),
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 
 		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");

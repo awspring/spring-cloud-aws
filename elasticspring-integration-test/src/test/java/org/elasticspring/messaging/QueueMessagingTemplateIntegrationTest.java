@@ -69,7 +69,6 @@ public class QueueMessagingTemplateIntegrationTest {
 		assertEquals("myString", result);
 	}
 
-
 	interface StringList extends List<String> {
 
 	}

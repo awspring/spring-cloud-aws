@@ -23,9 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.messaging.converter.MessageConversionException;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,13 +38,14 @@ import java.nio.charset.Charset;
 /**
  * @author Agim Emruli
  */
-public class ObjectMessageConverter implements MessageConverter {
+public class ObjectMessageConverter extends AbstractMessageConverter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ObjectMessageConverter.class);
 	private static final String DEFAULT_ENCODING = "UTF-8";
 	private final Charset encoding;
 
 	public ObjectMessageConverter(String encoding) {
+		super(new MimeType("application", "x-java-serialized-object", Charset.forName(encoding)));
 		this.encoding = Charset.forName(encoding);
 	}
 
@@ -53,7 +54,12 @@ public class ObjectMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Serializable fromMessage(Message<?> message, Class<?> targetClass) {
+	protected boolean supports(Class<?> clazz) {
+		return true;
+	}
+
+	@Override
+	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		String messagePayload = message.getPayload().toString();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);
 		if (!(Base64.isBase64(rawContent))) {
@@ -84,7 +90,7 @@ public class ObjectMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Message<String> toMessage(Object payload, MessageHeaders header) {
+	public Object convertToInternal(Object payload, MessageHeaders headers) {
 		if (!(payload instanceof Serializable)) {
 			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
 		}
@@ -108,8 +114,6 @@ public class ObjectMessageConverter implements MessageConverter {
 			}
 		}
 
-		String messagePayload = new String(content.toByteArray(), 0, content.size(), this.encoding);
-		return MessageBuilder.withPayload(messagePayload).build();
-
+		return new String(content.toByteArray(), 0, content.size(), this.encoding);
 	}
 }

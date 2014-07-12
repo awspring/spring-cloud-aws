@@ -18,6 +18,7 @@ package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.springframework.core.task.TaskExecutor;
@@ -178,6 +179,10 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
 			for (Map.Entry<String, String> attribute : this.message.getAttributes().entrySet()) {
 				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
+			}
+
+			for (Map.Entry<String, MessageAttributeValue> messageAttributeValueEntry : this.message.getMessageAttributes().entrySet()) {
+				messageBuilder.setHeader(messageAttributeValueEntry.getKey(), messageAttributeValueEntry.getValue().getStringValue());
 			}
 		}
 

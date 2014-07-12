@@ -31,6 +31,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -136,7 +137,8 @@ public class SimpleMessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
 						new Message().withBody("messageContent"))).
 				thenReturn(new ReceiveMessageResult());
@@ -254,10 +256,12 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"))).
 				thenReturn(new ReceiveMessageResult());
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All").
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent"))).
 				thenReturn(new ReceiveMessageResult());
 
@@ -298,7 +302,7 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All"))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID")))).
 				thenReturn(new ReceiveMessageResult());
 

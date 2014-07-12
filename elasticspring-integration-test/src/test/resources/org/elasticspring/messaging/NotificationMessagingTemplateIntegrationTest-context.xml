@@ -31,17 +31,7 @@
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 	<els-messaging:annotation-driven-queue-listener />
 
-	<bean id="amazonSns" class="com.amazonaws.services.sns.AmazonSNSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
-
-	<bean id="notificationMessagingTemplate" class="org.elasticspring.messaging.core.NotificationMessagingTemplate">
-		<constructor-arg
-				ref="amazonSns" />
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
-	</bean>
+	<els-messaging:notification-messaging-template id="notificationMessagingTemplate" />
 
 	<bean class="org.elasticspring.messaging.NotificationMessagingTemplateIntegrationTest$NotificationReceiver" />
 

@@ -19,15 +19,19 @@ package org.elasticspring.messaging.core;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.AbstractMessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -51,13 +55,31 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	@Override
 	protected boolean sendInternal(Message<?> message, long timeout) {
 		try {
-			this.amazonSqs.sendMessage(new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload())).
-					withDelaySeconds(getDelaySeconds(timeout)));
+			SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload())).withDelaySeconds(getDelaySeconds(timeout));
+			Map<String, MessageAttributeValue> messageAttributes = getContentTypeMessageAttributes(message);
+			if (!messageAttributes.isEmpty()) {
+				sendMessageRequest.withMessageAttributes(messageAttributes);
+			}
+			this.amazonSqs.sendMessage(sendMessageRequest);
 		} catch (AmazonServiceException e) {
 			throw new MessageDeliveryException(message, e.getMessage(), e);
 		}
 
 		return true;
+	}
+
+	private Map<String, MessageAttributeValue> getContentTypeMessageAttributes(Message<?> message) {
+		Map<String, MessageAttributeValue> messageAttributes = new HashMap<String, MessageAttributeValue>(1);
+		Object mimeType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		if (mimeType != null) {
+			if (mimeType instanceof MimeType) {
+				messageAttributes.put(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").withStringValue(mimeType.toString()));
+			} else if (mimeType instanceof String) {
+				messageAttributes.put(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").withStringValue((String) mimeType));
+			}
+		}
+
+		return messageAttributes;
 	}
 
 	@Override
@@ -71,7 +93,8 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 				new ReceiveMessageRequest(this.queueUrl).
 						withMaxNumberOfMessages(1).
 						withWaitTimeSeconds(Long.valueOf(timeout).intValue()).
-						withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES));
+						withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+						withMessageAttributeNames(MessageHeaders.CONTENT_TYPE));
 		if (receiveMessageResult.getMessages().isEmpty()) {
 			return null;
 		}
@@ -88,6 +111,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 
 		for (Map.Entry<String, String> attributeKeyValuePair : message.getAttributes().entrySet()) {
 			builder.setHeader(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
+		}
+
+		for (Map.Entry<String, MessageAttributeValue> messageAttributeValueEntry : message.getMessageAttributes().entrySet()) {
+			builder.setHeader(messageAttributeValueEntry.getKey(), messageAttributeValueEntry.getValue().getStringValue());
 		}
 
 		return builder.build();

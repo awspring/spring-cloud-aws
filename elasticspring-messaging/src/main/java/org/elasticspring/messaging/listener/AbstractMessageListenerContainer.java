@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
@@ -297,7 +298,9 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.getLifecycleMonitor()) {
 			for (String queue : this.queues) {
 				String destinationUrl = getDestinationResolver().resolveDestination(queue);
-				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES);
+				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
+						withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+						withMessageAttributeNames(MessageHeaders.CONTENT_TYPE);
 				if (getMaxNumberOfMessages() != null) {
 					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
 				}
