@@ -36,8 +36,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 
 /**
- * //TODO: Check need of Base64 encoding
- * //TODO: Rename to Base64Object.....Converter
+ * @author Agim Emruli
  */
 public class ObjectMessageConverter implements MessageConverter {
 
