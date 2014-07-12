@@ -16,10 +16,9 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
-import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.elasticspring.messaging.core.NotificationMessagingTemplate;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -30,24 +29,24 @@ import org.w3c.dom.Element;
 /**
  * @author Alain Sahli
  */
-public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
 	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return QueueMessagingTemplate.class;
+		return NotificationMessagingTemplate.class;
 	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonSqsClientBeanName;
-		if (StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
-			amazonSqsClientBeanName = element.getAttribute("amazon-sqs");
+		String amazonSnsClientBeanName;
+		if (StringUtils.hasText(element.getAttribute("amazon-sns"))) {
+			amazonSnsClientBeanName = element.getAttribute("amazon-sns");
 		} else {
-			BeanDefinitionHolder amazonSqsClientBeanDefinitionHolder = AmazonSqsClientBeanConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(), null, null, null);
-			amazonSqsClientBeanName = amazonSqsClientBeanDefinitionHolder.getBeanName();
+			amazonSnsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(
+					parserContext.getRegistry(), "com.amazonaws.services.sns.AmazonSNSClient", null, null).getBeanName();
 		}
 
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
@@ -60,7 +59,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
-		builder.addConstructorArgReference(amazonSqsClientBeanName);
+		builder.addConstructorArgReference(amazonSnsClientBeanName);
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
 

@@ -120,6 +120,7 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
 	<xsd:element name="queue-messaging-template">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -127,7 +128,6 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="required" />
 			<xsd:attribute name="amazon-sqs" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -137,16 +137,41 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:attributeGroup ref="messagingTemplateAttributeGroup" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a org.elasticspring.messaging.core.NotificationMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="amazon-sns" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+							<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="default-destination" type="xsd:string" />
+			<xsd:attributeGroup ref="messagingTemplateAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:attributeGroup name="messagingTemplateAttributeGroup">
+		<xsd:attribute name="id" type="xsd:string" use="required" />
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default-destination" type="xsd:string" />
+	</xsd:attributeGroup>
 </xsd:schema>

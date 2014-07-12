@@ -32,5 +32,6 @@ public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		registerBeanDefinitionParser("annotation-driven-queue-listener", new AnnotationDrivenQueueListenerBeanDefinitionParser());
 		registerBeanDefinitionParser("queue-messaging-template", new QueueMessagingTemplateBeanDefinitionParser());
+		registerBeanDefinitionParser("notification-messaging-template", new NotificationMessagingTemplateBeanDefinitionParser());
 	}
 }
