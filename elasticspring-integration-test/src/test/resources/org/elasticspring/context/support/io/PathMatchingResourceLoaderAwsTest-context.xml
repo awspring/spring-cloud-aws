@@ -15,13 +15,15 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<els-context:context-resource-loader />
+
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
 </beans>

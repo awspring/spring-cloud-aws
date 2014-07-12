@@ -17,11 +17,11 @@
 package org.elasticspring.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
+import org.elasticspring.core.env.stack.StackResourceRegistry;
 import org.elasticspring.core.support.documentation.RuntimeUse;
-import org.elasticspring.support.TestStackEnvironment;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,9 +34,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("MessageListenerContainerAwsTest-context.xml")
+@ContextConfiguration
 public class MessageListenerContainerAwsTest {
 
 	private static final int BATCH_MESSAGE_SIZE = 10;
@@ -47,10 +50,7 @@ public class MessageListenerContainerAwsTest {
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
-	private AmazonSQS amazonSqsClient;
-
-	@Autowired
-	private TestStackEnvironment testStackEnvironment;
+	private AmazonSQSAsyncClient amazonSqsClient;
 
 	@Autowired
 	private TaskExecutor taskExecutor;
@@ -58,38 +58,42 @@ public class MessageListenerContainerAwsTest {
 	@Autowired
 	private MessageReceiver messageReceiver;
 
+	@Autowired
+	private StackResourceRegistry stackResourceRegistry;
+
 	@Before
-	public void setUp() throws InterruptedException {
+	public void insertTotalNumberOfMessagesIntoTheLoadTestQueue() throws InterruptedException {
 		CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
 
 		for (int batch = 0; batch < TOTAL_BATCHES; batch++) {
-			this.taskExecutor.execute(new QueueMessageSender(this.testStackEnvironment.getByLogicalId("LoadTestQueue"), this.amazonSqsClient, countDownLatch));
+			this.taskExecutor.execute(new QueueMessageSender(this.stackResourceRegistry.lookupPhysicalResourceId("LoadTestQueue"), this.amazonSqsClient, countDownLatch));
 		}
 
 		countDownLatch.await();
 	}
 
 	@Test
-	public void testSimpleListen() throws Exception {
-		this.messageReceiver.getCountDownLatch().await();
+	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
+		this.messageReceiver.getCountDownLatch().await(1, TimeUnit.MINUTES);
 	}
 
 	static class MessageReceiver {
 
-		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
-
 		@RuntimeUse
 		@MessageMapping("LoadTestQueue")
 		public void onMessage(String message) {
-			Assert.assertNotNull(message);
+			assertNotNull(message);
 			this.getCountDownLatch().countDown();
 		}
 
 		CountDownLatch getCountDownLatch() {
 			return this.countDownLatch;
 		}
-	}
 
+		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
+
+
+	}
 
 	private static class QueueMessageSender implements Runnable {
 
@@ -106,7 +110,7 @@ public class MessageListenerContainerAwsTest {
 		@Override
 		public void run() {
 			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < BATCH_MESSAGE_SIZE; i++) {
 				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(i).toString()));
 			}
 			this.amazonSqs.sendMessageBatch(new SendMessageBatchRequest(this.queueUrl, messages));
