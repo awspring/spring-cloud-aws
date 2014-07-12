@@ -19,7 +19,6 @@ package org.elasticspring.context.config.xml;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -46,36 +45,12 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionHolder amazonS3ClientBeanDefinitionHolder = registerAmazonS3Client(element, parserContext);
+		String amazonS3ClientBeanName = getAmazonS3ClientBeanName(element, parserContext);
 
-		builder.addConstructorArgReference(amazonS3ClientBeanDefinitionHolder.getBeanName());
+		builder.addConstructorArgReference(amazonS3ClientBeanName);
 		builder.addConstructorArgValue(getResourceLoaderBeanDefinition(element, parserContext));
 
 		registerPostProcessor(parserContext);
-	}
-
-	private BeanDefinitionHolder registerAmazonS3Client(Element element, ParserContext parserContext) {
-		return AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(parserContext.getRegistry(), AMAZON_S3_CLIENT_CLASS_NAME,
-						element.getAttribute("region-provider"), element.getAttribute("region"));
-	}
-
-	private BeanDefinition getResourceLoaderBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_CLASS_NAME);
-		builder.addConstructorArgReference(registerAmazonS3Client(element, parserContext).getBeanName());
-
-		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
-		}
-
-		return builder.getBeanDefinition();
-	}
-
-	private void registerPostProcessor(ParserContext parserContext) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_BEAN_POST_PROCESSOR);
-		beanDefinitionBuilder.addConstructorArgReference(RESOURCE_RESOLVER_CLASS_NAME);
-
-		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	@Override
@@ -86,5 +61,33 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 	@Override
 	protected String getBeanClassName(Element element) {
 		return RESOURCE_RESOLVER_CLASS_NAME;
+	}
+
+	private static String getAmazonS3ClientBeanName(Element element, ParserContext parserContext) {
+		if (StringUtils.hasText(element.getAttribute("amazon-s3"))) {
+			return element.getAttribute("amazon-s3");
+		} else {
+			return AmazonWebserviceClientConfigurationUtils.
+					registerAmazonWebserviceClient(parserContext.getRegistry(), AMAZON_S3_CLIENT_CLASS_NAME,
+							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+		}
+	}
+
+	private static BeanDefinition getResourceLoaderBeanDefinition(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_CLASS_NAME);
+		builder.addConstructorArgReference(getAmazonS3ClientBeanName(element, parserContext));
+
+		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
+		}
+
+		return builder.getBeanDefinition();
+	}
+
+	private static void registerPostProcessor(ParserContext parserContext) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_BEAN_POST_PROCESSOR);
+		beanDefinitionBuilder.addConstructorArgReference(RESOURCE_RESOLVER_CLASS_NAME);
+
+		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 }
