@@ -17,7 +17,7 @@
 package org.elasticspring.support;
 
 import com.amazonaws.SDKGlobalConfiguration;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -82,7 +82,7 @@ public class TestStackInstanceIdService {
 		}
 	}
 
-	public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey, AmazonCloudFormationClient amazonCloudFormationClient) {
+	public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
 		return new TestStackInstanceIdService(new AmazonStackOutputBasedInstanceIdSource(stackName, outputKey, amazonCloudFormationClient));
 	}
 
@@ -110,6 +110,15 @@ public class TestStackInstanceIdService {
 
 
 	/**
+	 * Utility interface for abstracting source for instance id.
+	 */
+	private interface InstanceIdSource {
+
+		String getInstanceId();
+
+	}
+
+	/**
 	 * Handler for responding with specified instance id
 	 */
 	private static class InstanceIdHttpHandler implements HttpHandler {
@@ -131,17 +140,6 @@ public class TestStackInstanceIdService {
 		}
 
 	}
-
-
-	/**
-	 * Utility interface for abstracting source for instance id.
-	 */
-	private interface InstanceIdSource {
-
-		String getInstanceId();
-
-	}
-
 
 	/**
 	 * Source for statically configured instance id.
@@ -176,20 +174,12 @@ public class TestStackInstanceIdService {
 
 		private final String stackName;
 		private final String outputKey;
-		private final AmazonCloudFormationClient amazonCloudFormationClient;
+		private final AmazonCloudFormation amazonCloudFormationClient;
 
-		private AmazonStackOutputBasedInstanceIdSource(String stackName, String outputKey, AmazonCloudFormationClient amazonCloudFormationClient) {
+		private AmazonStackOutputBasedInstanceIdSource(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
 			this.stackName = stackName;
 			this.outputKey = outputKey;
 			this.amazonCloudFormationClient = amazonCloudFormationClient;
-		}
-
-		@Override
-		public String getInstanceId() {
-			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
-			Stack stack = getStack(describeStacksResult, this.stackName);
-
-			return getOutputValue(stack, this.outputKey);
 		}
 
 		private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
@@ -200,6 +190,14 @@ public class TestStackInstanceIdService {
 			}
 
 			throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: " + allStackNames(describeStacksResult) + ")");
+		}
+
+		@Override
+		public String getInstanceId() {
+			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
+			Stack stack = getStack(describeStacksResult, this.stackName);
+
+			return getOutputValue(stack, this.outputKey);
 		}
 
 		private static String getOutputValue(Stack stack, String outputKey) {
@@ -221,6 +219,7 @@ public class TestStackInstanceIdService {
 
 			return allStackNames;
 		}
+
 
 	}
 

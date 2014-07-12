@@ -18,7 +18,6 @@ package org.elasticspring.support;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
@@ -55,7 +54,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 	private boolean stackCreatedByThisInstance;
 
 	@Autowired
-	public TestStackEnvironment(AmazonCloudFormationClient amazonCloudFormationClient) {
+	public TestStackEnvironment(AmazonCloudFormation amazonCloudFormationClient) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 	}
 
@@ -108,10 +107,6 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 		return null;
 	}
 
-	private static boolean isInProgress(Stack stack) {
-		return stack.getStackStatus().endsWith("_PROGRESS");
-	}
-
 	private boolean isAvailable(Stack stack) {
 		return stack.getStackStatus().endsWith("_COMPLETE") && !"DELETE_COMPLETE".equals(stack.getStackStatus());
 	}
@@ -129,5 +124,9 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 
 	public boolean isStackCreatedAutomatically() {
 		return this.stackCreatedByThisInstance;
+	}
+
+	private static boolean isInProgress(Stack stack) {
+		return stack.getStackStatus().endsWith("_PROGRESS");
 	}
 }

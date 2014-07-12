@@ -302,10 +302,15 @@
 
 	<xsd:element name="stack-configuration">
 		<xsd:annotation>
-			<xsd:documentation>
+			<xsd:documentation source="org.elasticspring.context.config.xml.StackConfigurationBeanDefinitionParser">
 				Configures an Amazon Cloud Formation stack and enables lookup of physical ids by logical ids for
 				resources defined in the specified stack.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.elasticspring.core.env.stack.StackResourceRegistry" />
+				</tool:annotation>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attributeGroup ref="locationAttributeGroup" />
@@ -317,6 +322,19 @@
 						available. If no stack name is configured, the stack name is automatically detected
 						based on the stack the current Amazon EC2 instance is part of.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-cloud-formation" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to an externally configured AmazonCloudFormation client, to be used to retrieve
+						stack information from the CloudFormation service.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.cloudformation.AmazonCloudFormation" />
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
