@@ -20,6 +20,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Rule;
@@ -44,6 +45,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
@@ -62,14 +64,14 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		//Assert
 		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AnnotationDrivenQueueListenerBeanDefinitionParser.AMAZON_BUFFER_CLIENT_CLASS_NAME));
+				getBeanName(AmazonSqsClientBeanConfigurationUtils.AMAZON_BUFFER_CLIENT_CLASS_NAME));
 		assertNotNull(sqsDefinition);
 
 		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
 		assertNotNull(abstractContainerDefinition);
 
 		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AnnotationDrivenQueueListenerBeanDefinitionParser.AMAZON_BUFFER_CLIENT_CLASS_NAME),
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSqsClientBeanConfigurationUtils.AMAZON_BUFFER_CLIENT_CLASS_NAME),
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 	}
 

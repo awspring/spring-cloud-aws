@@ -120,4 +120,33 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:element name="queue-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a org.elasticspring.messaging.core.QueueMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+			<xsd:attribute name="amazon-sqs" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="default-destination" type="xsd:string" />
+		</xsd:complexType>
+	</xsd:element>
 </xsd:schema>
