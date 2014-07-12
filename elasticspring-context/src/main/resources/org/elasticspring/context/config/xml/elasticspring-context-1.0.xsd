@@ -172,6 +172,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="amazon-ec2" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Reference to a custom Amazon EC2 client bean if user tags should be retrieved
+						from EC2 meta-data. This attribute is ignored if there is no user-tags-map attribute configured
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.ec2.AmazonEC2" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
