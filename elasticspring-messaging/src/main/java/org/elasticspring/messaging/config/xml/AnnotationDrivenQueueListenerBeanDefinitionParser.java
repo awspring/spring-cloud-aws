@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -42,6 +43,10 @@ import org.w3c.dom.Element;
  * @since 1.0
  */
 public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractBeanDefinitionParser {
+
+	private static final boolean JACKSON_2_PRESENT =
+			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
+					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -122,10 +127,20 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessagingTemplate.class);
 			templateBuilder.addConstructorArgReference(sqsClientBeanName);
 			templateBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+
+			if (JACKSON_2_PRESENT) {
+				registerJacksonMessageConverter(templateBuilder);
+			}
+
 			beanDefinitionBuilder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
 
 		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
+	private static void registerJacksonMessageConverter(BeanDefinitionBuilder builder) {
+		BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+		builder.addPropertyValue("messageConverter", jacksonBeanDefinitionBuilder.getBeanDefinition());
 	}
 
 	private static ManagedList<BeanDefinitionHolder> getArgumentResolvers(Element element, ParserContext parserContext) {

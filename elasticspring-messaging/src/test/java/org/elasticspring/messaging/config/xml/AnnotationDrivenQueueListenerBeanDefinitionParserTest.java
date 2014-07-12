@@ -21,6 +21,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Rule;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -73,6 +75,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
 		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSqsClientBeanConfigurationUtils.AMAZON_BUFFER_CLIENT_CLASS_NAME),
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+
+		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
+		RootBeanDefinition sendToHandlerMethodReturnValueHandler = ((RootBeanDefinition) queueMessageHandler.getPropertyValues().getPropertyValue("defaultReturnValueHandler").getValue());
+		RootBeanDefinition queueMessagingTemplateDefinition = (RootBeanDefinition) sendToHandlerMethodReturnValueHandler.getConstructorArgumentValues().getArgumentValue(0, QueueMessagingTemplate.class).getValue();
+		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
+		assertEquals(jacksonConverter, ((AbstractBeanDefinition) queueMessagingTemplateDefinition.getPropertyValues().getPropertyValue("messageConverter").getValue()).getBeanClassName());
 	}
 
 	@Test
