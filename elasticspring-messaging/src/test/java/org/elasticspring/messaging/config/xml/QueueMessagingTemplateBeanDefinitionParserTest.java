@@ -22,6 +22,7 @@ import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -48,6 +49,9 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 				((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition
 				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
+		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
+		assertEquals(jacksonConverter, ((RootBeanDefinition) queueMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("messageConverter").getValue()).getBeanClassName());
 	}
 
 	@Test

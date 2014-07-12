@@ -21,6 +21,7 @@ import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -47,6 +48,9 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 				((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition
 				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
+		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
+		assertEquals(jacksonConverter, ((RootBeanDefinition) notificationMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("messageConverter").getValue()).getBeanClassName());
 	}
 
 	@Test
