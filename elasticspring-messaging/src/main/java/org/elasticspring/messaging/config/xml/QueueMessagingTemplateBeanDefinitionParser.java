@@ -18,6 +18,7 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -36,7 +37,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return super.getBeanClass(element);
+		return QueueMessagingTemplate.class;
 	}
 
 	@Override
