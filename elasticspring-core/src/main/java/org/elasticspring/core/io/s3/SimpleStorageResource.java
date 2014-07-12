@@ -27,13 +27,10 @@ import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.util.BinaryUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
-import org.springframework.util.ClassUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -59,28 +56,21 @@ import java.util.concurrent.Future;
  * @author Alain Sahli
  * @since 1.0
  */
-class SimpleStorageResource extends AbstractResource implements WritableResource, InitializingBean {
-
-	private static final String DEFAULT_THREAD_NAME_PREFIX =
-			ClassUtils.getShortName(SimpleStorageResource.class) + "-";
+class SimpleStorageResource extends AbstractResource implements WritableResource {
 
 	private final String bucketName;
 	private final String objectName;
 	private final AmazonS3 amazonS3;
-
-	/**
-	 * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
-	 * reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
-	 */
-	private TaskExecutor taskExecutor;
+	private final TaskExecutor taskExecutor;
 
 	private ObjectMetadata objectMetadata;
 
-	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName) {
+	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.amazonS3 = amazonS3;
-		afterPropertiesSet();
+		this.taskExecutor = taskExecutor;
+		fetchObjectMetadata();
 	}
 
 	@Override
@@ -142,17 +132,6 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		return new SimpleStorageOutputStream(this.amazonS3, this.taskExecutor, this.bucketName, this.objectName);
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		if (this.taskExecutor == null) {
-			SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor(DEFAULT_THREAD_NAME_PREFIX);
-			simpleAsyncTaskExecutor.setConcurrencyLimit(5);
-			this.taskExecutor = simpleAsyncTaskExecutor;
-		}
-
-		fetchObjectMetadata();
-	}
-
 	private void fetchObjectMetadata() {
 		try {
 			this.objectMetadata = this.amazonS3.getObjectMetadata(this.bucketName, this.objectName);
@@ -169,18 +148,16 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 
 		// The minimum size for a multi part is 5 MB, hence the buffer size of 5 MB
 		private static final int BUFFER_SIZE = 1024 * 1024 * 5;
+		@SuppressWarnings("FieldMayBeFinal")
+		private ByteArrayOutputStream currentOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 		private final Object monitor = new Object();
 		private final AmazonS3 amazonS3;
 		private final TaskExecutor taskExecutor;
 		private final String bucketName;
 		private final String objectName;
 		private final CompletionService<UploadPartResult> completionService;
-
-
 		private int partNumberCounter = 1;
 		private InitiateMultipartUploadResult multiPartUploadResult;
-		@SuppressWarnings("FieldMayBeFinal")
-		private ByteArrayOutputStream currentOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 
 		SimpleStorageOutputStream(AmazonS3 amazonS3, TaskExecutor taskExecutor, String bucketName, String objectName) {
 			this.amazonS3 = amazonS3;

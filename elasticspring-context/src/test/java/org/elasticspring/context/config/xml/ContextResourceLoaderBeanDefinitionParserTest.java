@@ -20,13 +20,16 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.elasticspring.core.io.s3.SimpleStorageResourceLoader;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -77,5 +80,34 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		//Assert
 		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
 		assertEquals(Region.getRegion(Regions.US_WEST_2), webServiceClient.getRegion().toAWSRegion());
+	}
+
+	@Test
+	public void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() throws Exception {
+		//Arrange
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomTaskExecutor.xml", getClass());
+
+		//Act
+		PathMatchingSimpleStorageResourcePatternResolver patterMatchingLoader = applicationContext.getBean(PathMatchingSimpleStorageResourcePatternResolver.class);
+
+		//Assert
+		SimpleStorageResourceLoader resourceLoader = SimpleStorageResourceLoader.class.cast(ReflectionTestUtils.getField(patterMatchingLoader, "simpleStorageResourceLoader"));
+
+		assertSame(applicationContext.getBean("taskExecutor"), ReflectionTestUtils.getField(resourceLoader, "taskExecutor"));
+	}
+
+	@Test
+	public void parseInternal_configurationWithCustomAmazonS3Client_createResourceLoaderWithCustomS3Client() throws Exception {
+		//Arrange
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomS3Client.xml", getClass());
+
+		//Act
+		PathMatchingSimpleStorageResourcePatternResolver patterMatchingLoader = applicationContext.getBean(PathMatchingSimpleStorageResourcePatternResolver.class);
+
+		//Assert
+		assertSame(applicationContext.getBean("customS3Client"), ReflectionTestUtils.getField(patterMatchingLoader, "amazonS3"));
+
+		SimpleStorageResourceLoader resourceLoader = SimpleStorageResourceLoader.class.cast(ReflectionTestUtils.getField(patterMatchingLoader, "simpleStorageResourceLoader"));
+		assertSame(applicationContext.getBean("customS3Client"), ReflectionTestUtils.getField(resourceLoader, "amazonS3"));
 	}
 }
