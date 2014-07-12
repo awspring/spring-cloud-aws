@@ -22,8 +22,8 @@ import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -108,11 +108,10 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 	private static BeanDefinition buildDatabaseInstancePolicy(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DatabaseInstanceStatusRetryPolicy.class);
 
-		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
+		String amazonRdsClientBeanName = getAmazonRdsClientBeanName(element, parserContext.getRegistry());
 
-		beanDefinitionBuilder.addConstructorArgReference(holder.getBeanName());
-		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
+		beanDefinitionBuilder.addConstructorArgReference(amazonRdsClientBeanName);
+		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsDataSourceBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
 
 		String resourceIdResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
 		beanDefinitionBuilder.addPropertyReference("resourceIdResolver", resourceIdResolverBeanName);
@@ -126,5 +125,14 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 			beanDefinitionBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(MAX_NUMBER_OF_RETRIES), element.getAttribute(MAX_NUMBER_OF_RETRIES));
 		}
 		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
+	private static String getAmazonRdsClientBeanName(Element element, BeanDefinitionRegistry beanDefinitionRegistry) {
+		if (StringUtils.hasText(element.getAttribute("amazon-rds"))) {
+			return element.getAttribute("amazon-rds");
+		} else {
+			return AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
+					AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+		}
 	}
 }

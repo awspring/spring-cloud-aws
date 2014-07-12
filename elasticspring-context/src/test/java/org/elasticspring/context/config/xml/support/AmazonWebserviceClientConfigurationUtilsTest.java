@@ -24,7 +24,9 @@ import com.amazonaws.regions.Regions;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.core.region.StaticRegionProvider;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
@@ -36,6 +38,9 @@ import static org.junit.Assert.assertNull;
  * @author Agim Emruli
  */
 public class AmazonWebserviceClientConfigurationUtilsTest {
+
+	@Rule
+	public ExpectedException expectedException = ExpectedException.none();
 
 	@Test
 	public void registerAmazonWebserviceClient_withMinimalConfiguration_returnsDefaultBeanDefinition() throws Exception {
@@ -96,6 +101,25 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		assertEquals("AmazonTestWebservice", beanDefinitionHolder.getBeanName());
 		assertEquals(Region.getRegion(Regions.EU_WEST_1), client.getRegion());
 	}
+
+	@Test
+	public void registerAmazonWebserviceClient_withCustomRegionAndRegionProviderConfigured_reportsError() throws Exception {
+		//Arrange
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("Only region or regionProvider can be configured, but not both");
+
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
+
+		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", "EU_WEST_1");
+
+		//Act
+		AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
+
+		//Assert
+	}
+
 
 
 	private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {

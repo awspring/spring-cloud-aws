@@ -16,7 +16,7 @@
 
 package org.elasticspring.core.env.stack.config;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
@@ -37,10 +37,10 @@ import java.util.Map;
 @RuntimeUse
 class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
 
-	private final AmazonCloudFormationClient amazonCloudFormationClient;
+	private final AmazonCloudFormation amazonCloudFormationClient;
 	private final StackNameProvider stackNameProvider;
 
-	StackResourceRegistryFactoryBean(AmazonCloudFormationClient amazonCloudFormationClient, StackNameProvider stackNameProvider) {
+	StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.stackNameProvider = stackNameProvider;
 	}

@@ -41,8 +41,8 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -60,12 +60,12 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for the {@link org.elasticspring.jdbc.config.xml.AmazonRdsBeanDefinitionParser} bean definition parser
+ * Tests for the {@link AmazonRdsDataSourceBeanDefinitionParser} bean definition parser
  *
  * @author Agim Emruli
  * @since 1.0
  */
-public class AmazonRdsBeanDefinitionParserTest {
+public class AmazonRdsDataSourceBeanDefinitionParserTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
@@ -278,8 +278,7 @@ public class AmazonRdsBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_customRegionProviderAndRegionConfigured_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage("not be used together");
+		this.expectedException.expect(BeanDefinitionStoreException.class);
 
 		//Act
 		//noinspection ResultOfObjectAllocationIgnored
@@ -320,5 +319,47 @@ public class AmazonRdsBeanDefinitionParserTest {
 
 		//Assert
 		assertEquals("value2", dsTags.get("key1"));
+	}
+
+	@Test
+	public void parseInternal_customRdsInstance_createsRdsBeanAndUserTagsWithCustomRdsInstance() throws Exception {
+
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customRdsInstance.xml", getClass()));
+
+		AmazonRDS clientMock = beanFactory.getBean("amazonRds", AmazonRDS.class);
+
+		when(clientMock.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+				new DescribeDBInstancesResult().
+						withDBInstances(new DBInstance().
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("test").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										).withReadReplicaDBInstanceIdentifiers("read1")
+						)
+		);
+
+		AmazonIdentityManagement amazonIdentityManagement = beanFactory.getBean("myIdentityService", AmazonIdentityManagement.class);
+
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(clientMock.listTagsForResource(new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test"))).thenReturn(new ListTagsForResourceResult().withTagList(
+				new Tag().withKey("key1").withValue("value2")
+		));
+
+		//Act
+		Map<?, ?> dsTags = beanFactory.getBean("dsTags", Map.class);
+		DataSource dataSource = beanFactory.getBean(DataSource.class);
+
+		//Assert
+		assertEquals("value2", dsTags.get("key1"));
+		assertTrue(dataSource instanceof DynamicDataSource);
 	}
 }

@@ -16,12 +16,18 @@
 
 package org.elasticspring.context.config.xml;
 
+import com.amazonaws.services.ec2.AmazonEC2Client;
+import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +48,7 @@ public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
 		//Assert
 		BeanFactoryPostProcessor postProcessor = beanFactory.getBean("AmazonEc2InstanceDataPropertySourcePostProcessor", BeanFactoryPostProcessor.class);
 		assertNotNull(postProcessor);
+		assertEquals(1, beanFactory.getBeanDefinitionCount());
 	}
 
 	@Test
@@ -55,7 +62,25 @@ public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
 
 		//Assert
 		assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
-		assertTrue(beanFactory.containsBeanDefinition("AmazonEC2"));
+		assertTrue(beanFactory.containsBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonEC2Client.class.getName())));
 	}
 
+	@Test
+	public void parseInternal_singleElementWithCustomAmazonEc2Client_userTagMapCreatedWithCustomEc2Client() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customEc2Client.xml", getClass()));
+
+		//Assert
+		assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
+
+		ConstructorArgumentValues.ValueHolder valueHolder = beanFactory.getBeanDefinition("myUserTags").
+				getConstructorArgumentValues().getArgumentValue(0, BeanReference.class);
+		BeanReference beanReference = (BeanReference) valueHolder.getValue();
+		assertEquals("amazonEC2Client", beanReference.getBeanName());
+		assertFalse(beanFactory.containsBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonEC2Client.class.getName())));
+	}
 }

@@ -21,12 +21,14 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.net.URI;
 
 import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.util.ReflectionUtils.findField;
 import static org.springframework.util.ReflectionUtils.makeAccessible;
@@ -83,6 +85,20 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		assertEquals("https://email.ap-southeast-2.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
 
 		assertTrue(mailSender instanceof JavaMailSender);
+	}
+
+	@Test
+	public void parse_MailSenderWithCustomSesClient_createMailSenderWithCustomSesClient() throws Exception {
+		//Arrange
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-ses-client.xml", getClass());
+
+		//Act
+		AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
+
+		MailSender mailSender = context.getBean(MailSender.class);
+
+		//Assert
+		assertSame(emailService, ReflectionTestUtils.getField(mailSender, "emailService"));
 	}
 
 	private static String getEndpointUrlFromWebserviceClient(AmazonSimpleEmailServiceClient client) throws Exception {

@@ -16,7 +16,7 @@
 
 package org.elasticspring.core.env.stack.config;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import org.elasticspring.core.env.ec2.InstanceIdProvider;
@@ -30,12 +30,12 @@ import org.springframework.beans.factory.InitializingBean;
  */
 class AutoDetectingStackNameProvider implements StackNameProvider, InitializingBean {
 
-	private final AmazonCloudFormationClient amazonCloudFormationClient;
+	private final AmazonCloudFormation amazonCloudFormationClient;
 	private final InstanceIdProvider instanceIdProvider;
 
 	private String stackName;
 
-	AutoDetectingStackNameProvider(AmazonCloudFormationClient amazonCloudFormationClient, InstanceIdProvider instanceIdProvider) {
+	AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, InstanceIdProvider instanceIdProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.instanceIdProvider = instanceIdProvider;
 	}
@@ -50,7 +50,7 @@ class AutoDetectingStackNameProvider implements StackNameProvider, InitializingB
 		return this.stackName;
 	}
 
-	private static String autoDetectStackName(AmazonCloudFormationClient amazonCloudFormationClient, String instanceId) {
+	private static String autoDetectStackName(AmazonCloudFormation amazonCloudFormationClient, String instanceId) {
 		DescribeStackResourcesResult describeStackResourcesResult = amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId(instanceId));
 
 		if (describeStackResourcesResult.getStackResources().isEmpty()) {
