@@ -21,12 +21,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -44,7 +48,7 @@ public class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
-		Message<?> message = messageConverter.toMessage(sourceMessage, null);
+		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("UTF-8"));
 		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
 		assertEquals(content, result.getContent());
@@ -55,7 +59,7 @@ public class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
-		Message<?> message = messageConverter.toMessage(sourceMessage, null);
+		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("ISO-8859-1"));
 		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
 		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
 		assertEquals(content, result.getContent());
@@ -83,6 +87,11 @@ public class ObjectMessageConverterTest {
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
 		messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(), null);
+	}
+
+	private static MessageHeaders getMessageHeaders(String charsetName) {
+		return new MessageHeaders(Collections.<String, Object>singletonMap(MessageHeaders.CONTENT_TYPE,
+				new MimeType("application", "x-java-serialized-object", Charset.forName(charsetName))));
 	}
 
 	private static class MySerializableClass implements Serializable {

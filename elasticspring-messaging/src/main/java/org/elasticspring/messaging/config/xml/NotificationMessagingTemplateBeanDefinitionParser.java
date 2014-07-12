@@ -71,6 +71,8 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 
 	private void registerJacksonMessageConverter(BeanDefinitionBuilder builder) {
 		BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+		jacksonBeanDefinitionBuilder.addPropertyValue("serializedPayloadClass", String.class);
+		jacksonBeanDefinitionBuilder.addPropertyValue("strictContentTypeMatch", true);
 		builder.addPropertyValue(
 				Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), jacksonBeanDefinitionBuilder.getBeanDefinition());
 	}

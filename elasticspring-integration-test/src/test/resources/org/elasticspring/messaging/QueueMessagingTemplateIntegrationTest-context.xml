@@ -18,10 +18,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	   					   http://www.elasticspring.org/schema/context
-	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
+	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
+	   					   http://www.elasticspring.org/schema/messaging
+	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
@@ -33,31 +36,13 @@
 				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
 	</bean>
 
-	<bean id="stringMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
-		<!-- TODO: Evaluate possibilities to avoid client configuration with default settings (e.g. namespace for the template) -->
-		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
+	<els-messaging:queue-messaging-template id="stringMessage" message-converter="stringMessageConverter" />
+	<bean id="stringMessageConverter" class="org.springframework.messaging.converter.StringMessageConverter">
+		<property name="serializedPayloadClass" value="java.lang.String" />
 	</bean>
 
-	<bean id="objectMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
-		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
-		<property name="messageConverter">
-			<bean class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
-		</property>
-	</bean>
+	<els-messaging:queue-messaging-template id="objectMessage" message-converter="objectMessageConverter" />
+	<bean id="objectMessageConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 
-	<bean id="jsonMessage" class="org.elasticspring.messaging.core.QueueMessagingTemplate">
-		<constructor-arg ref="amazonSqsClient" />
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils).RESOURCE_ID_RESOLVER_BEAN_NAME}" />
-		<property name="messageConverter">
-			<bean class="org.springframework.messaging.converter.MappingJackson2MessageConverter">
-				<!-- Needed for the deserialization part because otherwise the message contains a byte array inside a String -->
-				<property name="serializedPayloadClass" value="java.lang.String" />
-			 </bean>
-		</property>
-	</bean>
+	<els-messaging:queue-messaging-template id="jsonMessage" />
 </beans>
