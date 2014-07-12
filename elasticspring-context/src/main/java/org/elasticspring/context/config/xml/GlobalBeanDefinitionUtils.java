@@ -26,12 +26,14 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  * Provides utility methods for registering globally used bean definitions.
  *
  * @author Christian Stettler
+ * @author Alain Sahli
  */
-public class GlobalBeanDefinitionUtils {
+public final class GlobalBeanDefinitionUtils {
 
 	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
 
 	private GlobalBeanDefinitionUtils() {
+		// Avoid instantiation
 	}
 
 	/**

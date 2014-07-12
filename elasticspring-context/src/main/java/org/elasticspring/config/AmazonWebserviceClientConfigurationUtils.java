@@ -28,8 +28,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  */
-public class AmazonWebserviceClientConfigurationUtils {
+public final class AmazonWebserviceClientConfigurationUtils {
+
+	private AmazonWebserviceClientConfigurationUtils() {
+		// Avoid instantiation
+	}
 
 	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
 

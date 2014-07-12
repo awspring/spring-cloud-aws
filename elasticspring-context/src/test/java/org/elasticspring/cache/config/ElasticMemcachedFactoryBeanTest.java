@@ -37,11 +37,11 @@ public class ElasticMemcachedFactoryBeanTest {
 	@Test
 	public void getObject_availableCluster_returnsConfiguredMemcachedClient() throws Exception {
 		// Arrange
-		int memcacheServerPort = TestMemcacheServer.startServer();
+		int memcachedServerPort = TestMemcacheServer.startServer();
 		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
 
 		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
-				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
+				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcachedServerPort)).withCacheClusterStatus("available")));
 		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "memcached");
 
 		// Act
@@ -57,13 +57,13 @@ public class ElasticMemcachedFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_availableClusterWithLogicalName_returnsConfigurationMemcacheClientWithPhysicalName() throws Exception {
+	public void getObject_availableClusterWithLogicalName_returnsConfigurationMemcachedClientWithPhysicalName() throws Exception {
 		// Arrange
-		int memcacheServerPort = TestMemcacheServer.startServer();
+		int memcachedServerPort = TestMemcacheServer.startServer();
 
 		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
 		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
-				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcacheServerPort)).withCacheClusterStatus("available")));
+				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(memcachedServerPort)).withCacheClusterStatus("available")));
 
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
 		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
@@ -80,4 +80,6 @@ public class ElasticMemcachedFactoryBeanTest {
 
 		memcachedClient.shutdown();
 	}
+
+
 }
