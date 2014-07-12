@@ -78,4 +78,18 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
 		assertEquals(Region.getRegion(Regions.US_WEST_2), webServiceClient.getRegion().toAWSRegion());
 	}
+
+	@Test
+	public void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() throws Exception {
+		//Arrange
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomTaskExecutor.xml", getClass());
+
+		//Act
+		ResourceLoader resourceLoader = applicationContext.getBean(ResourceLoader.class);
+
+
+		//Assert
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+
+	}
 }
