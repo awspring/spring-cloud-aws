@@ -74,7 +74,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			if (CACHE_REF_ELEMENT_NAME.equals(elementName)) {
 				caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
 			} else if (CACHE_CLUSTER_ELEMENT_NAME.equals(elementName)) {
-				String cacheClusterId = getRequiredAttribute("cacheCluster", cacheElement, parserContext);
+				String cacheClusterId = getRequiredAttribute("name", cacheElement, parserContext);
 				caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(parserContext.getRegistry(), cacheElement,
 						cacheClusterId), cacheElement.getAttribute("expiration")));
 			} else if (CACHE_ELEMENT_NAME.equals(elementName)) {

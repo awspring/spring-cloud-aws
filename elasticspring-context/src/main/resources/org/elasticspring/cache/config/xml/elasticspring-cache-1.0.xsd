@@ -87,8 +87,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="abstractCacheConfiguration">
 				<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
-				<xsd:attribute name="cacheCluster" type="xsd:string" use="required">
-					<xsd:annotation>
+				<xsd:attribute name="name" type="xsd:string" use="required">
+				<xsd:annotation>
 						<xsd:documentation>
 							Defines the cache cluster name
 						</xsd:documentation>
