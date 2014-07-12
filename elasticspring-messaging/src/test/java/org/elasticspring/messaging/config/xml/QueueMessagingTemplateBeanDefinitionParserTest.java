@@ -95,18 +95,4 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 				.getPropertyValue("defaultDestination").getValue()).getBeanName());
 	}
 
-	@Test
-	public void parseInternal_withCustomTaskExecutor_shouldBeSetOnAmazonSqsClientBean() throws Exception {
-		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-
-		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
-
-		// Assert
-		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals("myDefaultDestination", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("defaultDestination").getValue()).getBeanName());
-	}
 }

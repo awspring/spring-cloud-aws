@@ -18,11 +18,9 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
-import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
@@ -31,15 +29,18 @@ import org.w3c.dom.Element;
 /**
  * @author Alain Sahli
  */
-public class QueueMessagingTemplateBeanDefinitionParser extends AbstractBeanDefinitionParser {
+public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	public static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
 	public static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
 	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder queueMessagingTemplateBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessagingTemplate.class);
+	protected Class<?> getBeanClass(Element element) {
+		return super.getBeanClass(element);
+	}
 
+	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String amazonSqsClientBeanName;
 		if (StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
 			amazonSqsClientBeanName = element.getAttribute("amazon-sqs");
@@ -49,18 +50,17 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractBeanDefi
 		}
 
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			queueMessagingTemplateBeanDefinitionBuilder.addPropertyReference(
+			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
 		}
 
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
-			queueMessagingTemplateBeanDefinitionBuilder.addPropertyReference(
+			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
-		queueMessagingTemplateBeanDefinitionBuilder.addConstructorArgReference(amazonSqsClientBeanName);
-		queueMessagingTemplateBeanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-
-		return queueMessagingTemplateBeanDefinitionBuilder.getBeanDefinition();
+		builder.addConstructorArgReference(amazonSqsClientBeanName);
+		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
+
 }
