@@ -157,7 +157,37 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attributeGroup ref="messagingTemplateAttributeGroup"/>
+			<xsd:attributeGroup ref="messagingTemplateAttributeGroup" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-argument-resolver">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a HandlerMethodArgumentResolver to be used in Spring MVC to support Notification endpoints in
+				Spring MVC. The configured bean must be registered as an custom argument resolver in Spring MVC
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.web.method.support.HandlerMethodArgumentResolver" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attribute name="amazon-sns" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
