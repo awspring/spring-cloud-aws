@@ -144,7 +144,7 @@ public class CacheBeanDefinitionParserTest {
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available")
+								withCacheClusterStatus("available").withEngine("memcached")
 				)
 		);
 
@@ -191,7 +191,7 @@ public class CacheBeanDefinitionParserTest {
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available")
+								withCacheClusterStatus("available").withEngine("memcached")
 				)
 		);
 
@@ -222,6 +222,36 @@ public class CacheBeanDefinitionParserTest {
 		//Assert
 		assertNotNull(beanDefinition);
 		assertNotNull(beanDefinition.getPropertyValues().get("region"));
+	}
+
+	@Test
+	public void parseInternal_clusterCacheConfigurationWithCustomElastiCacheClient_returnsConfigurationWithCustomClient() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+		//Load xml file
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigWithCustomElastiCacheClient.xml", getClass()));
+
+		AmazonElastiCache amazonElastiCacheMock = beanFactory.getBean("customClient", AmazonElastiCache.class);
+
+		when(amazonElastiCacheMock.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+				new DescribeCacheClustersResult().withCacheClusters(
+						new CacheCluster().withCacheClusterId("memcached").
+								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+								withCacheClusterStatus("available").withEngine("memcached")
+				)
+		);
+
+		//Act
+		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+		Cache cache = cacheManager.getCache("memcached");
+		cache.put("foo", "bar");
+		cache.evict("foo");
+
+		//Assert
+		assertNotNull(cacheManager);
+		assertNotNull(cache);
 	}
 
 	@BeforeClass

@@ -63,6 +63,23 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
 
 	/**
+	 * Constructor that receives an already pre-configured {@link org.springframework.core.io.ResourceLoader} instance that
+	 * is capable of handling S3 resources and other resources (like classpath as well).
+	 *
+	 * @param amazonS3
+	 * 		- an pre-configured Amazon S3 client
+	 * @param simpleStorageResourceLoader
+	 * 		- the resource loader that is called to actually load the resource.
+	 * @see org.elasticspring.core.io.s3.SimpleStorageResourceLoader
+	 */
+	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ResourceLoader simpleStorageResourceLoader) {
+		Assert.notNull(amazonS3);
+		this.amazonS3 = amazonS3;
+		this.simpleStorageResourceLoader = simpleStorageResourceLoader;
+		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver();
+	}
+
+	/**
 	 * Simple constructor which will use the thread context class loader
 	 * at the time of actual resource access.
 	 *
@@ -70,10 +87,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	 * 		An AmazonS3 client - Must not be null.
 	 */
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3) {
-		Assert.notNull(amazonS3);
-		this.amazonS3 = amazonS3;
-		this.simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3);
-		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver();
+		this(amazonS3, new SimpleStorageResourceLoader(amazonS3));
 	}
 
 	/**
@@ -87,9 +101,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	 * 		at the time of actual resource access {@link org.springframework.core.io.DefaultResourceLoader}
 	 */
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ClassLoader classLoader) {
-		this.amazonS3 = amazonS3;
-		this.simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3, classLoader);
-		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver(classLoader);
+		this(amazonS3, new SimpleStorageResourceLoader(amazonS3, classLoader));
 	}
 
 	/**

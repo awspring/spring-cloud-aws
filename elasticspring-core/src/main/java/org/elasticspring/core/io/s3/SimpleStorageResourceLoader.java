@@ -17,9 +17,12 @@
 package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -27,26 +30,42 @@ import org.springframework.util.ClassUtils;
  * @author Alain Sahli
  * @since 1.0
  */
-class SimpleStorageResourceLoader implements ResourceLoader {
-
+public class SimpleStorageResourceLoader implements ResourceLoader, InitializingBean {
 
 	private final AmazonS3 amazonS3;
 	private final ResourceLoader delegate;
 
-	SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
+	/**
+	 * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
+	 * reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
+	 */
+	private TaskExecutor taskExecutor;
+
+	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
 		this.amazonS3 = amazonS3;
 		this.delegate = new DefaultResourceLoader(classLoader);
 	}
 
-	SimpleStorageResourceLoader(AmazonS3 amazonS3) {
+	public SimpleStorageResourceLoader(AmazonS3 amazonS3) {
 		this(amazonS3, ClassUtils.getDefaultClassLoader());
+	}
+
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.taskExecutor == null) {
+			this.taskExecutor = new SyncTaskExecutor();
+		}
 	}
 
 	@Override
 	public Resource getResource(String location) {
 		if (SimpleStorageNameUtils.isSimpleStorageResource(location)) {
 			return new SimpleStorageResource(this.amazonS3, SimpleStorageNameUtils.getBucketNameFromLocation(location),
-					SimpleStorageNameUtils.getObjectNameFromLocation(location));
+					SimpleStorageNameUtils.getObjectNameFromLocation(location), this.taskExecutor);
 		}
 
 		return this.delegate.getResource(location);

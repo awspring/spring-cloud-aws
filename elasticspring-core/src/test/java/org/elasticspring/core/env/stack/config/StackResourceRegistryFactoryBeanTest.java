@@ -16,7 +16,7 @@
 
 package org.elasticspring.core.env.stack.config;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
@@ -80,7 +80,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	private static StackResourceRegistryFactoryBean makeStackResourceRegistryFactoryBean(String stackName, Map<String, String> resourceIdMappings) {
-		AmazonCloudFormationClient amazonCloudFormationClient = makeAmazonCloudFormationClient(resourceIdMappings);
+		AmazonCloudFormation amazonCloudFormationClient = makeAmazonCloudFormationClient(resourceIdMappings);
 		StackNameProvider stackNameProvider = makeStackNameProvider(stackName);
 
 		return new StackResourceRegistryFactoryBean(amazonCloudFormationClient, stackNameProvider);
@@ -93,7 +93,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		return stackNameProvider;
 	}
 
-	private static AmazonCloudFormationClient makeAmazonCloudFormationClient(Map<String, String> resourceIdMappings) {
+	private static AmazonCloudFormation makeAmazonCloudFormationClient(Map<String, String> resourceIdMappings) {
 		List<StackResourceSummary> stackResourceSummaries = new ArrayList<StackResourceSummary>();
 
 		for (Map.Entry<String, String> entry : resourceIdMappings.entrySet()) {
@@ -106,7 +106,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		ListStackResourcesResult listStackResourcesResult = mock(ListStackResourcesResult.class);
 		when(listStackResourcesResult.getStackResourceSummaries()).thenReturn(stackResourceSummaries);
 
-		AmazonCloudFormationClient amazonCloudFormationClient = mock(AmazonCloudFormationClient.class);
+		AmazonCloudFormation amazonCloudFormationClient = mock(AmazonCloudFormation.class);
 		when(amazonCloudFormationClient.listStackResources(any(ListStackResourcesRequest.class))).thenReturn(listStackResourcesResult);
 
 		return amazonCloudFormationClient;

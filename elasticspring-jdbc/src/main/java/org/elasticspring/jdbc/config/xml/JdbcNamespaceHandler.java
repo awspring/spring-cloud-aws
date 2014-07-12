@@ -32,7 +32,7 @@ public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("dataSource", new AmazonRdsBeanDefinitionParser());
+		registerBeanDefinitionParser("dataSource", new AmazonRdsDataSourceBeanDefinitionParser());
 		registerBeanDefinitionParser("retry-interceptor", new AmazonRdsRetryInterceptorBeanDefinitionParser());
 	}
 }

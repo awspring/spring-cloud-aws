@@ -49,11 +49,7 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 		if (StringUtils.hasText(element.getAttribute("user-tags-map"))) {
 			BeanDefinitionBuilder userTagsBuilder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAGS_BEAN_CLASS_NAME);
 
-			BeanDefinitionHolder ec2Client = AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), EC2_CLIENT_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region"));
-
-			userTagsBuilder.addConstructorArgReference(ec2Client.getBeanName());
+			userTagsBuilder.addConstructorArgReference(getAmazonEc2BeanName(element, parserContext));
 
 			if (StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
 				userTagsBuilder.addConstructorArgReference(element.getAttribute("instance-id-provider"));
@@ -65,5 +61,15 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 		}
 
 		return postProcessorBuilder.getBeanDefinition();
+	}
+
+	private static String getAmazonEc2BeanName(Element element, ParserContext parserContext) {
+		if (StringUtils.hasText(element.getAttribute("amazon-ec2"))) {
+			return element.getAttribute("amazon-ec2");
+		} else {
+			return AmazonWebserviceClientConfigurationUtils.
+					registerAmazonWebserviceClient(parserContext.getRegistry(), EC2_CLIENT_CLASS_NAME,
+							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+		}
 	}
 }
