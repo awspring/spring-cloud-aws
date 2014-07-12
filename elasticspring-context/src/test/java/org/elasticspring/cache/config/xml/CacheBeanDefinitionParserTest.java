@@ -144,7 +144,7 @@ public class CacheBeanDefinitionParserTest {
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available")
+								withCacheClusterStatus("available").withEngine("memcached")
 				)
 		);
 
@@ -191,7 +191,7 @@ public class CacheBeanDefinitionParserTest {
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available")
+								withCacheClusterStatus("available").withEngine("memcached")
 				)
 		);
 
