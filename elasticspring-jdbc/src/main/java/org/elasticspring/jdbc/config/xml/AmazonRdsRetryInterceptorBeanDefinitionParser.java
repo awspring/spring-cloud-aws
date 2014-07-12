@@ -16,14 +16,13 @@
 
 package org.elasticspring.jdbc.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -108,7 +107,7 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 	private static BeanDefinition buildDatabaseInstancePolicy(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DatabaseInstanceStatusRetryPolicy.class);
 
-		String amazonRdsClientBeanName = getAmazonRdsClientBeanName(element, parserContext.getRegistry());
+		String amazonRdsClientBeanName = getAmazonRdsClientBeanName(element, parserContext);
 
 		beanDefinitionBuilder.addConstructorArgReference(amazonRdsClientBeanName);
 		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsDataSourceBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
@@ -127,12 +126,12 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private static String getAmazonRdsClientBeanName(Element element, BeanDefinitionRegistry beanDefinitionRegistry) {
+	private static String getAmazonRdsClientBeanName(Element element, ParserContext parserContext) {
 		if (StringUtils.hasText(element.getAttribute("amazon-rds"))) {
 			return element.getAttribute("amazon-rds");
 		} else {
-			return AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
-					AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			return XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
+					AMAZON_RDS_CLIENT_CLASS_NAME).getBeanName();
 		}
 	}
 }

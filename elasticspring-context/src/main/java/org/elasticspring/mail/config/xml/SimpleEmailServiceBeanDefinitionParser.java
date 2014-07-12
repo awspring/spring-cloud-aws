@@ -16,7 +16,7 @@
 
 package org.elasticspring.mail.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -42,10 +42,8 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-				"com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient",
-				element.getAttribute("region-provider"),
-				element.getAttribute("region"));
+		BeanDefinitionHolder holder = XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
+				"com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient");
 
 		builder.addConstructorArgReference(holder.getBeanName());
 	}

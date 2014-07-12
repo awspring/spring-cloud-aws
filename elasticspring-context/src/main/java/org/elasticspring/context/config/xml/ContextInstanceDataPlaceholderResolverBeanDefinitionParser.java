@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -67,9 +67,8 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 		if (StringUtils.hasText(element.getAttribute("amazon-ec2"))) {
 			return element.getAttribute("amazon-ec2");
 		} else {
-			return AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), EC2_CLIENT_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			return XmlWebserviceConfigurationUtils.
+					parseAndRegisterAmazonWebserviceClient(element, parserContext, EC2_CLIENT_CLASS_NAME).getBeanName();
 		}
 	}
 }

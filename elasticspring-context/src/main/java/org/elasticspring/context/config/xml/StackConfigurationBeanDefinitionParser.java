@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.core.env.stack.config.StackResourceUserTagsFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -74,9 +74,8 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		if (StringUtils.hasText(element.getAttribute("amazon-cloud-formation"))) {
 			return element.getAttribute("amazon-cloud-formation");
 		} else {
-			return AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			return XmlWebserviceConfigurationUtils.
+					parseAndRegisterAmazonWebserviceClient(element, parserContext, CLOUD_FORMATION_CLASS_NAME).getBeanName();
 		}
 	}
 

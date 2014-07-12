@@ -16,7 +16,7 @@
 
 package org.elasticspring.jdbc.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
@@ -91,8 +91,8 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		if (StringUtils.hasText(element.getAttribute("amazon-rds"))) {
 			return element.getAttribute("amazon-rds");
 		} else {
-			return AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-					AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			return XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
+					AMAZON_RDS_CLIENT_CLASS_NAME).getBeanName();
 		}
 	}
 
@@ -155,8 +155,8 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		if (StringUtils.hasText(element.getAttribute("amazon-identity-management"))) {
 			identityManagementBeanName = element.getAttribute("amazon-identity-management");
 		} else {
-			identityManagementBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-					IDENTITY_MANAGEMENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			identityManagementBeanName = XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
+					IDENTITY_MANAGEMENT_CLASS_NAME).getBeanName();
 		}
 		return identityManagementBeanName;
 	}

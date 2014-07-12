@@ -16,7 +16,7 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -67,9 +67,8 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 		if (StringUtils.hasText(element.getAttribute("amazon-s3"))) {
 			return element.getAttribute("amazon-s3");
 		} else {
-			return AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), AMAZON_S3_CLIENT_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+			return XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
+					AMAZON_S3_CLIENT_CLASS_NAME).getBeanName();
 		}
 	}
 
