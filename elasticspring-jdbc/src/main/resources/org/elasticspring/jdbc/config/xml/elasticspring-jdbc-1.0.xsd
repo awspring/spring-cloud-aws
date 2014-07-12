@@ -178,9 +178,22 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="amazon-rds" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an externally configured Amazon RDS instance used to retrieve instance status during retry
+					]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.rds.AmazonRDS" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-
 
 	<xsd:complexType name="poolAttributesType">
 		<xsd:attribute name="defaultAutoCommit" type="xsd:boolean" use="optional">
