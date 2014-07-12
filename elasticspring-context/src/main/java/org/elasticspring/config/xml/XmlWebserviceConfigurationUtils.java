@@ -29,7 +29,7 @@ import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.
 public final class XmlWebserviceConfigurationUtils {
 
 	public static final String REGION_ATTRIBUTE_NAME = "region";
-	public static final String REGION_PROVIDER_ATTRIBUTE_NAME = "region-Provider";
+	public static final String REGION_PROVIDER_ATTRIBUTE_NAME = "region-provider";
 
 	private XmlWebserviceConfigurationUtils() {
 		// Avoid instantiation
