@@ -112,7 +112,7 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 				AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region"));
 
 		beanDefinitionBuilder.addConstructorArgReference(holder.getBeanName());
-		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
+		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsDataSourceBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
 
 		String resourceIdResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry());
 		beanDefinitionBuilder.addPropertyReference("resourceIdResolver", resourceIdResolverBeanName);
