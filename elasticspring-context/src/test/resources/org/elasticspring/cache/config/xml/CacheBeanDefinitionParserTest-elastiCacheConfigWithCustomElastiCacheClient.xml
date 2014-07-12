@@ -24,8 +24,10 @@
            	http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
 
 	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache-cluster name="memcached" />
+		<els-cache:cache-cluster name="memcached" amazon-elasti-cache="customClient" />
 	</els-cache:cache-manager>
 
-
+	<bean id="customClient" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.amazonaws.services.elasticache.AmazonElastiCache" />
+	</bean>
 </beans>

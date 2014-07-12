@@ -32,7 +32,7 @@
 
 	<!--suppress UnparsedCustomBeanInspection -->
 	<els-cache:cache-manager>
-		<els-cache:cache-cluster expiration="10000" cacheCluster="CacheCluster" />
+		<els-cache:cache-cluster expiration="10000" name="CacheCluster" />
 	</els-cache:cache-manager>
 
 	<cache:annotation-driven />

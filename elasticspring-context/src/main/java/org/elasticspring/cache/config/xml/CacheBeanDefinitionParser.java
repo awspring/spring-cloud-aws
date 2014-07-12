@@ -20,7 +20,6 @@ import org.elasticspring.cache.SimpleSpringMemcached;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -74,7 +73,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 			if (CACHE_REF_ELEMENT_NAME.equals(elementName)) {
 				caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
 			} else if (CACHE_CLUSTER_ELEMENT_NAME.equals(elementName)) {
-				String cacheClusterId = getRequiredAttribute("cacheCluster", cacheElement, parserContext);
+				String cacheClusterId = getRequiredAttribute("name", cacheElement, parserContext);
 				caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(parserContext.getRegistry(), cacheElement,
 						cacheClusterId), cacheElement.getAttribute("expiration")));
 			} else if (CACHE_ELEMENT_NAME.equals(elementName)) {
@@ -112,12 +111,19 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	}
 
 	private static BeanDefinition createElastiCacheFactoryBean(BeanDefinitionRegistry beanDefinitionRegistry, Element source, String clusterId) {
-		BeanDefinitionHolder elastiCacheClient = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
-				"com.amazonaws.services.elasticache.AmazonElastiCacheClient", source.getAttribute("region-provider"), source.getAttribute("region"));
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN);
-		beanDefinitionBuilder.addConstructorArgReference(elastiCacheClient.getBeanName());
+		beanDefinitionBuilder.addConstructorArgReference(getAmazonElastiCacheBeanName(beanDefinitionRegistry, source));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
 		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry));
 		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
+	private static String getAmazonElastiCacheBeanName(BeanDefinitionRegistry beanDefinitionRegistry, Element source) {
+		if (StringUtils.hasText(source.getAttribute("amazon-elasti-cache"))) {
+			return source.getAttribute("amazon-elasti-cache");
+		} else {
+			return AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
+					"com.amazonaws.services.elasticache.AmazonElastiCacheClient", source.getAttribute("region-provider"), source.getAttribute("region")).getBeanName();
+		}
 	}
 }

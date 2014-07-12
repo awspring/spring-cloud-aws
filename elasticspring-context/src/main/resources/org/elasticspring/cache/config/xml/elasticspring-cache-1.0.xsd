@@ -87,11 +87,24 @@
 		<xsd:complexContent>
 			<xsd:extension base="abstractCacheConfiguration">
 				<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
-				<xsd:attribute name="cacheCluster" type="xsd:string" use="required">
+				<xsd:attribute name="name" type="xsd:string" use="required">
 					<xsd:annotation>
 						<xsd:documentation>
 							Defines the cache cluster name
 						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="amazon-elasti-cache" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Reference to an externally configured com.amazonaws.services.elasticache.AmazonElastiCache
+							instance
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="com.amazonaws.services.elasticache.AmazonElastiCache" />
+							</tool:annotation>
+						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
