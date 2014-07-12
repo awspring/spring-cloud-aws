@@ -16,9 +16,9 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -45,7 +45,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 
 		// Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSqsClientBeanConfigurationUtils.AMAZON_BUFFER_CLIENT_CLASS_NAME),
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName()),
 				((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition
 				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());

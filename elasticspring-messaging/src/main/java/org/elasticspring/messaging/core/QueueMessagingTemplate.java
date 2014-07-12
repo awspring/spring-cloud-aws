@@ -38,7 +38,6 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 		this.amazonSqs = amazonSqs;
 	}
 
-	// TODO is this constructor really useful as one can pass a ResourceIdResolver event if there's no stack
 	public QueueMessagingTemplate(AmazonSQS amazonSqs) {
 		this(amazonSqs, null);
 	}

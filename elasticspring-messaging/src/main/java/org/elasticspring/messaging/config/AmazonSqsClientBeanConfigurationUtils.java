@@ -28,8 +28,7 @@ import org.springframework.util.StringUtils;
  */
 public final class AmazonSqsClientBeanConfigurationUtils {
 
-	// TODO: this constant is only public for testing...
-	public static final String AMAZON_BUFFER_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
+	private static final String AMAZON_BUFFER_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
 	public static final String BUFFERED_SQS_CLIENT_BEAN_NAME =
 			AmazonWebserviceClientConfigurationUtils.getBeanName(AMAZON_BUFFER_CLIENT_CLASS_NAME);
 
