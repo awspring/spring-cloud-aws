@@ -41,7 +41,7 @@ public class TestMemcacheServer {
 
 	public static int startServer() {
 		if (daemon == null) {
-			System.setProperty("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.Log4JLogger");
+			System.setProperty("net.spy.log.LoggerImpl", "org.elasticspring.cache.memcached.compat.log.Log4JLogger");
 
 			// Get next free port for the test server
 			portForInstance = SocketUtils.findAvailableTcpPort();
