@@ -18,13 +18,14 @@ package org.elasticspring.messaging.listener;
 
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.MimeType;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -181,8 +182,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
 			}
 
-			for (Map.Entry<String, MessageAttributeValue> messageAttributeValueEntry : this.message.getMessageAttributes().entrySet()) {
-				messageBuilder.setHeader(messageAttributeValueEntry.getKey(), messageAttributeValueEntry.getValue().getStringValue());
+			if (this.message.getMessageAttributes().containsKey(MessageHeaders.CONTENT_TYPE)) {
+				messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE,
+						MimeType.valueOf(this.message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
 			}
 		}
 

@@ -105,19 +105,20 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	}
 
 	private Message<String> createMessage(com.amazonaws.services.sqs.model.Message message) {
-		MessageBuilder<String> builder = MessageBuilder.withPayload(message.getBody());
-		builder.setHeader(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
-		builder.setHeader(RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME, message.getReceiptHandle());
+		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(message.getBody());
+		messageBuilder.setHeader(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
+		messageBuilder.setHeader(RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME, message.getReceiptHandle());
 
 		for (Map.Entry<String, String> attributeKeyValuePair : message.getAttributes().entrySet()) {
-			builder.setHeader(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
+			messageBuilder.setHeader(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
 		}
 
-		for (Map.Entry<String, MessageAttributeValue> messageAttributeValueEntry : message.getMessageAttributes().entrySet()) {
-			builder.setHeader(messageAttributeValueEntry.getKey(), messageAttributeValueEntry.getValue().getStringValue());
+		if (message.getMessageAttributes().containsKey(MessageHeaders.CONTENT_TYPE)) {
+			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE,
+					MimeType.valueOf(message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
 		}
 
-		return builder.build();
+		return messageBuilder.build();
 	}
 
 	// returns 0 if there is a negative value for the delay seconds

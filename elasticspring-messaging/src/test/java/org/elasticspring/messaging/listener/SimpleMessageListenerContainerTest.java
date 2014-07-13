@@ -400,7 +400,7 @@ public class SimpleMessageListenerContainerTest {
 		container.stop();
 
 		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
-		assertEquals(mimeType.toString(), this.stringMessageCaptor.getValue().getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(mimeType, this.stringMessageCaptor.getValue().getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	private static class TestMessageListener {
