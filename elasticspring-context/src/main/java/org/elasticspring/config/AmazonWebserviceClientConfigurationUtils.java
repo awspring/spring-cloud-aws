@@ -17,9 +17,11 @@
 package org.elasticspring.config;
 
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -43,9 +45,21 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			String customRegionProvider, String customRegion) {
 
 		String beanName = getBeanName(serviceNameClassName);
+
 		if (registry.containsBeanDefinition(beanName)) {
 			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
 		}
+
+		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(serviceNameClassName, customRegionProvider, customRegion);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+
+		return holder;
+	}
+
+	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
+			String serviceNameClassName,
+			String customRegionProvider, String customRegion) {
 
 		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
 			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
@@ -72,9 +86,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		}
 
-		BeanDefinitionHolder beanDefinitionHolder = new BeanDefinitionHolder(builder.getBeanDefinition(), beanName);
-		BeanDefinitionReaderUtils.registerBeanDefinition(beanDefinitionHolder, registry);
-		return beanDefinitionHolder;
+		return builder.getBeanDefinition();
 	}
 
 	public static String getBeanName(String serviceClassName) {

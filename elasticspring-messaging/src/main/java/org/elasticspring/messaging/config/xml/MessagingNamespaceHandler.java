@@ -34,5 +34,6 @@ public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("queue-messaging-template", new QueueMessagingTemplateBeanDefinitionParser());
 		registerBeanDefinitionParser("notification-messaging-template", new NotificationMessagingTemplateBeanDefinitionParser());
 		registerBeanDefinitionParser("notification-argument-resolver", new NotificationArgumentResolverBeanDefinitionParser());
+		registerBeanDefinitionParser("sqs-async-client", new SqsAsyncClientBeanDefinitionParser());
 	}
 }

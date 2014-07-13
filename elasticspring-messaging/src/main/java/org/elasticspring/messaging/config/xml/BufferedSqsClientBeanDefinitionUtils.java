@@ -29,8 +29,8 @@ import org.w3c.dom.Element;
  */
 final class BufferedSqsClientBeanDefinitionUtils {
 
-	private static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
-	private static final String BUFFERED_SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
+	static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
+	static final String BUFFERED_SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
 
 	private BufferedSqsClientBeanDefinitionUtils() {
 		// Avoid instantiation
