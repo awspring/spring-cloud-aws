@@ -39,7 +39,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 	private static final boolean JACKSON_2_PRESENT =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
-	public static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
+	private static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {

@@ -38,7 +38,7 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 	private static final boolean JACKSON_2_PRESENT =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
-	public static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
+	private static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
