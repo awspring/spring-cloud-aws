@@ -19,6 +19,7 @@ package org.elasticspring.messaging.config.xml;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
@@ -33,6 +34,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alain Sahli
@@ -134,4 +136,17 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
+	@Test
+	public void parseInternal_withMultipleMessagingTemplatesDefined_shouldConfigureOnlyOneSqsClientAndDecorateOnlyOnce() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-multiple-templates.xml", getClass()));
+
+		// Assert
+		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		assertTrue(ReflectionTestUtils.getField(amazonSqs, "realSQS") instanceof AmazonSQSAsyncClient);
+	}
 }

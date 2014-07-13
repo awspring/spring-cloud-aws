@@ -16,11 +16,8 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -28,6 +25,8 @@ import org.springframework.core.Conventions;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils.getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName;
 
 /**
  * @author Alain Sahli
@@ -39,7 +38,6 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 	private static final boolean JACKSON_2_PRESENT =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
-	private static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -48,14 +46,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonSqsClientBeanName = XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sqs", SQS_CLIENT_CLASS_NAME);
-		if (!StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
-			BeanDefinition clientBeanDefinition = parserContext.getRegistry().getBeanDefinition(amazonSqsClientBeanName);
-			BeanDefinitionBuilder bufferedClientBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSBufferedAsyncClient.class);
-			bufferedClientBeanDefinitionBuilder.addConstructorArgValue(clientBeanDefinition);
-			parserContext.getRegistry().removeBeanDefinition(amazonSqsClientBeanName);
-			parserContext.getRegistry().registerBeanDefinition(amazonSqsClientBeanName, bufferedClientBeanDefinitionBuilder.getBeanDefinition());
-		}
+		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
 
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
 			builder.addPropertyReference(
