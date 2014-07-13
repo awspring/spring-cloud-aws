@@ -20,7 +20,6 @@ import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.core.env.stack.config.StackResourceUserTagsFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
@@ -51,7 +50,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		registerResourceIdResolverBeanIfNeeded(parserContext.getRegistry());
 
-		String amazonCloudFormationClientBeanName = buildAndRegisterAmazonCloudFormationClientBeanDefinition(parserContext, element);
+		String amazonCloudFormationClientBeanName = buildAndRegisterAmazonCloudFormationClientBeanDefinitionOrReturnConfiguredClient(element, parserContext);
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);
 
 		builder.addConstructorArgReference(amazonCloudFormationClientBeanName);
@@ -71,11 +70,14 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		return STACK_RESOURCE_REGISTRY_FACTORY_BEAN_CLASS_NAME;
 	}
 
-	private String buildAndRegisterAmazonCloudFormationClientBeanDefinition(ParserContext parserContext, Element element) {
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
-						element.getAttribute("region-provider"), element.getAttribute("region"));
-		return beanDefinitionHolder.getBeanName();
+	private String buildAndRegisterAmazonCloudFormationClientBeanDefinitionOrReturnConfiguredClient(Element element, ParserContext parserContext) {
+		if (StringUtils.hasText(element.getAttribute("amazon-cloud-formation"))) {
+			return element.getAttribute("amazon-cloud-formation");
+		} else {
+			return AmazonWebserviceClientConfigurationUtils.
+					registerAmazonWebserviceClient(parserContext.getRegistry(), CLOUD_FORMATION_CLASS_NAME,
+							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
+		}
 	}
 
 	private static AbstractBeanDefinition buildStaticStackNameProviderBeanDefinition(String stackName) {

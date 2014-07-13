@@ -16,18 +16,18 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
 	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
 	<mvc:annotation-driven>
 		<mvc:argument-resolvers>
-			<bean class="org.elasticspring.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver">
-				<constructor-arg ref="amazonSns" />
-			</bean>
-			<bean class="org.elasticspring.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver" />
-			<bean class="org.elasticspring.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver" />
+			<ref bean="notificationResolver" />
 		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
+
+	<els-messaging:notification-argument-resolver id="notificationResolver" amazon-sns="amazonSns" />
 
 	<bean id="amazonSns" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="com.amazonaws.services.sns.AmazonSNS" />

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright 2013-2014 the original author or authors.
   ~
@@ -16,16 +15,17 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:els-cache="http://www.elasticspring.org/schema/cache"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-	   		http://www.elasticspring.org/schema/cache
-           	http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache-cluster name="memcached" />
-	</els-cache:cache-manager>
+	<els-context:context-credentials>
+		<els-context:simple-credentials access-key="first" secret-key="first" />
+	</els-context:context-credentials>
 
+	<els-context:context-resource-loader amazon-s3="customS3Client" />
+
+	<bean id="customS3Client" class="com.amazonaws.services.s3.AmazonS3Client" />
 
 </beans>

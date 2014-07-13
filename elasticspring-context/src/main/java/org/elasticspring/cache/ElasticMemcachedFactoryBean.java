@@ -63,6 +63,11 @@ public class ElasticMemcachedFactoryBean extends AbstractFactoryBean<MemcachedCl
 		if (!"available".equals(cacheCluster.getCacheClusterStatus())) {
 			LOGGER.warn("Cache cluster is not available now. Connection may fail during cache access. Current status is {}", cacheCluster.getCacheClusterStatus());
 		}
+
+		if (!"memcached".equals(cacheCluster.getEngine())) {
+			throw new IllegalStateException("Currently only memcached is supported as the cache cluster engine");
+		}
+
 		Endpoint configurationEndpoint = cacheCluster.getConfigurationEndpoint();
 
 		// We return every time one configuration endpoint. The amazon memcached client will connect to all nodes.

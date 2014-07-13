@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright 2013-2014 the original author or authors.
   ~
@@ -16,16 +15,21 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:els-cache="http://www.elasticspring.org/schema/cache"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-	   		http://www.elasticspring.org/schema/cache
-           	http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd">
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.elasticspring.org/schema/context
+	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
+	   					   http://www.elasticspring.org/schema/messaging
+	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
-	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache-cluster name="memcached" />
-	</els-cache:cache-manager>
+	<els-context:context-credentials>
+		<els-context:instance-profile-credentials />
+	</els-context:context-credentials>
 
+	<els-messaging:notification-argument-resolver id="notificationArgumentResolver" region="EU_WEST_1" />
 
 </beans>

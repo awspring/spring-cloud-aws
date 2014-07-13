@@ -87,6 +87,35 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an external task-executor bean used to upload file with the WritableResource interface.
+									]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-s3" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an externally configured com.amazonaws.services.s3.AmazonS3 instance used to call the
+					Amazon S3 service
+									]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.s3.AmazonS3" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -139,6 +168,18 @@
 						<tool:annotation kind="ref">
 							<tool:expected-type
 									type="org.elasticspring.core.env.ec2.InstanceIdProvider" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-ec2" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Reference to a custom Amazon EC2 client bean if user tags should be retrieved
+						from EC2 meta-data. This attribute is ignored if there is no user-tags-map attribute configured
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.ec2.AmazonEC2" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -261,10 +302,15 @@
 
 	<xsd:element name="stack-configuration">
 		<xsd:annotation>
-			<xsd:documentation>
+			<xsd:documentation source="org.elasticspring.context.config.xml.StackConfigurationBeanDefinitionParser">
 				Configures an Amazon Cloud Formation stack and enables lookup of physical ids by logical ids for
 				resources defined in the specified stack.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.elasticspring.core.env.stack.StackResourceRegistry" />
+				</tool:annotation>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attributeGroup ref="locationAttributeGroup" />
@@ -276,6 +322,19 @@
 						available. If no stack name is configured, the stack name is automatically detected
 						based on the stack the current Amazon EC2 instance is part of.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-cloud-formation" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to an externally configured AmazonCloudFormation client, to be used to retrieve
+						stack information from the CloudFormation service.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.amazonaws.services.cloudformation.AmazonCloudFormation" />
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>

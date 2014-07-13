@@ -32,11 +32,11 @@ import org.springframework.util.StringUtils;
  */
 public final class AmazonWebserviceClientConfigurationUtils {
 
+	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
+
 	private AmazonWebserviceClientConfigurationUtils() {
 		// Avoid instantiation
 	}
-
-	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
 
 	public static BeanDefinitionHolder registerAmazonWebserviceClient(
 			BeanDefinitionRegistry registry, String serviceNameClassName,
@@ -45,6 +45,10 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		String beanName = getBeanName(serviceNameClassName);
 		if (registry.containsBeanDefinition(beanName)) {
 			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
+		}
+
+		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
+			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
 		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(serviceNameClassName);
