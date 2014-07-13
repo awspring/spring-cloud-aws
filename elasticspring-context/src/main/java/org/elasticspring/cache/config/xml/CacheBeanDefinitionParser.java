@@ -17,7 +17,6 @@
 package org.elasticspring.cache.config.xml;
 
 import org.elasticspring.cache.SimpleSpringMemcached;
-import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -32,6 +31,8 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 import java.util.List;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <els-cache:cache-manager />} element.
@@ -49,6 +50,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.elasticspring.cache.ElasticMemcachedFactoryBean";
 	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.elasticspring.cache.StaticMemcachedFactoryBean";
+	private static final String ELASTI_CACHE_SERVICE_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -111,18 +113,10 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static BeanDefinition createElastiCacheFactoryBean(Element source, ParserContext parserContext, String clusterId) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN);
-		beanDefinitionBuilder.addConstructorArgReference(getAmazonElastiCacheBeanName(parserContext, source));
+		beanDefinitionBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(source, parserContext,
+				"amazon-elasti-cache", ELASTI_CACHE_SERVICE_CLASS_NAME));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
 		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private static String getAmazonElastiCacheBeanName(ParserContext parserContext, Element source) {
-		if (StringUtils.hasText(source.getAttribute("amazon-elasti-cache"))) {
-			return source.getAttribute("amazon-elasti-cache");
-		} else {
-			return XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(source, parserContext,
-					"com.amazonaws.services.elasticache.AmazonElastiCacheClient").getBeanName();
-		}
 	}
 }

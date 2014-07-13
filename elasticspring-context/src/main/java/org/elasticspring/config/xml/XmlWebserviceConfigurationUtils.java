@@ -35,7 +35,16 @@ public final class XmlWebserviceConfigurationUtils {
 		// Avoid instantiation
 	}
 
-	public static BeanDefinitionHolder parseAndRegisterAmazonWebserviceClient(Element element, ParserContext parserContext, String serviceClassName) {
+	public static String getCustomClientOrDefaultClientBeanName(Element element, ParserContext parserContext,
+																String customClientAttributeName, String serviceClassName) {
+		if (StringUtils.hasText(element.getAttribute(customClientAttributeName))) {
+			return element.getAttribute(customClientAttributeName);
+		} else {
+			return parseAndRegisterAmazonWebserviceClient(element, parserContext, serviceClassName).getBeanName();
+		}
+	}
+
+	private static BeanDefinitionHolder parseAndRegisterAmazonWebserviceClient(Element element, ParserContext parserContext, String serviceClassName) {
 		Object source = parserContext.extractSource(element);
 		if (StringUtils.hasText(element.getAttribute(REGION_ATTRIBUTE_NAME)) && StringUtils.hasText(element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME))) {
 			parserContext.getReaderContext().error("Either 'region' or 'region-provider' attribute can be configured but not both!", source);

@@ -16,7 +16,6 @@
 
 package org.elasticspring.jdbc.config.xml;
 
-import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
@@ -32,6 +31,8 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the datasource
@@ -56,7 +57,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(element);
 
 		//Constructor (mandatory) args
-		String amazonRdsClientBeanName = getAmazonRdsBeanNameAndRegisterClientIfNecessary(element, parserContext);
+		String amazonRdsClientBeanName = getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-rds", AMAZON_RDS_CLIENT_CLASS_NAME);
 		datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
 		datasourceBuilder.addConstructorArgValue(element.getAttribute(PASSWORD));
@@ -85,15 +86,6 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 			datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
 		}
 		return datasourceBuilder;
-	}
-
-	private String getAmazonRdsBeanNameAndRegisterClientIfNecessary(Element element, ParserContext parserContext) {
-		if (StringUtils.hasText(element.getAttribute("amazon-rds"))) {
-			return element.getAttribute("amazon-rds");
-		} else {
-			return XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
-					AMAZON_RDS_CLIENT_CLASS_NAME).getBeanName();
-		}
 	}
 
 	/**
@@ -127,7 +119,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAG_FACTORY_BEAN_CLASS_NAME);
 		builder.addConstructorArgReference(rdsClientBeanName);
 		builder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
-		builder.addConstructorArgReference(getIdentityManagementBeanName(element, parserContext));
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-identity-management", IDENTITY_MANAGEMENT_CLASS_NAME));
 
 		// Use custom region-provider of data source
 		if (StringUtils.hasText(element.getAttribute("region-provider"))) {
@@ -150,14 +142,4 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		parserContext.getRegistry().registerBeanDefinition(element.getAttribute("user-tags-map"), builder.getBeanDefinition());
 	}
 
-	private static String getIdentityManagementBeanName(Element element, ParserContext parserContext) {
-		String identityManagementBeanName;
-		if (StringUtils.hasText(element.getAttribute("amazon-identity-management"))) {
-			identityManagementBeanName = element.getAttribute("amazon-identity-management");
-		} else {
-			identityManagementBeanName = XmlWebserviceConfigurationUtils.parseAndRegisterAmazonWebserviceClient(element, parserContext,
-					IDENTITY_MANAGEMENT_CLASS_NAME).getBeanName();
-		}
-		return identityManagementBeanName;
-	}
 }
