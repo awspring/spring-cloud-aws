@@ -30,16 +30,18 @@ import org.springframework.validation.ObjectError;
 import org.springframework.validation.Validator;
 
 /**
- * This class delegates everything to the {@link org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver}
- * class except when the parameter type is of type {@code String} as we want also {@code String} to be converted.
+ * This class extends {@link org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver} and
+ * overrides the {@link #resolveArgument(org.springframework.core.MethodParameter, org.springframework.messaging.Message)}
+ * method to ensure that the converter is always called regardless of the target type.
  *
  * @author Alain Sahli
+ * @author Agim Emruli
  */
-public class ConverterEnforcedPayloadArgumentResolver extends PayloadArgumentResolver {
+public class ConversionEnforcingPayloadArgumentResolver extends PayloadArgumentResolver {
 
 	private final MessageConverter converter;
 
-	public ConverterEnforcedPayloadArgumentResolver(MessageConverter converter, Validator validator) {
+	public ConversionEnforcingPayloadArgumentResolver(MessageConverter converter, Validator validator) {
 		super(converter, validator);
 		this.converter = converter;
 	}

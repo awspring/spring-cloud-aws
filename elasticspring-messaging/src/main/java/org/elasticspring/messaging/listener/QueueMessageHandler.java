@@ -72,26 +72,9 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new NotificationSubjectArgumentResolver());
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
-		resolvers.add(new ConverterEnforcedPayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
+		resolvers.add(new ConversionEnforcingPayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
 
 		return resolvers;
-	}
-
-	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
-		List<MessageConverter> payloadArgumentConverters = new ArrayList<MessageConverter>();
-
-		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
-		jacksonMessageConverter.setSerializedPayloadClass(String.class);
-		jacksonMessageConverter.setStrictContentTypeMatch(true);
-		payloadArgumentConverters.add(jacksonMessageConverter);
-
-		ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
-		objectMessageConverter.setStrictContentTypeMatch(true);
-		payloadArgumentConverters.add(objectMessageConverter);
-
-		payloadArgumentConverters.add(new SimpleMessageConverter());
-
-		return new CompositeMessageConverter(payloadArgumentConverters);
 	}
 
 	@Override
@@ -159,6 +142,23 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected void handleNoMatch(Set<MappingInformation> ts, String lookupDestination, Message<?> message) {
 		this.logger.warn("No match found");
+	}
+
+	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
+		List<MessageConverter> payloadArgumentConverters = new ArrayList<MessageConverter>();
+
+		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+		jacksonMessageConverter.setSerializedPayloadClass(String.class);
+		jacksonMessageConverter.setStrictContentTypeMatch(true);
+		payloadArgumentConverters.add(jacksonMessageConverter);
+
+		ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
+		objectMessageConverter.setStrictContentTypeMatch(true);
+		payloadArgumentConverters.add(objectMessageConverter);
+
+		payloadArgumentConverters.add(new SimpleMessageConverter());
+
+		return new CompositeMessageConverter(payloadArgumentConverters);
 	}
 
 	@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
