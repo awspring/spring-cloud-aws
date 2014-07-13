@@ -50,7 +50,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
 		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsync.class.getName()),
 				((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
@@ -70,7 +70,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sqs.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
 		assertEquals("myClient", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues()
 				.getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
@@ -85,7 +85,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-converter.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
 		assertEquals("myCustomConverter", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
 				.getPropertyValue("messageConverter").getValue()).getBeanName());
@@ -100,7 +100,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-with-default-destination.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
 		assertEquals("myDefaultDestination", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
 				.getPropertyValue("defaultDestination").getValue()).getBeanName());
@@ -115,7 +115,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
 
-		// Assert
+		//Assert
 		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
 		assertEquals("https://" + Region.getRegion(Regions.SA_EAST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
@@ -130,7 +130,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
 
-		// Assert
+		//Assert
 		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
 		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
@@ -145,7 +145,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-multiple-templates.xml", getClass()));
 
-		// Assert
+		//Assert
 		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
 		assertTrue(ReflectionTestUtils.getField(amazonSqs, "realSQS") instanceof AmazonSQSAsyncClient);
 	}

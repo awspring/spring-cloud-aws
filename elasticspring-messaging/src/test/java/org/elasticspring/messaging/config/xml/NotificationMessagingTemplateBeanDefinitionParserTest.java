@@ -47,7 +47,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
 		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.sns.AmazonSNSClient")),
 				((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
@@ -67,7 +67,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-amazon-sns.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
 		assertEquals("mySnsClient", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getConstructorArgumentValues()
 				.getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
@@ -82,7 +82,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-converter.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
 		assertEquals("myCustomConverter", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
 				.getPropertyValue("messageConverter").getValue()).getBeanName());
@@ -97,7 +97,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-with-default-destination.xml", getClass()));
 
-		// Assert
+		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
 		assertEquals("myDefaultDestination", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
 				.getPropertyValue("defaultDestination").getValue()).getBeanName());
@@ -112,7 +112,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
 
-		// Assert
+		//Assert
 		AmazonSNSClient amazonSns = registry.getBean(AmazonSNSClient.class);
 		assertEquals("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"), ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
 	}
@@ -126,7 +126,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
 
-		// Assert
+		//Assert
 		AmazonSNSClient amazonSns = registry.getBean(AmazonSNSClient.class);
 		assertEquals("https://" + Region.getRegion(Regions.CN_NORTH_1).getServiceEndpoint("sns"), ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
 	}
