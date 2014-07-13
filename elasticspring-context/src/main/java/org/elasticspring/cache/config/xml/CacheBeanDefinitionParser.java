@@ -50,7 +50,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.elasticspring.cache.ElasticMemcachedFactoryBean";
 	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.elasticspring.cache.StaticMemcachedFactoryBean";
-	private static final String ELASTI_CACHE_SERVICE_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
+	private static final String ELASTI_CACHE_CLIENT_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -114,7 +114,7 @@ class CacheBeanDefinitionParser extends AbstractBeanDefinitionParser {
 	private static BeanDefinition createElastiCacheFactoryBean(Element source, ParserContext parserContext, String clusterId) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN);
 		beanDefinitionBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(source, parserContext,
-				"amazon-elasti-cache", ELASTI_CACHE_SERVICE_CLASS_NAME));
+				"amazon-elasti-cache", ELASTI_CACHE_CLIENT_CLASS_NAME));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
 		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 		return beanDefinitionBuilder.getBeanDefinition();

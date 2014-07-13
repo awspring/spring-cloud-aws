@@ -47,7 +47,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 
 	static final String DB_INSTANCE_IDENTIFIER = "db-instance-identifier";
 	private static final String AMAZON_RDS_CLIENT_CLASS_NAME = "com.amazonaws.services.rds.AmazonRDSClient";
-	private static final String IDENTITY_MANAGEMENT_CLASS_NAME = "com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient";
+	private static final String IDENTITY_MANAGEMENT_CLIENT_CLASS_NAME = "com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient";
 	private static final String USER_TAG_FACTORY_BEAN_CLASS_NAME = "org.elasticspring.jdbc.rds.AmazonRdsDataSourceUserTagsFactoryBean";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
@@ -119,7 +119,8 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAG_FACTORY_BEAN_CLASS_NAME);
 		builder.addConstructorArgReference(rdsClientBeanName);
 		builder.addConstructorArgValue(element.getAttribute(DB_INSTANCE_IDENTIFIER));
-		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-identity-management", IDENTITY_MANAGEMENT_CLASS_NAME));
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-identity-management",
+				IDENTITY_MANAGEMENT_CLIENT_CLASS_NAME));
 
 		// Use custom region-provider of data source
 		if (StringUtils.hasText(element.getAttribute("region-provider"))) {

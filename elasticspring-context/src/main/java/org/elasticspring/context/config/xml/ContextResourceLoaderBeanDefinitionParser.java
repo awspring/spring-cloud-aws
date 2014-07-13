@@ -46,9 +46,7 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonS3ClientBeanName = getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME);
-
-		builder.addConstructorArgReference(amazonS3ClientBeanName);
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 		builder.addConstructorArgValue(getResourceLoaderBeanDefinition(element, parserContext));
 
 		registerPostProcessor(parserContext);

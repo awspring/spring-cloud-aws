@@ -42,7 +42,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	private static final String STATIC_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.StaticStackNameProvider";
 	private static final String AUTO_DETECTING_STACK_NAME_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.stack.config.AutoDetectingStackNameProvider";
 	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "org.elasticspring.core.env.ec2.AmazonEc2InstanceIdProvider";
-	private static final String CLOUD_FORMATION_CLASS_NAME = "com.amazonaws.services.cloudformation.AmazonCloudFormationClient";
+	private static final String CLOUD_FORMATION_CLIENT_CLASS_NAME = "com.amazonaws.services.cloudformation.AmazonCloudFormationClient";
 
 	private static final String STACK_NAME_ATTRIBUTE_NAME = "stack-name";
 
@@ -50,7 +50,7 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		registerResourceIdResolverBeanIfNeeded(parserContext.getRegistry());
 
-		String amazonCloudFormationClientBeanName = getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-cloud-formation", CLOUD_FORMATION_CLASS_NAME);
+		String amazonCloudFormationClientBeanName = getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-cloud-formation", CLOUD_FORMATION_CLIENT_CLASS_NAME);
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);
 
 		builder.addConstructorArgReference(amazonCloudFormationClientBeanName);

@@ -30,6 +30,7 @@ import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCu
 class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final boolean JAVA_MAIL_PRESENT = ClassUtils.isPresent("javax.mail.Session", SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
+	private static final String SIMPLE_EMAIL_CLIENT_CLASS_NAME = "com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient";
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -43,6 +44,6 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
-				"amazon-ses", "com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient"));
+				"amazon-ses", SIMPLE_EMAIL_CLIENT_CLASS_NAME));
 	}
 }
