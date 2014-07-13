@@ -30,7 +30,6 @@
 		<els-context:instance-profile-credentials />
 	</els-context:context-credentials>
 
-	<bean id="myCustomConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
-	<els-messaging:queue-messaging-template id="queueMessagingTemplate" message-converter="myCustomConverter" />
+	<els-messaging:queue-messaging-template id="queueMessagingTemplate" region="SA_EAST_1" />
 
 </beans>

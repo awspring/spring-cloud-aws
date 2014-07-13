@@ -16,16 +16,21 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
 
@@ -45,7 +50,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 
 		// Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSBufferedAsyncClient.class.getName()),
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsync.class.getName()),
 				((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition
 				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
@@ -97,6 +102,36 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
 		assertEquals("myDefaultDestination", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
 				.getPropertyValue("defaultDestination").getValue()).getBeanName());
+	}
+
+	@Test
+	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
+
+		// Assert
+		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
+		assertEquals("https://" + Region.getRegion(Regions.SA_EAST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
+	}
+
+	@Test
+	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
+
+		// Assert
+		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
+		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
 }

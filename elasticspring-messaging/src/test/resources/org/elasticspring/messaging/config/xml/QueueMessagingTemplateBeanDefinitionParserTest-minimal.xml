@@ -26,8 +26,6 @@
 	   					   http://www.elasticspring.org/schema/messaging
 	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
-	<els-messaging:annotation-driven-queue-listener />
-
 	<els-context:context-credentials>
 		<els-context:instance-profile-credentials />
 	</els-context:context-credentials>
