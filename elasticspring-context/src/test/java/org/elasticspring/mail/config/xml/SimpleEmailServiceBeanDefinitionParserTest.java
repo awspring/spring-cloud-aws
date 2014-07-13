@@ -93,7 +93,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-ses-client.xml", getClass());
 
 		//Act
-		AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
+		AmazonSimpleEmailServiceClient emailService = context.getBean("emailServiceClient", AmazonSimpleEmailServiceClient.class);
 
 		MailSender mailSender = context.getBean(MailSender.class);
 
