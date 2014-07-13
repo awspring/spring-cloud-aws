@@ -136,7 +136,6 @@ public class QueueMessagingTemplateTest {
 		assertEquals("My message", message);
 	}
 
-
 	private AmazonSQS createAmazonSqs() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 

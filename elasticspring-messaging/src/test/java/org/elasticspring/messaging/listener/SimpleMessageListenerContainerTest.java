@@ -20,6 +20,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.junit.Before;
@@ -35,7 +36,9 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.MimeType;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -350,6 +353,54 @@ public class SimpleMessageListenerContainerTest {
 
 		// Assert
 		assertFalse(((ThreadPoolTaskExecutor) simpleMessageListenerContainer.getTaskExecutor()).getThreadPoolExecutor().isTerminated());
+	}
+
+	@Test
+	public void messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader() throws Exception {
+		// Arrange
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
+
+			@Override
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+				super.executeMessage(stringMessage);
+				countDownLatch.countDown();
+			}
+		};
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
+		container.setAmazonSqs(sqs);
+
+		QueueMessageHandler messageHandler = spy(new QueueMessageHandler());
+		container.setMessageHandler(messageHandler);
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+				withQueueUrl("http://testQueue.amazonaws.com"));
+
+		messageHandler.setApplicationContext(applicationContext);
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+
+		MimeType mimeType = new MimeType("text", "plain", Charset.forName("UTF-8"));
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
+				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").
+						withAttributes(Collections.singletonMap("SenderId", "ID")).
+						withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").
+								withStringValue(mimeType.toString()))))).
+				thenReturn(new ReceiveMessageResult());
+
+		// Act
+		container.start();
+
+		// Assert
+		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		container.stop();
+
+		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
+		assertEquals(mimeType.toString(), this.stringMessageCaptor.getValue().getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	private static class TestMessageListener {
