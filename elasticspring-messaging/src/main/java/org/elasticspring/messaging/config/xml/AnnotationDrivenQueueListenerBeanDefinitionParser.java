@@ -16,12 +16,14 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.messaging.config.AmazonSqsClientBeanConfigurationUtils;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -48,15 +50,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
 
+	private static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
+
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
 		BeanDefinitionBuilder containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
 
-		String taskExecutor = null;
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			taskExecutor = element.getAttribute("task-executor");
-			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), taskExecutor);
+			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
 		}
 
 		if (StringUtils.hasText(element.getAttribute("max-number-of-messages"))) {
@@ -75,19 +77,19 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("auto-startup"), element.getAttribute("auto-startup"));
 		}
 
-		String sqsClientBeanName;
-		if (StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
-			sqsClientBeanName = element.getAttribute("amazon-sqs");
-		} else {
-			BeanDefinitionHolder definitionHolder = AmazonSqsClientBeanConfigurationUtils.registerAmazonSqsClient(parserContext.getRegistry(),
-					taskExecutor, element.getAttribute("region-provider"), element.getAttribute("region"));
-			sqsClientBeanName = definitionHolder.getBeanName();
+		String amazonSqsClientBeanName = XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sqs", SQS_CLIENT_CLASS_NAME);
+		if (!StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
+			BeanDefinition clientBeanDefinition = parserContext.getRegistry().getBeanDefinition(amazonSqsClientBeanName);
+			BeanDefinitionBuilder bufferedClientBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonSQSBufferedAsyncClient.class);
+			bufferedClientBeanDefinitionBuilder.addConstructorArgValue(clientBeanDefinition);
+			parserContext.getRegistry().removeBeanDefinition(amazonSqsClientBeanName);
+			parserContext.getRegistry().registerBeanDefinition(amazonSqsClientBeanName, bufferedClientBeanDefinitionBuilder.getBeanDefinition());
 		}
 
-		containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("amazon-sqs"), sqsClientBeanName);
+		containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("amazon-sqs"), amazonSqsClientBeanName);
 
 		containerBuilder.addPropertyReference("resourceIdResolver", GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-		containerBuilder.addPropertyReference("messageHandler", getMessageHandlerBeanName(element, parserContext, sqsClientBeanName));
+		containerBuilder.addPropertyReference("messageHandler", getMessageHandlerBeanName(element, parserContext, amazonSqsClientBeanName));
 
 		return containerBuilder.getBeanDefinition();
 	}

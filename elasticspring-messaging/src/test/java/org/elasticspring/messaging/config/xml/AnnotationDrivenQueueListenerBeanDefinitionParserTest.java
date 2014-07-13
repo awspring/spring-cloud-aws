@@ -17,6 +17,8 @@
 package org.elasticspring.messaging.config.xml;
 
 import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
@@ -39,6 +41,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -72,7 +75,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertNotNull(abstractContainerDefinition);
 
 		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSBufferedAsyncClient.class.getName()),
+		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsync.class.getName()),
 				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
 
 		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
@@ -200,40 +203,33 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_customerRegionConfigured_regionConfiguredAndParsedForInternalCreatedSqsClient() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
 
 		//Assert
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName())));
-		assertNotNull(sqsDefinition);
+		AmazonSQSBufferedAsyncClient amazonSQSBufferedAsyncClient = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
-		BeanDefinition regionProviderDefinition = (BeanDefinition) sqsDefinition.getPropertyValues().getPropertyValue("region").getValue();
-
-		assertEquals(Region.class.getName(), regionProviderDefinition.getBeanClassName());
-		assertEquals("EU_WEST_1", regionProviderDefinition.getConstructorArgumentValues().getArgumentValue(0, String.class).getValue());
+		assertEquals("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
 	@Test
 	public void parseInternal_customerRegionProviderConfigured_regionProviderConfiguredAndParsedForInternalCreatedSqsClient() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
 
 		//Assert
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsyncClient.class.getName())));
-		assertNotNull(sqsDefinition);
+		AmazonSQSBufferedAsyncClient amazonSQSBufferedAsyncClient = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
-		BeanDefinition regionProviderDefinition = (BeanDefinition) sqsDefinition.getPropertyValues().getPropertyValue("region").getValue();
-
-		assertEquals("provider", ((RuntimeBeanReference) regionProviderDefinition.getPropertyValues().getPropertyValue("targetObject").getValue()).getBeanName());
+		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
