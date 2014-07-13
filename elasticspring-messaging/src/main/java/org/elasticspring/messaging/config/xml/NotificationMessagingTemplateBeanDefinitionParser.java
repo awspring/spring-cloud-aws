@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,6 +25,8 @@ import org.springframework.core.Conventions;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Alain Sahli
@@ -37,6 +38,7 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 	private static final boolean JACKSON_2_PRESENT =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
+	public static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -45,14 +47,6 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonSnsClientBeanName;
-		if (StringUtils.hasText(element.getAttribute("amazon-sns"))) {
-			amazonSnsClientBeanName = element.getAttribute("amazon-sns");
-		} else {
-			amazonSnsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(
-					parserContext.getRegistry(), "com.amazonaws.services.sns.AmazonSNSClient", null, null).getBeanName();
-		}
-
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
 			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
@@ -65,7 +59,7 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
-		builder.addConstructorArgReference(amazonSnsClientBeanName);
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
 

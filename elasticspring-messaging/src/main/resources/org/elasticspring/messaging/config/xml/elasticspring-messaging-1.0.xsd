@@ -158,6 +158,7 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="messagingTemplateAttributeGroup" />
+			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
