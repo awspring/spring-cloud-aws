@@ -16,6 +16,8 @@
 
 package org.elasticspring.messaging.config.xml;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.messaging.support.SuppressingExecutorServiceAdapter;
@@ -81,6 +83,36 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		assertNotNull(asyncClient);
 		SuppressingExecutorServiceAdapter executor = (SuppressingExecutorServiceAdapter) ReflectionTestUtils.getField(asyncClient, "executorService");
 		assertSame(beanFactory.getBean("myThreadPoolTaskExecutor"), ReflectionTestUtils.getField(executor, "taskExecutor"));
+	}
+
+	@Test
+	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
+
+		// Assert
+		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
+		assertEquals("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
+	}
+
+	@Test
+	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
+
+		// Assert
+		AmazonSQSBufferedAsyncClient amazonSqs = registry.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
+		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
 }
