@@ -19,14 +19,17 @@ package org.elasticspring.messaging.listener;
 import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.support.NotificationMessageArgumentResolver;
 import org.elasticspring.messaging.support.NotificationSubjectArgumentResolver;
+import org.elasticspring.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
-import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -67,7 +70,9 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new HeadersMethodArgumentResolver());
 		resolvers.add(new NotificationMessageArgumentResolver());
 		resolvers.add(new NotificationSubjectArgumentResolver());
-		resolvers.add(new PayloadArgumentResolver(new MappingJackson2MessageConverter(), new NoOpValidator()));
+
+		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
+		resolvers.add(new ConversionEnforcingPayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
 
 		return resolvers;
 	}
@@ -137,6 +142,23 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected void handleNoMatch(Set<MappingInformation> ts, String lookupDestination, Message<?> message) {
 		this.logger.warn("No match found");
+	}
+
+	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
+		List<MessageConverter> payloadArgumentConverters = new ArrayList<MessageConverter>();
+
+		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+		jacksonMessageConverter.setSerializedPayloadClass(String.class);
+		jacksonMessageConverter.setStrictContentTypeMatch(true);
+		payloadArgumentConverters.add(jacksonMessageConverter);
+
+		ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
+		objectMessageConverter.setStrictContentTypeMatch(true);
+		payloadArgumentConverters.add(objectMessageConverter);
+
+		payloadArgumentConverters.add(new SimpleMessageConverter());
+
+		return new CompositeMessageConverter(payloadArgumentConverters);
 	}
 
 	@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")

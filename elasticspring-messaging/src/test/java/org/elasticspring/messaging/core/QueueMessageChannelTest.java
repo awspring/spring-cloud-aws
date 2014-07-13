@@ -18,18 +18,24 @@ package org.elasticspring.messaging.core;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
@@ -43,6 +49,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  * @since 1.0
  */
 public class QueueMessageChannelTest {
@@ -86,13 +93,52 @@ public class QueueMessageChannelTest {
 	}
 
 	@Test
+	public void sendMessage_withMimeTypeAsStringHeader_shouldPassItAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		String mimeTypeAsString = new MimeType("test", "plain", Charset.forName("UTF-8")).toString();
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MessageHeaders.CONTENT_TYPE, mimeTypeAsString).build();
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertTrue(sent);
+		assertEquals(mimeTypeAsString, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue());
+	}
+
+	@Test
+	public void sendMessage_withMimeTypeHeader_shouldPassItAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		MimeType mimeType = new MimeType("test", "plain", Charset.forName("UTF-8"));
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MessageHeaders.CONTENT_TYPE, mimeType).build();
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertTrue(sent);
+		assertEquals(mimeType.toString(), sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue());
+	}
+
+	@Test
 	public void receiveMessage_withoutTimeout_returnsTextMessage() throws Exception {
 		// Arrange
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
@@ -113,7 +159,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.singleton(new com.amazonaws.services.sqs.model.Message().withBody("content"))));
 
@@ -134,7 +181,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 
@@ -154,7 +202,8 @@ public class QueueMessageChannelTest {
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
-				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES))).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(
 						Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
 
@@ -165,5 +214,28 @@ public class QueueMessageChannelTest {
 
 		//Assert
 		assertNull(receivedMessage);
+	}
+
+	@Test
+	public void receiveMessage_withMimeTypeMessageAttribute_shouldCopyToHeaders() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		MimeType mimeType = new MimeType("test", "plain", Charset.forName("UTF-8"));
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+				withWaitTimeSeconds(0).
+				withMaxNumberOfMessages(1).
+				withAttributeNames(QueueMessageChannel.MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
+				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
+				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
+						withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
+								new MessageAttributeValue().withDataType("String").withStringValue(mimeType.toString())))));
+
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Act
+		Message<?> receivedMessage = messageChannel.receive();
+
+		// Assert
+		assertEquals(mimeType, receivedMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 }

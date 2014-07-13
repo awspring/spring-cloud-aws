@@ -120,4 +120,122 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="queue-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a org.elasticspring.messaging.core.QueueMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="amazon-sqs" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="com.amazonaws.services.sqs.AmazonSQSAsync" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="messagingTemplateAttributeGroup" />
+					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a org.elasticspring.messaging.core.NotificationMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="amazon-sns" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="messagingTemplateAttributeGroup" />
+					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-argument-resolver">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a HandlerMethodArgumentResolver to be used in Spring MVC to support Notification endpoints in
+				Spring MVC. The configured bean must be registered as an custom argument resolver in Spring MVC
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.web.method.support.HandlerMethodArgumentResolver" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attribute name="amazon-sns" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="com.amazonaws.services.sns.AmazonSNS" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="sqs-async-client">
+		<xsd:annotation>
+			<xsd:documentation>Configures an SQS client instance, with the configuration
+				parameter specified.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="buffered" type="xsd:boolean" default="true" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="messagingTemplateAttributeGroup">
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.converter.MessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default-destination" type="xsd:string" />
+	</xsd:attributeGroup>
 </xsd:schema>

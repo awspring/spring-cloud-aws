@@ -15,34 +15,21 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.elasticspring.org/schema/context
 	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
 	   					   http://www.elasticspring.org/schema/messaging
 	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
-	<import resource="classpath:Integration-test-context.xml" />
+	<els-context:context-credentials>
+		<els-context:instance-profile-credentials />
+	</els-context:context-credentials>
 
-	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
+	<els-messaging:notification-argument-resolver id="notificationArgumentResolver" />
 
-	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
-
-	<els-messaging:queue-messaging-template id="stringMessage" message-converter="stringMessageConverter" />
-	<bean id="stringMessageConverter" class="org.springframework.messaging.converter.StringMessageConverter">
-		<property name="serializedPayloadClass" value="java.lang.String" />
-	</bean>
-
-	<els-messaging:queue-messaging-template id="objectMessage" message-converter="objectMessageConverter" />
-	<bean id="objectMessageConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
-
-	<els-messaging:queue-messaging-template id="jsonMessage" />
 </beans>

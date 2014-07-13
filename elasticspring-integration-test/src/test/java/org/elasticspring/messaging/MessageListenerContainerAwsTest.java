@@ -17,7 +17,7 @@
 package org.elasticspring.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import org.elasticspring.core.env.stack.StackResourceRegistry;
@@ -50,7 +50,7 @@ public class MessageListenerContainerAwsTest {
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
-	private AmazonSQSAsyncClient amazonSqsClient;
+	private AmazonSQSAsync amazonSqsClient;
 
 	@Autowired
 	private TaskExecutor taskExecutor;

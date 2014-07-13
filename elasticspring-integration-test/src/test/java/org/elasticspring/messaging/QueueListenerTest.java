@@ -82,7 +82,7 @@ public class QueueListenerTest {
 		this.messageListenerWithSendTo.getReceivedMessages().clear();
 
 		// Act
-		this.queueMessagingTemplate.send("SendToQueue", MessageBuilder.withPayload("Please answer!").build());
+		this.queueMessagingTemplate.convertAndSend("SendToQueue", "Please answer!");
 
 		// Assert
 		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
