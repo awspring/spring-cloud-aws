@@ -16,7 +16,6 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -26,6 +25,8 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
@@ -49,7 +50,8 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 		if (StringUtils.hasText(element.getAttribute("user-tags-map"))) {
 			BeanDefinitionBuilder userTagsBuilder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAGS_BEAN_CLASS_NAME);
 
-			userTagsBuilder.addConstructorArgReference(getAmazonEc2BeanName(element, parserContext));
+			userTagsBuilder.addConstructorArgReference(
+					getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-ec2", EC2_CLIENT_CLASS_NAME));
 
 			if (StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
 				userTagsBuilder.addConstructorArgReference(element.getAttribute("instance-id-provider"));
@@ -63,13 +65,4 @@ class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends Abstrac
 		return postProcessorBuilder.getBeanDefinition();
 	}
 
-	private static String getAmazonEc2BeanName(Element element, ParserContext parserContext) {
-		if (StringUtils.hasText(element.getAttribute("amazon-ec2"))) {
-			return element.getAttribute("amazon-ec2");
-		} else {
-			return AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), EC2_CLIENT_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
-		}
-	}
 }

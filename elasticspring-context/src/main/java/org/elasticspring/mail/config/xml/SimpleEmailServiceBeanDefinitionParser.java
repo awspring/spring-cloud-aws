@@ -16,13 +16,13 @@
 
 package org.elasticspring.mail.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.ClassUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final boolean JAVA_MAIL_PRESENT = ClassUtils.isPresent("javax.mail.Session", SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
+	private static final String SIMPLE_EMAIL_CLIENT_CLASS_NAME = "com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient";
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -42,11 +43,7 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionHolder holder = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-				"com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient",
-				element.getAttribute("region-provider"),
-				element.getAttribute("region"));
-
-		builder.addConstructorArgReference(holder.getBeanName());
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
+				"amazon-ses", SIMPLE_EMAIL_CLIENT_CLASS_NAME));
 	}
 }

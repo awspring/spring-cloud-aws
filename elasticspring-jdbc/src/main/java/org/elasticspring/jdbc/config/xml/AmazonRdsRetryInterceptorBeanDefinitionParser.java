@@ -16,20 +16,20 @@
 
 package org.elasticspring.jdbc.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.elasticspring.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.elasticspring.jdbc.retry.SqlRetryPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation for the
@@ -108,7 +108,7 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 	private static BeanDefinition buildDatabaseInstancePolicy(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DatabaseInstanceStatusRetryPolicy.class);
 
-		String amazonRdsClientBeanName = getAmazonRdsClientBeanName(element, parserContext.getRegistry());
+		String amazonRdsClientBeanName = getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-rds", AMAZON_RDS_CLIENT_CLASS_NAME);
 
 		beanDefinitionBuilder.addConstructorArgReference(amazonRdsClientBeanName);
 		beanDefinitionBuilder.addConstructorArgValue(element.getAttribute(AmazonRdsDataSourceBeanDefinitionParser.DB_INSTANCE_IDENTIFIER));
@@ -125,14 +125,5 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 			beanDefinitionBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(MAX_NUMBER_OF_RETRIES), element.getAttribute(MAX_NUMBER_OF_RETRIES));
 		}
 		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private static String getAmazonRdsClientBeanName(Element element, BeanDefinitionRegistry beanDefinitionRegistry) {
-		if (StringUtils.hasText(element.getAttribute("amazon-rds"))) {
-			return element.getAttribute("amazon-rds");
-		} else {
-			return AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(beanDefinitionRegistry,
-					AMAZON_RDS_CLIENT_CLASS_NAME, element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
-		}
 	}
 }

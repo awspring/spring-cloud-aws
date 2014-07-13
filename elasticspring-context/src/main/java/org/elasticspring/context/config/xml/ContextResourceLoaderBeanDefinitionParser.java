@@ -16,7 +16,6 @@
 
 package org.elasticspring.context.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -27,6 +26,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <els-context:context-resource-loader />} element.
@@ -45,9 +46,7 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonS3ClientBeanName = getAmazonS3ClientBeanName(element, parserContext);
-
-		builder.addConstructorArgReference(amazonS3ClientBeanName);
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 		builder.addConstructorArgValue(getResourceLoaderBeanDefinition(element, parserContext));
 
 		registerPostProcessor(parserContext);
@@ -63,19 +62,9 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 		return RESOURCE_RESOLVER_CLASS_NAME;
 	}
 
-	private static String getAmazonS3ClientBeanName(Element element, ParserContext parserContext) {
-		if (StringUtils.hasText(element.getAttribute("amazon-s3"))) {
-			return element.getAttribute("amazon-s3");
-		} else {
-			return AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(parserContext.getRegistry(), AMAZON_S3_CLIENT_CLASS_NAME,
-							element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
-		}
-	}
-
 	private static BeanDefinition getResourceLoaderBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_CLASS_NAME);
-		builder.addConstructorArgReference(getAmazonS3ClientBeanName(element, parserContext));
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
 			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
