@@ -16,8 +16,8 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.elasticspring.messaging.support.SuppressingExecutorServiceAdapter;
+import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
+import org.elasticspring.core.task.ShutdownSuppressingExecutorServiceAdapter;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
@@ -32,11 +32,10 @@ public class SqsAsyncClientBeanDefinitionParser extends AbstractBeanDefinitionPa
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		AbstractBeanDefinition sqsAsyncClientDefinition = AmazonWebserviceClientConfigurationUtils.getAmazonWebserviceClientBeanDefinition(
-				BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME,
-				element.getAttribute("region-provider"), element.getAttribute("region"));
+		AbstractBeanDefinition sqsAsyncClientDefinition = XmlWebserviceConfigurationUtils.parseCustomClientElement(
+				element, parserContext, BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME);
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SuppressingExecutorServiceAdapter.class);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ShutdownSuppressingExecutorServiceAdapter.class);
 			builder.addConstructorArgReference(element.getAttribute("task-executor"));
 			sqsAsyncClientDefinition.getConstructorArgumentValues().addIndexedArgumentValue(1, builder.getBeanDefinition());
 		}

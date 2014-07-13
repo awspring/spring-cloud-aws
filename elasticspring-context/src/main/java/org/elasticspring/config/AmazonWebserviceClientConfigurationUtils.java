@@ -41,7 +41,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	}
 
 	public static BeanDefinitionHolder registerAmazonWebserviceClient(
-			BeanDefinitionRegistry registry, String serviceNameClassName,
+			Object source, BeanDefinitionRegistry registry, String serviceNameClassName,
 			String customRegionProvider, String customRegion) {
 
 		String beanName = getBeanName(serviceNameClassName);
@@ -50,7 +50,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
 		}
 
-		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(serviceNameClassName, customRegionProvider, customRegion);
+		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName, customRegionProvider, customRegion);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
@@ -58,7 +58,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	}
 
 	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
-			String serviceNameClassName,
+			Object source, String serviceNameClassName,
 			String customRegionProvider, String customRegion) {
 
 		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
@@ -72,6 +72,9 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 		//Configure destroy method
 		builder.setDestroyMethodName("shutdown");
+
+		//Configure source of the bean definition
+		builder.getRawBeanDefinition().setSource(source);
 
 		//Configure region properties (either custom region provider or custom region)
 		if (StringUtils.hasText(customRegionProvider)) {

@@ -17,10 +17,12 @@
 package org.elasticspring.config.xml;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getAmazonWebserviceClientBeanDefinition;
 import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient;
 
 /**
@@ -40,17 +42,28 @@ public final class XmlWebserviceConfigurationUtils {
 		if (StringUtils.hasText(element.getAttribute(customClientAttributeName))) {
 			return element.getAttribute(customClientAttributeName);
 		} else {
-			return parseAndRegisterAmazonWebserviceClient(element, parserContext, serviceClassName).getBeanName();
+			return parseAndRegisterDefaultAmazonWebserviceClient(element, parserContext, serviceClassName).getBeanName();
 		}
 	}
 
-	private static BeanDefinitionHolder parseAndRegisterAmazonWebserviceClient(Element element, ParserContext parserContext, String serviceClassName) {
+	public static AbstractBeanDefinition parseCustomClientElement(Element element, ParserContext parserContext, String serviceClassName) {
 		Object source = parserContext.extractSource(element);
 		if (StringUtils.hasText(element.getAttribute(REGION_ATTRIBUTE_NAME)) && StringUtils.hasText(element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME))) {
 			parserContext.getReaderContext().error("Either 'region' or 'region-provider' attribute can be configured but not both!", source);
 		}
 
-		return registerAmazonWebserviceClient(parserContext.getRegistry(),
+		return getAmazonWebserviceClientBeanDefinition(source, serviceClassName,
+				element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME),
+				element.getAttribute(REGION_ATTRIBUTE_NAME));
+	}
+
+	private static BeanDefinitionHolder parseAndRegisterDefaultAmazonWebserviceClient(Element element, ParserContext parserContext, String serviceClassName) {
+		Object source = parserContext.extractSource(element);
+		if (StringUtils.hasText(element.getAttribute(REGION_ATTRIBUTE_NAME)) && StringUtils.hasText(element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME))) {
+			parserContext.getReaderContext().error("Either 'region' or 'region-provider' attribute can be configured but not both!", source);
+		}
+
+		return registerAmazonWebserviceClient(source, parserContext.getRegistry(),
 				serviceClassName, element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME), element.getAttribute(REGION_ATTRIBUTE_NAME));
 	}
 }

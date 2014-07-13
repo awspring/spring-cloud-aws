@@ -50,7 +50,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), null, null);
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, null);
 
 		//Act
 		beanFactory.preInstantiateSingletons();
@@ -70,7 +70,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		beanFactory.registerSingleton("myRegionProvider", new StaticRegionProvider(Regions.AP_SOUTHEAST_2));
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), "myRegionProvider", null);
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "myRegionProvider", null);
 
 		//Act
 		beanFactory.preInstantiateSingletons();
@@ -90,7 +90,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), null, "EU_WEST_1");
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, "EU_WEST_1");
 
 		//Act
 		beanFactory.preInstantiateSingletons();
@@ -112,14 +112,13 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		beanFactory.registerSingleton(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", "EU_WEST_1");
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", "EU_WEST_1");
 
 		//Act
-		AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
+		beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
 		//Assert
 	}
-
 
 
 	private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {

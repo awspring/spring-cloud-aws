@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.messaging.support;
+package org.elasticspring.core.task;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
@@ -23,21 +23,27 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Suppressing {@link java.util.concurrent.ExecutorService} implementation that ignores {@link #shutdownNow()} calls
+ * which are made by the Amazon Webservice clients. If these clients receive an externally managed
+ * {@link org.springframework.core.task.TaskExecutor} this implementation suppresses the calls to avoid exception during
+ * application shutdown.
+ *
  * @author Agim Emruli
  * @since 1.0
  */
-public class SuppressingExecutorServiceAdapter extends ExecutorServiceAdapter {
+public class ShutdownSuppressingExecutorServiceAdapter extends ExecutorServiceAdapter {
 
 	/**
 	 * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
 	 *
 	 * @param taskExecutor
-	 * 		the target executor to delegate to
+	 * 		the target executor to delegate to, typically an externally managed one
 	 */
-	public SuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
+	public ShutdownSuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
 		super(taskExecutor);
 	}
 
+	@SuppressWarnings("NullableProblems")
 	@Override
 	public List<Runnable> shutdownNow() {
 		return Collections.emptyList();

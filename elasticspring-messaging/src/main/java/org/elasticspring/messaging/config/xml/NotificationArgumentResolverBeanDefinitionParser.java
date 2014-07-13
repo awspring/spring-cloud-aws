@@ -16,28 +16,17 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
  */
 class NotificationArgumentResolverBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
-
-	private String getAmazonSnsClientBeanName(Element element, ParserContext parserContext) {
-		String snsClientBeanName;
-		if (StringUtils.hasText(element.getAttribute("amazon-sns"))) {
-			snsClientBeanName = element.getAttribute("amazon-sns");
-		} else {
-			snsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(parserContext.getRegistry(),
-					"com.amazonaws.services.sns.AmazonSNSClient", element.getAttribute("region-provider"), element.getAttribute("region")).getBeanName();
-		}
-		return snsClientBeanName;
-	}
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -46,6 +35,7 @@ class NotificationArgumentResolverBeanDefinitionParser extends AbstractSingleBea
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgReference(getAmazonSnsClientBeanName(element, parserContext));
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
+				"amazon-sns", "com.amazonaws.services.sns.AmazonSNSClient"));
 	}
 }

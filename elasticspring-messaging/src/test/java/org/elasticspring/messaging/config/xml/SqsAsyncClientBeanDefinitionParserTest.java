@@ -20,7 +20,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.elasticspring.messaging.support.SuppressingExecutorServiceAdapter;
+import org.elasticspring.core.task.ShutdownSuppressingExecutorServiceAdapter;
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -43,14 +43,14 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
 		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml",getClass()));
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
 		//Assert
 		AmazonSQSBufferedAsyncClient sqsBufferedAsyncClient = beanFactory.getBean("customClient", AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient asyncClient = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(sqsBufferedAsyncClient, "realSQS");
 		assertNotNull(asyncClient);
 		ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) ReflectionTestUtils.getField(asyncClient, "executorService");
-		assertEquals(50,threadPoolExecutor.getCorePoolSize());
+		assertEquals(50, threadPoolExecutor.getCorePoolSize());
 	}
 
 	@Test
@@ -60,7 +60,7 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
 		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-not-buffered.xml",getClass()));
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-not-buffered.xml", getClass()));
 
 		//Assert
 		AmazonSQSAsyncClient asyncClient = beanFactory.getBean("customClient", AmazonSQSAsyncClient.class);
@@ -75,13 +75,13 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
 		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml",getClass()));
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-task-executor.xml", getClass()));
 
 		//Assert
 		AmazonSQSBufferedAsyncClient sqsBufferedAsyncClient = beanFactory.getBean("customClient", AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient asyncClient = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(sqsBufferedAsyncClient, "realSQS");
 		assertNotNull(asyncClient);
-		SuppressingExecutorServiceAdapter executor = (SuppressingExecutorServiceAdapter) ReflectionTestUtils.getField(asyncClient, "executorService");
+		ShutdownSuppressingExecutorServiceAdapter executor = (ShutdownSuppressingExecutorServiceAdapter) ReflectionTestUtils.getField(asyncClient, "executorService");
 		assertSame(beanFactory.getBean("myThreadPoolTaskExecutor"), ReflectionTestUtils.getField(executor, "taskExecutor"));
 	}
 
