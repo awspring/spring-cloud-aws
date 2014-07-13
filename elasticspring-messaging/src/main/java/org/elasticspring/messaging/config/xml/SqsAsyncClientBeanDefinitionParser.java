@@ -16,7 +16,6 @@
 
 package org.elasticspring.messaging.config.xml;
 
-import org.elasticspring.config.xml.XmlWebserviceConfigurationUtils;
 import org.elasticspring.core.task.ShutdownSuppressingExecutorServiceAdapter;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -25,14 +24,17 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.parseCustomClientElement;
+
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  */
 public class SqsAsyncClientBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		AbstractBeanDefinition sqsAsyncClientDefinition = XmlWebserviceConfigurationUtils.parseCustomClientElement(
+		AbstractBeanDefinition sqsAsyncClientDefinition = parseCustomClientElement(
 				element, parserContext, BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME);
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ShutdownSuppressingExecutorServiceAdapter.class);
