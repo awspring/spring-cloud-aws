@@ -26,6 +26,9 @@ import org.elasticspring.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
  * @author Agim Emruli
  * @since 1.0
@@ -51,8 +54,7 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
 	@Override
 	public String resolveDestination(String name) throws DestinationResolutionException {
-		//TODO: Consider util
-		if (name.startsWith("http")) {
+		if (isValidQueueUrl(name)) {
 			return name;
 		}
 
@@ -75,6 +77,15 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 			} catch (QueueDoesNotExistException e) {
 				throw new DestinationResolutionException(e.getMessage(), e);
 			}
+		}
+	}
+
+	private static boolean isValidQueueUrl(String name) {
+		try {
+			URI candidate = new URI(name);
+			return ("http".equals(candidate.getScheme()) || "https".equals(candidate.getScheme()));
+		} catch (URISyntaxException e) {
+			return false;
 		}
 	}
 }
