@@ -35,6 +35,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
@@ -230,6 +231,18 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
 		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
+	}
+
+	@Test
+	public void contextRegion_clientWithoutRegion_shouldHaveTheRegionGloballyDefined() throws Exception {
+		//Arrange & Act
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context-region.xml", getClass());
+
+		//Assert
+		AmazonSQSBufferedAsyncClient amazonSQSBufferedAsyncClient = applicationContext.getBean(AmazonSQSBufferedAsyncClient.class);
+		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSQSBufferedAsyncClient, "realSQS");
+
+		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
