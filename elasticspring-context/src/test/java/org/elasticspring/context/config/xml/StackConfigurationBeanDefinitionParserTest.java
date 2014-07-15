@@ -16,6 +16,8 @@
 
 package org.elasticspring.context.config.xml;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
@@ -29,8 +31,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.times;
@@ -39,6 +43,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  */
 public class StackConfigurationBeanDefinitionParserTest {
 
@@ -66,5 +71,33 @@ public class StackConfigurationBeanDefinitionParserTest {
 		verify(amazonCloudFormationMock, times(1)).listStackResources(new ListStackResourcesRequest().withStackName("test"));
 		beanFactory.getBean("customStackTags");
 		verify(amazonCloudFormationMock, times(1)).describeStacks(new DescribeStacksRequest().withStackName("test"));
+	}
+
+	@Test
+	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region.xml", getClass()));
+
+		// Assert
+		AmazonCloudFormationClient amazonCloudFormation = registry.getBean(AmazonCloudFormationClient.class);
+		assertEquals("https://" + Region.getRegion(Regions.SA_EAST_1).getServiceEndpoint("cloudformation"), ReflectionTestUtils.getField(amazonCloudFormation, "endpoint").toString());
+	}
+
+	@Test
+	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-region-provider.xml", getClass()));
+
+		// Assert
+		AmazonCloudFormationClient amazonCloudFormation = registry.getBean(AmazonCloudFormationClient.class);
+		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2).getServiceEndpoint("cloudformation"), ReflectionTestUtils.getField(amazonCloudFormation, "endpoint").toString());
 	}
 }
