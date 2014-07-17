@@ -31,7 +31,12 @@ import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -58,6 +63,14 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 		Object targetDestinationResolver = ReflectionTestUtils.getField(cachingDestinationResolverProxy, "targetDestinationResolver");
 		assertEquals(registry.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"));
 		assertTrue(CompositeMessageConverter.class.isInstance(queueMessagingTemplate.getMessageConverter()));
+
+		assertTrue(CompositeMessageConverter.class.isInstance(queueMessagingTemplate.getMessageConverter()));
+		@SuppressWarnings("unchecked")
+		List<MessageConverter> messageConverters = (List<MessageConverter>) ReflectionTestUtils.getField(queueMessagingTemplate.getMessageConverter(), "converters");
+		assertTrue(StringMessageConverter.class.isInstance(messageConverters.get(0)));
+		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters.get(0);
+		assertEquals(String.class, ReflectionTestUtils.getField(stringMessageConverter, "serializedPayloadClass"));
+		assertTrue(MappingJackson2MessageConverter.class.isInstance(messageConverters.get(1)));
 	}
 
 	@Test

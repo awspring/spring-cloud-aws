@@ -58,6 +58,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		assertEquals(registry.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"));
 
 		assertTrue(StringMessageConverter.class.isInstance(notificationMessagingTemplate.getMessageConverter()));
+		assertEquals(String.class, ReflectionTestUtils.getField(notificationMessagingTemplate.getMessageConverter(), "serializedPayloadClass"));
 	}
 
 	@Test

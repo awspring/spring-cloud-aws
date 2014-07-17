@@ -61,6 +61,7 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 
 	private void registerStringMessageConverter(BeanDefinitionBuilder builder) {
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
+		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
 		builder.addPropertyValue(Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), stringMessageConverterBuilder.getBeanDefinition());
 	}
 

@@ -55,7 +55,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
 			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-		} else if (JACKSON_2_PRESENT) {
+		} else {
 			registerCompositeMessageConverter(builder);
 		}
 
@@ -72,11 +72,14 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 		List<BeanDefinition> messageConverters = new ManagedList<BeanDefinition>(2);
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
+		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
 		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
 
-		BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-		jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
+		if (JACKSON_2_PRESENT) {
+			BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+			jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
+			messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
+		}
 
 		BeanDefinitionBuilder compositeMessageConverterBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.CompositeMessageConverter");
 		compositeMessageConverterBeanDefinitionBuilder.addConstructorArgValue(messageConverters);

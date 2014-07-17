@@ -20,13 +20,11 @@ import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
-import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -62,8 +60,7 @@ public class NotificationMessagingTemplateIntegrationTest {
 		String message = "Message content for SQS";
 
 		// Act
-		this.notificationMessagingTemplate.send("SqsReceivingSnsTopic", MessageBuilder.withPayload(message)
-				.setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "A subject").build());
+		this.notificationMessagingTemplate.convertAndSendWithSubject("SqsReceivingSnsTopic", message, "A subject");
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
