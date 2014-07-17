@@ -30,6 +30,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -72,7 +73,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new NotificationSubjectArgumentResolver());
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
-		resolvers.add(new ConversionEnforcingPayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
+		resolvers.add(new PayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
 
 		return resolvers;
 	}
@@ -197,6 +198,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	 * @author Alain Sahli
 	 * @author Agim Emruli
 	 */
+	@SuppressWarnings("ClassNamingConvention") // Only used internally and prefixed with the parent class
 	public static final class Headers {
 
 		public static final String LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY = "LogicalResourceId";
