@@ -49,4 +49,36 @@ public class NotificationMessagingTemplateTest {
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
 				"Message content", null));
 	}
+
+	@Test
+	public void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+
+		// Act
+		notificationMessagingTemplate.convertAndSendWithSubject(physicalTopicName, "My message", "My subject");
+
+		// Assert
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+	}
+
+	@Test
+	public void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
+
+		// Act
+		notificationMessagingTemplate.convertAndSendWithSubject("My message", "My subject");
+
+		// Assert
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+	}
+
 }

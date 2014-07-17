@@ -21,6 +21,8 @@ import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
 
+import java.util.Collections;
+
 /**
  * @author Alain Sahli
  * @since 1.0
@@ -41,5 +43,13 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 	@Override
 	protected TopicMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new TopicMessageChannel(this.amazonSns, physicalResourceIdentifier);
+	}
+
+	public <T> void convertAndSendWithSubject(String destinationName, T payload, String subject) {
+		this.convertAndSend(destinationName, payload, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+	}
+
+	public <T> void convertAndSendWithSubject(T payload, String subject) {
+		this.convertAndSend(getRequiredDefaultDestination(), payload, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 }
