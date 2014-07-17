@@ -56,7 +56,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
 		} else if (JACKSON_2_PRESENT) {
-			registerJacksonMessageConverter(builder);
+			registerCompositeMessageConverter(builder);
 		}
 
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
@@ -68,7 +68,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
 
-	private void registerJacksonMessageConverter(BeanDefinitionBuilder builder) {
+	private void registerCompositeMessageConverter(BeanDefinitionBuilder builder) {
 		List<BeanDefinition> messageConverters = new ManagedList<BeanDefinition>(2);
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
