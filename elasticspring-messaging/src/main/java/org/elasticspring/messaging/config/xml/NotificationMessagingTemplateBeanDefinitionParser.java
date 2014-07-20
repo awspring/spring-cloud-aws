@@ -33,7 +33,6 @@ import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCu
 public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
-	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 	private static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
 
 	@Override
@@ -43,18 +42,12 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			builder.addPropertyReference(
-					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-		} else {
-			registerStringMessageConverter(builder);
-		}
-
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
 			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
+		registerStringMessageConverter(builder);
 		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
@@ -62,7 +55,7 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 	private void registerStringMessageConverter(BeanDefinitionBuilder builder) {
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
 		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		builder.addPropertyValue(Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), stringMessageConverterBuilder.getBeanDefinition());
+		builder.addPropertyValue("messageConverter", stringMessageConverterBuilder.getBeanDefinition());
 	}
 
 }

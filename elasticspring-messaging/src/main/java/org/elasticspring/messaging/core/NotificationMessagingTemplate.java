@@ -20,8 +20,12 @@ import com.amazonaws.services.sns.AmazonSNS;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.elasticspring.messaging.support.destination.DynamicTopicDestinationResolver;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.MessagePostProcessor;
+import org.springframework.util.Assert;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Alain Sahli
@@ -43,6 +47,54 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 	@Override
 	protected TopicMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new TopicMessageChannel(this.amazonSns, physicalResourceIdentifier);
+	}
+
+	/**
+	 * <b>IMPORTANT</b>: the underlying message channel {@link org.elasticspring.messaging.core.TopicMessageChannel} only
+	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
+	 *
+	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
+	 */
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload) throws MessagingException {
+		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
+		super.convertAndSend(destinationName, payload);
+	}
+
+	/**
+	 * <b>IMPORTANT</b>: the underlying message channel {@link org.elasticspring.messaging.core.TopicMessageChannel} only
+	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
+	 *
+	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
+	 */
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
+		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
+		super.convertAndSend(destinationName, payload, headers);
+	}
+
+	/**
+	 * <b>IMPORTANT</b>: the underlying message channel {@link org.elasticspring.messaging.core.TopicMessageChannel} only
+	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
+	 *
+	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
+	 */
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor) throws MessagingException {
+		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
+		super.convertAndSend(destinationName, payload, postProcessor);
+	}
+
+	/**
+	 * <b>IMPORTANT</b>: the underlying message channel {@link org.elasticspring.messaging.core.TopicMessageChannel} only
+	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
+	 *
+	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
+	 */
+	@Override
+	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
+		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
+		super.convertAndSend(destinationName, payload, headers, postProcessor);
 	}
 
 	public void sendNotification(String destinationName, String payload, String subject) {

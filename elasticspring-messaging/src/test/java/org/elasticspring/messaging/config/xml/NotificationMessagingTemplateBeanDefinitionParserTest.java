@@ -77,21 +77,6 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomConverter_mustBeSetOnTemplate() throws Exception {
-		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-
-		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-converter.xml", getClass()));
-
-		//Assert
-		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("myCustomConverter", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("messageConverter").getValue()).getBeanName());
-	}
-
-	@Test
 	public void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
 		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
