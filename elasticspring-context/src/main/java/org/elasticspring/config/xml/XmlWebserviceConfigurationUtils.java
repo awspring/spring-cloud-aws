@@ -48,22 +48,24 @@ public final class XmlWebserviceConfigurationUtils {
 
 	public static AbstractBeanDefinition parseCustomClientElement(Element element, ParserContext parserContext, String serviceClassName) {
 		Object source = parserContext.extractSource(element);
-		if (StringUtils.hasText(element.getAttribute(REGION_ATTRIBUTE_NAME)) && StringUtils.hasText(element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME))) {
-			parserContext.getReaderContext().error("Either 'region' or 'region-provider' attribute can be configured but not both!", source);
+		try {
+			return getAmazonWebserviceClientBeanDefinition(source, serviceClassName,
+					element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME),
+					element.getAttribute(REGION_ATTRIBUTE_NAME));
+		} catch (Exception e) {
+			parserContext.getReaderContext().error(e.getMessage(), source, e);
+			return null;
 		}
-
-		return getAmazonWebserviceClientBeanDefinition(source, serviceClassName,
-				element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME),
-				element.getAttribute(REGION_ATTRIBUTE_NAME));
 	}
 
 	private static BeanDefinitionHolder parseAndRegisterDefaultAmazonWebserviceClient(Element element, ParserContext parserContext, String serviceClassName) {
 		Object source = parserContext.extractSource(element);
-		if (StringUtils.hasText(element.getAttribute(REGION_ATTRIBUTE_NAME)) && StringUtils.hasText(element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME))) {
-			parserContext.getReaderContext().error("Either 'region' or 'region-provider' attribute can be configured but not both!", source);
+		try {
+			return registerAmazonWebserviceClient(source, parserContext.getRegistry(),
+					serviceClassName, element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME), element.getAttribute(REGION_ATTRIBUTE_NAME));
+		} catch (Exception e) {
+			parserContext.getReaderContext().error(e.getMessage(), source, e);
+			return null;
 		}
-
-		return registerAmazonWebserviceClient(source, parserContext.getRegistry(),
-				serviceClassName, element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME), element.getAttribute(REGION_ATTRIBUTE_NAME));
 	}
 }
