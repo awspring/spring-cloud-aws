@@ -22,7 +22,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Agim Emruli
@@ -58,8 +57,8 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 		//Assert
 		assertNotNull(client);
-		assertEquals("AmazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertNull(client.getRegion());
+		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
+		assertEquals(Region.getRegion(Regions.DEFAULT_REGION), client.getRegion());
 	}
 
 	@Test
@@ -78,7 +77,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 		//Assert
 		assertNotNull(client);
-		assertEquals("AmazonTestWebservice", beanDefinitionHolder.getBeanName());
+		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
 		assertEquals(Region.getRegion(Regions.AP_SOUTHEAST_2), client.getRegion());
 	}
 
@@ -98,7 +97,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 		//Assert
 		assertNotNull(client);
-		assertEquals("AmazonTestWebservice", beanDefinitionHolder.getBeanName());
+		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
 		assertEquals(Region.getRegion(Regions.EU_WEST_1), client.getRegion());
 	}
 

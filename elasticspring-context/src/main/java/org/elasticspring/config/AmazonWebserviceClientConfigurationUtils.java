@@ -17,7 +17,7 @@
 package org.elasticspring.config;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -28,6 +28,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import java.beans.Introspector;
 
 /**
  * @author Agim Emruli
@@ -99,7 +101,8 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	}
 
 	public static String getBeanName(String serviceClassName) {
-		String shortClassName = ClassUtils.getShortName(serviceClassName);
-		return StringUtils.delete(shortClassName, SERVICE_IMPLEMENTATION_SUFFIX);
+		String clientClassName = ClassUtils.getShortName(serviceClassName);
+		String shortenedClassName = StringUtils.delete(clientClassName, SERVICE_IMPLEMENTATION_SUFFIX);
+		return Introspector.decapitalize(shortenedClassName);
 	}
 }

@@ -50,7 +50,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		//Assert
-		assertEquals("https://email.us-east-1.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
+		assertEquals("https://email.us-west-2.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
 
 		assertTrue(mailSender instanceof JavaMailSender);
 	}
