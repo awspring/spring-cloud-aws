@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -63,10 +65,30 @@ public class QueueMessagingTemplateIntegrationTest {
 
 	@Test
 	public void testSendAndReceiveJsonMessage() throws Exception {
-		this.jsonQueueingOperations.convertAndSend("JsonQueue", "myString");
+		DummyObject payload = new DummyObject("Hello", 100);
+		this.jsonQueueingOperations.convertAndSend("JsonQueue", payload);
 
-		String result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", String.class);
-		assertEquals("myString", result);
+		DummyObject result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", DummyObject.class);
+		assertEquals("Hello", result.getValue());
+		assertEquals(100, result.getAnotherValue());
+	}
+
+	private static class DummyObject {
+		private final String value;
+		private final int anotherValue;
+
+		private DummyObject(@JsonProperty("value") String value, @JsonProperty("anotherValue") int anotherValue) {
+			this.value = value;
+			this.anotherValue = anotherValue;
+		}
+
+		public int getAnotherValue() {
+			return this.anotherValue;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
 	}
 
 	interface StringList extends List<String> {

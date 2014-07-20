@@ -31,15 +31,7 @@
 	<!--suppress UnparsedCustomBeanInspection -->
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
-	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
-
-	<els-messaging:queue-messaging-template id="stringMessage" message-converter="stringMessageConverter" />
-	<bean id="stringMessageConverter" class="org.springframework.messaging.converter.StringMessageConverter">
-		<property name="serializedPayloadClass" value="java.lang.String" />
-	</bean>
+	<els-messaging:queue-messaging-template id="stringMessage" />
 
 	<els-messaging:queue-messaging-template id="objectMessage" message-converter="objectMessageConverter" />
 	<bean id="objectMessageConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />

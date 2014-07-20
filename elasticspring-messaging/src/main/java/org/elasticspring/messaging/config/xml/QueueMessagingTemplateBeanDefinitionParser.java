@@ -68,7 +68,6 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
 		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		stringMessageConverterBuilder.addPropertyValue("strictContentTypeMatch", true);
 		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
 
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
@@ -77,7 +76,6 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 			if (JACKSON_2_PRESENT) {
 				BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
 				jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-				jacksonMessageConverterBuilder.addPropertyValue("strictContentTypeMatch", true);
 				messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
 			}
 		}

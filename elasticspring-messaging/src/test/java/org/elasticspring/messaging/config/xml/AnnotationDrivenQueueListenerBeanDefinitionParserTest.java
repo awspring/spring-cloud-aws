@@ -19,11 +19,11 @@ package org.elasticspring.messaging.config.xml;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
+import org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -40,12 +39,19 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -60,30 +66,39 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 	@Test
 	public void parseInternal_minimalConfiguration_shouldProduceContainerWithDefaultAmazonSqsBean() throws Exception {
-		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-
 		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-minimal.xml", getClass());
 
 		//Assert
-		BeanDefinition sqsDefinition = registry.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.
-				getBeanName(AmazonSQSAsyncClient.class.getName()));
-		assertNotNull(sqsDefinition);
+		AmazonSQSAsync amazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
+		assertNotNull(amazonSqsClient);
 
-		BeanDefinition abstractContainerDefinition = registry.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		assertNotNull(abstractContainerDefinition);
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		assertNotNull(container);
 
-		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsync.class.getName()),
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues().getPropertyValue("amazonSqs").getValue()).getBeanName());
+		assertSame(amazonSqsClient, ReflectionTestUtils.getField(container, "amazonSqs"));
+		assertSame(applicationContext.getBean(StackResourceRegistryDetectingResourceIdResolver.class), ReflectionTestUtils.getField(container, "resourceIdResolver"));
 
-		BeanDefinition queueMessageHandler = registry.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
-		RootBeanDefinition sendToHandlerMethodReturnValueHandler = ((RootBeanDefinition) queueMessageHandler.getPropertyValues().getPropertyValue("defaultReturnValueHandler").getValue());
-		RootBeanDefinition queueMessagingTemplateDefinition = (RootBeanDefinition) sendToHandlerMethodReturnValueHandler.getConstructorArgumentValues().getArgumentValue(0, QueueMessagingTemplate.class).getValue();
-		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
-		assertEquals(jacksonConverter, ((AbstractBeanDefinition) queueMessagingTemplateDefinition.getPropertyValues().getPropertyValue("messageConverter").getValue()).getBeanClassName());
+		QueueMessageHandler queueMessageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(container, "messageHandler");
+		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler.getReturnValueHandlers().get(0);
+		assertTrue(SendToHandlerMethodReturnValueHandler.class.isInstance(sendToReturnValueHandler));
+		QueueMessagingTemplate queueMessagingTemplate = (QueueMessagingTemplate) ReflectionTestUtils.getField(sendToReturnValueHandler, "messageTemplate");
+
+		assertTrue(CompositeMessageConverter.class.isInstance(queueMessagingTemplate.getMessageConverter()));
+
+		@SuppressWarnings("unchecked")
+		List<MessageConverter> messageConverters = (List<MessageConverter>) ReflectionTestUtils.getField(queueMessagingTemplate.getMessageConverter(), "converters");
+		assertEquals(2, messageConverters.size());
+		assertTrue(StringMessageConverter.class.isInstance(messageConverters.get(0)));
+		assertTrue(MappingJackson2MessageConverter.class.isInstance(messageConverters.get(1)));
+
+		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters.get(0);
+		assertSame(String.class, stringMessageConverter.getSerializedPayloadClass());
+		assertEquals(false, ReflectionTestUtils.getField(stringMessageConverter, "strictContentTypeMatch"));
+
+		MappingJackson2MessageConverter jackson2MessageConverter = (MappingJackson2MessageConverter) messageConverters.get(1);
+		assertSame(String.class, jackson2MessageConverter.getSerializedPayloadClass());
+		assertEquals(false, ReflectionTestUtils.getField(jackson2MessageConverter, "strictContentTypeMatch"));
 	}
 
 	@Test

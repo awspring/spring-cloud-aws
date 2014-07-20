@@ -74,11 +74,11 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 
 		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters.get(0);
 		assertSame(String.class, stringMessageConverter.getSerializedPayloadClass());
-		assertEquals(true, ReflectionTestUtils.getField(stringMessageConverter, "strictContentTypeMatch"));
+		assertEquals(false, ReflectionTestUtils.getField(stringMessageConverter, "strictContentTypeMatch"));
 
 		MappingJackson2MessageConverter jackson2MessageConverter = (MappingJackson2MessageConverter) messageConverters.get(1);
 		assertSame(String.class, jackson2MessageConverter.getSerializedPayloadClass());
-		assertEquals(true, ReflectionTestUtils.getField(jackson2MessageConverter, "strictContentTypeMatch"));
+		assertEquals(false, ReflectionTestUtils.getField(jackson2MessageConverter, "strictContentTypeMatch"));
 	}
 
 	@Test
