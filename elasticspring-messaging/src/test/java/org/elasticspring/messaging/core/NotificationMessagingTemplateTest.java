@@ -59,7 +59,7 @@ public class NotificationMessagingTemplateTest {
 		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
 
 		// Act
-		notificationMessagingTemplate.convertAndSendWithSubject(physicalTopicName, "My message", "My subject");
+		notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
 
 		// Assert
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
@@ -75,7 +75,7 @@ public class NotificationMessagingTemplateTest {
 		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
 
 		// Act
-		notificationMessagingTemplate.convertAndSendWithSubject("My message", "My subject");
+		notificationMessagingTemplate.sendNotification("My message", "My subject");
 
 		// Assert
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));

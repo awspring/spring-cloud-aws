@@ -60,7 +60,7 @@ public class NotificationMessagingTemplateIntegrationTest {
 		String message = "Message content for SQS";
 
 		// Act
-		this.notificationMessagingTemplate.convertAndSendWithSubject("SqsReceivingSnsTopic", message, "A subject");
+		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", message, "A subject");
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
