@@ -49,21 +49,21 @@ public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionPar
 			return null;
 		}
 
-		BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.RegionPostProcessor");
-		postProcessorBuilder.addConstructorArgReference(CONTEXT_REGION_PROVIDER_BEAN_NAME);
-		parserContext.getReaderContext().registerWithGeneratedName(postProcessorBuilder.getBeanDefinition());
-
+		//Replace the default region provider with this one
+		GlobalBeanDefinitionUtils.registerOrReplaceRegionProvider(parserContext.getRegistry(), CONTEXT_REGION_PROVIDER_BEAN_NAME);
 
 		if (StringUtils.hasText(element.getAttribute("region-provider"))) {
 			parserContext.getRegistry().registerAlias(element.getAttribute("region-provider"), CONTEXT_REGION_PROVIDER_BEAN_NAME);
+			return null;
+		} else if (StringUtils.hasText(element.getAttribute("region"))) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.StaticRegionProvider");
+			builder.addConstructorArgValue(element.getAttribute("region"));
+			return builder.getBeanDefinition();
 		} else if (isAutoDetect(element)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.Ec2MetadataRegionProvider");
 			return builder.getBeanDefinition();
 		}
-
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.StaticRegionProvider");
-		builder.addConstructorArgValue(element.getAttribute("region"));
-		return builder.getBeanDefinition();
+		return null;
 	}
 
 	@Override

@@ -123,17 +123,20 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 				IDENTITY_MANAGEMENT_CLIENT_CLASS_NAME));
 
 		// Use custom region-provider of data source
-		if (StringUtils.hasText(element.getAttribute("region-provider"))) {
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
-			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(element.getAttribute("region-provider")));
-			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
-			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
-		}
-
 		if (StringUtils.hasText(element.getAttribute("region"))) {
 			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.Region");
 			beanDefinitionBuilder.setFactoryMethod("getRegion");
 			beanDefinitionBuilder.addConstructorArgValue(element.getAttribute("region"));
+			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+		} else {
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
+			if (StringUtils.hasText(element.getAttribute("region-provider"))) {
+				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(element.getAttribute("region-provider")));
+			} else {
+				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(GlobalBeanDefinitionUtils.
+						retrieveRegionProviderBeanName(parserContext.getRegistry())));
+			}
+			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		}
 

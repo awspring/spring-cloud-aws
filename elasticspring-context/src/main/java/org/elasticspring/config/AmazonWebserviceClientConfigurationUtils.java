@@ -16,6 +16,7 @@
 
 package org.elasticspring.config;
 
+import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.context.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -50,7 +51,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
 		}
 
-		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName, customRegionProvider, customRegion);
+		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName, customRegionProvider, customRegion, registry);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
@@ -59,7 +60,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
 			Object source, String serviceNameClassName,
-			String customRegionProvider, String customRegion) {
+			String customRegionProvider, String customRegion, BeanDefinitionRegistry beanDefinitionRegistry) {
 
 		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
 			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
@@ -86,6 +87,11 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.Region");
 			beanDefinitionBuilder.setFactoryMethod("getRegion");
 			beanDefinitionBuilder.addConstructorArgValue(customRegion);
+			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+		} else {
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
+			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(GlobalBeanDefinitionUtils.retrieveRegionProviderBeanName(beanDefinitionRegistry)));
+			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		}
 

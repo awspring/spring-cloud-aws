@@ -19,7 +19,6 @@ package org.elasticspring.context.config.xml;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.elasticspring.core.region.Ec2MetadataRegionProvider;
-import org.elasticspring.core.region.RegionPostProcessor;
 import org.elasticspring.core.region.RegionProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,12 +46,10 @@ public class ContextRegionBeanDefinitionParserTest {
 
 		//Act
 		RegionProvider myRegionProvider = context.getBean(ContextRegionBeanDefinitionParser.CONTEXT_REGION_PROVIDER_BEAN_NAME, RegionProvider.class);
-		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
 		assertNotNull(myRegionProvider);
 		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -62,12 +59,10 @@ public class ContextRegionBeanDefinitionParserTest {
 
 		//Act
 		RegionProvider myRegionProvider = context.getBean(ContextRegionBeanDefinitionParser.CONTEXT_REGION_PROVIDER_BEAN_NAME, RegionProvider.class);
-		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
 		assertNotNull(myRegionProvider);
 		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -77,12 +72,10 @@ public class ContextRegionBeanDefinitionParserTest {
 
 		//Act
 		RegionProvider myRegionProvider = context.getBean(ContextRegionBeanDefinitionParser.CONTEXT_REGION_PROVIDER_BEAN_NAME, RegionProvider.class);
-		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
 		assertNotNull(myRegionProvider);
 		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
-		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -92,12 +85,10 @@ public class ContextRegionBeanDefinitionParserTest {
 
 		//Act
 		RegionProvider myRegionProvider = context.getBean(ContextRegionBeanDefinitionParser.CONTEXT_REGION_PROVIDER_BEAN_NAME, RegionProvider.class);
-		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
 		assertNotNull(myRegionProvider);
 		assertTrue(myRegionProvider instanceof Ec2MetadataRegionProvider);
-		assertNotNull(regionPostProcessor);
 	}
 
 	@Test
@@ -108,13 +99,11 @@ public class ContextRegionBeanDefinitionParserTest {
 		//Act
 		RegionProvider defaultRegionProvider = context.getBean(ContextRegionBeanDefinitionParser.CONTEXT_REGION_PROVIDER_BEAN_NAME, RegionProvider.class);
 		RegionProvider myRegionProvider = context.getBean("myRegionProvider", RegionProvider.class);
-		RegionPostProcessor regionPostProcessor = context.getBean(RegionPostProcessor.class);
 
 		//Assert
 		assertNotNull(defaultRegionProvider);
 		assertNotNull(myRegionProvider);
 		assertSame(defaultRegionProvider, myRegionProvider);
-		assertNotNull(regionPostProcessor);
 	}
 
 	@Test

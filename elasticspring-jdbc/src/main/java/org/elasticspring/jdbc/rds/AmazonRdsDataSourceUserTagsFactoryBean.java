@@ -25,7 +25,6 @@ import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.core.naming.AmazonResourceName;
-import org.elasticspring.core.region.RegionAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.LinkedHashMap;
@@ -34,7 +33,7 @@ import java.util.Map;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> implements RegionAware {
+public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
 	private final AmazonRDS amazonRds;
 	private final String dbInstanceIdentifier;
@@ -79,7 +78,6 @@ public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<
 		return Region.getRegion(Regions.DEFAULT_REGION);
 	}
 
-	@Override
 	public void setRegion(Region region) {
 		this.region = region;
 	}
