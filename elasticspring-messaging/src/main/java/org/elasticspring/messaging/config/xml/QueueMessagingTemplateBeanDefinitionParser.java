@@ -18,7 +18,8 @@ package org.elasticspring.messaging.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -52,33 +53,33 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
 
-		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			builder.addPropertyReference(
-					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-		} else {
-			registerCompositeMessageConverter(builder);
-		}
-
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
 			builder.addPropertyReference(
 					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
+		registerMessageConverters(builder, element);
 		builder.addConstructorArgReference(amazonSqsClientBeanName);
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
 
-	private void registerCompositeMessageConverter(BeanDefinitionBuilder builder) {
-		List<BeanDefinition> messageConverters = new ManagedList<BeanDefinition>(2);
+	private void registerMessageConverters(BeanDefinitionBuilder builder, Element element) {
+		List<BeanMetadataElement> messageConverters = new ManagedList<BeanMetadataElement>();
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
 		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
+		stringMessageConverterBuilder.addPropertyValue("strictContentTypeMatch", true);
 		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
 
-		if (JACKSON_2_PRESENT) {
-			BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-			jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-			messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
+		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
+			messageConverters.add(new RuntimeBeanReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE)));
+		} else {
+			if (JACKSON_2_PRESENT) {
+				BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+				jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
+				jacksonMessageConverterBuilder.addPropertyValue("strictContentTypeMatch", true);
+				messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
+			}
 		}
 
 		BeanDefinitionBuilder compositeMessageConverterBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.CompositeMessageConverter");
