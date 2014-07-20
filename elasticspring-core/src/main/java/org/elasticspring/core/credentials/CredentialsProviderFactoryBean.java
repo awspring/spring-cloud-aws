@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.credentials.credentials;
+package org.elasticspring.core.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;

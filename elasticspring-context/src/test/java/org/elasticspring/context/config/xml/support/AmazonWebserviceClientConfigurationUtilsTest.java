@@ -22,7 +22,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.junit.Rule;
 import org.junit.Test;

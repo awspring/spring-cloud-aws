@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-context="http://www.elasticspring.org/schema/context"
 	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
                            http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
@@ -31,13 +31,11 @@
 
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 
-	<bean id="amazonCloudFormationClient" class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
+	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
 	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient" />
+		<!--suppress SpringModelInspection -->
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
 
 	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService"
@@ -46,7 +44,8 @@
 						 value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}" />
 		<constructor-arg name="outputKey"
 						 value="#{T(org.elasticspring.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}" />
-		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormationClient" />
+		<!--suppress SpringModelInspection -->
+		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
 
 </beans>

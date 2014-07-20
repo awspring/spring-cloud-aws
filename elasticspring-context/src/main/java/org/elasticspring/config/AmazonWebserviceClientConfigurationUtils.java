@@ -17,7 +17,7 @@
 package org.elasticspring.config;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;

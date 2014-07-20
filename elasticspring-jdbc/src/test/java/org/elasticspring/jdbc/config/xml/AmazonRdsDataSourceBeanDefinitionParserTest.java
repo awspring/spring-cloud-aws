@@ -30,7 +30,7 @@ import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
-import org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.jdbc.datasource.DynamicDataSource;
 import org.elasticspring.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.junit.Rule;
