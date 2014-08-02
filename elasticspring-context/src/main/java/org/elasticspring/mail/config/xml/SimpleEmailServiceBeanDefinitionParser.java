@@ -35,7 +35,7 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 	@Override
 	protected String getBeanClassName(Element element) {
 		if (JAVA_MAIL_PRESENT) {
-			return "org.elasticspring.mail.Movedsimplemail.SimpleEmailServiceJavaMailSender";
+			return "org.elasticspring.mail.simplemail.SimpleEmailServiceJavaMailSender";
 		}
 
 		return "org.elasticspring.mail.simplemail.SimpleEmailServiceMailSender";
