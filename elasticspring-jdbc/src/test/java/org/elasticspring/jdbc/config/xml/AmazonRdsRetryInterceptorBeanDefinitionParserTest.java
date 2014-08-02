@@ -19,7 +19,7 @@ package org.elasticspring.jdbc.config.xml;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;

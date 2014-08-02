@@ -17,6 +17,7 @@
 package org.elasticspring.jdbc.config.xml;
 
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.elasticspring.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.elasticspring.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
@@ -32,7 +33,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import static org.elasticspring.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser implementation for the datasource
@@ -133,8 +134,8 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 			if (StringUtils.hasText(element.getAttribute("region-provider"))) {
 				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(element.getAttribute("region-provider")));
 			} else {
-				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(GlobalBeanDefinitionUtils.
-						retrieveRegionProviderBeanName(parserContext.getRegistry())));
+				beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(AmazonWebserviceClientConfigurationUtils.
+						getRegionProviderBeanName(parserContext.getRegistry())));
 			}
 			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());

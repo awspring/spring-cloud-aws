@@ -16,11 +16,8 @@
 
 package org.elasticspring.context.config.xml;
 
-import com.amazonaws.regions.Regions;
 import org.elasticspring.core.env.ResourceIdResolver;
 import org.elasticspring.core.env.StackResourceRegistryDetectingResourceIdResolver;
-import org.elasticspring.core.region.RegionProvider;
-import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -35,7 +32,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 public final class GlobalBeanDefinitionUtils {
 
 	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
-	public static final String REGION_PROVIDER_BEAN_NAME = RegionProvider.class.getName() + ".BEAN_NAME";
 
 	private GlobalBeanDefinitionUtils() {
 		// Avoid instantiation
@@ -69,28 +65,5 @@ public final class GlobalBeanDefinitionUtils {
 		return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class).getBeanDefinition();
 	}
 
-	public static String retrieveRegionProviderBeanName(BeanDefinitionRegistry registry) {
-		registerRegionProviderBeanIfNeeded(registry);
-		return REGION_PROVIDER_BEAN_NAME;
-	}
 
-	public static void registerOrReplaceRegionProvider(BeanDefinitionRegistry registry, String customGlobalRegionProvider) {
-		if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-			registry.removeBeanDefinition(REGION_PROVIDER_BEAN_NAME);
-		}
-		registry.registerAlias(customGlobalRegionProvider, REGION_PROVIDER_BEAN_NAME);
-	}
-
-	private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, buildDefaultRegionProviderBeanDefinition().getBeanDefinition());
-		}
-	}
-
-	private static BeanDefinitionBuilder buildDefaultRegionProviderBeanDefinition() {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
-		builder.addConstructorArgValue(Regions.DEFAULT_REGION);
-		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		return builder;
-	}
 }

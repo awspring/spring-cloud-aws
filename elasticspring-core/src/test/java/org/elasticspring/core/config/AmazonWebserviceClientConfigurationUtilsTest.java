@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml.support;
+package org.elasticspring.core.config;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
 import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
 import org.elasticspring.core.region.StaticRegionProvider;
 import org.junit.Rule;

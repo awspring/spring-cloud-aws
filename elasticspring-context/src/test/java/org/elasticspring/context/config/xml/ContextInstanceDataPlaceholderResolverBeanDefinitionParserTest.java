@@ -17,7 +17,7 @@
 package org.elasticspring.context.config.xml;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import org.elasticspring.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanReference;

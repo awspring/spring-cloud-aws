@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.elasticspring.config;
+package org.elasticspring.core.config;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import com.amazonaws.regions.Regions;
 import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
+import org.elasticspring.core.region.RegionProvider;
+import org.elasticspring.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -38,6 +40,7 @@ import java.beans.Introspector;
 public final class AmazonWebserviceClientConfigurationUtils {
 
 	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
+	private static final String REGION_PROVIDER_BEAN_NAME = RegionProvider.class.getName() + ".BEAN_NAME";
 
 	private AmazonWebserviceClientConfigurationUtils() {
 		// Avoid instantiation
@@ -91,8 +94,10 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			beanDefinitionBuilder.addConstructorArgValue(customRegion);
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		} else {
+			registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
+
 			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
-			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(GlobalBeanDefinitionUtils.retrieveRegionProviderBeanName(beanDefinitionRegistry)));
+			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(REGION_PROVIDER_BEAN_NAME));
 			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		}
@@ -104,5 +109,26 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		String clientClassName = ClassUtils.getShortName(serviceClassName);
 		String shortenedClassName = StringUtils.delete(clientClassName, SERVICE_IMPLEMENTATION_SUFFIX);
 		return Introspector.decapitalize(shortenedClassName);
+	}
+
+	public static String getRegionProviderBeanName(BeanDefinitionRegistry beanDefinitionRegistry) {
+		registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
+		return REGION_PROVIDER_BEAN_NAME;
+	}
+
+	public static void replaceDefaultRegionProvider(BeanDefinitionRegistry registry, String customGlobalRegionProvider) {
+		if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+			registry.removeBeanDefinition(REGION_PROVIDER_BEAN_NAME);
+		}
+		registry.registerAlias(customGlobalRegionProvider, REGION_PROVIDER_BEAN_NAME);
+	}
+
+	private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
+			builder.addConstructorArgValue(Regions.DEFAULT_REGION);
+			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+		}
 	}
 }

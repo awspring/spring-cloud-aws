@@ -24,6 +24,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import static org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider;
+
 public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	static final String CONTEXT_REGION_PROVIDER_BEAN_NAME = "regionProvider";
@@ -50,7 +52,7 @@ public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionPar
 		}
 
 		//Replace the default region provider with this one
-		GlobalBeanDefinitionUtils.registerOrReplaceRegionProvider(parserContext.getRegistry(), CONTEXT_REGION_PROVIDER_BEAN_NAME);
+		replaceDefaultRegionProvider(parserContext.getRegistry(), CONTEXT_REGION_PROVIDER_BEAN_NAME);
 
 		if (StringUtils.hasText(element.getAttribute("region-provider"))) {
 			parserContext.getRegistry().registerAlias(element.getAttribute("region-provider"), CONTEXT_REGION_PROVIDER_BEAN_NAME);

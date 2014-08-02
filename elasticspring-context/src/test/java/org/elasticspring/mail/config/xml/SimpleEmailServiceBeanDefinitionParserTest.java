@@ -26,7 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.lang.reflect.Field;
 import java.net.URI;
 
-import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
+import static org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;

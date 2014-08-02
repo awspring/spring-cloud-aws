@@ -26,7 +26,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
 import java.net.URI;
 
-import static org.elasticspring.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
+import static org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

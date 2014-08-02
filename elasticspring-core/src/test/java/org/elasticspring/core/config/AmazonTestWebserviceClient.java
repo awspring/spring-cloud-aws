@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.config.xml.support;
+package org.elasticspring.core.config;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
@@ -25,7 +25,7 @@ import static org.springframework.util.Assert.notNull;
 
 /**
  * @author Agim Emruli
- *         Test stub used by {@link org.elasticspring.context.config.xml.support.AmazonWebserviceClientConfigurationUtilsTest}
+ *         Test stub used by {@link AmazonWebserviceClientConfigurationUtilsTest}
  */
 class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
