@@ -14,15 +14,34 @@
  * limitations under the License.
  */
 
-package org.elasticspring.core.region;
+package org.elasticspring.core.config;
 
+import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
  * @author Agim Emruli
+ *         Test stub used by {@link AmazonWebserviceClientConfigurationUtilsTest}
  */
-public interface RegionAware {
+class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
-	void setRegion(Region region);
+	private Region region;
 
+	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
+		super(new ClientConfiguration());
+		notNull(awsCredentialsProvider);
+	}
+
+	public Region getRegion() {
+		return this.region;
+	}
+
+	@Override
+	public void setRegion(Region region) {
+		this.region = region;
+	}
 }

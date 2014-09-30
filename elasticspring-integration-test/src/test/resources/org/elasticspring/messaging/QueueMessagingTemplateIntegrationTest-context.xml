@@ -15,34 +15,26 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.elasticspring.org/schema/context"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-	   					   http://www.elasticspring.org/schema/context
-	   					   http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
 	   					   http://www.elasticspring.org/schema/messaging
 	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
-
-	<bean id="amazonSqsClient" class="com.amazonaws.services.sqs.AmazonSQSClient">
-		<constructor-arg
-				ref="#{T(org.elasticspring.context.credentials.CredentialsProviderFactoryBean).CREDENTIALS_PROVIDER_BEAN_NAME}" />
-	</bean>
-
 	<els-messaging:queue-messaging-template id="stringMessage" message-converter="stringMessageConverter" />
 	<bean id="stringMessageConverter" class="org.springframework.messaging.converter.StringMessageConverter">
 		<property name="serializedPayloadClass" value="java.lang.String" />
 	</bean>
 
+	<!--suppress UnparsedCustomBeanInspection -->
 	<els-messaging:queue-messaging-template id="objectMessage" message-converter="objectMessageConverter" />
 	<bean id="objectMessageConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 
+	<!--suppress UnparsedCustomBeanInspection -->
 	<els-messaging:queue-messaging-template id="jsonMessage" />
 </beans>

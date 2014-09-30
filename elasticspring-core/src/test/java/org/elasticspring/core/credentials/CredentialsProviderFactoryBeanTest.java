@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.context.credentials;
+package org.elasticspring.core.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link CredentialsProviderFactoryBean}
+ * Unit tests for {@link org.elasticspring.core.credentials.CredentialsProviderFactoryBean}
  *
  * @author Agim Emruli
  */
