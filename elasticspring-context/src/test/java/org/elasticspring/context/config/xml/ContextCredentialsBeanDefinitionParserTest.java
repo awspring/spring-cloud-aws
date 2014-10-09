@@ -20,7 +20,6 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.auth.STSSessionCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,7 +63,6 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		assertEquals(3, providerChain.size());
 
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
-		assertTrue(STSSessionCredentialsProvider.class.isInstance(providerChain.get(1)));
 		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
 
 		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(2);

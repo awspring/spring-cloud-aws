@@ -50,16 +50,6 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="security-token-credentials" type="simpleCredentialsType" minOccurs="0" maxOccurs="1">
-					<xsd:annotation>
-						<xsd:documentation>
-							Security token credentials will be fetched during the runtime. The credentials configured
-							here are used to actually fetch the temporary credentials which will be used to actually
-							call the services. These "proxy" credentials must be valid and have the access-rights in
-							order to get the concrete credentials.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
 				<xsd:element name="instance-profile-credentials" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation>
