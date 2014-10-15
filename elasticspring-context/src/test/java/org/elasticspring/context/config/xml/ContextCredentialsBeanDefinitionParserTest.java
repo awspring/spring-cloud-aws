@@ -63,9 +63,9 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		assertEquals(2, providerChain.size());
 
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
-		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
+		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(1)));
 
-		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(2);
+		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(1);
 		assertEquals("staticAccessKey", staticCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("staticSecretKey", staticCredentialsProvider.getCredentials().getAWSSecretKey());
 
