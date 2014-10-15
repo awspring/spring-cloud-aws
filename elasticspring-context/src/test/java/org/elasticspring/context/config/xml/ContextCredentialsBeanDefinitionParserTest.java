@@ -60,7 +60,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		@SuppressWarnings("unchecked") List<AWSCredentialsProvider> providerChain = (List<AWSCredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProviderChain, "credentialsProviders");
 
 		assertNotNull(providerChain);
-		assertEquals(3, providerChain.size());
+		assertEquals(2, providerChain.size());
 
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
 		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
