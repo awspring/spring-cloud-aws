@@ -37,6 +37,10 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration
 public class QueueMessagingTemplateIntegrationTest {
 
+	public static final String JSON_QUEUE_NAME = "JsonQueue";
+	public static final String STREAM_QUEUE_NAME = "StreamQueue";
+	public static final String STRING_QUEUE_NAME = "StringQueue";
+
 	@Resource(name = "stringMessage")
 	private QueueMessagingTemplate stringQueueingOperations;
 
@@ -49,28 +53,38 @@ public class QueueMessagingTemplateIntegrationTest {
 	@Test
 	public void testSendAndReceiveStringMessage() throws Exception {
 		String messageContent = "testMessage";
-		this.stringQueueingOperations.convertAndSend("StringQueue", messageContent);
-		String receivedMessage = this.stringQueueingOperations.receiveAndConvert("StringQueue", String.class);
+		this.stringQueueingOperations.convertAndSend(STRING_QUEUE_NAME, messageContent);
+		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(STRING_QUEUE_NAME, String.class);
 		assertEquals(messageContent, receivedMessage);
 	}
 
 	@Test
 	public void testSendAndReceiveObjectMessage() throws Exception {
 		List<String> payload = Collections.singletonList("myString");
-		this.objectQueueingOperations.convertAndSend("StreamQueue", payload);
+		this.objectQueueingOperations.convertAndSend(STREAM_QUEUE_NAME, payload);
 
-		List<String> result = this.objectQueueingOperations.receiveAndConvert("StreamQueue", StringList.class);
+		List<String> result = this.objectQueueingOperations.receiveAndConvert(STREAM_QUEUE_NAME, StringList.class);
 		assertEquals("myString", result.get(0));
 	}
 
 	@Test
 	public void testSendAndReceiveJsonMessage() throws Exception {
 		DummyObject payload = new DummyObject("Hello", 100);
-		this.jsonQueueingOperations.convertAndSend("JsonQueue", payload);
+		this.jsonQueueingOperations.convertAndSend(JSON_QUEUE_NAME, payload);
 
-		DummyObject result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", DummyObject.class);
+		DummyObject result = this.jsonQueueingOperations.receiveAndConvert(JSON_QUEUE_NAME, DummyObject.class);
 		assertEquals("Hello", result.getValue());
 		assertEquals(100, result.getAnotherValue());
+	}
+
+	@Test
+	public void convertAndSend_aStringWithJsonConverter_shouldSerializeAndDeserializeCorrectly() throws Exception {
+		// Act
+		this.jsonQueueingOperations.convertAndSend(JSON_QUEUE_NAME, "A String");
+
+		// Assert
+		String result = this.jsonQueueingOperations.receiveAndConvert(JSON_QUEUE_NAME, String.class);
+		assertEquals("A String", result);
 	}
 
 	private static class DummyObject {
