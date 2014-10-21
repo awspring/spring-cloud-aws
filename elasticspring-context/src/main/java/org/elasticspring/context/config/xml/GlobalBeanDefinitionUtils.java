@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  *
  * @author Christian Stettler
  * @author Alain Sahli
+ * @author Agim Emruli
  */
 public final class GlobalBeanDefinitionUtils {
 
@@ -63,5 +64,6 @@ public final class GlobalBeanDefinitionUtils {
 	private static BeanDefinition buildResourceIdResolverBeanDefinition() {
 		return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class).getBeanDefinition();
 	}
+
 
 }

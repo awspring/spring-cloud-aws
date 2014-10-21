@@ -25,7 +25,4 @@
 	<els-context:context-resource-loader task-executor="executor" />
 
 	<task:executor id="executor" pool-size="2-10" queue-capacity="0" rejection-policy="CALLER_RUNS" />
-
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
-
 </beans>

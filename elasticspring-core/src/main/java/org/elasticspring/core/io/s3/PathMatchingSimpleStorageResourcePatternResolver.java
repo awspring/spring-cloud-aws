@@ -17,6 +17,7 @@
 package org.elasticspring.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -188,17 +189,22 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		ObjectListing objectListing = null;
 
 		do {
-			if (objectListing == null) {
-				objectListing = this.amazonS3.listObjects(listObjectsRequest);
-			} else {
-				objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
+			try {
+				if (objectListing == null) {
+					objectListing = this.amazonS3.listObjects(listObjectsRequest);
+				} else {
+					objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
+				}
+				Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, keyPattern, objectListing.getObjectSummaries());
+				if (!newResources.isEmpty()) {
+					resources.addAll(newResources);
+				}
+			} catch (AmazonS3Exception e) {
+				if (301 != e.getStatusCode()) {
+					throw e;
+				}
 			}
-
-			Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, keyPattern, objectListing.getObjectSummaries());
-			if (!newResources.isEmpty()) {
-				resources.addAll(newResources);
-			}
-		} while (objectListing.isTruncated());
+		} while (objectListing != null && objectListing.isTruncated());
 	}
 
 	/**
@@ -281,6 +287,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 		List<Bucket> buckets = this.amazonS3.listBuckets();
 		List<String> matchingBuckets = new ArrayList<String>();
 		for (Bucket bucket : buckets) {
+			this.amazonS3.getBucketLocation(bucket.getName());
 			if (this.pathMatcher.match(bucketPattern, bucket.getName())) {
 				matchingBuckets.add(bucket.getName());
 			}
