@@ -18,6 +18,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -45,7 +47,7 @@ subprojects {
 
     // Custom properties
     ext {
-        springFrameworkVersion = "4.1.0.RC2"
+        springFrameworkVersion = "4.1.1.RELEASE"
         springRetryVersion = "1.1.0.RELEASE"
         junitVersion = '4.11'
         slf4jVersion = '1.7.2'
