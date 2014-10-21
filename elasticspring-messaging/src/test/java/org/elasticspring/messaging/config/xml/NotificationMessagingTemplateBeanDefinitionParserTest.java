@@ -87,8 +87,8 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 
 		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("myDefaultDestination", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("defaultDestination").getValue()).getBeanName());
+		assertEquals("myDefaultDestination", notificationMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("defaultDestinationName").getValue());
 	}
 
 	@Test

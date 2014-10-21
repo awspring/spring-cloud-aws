@@ -58,14 +58,32 @@ public class NotificationMessagingTemplateIntegrationTest {
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
 		String message = "Message content for SQS";
+		String subject = "A subject";
 
 		// Act
-		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", message, "A subject");
+		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", message, subject);
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(message, this.notificationReceiver.getMessage());
-		assertEquals("A subject", this.notificationReceiver.getSubject());
+		assertEquals(subject, this.notificationReceiver.getSubject());
+	}
+
+	@Test
+	public void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination() throws Exception {
+		// Arrange
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		this.notificationReceiver.setCountDownLatch(countDownLatch);
+		String message = "Message content for default destination";
+		String subject = "Hello default destination";
+
+		// Act
+		this.notificationMessagingTemplate.sendNotification(message, subject);
+
+		// Assert
+		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals(subject, this.notificationReceiver.getSubject());
 	}
 
 	@RuntimeUse

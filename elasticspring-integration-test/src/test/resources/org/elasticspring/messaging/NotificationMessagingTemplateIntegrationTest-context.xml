@@ -29,7 +29,7 @@
 	<els-messaging:annotation-driven-queue-listener />
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-messaging:notification-messaging-template id="notificationMessagingTemplate" />
+	<els-messaging:notification-messaging-template id="notificationMessagingTemplate" default-destination="SqsReceivingSnsTopic" />
 
 	<bean class="org.elasticspring.messaging.NotificationMessagingTemplateIntegrationTest$NotificationReceiver" />
 

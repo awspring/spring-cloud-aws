@@ -97,11 +97,32 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 		super.convertAndSend(destinationName, payload, headers, postProcessor);
 	}
 
-	public void sendNotification(String destinationName, String payload, String subject) {
-		this.convertAndSend(destinationName, payload, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+	/**
+	 * Convenience method that sends a notification with the given {@literal message} and {@literal subject} to the {@literal destination}.
+	 * The {@literal subject} is sent as header as defined in the <a href="http://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>.
+	 *
+	 * @param destinationName
+	 * 		The logical name of the destination
+	 * @param message
+	 * 		The message to send
+	 * @param subject
+	 * 		The subject to send
+	 */
+	public void sendNotification(String destinationName, String message, String subject) {
+		this.convertAndSend(destinationName, message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
-	public void sendNotification(String payload, String subject) {
-		this.convertAndSend(getRequiredDefaultDestination(), payload, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+	/**
+	 * Convenience method that sends a notification with the given {@literal message} and {@literal subject} to the {@literal destination}.
+	 * The {@literal subject} is sent as header as defined in the <a href="http://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>.
+	 * The configured default destination will be used.
+	 *
+	 * @param message
+	 * 		The message to send
+	 * @param subject
+	 * 		The subject to send
+	 */
+	public void sendNotification(String message, String subject) {
+		this.convertAndSend(getRequiredDefaultDestination(), message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 }

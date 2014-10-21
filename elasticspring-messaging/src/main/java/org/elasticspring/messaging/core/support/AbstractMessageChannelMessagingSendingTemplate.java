@@ -40,7 +40,7 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 		this.destinationResolver = new CachingDestinationResolverProxy<String>(destinationResolver);
 	}
 
-	public void setDefaultDestination(String defaultDestination) {
+	public void setDefaultDestinationName(String defaultDestination) {
 		super.setDefaultDestination(resolveMessageChannelByLogicalName(defaultDestination));
 	}
 

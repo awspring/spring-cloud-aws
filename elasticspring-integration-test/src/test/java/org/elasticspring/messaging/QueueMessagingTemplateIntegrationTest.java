@@ -41,38 +41,50 @@ public class QueueMessagingTemplateIntegrationTest {
 	public static final String STREAM_QUEUE_NAME = "StreamQueue";
 	public static final String STRING_QUEUE_NAME = "StringQueue";
 
-	@Resource(name = "stringMessage")
-	private QueueMessagingTemplate stringQueueingOperations;
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Resource(name = "defaultQueueMessagingTemplate")
+	private QueueMessagingTemplate defaultQueueMessagingTemplate;
 
-	@Resource(name = "objectMessage")
-	private QueueMessagingTemplate objectQueueingOperations;
-
-	@Resource(name = "jsonMessage")
-	private QueueMessagingTemplate jsonQueueingOperations;
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Resource(name = "queueMessagingTemplateWithCustomConverter")
+	private QueueMessagingTemplate messagingTemplateWithCustomConverter;
 
 	@Test
-	public void testSendAndReceiveStringMessage() throws Exception {
+	public void sendAndReceive_stringMessageWithProvidedDestination_shouldUseTheProvidedDestination() throws Exception {
+		// Arrange
 		String messageContent = "testMessage";
-		this.stringQueueingOperations.convertAndSend(STRING_QUEUE_NAME, messageContent);
-		String receivedMessage = this.stringQueueingOperations.receiveAndConvert(STRING_QUEUE_NAME, String.class);
+
+		// Act
+		this.defaultQueueMessagingTemplate.convertAndSend(STRING_QUEUE_NAME, messageContent);
+		String receivedMessage = this.defaultQueueMessagingTemplate.receiveAndConvert(STRING_QUEUE_NAME, String.class);
+
+		// Assert
 		assertEquals(messageContent, receivedMessage);
 	}
 
 	@Test
-	public void testSendAndReceiveObjectMessage() throws Exception {
+	public void sendAndReceive_ObjectMessageWithDefaultDestination_shouldUseTheStreamQueue() throws Exception {
+		// Arrange
 		List<String> payload = Collections.singletonList("myString");
-		this.objectQueueingOperations.convertAndSend(STREAM_QUEUE_NAME, payload);
 
-		List<String> result = this.objectQueueingOperations.receiveAndConvert(STREAM_QUEUE_NAME, StringList.class);
+		// Act
+		this.messagingTemplateWithCustomConverter.convertAndSend(payload);
+		List<String> result = this.messagingTemplateWithCustomConverter.receiveAndConvert(StringList.class);
+
+		// Assert
 		assertEquals("myString", result.get(0));
 	}
 
 	@Test
-	public void testSendAndReceiveJsonMessage() throws Exception {
+	public void sendAndReceive_JsonMessageWithDefaultDestination_shouldUseTheJsonQueue() throws Exception {
+		// Arrange
 		DummyObject payload = new DummyObject("Hello", 100);
-		this.jsonQueueingOperations.convertAndSend(JSON_QUEUE_NAME, payload);
 
-		DummyObject result = this.jsonQueueingOperations.receiveAndConvert(JSON_QUEUE_NAME, DummyObject.class);
+		// Act
+		this.defaultQueueMessagingTemplate.convertAndSend(payload);
+		DummyObject result = this.defaultQueueMessagingTemplate.receiveAndConvert(DummyObject.class);
+
+		// Assert
 		assertEquals("Hello", result.getValue());
 		assertEquals(100, result.getAnotherValue());
 	}
@@ -80,10 +92,10 @@ public class QueueMessagingTemplateIntegrationTest {
 	@Test
 	public void convertAndSend_aStringWithJsonConverter_shouldSerializeAndDeserializeCorrectly() throws Exception {
 		// Act
-		this.jsonQueueingOperations.convertAndSend(JSON_QUEUE_NAME, "A String");
+		this.defaultQueueMessagingTemplate.convertAndSend(JSON_QUEUE_NAME, "A String");
 
 		// Assert
-		String result = this.jsonQueueingOperations.receiveAndConvert(JSON_QUEUE_NAME, String.class);
+		String result = this.defaultQueueMessagingTemplate.receiveAndConvert(JSON_QUEUE_NAME, String.class);
 		assertEquals("A String", result);
 	}
 

@@ -31,10 +31,11 @@
 	<!--suppress UnparsedCustomBeanInspection -->
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
-	<els-messaging:queue-messaging-template id="stringMessage" />
+	<els-messaging:queue-messaging-template id="defaultQueueMessagingTemplate" default-destination="JsonQueue" />
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-messaging:queue-messaging-template id="objectMessage" message-converter="objectMessageConverter" />
+	<els-messaging:queue-messaging-template id="queueMessagingTemplateWithCustomConverter" message-converter="objectMessageConverter"
+											default-destination="StreamQueue" />
 	<bean id="objectMessageConverter" class="org.elasticspring.messaging.support.converter.ObjectMessageConverter" />
 
 	<!--suppress UnparsedCustomBeanInspection -->

@@ -44,7 +44,7 @@ public class NotificationMessagingTemplateTest {
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
-		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
+		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
 
 		// Act
 		notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
@@ -76,7 +76,7 @@ public class NotificationMessagingTemplateTest {
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
-		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
+		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
 
 		// Act
 		notificationMessagingTemplate.sendNotification("My message", "My subject");

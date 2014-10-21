@@ -125,8 +125,8 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 
 		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals("myDefaultDestination", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("defaultDestination").getValue()).getBeanName());
+		assertEquals("myDefaultDestination", queueMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("defaultDestinationName").getValue());
 	}
 
 	@Test
