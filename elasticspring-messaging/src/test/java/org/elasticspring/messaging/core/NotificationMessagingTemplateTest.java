@@ -22,7 +22,11 @@ import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
 import org.junit.Test;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,7 +44,7 @@ public class NotificationMessagingTemplateTest {
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
-		notificationMessagingTemplate.setDefaultDestination(physicalTopicName);
+		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
 
 		// Act
 		notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
@@ -49,4 +53,78 @@ public class NotificationMessagingTemplateTest {
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
 				"Message content", null));
 	}
+
+	@Test
+	public void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+
+		// Act
+		notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
+
+		// Assert
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+	}
+
+	@Test
+	public void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
+
+		// Act
+		notificationMessagingTemplate.sendNotification("My message", "My subject");
+
+		// Assert
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void convertAndSend_withDestinationAndPayload_shouldThrowExceptionWithNonStringPayload() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+
+		// Act
+		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void convertAndSend_withDestinationPayloadAndHeaders_shouldThrowExceptionWithNonStringPayload() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+
+		// Act
+		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), Collections.<String, Object>singletonMap("header", "value"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void convertAndSend_withDestinationPayloadAndMessagePostProcessor_shouldThrowExceptionWithNonStringPayload() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
+
+		// Act
+		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), messagePostProcessor);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void convertAndSend_withDestinationPayloadMessagePostProcessorAndHeaders_shouldThrowExceptionWithNonStringPayload() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
+
+		// Act
+		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), Collections.<String, Object>singletonMap("header", "value"), messagePostProcessor);
+	}
+
 }

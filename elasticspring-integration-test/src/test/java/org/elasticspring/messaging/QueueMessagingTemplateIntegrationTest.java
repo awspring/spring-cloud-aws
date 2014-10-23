@@ -16,6 +16,7 @@
 
 package org.elasticspring.messaging;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,43 +31,90 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class QueueMessagingTemplateIntegrationTest {
 
-	@Resource(name = "stringMessage")
-	private QueueMessagingTemplate stringQueueingOperations;
+	public static final String JSON_QUEUE_NAME = "JsonQueue";
+	public static final String STREAM_QUEUE_NAME = "StreamQueue";
+	public static final String STRING_QUEUE_NAME = "StringQueue";
 
-	@Resource(name = "objectMessage")
-	private QueueMessagingTemplate objectQueueingOperations;
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Resource(name = "defaultQueueMessagingTemplate")
+	private QueueMessagingTemplate defaultQueueMessagingTemplate;
 
-	@Resource(name = "jsonMessage")
-	private QueueMessagingTemplate jsonQueueingOperations;
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	@Resource(name = "queueMessagingTemplateWithCustomConverter")
+	private QueueMessagingTemplate messagingTemplateWithCustomConverter;
 
 	@Test
-	public void testSendAndReceiveStringMessage() throws Exception {
+	public void sendAndReceive_stringMessageWithProvidedDestination_shouldUseTheProvidedDestination() throws Exception {
+		// Arrange
 		String messageContent = "testMessage";
-		this.stringQueueingOperations.convertAndSend("StringQueue", messageContent);
-		String receivedMessage = this.stringQueueingOperations.receiveAndConvert("StringQueue", String.class);
+
+		// Act
+		this.defaultQueueMessagingTemplate.convertAndSend(STRING_QUEUE_NAME, messageContent);
+		String receivedMessage = this.defaultQueueMessagingTemplate.receiveAndConvert(STRING_QUEUE_NAME, String.class);
+
+		// Assert
 		assertEquals(messageContent, receivedMessage);
 	}
 
 	@Test
-	public void testSendAndReceiveObjectMessage() throws Exception {
+	public void sendAndReceive_ObjectMessageWithDefaultDestination_shouldUseTheStreamQueue() throws Exception {
+		// Arrange
 		List<String> payload = Collections.singletonList("myString");
-		this.objectQueueingOperations.convertAndSend("StreamQueue", payload);
 
-		List<String> result = this.objectQueueingOperations.receiveAndConvert("StreamQueue", StringList.class);
+		// Act
+		this.messagingTemplateWithCustomConverter.convertAndSend(payload);
+		List<String> result = this.messagingTemplateWithCustomConverter.receiveAndConvert(StringList.class);
+
+		// Assert
 		assertEquals("myString", result.get(0));
 	}
 
 	@Test
-	public void testSendAndReceiveJsonMessage() throws Exception {
-		this.jsonQueueingOperations.convertAndSend("JsonQueue", "myString");
+	public void sendAndReceive_JsonMessageWithDefaultDestination_shouldUseTheJsonQueue() throws Exception {
+		// Arrange
+		DummyObject payload = new DummyObject("Hello", 100);
 
-		String result = this.jsonQueueingOperations.receiveAndConvert("JsonQueue", String.class);
-		assertEquals("myString", result);
+		// Act
+		this.defaultQueueMessagingTemplate.convertAndSend(payload);
+		DummyObject result = this.defaultQueueMessagingTemplate.receiveAndConvert(DummyObject.class);
+
+		// Assert
+		assertEquals("Hello", result.getValue());
+		assertEquals(100, result.getAnotherValue());
+	}
+
+	@Test
+	public void convertAndSend_aStringWithJsonConverter_shouldSerializeAndDeserializeCorrectly() throws Exception {
+		// Act
+		this.defaultQueueMessagingTemplate.convertAndSend(JSON_QUEUE_NAME, "A String");
+
+		// Assert
+		String result = this.defaultQueueMessagingTemplate.receiveAndConvert(JSON_QUEUE_NAME, String.class);
+		assertEquals("A String", result);
+	}
+
+	private static class DummyObject {
+		private final String value;
+		private final int anotherValue;
+
+		private DummyObject(@JsonProperty("value") String value, @JsonProperty("anotherValue") int anotherValue) {
+			this.value = value;
+			this.anotherValue = anotherValue;
+		}
+
+		public int getAnotherValue() {
+			return this.anotherValue;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
 	}
 
 	interface StringList extends List<String> {

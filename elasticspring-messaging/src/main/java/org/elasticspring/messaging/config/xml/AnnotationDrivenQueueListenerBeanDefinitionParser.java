@@ -21,6 +21,7 @@ import org.elasticspring.messaging.core.QueueMessagingTemplate;
 import org.elasticspring.messaging.listener.QueueMessageHandler;
 import org.elasticspring.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.elasticspring.messaging.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -32,6 +33,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
+
+import java.util.List;
 
 import static org.elasticspring.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils.getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName;
 
@@ -116,23 +119,34 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		if (StringUtils.hasText(element.getAttribute("send-to-message-template"))) {
 			beanDefinitionBuilder.addConstructorArgReference(element.getAttribute("send-to-message-template"));
 		} else {
+			// TODO consider creating a utils for setting up the queue messaging template as it also created in QueueMessagingTemplateBeanDefinitionParser
 			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessagingTemplate.class);
 			templateBuilder.addConstructorArgReference(sqsClientBeanName);
 			templateBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 
-			if (JACKSON_2_PRESENT) {
-				registerJacksonMessageConverter(templateBuilder);
-			}
-
+			registerMessageConverters(templateBuilder);
 			beanDefinitionBuilder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
 
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private static void registerJacksonMessageConverter(BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-		builder.addPropertyValue("messageConverter", jacksonBeanDefinitionBuilder.getBeanDefinition());
+	private static void registerMessageConverters(BeanDefinitionBuilder builder) {
+		List<BeanDefinition> messageConverters = new ManagedList<BeanDefinition>();
+
+		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
+		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
+		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
+
+		if (JACKSON_2_PRESENT) {
+			BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+			jacksonBeanDefinitionBuilder.addPropertyValue("serializedPayloadClass", String.class);
+			messageConverters.add(jacksonBeanDefinitionBuilder.getBeanDefinition());
+		}
+
+		BeanDefinitionBuilder compositeMessageConverterBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.CompositeMessageConverter");
+		compositeMessageConverterBeanDefinitionBuilder.addConstructorArgValue(messageConverters);
+		builder.addPropertyValue("messageConverter", compositeMessageConverterBeanDefinitionBuilder.getBeanDefinition());
 	}
 
 	private static ManagedList<BeanDefinitionHolder> getArgumentResolvers(Element element, ParserContext parserContext) {

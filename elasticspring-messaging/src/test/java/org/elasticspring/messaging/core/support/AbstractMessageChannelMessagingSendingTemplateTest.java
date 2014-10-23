@@ -164,7 +164,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
 		when(this.destinationResolver.resolveDestination("defaultDestination")).thenReturn("resolvedDestination");
-		messageSendingTemplate.setDefaultDestination("defaultDestination");
+		messageSendingTemplate.setDefaultDestinationName("defaultDestination");
 
 		Map<String, Object> headers = Collections.<String, Object>singletonMap("headerKey", "headerValue");
 		String payload = "payload";

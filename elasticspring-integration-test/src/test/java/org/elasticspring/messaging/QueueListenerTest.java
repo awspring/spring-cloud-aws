@@ -75,6 +75,20 @@ public class QueueListenerTest {
 	}
 
 	@Test
+	public void send_simpleString_shouldBeReceivedWithoutDoubleQuotes() throws Exception {
+		// Arrange
+		this.messageListener.setCountDownLatch(new CountDownLatch(1));
+		this.messageListener.getReceivedMessages().clear();
+
+		// Act
+		this.queueMessagingTemplate.convertAndSend("QueueListenerTest", "Hello world!");
+
+		// Assert
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+	}
+
+	@Test
 	public void sendToAnnotation_WithAValidDestination_messageIsSent() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));

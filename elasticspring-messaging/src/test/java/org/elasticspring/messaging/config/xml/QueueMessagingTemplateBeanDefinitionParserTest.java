@@ -22,18 +22,25 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.messaging.core.QueueMessagingTemplate;
+import org.elasticspring.messaging.support.converter.ObjectMessageConverter;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -44,21 +51,34 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_withMinimalConfig_shouldProduceAQueueMessagingTemplateWithDefaults() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
 		//Assert
-		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonSQSAsync.class.getName()),
-				((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
-		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition
-				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
-		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
-		assertEquals(jacksonConverter, ((RootBeanDefinition) queueMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("messageConverter").getValue()).getBeanClassName());
+		QueueMessagingTemplate queueMessagingTemplate = registry.getBean(QueueMessagingTemplate.class);
+		assertSame(registry.getBean(AmazonSQSAsync.class), ReflectionTestUtils.getField(queueMessagingTemplate, "amazonSqs"));
+		Object cachingDestinationResolverProxy = ReflectionTestUtils.getField(queueMessagingTemplate, "destinationResolver");
+		Object targetDestinationResolver = ReflectionTestUtils.getField(cachingDestinationResolverProxy, "targetDestinationResolver");
+		assertEquals(registry.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"));
+		assertTrue(CompositeMessageConverter.class.isInstance(queueMessagingTemplate.getMessageConverter()));
+
+		assertTrue(CompositeMessageConverter.class.isInstance(queueMessagingTemplate.getMessageConverter()));
+		@SuppressWarnings("unchecked")
+		List<MessageConverter> messageConverters = (List<MessageConverter>) ReflectionTestUtils.getField(queueMessagingTemplate.getMessageConverter(), "converters");
+		assertEquals(2, messageConverters.size());
+		assertTrue(StringMessageConverter.class.isInstance(messageConverters.get(0)));
+		assertTrue(MappingJackson2MessageConverter.class.isInstance(messageConverters.get(1)));
+
+		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters.get(0);
+		assertSame(String.class, stringMessageConverter.getSerializedPayloadClass());
+		assertEquals(false, ReflectionTestUtils.getField(stringMessageConverter, "strictContentTypeMatch"));
+
+		MappingJackson2MessageConverter jackson2MessageConverter = (MappingJackson2MessageConverter) messageConverters.get(1);
+		assertSame(String.class, jackson2MessageConverter.getSerializedPayloadClass());
+		assertEquals(false, ReflectionTestUtils.getField(jackson2MessageConverter, "strictContentTypeMatch"));
 	}
 
 	@Test
@@ -79,16 +99,19 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_withCustomConverter_mustBeSetOnTemplate() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-converter.xml", getClass()));
 
 		//Assert
-		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals("myCustomConverter", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("messageConverter").getValue()).getBeanName());
+		QueueMessagingTemplate queueMessagingTemplateBeanDefinition = registry.getBean(QueueMessagingTemplate.class);
+		MessageConverter messageConverter = queueMessagingTemplateBeanDefinition.getMessageConverter();
+		assertTrue(CompositeMessageConverter.class.isInstance(messageConverter));
+		CompositeMessageConverter compositeMessageConverter = (CompositeMessageConverter) messageConverter;
+		assertEquals(2, compositeMessageConverter.getConverters().size());
+		assertTrue(ObjectMessageConverter.class.isInstance(compositeMessageConverter.getConverters().get(1)));
 	}
 
 	@Test
@@ -102,8 +125,8 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 
 		//Assert
 		BeanDefinition queueMessagingTemplateBeanDefinition = registry.getBeanDefinition("queueMessagingTemplate");
-		assertEquals("myDefaultDestination", ((RuntimeBeanReference) queueMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("defaultDestination").getValue()).getBeanName());
+		assertEquals("myDefaultDestination", queueMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("defaultDestinationName").getValue());
 	}
 
 	@Test

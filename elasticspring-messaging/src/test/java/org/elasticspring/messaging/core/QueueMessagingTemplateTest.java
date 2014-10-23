@@ -51,7 +51,7 @@ public class QueueMessagingTemplateTest {
 	public void send_withDefaultDestination_usesDefaultDestination() throws Exception {
 		AmazonSQS amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
-		queueMessagingTemplate.setDefaultDestination("my-queue");
+		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
 		queueMessagingTemplate.send(stringMessage);
@@ -86,7 +86,7 @@ public class QueueMessagingTemplateTest {
 	public void receive_withDefaultDestination_useDefaultDestination() throws Exception {
 		AmazonSQS amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
-		queueMessagingTemplate.setDefaultDestination("my-queue");
+		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
 		queueMessagingTemplate.receive();
 
@@ -119,7 +119,7 @@ public class QueueMessagingTemplateTest {
 	public void receiveAndConvert_withDefaultDestination_usesDefaultDestinationAndConvertsMessage() throws Exception {
 		AmazonSQS amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
-		queueMessagingTemplate.setDefaultDestination("my-queue");
+		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
 		String message = queueMessagingTemplate.receiveAndConvert(String.class);
 

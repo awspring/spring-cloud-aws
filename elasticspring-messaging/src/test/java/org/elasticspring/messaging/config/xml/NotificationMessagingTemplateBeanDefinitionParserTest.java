@@ -20,18 +20,20 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
-import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.elasticspring.messaging.core.NotificationMessagingTemplate;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alain Sahli
@@ -41,21 +43,22 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_withMinimalConfig_shouldCreateDefaultTemplate() throws Exception {
 		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
 		//Act
 		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-minimal.xml", getClass()));
 
 		//Assert
-		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.sns.AmazonSNSClient")),
-				((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
-		assertEquals(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition
-				.getConstructorArgumentValues().getArgumentValue(1, RuntimeBeanReference.class).getValue()).getBeanName());
-		String jacksonConverter = "org.springframework.messaging.converter.MappingJackson2MessageConverter";
-		assertEquals(jacksonConverter, ((RootBeanDefinition) notificationMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("messageConverter").getValue()).getBeanClassName());
+		NotificationMessagingTemplate notificationMessagingTemplate = registry.getBean(NotificationMessagingTemplate.class);
+		assertSame(registry.getBean(AmazonSNSClient.class), ReflectionTestUtils.getField(notificationMessagingTemplate, "amazonSns"));
+
+		Object cachingDestinationResolverProxy = ReflectionTestUtils.getField(notificationMessagingTemplate, "destinationResolver");
+		Object targetDestinationResolver = ReflectionTestUtils.getField(cachingDestinationResolverProxy, "targetDestinationResolver");
+		assertEquals(registry.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"));
+
+		assertTrue(StringMessageConverter.class.isInstance(notificationMessagingTemplate.getMessageConverter()));
+		assertEquals(String.class, ReflectionTestUtils.getField(notificationMessagingTemplate.getMessageConverter(), "serializedPayloadClass"));
 	}
 
 	@Test
@@ -74,21 +77,6 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomConverter_mustBeSetOnTemplate() throws Exception {
-		//Arrange
-		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
-
-		//Act
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-custom-converter.xml", getClass()));
-
-		//Assert
-		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("myCustomConverter", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("messageConverter").getValue()).getBeanName());
-	}
-
-	@Test
 	public void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
 		//Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
@@ -99,8 +87,8 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 
 		//Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("myDefaultDestination", ((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition.getPropertyValues()
-				.getPropertyValue("defaultDestination").getValue()).getBeanName());
+		assertEquals("myDefaultDestination", notificationMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("defaultDestinationName").getValue());
 	}
 
 	@Test

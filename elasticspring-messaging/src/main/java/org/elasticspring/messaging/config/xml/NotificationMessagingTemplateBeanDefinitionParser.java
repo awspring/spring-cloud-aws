@@ -21,8 +21,6 @@ import org.elasticspring.messaging.core.NotificationMessagingTemplate;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -34,10 +32,6 @@ import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.
 public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
-	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
-	private static final boolean JACKSON_2_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
 	private static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
 
 	@Override
@@ -47,27 +41,19 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			builder.addPropertyReference(
-					Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-		} else if (JACKSON_2_PRESENT) {
-			registerJacksonMessageConverter(builder);
-		}
-
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
-			builder.addPropertyReference(
-					Conventions.attributeNameToPropertyName(DEFAULT_DESTINATION_ATTRIBUTE), element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
+			builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
+		registerStringMessageConverter(builder);
 		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 	}
 
-	private void registerJacksonMessageConverter(BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-		jacksonBeanDefinitionBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		builder.addPropertyValue(
-				Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), jacksonBeanDefinitionBuilder.getBeanDefinition());
+	private void registerStringMessageConverter(BeanDefinitionBuilder builder) {
+		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
+		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
+		builder.addPropertyValue("messageConverter", stringMessageConverterBuilder.getBeanDefinition());
 	}
 
 }

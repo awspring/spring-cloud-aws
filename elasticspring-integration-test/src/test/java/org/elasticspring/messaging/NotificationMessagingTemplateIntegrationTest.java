@@ -20,13 +20,11 @@ import org.elasticspring.core.support.documentation.RuntimeUse;
 import org.elasticspring.messaging.config.annotation.NotificationMessage;
 import org.elasticspring.messaging.config.annotation.NotificationSubject;
 import org.elasticspring.messaging.core.NotificationMessagingTemplate;
-import org.elasticspring.messaging.core.TopicMessageChannel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -60,15 +58,32 @@ public class NotificationMessagingTemplateIntegrationTest {
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
 		String message = "Message content for SQS";
+		String subject = "A subject";
 
 		// Act
-		this.notificationMessagingTemplate.send("SqsReceivingSnsTopic", MessageBuilder.withPayload(message)
-				.setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "A subject").build());
+		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", message, subject);
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(message, this.notificationReceiver.getMessage());
-		assertEquals("A subject", this.notificationReceiver.getSubject());
+		assertEquals(subject, this.notificationReceiver.getSubject());
+	}
+
+	@Test
+	public void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination() throws Exception {
+		// Arrange
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		this.notificationReceiver.setCountDownLatch(countDownLatch);
+		String message = "Message content for default destination";
+		String subject = "Hello default destination";
+
+		// Act
+		this.notificationMessagingTemplate.sendNotification(message, subject);
+
+		// Assert
+		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals(subject, this.notificationReceiver.getSubject());
 	}
 
 	@RuntimeUse
