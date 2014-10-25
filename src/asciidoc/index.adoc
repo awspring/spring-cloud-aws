@@ -1,5 +1,5 @@
-= ElasticSpring Reference Documentation
+= Spring Cloud AWS Reference Documentation
 Agim Emruli; Alain Sahli; Christian Stettler
 
-== Introduction to ElasticSpring
-ElasticSpring is a cloud-development framework based on the popular Spring Framework.
+== Introduction to Spring Cloud AWS
+Spring Cloud AWS is a Spring Cloud module for Amazon Webservices.

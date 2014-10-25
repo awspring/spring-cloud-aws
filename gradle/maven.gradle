@@ -18,6 +18,8 @@
 
 
 
+
+
 allprojects {
 
     apply plugin: 'maven'
@@ -36,10 +38,10 @@ allprojects {
 
             pom.project {
                 description = project.description
-                url = "https://github.com/aemruli/elasticspring"
+                url = "http://projects.spring.io/spring-cloud/"
                 organization {
-                    name = "ElasticSpring"
-                    url = "http://elasticspring.org"
+                    name = "Spring IO"
+                    url = "http://spring.io"
                 }
                 licenses {
                     license {

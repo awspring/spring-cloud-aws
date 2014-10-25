@@ -16,6 +16,8 @@
 
 
 
+
+
 allprojects {
     apply plugin: 'java'
 
@@ -34,10 +36,10 @@ allprojects {
 
     jar {
         manifest {
-            attributes["Implementation-Title"] = "ElasticSpring"
+            attributes["Implementation-Title"] = "Spring-Cloud-AWS"
             attributes["Implementation-Version"] = project.version
-            attributes["Implementation-Vendor"] = "ElasticSpring"
-            attributes["Implementation-URL"] = "http://elasticspring.org"
+            attributes["Implementation-Vendor"] = "Spring-Cloud-AWS"
+            attributes["Implementation-URL"] = "http://projects.spring.io/spring-cloud/"
             attributes["Created-By"] = "Gradle:" + project.getGradle().gradleVersion + " , " +
                     "Java Version: " + rootProject.ext.buildenvironment.javaVersion + ", " +
                     "User: " + rootProject.ext.buildenvironment.username + ", " +
