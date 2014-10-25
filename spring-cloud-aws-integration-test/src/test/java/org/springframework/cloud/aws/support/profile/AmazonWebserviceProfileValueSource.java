@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.elasticspring.support.profile;
+package org.springframework.cloud.aws.support.profile;
 
-import org.springframework.test.annotation.IfProfileValue;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.amazonaws.util.EC2MetadataUtils;
+import org.springframework.test.annotation.ProfileValueSource;
 
 /**
  * @author Agim Emruli
  */
-@Retention(RetentionPolicy.RUNTIME)
-@IfProfileValue(name = "amazon-webservice-region-available", value = "true")
-public @interface IfAmazonWebserviceEnvironment {
+public class AmazonWebserviceProfileValueSource implements ProfileValueSource {
 
+	@Override
+	public String get(String key) {
+		if ("amazon-webservice-region-available".equals(key)) {
+			return Boolean.toString(EC2MetadataUtils.getAvailabilityZone() != null);
+		}
+		return null;
+	}
 }

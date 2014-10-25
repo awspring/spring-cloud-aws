@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.core.env.stack;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.elasticspring.support.TestStackInstanceIdService;
+import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

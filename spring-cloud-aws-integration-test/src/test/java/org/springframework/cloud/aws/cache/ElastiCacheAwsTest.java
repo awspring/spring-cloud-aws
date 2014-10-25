@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.elasticspring.support.profile.AmazonWebserviceProfileValueSource;
-import org.elasticspring.support.profile.IfAmazonWebserviceEnvironment;
+import org.springframework.cloud.aws.support.profile.AmazonWebserviceProfileValueSource;
+import org.springframework.cloud.aws.support.profile.IfAmazonWebserviceEnvironment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

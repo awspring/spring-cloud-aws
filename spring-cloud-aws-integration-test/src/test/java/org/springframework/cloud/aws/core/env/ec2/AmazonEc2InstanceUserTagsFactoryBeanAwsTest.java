@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
-import org.elasticspring.support.TestStackInstanceIdService;
+import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

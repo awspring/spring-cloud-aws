@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.core.env.stack;
 
-import org.elasticspring.support.TestStackEnvironment;
+import org.springframework.cloud.aws.support.TestStackEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

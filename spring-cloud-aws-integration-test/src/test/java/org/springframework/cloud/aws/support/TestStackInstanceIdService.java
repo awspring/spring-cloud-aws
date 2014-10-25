@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elasticspring.support;
+package org.springframework.cloud.aws.support;
 
 import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;

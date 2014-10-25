@@ -33,7 +33,7 @@
 
 	<els-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags" />
 
-	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
+	<bean id="testStackEnvironment" class="org.springframework.cloud.aws.support.TestStackEnvironment">
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>

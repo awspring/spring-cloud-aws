@@ -33,17 +33,17 @@
 
 	<els-context:stack-configuration stack-name="IntegrationTestStack" />
 
-	<bean id="testStackEnvironment" class="org.elasticspring.support.TestStackEnvironment">
+	<bean id="testStackEnvironment" class="org.springframework.cloud.aws.support.TestStackEnvironment">
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
 
-	<bean id="testStackInstanceIdService" class="org.elasticspring.support.TestStackInstanceIdService"
+	<bean id="testStackInstanceIdService" class="org.springframework.cloud.aws.support.TestStackInstanceIdService"
 		  factory-method="fromStackOutputKey">
 		<constructor-arg name="stackName"
-						 value="#{T(org.elasticspring.support.TestStackEnvironment).DEFAULT_STACK_NAME}" />
+						 value="#{T(org.springframework.cloud.aws.support.TestStackEnvironment).DEFAULT_STACK_NAME}" />
 		<constructor-arg name="outputKey"
-						 value="#{T(org.elasticspring.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}" />
+						 value="#{T(org.springframework.cloud.aws.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}" />
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
