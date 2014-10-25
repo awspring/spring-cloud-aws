@@ -79,7 +79,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
-		Resource[] resources = resourceLoader.getResources("classpath*:org/elasticspring/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
+		Resource[] resources = resourceLoader.getResources("classpath*:org/springframework/cloud/aws/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
 		assertEquals(1, resources.length);
 		assertTrue("load without wildcards", resources[0].exists());
 
