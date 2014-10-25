@@ -20,6 +20,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -53,7 +55,7 @@ subprojects {
         slf4jVersion = '1.7.7'
         log4jVersion = '1.2.17'
         awsSdkVersion = '1.9.3'
-        mockitoVersion = '1.10.0'
+        mockitoVersion = '1.10.8'
         hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
     }
