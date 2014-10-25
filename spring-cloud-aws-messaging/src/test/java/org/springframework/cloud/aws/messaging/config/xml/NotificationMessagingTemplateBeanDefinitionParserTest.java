@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.messaging.config.xml;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNSClient;
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;

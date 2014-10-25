@@ -14,6 +14,6 @@
 # limitations under the License.
 #
 
-http\://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd=org/elasticspring/context/config/xml/elasticspring-context-1.0.xsd
-http\://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd=org/elasticspring/cache/config/xml/elasticspring-cache-1.0.xsd
-http\://www.elasticspring.org/schema/mail/elasticspring-mail-1.0.xsd=org/elasticspring/mail/config/xml/elasticspring-mail-1.0.xsd
+http\://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd=org/springframework/cloud/aws/context/config/xml/elasticspring-context-1.0.xsd
+http\://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd=org/springframework/cloud/aws/cache/config/xml/elasticspring-cache-1.0.xsd
+http\://www.elasticspring.org/schema/mail/elasticspring-mail-1.0.xsd=org/springframework/cloud/aws/mail/config/xml/elasticspring-mail-1.0.xsd

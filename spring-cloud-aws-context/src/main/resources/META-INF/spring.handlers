@@ -14,6 +14,6 @@
 # limitations under the License.
 #
 
-http\://www.elasticspring.org/schema/context=org.elasticspring.context.config.xml.ContextNamespaceHandler
-http\://www.elasticspring.org/schema/cache=org.elasticspring.cache.config.xml.CacheNamespaceHandler
-http\://www.elasticspring.org/schema/mail=org.elasticspring.mail.config.xml.MailNamespaceHandler
+http\://www.elasticspring.org/schema/context=org.springframework.cloud.aws.context.config.xml.ContextNamespaceHandler
+http\://www.elasticspring.org/schema/cache=org.springframework.cloud.aws.cache.config.xml.CacheNamespaceHandler
+http\://www.elasticspring.org/schema/mail=org.springframework.cloud.aws.mail.config.xml.MailNamespaceHandler

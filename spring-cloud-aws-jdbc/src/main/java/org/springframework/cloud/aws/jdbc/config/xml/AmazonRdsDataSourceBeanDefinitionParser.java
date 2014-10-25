@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.jdbc.config.xml;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;

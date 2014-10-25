@@ -18,6 +18,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -120,7 +122,7 @@ project('spring-cloud-aws-context') {
                 taskdef name: "jarjar", classname: "com.tonicsystems.jarjar.JarJarTask", classpath: configurations.jarjar.asPath
                 jarjar(destfile: repackJar.archivePath) {
                     zipfileset(src: "${rootDir}/lib/AmazonElastiCacheClusterClient-1.0.1.jar")
-                    rule(pattern: "net.spy.memcached.**", result: "org.elasticspring.cache.memcached.@1")
+                    rule(pattern: "net.spy.memcached.**", result: "org.springframework.cloud.aws.cache.memcached.@1")
                 }
             }
         }

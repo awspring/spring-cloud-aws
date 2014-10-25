@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.jdbc.config.xml;
 
-import org.elasticspring.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
 import org.springframework.cloud.aws.jdbc.retry.RdbmsRetryOperationsInterceptor;
 import org.springframework.cloud.aws.jdbc.retry.SqlRetryPolicy;
