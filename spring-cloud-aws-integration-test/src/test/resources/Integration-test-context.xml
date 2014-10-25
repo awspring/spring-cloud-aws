@@ -31,12 +31,12 @@
 
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 
-	<aws-context:stack-configuration stack-name="IntegrationTestStack" />
-
 	<bean id="testStackEnvironment" class="org.springframework.cloud.aws.support.TestStackEnvironment">
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
+
+	<aws-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags"/>
 
 	<bean id="testStackInstanceIdService" class="org.springframework.cloud.aws.support.TestStackInstanceIdService"
 		  factory-method="fromStackOutputKey">

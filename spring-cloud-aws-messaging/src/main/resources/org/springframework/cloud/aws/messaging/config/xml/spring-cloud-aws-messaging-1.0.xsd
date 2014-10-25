@@ -24,9 +24,9 @@
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
-				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
+				schemaLocation="http://www.springframework.org/schema/tool/spring-tool.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
-				schemaLocation="http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" />
+				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
 				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd" />
 
