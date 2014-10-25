@@ -16,8 +16,18 @@
 
 
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.ajoberstar:gradle-git:0.11.2")
+    }
+}
+
 
 import java.text.SimpleDateFormat
+import org.ajoberstar.grgit.*
 
 ext.buildenvironment = [
         commitId: determineCommitId(),
@@ -40,35 +50,10 @@ def String determineCommitId() {
         env["BUILD_VCS_NUMBER"]
     }
 
-    // For the discovery builds, this points to the ElasticSpring revision
-    strategies << {
-        env.find { it.key.startsWith("build.vcs.number.ElasticSpring_on_GitHub") }?.value
-    }
-
     // If it's a checkout, ask Git for it
     strategies << {
-        if (file(".git/HEAD").exists()) {
-            def baos = new ByteArrayOutputStream()
-            def execResult = exec {
-                ignoreExitValue = true
-                commandLine = ["git", "log", "-1", "--format=%H"]
-                if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-                    commandLine = ["cmd", "/c"] + commandLine
-                }
-
-                standardOutput = baos
-            }
-            if (execResult.exitValue == 0) {
-                new String(baos.toByteArray(), "utf8").trim()
-            } else {
-                // Read commit id directly from filesystem
-                def headRef = file(".git/HEAD").text
-                headRef = headRef.replaceAll('ref: ', '').trim()
-                file(".git/$headRef").text.trim()
-            }
-        } else {
-            null
-        }
+        ext.repo = Grgit.open(project.file('.'))
+        return repo.head().id
     }
 
     for (strategy in strategies) {
