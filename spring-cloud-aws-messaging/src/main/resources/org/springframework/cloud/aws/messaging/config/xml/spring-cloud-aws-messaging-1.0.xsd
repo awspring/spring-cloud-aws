@@ -81,7 +81,7 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:all>
-			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+			<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
@@ -151,7 +151,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="default-destination" type="xsd:string" />
-					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -176,7 +176,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="default-destination" type="xsd:string" />
-					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -197,7 +197,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
-					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 					<xsd:attribute name="amazon-sns" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -221,7 +221,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
-					<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

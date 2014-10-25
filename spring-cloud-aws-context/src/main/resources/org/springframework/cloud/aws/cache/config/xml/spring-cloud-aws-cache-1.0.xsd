@@ -86,7 +86,7 @@
 	<xsd:complexType name="cacheClusterType">
 		<xsd:complexContent>
 			<xsd:extension base="abstractCacheConfiguration">
-				<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+				<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 				<xsd:attribute name="name" type="xsd:string" use="required">
 					<xsd:annotation>
 						<xsd:documentation>

@@ -48,7 +48,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attributeGroup ref="els-context:locationAttributeGroup" />
+			<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
 			<xsd:attribute name="amazon-ses" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
