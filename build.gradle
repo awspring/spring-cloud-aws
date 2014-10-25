@@ -24,6 +24,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -41,7 +43,7 @@ apply from: "gradle/javadoc.gradle"
 apply from: "gradle/maven.gradle"
 
 allprojects {
-    group = 'org.elasticspring'
+    group = 'org.springframework.cloud.aws'
     apply plugin: "project-report"
 }
 
