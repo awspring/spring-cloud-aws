@@ -18,6 +18,8 @@
 
 
 
+
+
 allprojects {
     apply plugin: 'java'
 
@@ -25,20 +27,20 @@ allprojects {
     compileJava {
         options.compilerArgs = [
                 '-Xlint:all', //Enable all warnings
-                '-Xlint:-options', //Disable options warning because we will have differences between the compiler and source code loevel
+                '-Xlint:-options', //Disable options warning because we will have differences between the compiler and source code level
                 '-Xlint:-serial', // Disable serialversionuid warnings
                 '-Werror']
         options.encoding = 'UTF-8'
 
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6
+        sourceCompatibility = 1.7
+        targetCompatibility = 1.7
     }
 
     jar {
         manifest {
             attributes["Implementation-Title"] = "Spring-Cloud-AWS"
             attributes["Implementation-Version"] = project.version
-            attributes["Implementation-Vendor"] = "Spring-Cloud-AWS"
+            attributes["Implementation-Vendor"] = "Spring IO"
             attributes["Implementation-URL"] = "http://projects.spring.io/spring-cloud/"
             attributes["Created-By"] = "Gradle:" + project.getGradle().gradleVersion + " , " +
                     "Java Version: " + rootProject.ext.buildenvironment.javaVersion + ", " +
