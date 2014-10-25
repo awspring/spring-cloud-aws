@@ -47,7 +47,7 @@ public class TestMemcacheServer {
 			portForInstance = SocketUtils.findAvailableTcpPort();
 
 			//noinspection NonThreadSafeLazyInitialization
-			daemon = new MemCacheDaemon<LocalCacheElement>();
+			daemon = new MemCacheDaemon<>();
 			CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024, 1024 * 1024 * 1024);
 			daemon.setCache(new CacheImpl(storage));
 			daemon.setAddr(new InetSocketAddress(portForInstance));

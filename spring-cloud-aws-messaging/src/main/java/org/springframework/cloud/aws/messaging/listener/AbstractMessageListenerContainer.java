@@ -53,9 +53,9 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
-	private final Set<String> queues = new HashSet<String>();
+	private final Set<String> queues = new HashSet<>();
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<String, ReceiveMessageRequest>();
+	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQS amazonSqs;
@@ -82,7 +82,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return Collections.unmodifiableMap(this.messageRequests);
 	}
 
-	public QueueMessageHandler getMessageHandler() {
+	protected QueueMessageHandler getMessageHandler() {
 		return this.messageHandler;
 	}
 
@@ -269,9 +269,9 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		synchronized (this.getLifecycleMonitor()) {
 			if (this.destinationResolver == null) {
 				if (this.resourceIdResolver == null) {
-					this.destinationResolver = new CachingDestinationResolverProxy<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
+					this.destinationResolver = new CachingDestinationResolverProxy<>(new DynamicQueueUrlDestinationResolver(this.amazonSqs));
 				} else {
-					this.destinationResolver = new CachingDestinationResolverProxy<String>(new DynamicQueueUrlDestinationResolver(this.amazonSqs, this.resourceIdResolver));
+					this.destinationResolver = new CachingDestinationResolverProxy<>(new DynamicQueueUrlDestinationResolver(this.amazonSqs, this.resourceIdResolver));
 				}
 			}
 

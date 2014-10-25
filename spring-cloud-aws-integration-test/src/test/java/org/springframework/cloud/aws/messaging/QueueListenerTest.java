@@ -122,7 +122,7 @@ public class QueueListenerTest {
 	public static class MessageListener {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-		private final List<String> receivedMessages = new ArrayList<String>();
+		private final List<String> receivedMessages = new ArrayList<>();
 		private CountDownLatch countDownLatch = new CountDownLatch(1);
 		private String senderId;
 		private Map<String, Object> allHeaders;
@@ -161,7 +161,7 @@ public class QueueListenerTest {
 	public static class MessageListenerWithSendTo {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-		private final List<String> receivedMessages = new ArrayList<String>();
+		private final List<String> receivedMessages = new ArrayList<>();
 
 		@RuntimeUse
 		@MessageMapping("SendToQueue")

@@ -132,7 +132,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	}
 
 	private static void registerMessageConverters(BeanDefinitionBuilder builder) {
-		List<BeanDefinition> messageConverters = new ManagedList<BeanDefinition>();
+		List<BeanDefinition> messageConverters = new ManagedList<>();
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
 		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
@@ -154,7 +154,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		if (resolversElement != null) {
 			return extractBeanSubElements(resolversElement, parserContext);
 		} else {
-			return new ManagedList<BeanDefinitionHolder>(0);
+			return new ManagedList<>(0);
 		}
 	}
 
@@ -163,12 +163,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		if (handlersElement != null) {
 			return extractBeanSubElements(handlersElement, parserContext);
 		} else {
-			return new ManagedList<BeanDefinitionHolder>(0);
+			return new ManagedList<>(0);
 		}
 	}
 
 	private static ManagedList<BeanDefinitionHolder> extractBeanSubElements(Element parentElement, ParserContext parserContext) {
-		ManagedList<BeanDefinitionHolder> list = new ManagedList<BeanDefinitionHolder>();
+		ManagedList<BeanDefinitionHolder> list = new ManagedList<>();
 		list.setSource(parserContext.extractSource(parentElement));
 		for (Element beanElement : DomUtils.getChildElementsByTagName(parentElement, "bean")) {
 			BeanDefinitionHolder beanDef = parserContext.getDelegate().parseBeanDefinitionElement(beanElement);

@@ -109,7 +109,7 @@ public class MessageListenerContainerAwsTest {
 
 		@Override
 		public void run() {
-			List<SendMessageBatchRequestEntry> messages = new ArrayList<SendMessageBatchRequestEntry>();
+			List<SendMessageBatchRequestEntry> messages = new ArrayList<>();
 			for (int i = 0; i < BATCH_MESSAGE_SIZE; i++) {
 				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(i).toString()));
 			}

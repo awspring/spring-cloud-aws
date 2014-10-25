@@ -69,7 +69,7 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	}
 
 	private Map<String, MessageAttributeValue> getContentTypeMessageAttributes(Message<?> message) {
-		Map<String, MessageAttributeValue> messageAttributes = new HashMap<String, MessageAttributeValue>(1);
+		Map<String, MessageAttributeValue> messageAttributes = new HashMap<>(1);
 		Object mimeType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		if (mimeType != null) {
 			if (mimeType instanceof MimeType) {

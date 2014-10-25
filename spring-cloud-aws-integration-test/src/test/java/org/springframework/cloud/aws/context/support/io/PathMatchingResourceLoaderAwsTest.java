@@ -90,7 +90,7 @@ public class PathMatchingResourceLoaderAwsTest {
 	}
 
 	private void createTestFiles(String... bucketNames) throws InterruptedException {
-		List<CreateFileCallable> callables = new ArrayList<CreateFileCallable>();
+		List<CreateFileCallable> callables = new ArrayList<>();
 
 		for (String bucketName : bucketNames) {
 			for (String fileName : FILES_FOR_HIERARCHY) {
@@ -101,7 +101,7 @@ public class PathMatchingResourceLoaderAwsTest {
 	}
 
 	private void deleteTestFiles(String... bucketNames) throws InterruptedException {
-		List<DeleteFileCallable> deleteFileCallables = new ArrayList<DeleteFileCallable>();
+		List<DeleteFileCallable> deleteFileCallables = new ArrayList<>();
 		for (String bucketName : bucketNames) {
 			for (String fileName : FILES_FOR_HIERARCHY) {
 				deleteFileCallables.add(new DeleteFileCallable(bucketName, fileName, this.amazonS3));

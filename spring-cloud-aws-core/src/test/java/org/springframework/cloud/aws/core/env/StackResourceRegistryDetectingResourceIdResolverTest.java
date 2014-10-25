@@ -92,7 +92,7 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 	}
 
 	private static ListableBeanFactory makeListableBeanFactory(StackResourceRegistry... stackResourceRegistries) {
-		Map<String, StackResourceRegistry> stackResourceRegistryMap = new HashMap<String, StackResourceRegistry>();
+		Map<String, StackResourceRegistry> stackResourceRegistryMap = new HashMap<>();
 
 		for (StackResourceRegistry stackResourceRegistry : stackResourceRegistries) {
 			stackResourceRegistryMap.put(String.valueOf(stackResourceRegistry.hashCode()), stackResourceRegistry);

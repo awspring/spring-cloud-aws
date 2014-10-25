@@ -55,7 +55,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<
 
 	@Override
 	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
 		ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
 		for (Tag tag : tagsForResource.getTagList()) {
 			userTags.put(tag.getKey(), tag.getValue());

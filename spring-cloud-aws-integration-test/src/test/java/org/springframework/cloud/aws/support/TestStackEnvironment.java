@@ -98,7 +98,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 		return getStackResources(stackName);
 	}
 
-	public String getByLogicalId(String id) {
+	protected String getByLogicalId(String id) {
 		for (StackResource stackResource : this.stackResources.getStackResources()) {
 			if (stackResource.getLogicalResourceId().equals(id)) {
 				return stackResource.getPhysicalResourceId();

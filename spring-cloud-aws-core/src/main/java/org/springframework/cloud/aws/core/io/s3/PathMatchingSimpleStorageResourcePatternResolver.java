@@ -159,7 +159,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	}
 
 	private Set<Resource> findPathMatchingKeys(String keyPattern, List<String> matchingBuckets) {
-		Set<Resource> resources = new HashSet<Resource>();
+		Set<Resource> resources = new HashSet<>();
 		if (this.pathMatcher.isPattern(keyPattern)) {
 			for (String bucketName : matchingBuckets) {
 				findPathMatchingKeyInBucket(bucketName, resources, null, keyPattern);
@@ -269,7 +269,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	}
 
 	private Set<Resource> getResourcesFromObjectSummaries(String bucketName, String keyPattern, List<S3ObjectSummary> objectSummaries) {
-		Set<Resource> resources = new HashSet<Resource>();
+		Set<Resource> resources = new HashSet<>();
 		for (S3ObjectSummary objectSummary : objectSummaries) {
 			String keyPath = SimpleStorageNameUtils.getLocationForBucketAndObject(bucketName, objectSummary.getKey());
 			if (this.pathMatcher.match(keyPattern, objectSummary.getKey())) {
@@ -285,7 +285,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
 	private List<String> findMatchingBuckets(String bucketPattern) {
 		List<Bucket> buckets = this.amazonS3.listBuckets();
-		List<String> matchingBuckets = new ArrayList<String>();
+		List<String> matchingBuckets = new ArrayList<>();
 		for (Bucket bucket : buckets) {
 			this.amazonS3.getBucketLocation(bucket.getName());
 			if (this.pathMatcher.match(bucketPattern, bucket.getName())) {

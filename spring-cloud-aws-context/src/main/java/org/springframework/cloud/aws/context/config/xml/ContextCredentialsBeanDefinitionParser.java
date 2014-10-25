@@ -63,7 +63,7 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 		}
 
 		List<Element> elements = DomUtils.getChildElements(element);
-		ManagedList<BeanDefinition> credentialsProviders = new ManagedList<BeanDefinition>(elements.size());
+		ManagedList<BeanDefinition> credentialsProviders = new ManagedList<>(elements.size());
 
 		for (Element credentialsProviderElement : elements) {
 			if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {

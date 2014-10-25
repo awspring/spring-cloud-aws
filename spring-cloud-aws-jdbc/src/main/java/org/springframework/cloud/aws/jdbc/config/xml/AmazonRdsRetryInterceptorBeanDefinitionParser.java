@@ -96,7 +96,7 @@ class AmazonRdsRetryInterceptorBeanDefinitionParser extends AbstractSingleBeanDe
 	private static BeanDefinition buildRetryPolicyDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(COMPOSITE_RETRY_POLICY_CLASS_NAME);
 
-		ManagedList<BeanDefinition> policies = new ManagedList<BeanDefinition>(2);
+		ManagedList<BeanDefinition> policies = new ManagedList<>(2);
 		policies.add(buildDatabaseInstancePolicy(element, parserContext));
 		policies.add(buildSQLRetryPolicy(element));
 

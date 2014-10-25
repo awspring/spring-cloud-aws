@@ -18,7 +18,6 @@ package org.springframework.cloud.aws.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.util.EC2MetadataUtils;
 import org.springframework.util.Assert;
 
 public class Ec2MetadataRegionProvider implements RegionProvider {

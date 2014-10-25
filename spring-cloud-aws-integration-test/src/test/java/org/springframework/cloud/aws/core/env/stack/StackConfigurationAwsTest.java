@@ -40,7 +40,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ContextConfiguration("StackConfigurationAwsTest-context.xml")
 public class StackConfigurationAwsTest {
 
-	private final List<ClassPathXmlApplicationContext> loadedApplicationContexts = new ArrayList<ClassPathXmlApplicationContext>();
+	private final List<ClassPathXmlApplicationContext> loadedApplicationContexts = new ArrayList<>();
 
 	@Autowired
 	private TestStackInstanceIdService testStackInstanceIdService;

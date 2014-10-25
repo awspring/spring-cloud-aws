@@ -60,7 +60,7 @@ class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResource
 	}
 
 	private static Map<String, String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
-		Map<String, String> stackResourceMappings = new HashMap<String, String>();
+		Map<String, String> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
 			stackResourceMappings.put(stackResourceSummary.getLogicalResourceId(), stackResourceSummary.getPhysicalResourceId());

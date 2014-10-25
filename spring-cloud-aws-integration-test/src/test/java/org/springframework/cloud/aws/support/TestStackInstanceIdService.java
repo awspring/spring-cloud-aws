@@ -211,7 +211,7 @@ public class TestStackInstanceIdService {
 		}
 
 		private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
-			List<String> allStackNames = new ArrayList<String>();
+			List<String> allStackNames = new ArrayList<>();
 
 			for (Stack stack : describeStacksResult.getStacks()) {
 				allStackNames.add(stack.getStackName());

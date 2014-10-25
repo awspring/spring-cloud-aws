@@ -41,7 +41,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	@Test
 	public void createInstance_stackWithTwoResources_returnsStackResourceRegistryWithTwoResources() throws Exception {
 		// Arrange
-		Map<String, String> resourceIdMappings = new HashMap<String, String>();
+		Map<String, String> resourceIdMappings = new HashMap<>();
 		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
 		resourceIdMappings.put("logicalResourceIdTwo", "physicalResourceIdTwo");
 
@@ -94,7 +94,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	private static AmazonCloudFormation makeAmazonCloudFormationClient(Map<String, String> resourceIdMappings) {
-		List<StackResourceSummary> stackResourceSummaries = new ArrayList<StackResourceSummary>();
+		List<StackResourceSummary> stackResourceSummaries = new ArrayList<>();
 
 		for (Map.Entry<String, String> entry : resourceIdMappings.entrySet()) {
 			String logicalResourceId = entry.getKey();

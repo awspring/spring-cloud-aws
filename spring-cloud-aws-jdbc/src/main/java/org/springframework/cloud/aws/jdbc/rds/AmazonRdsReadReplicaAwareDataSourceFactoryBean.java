@@ -74,7 +74,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 			return super.createInstance();
 		}
 
-		HashMap<Object, Object> replicaMap = new HashMap<Object, Object>(
+		HashMap<Object, Object> replicaMap = new HashMap<>(
 				dbInstance.getReadReplicaDBInstanceIdentifiers().size());
 
 		for (String replicaName : dbInstance.getReadReplicaDBInstanceIdentifiers()) {

@@ -80,7 +80,7 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 
 	private Map<String, String> getUserData() {
 		if (this.cachedUserData == null) {
-			Map<String, String> userDataMap = new LinkedHashMap<String, String>();
+			Map<String, String> userDataMap = new LinkedHashMap<>();
 			String encodedUserData = null;
 			try {
 				encodedUserData = EC2MetadataUtils.getUserData();

@@ -164,7 +164,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 			this.taskExecutor = taskExecutor;
 			this.bucketName = bucketName;
 			this.objectName = objectName;
-			this.completionService = new ExecutorCompletionService<UploadPartResult>(new ExecutorServiceAdapter(this.taskExecutor));
+			this.completionService = new ExecutorCompletionService<>(new ExecutorServiceAdapter(this.taskExecutor));
 		}
 
 		@Override
@@ -247,7 +247,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		}
 
 		private List<PartETag> getMultiPartsUploadResults() throws ExecutionException, InterruptedException {
-			List<PartETag> result = new ArrayList<PartETag>(this.partNumberCounter);
+			List<PartETag> result = new ArrayList<>(this.partNumberCounter);
 			for (int i = 0; i < this.partNumberCounter; i++) {
 				Future<UploadPartResult> uploadPartResultFuture = this.completionService.take();
 				result.add(uploadPartResultFuture.get().getPartETag());

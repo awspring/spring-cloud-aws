@@ -63,7 +63,7 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 	}
 
 	private void registerMessageConverters(BeanDefinitionBuilder builder, Element element) {
-		List<BeanMetadataElement> messageConverters = new ManagedList<BeanMetadataElement>();
+		List<BeanMetadataElement> messageConverters = new ManagedList<>();
 
 		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
 		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);

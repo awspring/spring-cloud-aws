@@ -37,9 +37,8 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration
 public class QueueMessagingTemplateIntegrationTest {
 
-	public static final String JSON_QUEUE_NAME = "JsonQueue";
-	public static final String STREAM_QUEUE_NAME = "StreamQueue";
-	public static final String STRING_QUEUE_NAME = "StringQueue";
+	private static final String JSON_QUEUE_NAME = "JsonQueue";
+	private static final String STRING_QUEUE_NAME = "StringQueue";
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Resource(name = "defaultQueueMessagingTemplate")
@@ -117,7 +116,7 @@ public class QueueMessagingTemplateIntegrationTest {
 		}
 	}
 
-	interface StringList extends List<String> {
+	private interface StringList extends List<String> {
 
 	}
 

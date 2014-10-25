@@ -53,7 +53,7 @@ public class AmazonEc2InstanceUserTagsFactoryBean extends AbstractFactoryBean<Ma
 
 	@Override
 	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> properties = new LinkedHashMap<>();
 		DescribeTagsResult tags = this.amazonEc2.describeTags(new DescribeTagsRequest().withFilters(
 				new Filter("resource-id", Collections.singletonList(this.idProvider.getCurrentInstanceId())),
 				new Filter("resource-type", Collections.singletonList("instance"))));

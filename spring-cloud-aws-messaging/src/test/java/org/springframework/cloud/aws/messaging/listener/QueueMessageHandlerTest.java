@@ -38,6 +38,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -384,7 +385,7 @@ public class QueueMessageHandlerTest {
 
 		@RuntimeUse
 		@MessageMapping("testQueue")
-		public void receive(@Payload String payload, @org.springframework.messaging.handler.annotation.Headers Map<String, String> headers) {
+		public void receive(@Payload String payload, @Headers Map<String, String> headers) {
 			this.payload = payload;
 			this.headers = headers;
 		}

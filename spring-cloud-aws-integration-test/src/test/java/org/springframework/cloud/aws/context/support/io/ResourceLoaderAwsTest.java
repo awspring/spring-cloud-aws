@@ -63,7 +63,7 @@ import static org.junit.Assert.assertTrue;
 public class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";
-	private final List<String> createdObjects = new ArrayList<String>();
+	private final List<String> createdObjects = new ArrayList<>();
 	@Autowired
 	private ApplicationContext applicationContext;
 	@Autowired

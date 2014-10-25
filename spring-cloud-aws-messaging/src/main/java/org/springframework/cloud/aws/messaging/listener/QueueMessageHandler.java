@@ -64,7 +64,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 		resolvers.addAll(getCustomArgumentResolvers());
 
 		resolvers.add(new HeaderMethodArgumentResolver(null, null));
@@ -80,7 +80,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
-		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
+		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
 		handlers.addAll(this.getCustomReturnValueHandlers());
 		if (this.defaultReturnValueHandler != null) {
 			handlers.add(this.defaultReturnValueHandler);
@@ -105,7 +105,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 			throw new IllegalStateException("@MessageMapping annotation must have at least one destination");
 		}
 
-		Set<String> logicalResourceIds = new HashSet<String>(messageMappingAnnotation.value().length);
+		Set<String> logicalResourceIds = new HashSet<>(messageMappingAnnotation.value().length);
 		logicalResourceIds.addAll(Arrays.asList(messageMappingAnnotation.value()));
 
 		return new MappingInformation(logicalResourceIds);
@@ -132,7 +132,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected Comparator<MappingInformation> getMappingComparator(Message<?> message) {
-		return new ComparableComparator<MappingInformation>();
+		return new ComparableComparator<>();
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	}
 
 	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
-		List<MessageConverter> payloadArgumentConverters = new ArrayList<MessageConverter>();
+		List<MessageConverter> payloadArgumentConverters = new ArrayList<>();
 
 		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);

@@ -72,22 +72,28 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private ManagedList<Object> createCacheCollection(Element element, ParserContext parserContext) {
-		ManagedList<Object> caches = new ManagedList<Object>();
+		ManagedList<Object> caches = new ManagedList<>();
 		List<Element> cacheElements = DomUtils.getChildElements(element);
 
 		for (Element cacheElement : cacheElements) {
 			String elementName = cacheElement.getLocalName();
 
-			if (CACHE_REF_ELEMENT_NAME.equals(elementName)) {
-				caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
-			} else if (CACHE_CLUSTER_ELEMENT_NAME.equals(elementName)) {
-				String cacheClusterId = getRequiredAttribute("name", cacheElement, parserContext);
-				caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(cacheElement, parserContext,
-						cacheClusterId), cacheElement.getAttribute("expiration")));
-			} else if (CACHE_ELEMENT_NAME.equals(elementName)) {
-				String name = getRequiredAttribute("name", cacheElement, parserContext);
-				String address = getRequiredAttribute("address", cacheElement, parserContext);
-				caches.add(createCache(name, createStaticMemcachedFactoryBean(address), cacheElement.getAttribute("expiration")));
+			switch (elementName) {
+				case CACHE_REF_ELEMENT_NAME:
+					caches.add(new RuntimeBeanReference(cacheElement.getAttribute("ref")));
+					break;
+				case CACHE_CLUSTER_ELEMENT_NAME:
+					String cacheClusterId = getRequiredAttribute("name", cacheElement, parserContext);
+					caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(cacheElement, parserContext,
+							cacheClusterId), cacheElement.getAttribute("expiration")));
+					break;
+				case CACHE_ELEMENT_NAME:
+					String name = getRequiredAttribute("name", cacheElement, parserContext);
+					String address = getRequiredAttribute("address", cacheElement, parserContext);
+					caches.add(createCache(name, createStaticMemcachedFactoryBean(address), cacheElement.getAttribute("expiration")));
+					break;
+				default:
+					parserContext.getReaderContext().error("Unknown element detected",parserContext.extractSource(cacheElement));
 			}
 		}
 		return caches;

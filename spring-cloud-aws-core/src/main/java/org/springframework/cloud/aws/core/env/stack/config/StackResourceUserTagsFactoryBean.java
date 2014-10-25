@@ -46,7 +46,7 @@ public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<St
 
 	@Override
 	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> userTags = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
 		DescribeStacksResult stacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
 		for (Stack stack : stacksResult.getStacks()) {
 			for (Tag tag : stack.getTags()) {
