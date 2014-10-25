@@ -20,6 +20,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -148,7 +150,7 @@ project('spring-cloud-aws-context') {
     jar {
         dependsOn memCachedClientRepackJar
         from(zipTree(memCachedClientRepackJar.archivePath)) {
-            include "org/elasticspring/cache/memcached/**"
+            include "org/springframework/cloud/aws/cache/memcached/**"
         }
     }
 }
