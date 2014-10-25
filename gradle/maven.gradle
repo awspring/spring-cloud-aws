@@ -16,12 +16,6 @@
 
 
 
-
-
-
-
-
-
 allprojects {
 
     apply plugin: 'maven'
@@ -33,7 +27,49 @@ allprojects {
 
     install {
         repositories.mavenInstaller {
-            customizePom(pom, project)
+            pom.whenConfigured { generatedPom ->
+                // eliminate test-scoped dependencies (no need in maven central poms)
+                generatedPom.dependencies.removeAll { dep ->
+                    dep.scope == "test"
+                }
+
+                // sort to make pom dependencies order consistent to ease comparison of older poms
+                generatedPom.dependencies = generatedPom.dependencies.sort { dep ->
+                    "$dep.scope:$dep.groupId:$dep.artifactId"
+                }
+
+                // add all items necessary for maven central publication
+                generatedPom.project {
+                    description = project.description
+                    url = "http://projects.spring.io/spring-cloud/"
+                    organization {
+                        name = "Spring IO"
+                        url = "http://spring.io"
+                    }
+                    licenses {
+                        license {
+                            name = "The Apache Software License, Version 2.0"
+                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                            distribution = "repo"
+                        }
+                    }
+                    scm {
+                        url = "https://github.com/aemruli/elasticspring"
+                        connection = "scm:git:git://github.com/aemruli/elasticspring"
+                        developerConnection = "scm:git:git://github.com/aemruli/elasticspring"
+                    }
+                    developers {
+                        developer {
+                            id = "aemruli"
+                            name = "Agim Emruli"
+                        }
+                        developer {
+                            id = "alainsahli"
+                            name = "Alain Sahli"
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -50,52 +86,6 @@ allprojects {
                 ext.s3credentials = [userName: S3_ACCESS_KEY, passphrase: S3_SECRET_KEY]
                 repository(url: repositoryUrl) { authentication(s3credentials) }
                 snapshotRepository(url: repositoryUrl) { authentication(s3credentials) }
-            }
-        }
-    }
-}
-
-def customizePom(pom, gradleProject) {
-    pom.whenConfigured { generatedPom ->
-        // eliminate test-scoped dependencies (no need in maven central poms)
-        generatedPom.dependencies.removeAll { dep ->
-            dep.scope == "test"
-        }
-
-        // sort to make pom dependencies order consistent to ease comparison of older poms
-        generatedPom.dependencies = generatedPom.dependencies.sort { dep ->
-            "$dep.scope:$dep.groupId:$dep.artifactId"
-        }
-
-        // add all items necessary for maven central publication
-        generatedPom.project {
-            description = project.description
-            url = "http://projects.spring.io/spring-cloud/"
-            organization {
-                name = "Spring IO"
-                url = "http://spring.io"
-            }
-            licenses {
-                license {
-                    name = "The Apache Software License, Version 2.0"
-                    url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                    distribution = "repo"
-                }
-            }
-            scm {
-                url = "https://github.com/aemruli/elasticspring"
-                connection = "scm:git:git://github.com/aemruli/elasticspring"
-                developerConnection = "scm:git:git://github.com/aemruli/elasticspring"
-            }
-            developers {
-                developer {
-                    id = "aemruli"
-                    name = "Agim Emruli"
-                }
-                developer {
-                    id = "alainsahli"
-                    name = "Alain Sahli"
-                }
             }
         }
     }
