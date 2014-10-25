@@ -260,6 +260,7 @@
 			<xsd:enumeration value="US_WEST_1" />
 			<xsd:enumeration value="US_WEST_2" />
 			<xsd:enumeration value="EU_WEST_1" />
+			<xsd:enumeration value="EU_CENTRAL_1" />
 			<xsd:enumeration value="AP_SOUTHEAST_1" />
 			<xsd:enumeration value="AP_SOUTHEAST_2" />
 			<xsd:enumeration value="AP_NORTHEAST_1" />
