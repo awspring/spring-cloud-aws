@@ -15,12 +15,14 @@
  */
 
 
+
+
 allprojects {
     ext.javadocLinks = [
-            "http://docs.oracle.com/javase/6/docs/api/",
-            "http://docs.oracle.com/javaee/6/api/",
+            "http://docs.oracle.com/javase/7/docs/api/",
+            "http://docs.oracle.com/javaee/7/api/",
             "http://fasterxml.github.com/jackson-core/javadoc/2.0.0/",
-            "http://docs.spring.io/spring/docs/4.0.x/javadoc-api/"
+            "http://docs.spring.io/spring/docs/4.1.x/javadoc-api/"
     ] as String[]
 }
 
