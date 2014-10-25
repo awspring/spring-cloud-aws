@@ -16,24 +16,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -102,7 +84,7 @@ subprojects {
     }
 }
 
-project('elasticspring-core') {
+project('spring-cloud-aws-core') {
     description = 'elasticspring core'
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
@@ -145,7 +127,7 @@ project('spring-cloud-aws-context') {
     tasks.compileJava.dependsOn(memCachedClientRepackJar)
 
     dependencies {
-        compile project(":elasticspring-core")
+        compile project(":spring-cloud-aws-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
         compile("org.springframework:spring-context-support:${springFrameworkVersion}")
         compile("javax.mail:mailapi:1.4.3") {
@@ -203,7 +185,7 @@ project('spring-cloud-aws-messaging') {
 project('spring-cloud-aws-integration-test') {
     description = 'elasticspring integration test on AWS'
     dependencies {
-        testCompile project(":elasticspring-core")
+        testCompile project(":spring-cloud-aws-core")
         testCompile project(":spring-cloud-aws-context")
         testCompile project(":spring-cloud-aws-jdbc")
         testCompile project(":spring-cloud-aws-messaging")
