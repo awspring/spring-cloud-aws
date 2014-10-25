@@ -30,6 +30,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -196,7 +198,7 @@ project('spring-cloud-aws-messaging') {
     }
 }
 
-project('elasticspring-integration-test') {
+project('spring-cloud-aws-integration-test') {
     description = 'elasticspring integration test on AWS'
     dependencies {
         testCompile project(":elasticspring-core")
