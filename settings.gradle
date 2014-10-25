@@ -15,5 +15,7 @@
  */
 
 
+
+
 rootProject.name = 'elasticspring'
-include 'elasticspring-core', 'elasticspring-context', 'elasticspring-jdbc', 'elasticspring-messaging', 'elasticspring-integration-test'
+include 'elasticspring-core', 'elasticspring-context', 'elasticspring-jdbc', 'spring-cloud-aws-messaging', 'elasticspring-integration-test'

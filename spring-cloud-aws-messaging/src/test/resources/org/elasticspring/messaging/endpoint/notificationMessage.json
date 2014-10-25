@@ -1,0 +1,26 @@
+{
+	"Type": "Notification",
+	"MessageId": "f2c15fec-c617-5b08-b54d-13c4099fec60",
+	"TopicArn": "arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+	"Subject": "asdasd",
+	"Message": "asdasd",
+	"Timestamp": "2014-06-28T14:12:24.418Z",
+	"SignatureVersion": "1",
+	"Signature": "XDvKSAnhxECrAmyIrs0Dsfbp/tnKD1IvoOOYTU28FtbUoxr/CgziuW87yZwTuSNNbHJbdD3BEjHS0vKewm0xBeQ0PToDkgtoORXo5RWnmShDQ2nhkthFhZnNulKtmFtRogjBtCwbz8sPnbOCSk21ruyXNdV2RUbdDalndAW002CWEQmYMxFSN6OXUtMueuT610aX+tqeYP4Z6+8WTWLWjAuVyy7rOI6KHYBcVDhKtskvTOPZ4tiVohtQdQbO2Gjuh1vblRzzwMkfaoFTSWImd4pFXxEsv/fq9aGIlqq9xEryJ0w2huFwI5gxyhvGt0RnTd9YvmAEC+WzdJDOqaDNxg==",
+	"SigningCertURL": "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-e372f8ca30337fdb084e8ac449342c77.pem",
+	"UnsubscribeURL": "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-1:721324560415:mySampleTopic:9859a6c9-6083-4690-ab02-d1aead3442df",
+	"MessageAttributes": {
+		"AWS.SNS.MOBILE.MPNS.Type": {
+			"Type": "String",
+			"Value": "token"
+		},
+		"AWS.SNS.MOBILE.WNS.Type": {
+			"Type": "String",
+			"Value": "wns/badge"
+		},
+		"AWS.SNS.MOBILE.MPNS.NotificationClass": {
+			"Type": "String",
+			"Value": "realtime"
+		}
+	}
+}

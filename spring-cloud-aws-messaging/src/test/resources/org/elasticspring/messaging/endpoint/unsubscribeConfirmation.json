@@ -1,0 +1,12 @@
+{
+	"Type": "UnsubscribeConfirmation",
+	"MessageId": "7b9a6321-45d5-461a-bc35-9c2d18ed9dbe",
+	"Token": "2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45",
+	"TopicArn": "arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+	"Message": "You have chosen to deactivate subscription arn:aws:sns:eu-west-1:111111111111:mySampleTopic:f64111de-e681-4820-a8be-474f64c1bbf8.\nTo cancel this operation and restore the subscription, visit the SubscribeURL included in this message.",
+	"SubscribeURL": "https://sns.eu-west-1.amazonaws.com/?Action=ConfirmSubscription&TopicArn=arn:aws:sns:eu-west-1:721324560415:mySampleTopic&Token=2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45",
+	"Timestamp": "2014-06-28T19:33:00.497Z",
+	"SignatureVersion": "1",
+	"Signature": "EAb0k1XoD2h+u4j2GB42wEFCVUFKEaS/2W+p+3wK1GfZDZn4LeDLbkxJ1LYF/A1CYL+sCJ4ZmLFI1axm0V/p+fESkNbKQoQotMgma+PtA6KnmRrKEU8O6nUELqeVPWFAoQ9ZsW9FCAXVDXoPxiqHNTH+tC7mzAsvajyp4aTm/POqkRKBl+A/7dHUqfHGup/FJhLNgTAciBZSloa5EuBKxInJQfoZjy3DU8qKXXhmKKRdyVwOGEuReo/njy4c3Phtn0+logu2PZUKqkGTuJZVbapHmcTq+0MqIh05sevLDmTEfBlsmNThhWIyCza/t68RRlqm9cRLjINSWfrv1Xkrpw==",
+	"SigningCertURL": "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-e372f8ca30337fdb084e8ac449342c77.pem"
+}
