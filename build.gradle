@@ -18,14 +18,6 @@
 
 
 
-
-
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -43,7 +35,7 @@ apply from: "gradle/javadoc.gradle"
 apply from: "gradle/maven.gradle"
 
 allprojects {
-    group = 'org.springframework.cloud.aws'
+    group = 'org.elasticspring'
     apply plugin: "project-report"
 }
 
@@ -58,7 +50,7 @@ subprojects {
         junitVersion = '4.11'
         slf4jVersion = '1.7.2'
         log4jVersion = '1.2.17'
-        awsSdkVersion = '1.8.2'
+        awsSdkVersion = '1.9.0'
         mockitoVersion = '1.9.5'
         hamcrestVersion = '1.3'
         tomcatVersion = "7.0.34"
@@ -98,10 +90,13 @@ project('spring-cloud-aws-core') {
     description = 'spring cloud aws core'
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
-        compile("com.amazonaws:aws-java-sdk:${awsSdkVersion}") {
+        compile("com.amazonaws:aws-java-sdk-core:${awsSdkVersion}") {
             exclude module: "stax-api"
             exclude module: "activation"
         }
+        compile("com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}")
+        compile("com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}")
+        compile("com.amazonaws:aws-java-sdk-cloudformation:${awsSdkVersion}")
         compile("org.springframework:spring-beans:${springFrameworkVersion}")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-context:${springFrameworkVersion}")
@@ -144,6 +139,9 @@ project('spring-cloud-aws-context') {
             exclude module: "activation"
         }
         compile files(memCachedClientRepackJar.archivePath)
+        compile("com.amazonaws:aws-java-sdk-elasticache:${awsSdkVersion}")
+        compile("com.amazonaws:aws-java-sdk-ses:${awsSdkVersion}")
+
 
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("com.thimbleware.jmemcached:jmemcached-core:1.0.0")
@@ -172,6 +170,8 @@ project('spring-cloud-aws-jdbc') {
         compile("org.springframework.retry:spring-retry:${springRetryVersion}") {
             exclude module: "spring-context"
         }
+        compile("com.amazonaws:aws-java-sdk-rds:${awsSdkVersion}")
+        compile("com.amazonaws:aws-java-sdk-iam:${awsSdkVersion}")
 
         testRuntime("mysql:mysql-connector-java:5.1.16")
         testRuntime("org.apache.tomcat.extras:tomcat-extras-juli-adapters:${tomcatVersion}")
@@ -187,6 +187,8 @@ project('spring-cloud-aws-messaging') {
         compile("org.springframework:spring-messaging:${springFrameworkVersion}")
         compile("javax.servlet:javax.servlet-api:3.0.1")
         compile("org.springframework:spring-web:${springFrameworkVersion}")
+        compile("com.amazonaws:aws-java-sdk-sqs:${awsSdkVersion}")
+        compile("com.amazonaws:aws-java-sdk-sns:${awsSdkVersion}")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-webmvc:${springFrameworkVersion}")
     }

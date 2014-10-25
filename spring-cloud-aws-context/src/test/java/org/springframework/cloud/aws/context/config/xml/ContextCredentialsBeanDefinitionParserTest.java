@@ -20,7 +20,6 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.auth.STSSessionCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,13 +60,12 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		@SuppressWarnings("unchecked") List<AWSCredentialsProvider> providerChain = (List<AWSCredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProviderChain, "credentialsProviders");
 
 		assertNotNull(providerChain);
-		assertEquals(3, providerChain.size());
+		assertEquals(2, providerChain.size());
 
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
-		assertTrue(STSSessionCredentialsProvider.class.isInstance(providerChain.get(1)));
-		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(2)));
+		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(1)));
 
-		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(2);
+		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(1);
 		assertEquals("staticAccessKey", staticCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("staticSecretKey", staticCredentialsProvider.getCredentials().getAWSSecretKey());
 

@@ -40,7 +40,6 @@ import java.util.List;
 class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.internal.StaticCredentialsProvider";
-	private static final String STS_SESSION_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.STSSessionCredentialsProvider";
 	private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
 
 	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
@@ -69,10 +68,6 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 		for (Element credentialsProviderElement : elements) {
 			if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {
 				credentialsProviders.add(getCredentialsProvider(STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getCredentials(credentialsProviderElement, parserContext)));
-			}
-
-			if ("security-token-credentials".equals(credentialsProviderElement.getLocalName())) {
-				credentialsProviders.add(getCredentialsProvider(STS_SESSION_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getCredentials(credentialsProviderElement, parserContext)));
 			}
 
 			if ("instance-profile-credentials".equals(credentialsProviderElement.getLocalName())) {
