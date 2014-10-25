@@ -16,15 +16,15 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
-	<els-context:context-credentials>
-		<els-context:simple-credentials access-key="first" secret-key="first" />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:simple-credentials access-key="first" secret-key="first" />
+	</aws-context:context-credentials>
 
-	<els-context:context-resource-loader region-provider="customRegionProvider" />
+	<aws-context:context-resource-loader region-provider="customRegionProvider" />
 
 	<bean id="customRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="US_WEST_2" />

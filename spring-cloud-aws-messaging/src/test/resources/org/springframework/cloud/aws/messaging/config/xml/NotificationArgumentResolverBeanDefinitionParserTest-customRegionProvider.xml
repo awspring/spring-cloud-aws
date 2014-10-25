@@ -16,8 +16,8 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -26,11 +26,11 @@
 	   					   http://www.springframework.org/schema/cloud/aws/messaging
 	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd">
 
-	<els-context:context-credentials>
-		<els-context:instance-profile-credentials />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:instance-profile-credentials />
+	</aws-context:context-credentials>
 
-	<els-messaging:notification-argument-resolver id="notificationArgumentResolver"
+	<aws-messaging:notification-argument-resolver id="notificationArgumentResolver"
 												  region-provider="myRegionProvider" />
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">

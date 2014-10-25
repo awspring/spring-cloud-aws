@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
- * Parser for the {@code <els-context:context-resource-loader />} element.
+ * Parser for the {@code <aws-context:context-resource-loader />} element.
  *
  * @author Agim Emruli
  * @author Alain Sahli

@@ -31,7 +31,7 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 
 /**
- * Parser for the {@code <els-context:stack-configuration />} element.
+ * Parser for the {@code <aws-context:stack-configuration />} element.
  *
  * @author Christian Stettler
  * @author Agim Emruli

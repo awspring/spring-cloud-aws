@@ -16,22 +16,22 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd
                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<els-context:context-credentials>
-		<els-context:simple-credentials access-key="${accessKey}" secret-key="${secretKey}" />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:simple-credentials access-key="${accessKey}" secret-key="${secretKey}" />
+	</aws-context:context-credentials>
 
-	<els-context:context-region region="EU_WEST_1" />
+	<aws-context:context-region region="EU_WEST_1" />
 
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 
-	<els-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags" />
+	<aws-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags" />
 
 	<bean id="testStackEnvironment" class="org.springframework.cloud.aws.support.TestStackEnvironment">
 		<!--suppress SpringModelInspection -->

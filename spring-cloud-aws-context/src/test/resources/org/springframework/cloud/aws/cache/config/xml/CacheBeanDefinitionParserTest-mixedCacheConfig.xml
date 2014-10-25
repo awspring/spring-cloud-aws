@@ -16,17 +16,17 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-cache="http://www.springframework.org/schema/cloud/aws/cache"
+	   xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	   http://www.springframework.org/schema/beans/spring-beans.xsd 
 	   http://www.springframework.org/schema/cloud/aws/cache
 	   http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd">
 
-	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache address="localhost:#{systemProperties['memcachedPort']}" name="memc" />
-		<els-cache:cache-ref ref="memcached" />
-	</els-cache:cache-manager>
+	<aws-cache:cache-manager id="cacheManager">
+		<aws-cache:cache address="localhost:#{systemProperties['memcachedPort']}" name="memc" />
+		<aws-cache:cache-ref ref="memcached" />
+	</aws-cache:cache-manager>
 
 	<bean id="memcached" class="org.springframework.cloud.aws.cache.SimpleSpringMemcached">
 		<constructor-arg name="cacheName" value="memcached" />

@@ -16,11 +16,11 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
-	<els-context:stack-configuration amazon-cloud-formation="customCloudFormationClient" stack-name="test"
+	<aws-context:stack-configuration amazon-cloud-formation="customCloudFormationClient" stack-name="test"
 									 user-tags-map="customStackTags" />
 
 	<bean id="customCloudFormationClient" class="org.mockito.Mockito" factory-method="mock">

@@ -16,7 +16,7 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
@@ -26,10 +26,10 @@
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-messaging:annotation-driven-queue-listener />
+	<aws-messaging:annotation-driven-queue-listener />
 
 	<!--suppress UnparsedCustomBeanInspection -->
-	<els-messaging:notification-messaging-template id="notificationMessagingTemplate" default-destination="SqsReceivingSnsTopic" />
+	<aws-messaging:notification-messaging-template id="notificationMessagingTemplate" default-destination="SqsReceivingSnsTopic" />
 
 	<bean class="org.springframework.cloud.aws.messaging.NotificationMessagingTemplateIntegrationTest$NotificationReceiver" />
 

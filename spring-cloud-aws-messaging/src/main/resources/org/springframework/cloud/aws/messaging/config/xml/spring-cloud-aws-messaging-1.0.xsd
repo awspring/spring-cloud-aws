@@ -18,7 +18,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
 			xmlns:beans="http://www.springframework.org/schema/beans"
-			xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 			xmlns="http://www.springframework.org/schema/cloud/aws/messaging"
 			targetNamespace="http://www.springframework.org/schema/cloud/aws/messaging"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">

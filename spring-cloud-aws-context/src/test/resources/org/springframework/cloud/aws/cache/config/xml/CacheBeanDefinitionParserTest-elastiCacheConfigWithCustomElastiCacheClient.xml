@@ -16,16 +16,16 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:els-cache="http://www.springframework.org/schema/cloud/aws/cache"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	   		http://www.springframework.org/schema/cloud/aws/cache
            	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd">
 
-	<els-cache:cache-manager id="cacheManager">
-		<els-cache:cache-cluster name="memcached" amazon-elasti-cache="customClient" />
-	</els-cache:cache-manager>
+	<aws-cache:cache-manager id="cacheManager">
+		<aws-cache:cache-cluster name="memcached" amazon-elasti-cache="customClient" />
+	</aws-cache:cache-manager>
 
 	<bean id="customClient" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="com.amazonaws.services.elasticache.AmazonElastiCache" />

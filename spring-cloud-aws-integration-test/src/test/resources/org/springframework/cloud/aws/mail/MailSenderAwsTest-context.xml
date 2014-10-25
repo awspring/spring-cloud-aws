@@ -17,7 +17,7 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-mail="http://www.springframework.org/schema/cloud/aws/mail"
+	   xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
 	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
@@ -26,7 +26,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-mail:mail-sender id="testSender" />
+	<aws-mail:mail-sender id="testSender" />
 
 	<util:properties id="mail" location="file://${els.config.dir}/mail.properties" />
 

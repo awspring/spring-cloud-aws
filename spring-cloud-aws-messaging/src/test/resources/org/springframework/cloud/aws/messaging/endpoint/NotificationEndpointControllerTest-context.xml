@@ -16,7 +16,7 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
 	   http://www.springframework.org/schema/cloud/aws/messaging http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd">
@@ -27,7 +27,7 @@
 		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
 
-	<els-messaging:notification-argument-resolver id="notificationResolver" amazon-sns="amazonSns" />
+	<aws-messaging:notification-argument-resolver id="notificationResolver" amazon-sns="amazonSns" />
 
 	<bean id="amazonSns" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="com.amazonaws.services.sns.AmazonSNS" />

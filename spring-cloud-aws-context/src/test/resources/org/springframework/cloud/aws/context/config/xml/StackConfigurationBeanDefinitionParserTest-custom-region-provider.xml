@@ -16,18 +16,18 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
-	<els-context:context-credentials>
-		<els-context:instance-profile-credentials />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:instance-profile-credentials />
+	</aws-context:context-credentials>
 
 	<bean id="myCustomRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="AP_SOUTHEAST_2" />
 	</bean>
 
-	<els-context:stack-configuration stack-name="test" region-provider="myCustomRegionProvider" />
+	<aws-context:stack-configuration stack-name="test" region-provider="myCustomRegionProvider" />
 
 </beans>

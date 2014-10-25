@@ -17,7 +17,7 @@
 
 <!--suppress UnparsedCustomBeanInspection -->
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns:task="http://www.springframework.org/schema/task"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
@@ -28,7 +28,7 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-messaging:annotation-driven-queue-listener task-executor="taskExecutor" />
+	<aws-messaging:annotation-driven-queue-listener task-executor="taskExecutor" />
 
 	<task:executor id="taskExecutor" pool-size="10-200" queue-capacity="0" rejection-policy="CALLER_RUNS" />
 

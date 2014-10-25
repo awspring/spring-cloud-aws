@@ -16,22 +16,22 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	   http://www.springframework.org/schema/cloud/aws/messaging http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd
 	   http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
 
-	<els-messaging:annotation-driven-queue-listener>
-		<els-messaging:argument-resolvers>
+	<aws-messaging:annotation-driven-queue-listener>
+		<aws-messaging:argument-resolvers>
 			<bean class="org.springframework.cloud.aws.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParserTest$TestHandlerMethodArgumentResolver" />
-		</els-messaging:argument-resolvers>
-	</els-messaging:annotation-driven-queue-listener>
+		</aws-messaging:argument-resolvers>
+	</aws-messaging:annotation-driven-queue-listener>
 
-	<els-context:context-credentials>
-		<els-context:instance-profile-credentials />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:instance-profile-credentials />
+	</aws-context:context-credentials>
 
 </beans>

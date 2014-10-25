@@ -35,7 +35,7 @@ import java.util.List;
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
- * Parser for the {@code <els-cache:cache-manager />} element.
+ * Parser for the {@code <aws-cache:cache-manager />} element.
  *
  * @author Alain Sahli
  * @author Agim Emruli

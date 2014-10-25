@@ -16,8 +16,8 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
-	   xmlns:els-mail="http://www.springframework.org/schema/cloud/aws/mail"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	   http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd
@@ -27,9 +27,9 @@
 		<constructor-arg name="configuredRegion" value="AP_SOUTHEAST_2" />
 	</bean>
 
-	<els-mail:mail-sender id="test" region-provider="myRegionProvider" />
+	<aws-mail:mail-sender id="test" region-provider="myRegionProvider" />
 
-	<els-context:context-credentials>
-		<els-context:simple-credentials access-key="test" secret-key="abc" />
-	</els-context:context-credentials>
+	<aws-context:context-credentials>
+		<aws-context:simple-credentials access-key="test" secret-key="abc" />
+	</aws-context:context-credentials>
 </beans>

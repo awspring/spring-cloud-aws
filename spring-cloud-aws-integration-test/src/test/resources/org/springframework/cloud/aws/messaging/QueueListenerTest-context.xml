@@ -16,8 +16,8 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
@@ -27,10 +27,10 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
-	<els-context:stack-configuration stack-name="IntegrationTestStack" />
-	<els-messaging:annotation-driven-queue-listener send-to-message-template="queueMessagingTemplate" />
+	<aws-context:stack-configuration stack-name="IntegrationTestStack" />
+	<aws-messaging:annotation-driven-queue-listener send-to-message-template="queueMessagingTemplate" />
 
-	<els-messaging:queue-messaging-template id="queueMessagingTemplate" />
+	<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
 
 	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$MessageListener" />
 	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$MessageListenerWithSendTo" />

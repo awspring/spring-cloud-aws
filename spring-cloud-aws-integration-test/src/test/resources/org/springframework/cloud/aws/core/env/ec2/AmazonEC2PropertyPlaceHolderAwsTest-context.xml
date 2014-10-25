@@ -17,14 +17,14 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<els-context:context-instance-placeholder instance-id-provider="testStackEnvironment"
+	<aws-context:context-instance-placeholder instance-id-provider="testStackEnvironment"
 											  user-tags-map="instanceData" />
 
 	<bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean">
