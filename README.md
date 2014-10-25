@@ -1,10 +1,10 @@
-# ElasticSpring
+# Spring Cloud for Amazon Webservices
 
-ElasticSpring is a cloud application framework for the [Amazon Webservice Platform] [AWS]. ElasticSpring enables developers to
-use popular Amazon Webservices with the [Spring Framework] [Spring]. With ElasticSpring, developers can re-use their existing
-knowledge, code and components built with the Spring Framework programming model and build applications using the
-Amazon Webservices. While continuing to use the programming model, developers can take advantage of the scalability
-of the service provided by the Amazon cloud platform.
+Spring Cloud for Amazon Webservices (in short Spring Cloud AWS) is a Spring Cloud module for the [Amazon Webservice Platform] [AWS]. 
+Spring Cloud AWS enables developers to use popular Amazon Webservices with the [Spring Framework] [Spring]. 
+Developers can re-use their existing knowledge, code and components built with the Spring Framework programming model and 
+build applications using the Amazon Webservices based offerings. While continuing to use the programming model, developers 
+can take advantage of the scalability of the service provided by the Amazon cloud platform.
 
 
 # Checking out and Building
@@ -17,7 +17,7 @@ To check out the project and build it from source, do the following:
 
 If you encounter out of memory errors during the build, increase available heap and permgen for Gradle:
 
-    GRADLE_OPTS='-XX:MaxPermSize=1024m -Xmx1024m'
+    GRADLE_OPTS='-XX:MaxPermSize=258m -Xmx1024m'
 
 To build and install jars into your local Maven cache:
 
@@ -33,7 +33,7 @@ To build reference documentation (results will be in `build/reference`):
 
 # Using IntelliJ IDEA
 
-ElasticSpring development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
+Spring Cloud AWS development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
 project files, you have to import the file within idea as a gradle project. Before importing the project you have 
 to execute the command 
 
@@ -45,10 +45,10 @@ before importing.
 the configuration files kept in the scm.
 
 # Running integration tests
-ElasticSpring contains a test-suite which runs integration tests to ensure compatibility with the Amazon Webservices.
+Spring Cloud AWS contains a test-suite which runs integration tests to ensure compatibility with the Amazon Webservices.
 In order to run the integration tests, the build process has to create different resources on the Amazon Webservice
 platform (Amazon EC2 instances, Amazon RDS instances, Amazon S3 Buckets, Amazon SQS Queues). Creating these resources
-takes time and costs money, because every instance creation is charged with a one hour usage. Therefore ElasticSpring
+takes time and costs money, because every instance creation is charged with a one hour usage. Therefore Spring Cloud AWS
 does not execute the integration tests by default.
 
 In order to execute the integration tests you have to create two configuration files that configure the necessary
@@ -87,17 +87,17 @@ tests. The stack is destroyed after executing the tests (either successful or fa
 unnecessary costs.
 
 ### Costs of integration tests
-The costs for one integration test run should not be more then 0.13 $ (excl. VAT).
+The costs for one integration test run should not be more then 0.13 $ per hour (excl. VAT).
 
 
 # Developing using Amazon Webservices
 During development it might be time-consuming to run the integration tests regularly. In order to create a stack only
 once, and reuse them for the tests run, you have to create the stack manually using the template found in
-/elasticspring-integration-test/src/test/resources. You will need to create the stack with the name
+/spring-cloud-aws-integration-test/src/test/resources. You will need to create the stack with the name
 "IntegrationTestStack" to ensure that the integration tests will re-use the stack.
 
 # Getting in touch
-ElasticSpring on [Twitter](https://twitter.com/elasticspring)
+Spring Cloud Team on [Twitter](https://twitter.com/springcentral)
 
 Individual team members can be found on different social media channels
 
