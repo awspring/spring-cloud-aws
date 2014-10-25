@@ -34,6 +34,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -245,6 +247,10 @@ project('spring-cloud-aws-integration-test') {
     test.systemProperty("els.config.dir", System.getProperty("els.config.dir"))
 
     install {
+        repositories.clear()
+    }
+
+    uploadArchives {
         repositories.clear()
     }
 }
