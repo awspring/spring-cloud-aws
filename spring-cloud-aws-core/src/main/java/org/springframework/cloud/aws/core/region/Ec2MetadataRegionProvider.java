@@ -19,27 +19,19 @@ package org.springframework.cloud.aws.core.region;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.util.EC2MetadataUtils;
+import org.springframework.util.Assert;
 
 public class Ec2MetadataRegionProvider implements RegionProvider {
 
 	@Override
 	public Region getRegion() {
-		String availabilityZone = getAvailabilityZone();
-		if (availabilityZone == null) {
-			throw new IllegalStateException("There is not EC2 meta data available, because the application is not running " +
-					"in the EC2 environment. Region detection is only possible if the application is running on a EC2 instance");
-		}
-
-		for (Regions candidate : Regions.values()) {
-			if (availabilityZone.startsWith(candidate.getName())) {
-				return Region.getRegion(candidate);
-			}
-		}
-
-		throw new IllegalStateException("There could be no region detected for the availability zone '" + availabilityZone + "'");
+		Region currentRegion = getCurrentRegion();
+		Assert.state(currentRegion != null, "There is not EC2 meta data available, because the application is not running " +
+				"in the EC2 environment. Region detection is only possible if the application is running on a EC2 instance");
+		return currentRegion;
 	}
 
-	protected String getAvailabilityZone() {
-		return EC2MetadataUtils.getAvailabilityZone();
+	protected Region getCurrentRegion() {
+		return Regions.getCurrentRegion();
 	}
 }

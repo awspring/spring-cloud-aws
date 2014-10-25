@@ -38,8 +38,8 @@ public class Ec2MetadataRegionProviderTest {
 		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
 			@Override
-			protected String getAvailabilityZone() {
-				return "eu-west-1a";
+			protected Region getCurrentRegion() {
+				return Region.getRegion(Regions.EU_WEST_1);
 			}
 		};
 
@@ -51,26 +51,6 @@ public class Ec2MetadataRegionProviderTest {
 	}
 
 	@Test
-	public void getRegion_availabilityZoneWithNonMatchingRegion_throwsIllegalStateException() throws Exception {
-		//Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("There could be no region detected for the availability zone 'eu-east-1a'");
-
-		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
-
-			@Override
-			protected String getAvailabilityZone() {
-				return "eu-east-1a";
-			}
-		};
-
-		//Act
-		regionProvider.getRegion();
-
-		//Assert
-	}
-
-	@Test
 	public void getRegion_noMetadataAvailable_throwsIllegalStateException() throws Exception {
 		//Arrange
 		this.expectedException.expect(IllegalStateException.class);
@@ -79,7 +59,7 @@ public class Ec2MetadataRegionProviderTest {
 		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
 			@Override
-			protected String getAvailabilityZone() {
+			protected Region getCurrentRegion() {
 				return null;
 			}
 		};
