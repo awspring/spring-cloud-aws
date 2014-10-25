@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.messaging.config.xml;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the ElasticSpring messaging namespace
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the Spring Cloud AWS messaging namespace
  *
  * @author Agim Emruli
  * @author Alain Sahli

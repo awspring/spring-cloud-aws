@@ -21,7 +21,7 @@ package org.springframework.cloud.aws.jdbc.datasource.support;
  * the necessary configuration data for every database platform. As databases platform have differences in the URL
  * scheme, driver class name this interface provides an abstraction to retrieve the information based on the
  * particular database platform.
- * <p>Normally this information is provided at configuration time by the user, because of the fact that ElasticSpring
+ * <p>Normally this information is provided at configuration time by the user, because of the fact that Spring Cloud AWS
  * creates the datasource at runtime, this information must be provided through a registry.</p>
  *
  * @author Agim Emruli
