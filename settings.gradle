@@ -25,5 +25,7 @@
 
 
 
-rootProject.name = 'elasticspring'
+
+
+rootProject.name = 'spring-cloud-aws'
 include 'spring-cloud-aws-core', 'spring-cloud-aws-context', 'spring-cloud-aws-jdbc', 'spring-cloud-aws-messaging', 'spring-cloud-aws-integration-test'

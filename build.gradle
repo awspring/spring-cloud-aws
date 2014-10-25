@@ -16,6 +16,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -33,7 +35,7 @@ apply from: "gradle/javadoc.gradle"
 apply from: "gradle/maven.gradle"
 
 allprojects {
-    group = 'org.elasticspring'
+    group = 'org.springframework.cloud.aws'
     apply plugin: "project-report"
 }
 
@@ -85,7 +87,7 @@ subprojects {
 }
 
 project('spring-cloud-aws-core') {
-    description = 'elasticspring core'
+    description = 'spring cloud aws core'
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
         compile("com.amazonaws:aws-java-sdk:${awsSdkVersion}") {
@@ -100,7 +102,7 @@ project('spring-cloud-aws-core') {
 
 
 project('spring-cloud-aws-context') {
-    description = "elasticspring context"
+    description = "spring cloud aws context"
 
     def memcachedClientVersion = "1.0.1"
 
@@ -110,7 +112,7 @@ project('spring-cloud-aws-context') {
     }
 
     task memCachedClientRepackJar(type: Jar) { repackJar ->
-        repackJar.baseName = "elasticspring-memcached-repack"
+        repackJar.baseName = "spring-cloud-aws-memcached-repack"
         repackJar.version = memcachedClientVersion
 
         doLast() {
@@ -150,7 +152,7 @@ project('spring-cloud-aws-context') {
 }
 
 project('spring-cloud-aws-jdbc') {
-    description = 'elasticspring jdbc'
+    description = 'spring cloud aws jdbc'
     dependencies {
         compile project(":spring-cloud-aws-context")
         compile("org.springframework:spring-jdbc:${springFrameworkVersion}")
@@ -171,7 +173,7 @@ project('spring-cloud-aws-jdbc') {
 
 
 project('spring-cloud-aws-messaging') {
-    description = 'elasticspring messaging'
+    description = 'spring cloud aws messaging'
     dependencies {
         compile project(":spring-cloud-aws-context")
         compile("org.springframework:spring-messaging:${springFrameworkVersion}")
@@ -183,7 +185,7 @@ project('spring-cloud-aws-messaging') {
 }
 
 project('spring-cloud-aws-integration-test') {
-    description = 'elasticspring integration test on AWS'
+    description = 'spring cloud aws integration test on AWS'
     dependencies {
         testCompile project(":spring-cloud-aws-core")
         testCompile project(":spring-cloud-aws-context")
@@ -217,7 +219,7 @@ project('spring-cloud-aws-integration-test') {
 
 
 
-description = 'ElasticSpring'
+description = 'Spring Cloud AWS'
 
 apply plugin: 'org.asciidoctor.gradle.asciidoctor'
 
@@ -255,7 +257,7 @@ task api(type: Javadoc) {
 
 task docsZip(type: Zip) {
     group = "Distribution"
-    baseName = "elasticspring"
+    baseName = "spring-cloud-aws"
     classifier = "docs"
     description = "Builds -${classifier} archive containing api and reference "
 
@@ -264,13 +266,13 @@ task docsZip(type: Zip) {
     }
 
     from(asciidoctor) {
-        into "elasticspring-reference"
+        into "spring-cloud-aws-reference"
     }
 }
 
 task schemaZip(type: Zip) {
     group = "Distribution"
-    baseName = "elasticspring"
+    baseName = "spring-cloud-aws"
     classifier = "schema"
     description = "Builds -${classifier} archive containing all " +
             "XSDs for deployment at http://www.elasticspring.org/schema/."
@@ -298,7 +300,7 @@ task schemaZip(type: Zip) {
 
 task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
     group = "Distribution"
-    baseName = "elasticspring"
+    baseName = "spring-cloud-aws"
     classifier = "dist"
     description = "Builds -${classifier} archive, containing all jars and docs, " +
             "suitable for community download page."
