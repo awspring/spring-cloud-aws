@@ -28,6 +28,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -161,7 +163,7 @@ project('elasticspring-context') {
     }
 }
 
-project('elasticspring-jdbc') {
+project('spring-cloud-aws-jdbc') {
     description = 'elasticspring jdbc'
     dependencies {
         compile project(":elasticspring-context")
@@ -199,7 +201,7 @@ project('elasticspring-integration-test') {
     dependencies {
         testCompile project(":elasticspring-core")
         testCompile project(":elasticspring-context")
-        testCompile project(":elasticspring-jdbc")
+        testCompile project(":spring-cloud-aws-jdbc")
         testCompile project(":spring-cloud-aws-messaging")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
 
