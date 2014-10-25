@@ -17,15 +17,15 @@
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
-			xmlns:els-context="http://www.elasticspring.org/schema/context"
-			xmlns="http://www.elasticspring.org/schema/jdbc"
-			targetNamespace="http://www.elasticspring.org/schema/jdbc"
+			xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/jdbc"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/jdbc"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
 				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
-	<xsd:import namespace="http://www.elasticspring.org/schema/context"
-				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd" />
 
 	<xsd:element name="dataSource">
 		<xsd:annotation>

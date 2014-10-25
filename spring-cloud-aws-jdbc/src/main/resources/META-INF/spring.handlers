@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-http\://www.elasticspring.org/schema/jdbc=org.springframework.cloud.aws.jdbc.config.xml.JdbcNamespaceHandler
+http\://www.springframework.org/schema/cloud/aws/jdbc=org.springframework.cloud.aws.jdbc.config.xml.JdbcNamespaceHandler

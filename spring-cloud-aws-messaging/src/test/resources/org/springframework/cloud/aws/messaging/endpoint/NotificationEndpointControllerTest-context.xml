@@ -16,10 +16,10 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
-	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/messaging http://www.springframework.org/schema/cloud/aws/messaging/elasticspring-messaging-1.0.xsd">
 
 	<mvc:annotation-driven>
 		<mvc:argument-resolvers>

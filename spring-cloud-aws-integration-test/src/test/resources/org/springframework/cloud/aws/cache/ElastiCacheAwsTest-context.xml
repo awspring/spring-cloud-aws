@@ -16,14 +16,14 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-context="http://www.elasticspring.org/schema/context"
-	   xmlns:els-cache="http://www.elasticspring.org/schema/cache"
+	   xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:els-cache="http://www.springframework.org/schema/cloud/aws/cache"
 	   xmlns:cache="http://www.springframework.org/schema/cache"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   	http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd
-	   	http://www.elasticspring.org/schema/cache http://www.elasticspring.org/schema/cache/elasticspring-cache-1.0.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	   	http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd
+	   	http://www.springframework.org/schema/cloud/aws/cache http://www.springframework.org/schema/cloud/aws/cache/elasticspring-cache-1.0.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 

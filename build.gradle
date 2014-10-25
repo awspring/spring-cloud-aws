@@ -22,6 +22,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -279,7 +281,7 @@ task schemaZip(type: Zip) {
     baseName = "spring-cloud-aws"
     classifier = "schema"
     description = "Builds -${classifier} archive containing all " +
-            "XSDs for deployment at http://www.elasticspring.org/schema/."
+            "XSDs for deployment at http://www.springframework.org/schema/cloud/aws/."
 
     subprojects.each { subproject ->
         def Properties schemas = new Properties();

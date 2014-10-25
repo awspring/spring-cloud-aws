@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-http\://www.elasticspring.org/schema/jdbc/elasticspring-jdbc-1.0.xsd=org/springframework/cloud/aws/jdbc/config/xml/elasticspring-jdbc-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/jdbc/elasticspring-jdbc-1.0.xsd=org/springframework/cloud/aws/jdbc/config/xml/elasticspring-jdbc-1.0.xsd

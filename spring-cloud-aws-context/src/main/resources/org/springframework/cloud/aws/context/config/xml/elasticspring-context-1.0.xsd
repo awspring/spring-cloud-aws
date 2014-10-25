@@ -17,8 +17,8 @@
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
-			xmlns="http://www.elasticspring.org/schema/context"
-			targetNamespace="http://www.elasticspring.org/schema/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/context"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/context"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"

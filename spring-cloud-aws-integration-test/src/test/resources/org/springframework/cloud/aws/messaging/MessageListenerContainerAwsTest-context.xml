@@ -17,13 +17,13 @@
 
 <!--suppress UnparsedCustomBeanInspection -->
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:els-messaging="http://www.elasticspring.org/schema/messaging"
+	   xmlns:els-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns:task="http://www.springframework.org/schema/task"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
-	   					   http://www.elasticspring.org/schema/messaging
-	   					   http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/messaging
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/elasticspring-messaging-1.0.xsd
 	   					   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />

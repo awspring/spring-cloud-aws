@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-http\://www.elasticspring.org/schema/messaging=org.springframework.cloud.aws.messaging.config.xml.MessagingNamespaceHandler
+http\://www.springframework.org/schema/cloud/aws/messaging=org.springframework.cloud.aws.messaging.config.xml.MessagingNamespaceHandler

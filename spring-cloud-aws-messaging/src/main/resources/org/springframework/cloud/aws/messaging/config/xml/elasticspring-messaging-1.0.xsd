@@ -18,17 +18,17 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:tool="http://www.springframework.org/schema/tool"
 			xmlns:beans="http://www.springframework.org/schema/beans"
-			xmlns:els-context="http://www.elasticspring.org/schema/context"
-			xmlns="http://www.elasticspring.org/schema/messaging"
-			targetNamespace="http://www.elasticspring.org/schema/messaging"
+			xmlns:els-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/messaging"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/messaging"
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
 				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
 				schemaLocation="http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" />
-	<xsd:import namespace="http://www.elasticspring.org/schema/context"
-				schemaLocation="http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd" />
 
 
 	<xsd:element name="annotation-driven-queue-listener">
