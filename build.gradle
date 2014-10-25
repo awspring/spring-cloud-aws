@@ -24,6 +24,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -291,7 +293,7 @@ task schemaZip(type: Zip) {
         }?.withInputStream { schemas.load(it) }
 
         for (def key : schemas.keySet()) {
-            def shortName = key.replaceAll(/http.*schema.(.*).elasticspring-.*/, '$1')
+            def shortName = key.replaceAll(/http.*schema.(.*).spring-cloud.*/, '$1')
             assert shortName != key
             File xsdFile = subproject.sourceSets.main.resources.find {
                 it.path.endsWith(schemas.get(key))

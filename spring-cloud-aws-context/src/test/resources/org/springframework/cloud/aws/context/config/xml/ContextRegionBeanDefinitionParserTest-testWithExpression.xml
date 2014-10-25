@@ -18,7 +18,7 @@
 	   xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns:util="http://www.springframework.org/schema/util"
 	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<context:context-region region="#{configuration['region']}" />
 

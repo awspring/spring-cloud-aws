@@ -27,7 +27,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
 				schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
-				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd" />
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd" />
 
 	<xsd:element name="mail-sender">
 		<xsd:annotation>

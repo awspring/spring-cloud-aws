@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-http\://www.springframework.org/schema/cloud/aws/messaging/elasticspring-messaging-1.0.xsd=org/springframework/cloud/aws/messaging/config/xml/elasticspring-messaging-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd=org/springframework/cloud/aws/messaging/config/xml/spring-cloud-aws-messaging-1.0.xsd

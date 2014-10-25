@@ -20,8 +20,8 @@
 	   xmlns:els-mail="http://www.springframework.org/schema/cloud/aws/mail"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/elasticspring-context-1.0.xsd
-	   http://www.springframework.org/schema/cloud/aws/mail http://www.springframework.org/schema/cloud/aws/mail/elasticspring-mail-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd
+	   http://www.springframework.org/schema/cloud/aws/mail http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd">
 
 	<els-mail:mail-sender id="test" region="EU_WEST_1" />
 
