@@ -32,6 +32,8 @@
 
 
 
+
+
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
@@ -115,7 +117,7 @@ project('elasticspring-core') {
 }
 
 
-project('elasticspring-context') {
+project('spring-cloud-aws-context') {
     description = "elasticspring context"
 
     def memcachedClientVersion = "1.0.1"
@@ -168,7 +170,7 @@ project('elasticspring-context') {
 project('spring-cloud-aws-jdbc') {
     description = 'elasticspring jdbc'
     dependencies {
-        compile project(":elasticspring-context")
+        compile project(":spring-cloud-aws-context")
         compile("org.springframework:spring-jdbc:${springFrameworkVersion}")
 
         compile("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
@@ -189,7 +191,7 @@ project('spring-cloud-aws-jdbc') {
 project('spring-cloud-aws-messaging') {
     description = 'elasticspring messaging'
     dependencies {
-        compile project(":elasticspring-context")
+        compile project(":spring-cloud-aws-context")
         compile("org.springframework:spring-messaging:${springFrameworkVersion}")
         compile("javax.servlet:javax.servlet-api:3.0.1")
         compile("org.springframework:spring-web:${springFrameworkVersion}")
@@ -202,7 +204,7 @@ project('spring-cloud-aws-integration-test') {
     description = 'elasticspring integration test on AWS'
     dependencies {
         testCompile project(":elasticspring-core")
-        testCompile project(":elasticspring-context")
+        testCompile project(":spring-cloud-aws-context")
         testCompile project(":spring-cloud-aws-jdbc")
         testCompile project(":spring-cloud-aws-messaging")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
