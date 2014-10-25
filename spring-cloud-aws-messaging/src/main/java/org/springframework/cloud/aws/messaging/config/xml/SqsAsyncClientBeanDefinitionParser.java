@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.elasticspring.core.task.ShutdownSuppressingExecutorServiceAdapter;
+import org.springframework.cloud.aws.core.task.ShutdownSuppressingExecutorServiceAdapter;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.parseCustomClientElement;
+import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.parseCustomClientElement;
 
 /**
  * @author Alain Sahli

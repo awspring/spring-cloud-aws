@@ -23,7 +23,7 @@
 	   http://www.elasticspring.org/schema/messaging http://www.elasticspring.org/schema/messaging/elasticspring-messaging-1.0.xsd
 	   http://www.elasticspring.org/schema/context http://www.elasticspring.org/schema/context/elasticspring-context-1.0.xsd">
 
-	<bean id="provider" class="org.elasticspring.core.region.StaticRegionProvider">
+	<bean id="provider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="AP_SOUTHEAST_2" />
 	</bean>
 

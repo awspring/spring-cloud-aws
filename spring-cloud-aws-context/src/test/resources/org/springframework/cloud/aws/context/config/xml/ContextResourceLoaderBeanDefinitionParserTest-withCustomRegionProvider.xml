@@ -26,7 +26,7 @@
 
 	<els-context:context-resource-loader region-provider="customRegionProvider" />
 
-	<bean id="customRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+	<bean id="customRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="US_WEST_2" />
 	</bean>
 </beans>

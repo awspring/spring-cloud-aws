@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import static org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider;
 
 public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
@@ -58,11 +58,11 @@ public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionPar
 			parserContext.getRegistry().registerAlias(element.getAttribute("region-provider"), CONTEXT_REGION_PROVIDER_BEAN_NAME);
 			return null;
 		} else if (StringUtils.hasText(element.getAttribute("region"))) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.StaticRegionProvider");
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.springframework.cloud.aws.core.region.StaticRegionProvider");
 			builder.addConstructorArgValue(element.getAttribute("region"));
 			return builder.getBeanDefinition();
 		} else if (isAutoDetect(element)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.elasticspring.core.region.Ec2MetadataRegionProvider");
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition("org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider");
 			return builder.getBeanDefinition();
 		}
 		return null;

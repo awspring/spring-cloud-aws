@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.context.config;
 
-import org.elasticspring.core.env.ec2.AmazonEc2InstanceDataPropertySource;
+import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceDataPropertySource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;

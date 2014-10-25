@@ -21,7 +21,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
-import org.elasticspring.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
 import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
@@ -124,7 +124,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	/**
-	 * Configures an optional {@link org.elasticspring.core.env.ResourceIdResolver} used to resolve a logical name to a
+	 * Configures an optional {@link org.springframework.cloud.aws.core.env.ResourceIdResolver} used to resolve a logical name to a
 	 * physical one.
 	 *
 	 * @param resourceIdResolver

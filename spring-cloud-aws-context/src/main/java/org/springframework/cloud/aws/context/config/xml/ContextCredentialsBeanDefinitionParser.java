@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.elasticspring.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;

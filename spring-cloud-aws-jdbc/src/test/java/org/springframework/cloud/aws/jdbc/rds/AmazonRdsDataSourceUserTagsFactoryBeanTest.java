@@ -25,7 +25,7 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
-import org.elasticspring.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.junit.Test;
 
 import java.util.Date;

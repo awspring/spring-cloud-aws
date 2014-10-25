@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.elasticspring.core.env.ResourceIdResolver;
-import org.elasticspring.core.env.StackResourceRegistryDetectingResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;

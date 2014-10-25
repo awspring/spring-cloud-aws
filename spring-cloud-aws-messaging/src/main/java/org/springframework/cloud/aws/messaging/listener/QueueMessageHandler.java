@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;

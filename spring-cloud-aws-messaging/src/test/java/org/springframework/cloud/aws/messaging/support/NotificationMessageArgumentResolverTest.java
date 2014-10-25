@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.messaging.support;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.junit.Test;
 import org.springframework.core.MethodParameter;

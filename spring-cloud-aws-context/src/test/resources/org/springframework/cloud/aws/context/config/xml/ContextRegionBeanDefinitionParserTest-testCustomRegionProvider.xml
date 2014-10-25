@@ -21,7 +21,7 @@
 
 	<context:context-region region-provider="myRegionProvider" />
 
-	<bean id="myRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="EU_WEST_1" />
 	</bean>
 </beans>

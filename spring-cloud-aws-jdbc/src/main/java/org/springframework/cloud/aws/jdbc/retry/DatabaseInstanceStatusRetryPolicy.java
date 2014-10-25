@@ -22,7 +22,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
-import org.elasticspring.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.jdbc.rds.InstanceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	}
 
 	/**
-	 * Configures an option {@link org.elasticspring.core.env.ResourceIdResolver} to resolve logical name to physical name
+	 * Configures an option {@link org.springframework.cloud.aws.core.env.ResourceIdResolver} to resolve logical name to physical name
 	 *
 	 * @param resourceIdResolver
 	 * 		- the resourceIdResolver to be used, may be null

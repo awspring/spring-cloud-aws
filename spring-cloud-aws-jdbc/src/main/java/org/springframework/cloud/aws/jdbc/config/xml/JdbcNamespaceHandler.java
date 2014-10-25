@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.jdbc.config.xml;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 

@@ -23,7 +23,7 @@ package org.springframework.cloud.aws.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.elasticspring.core.env.stack.StackResourceRegistry;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;

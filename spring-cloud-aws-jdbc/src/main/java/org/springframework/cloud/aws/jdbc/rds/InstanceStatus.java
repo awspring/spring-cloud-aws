@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.jdbc.rds;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
  * Enumeration that holds all possible Amazon RDS database instance states. Used by client code to check if the

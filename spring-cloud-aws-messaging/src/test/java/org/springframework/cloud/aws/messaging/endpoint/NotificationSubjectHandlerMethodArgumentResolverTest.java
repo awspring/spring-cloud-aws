@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.junit.Rule;
 import org.junit.Test;

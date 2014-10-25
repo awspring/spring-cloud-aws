@@ -18,8 +18,8 @@ package org.springframework.cloud.aws.context.config.xml;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.elasticspring.core.region.Ec2MetadataRegionProvider;
-import org.elasticspring.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
+import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

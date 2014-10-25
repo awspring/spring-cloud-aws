@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.jdbc.config.xml;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.elasticspring.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;

@@ -29,7 +29,7 @@
 	<xsd:element name="context-credentials">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.elasticspring.core.credentials.credentials.CredentialsProviderFactoryBean">
+					source="java:org.springframework.cloud.aws.core.credentials.credentials.CredentialsProviderFactoryBean">
 				<![CDATA[
 	Creates the authentication configuration which will be used to authenticate the request made from this application context to the particular service.
 			]]></xsd:documentation>
@@ -128,7 +128,7 @@
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.elasticspring.core.region.RegionProvider" />
+					<tool:exports type="org.springframework.cloud.aws.core.region.RegionProvider" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -168,7 +168,7 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-									type="org.elasticspring.core.env.ec2.InstanceIdProvider" />
+									type="org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -206,7 +206,7 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-								type="org.elasticspring.core.region.RegionProvider" />
+								type="org.springframework.cloud.aws.core.region.RegionProvider" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -309,7 +309,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.elasticspring.core.env.stack.StackResourceRegistry" />
+					<tool:exports type="org.springframework.cloud.aws.core.env.stack.StackResourceRegistry" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>

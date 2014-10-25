@@ -23,8 +23,8 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
-import org.elasticspring.core.env.ResourceIdResolver;
-import org.elasticspring.core.naming.AmazonResourceName;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.naming.AmazonResourceName;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.LinkedHashMap;

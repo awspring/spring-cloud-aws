@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.jdbc.datasource.support;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
  * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the

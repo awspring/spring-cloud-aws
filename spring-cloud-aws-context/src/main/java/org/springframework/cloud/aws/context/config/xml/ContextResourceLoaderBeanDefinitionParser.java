@@ -27,7 +27,7 @@ import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <els-context:context-resource-loader />} element.
@@ -39,8 +39,8 @@ import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
 public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String RESOURCE_LOADER_CLASS_NAME = "org.elasticspring.core.io.s3.SimpleStorageResourceLoader";
-	private static final String RESOURCE_RESOLVER_CLASS_NAME = "org.elasticspring.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver";
+	private static final String RESOURCE_LOADER_CLASS_NAME = "org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader";
+	private static final String RESOURCE_RESOLVER_CLASS_NAME = "org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver";
 	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
 	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor";
 

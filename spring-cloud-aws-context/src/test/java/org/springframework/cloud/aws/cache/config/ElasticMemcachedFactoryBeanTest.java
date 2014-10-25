@@ -24,7 +24,7 @@ import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
 import org.springframework.cloud.aws.cache.ElasticMemcachedFactoryBean;
 import org.springframework.cloud.aws.cache.memcached.MemcachedClient;
-import org.elasticspring.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;

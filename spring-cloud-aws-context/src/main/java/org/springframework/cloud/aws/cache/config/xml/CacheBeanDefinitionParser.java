@@ -32,7 +32,7 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-import static org.elasticspring.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <els-cache:cache-manager />} element.

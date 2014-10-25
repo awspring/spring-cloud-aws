@@ -33,7 +33,7 @@
 	<els-messaging:notification-argument-resolver id="notificationArgumentResolver"
 												  region-provider="myRegionProvider" />
 
-	<bean id="myRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="US_WEST_2" />
 	</bean>
 </beans>

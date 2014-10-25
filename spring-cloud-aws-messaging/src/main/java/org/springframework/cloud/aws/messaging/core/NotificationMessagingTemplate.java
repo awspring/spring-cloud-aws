@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import org.elasticspring.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.messaging.MessagingException;

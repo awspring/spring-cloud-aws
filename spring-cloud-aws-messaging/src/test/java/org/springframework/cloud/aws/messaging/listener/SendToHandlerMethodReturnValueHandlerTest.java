@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import org.elasticspring.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

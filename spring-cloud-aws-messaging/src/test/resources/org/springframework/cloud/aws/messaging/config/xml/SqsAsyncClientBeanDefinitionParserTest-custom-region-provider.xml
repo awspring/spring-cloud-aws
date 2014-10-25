@@ -31,7 +31,7 @@
 		<els-context:instance-profile-credentials />
 	</els-context:context-credentials>
 
-	<bean id="myCustomRegionProvider" class="org.elasticspring.core.region.StaticRegionProvider">
+	<bean id="myCustomRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
 		<constructor-arg value="AP_SOUTHEAST_2" />
 	</bean>
 	<els-messaging:sqs-async-client id="customClient" region-provider="myCustomRegionProvider" />
