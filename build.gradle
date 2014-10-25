@@ -16,32 +16,13 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 buildscript {
     repositories {
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
         classpath("org.asciidoctor:asciidoctor-gradle-plugin:0.7.2")
+        classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
     }
 }
 
@@ -55,6 +36,11 @@ apply from: "gradle/maven.gradle"
 allprojects {
     group = 'org.springframework.cloud'
     apply plugin: "project-report"
+
+    apply plugin: 'propdeps'
+    apply plugin: 'propdeps-maven'
+    apply plugin: 'propdeps-idea'
+    apply plugin: 'propdeps-eclipse'
 }
 
 subprojects {
@@ -108,6 +94,7 @@ project('spring-cloud-aws-core') {
     description = 'spring cloud aws core'
     dependencies {
         compile("org.springframework:spring-core:${springFrameworkVersion}")
+        compile("org.springframework:spring-beans:${springFrameworkVersion}")
         compile("com.amazonaws:aws-java-sdk-core:${awsSdkVersion}") {
             exclude module: "stax-api"
             exclude module: "activation"
@@ -115,7 +102,7 @@ project('spring-cloud-aws-core') {
         compile("com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}")
         compile("com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}")
         compile("com.amazonaws:aws-java-sdk-cloudformation:${awsSdkVersion}")
-        compile("org.springframework:spring-beans:${springFrameworkVersion}")
+
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-context:${springFrameworkVersion}")
     }
@@ -154,8 +141,8 @@ project('spring-cloud-aws-context') {
     dependencies {
         compile project(":spring-cloud-aws-core")
         compile("org.springframework:spring-context:${springFrameworkVersion}")
-        compile("org.springframework:spring-context-support:${springFrameworkVersion}")
-        compile("javax.mail:mailapi:1.4.3") {
+        optional("org.springframework:spring-context-support:${springFrameworkVersion}")
+        provided("javax.mail:mailapi:1.4.3") {
             exclude module: "activation"
         }
         compile files(memCachedClientRepackJar.archivePath)
@@ -188,7 +175,7 @@ project('spring-cloud-aws-jdbc') {
             exclude module: "tomcat-juli"
         }
 
-        compile("org.springframework.retry:spring-retry:${springRetryVersion}") {
+        optional("org.springframework.retry:spring-retry:${springRetryVersion}") {
             exclude module: "spring-context"
         }
         compile("com.amazonaws:aws-java-sdk-rds:${awsSdkVersion}")
@@ -206,10 +193,11 @@ project('spring-cloud-aws-messaging') {
     dependencies {
         compile project(":spring-cloud-aws-context")
         compile("org.springframework:spring-messaging:${springFrameworkVersion}")
-        compile("javax.servlet:javax.servlet-api:3.0.1")
-        compile("org.springframework:spring-web:${springFrameworkVersion}")
         compile("com.amazonaws:aws-java-sdk-sqs:${awsSdkVersion}")
         compile("com.amazonaws:aws-java-sdk-sns:${awsSdkVersion}")
+
+        optional("org.springframework:spring-web:${springFrameworkVersion}")
+        provided("javax.servlet:javax.servlet-api:3.0.1")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
         testCompile("org.springframework:spring-webmvc:${springFrameworkVersion}")
     }
@@ -223,6 +211,9 @@ project('spring-cloud-aws-integration-test') {
         testCompile project(":spring-cloud-aws-jdbc")
         testCompile project(":spring-cloud-aws-messaging")
         testCompile("org.springframework:spring-test:${springFrameworkVersion}")
+        testCompile("javax.mail:mailapi:1.4.3") {
+            exclude module: "activation"
+        }
 
         testRuntime("org.apache.tomcat:tomcat-jdbc:${tomcatVersion}") {
             exclude module: "tomcat-juli"
