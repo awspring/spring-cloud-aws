@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Agim Emruli
@@ -35,6 +36,7 @@ import java.net.InetSocketAddress;
 public class ElasticMemcachedFactoryBean extends AbstractFactoryBean<MemcachedClient> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticMemcachedFactoryBean.class);
+	private static final int SHUTDOWN_DELAY = 10;
 
 	private final AmazonElastiCache amazonElastiCache;
 	private final String cacheClusterId;
@@ -76,7 +78,10 @@ public class ElasticMemcachedFactoryBean extends AbstractFactoryBean<MemcachedCl
 
 	@Override
 	protected void destroyInstance(MemcachedClient instance) throws Exception {
-		instance.shutdown();
+		boolean shutdownCompleted = instance.shutdown(SHUTDOWN_DELAY, TimeUnit.SECONDS);
+		if (!shutdownCompleted) {
+			LOGGER.warn("Error shutting down memcached client after :'" + SHUTDOWN_DELAY + "' seconds");
+		}
 	}
 
 	private String getCacheClusterName() {
