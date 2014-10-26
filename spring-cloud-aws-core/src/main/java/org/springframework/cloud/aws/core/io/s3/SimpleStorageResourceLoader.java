@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -50,6 +51,7 @@ public class SimpleStorageResourceLoader implements ResourceLoader, Initializing
 		this(amazonS3, ClassUtils.getDefaultClassLoader());
 	}
 
+	@RuntimeUse
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
