@@ -11,8 +11,8 @@ can take advantage of the scalability of the service provided by the Amazon clou
 
 To check out the project and build it from source, do the following:
 
-    git clone https://github.com/aemruli/elasticspring.git
-    cd elasticspring
+    git clone https://github.com/aemruli/spring-cloud-aws.git
+    cd spring-cloud-aws
     ./gradlew build
 
 If you encounter out of memory errors during the build, increase available heap and permgen for Gradle:

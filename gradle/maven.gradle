@@ -16,6 +16,8 @@
 
 
 
+
+
 allprojects {
 
     apply plugin: 'maven'
@@ -54,9 +56,9 @@ allprojects {
                         }
                     }
                     scm {
-                        url = "https://github.com/aemruli/elasticspring"
-                        connection = "scm:git:git://github.com/aemruli/elasticspring"
-                        developerConnection = "scm:git:git://github.com/aemruli/elasticspring"
+                        url = "https://github.com/aemruli/spring-cloud-aws"
+                        connection = "scm:git:git://github.com/aemruli/spring-cloud-aws"
+                        developerConnection = "scm:git:git://github.com/aemruli/spring-cloud-aws"
                     }
                     developers {
                         developer {
