@@ -124,8 +124,8 @@
 				<version>${mail.version}</version>
 				<exclusions>
 					<exclusion>
-						<groupId>activation</groupId>
 						<artifactId>activation</artifactId>
+						<groupId>javax.activation</groupId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -213,6 +213,28 @@
 				<groupId>com.amazonaws</groupId>
 				<artifactId>elasticache-java-cluster-client</artifactId>
 				<version>1.0.61.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>junit-dep</artifactId>
+						<groupId>junit</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>junit</artifactId>
+						<groupId>junit</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>jmock-cglib</artifactId>
+						<groupId>jmock</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>log4j</artifactId>
+						<groupId>log4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>jmock</artifactId>
+						<groupId>jmock</groupId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
