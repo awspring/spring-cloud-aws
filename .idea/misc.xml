@@ -17,6 +17,19 @@
     <file type="web" url="file://$PROJECT_DIR$" />
   </component>
   <component name="IdProvider" IDEtalkID="8FF1EBBC0AF379FA888F1F4BEFA823A0" />
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/spring-cloud-aws-context/pom.xml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-cloud-aws-integration-test/pom.xml" />
+        <option value="$PROJECT_DIR$/docs/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-cloud-aws-core/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-cloud-aws-jdbc/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-cloud-aws-messaging/pom.xml" />
+      </list>
+    </option>
+  </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />

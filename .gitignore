@@ -1,6 +1,5 @@
 # Ignore folders
-build/
-/.gradle
+target/
 /config
 /.idea
 /out
@@ -15,7 +14,9 @@ build/
 # Ignore files
 access.properties
 mail.properties
-gradle.properties
 *.iml
 *.ipr
 *.iws
+
+# Because re-configuring the directory in the share plugin leads to side effect we ignore the file
+dependency-reduced-pom.xml

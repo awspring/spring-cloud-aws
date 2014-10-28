@@ -168,8 +168,8 @@
 			"Properties": {
 				"Subscription": [
 					{
-						"Endpoint": "http://notimportant.springframework.com/endpoint",
-						"Protocol": "http"
+						"Endpoint": "https://build.elasticspring.org",
+						"Protocol": "https"
 					}
 				]
 			}

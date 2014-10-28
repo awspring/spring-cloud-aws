@@ -214,7 +214,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		assertEquals(Boolean.TRUE.toString(), dataSourceFactory.getPropertyValues().getPropertyValue("testWhileIdle").getValue());
 		assertEquals("4000", dataSourceFactory.getPropertyValues().getPropertyValue("timeBetweenEvictionRunsMillis").getValue());
 		assertEquals("SELECT 1", dataSourceFactory.getPropertyValues().getPropertyValue("validationQuery").getValue());
-		assertEquals("myValidator", dataSourceFactory.getPropertyValues().getPropertyValue("validatorClassName").getValue());
+		assertEquals(SampleValidator.class.getName(), dataSourceFactory.getPropertyValues().getPropertyValue("validatorClassName").getValue());
 	}
 
 	@Test

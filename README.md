@@ -11,37 +11,25 @@ can take advantage of the scalability of the service provided by the Amazon clou
 
 To check out the project and build it from source, do the following:
 
-    git clone https://github.com/aemruli/spring-cloud-aws.git
+    git clone https://github.com/spring-cloud/spring-cloud-aws.git
     cd spring-cloud-aws
-    ./gradlew build
+    ./mvn package
 
-If you encounter out of memory errors during the build, increase available heap and permgen for Gradle:
+If you encounter out of memory errors during the build, increase available heap and permgen for Maven:
 
-    GRADLE_OPTS='-XX:MaxPermSize=258m -Xmx1024m'
+    MAVEN_OPTS='-XX:MaxPermSize=258m -Xmx1024m'
 
 To build and install jars into your local Maven cache:
 
-    ./gradlew install
+    ./mvn install
 
-To build api Javadoc (results will be in `build/api`):
-
-    ./gradlew api
-
-To build reference documentation (results will be in `build/reference`):
-
-    ./gradlew reference
 
 # Using IntelliJ IDEA
 
 Spring Cloud AWS development is done with [IntelliJ IDEA] [IntelliJ]. In order to create all [IntelliJ IDEA] [IntelliJ]
-project files, you have to import the file within idea as a gradle project. Before importing the project you have 
-to execute the command 
+project files, you have to import the file within idea as a maven project. 
 
-	./gradlew check
-	
-before importing.	
-
-*Note:* Please make sure to revert all changes in the .idea config file directory, as the gradle plugin overwrites
+*Note:* Please make sure to revert all changes in the .idea config file directory, as the maven plugin overwrites
 the configuration files kept in the scm.
 
 # Running integration tests
@@ -79,7 +67,7 @@ automatically execute the integration tests.
 
 To build with the integration tests you must execute
 
-	./gradlew build -Dels.config.dir=/Users/foo/config/dir
+	./mvn verify -Dels.config.dir=/Users/foo/config/dir
  	(on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
 
 The integration test will create an [Amazon Webservices CloudFormation] [Amazon-CloudFormation] stack and execute the

@@ -21,7 +21,7 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
-import org.springframework.cloud.aws.cache.memcached.MemcachedClient;
+import net.spy.memcached.MemcachedClient;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

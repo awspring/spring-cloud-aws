@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.cache.config;
 
+import net.spy.memcached.MemcachedClientIF;
 import org.springframework.cloud.aws.cache.StaticMemcachedFactoryBean;
-import org.springframework.cloud.aws.cache.memcached.MemcachedClientIF;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;

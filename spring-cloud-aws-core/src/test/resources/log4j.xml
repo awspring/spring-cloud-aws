@@ -26,6 +26,11 @@
 		</layout>
 	</appender>
 
+	<!-- Disable warning messages for tests -->
+	<category name="com.amazonaws.util.EC2MetadataUtils">
+		<level value="ERROR"/>
+	</category>
+
 	<root>
 		<priority value="info" />
 		<appender-ref ref="console" />

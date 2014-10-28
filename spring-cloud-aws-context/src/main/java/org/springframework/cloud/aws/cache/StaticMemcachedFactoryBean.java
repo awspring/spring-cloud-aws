@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.springframework.cloud.aws.cache.memcached.AddrUtil;
-import org.springframework.cloud.aws.cache.memcached.MemcachedClient;
-import org.springframework.cloud.aws.cache.memcached.MemcachedClientIF;
+import net.spy.memcached.AddrUtil;
+import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.MemcachedClientIF;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**

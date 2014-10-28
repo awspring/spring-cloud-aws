@@ -36,7 +36,7 @@
 							  minIdle="20" removeAbandoned="true" removeAbandonedTimeout="61" testOnBorrow="true"
 							  testOnReturn="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="4000"
 							  validationQuery="SELECT 1"
-							  validatorClassName="myValidator" />
+							  validatorClassName="org.springframework.cloud.aws.jdbc.config.xml.SampleValidator" />
 	</jdbc:dataSource>
 
 </beans>

@@ -1,5 +1,5 @@
 = Spring Cloud AWS Reference Documentation
-Agim Emruli; Alain Sahli; Christian Stettler
+Agim Emruli; Alain Sahli
 
 == Introduction to Spring Cloud AWS
 Spring Cloud AWS is a Spring Cloud module for Amazon Webservices.

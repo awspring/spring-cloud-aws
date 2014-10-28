@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.springframework.cloud.aws.cache.memcached.MemcachedClientIF;
+import net.spy.memcached.MemcachedClientIF;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.Assert;
