@@ -234,6 +234,10 @@
 						<artifactId>jmock</artifactId>
 						<groupId>jmock</groupId>
 					</exclusion>
+					<exclusion>
+						<artifactId>cglib-nodep</artifactId>
+						<groupId>cglib</groupId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 		</dependencies>
