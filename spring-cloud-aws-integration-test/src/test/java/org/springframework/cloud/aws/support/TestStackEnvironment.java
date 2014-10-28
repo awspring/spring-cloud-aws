@@ -25,9 +25,11 @@ import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.OnFailure;
+import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -48,6 +50,9 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 
 	private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
 	private static final String TEMPLATE_PATH = "IntegrationTest.template";
+
+	@Value("${rdsPassword}")
+	private String rdsPassword;
 
 	private final AmazonCloudFormation amazonCloudFormationClient;
 	private DescribeStackResourcesResult stackResources;
@@ -91,7 +96,8 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
 		} catch (AmazonClientException e) {
 			String templateBody = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
 			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DELETE).
-					withStackName(stackName).withTags(new Tag().withKey("tag1").withValue("value1")));
+					withStackName(stackName).withTags(new Tag().withKey("tag1").withValue("value1")).
+					withParameters(new Parameter().withParameterKey("RdsPassword").withParameterValue(this.rdsPassword)));
 			this.stackCreatedByThisInstance = true;
 		}
 

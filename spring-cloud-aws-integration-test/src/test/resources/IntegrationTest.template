@@ -1,6 +1,23 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Integration Test Template",
+	"Parameters": {
+		"RdsPassword": {
+			"Description": "The master password for the RDS instance",
+			"Type": "String",
+			"MinLength": 8,
+			"NoEcho" : true
+		},
+		"AllowedFrom": {
+			"Description": "Lockdown SSH/DB access to the host (default can be accessed from anywhere)",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "0.0.0.0/0",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid CIDR range of the form x.x.x.x/x."
+		}
+	},
 	"Resources": {
 		"UserTagAndUserDataInstance": {
 			"Type": "AWS::EC2::Instance",
@@ -10,7 +27,7 @@
 				"UserData": {
 					"Fn::Base64": "data1=value1;data2=value2"
 				},
-				"InstanceType": "m1.small",
+				"InstanceType": "t1.micro",
 				"Tags": [
 					{
 						"Key": "tag1",
@@ -35,15 +52,15 @@
 			"Type": "AWS::RDS::DBInstance",
 			"Properties": {
 				"AllocatedStorage": "5",
-				"DBInstanceClass": "db.m1.small",
+				"DBInstanceClass": "db.t1.micro",
 				"DBName": "test",
 				"Engine": "mysql",
 				"MasterUsername": "admin",
-				"MasterUserPassword": "secret23",
+				"MasterUserPassword": {"Ref":"RdsPassword"},
 				"Port": "3306",
 				"DBSecurityGroups": [
 					{
-						"Ref": "AllowAllGroup"
+						"Ref": "AllowBuildServerGroup"
 					}
 				]
 			}
@@ -51,19 +68,20 @@
 		"RdsSingleMicroInstanceReplicaInstance": {
 			"Type": "AWS::RDS::DBInstance",
 			"Properties": {
+				"AllocatedStorage" : "5",
 				"SourceDBInstanceIdentifier": {
 					"Ref": "RdsSingleMicroInstance"
 				},
-				"DBInstanceClass": "db.m1.small"
+				"DBInstanceClass": "db.t1.micro"
 			}
 		},
-		"AllowAllGroup": {
+		"AllowBuildServerGroup": {
 			"Type": "AWS::RDS::DBSecurityGroup",
 			"Properties": {
 				"GroupDescription": "default",
 				"DBSecurityGroupIngress": [
 					{
-						"CIDRIP": "0.0.0.0/0"
+						"CIDRIP": {"Ref":"AllowedFrom"}
 					}
 				]
 			}

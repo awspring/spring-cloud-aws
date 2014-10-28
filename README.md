@@ -42,16 +42,19 @@ does not execute the integration tests by default.
 In order to execute the integration tests you have to create two configuration files that configure the necessary
 parameters to build the environment.
 
-Please create a new file named access.properties. This file must contain two properties named accessKey and secretKey.
-These two properties are account/user specific and should never be shared to anyone. Two retrieve these settings you have
-to open your account inside the AWS console and retrieve them through the [Security Credentials Page]
+Please create a new file named access.properties. This file must contain three properties named accessKey,secretKey and rdsPassword.
+These two properties accessKey and secretKey are account/user specific and should never be shared to anyone. To retrieve 
+these settings you have to open your account inside the AWS console and retrieve them through the [Security Credentials Page]
 [AWS-Security-Credentials].
 *Note:* In general we recommend that you use an [Amazon IAM] [Amazon-IAM] user instead of the account itself.
+The last password rdsPassword is used to access the database inside the integration tests. This password has a minimum 
+length of 8 characters. 
 
 An example file will look like this
 
 	accessKey=ilaugsjdlkahgsdlaksdhg
 	secretKey=aöksjdhöadjs,höalsdhjköalsdjhasd+
+	rdsPassword=someVerySecretPassword
 
 Also you have to create another file named mail.properties which will provide the sender and recipient mail address to
 test the [Amazon Simple E-Mail Service] [Amazon-SES]. These two addresses must be verified for the Amazon SES Service.
@@ -75,7 +78,7 @@ tests. The stack is destroyed after executing the tests (either successful or fa
 unnecessary costs.
 
 ### Costs of integration tests
-The costs for one integration test run should not be more then 0.13 $ per hour (excl. VAT).
+The costs for one integration test run should not be more then 0.40 $ per hour (excl. VAT).
 
 
 # Developing using Amazon Webservices
