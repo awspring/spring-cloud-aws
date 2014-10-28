@@ -23,12 +23,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Agim Emruli
@@ -37,12 +41,28 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySource.class);
 	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
-
 	private static final String DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR = ";";
+	private static final String DEFAULT_KNOWN_PROPERTIES_PATH = AmazonEc2InstanceDataPropertySource.class.getSimpleName() + ".properties";
+
+	private static final Properties KNOWN_PROPERTY_NAMES;
+
 	private String userDataAttributeSeparator = DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR;
 	private static final Charset DEFAULT_USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
 	private Charset userDataAttributeEncoding = DEFAULT_USER_DATA_ATTRIBUTE_ENCODING;
 	private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+
+
+
+	static {
+		// Load all known properties from the classpath. This is not meant
+		// to be changed by external developers.
+		try {
+			ClassPathResource resource = new ClassPathResource(DEFAULT_KNOWN_PROPERTIES_PATH, AmazonEc2InstanceDataPropertySource.class);
+			KNOWN_PROPERTY_NAMES = PropertiesLoaderUtils.loadProperties(resource);
+		} catch (IOException ex) {
+			throw new IllegalStateException("Could not load '"+ DEFAULT_KNOWN_PROPERTIES_PATH + "': " + ex.getMessage());
+		}
+	}
 
 	private volatile Map<String, String> cachedUserData;
 
@@ -68,6 +88,11 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 		if (userData.containsKey(name)) {
 			return userData.get(name);
 		}
+
+		if (!KNOWN_PROPERTY_NAMES.containsKey(getRootPropertyName(name))) {
+			return null;
+		}
+
 		try {
 			return EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/" + name);
 		} catch (AmazonClientException e) {
@@ -76,6 +101,11 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 			LOGGER.warn("Error getting instance meta-data with name '{}' error message is '{}'", name, e.getMessage());
 			return null;
 		}
+	}
+
+	private static String getRootPropertyName(String propertyName){
+		String[] propertyTokens = StringUtils.split(propertyName,"/");
+		return propertyTokens != null ? propertyTokens[0] : propertyName;
 	}
 
 	private Map<String, String> getUserData() {

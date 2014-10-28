@@ -96,6 +96,20 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
+	public void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue() throws Exception {
+		//Arrange
+		httpServer.createContext("/latest/meta-data/services/domain", new StringWritingHttpHandler("amazonaws.com".getBytes("UTF-8")));
+
+		//Act
+		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+
+		//Assert
+		assertEquals("amazonaws.com", amazonEc2InstanceDataPropertySource.getProperty("services/domain"));
+
+		httpServer.removeContext("/latest/meta-data/services/domain");
+	}
+
+	@Test
 	public void getProperty_unknownAttribute_returnsNull() throws Exception {
 		//Arrange
 		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
