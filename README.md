@@ -13,7 +13,7 @@ To check out the project and build it from source, do the following:
 
     git clone https://github.com/spring-cloud/spring-cloud-aws.git
     cd spring-cloud-aws
-    ./mvn package
+    mvn package
 
 If you encounter out of memory errors during the build, increase available heap and permgen for Maven:
 
@@ -21,7 +21,7 @@ If you encounter out of memory errors during the build, increase available heap 
 
 To build and install jars into your local Maven cache:
 
-    ./mvn install
+    mvn install
 
 
 # Using IntelliJ IDEA
@@ -67,7 +67,7 @@ automatically execute the integration tests.
 
 To build with the integration tests you must execute
 
-	./mvn verify -Dels.config.dir=/Users/foo/config/dir
+	mvn verify -Dels.config.dir=/Users/foo/config/dir
  	(on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
 
 The integration test will create an [Amazon Webservices CloudFormation] [Amazon-CloudFormation] stack and execute the
