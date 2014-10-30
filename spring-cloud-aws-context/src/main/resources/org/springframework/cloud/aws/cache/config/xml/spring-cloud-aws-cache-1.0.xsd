@@ -36,11 +36,11 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:all>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
 				<xsd:element name="cache-ref" type="cacheRefType" minOccurs="0" />
 				<xsd:element name="cache-cluster" type="cacheClusterType" minOccurs="0" />
 				<xsd:element name="cache" type="cacheConfigurationType" minOccurs="0" />
-			</xsd:all>
+			</xsd:choice>
 			<xsd:attribute name="id" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
