@@ -9,8 +9,8 @@
 	</parent>
 	<artifactId>spring-cloud-aws-docs</artifactId>
 	<packaging>pom</packaging>
-	<name>Spring Cloud Aws Docs</name>
-	<description>Spring Cloud Aws Docs</description>
+	<name>Spring Cloud AWS Docs</name>
+	<description>Spring Cloud AWS Docs</description>
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
