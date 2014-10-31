@@ -32,7 +32,7 @@ point-to-point communication. Publish-subscribe messaging is supported with the 
 Before using the Spring Cloud AWS module developers have to pick the dependencies and configure the Spring Cloud AWS module.
 The next chapters describe the dependency management and also the basic configuration for the Spring AWS Cloud project.
 
-=== Spring Cloud AWS Maven Dependency Management
+=== Spring Cloud AWS maven dependency management
 Spring Cloud AWS module dependencies can be used directly in Maven[http://maven.apache.org] with a direct configuration
 of the particular module. The Spring Cloud AWS module includes all transitive dependencies for the Spring modules and
 also the Amazon SDK that are needed to operate the modules. The general dependency configuration will look like this:
@@ -165,7 +165,7 @@ The access-key and secret-key are defined using a placeholder expressions along 
  errors if the properties are not configured at all.
 ====
 
-==== Region Configuration
+==== Region configuration
 Amazon Webservices are available in different http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[Regions]. Based
 on the custom requirements, the user can host the application on different Amazon regions. The Spring Cloud AWS module provides
 a general application context wide configuration for the region.
@@ -459,4 +459,142 @@ public class ApplicationService {
 		this.amazonEc2 = amazonEc2;
 	}
 }
+----
+
+== Managing cloud environments
+Managing environment manually with the management console does not scale and can become error-prone with the increasing
+complexity of the infrastructure. Amazon Webservices offers a http://aws.amazon.com/cloudformation/[CloudFormation]
+services that allows to define stack configuration templates and bootstrap the whole infrastructure with the service.
+In order to allow multiple stack in parallel, each resource in the stack receive a unique physical name that contains
+some arbitrary generated name. In order to interact with the stack resource in a unified way Spring Cloud AWS allows
+developers to work with logical names instead of the random physical ones.
+
+The next graphics shows a typical stack configuration
+
+image::cloudformation-overview.png[CloudFormation overview]
+
+The *Template File* describes all stack resources with their _logical name_. The *CloudFormation* services parses the stack
+template file and creates all resources with they _physical name_. The application can use all the stack configured resources
+with the _logical name_ defined in teh template. Spring Cloud AWS resolves all _logical names_ into the respective
+_physical name_ for the application developer.
+
+=== Automatic CloudFormation configuration
+If the application runs inside a stack (because the underlying EC2 instance has been bootstrapped within the stack), then
+the Spring Cloud AWS will automatically detect the stack and resolve all resources from the stack. Application developers
+can use all the logical names from the stack template to interact with the services. In the example below, the database
+resource is configured using CloudFormation template, defining a logical name for the database instance.
+
+[source,xml]
+----
+"applicationDatabase": {
+  "Type": "AWS::RDS::DBInstance",
+  "Properties": {
+  	"AllocatedStorage": "5",
+  	"DBInstanceClass": "db.t1.micro",
+  	"DBName": "test"
+  	...
+  ]
+ }
+}
+----
+
+The datasource is then created and will receive a physical name (e.g. ir142c39k6o5irj) as the database service name. Application
+ developers can still use the logical name (in this case _applicationDatabase_) to interact with the database. The example shows
+ the stack configuration which is defined by the element _aws-context:stack-configuration_ and resolves automatically the
+ particular stack. The _dataSource_ element uses the logical name for the _db-instance-identifier_ attribute to work with
+ the database.
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/context
+	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+
+  <aws-context:context-credentials>
+  	...
+  </aws-context:context-credentials>
+
+  <aws-context:context-region .. />
+
+  <aws-context:stack-configuration/>
+
+  <jdbc:dataSource id="dataSource" db-instance-identifier="RdsSingleMicroInstance" ... />
+</beans>
+----
+
+[TIP]
+====
+Further detailed information on the Amazon RDS configuration and setup can be found in the respective chapter in this
+documentation.
+====
+
+
+=== Manual CloudFormation configuration
+If the application is not running inside an stack configured EC2 instance, then the stack configuration must be configured
+manually. The configuration consistent of an additional element _stack-name_ attribute that will be used to resolve all the
+respective stack configuration information at runtime.
+
+[source,xml]
+----
+<beans ....>
+	...
+  <aws-context:stack-configuration stack-name="myStackName" />
+    ...
+</beans>
+----
+
+=== Manual name resolution
+Spring Cloud AWS uses the CloudFormation stack to resolve all resources internally using the logical name. In some circumstances
+it might be needed to resolve the physical name inside the application code. Spring Cloud AWS provides a pre-configured
+service to resolve the physical stack name based on the logical name. The sample shows a manual stack resource resolution.
+
+[source,java]
+----
+@Service
+public class ApplicationService {
+
+ private final ResourceIdResolver resourceIdResolver;
+
+ @Autowired
+ public ApplicationService(ResourceIdResolver resourceIdResolver) {
+ 	this.resourceIdResolver = resourceIdResolver;
+ }
+
+ public void handleApplicationLogic() {
+ 	String physicalBucketName = this.resourceIdResolver.resolveToPhysicalResourceId("someLogicalName");
+ }
+}
+----
+
+=== Stack Tags
+Like for the Amazon EC2 instances, CloudFormation provides also Stack specific tags that can be used to
+configure stack specific configuration information and receive them inside the application. This can be
+for example a stage specific configuration property (like DEV, INT, PRD).
+
+[source,xml]
+----
+<beans ....>
+	...
+  	<aws-context:stack-configuration user-tags-map="stackTags"/>
+    ...
+</beans>
+----
+
+The application can then access the stack tags with a expression like _#{stackTags.key1}_
+
+=== Using custom CloudFormation client
+Like for the EC2 configuration setup, also the CloudFormation support for Spring Cloud AWS supports custom
+client with a special setup. The client itself can be configured using the _amazon-cloud-formation_ attribute
+as shown in the example:
+
+[source,xml]
+----
+<beans>
+ <aws-context:stack-configuration amazon-cloud-formation=""/>
+
+ <bean class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
+ </bean>
+</beans>
 ----
