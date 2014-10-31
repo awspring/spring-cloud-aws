@@ -598,3 +598,296 @@ as shown in the example:
  </bean>
 </beans>
 ----
+
+== Data Access with JDBC
+
+Spring has a broad support of data access technologies build on top of JDBC like the JdbcTemplate and dedicated ORM (JPA,
+Hibernate support). Spring Cloud AWS enables application developers to re-use their JDBC technology of choice and access the
+ http://aws.amazon.com/rds/[Amazon Relational Database Service] with a declarative configuration. The main support of Spring
+ Cloud AWS for JDBC data access are
+
+ * Automatic data source configuration and setup based on the Amazon RDS database instance
+ * Automatic read-replica detection and configuration for Amazon RDS database instances
+ * Retry-support to handle exception during Multi-AZ failover inside the data center
+
+=== Configuring data source
+Before configuring using and configuring the database support, the application has to include the respective module dependency
+ into his maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
+ modules.
+
+==== Maven dependency configuration
+
+The Spring Cloud AWS JDBC module comes as a standalone module and can be importet with the following dependency declaration
+
+[source,xml]
+----
+<dependency>
+ <groupId>org.springframework.cloud</groupId>
+ <artifactId>spring-cloud-aws-jdbc</artifactId>
+ <version>1.0.0.RELEASE</version>
+</dependency>
+----
+
+==== Basic data source configuration
+The data source configuration requires the security and region configuration as a minimum allowing Spring Cloud AWS to retrieve
+ the database meta-data information with the Amazon RDS service. Spring Cloud AWS provides an additional _jdbc_ specific namespace
+ to configure the data source with the minimum attributes as shown in the example:
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/jdbc
+	   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd">
+
+ <aws-context:context-credentials>
+  ...
+ </aws-context:context-credentials>
+
+ <aws-context:context-region region="..."/>
+
+<jdbc:dataSource id="dataSource"
+		 db-instance-identifier="myRdsDatabase"
+		 password="${rdsPassword}">
+</jdbc:dataSource>
+----
+
+The minimum configuration parameters are an unique _id_ for the datasource, a valid _db-instance-identifier_ attribute
+that points to a valid Amazon RDS database instance. The master user password for the master user. If there is another
+ user to be used (which is recommended) then the _username_ attribute can be set.
+
+With this configuration Spring Cloud AWS fetches all the necessary meta-data and creates a
+http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[Tomcat JDBC pool] with the default properties. The data source
+can be later injected into any Spring Bean as shown below:
+
+[source,java]
+----
+
+@Service
+public class SimpleDatabaseService implements DatabaseService {
+
+ private final JdbcTemplate jdbcTemplate;
+
+ @Autowired
+ public SimpleDatabaseService(DataSource dataSource) {
+ 	this.jdbcTemplate = new JdbcTemplate(dataSource);
+ }
+}
+----
+
+It is possible to qualify the data source injection point with an _@Qualifier_ annotation to allow multiple data source
+configurations inside one application context and still use auto-wiring.
+
+==== Datasource pool configuration
+Spring Cloud AWS creates a new Tomcat JDBC with the default properties. Often these default properties does not meet the
+requirements of the application with regards to pool size and other settings. The data source configuration supports the configuration
+of all valid pool properties with a nested XML element. The following example demonstrates the re-configuration of the data
+source with custom pool properties.
+
+[source,xml]
+----
+<beans ..>
+
+ <aws-context:context-credentials>
+  ...
+ </aws-context:context-credentials>
+
+ <aws-context:context-region region="..."/>
+
+ <jdbc:dataSource id="dataSource"
+		 db-instance-identifier="myRdsDatabase"
+		 password="${rdsPassword}">
+		 <jdbc:pool-attributes initialSize="1" " maxActive="200" minIdle="10"
+         		testOnBorrow="true" validationQuery="SELECT 1" />
+ </jdbc:dataSource>
+----
+
+A full list of all configuration attributes with their value is available http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[here]
+
+=== Read-replica configuration
+Amazon RDS allows to use http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html[MySQL read-replica]
+instances to increase the overall throughput of the database by offloading read data access to a one or many read-replica
+slaves while maintaining the data in one master database.
+
+Spring Cloud AWS supports the use of read-replicas in combination with Spring read-only transaction. If the read-replica
+support is enabled, any read-only transaction will be routed to an read-replica instance while using the master database
+for write operations.
+
+[CAUTION]
+====
+Using read-replica instances does not guarantee strict http://en.wikipedia.org/wiki/ACID[ACID] semantics for the database
+access and should by used with care. This is due to the fact that the read-replica might be behind and an write might not
+be immediately visible to the read transaction. Therefore it is recommended to make only transaction read-only that read
+data which is not changed very often and where outdated data can be handled by the application.
+====
+
+The read-replica support can be enabled with the _read-replica_ attribute in the data source configuration.
+
+[source,xml]
+----
+<beans ..>
+ <jdbc:dataSource id="dataSource" db-instance-identifier="RdsSingleMicroInstance"
+	password="${rdsPassword}" read-replica-support="true">
+
+ </jdbc:dataSource>
+</beans>
+----
+
+Spring Cloud AWS will search for any read-replica that is created for the master database and route the read-only transactions
+to one of the read-replicas that are available. A business service that uses read-replicas can be implemented like shown
+in the example.
+
+[source,java]
+----
+@Service
+public class SimpleDatabaseService {
+
+	private final JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	public SimpleDatabaseService(DataSource dataSource) {
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+
+	@Transactional(readOnly = true)
+	public Person loadAll() {
+		// read data on the read replica
+	}
+
+	@Transactional
+	public void updatePerson(Person person) {
+		// write data into database
+	}
+}
+----
+
+=== Failover support
+Amazon RDS support a http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html[Multi-AZ] fail-over if
+one availability zone is not available due to an outage or failure of the primary instance. The replication is synchronous
+ (compared to the read-replicas) and provides continuous service. Spring Cloud AWS support a Multi-AZ failover with a retry
+ mechanism to recover transactions that fail during a Multi-AZ failover
+
+[NOTICE]
+====
+In most cases it is better to provide a user direct feedback instead of trying potentially long and often retires within
+a user interaction. Therefore the fail-over support is primarily useful for batch application or application where the
+responsiveness of an service call is not critical.
+====
+
+The Spring Cloud AWS JDBC module provides a retry interceptor that can be used to decorate services with an interceptor.
+The interceptor will retry the database operation again if there is a temporary error due to an Multi-AZ failover. A Multi-AZ
+failover typically lasts only a couple of seconds, therefore a retry of the business transaction will likely succeed.
+
+The interceptor can be configured as a regular bean and then be used by an pointcut expression to decorate the respective
+method calls with the interceptor. The interceptor must have a configured database to retrieve the current status (if it
+is a temporary fail-over or a permanent error) from the Amazon RDS service.
+
+The configuration for the interceptor can be done with a custom element from the Spring Cloud AWS jdbc namespace and
+will be configured like shown:
+
+[source,xml]
+----
+<beans ..>
+<jdbc:retry-interceptor db-instance-identifier="myRdsDatabase"
+							id="myInterceptor"  max-number-of-retries="10" />
+</beans>
+----
+
+The interceptor itself can be used with any Spring advice configuration to wrap the respective service. An pointcut
+for the services shown in the chapter before can be defined as follows:
+
+[source,xml]
+----
+<beans ..>
+ <aop:config>
+  <aop:advisor advice-ref="myInterceptor" pointcut="bean(simpleDatabaseService)" order="1" />
+ </aop:config>
+</beans>
+----
+
+[CAUTION]
+====
+It is important the the interceptor is called outside the transaction interceptor to ensure that the whole transaction
+will be re-executed. Configuring the interceptor inside the transaction interceptor will lead to a permanent error because
+the broken connection will never be refreshed.
+====
+
+The configuration above in combination with a transaction configuration will produce the following proxy configuration
+for the service.
+
+image::jdbc-retry-interceptor.png[Retry interceptor]
+
+=== Cloudformation support
+Spring Cloud AWS support database instance that are configured with CloudFormation. Spring Cloud AWS can use the logical
+name inside the database configuration and lookup the concrete database with the generated physical resource name. A data
+base configuration can be easily configured in CloudFormation with a template definition that might look like the following
+example.
+
+[source,json]
+----
+"myRdsDatabase": {
+ 	"Type": "AWS::RDS::DBInstance",
+ 	"Properties": {
+ 	 "AllocatedStorage": "5",
+ 	 "DBInstanceClass": "db.t1.micro",
+ 	 "DBName": "test",
+ 	 "Engine": "mysql",
+ 	 "MasterUsername": "admin",
+ 	 "MasterUserPassword": {"Ref":"RdsPassword"},
+ 	 ...
+ 	}
+ },
+ "readReplicaDatabase": {
+ 	"Type": "AWS::RDS::DBInstance",
+ 	"Properties": {
+ 	 "AllocatedStorage" : "5",
+ 	 "SourceDBInstanceIdentifier": {
+ 	 	"Ref": "myRdsDatabase"
+ 	 },
+ 	 "DBInstanceClass": "db.t1.micro"
+ 	}
+ }
+}
+----
+
+The database can then be configured using the name configured in the template, also the read-replica can
+be enabled to use the configured read replica database in the application. A configuration to use the configured
+database is outlined below:
+
+[source,xml]
+----
+<beans>
+ <aws-context:stack-configuration/>
+ <jdbc:dataSource id="dataSource" db-instance-identifier="myRdsDatabase" password="${rdsPassword}" read-replica-support="true"/>
+</beans>
+----
+
+=== Database tags
+Amazon RDS instance can also be configured using RDS database specific tags, allowing users to configure database specific
+configuration meta-data with the database. Database instance specific can be configured using the _user-tags-map_ attribute
+on the dataSource element. Configuring the tags support like in the example below:
+
+[source,xml]
+----
+<jdbc:dataSource id="dataSource"
+					 db-instance-identifier="myRdsDatabase"
+					 password="${rdsPassword}" user-tags-map="dbTags" />
+----
+
+Allows the developer to access the properties in the code using expression like shown in the class below:
+
+[source,java]
+----
+public class SampleService {
+
+	@Value("#{dbTags['aws:cloudformation:aws:cloudformation:stack-name']}")
+	private String stackName;
+}
+----
+
+[NOTE]
+====
+The database tag _aws:cloudformation:aws:cloudformation:stack-name_ is a default tag that is created if the
+database is configured using CloudFormation.
+====
