@@ -343,8 +343,8 @@ User-data stored in a base 64 encoded representation and automatically translate
 ====
 
 ==== Using instance tags
-User configured properties can also be configured with tags instead of user data. Tags are global in the context
- of Amazon Webservices and used for different services. Spring Cloud AWS support instance tags also across different
+User configured properties can also be configured with tags instead of user data. Tags are a global concept in the context
+ of Amazon Webservices and used in different services. Spring Cloud AWS support instance tags also across different
  services. Compared to user data, user tags can also be updated during runtime, there is no need to stop and restart
  the instance.
 
@@ -395,5 +395,68 @@ A CloudFormation for the configuration of the instance tags is outlined below
 }
 ----
 
-The instance tags can then be accessed like the user data using the _@Value_ annotation or the
-_${}_ placeholder seen in the examples above.
+To retrieve the instance tags, Spring Cloud AWS has to make authenticated requests and therefore it will need the region
+and security configuration before actually resolving the placeholder. Also because the instance tags are not available while starting
+ the application context, they can be only referenced as expression and not with placeholders. The _context-instance-placeholder_
+ element defines an attribute _user-tags-map_ that will create a map in the application context for the name. This map
+ can then be queried using expression for other bean definitions.
+
+[source,xml]
+----
+ <beans ...>
+  <aws-context:context-instance-placeholder user-tags-map="instanceData" />
+ </beans>
+----
+
+A java bean might resolve expression with the _@Value_ annotation.
+
+[source,java]
+----
+ public class SimpleConfigurationBean {
+
+ 	@Value("#{instanceData.tag1}")
+ 	private String value1;
+ 	@Value("#{instanceData.tag2}")
+ 	private String value2;
+ 	@Value("#{instanceData.tag3}")
+ 	private String value3;
+ 	@Value("#{instanceData.tag4}")
+ 	private String value4;
+ }
+----
+
+==== Configuring custom EC2 client
+In some circumstances it is necessary to have a custom EC2 client to retrieve the instance information. The
+_context-instance-placeholder_ element support custom EC2 client with the _amazon-ec2_ attribute. The next
+example shows the use of a custom EC2 client that might have a special configuration in place
+
+[source,xml]
+----
+<beans ...>
+
+  <aws-context:context-credentials>....</aws-context:context-credentials>
+  <aws-context:context-region ... />
+  <aws-context:context-instance-placeholder  amazon-ec2="myCustomClient"/>
+
+  <bean id="myCustomClient" class="com.amazonaws.services.ec2.AmazonEC2Client">
+	...
+  </bean>
+</beans>
+----
+
+==== Injecting the default EC2 client
+By default Spring Cloud AWS configures an EC2 client with the specified region and security credentials. Application
+ developers can inject the EC2 client directly into their code using the _@Autowired_ annotation.
+
+[source,java]
+----
+public class ApplicationService {
+
+	private final AmazonEC2 amazonEc2;
+
+	@Autowired
+	public ApplicationService(AmazonEC2 amazonEc2) {
+		this.amazonEc2 = amazonEc2;
+	}
+}
+----
