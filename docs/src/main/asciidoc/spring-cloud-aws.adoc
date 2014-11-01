@@ -666,8 +666,8 @@ With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML
 
 In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQS` client
 is automatically created and passed to the template's constructor based on the provided credentials. If the
-application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor.
-// TODO Link to the cloud formation doc
+application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor (see
+<<Managing cloud environments>> for more information about resource resolution).
 
 ===== Using message converters
 In order to facilitate the sending of domain model objects, the `QueueMessagingTemplate` has various send methods that
