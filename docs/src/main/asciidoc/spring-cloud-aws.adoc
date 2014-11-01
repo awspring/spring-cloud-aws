@@ -37,7 +37,7 @@ Spring Cloud AWS module dependencies can be used directly in Maven[http://maven.
 of the particular module. The Spring Cloud AWS module includes all transitive dependencies for the Spring modules and
 also the Amazon SDK that are needed to operate the modules. The general dependency configuration will look like this:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <dependencies>
   <dependency>
@@ -55,7 +55,7 @@ instead of _spring-cloud-aws-context_)
 The example above works with the Maven Central repository. To use the Spring Maven repository (e.g. for milestones or
 developer snapshots), you need to specify the repository location in your Maven configuration. For full releases:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <repositories>
     <repository>
@@ -68,7 +68,7 @@ developer snapshots), you need to specify the repository location in your Maven 
 
 For milestones:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <repositories>
     <repository>
@@ -86,7 +86,7 @@ so that the elements can be directly used. Each module of Spring Cloud AWS provi
 use of the modules. A typical XML configuration to use Spring Cloud AWS is outlined below:
 
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -114,13 +114,13 @@ Credentials for the Amazon SDK consist of an access key (which might be shared) 
  security attributes can be configured using the XML namespaces for each Amazon SDK service created by the Spring Cloud AWS
  module. The overall configuration looks like this
 
-[source,xml]
+[source,xml,indent=0]
 ----
- <beans ...>
-     <aws-context:context-credentials>
-       <aws-context:simple-credentials access-key="AKIAIOSFODNN7EXAMPLE" secret-key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" />
-     </aws-context:context-credentials>
- </beans>
+<beans ...>
+  <aws-context:context-credentials>
+   <aws-context:simple-credentials access-key="AKIAIO" secret-key="wJalrXUtnFEMI/K7M" />
+  </aws-context:context-credentials>
+</beans>
 ----
 
 [CAUTION]
@@ -135,13 +135,13 @@ An http://docs.aws.amazon.com/IAM/latest/UserGuide/instance-profiles.html[instan
  with the instance profile specific user role. Therefore there is no dedicated access-key and secret-key needed in the configuration.
 The configuration for the instance profile in Spring Cloud AWS looks like this:
 
-[source,xml]
+[source,xml,indent=0]
 ----
- <beans ...>
-         <aws-context:context-credentials>
-             <aws-context:instance-profile-credentials/>
-         </aws-context:context-credentials>
- </beans>
+<beans ...>
+	<aws-context:context-credentials>
+ 		<aws-context:instance-profile-credentials/>
+ 	</aws-context:context-credentials>
+</beans>
 ----
 
 ===== Mixing both security configurations
@@ -149,7 +149,7 @@ In some cases it is useful to combine both authentication strategies to allow th
 with a fallback for an explicit access-key and secret-key configuration. This is useful if the application is tested inside
 EC2 (e.g. on a test server) and locally for testing. The next snippet shows a combination of both security configurations.
 
-[source,xml]
+[source,xml,indent=0]
 ----
  <beans ...>
     <aws-context:context-credentials>
@@ -174,11 +174,11 @@ a general application context wide configuration for the region.
 The region can be explicitly configured using a XML element. This is particularly useful if the region can not be automatically
 derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden.
 
-[source,xml]
+[source,xml,indent=0]
 ----
- <beans ...>
-    	<aws-context:context-region region="EU_WEST_1"/>
- </beans>
+<beans ...>
+  	<aws-context:context-region region="EU_WEST_1"/>
+</beans>
 ----
 
 [TIP]
@@ -192,7 +192,7 @@ If the application context is started inside an EC2 instance, then the region ca
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[instance meta-data] and therefore must
 not be configured. The configuration will look like this:
 
-[source,xml]
+[source,xml,indent=0]
 ----
    <beans ...>
      <aws-context:context-region auto-detect="true" />
@@ -204,7 +204,7 @@ A region can also be overridden for particular services if one application conte
 The configuration can be done globally like described above and configured for each service with an region attribute.
 The configuration might look like this for an database service (described later)
 
-[source,xml]
+[source,xml,indent=0]
 ----
  <beans ...>
   <aws-context:context-region region="EU_CENTRAL_1" />
@@ -233,7 +233,7 @@ EC2 environment. The meta-data can be queried using a special HTTP address that 
 The instance meta-data retrieval support is enabled through an XML element like the standard property placeholder in Spring.
 The following code samples demonstrates the activation of the instance meta-data support inside an application context.
 
-[source,xml]
+[source,xml,indent=0]
 ----
    <beans ...>
      	<aws-context:context-instance-placeholder />
@@ -250,22 +250,22 @@ any region or security specific configuration.
 Instance meta-data can be used in XML and Java placeholders and expression. The example below demonstrates the usage of
 instance meta-data inside an XML file using placeholder and also the expression referring to the special variable _environment_
 
-[source,xml]
+[source,xml,indent=0]
 ----
-   <beans ...>
-    <bean class="org.springframework.cloud.aws....SimpleConfigurationBean">
-		<property name="value1" value="#{environment.ami-id}" />
-		<property name="value2" value="#{environment.hostname}" />
-		<property name="value3" value="${instance-type}" />
-		<property name="value4" value="${instance-id}" />
-	</bean>
-  </beans>
+<beans ...>
+ <bean class="org.springframework.cloud.aws....SimpleConfigurationBean">
+	<property name="value1" value="#{environment.ami-id}" />
+	<property name="value2" value="#{environment.hostname}" />
+	<property name="value3" value="${instance-type}" />
+	<property name="value4" value="${instance-id}" />
+ </bean>
+</beans>
 ----
 
 Instance meta-data can also be injected with the Spring _org.springframework.beans.factory.annotation.Value_ annotation
 directly into Java fields. The next example demonstrates the use of instance meta-data inside a Spring bean.
 
-[source,java]
+[source,java,indent=0]
 ----
    @Component
    public class ApplicationInfoBean {
@@ -303,7 +303,7 @@ image::cloud-environment-user-data.png[User data in the management console]
 
 A CloudFormation for the configuration of the user data is outlined below
 
-[source,json]
+[source,json,indent=0]
 ----
    ...
    "Resources": {
@@ -324,7 +324,7 @@ A CloudFormation for the configuration of the user data is outlined below
 The user data can be accessed directly in the application context like the instance meta-data through placeholders
 or expressions.
 
-[source,java]
+[source,java,indent=0]
 ----
 @Component
 public class SecondConfigurationBean {
@@ -363,34 +363,34 @@ image::cloud-environment-instance-tags.png[Instance data in the management conso
 A CloudFormation for the configuration of the instance tags is outlined below
 
 
-[source,json]
+[source,json,indent=0]
 ----
    ...
 "Resources": {
-  "UserTagAndUserDataInstance": {
-    "Type": "AWS::EC2::Instance",
-	"Properties": {
-	  "ImageId": "ami-6a56b81d",
-	  "InstanceType": "t1.micro",
-	  "Tags": [
-	    {
-		  "Key": "tag1",
-		  "Value": "tagv1"
-		  },
-		{
-		  "Key": "tag3",
-		  "Value": "tagv3"
-	      },
-		{
-		  "Key": "tag2",
-		  "Value": "tagv2"
-		},
-		{
-		   "Key": "tag4",
-		   "Value": "tagv4"
-	     }
-		]
-	  }
+	"UserTagAndUserDataInstance": {
+		"Type": "AWS::EC2::Instance",
+		"Properties": {
+			"ImageId": "ami-6a56b81d",
+		  	"InstanceType": "t1.micro",
+		  	"Tags": [
+			{
+				"Key": "tag1",
+			  	"Value": "tagv1"
+			},
+			{
+				"Key": "tag3",
+			  	"Value": "tagv3"
+			},
+			{
+				"Key": "tag2",
+			  	"Value": "tagv2"
+			},
+			{
+				"Key": "tag4",
+				"Value": "tagv4"
+			}
+			]
+		}
 	}
 }
 ----
@@ -401,7 +401,7 @@ and security configuration before actually resolving the placeholder. Also becau
  element defines an attribute _user-tags-map_ that will create a map in the application context for the name. This map
  can then be queried using expression for other bean definitions.
 
-[source,xml]
+[source,xml,indent=0]
 ----
  <beans ...>
   <aws-context:context-instance-placeholder user-tags-map="instanceData" />
@@ -410,7 +410,7 @@ and security configuration before actually resolving the placeholder. Also becau
 
 A java bean might resolve expression with the _@Value_ annotation.
 
-[source,java]
+[source,java,indent=0]
 ----
  public class SimpleConfigurationBean {
 
@@ -430,7 +430,7 @@ In some circumstances it is necessary to have a custom EC2 client to retrieve th
 _context-instance-placeholder_ element support custom EC2 client with the _amazon-ec2_ attribute. The next
 example shows the use of a custom EC2 client that might have a special configuration in place
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ...>
 
@@ -448,7 +448,7 @@ example shows the use of a custom EC2 client that might have a special configura
 By default Spring Cloud AWS configures an EC2 client with the specified region and security credentials. Application
  developers can inject the EC2 client directly into their code using the _@Autowired_ annotation.
 
-[source,java]
+[source,java,indent=0]
 ----
 public class ApplicationService {
 
@@ -484,7 +484,7 @@ the Spring Cloud AWS will automatically detect the stack and resolve all resourc
 can use all the logical names from the stack template to interact with the services. In the example below, the database
 resource is configured using CloudFormation template, defining a logical name for the database instance.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 "applicationDatabase": {
   "Type": "AWS::RDS::DBInstance",
@@ -504,7 +504,7 @@ The datasource is then created and will receive a physical name (e.g. ir142c39k6
  particular stack. The _dataSource_ element uses the logical name for the _db-instance-identifier_ attribute to work with
  the database.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
@@ -536,7 +536,7 @@ If the application is not running inside an stack configured EC2 instance, then 
 manually. The configuration consistent of an additional element _stack-name_ attribute that will be used to resolve all the
 respective stack configuration information at runtime.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ....>
 	...
@@ -550,7 +550,7 @@ Spring Cloud AWS uses the CloudFormation stack to resolve all resources internal
 it might be needed to resolve the physical name inside the application code. Spring Cloud AWS provides a pre-configured
 service to resolve the physical stack name based on the logical name. The sample shows a manual stack resource resolution.
 
-[source,java]
+[source,java,indent=0]
 ----
 @Service
 public class ApplicationService {
@@ -563,7 +563,8 @@ public class ApplicationService {
  }
 
  public void handleApplicationLogic() {
- 	String physicalBucketName = this.resourceIdResolver.resolveToPhysicalResourceId("someLogicalName");
+ 	String physicalBucketName =
+ 		this.resourceIdResolver.resolveToPhysicalResourceId("someLogicalName");
  }
 }
 ----
@@ -573,12 +574,12 @@ Like for the Amazon EC2 instances, CloudFormation provides also Stack specific t
 configure stack specific configuration information and receive them inside the application. This can be
 for example a stage specific configuration property (like DEV, INT, PRD).
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ....>
 	...
-  	<aws-context:stack-configuration user-tags-map="stackTags"/>
-    ...
+	<aws-context:stack-configuration user-tags-map="stackTags"/>
+	...
 </beans>
 ----
 
@@ -589,13 +590,13 @@ Like for the EC2 configuration setup, also the CloudFormation support for Spring
 client with a special setup. The client itself can be configured using the _amazon-cloud-formation_ attribute
 as shown in the example:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans>
- <aws-context:stack-configuration amazon-cloud-formation=""/>
+	<aws-context:stack-configuration amazon-cloud-formation=""/>
 
- <bean class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
- </bean>
+	<bean class="com.amazonaws.services.cloudformation.AmazonCloudFormationClient">
+	</bean>
 </beans>
 ----
 
@@ -619,12 +620,12 @@ Before configuring using and configuring the database support, the application h
 
 The Spring Cloud AWS JDBC module comes as a standalone module and can be importet with the following dependency declaration
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <dependency>
- <groupId>org.springframework.cloud</groupId>
- <artifactId>spring-cloud-aws-jdbc</artifactId>
- <version>1.0.0.RELEASE</version>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-aws-jdbc</artifactId>
+	<version>1.0.0.RELEASE</version>
 </dependency>
 ----
 
@@ -633,7 +634,7 @@ The data source configuration requires the security and region configuration as 
  the database meta-data information with the Amazon RDS service. Spring Cloud AWS provides an additional _jdbc_ specific namespace
  to configure the data source with the minimum attributes as shown in the example:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
@@ -651,6 +652,7 @@ The data source configuration requires the security and region configuration as 
 		 db-instance-identifier="myRdsDatabase"
 		 password="${rdsPassword}">
 </jdbc:dataSource>
+</beans>
 ----
 
 The minimum configuration parameters are an unique _id_ for the datasource, a valid _db-instance-identifier_ attribute
@@ -661,7 +663,7 @@ With this configuration Spring Cloud AWS fetches all the necessary meta-data and
 http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[Tomcat JDBC pool] with the default properties. The data source
 can be later injected into any Spring Bean as shown below:
 
-[source,java]
+[source,java,indent=0]
 ----
 
 @Service
@@ -685,7 +687,7 @@ requirements of the application with regards to pool size and other settings. Th
 of all valid pool properties with a nested XML element. The following example demonstrates the re-configuration of the data
 source with custom pool properties.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ..>
 
@@ -701,6 +703,8 @@ source with custom pool properties.
 		 <jdbc:pool-attributes initialSize="1" " maxActive="200" minIdle="10"
          		testOnBorrow="true" validationQuery="SELECT 1" />
  </jdbc:dataSource>
+
+</beans>
 ----
 
 A full list of all configuration attributes with their value is available http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[here]
@@ -724,7 +728,7 @@ data which is not changed very often and where outdated data can be handled by t
 
 The read-replica support can be enabled with the _read-replica_ attribute in the data source configuration.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ..>
  <jdbc:dataSource id="dataSource" db-instance-identifier="RdsSingleMicroInstance"
@@ -738,7 +742,7 @@ Spring Cloud AWS will search for any read-replica that is created for the master
 to one of the read-replicas that are available. A business service that uses read-replicas can be implemented like shown
 in the example.
 
-[source,java]
+[source,java,indent=0]
 ----
 @Service
 public class SimpleDatabaseService {
@@ -786,18 +790,19 @@ is a temporary fail-over or a permanent error) from the Amazon RDS service.
 The configuration for the interceptor can be done with a custom element from the Spring Cloud AWS jdbc namespace and
 will be configured like shown:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ..>
-<jdbc:retry-interceptor db-instance-identifier="myRdsDatabase"
-							id="myInterceptor"  max-number-of-retries="10" />
+	<jdbc:retry-interceptor id="myInterceptor"
+		db-instance-identifier="myRdsDatabase"
+		max-number-of-retries="10" />
 </beans>
 ----
 
 The interceptor itself can be used with any Spring advice configuration to wrap the respective service. An pointcut
 for the services shown in the chapter before can be defined as follows:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans ..>
  <aop:config>
@@ -824,7 +829,7 @@ name inside the database configuration and lookup the concrete database with the
 base configuration can be easily configured in CloudFormation with a template definition that might look like the following
 example.
 
-[source,json]
+[source,json,indent=0]
 ----
 "myRdsDatabase": {
  	"Type": "AWS::RDS::DBInstance",
@@ -855,7 +860,7 @@ The database can then be configured using the name configured in the template, a
 be enabled to use the configured read replica database in the application. A configuration to use the configured
 database is outlined below:
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans>
  <aws-context:stack-configuration/>
@@ -868,16 +873,16 @@ Amazon RDS instance can also be configured using RDS database specific tags, all
 configuration meta-data with the database. Database instance specific can be configured using the _user-tags-map_ attribute
 on the dataSource element. Configuring the tags support like in the example below:
 
-[source,xml]
+[source,xml,indent=0]
 ----
-<jdbc:dataSource id="dataSource"
-					 db-instance-identifier="myRdsDatabase"
-					 password="${rdsPassword}" user-tags-map="dbTags" />
+	<jdbc:dataSource id="dataSource"
+		db-instance-identifier="myRdsDatabase"
+		password="${rdsPassword}" user-tags-map="dbTags" />
 ----
 
 Allows the developer to access the properties in the code using expression like shown in the class below:
 
-[source,java]
+[source,java,indent=0]
 ----
 public class SampleService {
 
@@ -891,3 +896,156 @@ public class SampleService {
 The database tag _aws:cloudformation:aws:cloudformation:stack-name_ is a default tag that is created if the
 database is configured using CloudFormation.
 ====
+
+==Sending mails
+Spring has an built-in support to send E-Mail based on the http://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API]
+to avoid any static method calls while using the Java Mail API and thus supporting the testability of application.
+Spring Cloud AWS supports the http://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
+
+As a result Spring Cloud AWS users can decide to use the Spring Cloud AWS implementation of the Amazon SES service or
+use the standard Java Mail API based implementation that send mails via SMTP to Amazon SES
+
+[TIP]
+====
+It is preferred to use the Spring Cloud AWS implementation instead of the SMTP mainly for performance reasons.
+Spring Cloud AWS uses one API call to send a mail message, the SMTP protocol makes multiple requests (EHLO, MAIL FROM, RCPT TO, DATA, QUIT)
+until it sends an e-mail
+====
+
+=== Configuring the mail sender
+Spring Cloud AWS provides a XML element to configure a Spring _org.springframework.mail.MailSender_ implementation for the
+client to be used. The default mail sender work without a Java Mail dependency and is capable of sending messages without
+attachment as simple mail messages. A configuration with the necessary elements will look like this
+
+
+[source,xml,indent=0]
+----
+<beans xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
+   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/mail
+      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd">
+
+	<aws-context:context-credentials>
+	  ..
+	</aws-context:context-credentials>
+
+	<aws-context:context-region region="EU_WEST_1" />
+
+	<aws-mail:mail-sender id="testSender" />
+
+</beans>
+----
+
+=== Sending simple mails
+Application developers can inject the _MailSender_ into their application code and directly send simple text based e-mail
+ messages. The sample below demonstrates the creation of a simple mail message.
+
+[source,java,indent=0]
+----
+public class MailSendingService {
+
+	private MailSender mailSender;
+
+	@Autowired
+	public MailSendingService(MailSender mailSender){
+		this.mailSender = mailSender;
+	}
+
+	public void sendMailMessage() {
+		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+		simpleMailMessage.setFrom("foo@bar.com");
+		simpleMailMessage.setTo("bar@baz.com");
+		simpleMailMessage.setSubject("test subject");
+		simpleMailMessage.setText("test content");
+		this.mailSender.send(simpleMailMessage);
+	}
+}
+----
+
+
+=== Sending attachments
+Sending attachments with e-mail protocol requires mime messages to be created and sent. In order to create MimeMessages,
+the Java Mail dependency is required and have to be included into the classpath. Spring Cloud AWS will detect the
+dependency and create a _org.springframework.mail.javamail.JavaMailSender_ implementation that allows to create and
+build mime messages and send them. A dependency configuration for the Java Mail api is the only change in the configuration
+which is shown below.
+
+[source,xml,indent=0]
+----
+<dependency>
+	<groupId>javax.mail</groupId>
+	<artifactId>mailapi</artifactId>
+	<version>1.4.1</version>
+	<exclusions>
+		<!-- exclusion because we are running on Java 1.7 that includes the activation API by default-->
+		<exclusion>
+			<artifactId>activation</artifactId>
+			<groupId>javax.activation</groupId>
+		</exclusion>
+	</exclusions>
+</dependency>
+----
+
+[HINT]
+====
+Even though there is a dependency to the Java Mail API there is still the Amazon SES API used underneath to send mail
+messages. There is no http://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-smtp.html[SMTP setup] required
+on the Amazon AWS side.
+====
+
+Sending the mail requires the application developer to use the _JavaMailSender_ to send an E-Mail that is shown in the example
+below.
+
+[source,java,indent=0]
+----
+public class MailSendingService {
+
+
+	private JavaMailSender mailSender;
+
+    @Autowired
+	public MailSendingService(JavaMailSender mailSender){
+		this.mailSender = mailSender;
+	}
+
+	public void sendMailMessage() {
+		this.mailSender.send(new MimeMessagePreparator() {
+
+        			@Override
+        			public void prepare(MimeMessage mimeMessage) throws Exception {
+        				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        				helper.addTo("foo@bar.com");
+        				helper.setFrom("bar@baz.com");
+        				helper.addAttachment("test.txt", new ByteArrayResource("attachment content".getBytes("UTF-8")));
+        				helper.setSubject("test subject with attachment");
+        				helper.setText("mime body", false);
+        			}
+        		});
+	}
+}
+----
+
+=== Configuring regions
+Amazon SES is not available in all http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html[regions] of the
+Amazon Webservices cloud. Therefore an application hosted and operated in a region that does not support the mail
+service will produce an error while using the mail service. Therefore the region must be overridden for the mail
+sender configuration. The example below shows a typical combination of a region (EU-CENTRAL-1) that does not provide
+and SES service, the client is overridden to usa a valid region EU-WEST-1.
+
+[source,xml,indent=0]
+----
+<beans ...>
+
+ <aws-context:context-region region="EU_CENTRAL_1" />
+ <aws-mail:mail-sender id="testSender"  region="EU_WEST_1"/>
+
+</beans>
+----
+
+=== Authenticating E-Mails
+To avoid any spam attacks on the Amazon SES mail service, application without production access must
+http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each
+e-mail receiver otherwise the mail sender will throw an _com.amazonaws.services.simpleemail.model.MessageRejectedException_.
+
+http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
+ and will disable the need for mail address verification.
+
