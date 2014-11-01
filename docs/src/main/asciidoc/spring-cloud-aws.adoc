@@ -624,6 +624,7 @@ public class SqsQueueSender {
 
 	private final QueueMessagingTemplate queueMessagingTemplate;
 
+	@Autowired
 	public SqsQueueSender(AmazonSQS amazonSqs) {
 		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 	}
@@ -636,9 +637,10 @@ public class SqsQueueSender {
 
 This example uses the `MessageBuilder` class to create a message with a string payload. The `QueueMessagingTemplate` is
 constructed by passing a reference to the `AmazonSQS` client. The destination in the send method is a string value that
-must match the queue name defined on AWS. This value will be resolved at runtime with the Amazon SQS client. Optionally
+must match the queue name defined on AWS. This value will be resolved at runtime by the Amazon SQS client. Optionally
 a `ResourceIdResolver` implementation can be passed to the `QueueMessagingTemplate` constructor to resolve resources by
-logical name when running inside a CloudFormation stack.
+logical name when running inside a CloudFormation stack (see <<Managing cloud environments>> for more information about
+resource name resolution).
 
 With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML configuration file.
 
@@ -667,7 +669,7 @@ With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML
 In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQS` client
 is automatically created and passed to the template's constructor based on the provided credentials. If the
 application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor (see
-<<Managing cloud environments>> for more information about resource resolution).
+<<Managing cloud environments>> for more information about resource name resolution).
 
 ===== Using message converters
 In order to facilitate the sending of domain model objects, the `QueueMessagingTemplate` has various send methods that
@@ -785,10 +787,239 @@ that specifies `QueueMessagingTemplate` as the messaging template to be used to 
 listener method.
 
 === SNS support
+Spring Cloud AWS supports SNS by providing a `NotificationMessagingTemplate` for sending notifications and annotation
+support to map HTTP notification endpoints.
 
 ==== Sending a message
+The `NotificationMessagingTemplate` contains two convenience methods to send a notification. The first one specifies the
+destination using a `String` which is going to be resolved against the SNS API. The second one takes no destination
+argument and uses the default destination. All the usual send methods that are available on the `MessageSendingOperations`
+are implemented but are less convenient to send notifications because the subject must be passed as header.
+
+NOTE: Currently only `String` payloads can be sent using the `NotificationMessagingTemplate` as this is the expected
+type by the SNS API.
+
+[source,java]
+----
+import com.amazonaws.services.sns.AmazonSNS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
+
+public class SnsNotificationSender {
+
+	private final NotificationMessagingTemplate notificationMessagingTemplate;
+
+	@Autowired
+	public SnsNotificationSender(AmazonSNS amazonSns) {
+		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+	}
+
+	public void send(String subject, String message) {
+		this.notificationMessagingTemplate.sendNotification("physicalTopicName", message, subject);
+	}
+}
+----
+
+This example constructs a new `NotificationMessagingTemplate` by passing an `AmazonSNS` client as argument. In the `send`
+method the convenience `sendNotification` method is used to send a `message` with `subject` to an SNS topic. The
+destination in the `sendNotification` method is a string value that must match the topic name defined on AWS. This value
+is resolved at runtime by the Amazon SNS client. Optionally a `ResourceIdResolver` implementation can be passed to the
+`NotificationMessagingTemplate` constructor to resolve resources by logical name when running inside a CloudFormation stack
+(see <<Managing cloud environments>> for more information about resource name resolution).
 
 ==== Annotation-driven HTTP notification endpoint
+SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
+SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
+
+* Subscription request -> `@NotificationSubscriptionMapping`
+* Notification request -> `@NotificationMessageMapping`
+* Unsubscription request -> `@NotificationUnsubscribeMapping`
+
+HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract
+the message and subject out of the notification requests.
+
+[source,java]
+----
+@Controller
+@RequestMapping("/topicName")
+public class NotificationTestController {
+
+	@NotificationSubscriptionMapping
+	public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
+		//We subscribe to start receive the message
+		status.confirmSubscription();
+	}
+
+	@NotificationMessageMapping
+	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
+		// ...
+	}
+
+	@NotificationUnsubscribeConfirmationMapping
+	public void handleUnsubscribeMessage(NotificationStatus status) {
+		//e.g. the client has been unsubscribed and we want to "re-subscribe"
+		status.confirmSubscription();
+	}
+}
+----
+
+This example creates a new Spring MVC controller with three methods to handle the three requests listed above. In order
+to resolve the arguments of the `handleNotificationMessage` methods a custom argument resolver must be registered. The
+XML configuration is listed below:
+
+[source,xml]
+----
+<mvc:annotation-driven>
+	<mvc:argument-resolvers>
+		<ref bean="notificationResolver" />
+	</mvc:argument-resolvers>
+</mvc:annotation-driven>
+<aws-messaging:notification-argument-resolver id="notificationResolver" />
+----
+
+== Caching
+Caching in a cloud environment is useful for application in the cloud to reduce the latency and to save database round trips.
+Reducing database round trips can significantly reduce the requirements for the database instance. The Spring Framework
+provides since version 3.1 a unified Cache abstraction to allow declarative caching in application analogous to the
+declarative transactions.
+
+Spring Cloud AWS integrates the http://aws.amazon.com/elasticache/[Amazon ElastiCache] service into the Spring unified
+caching abstraction providing a cache manager based on the memcached protocol.
+
+[TIP]
+====
+Support for the redis cache protocol is planned in a future release.
+====
+
+=== Configuring Caching
+The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
+is already imported in the project. The cache integration provides an own namespace to configure cache cluster that are
+hosted in the Amazon Elasticache service. The next example contains a configuration for the cache cluster and the Spring
+configuration to enable declarative, annotation-based caching.
+
+[source,xml,indent=0]
+----
+<beans xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
+	   xmlns:cache="http://www.springframework.org/schema/cache"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/cache
+	   	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd
+	   	http://www.springframework.org/schema/cache
+	   	http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+	<aws-context:context-credentials>
+		...
+    </aws-context:context-credentials>
+
+	<aws-cache:cache-manager>
+		<aws-cache:cache-cluster name="CacheCluster" />
+	</aws-cache:cache-manager>
+
+	<cache:annotation-driven />
+</beans>
+----
+
+The configuration above configures a `cache-manager` with one cache with the name `CacheCluster` that represents an
+http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ManagingCacheClusters.html[ElasticCache cluster].
+
+=== Using caching
+Based on the configuration of the cache, developer scan annotate their methods to use the caching for method return values.
+The next examples contains a caching declaration for a service for which the return values should be cached
+
+[source,java,indent=0]
+----
+@Service
+public class ExpensiveService {
+
+    @Cacheable("CacheCluster")
+    public String calculateExpensiveValue(String key){
+		...
+    }
+}
+----
+
+=== Mixing caches
+Applications may have the need for multiple caches that are maintained by one central cache cluster. The Spring Cloud
+AWS caching support allows to define multiple caches inside one cache-manager and also to use externally defined caches
+inside the cache manager.
+
+The example below demonstrates a configuration example that contains a pre-configured cache with an `cache-ref` element
+(which might be a local cache),a `cache` with an explicit address (that is probably hosted outside Elasticache) and
+a `cache-cluster` configuration.
+
+[source,xml,indent=0]
+----
+<beans ...>
+	<aws-cache:cache-manager id="cacheManager">
+		<aws-cache:cache-ref ref="memcached" />
+		<aws-cache:cache address="someLocalServer:4321" name="memc" />
+		<aws-cache:cache-cluster name="SimpleCache"/>
+	</aws-cache:cache-manager>
+</beans>
+----
+
+=== Defining expiration
+The Spring cache demarcation does not support expiry time configuration and leaves it up to the cache implementation
+to support an expiry time. The Spring Cloud AWS cache configuration supports the expiry time setting per cache. The
+expiry time will be passed to the memcache service.
+
+The `cache` and `cache-cluster` elements accept a expiration attribute that defines the expiration time in seconds.
+No configured values implies that there is an infinite expiration time.
+
+[source,xml,indent=0]
+----
+<beans>
+	<aws-cache:cache-manager>
+		<aws-cache:cache address="someLocalServer:4321" name="memc" expiration="423"/>
+		<aws-cache:cache-cluster expiration="10000" name="CacheCluster" />
+	</aws-cache:cache-manager>
+</beans>
+----
+
+=== Memcached client implementation
+There are different memcached client implementations available for Java, the most prominent ones are
+https://github.com/couchbase/spymemcached[Spymemcached] and https://github.com/killme2008/xmemcached[XMemcached].
+Amazon AWS supports a dynamic configuration and delivers an enhanced memcached client based on Spymemcached to support the
+http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoDiscovery.html[auto-discovery] of new nodes based on
+a central configuration endpoint.
+
+Spring Cloud AWS ships with the Amazon ElastiCache client as an in-lined dependency to ensure that there is no
+wrong cache client implementation (e.g. a stock spymemcached) in the classpath that does not support the
+dynamic endpoint based re-configuration.
+
+=== Using CloudFormation
+Amazon Elasticache Cluster can also be configured within a stack and then be used by applications. Spring Cloud AWS
+also support the lookup of stack-configured cache clusters by their logical name with the resolution to the physical
+name. The example below shows a cache cluster configuration inside a CloudFormation template.
+
+[source,json,indent=0]
+----
+"CacheCluster": {
+	"Type": "AWS::ElastiCache::CacheCluster",
+	"Properties": {
+	    "AutoMinorVersionUpgrade": "true",
+	    "Engine": "memcached",
+	    "CacheNodeType": "cache.t2.micro",
+	    "CacheSubnetGroupName" : "sample",
+	    "NumCacheNodes": "1",
+	    "VpcSecurityGroupIds": ["sample1"]
+	}
+}
+----
+
+The cache cluster can then be used with the name `CacheCluster` inside the application configuration as shown below
+
+[source,xml,indent=0]
+----
+<beans...>
+	<aws-cache:cache-manager>
+    	<aws-cache:cache-cluster name="CacheCluster" expiration="15"/>
+    </aws-cache:cache-manager>
+<beans>
+----
+
+With the configuration above the application can be deployed with multiple stack on different environment
+without any configuration change inside the application.
 
 == Data Access with JDBC
 
@@ -1238,147 +1469,3 @@ e-mail receiver otherwise the mail sender will throw an `com.amazonaws.services.
 
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
  and will disable the need for mail address verification.
-
-== Caching
-Caching in a cloud environment is useful for application in the cloud to reduce the latency and to save database round trips.
-Reducing database round trips can significantly reduce the requirements for the database instance. The Spring Framework
-provides since version 3.1 a unified Cache abstraction to allow declarative caching in application analogous to the
-declarative transactions.
-
-Spring Cloud AWS integrates the http://aws.amazon.com/elasticache/[Amazon ElastiCache] service into the Spring unified
-caching abstraction providing a cache manager based on the memcached protocol.
-
-[TIP]
-====
-Support for the redis cache protocol is planned in a future release.
-====
-
-=== Configuring Caching
-The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
-is already imported in the project. The cache integration provides an own namespace to configure cache cluster that are
-hosted in the Amazon Elasticache service. The next example contains a configuration for the cache cluster and the Spring
-configuration to enable declarative, annotation-based caching.
-
-[source,xml,indent=0]
-----
-<beans xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
-	   xmlns:cache="http://www.springframework.org/schema/cache"
-	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/cache
-	   	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd
-	   	http://www.springframework.org/schema/cache
-	   	http://www.springframework.org/schema/cache/spring-cache.xsd">
-
-	<aws-context:context-credentials>
-		...
-    </aws-context:context-credentials>
-
-	<aws-cache:cache-manager>
-		<aws-cache:cache-cluster name="CacheCluster" />
-	</aws-cache:cache-manager>
-
-	<cache:annotation-driven />
-</beans>
-----
-
-The configuration above configures a `cache-manager` with one cache with the name `CacheCluster` that represents an
-http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ManagingCacheClusters.html[ElasticCache cluster].
-
-=== Using caching
-Based on the configuration of the cache, developer scan annotate their methods to use the caching for method return values.
-The next examples contains a caching declaration for a service for which the return values should be cached
-
-[source,java,indent=0]
-----
-@Service
-public class ExpensiveService {
-
-    @Cacheable("CacheCluster")
-    public String calculateExpensiveValue(String key){
-		...
-    }
-}
-----
-
-=== Mixing caches
-Applications may have the need for multiple caches that are maintained by one central cache cluster. The Spring Cloud
-AWS caching support allows to define multiple caches inside one cache-manager and also to use externally defined caches
-inside the cache manager.
-
-The example below demonstrates a configuration example that contains a pre-configured cache with an `cache-ref` element
-(which might be a local cache),a `cache` with an explicit address (that is probably hosted outside Elasticache) and
-a `cache-cluster` configuration.
-
-[source,xml,indent=0]
-----
-<beans ...>
-	<aws-cache:cache-manager id="cacheManager">
-		<aws-cache:cache-ref ref="memcached" />
-		<aws-cache:cache address="someLocalServer:4321" name="memc" />
-		<aws-cache:cache-cluster name="SimpleCache"/>
-	</aws-cache:cache-manager>
-</beans>
-----
-
-=== Defining expiration
-The Spring cache demarcation does not support expiry time configuration and leaves it up to the cache implementation
-to support an expiry time. The Spring Cloud AWS cache configuration supports the expiry time setting per cache. The
-expiry time will be passed to the memcache service.
-
-The `cache` and `cache-cluster` elements accept a expiration attribute that defines the expiration time in seconds.
-No configured values implies that there is an infinite expiration time.
-
-[source,xml,indent=0]
-----
-<beans>
-	<aws-cache:cache-manager>
-		<aws-cache:cache address="someLocalServer:4321" name="memc" expiration="423"/>
-		<aws-cache:cache-cluster expiration="10000" name="CacheCluster" />
-	</aws-cache:cache-manager>
-</beans>
-----
-
-=== Memcached client implementation
-There are different memcached client implementations available for Java, the most prominent ones are
-https://github.com/couchbase/spymemcached[Spymemcached] and https://github.com/killme2008/xmemcached[XMemcached].
-Amazon AWS supports a dynamic configuration and delivers an enhanced memcached client based on Spymemcached to support the
-http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoDiscovery.html[auto-discovery] of new nodes based on
-a central configuration endpoint.
-
-Spring Cloud AWS ships with the Amazon ElastiCache client as an in-lined dependency to ensure that there is no
-wrong cache client implementation (e.g. a stock spymemcached) in the classpath that does not support the
-dynamic endpoint based re-configuration.
-
-=== Using CloudFormation
-Amazon Elasticache Cluster can also be configured within a stack and then be used by applications. Spring Cloud AWS
-also support the lookup of stack-configured cache clusters by their logical name with the resolution to the physical
-name. The example below shows a cache cluster configuration inside a CloudFormation template.
-
-[source,json,indent=0]
-----
-"CacheCluster": {
-	"Type": "AWS::ElastiCache::CacheCluster",
-	"Properties": {
-	    "AutoMinorVersionUpgrade": "true",
-	    "Engine": "memcached",
-	    "CacheNodeType": "cache.t2.micro",
-	    "CacheSubnetGroupName" : "sample",
-	    "NumCacheNodes": "1",
-	    "VpcSecurityGroupIds": ["sample1"]
-	}
-}
-----
-
-The cache cluster can then be used with the name `CacheCluster` inside the application configuration as shown below
-
-[source,xml,indent=0]
-----
-<beans...>
-	<aws-cache:cache-manager>
-    	<aws-cache:cache-cluster name="CacheCluster" expiration="15"/>
-    </aws-cache:cache-manager>
-<beans>
-----
-
-With the configuration above the application can be deployed with multiple stack on different environment
-without any configuration change inside the application.
