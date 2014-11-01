@@ -2,7 +2,7 @@
 
 include::intro.adoc[]
 
-= Checking out and Building
+= Checking out and building
 To check out the project and build it from source, do the following:
 
 --------------------------------------------------------------
@@ -23,6 +23,25 @@ To build and install jars into your local Maven cache:
 -----------
 mvn install
 -----------
+
+= Building documentation
+Documentation can be built by activating the `docs`profile in the maven
+build. If there is an ruby error like
+
+--------------------------------------------------------------
+LoadError: no such file to load -- asciidoctor
+--------------------------------------------------------------
+
+then the user must install the _asciidoctor_ gem and set the environment
+variable `GEM_HOME`to the ruby gem folder. For example:
+
+-------------------------------------------------------------
+  # Get gem info
+  gem environment
+
+  export GEM_HOME=<PATH FOR GEM ENVIRONMENT>
+
+-------------------------------------------------------------
 
 = Using IntelliJ IDEA
 Spring Cloud AWS development is done with
