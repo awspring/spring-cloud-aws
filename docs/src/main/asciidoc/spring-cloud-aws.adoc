@@ -3,7 +3,7 @@ Agim Emruli; Alain Sahli
 
 include::intro.adoc[]
 
-== Using Amazon Webservices
+== Using Amazon Web Services
 
 Amazon provides a http://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for the all services provided by
 http://aws.amazon.com[Amazon Webservice] platform. Using the SDK, application developers still have to integrate the
@@ -166,7 +166,7 @@ The access-key and secret-key are defined using a placeholder expressions along 
 ====
 
 ==== Region configuration
-Amazon Webservices are available in different http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[Regions]. Based
+Amazon Web services are available in different http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[Regions]. Based
 on the custom requirements, the user can host the application on different Amazon regions. The Spring Cloud AWS module provides
 a general application context wide configuration for the region.
 
@@ -344,7 +344,7 @@ User-data stored in a base 64 encoded representation and automatically translate
 
 ==== Using instance tags
 User configured properties can also be configured with tags instead of user data. Tags are a global concept in the context
- of Amazon Webservices and used in different services. Spring Cloud AWS support instance tags also across different
+ of Amazon Web services and used in different services. Spring Cloud AWS support instance tags also across different
  services. Compared to user data, user tags can also be updated during runtime, there is no need to stop and restart
  the instance.
 
@@ -463,7 +463,7 @@ public class ApplicationService {
 
 == Managing cloud environments
 Managing environment manually with the management console does not scale and can become error-prone with the increasing
-complexity of the infrastructure. Amazon Webservices offers a http://aws.amazon.com/cloudformation/[CloudFormation]
+complexity of the infrastructure. Amazon Web services offers a http://aws.amazon.com/cloudformation/[CloudFormation]
 services that allows to define stack configuration templates and bootstrap the whole infrastructure with the service.
 In order to allow multiple stack in parallel, each resource in the stack receive a unique physical name that contains
 some arbitrary generated name. In order to interact with the stack resource in a unified way Spring Cloud AWS allows
@@ -599,6 +599,196 @@ as shown in the example:
 	</bean>
 </beans>
 ----
+
+== Messaging
+=== Introduction
+Spring Cloud AWS provides a SQS and SNS integration framework that simplifies the publication and consumption of messages
+over SQS or SNS. While SQS fully relies on the messaging API introduced with Spring 4.0, SNS only partially implements
+it as the receiving part must be handled differently for push notifications.
+
+=== SQS support
+
+==== Sending a message
+The `QueueMessagingTemplate` contains many convenience methods to send a message.There are send methods that specify the
+destination using a `QueueMessageChannel` object and those that specify the destination using a string which is going to
+be resolved against the SQS API. The send method that takes no destination argument uses the default destination.
+
+[source,java]
+----
+import com.amazonaws.services.sqs.AmazonSQS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class SqsQueueSender {
+
+	private final QueueMessagingTemplate queueMessagingTemplate;
+
+	public SqsQueueSender(AmazonSQS amazonSqs) {
+		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
+	}
+
+	public void send(String message) {
+		this.queueMessagingTemplate.send("physicalQueueName", MessageBuilder.withPayload(message).build());
+	}
+}
+----
+
+This example uses the `MessageBuilder` class to create a message with a string payload. The `QueueMessagingTemplate` is
+constructed by passing a reference to the `AmazonSQS` client. The destination in the send method is a string value that
+must match the queue name defined on AWS. This value will be resolved at runtime with the Amazon SQS client. Optionally
+a `ResourceIdResolver` implementation can be passed to the `QueueMessagingTemplate` constructor to resolve resources by
+logical name when running inside a CloudFormation stack.
+
+With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML configuration file.
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/messaging
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd">
+
+	<aws-context:context-credentials>
+		<aws-context:instance-profile-credentials />
+	</aws-context:context-credentials>
+
+	<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
+
+</beans>
+----
+
+In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQS` client
+is automatically created and passed to the template's constructor based on the provided credentials. If the
+application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor.
+// TODO Link to the cloud formation doc
+
+===== Using message converters
+In order to facilitate the sending of domain model objects, the `QueueMessagingTemplate` has various send methods that
+take a Java object as an argument for a message’s data content. The overloaded methods `convertAndSend()` and
+`receiveAndConvert()` in `QueueMessagingTemplate` delegate the conversion process to an instance of the `MessageConverter`
+interface. This interface defines a simple contract to convert between Java objects and SQS messages. The default
+implementation `SimpleMessageConverter` simply unwraps the message payload as long as it matches the target type. By
+using the converter, you and your application code can focus on the business object that is being sent or received via
+SQS and not be concerned with the details of how it is represented as an SQS message.
+
+NOTE: As SQS is only able to send `String` payloads the default converter `SimpleMessageConverter` should only be used
+to send `String` payloads. For more complex objects a custom converter should be used like the one created by the
+messaging namespace handler.
+
+It is recommended to use the XML messaging namespace to create `QueueMessagingTemplate` as it will set a more
+sophisticated `MessageConverter` that converts objects into JSON when Jackson is on the classpath.
+
+[source,xml]
+----
+<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
+----
+
+[source,java]
+----
+this.queueMessagingTemplate.convertAndSend("queueName", new Person("John, "Doe"));
+----
+
+In this example a `QueueMessagingTemplate` is created using the messaging namespace. The `convertAndSend` method
+converts the payload `Person` using the configured `MessageConverter` and sends the message.
+
+==== Receiving a message
+There are two ways for receiving SQS messages, either use the `receive` methods of the `QueueMessagingTemplate` or with
+annotation-driven listener endpoints. The latter is by far the more convenient way to receive messages.
+
+[source,java]
+----
+Person person = this.queueMessagingTemplate.receiveAndConvert("queueName", Person.class);
+----
+
+In this example the `QueueMessagingTemplate` will get one message from the SQS queue and convert it to the target class
+passed as argument.
+
+==== Annotation-driven listener endpoints
+Annotation-driven listener endpoints are the easiest way for listening on SQS messages. Simply annotate methods with
+`MessageMapping` and the `QueueMessageHandler` will route the messages to the annotated methods.
+
+[source,xml]
+----
+<aws-messaging:annotation-driven-queue-listener />
+----
+
+[source,java]
+@MessageMapping("queueName")
+public void queueListener(Person person) {
+	// ...
+}
+----
+
+In this example a queue listener container is started, that polls the SQS `queueName` passed to the `MessageMapping`
+annotation. The incoming messages are converted to the target type and then annotated method `queueListener` is invoked.
+
+Additionally to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
+annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
+containing all headers.
+
+NOTE: Only the link:http://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_Message.html[standard
+message attributes] sent with an SQS message are supported. Custom attributes are currently not supported.
+
+In addition to the provided argument resolvers, custom ones can be registered on the
+`aws-messaging:annotation-driven-queue-listener` element using the `aws-messaging:argument-resolvers` (see example below).
+
+[source,xml]
+----
+<aws-messaging:annotation-driven-queue-listener>
+	<aws-messaging:argument-resolvers>
+		<bean class="org.custom.CustomArgumentResolver" />
+	</aws-messaging:argument-resolvers>
+</aws-messaging:annotation-driven-queue-listener>
+----
+
+By default the `SimpleMessageListenerContainer` creates a `ThreadPoolTaskExecutor` with computed values for the core and
+max pools size. The core pool size is set to twice the number of queues and the max pool size is obtained by multiplying
+the number of queues by the value of the `maxNumberOfMessages` field. If these default values do not meet the need of
+the application, a custom task executor can be set with the `task-executor` attribute (see example below).
+
+[source,xml]
+----
+<aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
+----
+
+===== Message reply
+Message listener methods can be annotated with `@SendTo` to send their return value to another channel.The
+`SendToHandlerMethodReturnValueHandler` uses the defined messaging template set on the
+`aws-messaging:annotation-driven-queue-listener` element to send the return value. The messaging template must implement
+the `DestinationResolvingMessageSendingOperations` interface.
+
+[source,xml]
+----
+<aws-messaging:annotation-driven-queue-listener annotation-driven-queue-listener="queueMessagingTemplate"/>
+----
+
+[source,java]
+----
+@MessageMapping("treeQueue")
+@SendTo("leafsQueue")
+public List<Leaf> extractLeafs(Tree tree) {
+	// ...
+}
+----
+
+In this example the `extractLeafs` method will receive messages coming from the `treeQueue` and then return a
+`List` of ``Leaf``s which is going to be sent to the `leafsQueue`. Note that on the
+`aws-messaging:annotation-driven-queue-listener` XML element there is an attribute `annotation-driven-queue-listener`
+that specifies `QueueMessagingTemplate` as the messaging template to be used to send the return value of the message
+listener method.
+
+=== SNS support
+
+==== Sending a message
+
+==== Annotation-driven HTTP notification endpoint
 
 == Data Access with JDBC
 
@@ -1026,7 +1216,7 @@ public class MailSendingService {
 
 === Configuring regions
 Amazon SES is not available in all http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html[regions] of the
-Amazon Webservices cloud. Therefore an application hosted and operated in a region that does not support the mail
+Amazon Web services cloud. Therefore an application hosted and operated in a region that does not support the mail
 service will produce an error while using the mail service. Therefore the region must be overridden for the mail
 sender configuration. The example below shows a typical combination of a region (EU-CENTRAL-1) that does not provide
 and SES service, the client is overridden to usa a valid region EU-WEST-1.
