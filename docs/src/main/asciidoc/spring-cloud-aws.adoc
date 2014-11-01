@@ -863,9 +863,12 @@ public class NotificationTestController {
 }
 ----
 
+CAUTION: Currently it is not possible to define the mapping URL on the method level therefore the `RequestMapping` must
+be done at type level and must contain the full path of the endpoint.
+
 This example creates a new Spring MVC controller with three methods to handle the three requests listed above. In order
 to resolve the arguments of the `handleNotificationMessage` methods a custom argument resolver must be registered. The
-XML configuration is listed below:
+XML configuration is listed below.
 
 [source,xml]
 ----
@@ -876,6 +879,10 @@ XML configuration is listed below:
 </mvc:annotation-driven>
 <aws-messaging:notification-argument-resolver id="notificationResolver" />
 ----
+
+The `aws-messaging:notification-argument-resolver` element registers three argument resolvers
+(NotificationStatusHandlerMethodArgumentResolver, NotificationMessageHandlerMethodArgumentResolver,
+NotificationSubjectHandlerMethodArgumentResolver).
 
 == Caching
 Caching in a cloud environment is useful for application in the cloud to reduce the latency and to save database round trips.
