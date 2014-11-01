@@ -601,10 +601,27 @@ as shown in the example:
 ----
 
 == Messaging
-=== Introduction
 Spring Cloud AWS provides a SQS and SNS integration framework that simplifies the publication and consumption of messages
 over SQS or SNS. While SQS fully relies on the messaging API introduced with Spring 4.0, SNS only partially implements
 it as the receiving part must be handled differently for push notifications.
+
+=== Configuring messaging
+Before using and configuring the messaging support, the application has to include the respective module dependency
+into his maven configuration. Spring Cloud AWS Messaging support comes as a separate module to allow the modularized use of the
+modules.
+
+==== Maven dependency configuration
+
+The Spring Cloud AWS Messaging module comes as a standalone module and can be imported with the following dependency declaration
+
+[source,xml,indent=0]
+----
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-aws-messaging</artifactId>
+	<version>1.0.0.RELEASE</version>
+</dependency>
+----
 
 === SQS support
 
@@ -1032,21 +1049,21 @@ without any configuration change inside the application.
 
 Spring has a broad support of data access technologies build on top of JDBC like the JdbcTemplate and dedicated ORM (JPA,
 Hibernate support). Spring Cloud AWS enables application developers to re-use their JDBC technology of choice and access the
- http://aws.amazon.com/rds/[Amazon Relational Database Service] with a declarative configuration. The main support of Spring
- Cloud AWS for JDBC data access are
+http://aws.amazon.com/rds/[Amazon Relational Database Service] with a declarative configuration. The main support of Spring
+Cloud AWS for JDBC data access are
 
  * Automatic data source configuration and setup based on the Amazon RDS database instance
  * Automatic read-replica detection and configuration for Amazon RDS database instances
  * Retry-support to handle exception during Multi-AZ failover inside the data center
 
 === Configuring data source
-Before configuring using and configuring the database support, the application has to include the respective module dependency
- into his maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
- modules.
+Before using and configuring the database support, the application has to include the respective module dependency
+into his maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
+modules.
 
 ==== Maven dependency configuration
 
-The Spring Cloud AWS JDBC module comes as a standalone module and can be importet with the following dependency declaration
+The Spring Cloud AWS JDBC module comes as a standalone module and can be imported with the following dependency declaration
 
 [source,xml,indent=0]
 ----
