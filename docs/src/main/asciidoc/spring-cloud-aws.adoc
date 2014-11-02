@@ -1104,9 +1104,7 @@ Amazon AWS supports a dynamic configuration and delivers an enhanced memcached c
 http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoDiscovery.html[auto-discovery] of new nodes based on
 a central configuration endpoint.
 
-Spring Cloud AWS ships with the Amazon ElastiCache client as an inlined dependency to ensure that there is no
-wrong cache client implementation (e.g. a stock Spymemcached) in the classpath that does not support the
-dynamic endpoint based re-configuration.
+Spring Cloud AWS relies on the Amazon Elasticache Client implementation and therefore has a dependency on that.
 
 === Using CloudFormation
 Amazon ElastiCache clusters can also be configured within a stack and then be used by applications. Spring Cloud AWS
