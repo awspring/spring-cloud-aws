@@ -238,6 +238,10 @@
 						<artifactId>cglib-nodep</artifactId>
 						<groupId>cglib</groupId>
 					</exclusion>
+					<exclusion>
+						<artifactId>commons-collections</artifactId>
+						<groupId>commons-collections</groupId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 		</dependencies>
