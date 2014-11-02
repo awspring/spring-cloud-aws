@@ -352,8 +352,8 @@ the instance.
 [TIP]
 ====
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html[User data] can also be used to execute scripts
-on instance startup. Therefore it is useful to leverage instance tags for user configuration and user data to script
-the instance startup.
+on instance startup. Therefore it is useful to leverage instance tags for user configuration and user data to execute scripts
+on instance startup.
 ====
 
 Instance specific tags can be configured on the instance level through the management console outlined below and
@@ -848,7 +848,7 @@ image::sns-overview.png[SNS Overview]
 
 Spring Cloud AWS supports Amazon SNS by providing support to send notifications with a `NotificationMessagingTemplate` and
 to receive notifications with the HTTP/HTTPS endpoint using the Spring Web MVC '@Controller' based programming model. Amazon
-SQS based subscription can be used with annotation driven message that is provided by the Spring Cloud AWS messaging support.
+SQS based subscriptions can be used with the annotation-driven message support that is provided by the Spring Cloud AWS messaging.
 
 ==== Sending a message
 The `NotificationMessagingTemplate` contains two convenience methods to send a notification. The first one specifies the
