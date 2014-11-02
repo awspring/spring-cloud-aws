@@ -66,38 +66,4 @@
 			<artifactId>elasticache-java-cluster-client</artifactId>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<includes>
-									<include>com.amazonaws:elasticache-java-cluster-client</include>
-								</includes>
-							</artifactSet>
-							<relocations>
-								<relocation>
-									<pattern>net.spy.memcached</pattern>
-									<shadedPattern>org.springframework.cloud.aws.cache.memcached</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-		</plugins>
-	</build>
-
-
 </project>
