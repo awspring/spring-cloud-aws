@@ -46,7 +46,7 @@ import java.util.Set;
  * name.
  * <p><b>WARNING:</b>
  * Be aware that when you are using wildcards in the bucket name it can take a very long time to parse all
- * files.Moreover this implementation does not return truncated results. This means that when handling
+ * files. Moreover this implementation does not return truncated results. This means that when handling
  * huge buckets it could lead to serious performance problems. For more information look at the
  * {@code findProgressivelyWithPartialMatch} method.</p>
  *

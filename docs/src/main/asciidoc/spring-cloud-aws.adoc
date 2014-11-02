@@ -1,5 +1,6 @@
 = Spring Cloud AWS
 Agim Emruli; Alain Sahli
+:source-highlighter: prettify
 
 include::intro.adoc[]
 
@@ -630,7 +631,7 @@ The `QueueMessagingTemplate` contains many convenience methods to send a message
 destination using a `QueueMessageChannel` object and those that specify the destination using a string which is going to
 be resolved against the SQS API. The send method that takes no destination argument uses the default destination.
 
-[source,java]
+[source,java,index=0]
 ----
 import com.amazonaws.services.sqs.AmazonSQS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -661,7 +662,7 @@ resource name resolution).
 
 With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML configuration file.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
@@ -704,12 +705,12 @@ messaging namespace handler.
 It is recommended to use the XML messaging namespace to create `QueueMessagingTemplate` as it will set a more
 sophisticated `MessageConverter` that converts objects into JSON when Jackson is on the classpath.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
 ----
 
-[source,java]
+[source,java,indent=0]
 ----
 this.queueMessagingTemplate.convertAndSend("queueName", new Person("John, "Doe"));
 ----
@@ -721,7 +722,7 @@ converts the payload `Person` using the configured `MessageConverter` and sends 
 There are two ways for receiving SQS messages, either use the `receive` methods of the `QueueMessagingTemplate` or with
 annotation-driven listener endpoints. The latter is by far the more convenient way to receive messages.
 
-[source,java]
+[source,java,indent=0]
 ----
 Person person = this.queueMessagingTemplate.receiveAndConvert("queueName", Person.class);
 ----
@@ -733,12 +734,12 @@ passed as argument.
 Annotation-driven listener endpoints are the easiest way for listening on SQS messages. Simply annotate methods with
 `MessageMapping` and the `QueueMessageHandler` will route the messages to the annotated methods.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <aws-messaging:annotation-driven-queue-listener />
 ----
 
-[source,java]
+[source,java,indent=0]
 @MessageMapping("queueName")
 public void queueListener(Person person) {
 	// ...
@@ -758,7 +759,7 @@ message attributes] sent with an SQS message are supported. Custom attributes ar
 In addition to the provided argument resolvers, custom ones can be registered on the
 `aws-messaging:annotation-driven-queue-listener` element using the `aws-messaging:argument-resolvers` (see example below).
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <aws-messaging:annotation-driven-queue-listener>
 	<aws-messaging:argument-resolvers>
@@ -772,7 +773,7 @@ max pools size. The core pool size is set to twice the number of queues and the 
 the number of queues by the value of the `maxNumberOfMessages` field. If these default values do not meet the need of
 the application, a custom task executor can be set with the `task-executor` attribute (see example below).
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
 ----
@@ -783,12 +784,12 @@ Message listener methods can be annotated with `@SendTo` to send their return va
 `aws-messaging:annotation-driven-queue-listener` element to send the return value. The messaging template must implement
 the `DestinationResolvingMessageSendingOperations` interface.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <aws-messaging:annotation-driven-queue-listener annotation-driven-queue-listener="queueMessagingTemplate"/>
 ----
 
-[source,java]
+[source,java,indent=0]
 ----
 @MessageMapping("treeQueue")
 @SendTo("leafsQueue")
@@ -816,7 +817,7 @@ are implemented but are less convenient to send notifications because the subjec
 NOTE: Currently only `String` payloads can be sent using the `NotificationMessagingTemplate` as this is the expected
 type by the SNS API.
 
-[source,java]
+[source,java,indent=0]
 ----
 import com.amazonaws.services.sns.AmazonSNS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -855,7 +856,7 @@ SNS sends three type of requests to an HTTP topic listener endpoint, for each of
 HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract
 the message and subject out of the notification requests.
 
-[source,java]
+[source,java,indent=0]
 ----
 @Controller
 @RequestMapping("/topicName")
@@ -887,7 +888,7 @@ This example creates a new Spring MVC controller with three methods to handle th
 to resolve the arguments of the `handleNotificationMessage` methods a custom argument resolver must be registered. The
 XML configuration is listed below.
 
-[source,xml]
+[source,xml,indent=0]
 ----
 <mvc:annotation-driven>
 	<mvc:argument-resolvers>
@@ -900,6 +901,46 @@ XML configuration is listed below.
 The `aws-messaging:notification-argument-resolver` element registers three argument resolvers
 (NotificationStatusHandlerMethodArgumentResolver, NotificationMessageHandlerMethodArgumentResolver,
 NotificationSubjectHandlerMethodArgumentResolver).
+
+=== Using CloudFormation
+Amazon SQS queues and SNS topics can be configured within a stack and then be used by applications. Spring Cloud AWS
+also supports the lookup of stack-configured queues and topics by their logical name with the resolution to the physical
+name. The example below shows an SNS topic and SQS queue configuration inside a CloudFormation template.
+
+[source,json,indent=0]
+----
+"LogicalQueueName": {
+	"Type": "AWS::SQS::Queue",
+	"Properties": {
+	}
+},
+"LogicalTopicName": {
+	"Type": "AWS::SNS::Topic",
+	"Properties": {
+  	}
+}
+----
+
+The logical names `LogicalQueueName` and `LogicalTopicName` can then be used in the configuration and in the application
+as shown below:
+
+[source,xml,indent=0]
+----
+<aws-messaging:queue-messaging-template default-destination="LogicalQueueName" />
+<aws-messaging:notification-messaging-template default-destination="LogicalTopicName" />
+----
+
+[source,java,indent=0]
+----
+@MessageMapping("LogicalQueueName")
+public void receiveQueueMessages(Person person) {
+	// Logical names can also be used with messaging templates
+	this.notificationMessagingTemplate.sendNotification("anotherLogicalTopicName", "Message", "Subject");
+}
+----
+
+When using the logical names like in the example above, the stack can be created on different environments without any
+configuration or code changes inside the application.
 
 == Caching
 Caching in a cloud environment is useful for application in the cloud to reduce the latency and to save database round trips.
@@ -1012,7 +1053,7 @@ wrong cache client implementation (e.g. a stock spymemcached) in the classpath t
 dynamic endpoint based re-configuration.
 
 === Using CloudFormation
-Amazon Elasticache Cluster can also be configured within a stack and then be used by applications. Spring Cloud AWS
+Amazon ElastiCache Cluster can also be configured within a stack and then be used by applications. Spring Cloud AWS
 also support the lookup of stack-configured cache clusters by their logical name with the resolution to the physical
 name. The example below shows a cache cluster configuration inside a CloudFormation template.
 
@@ -1492,7 +1533,4 @@ http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html
 e-mail receiver otherwise the mail sender will throw an `com.amazonaws.services.simpleemail.model.MessageRejectedException`.
 
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
- and will disable the need for mail address verification.
-
- == File handling (S3)
- Spring Cloud AWS provides support for writing and reading files stored on S3.
+and will disable the need for mail address verification.
