@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.core.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +42,7 @@ public class CredentialsProviderFactoryBeanTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
-	public void testCreateWithNullCredentialsProvider() throws Exception {
+	public void getObject_withNullProvider_reportsError() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("not be null");
 		//noinspection ResultOfObjectAllocationIgnored
@@ -49,17 +51,17 @@ public class CredentialsProviderFactoryBeanTest {
 
 
 	@Test
-	public void testCreateWithZeroProviders() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("No credential providers specified");
-		//noinspection ResultOfObjectAllocationIgnored
+	public void getObject_withZeroProvider_createsDefaultAwsCredentialsProviderChain() throws Exception {
 		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Collections.<AWSCredentialsProvider>emptyList());
 		credentialsProviderFactoryBean.afterPropertiesSet();
+
+		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
+		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
 	}
 
 
 	@Test
-	public void testCreateWithMultiple() throws Exception {
+	public void getObject_withMultipleProvider_createsProviderChainWithAllProviders() throws Exception {
 		AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
 		AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
 

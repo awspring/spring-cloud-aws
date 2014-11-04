@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.core.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 
@@ -48,7 +49,13 @@ public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCrede
 
 	@Override
 	protected AWSCredentialsProvider createInstance() throws Exception {
-		AWSCredentialsProviderChain awsCredentialsProviderChain = new AWSCredentialsProviderChain(this.delegates.toArray(new AWSCredentialsProvider[this.delegates.size()]));
+		AWSCredentialsProviderChain awsCredentialsProviderChain;
+		if (this.delegates.isEmpty()) {
+			awsCredentialsProviderChain = new DefaultAWSCredentialsProviderChain();
+		}else{
+			awsCredentialsProviderChain = new AWSCredentialsProviderChain(this.delegates.toArray(new AWSCredentialsProvider[this.delegates.size()]));
+		}
+
 		awsCredentialsProviderChain.setReuseLastProvider(false);
 		return awsCredentialsProviderChain;
 	}
