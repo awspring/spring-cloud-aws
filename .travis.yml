@@ -1,0 +1,17 @@
+language: java
+before_install:
+  - git config user.name "$GIT_NAME"
+  - git config user.email "$GIT_EMAIL"
+  - git config credential.helper "store --file=.git/credentials"
+  - echo "https://$GH_TOKEN:@github.com" > .git/credentials
+  - gem install asciidoctor
+install:
+- mvn --settings .settings.xml install -P docs -q -U -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
+- ./docs/src/main/asciidoc/ghpages.sh
+script: mvn --settings .settings.xml test -nsu -Dmaven.test.redirectTestOutputToFile=true
+env:
+  global:
+  - GIT_NAME="Dave Syer"
+  - GIT_EMAIL=dsyer@pivotal.io
+  - secure: "VtB9B/MENKA93R2QMIg5ohOf3bOy9ZiNncTkgXVxkQVILmmSMYjq+afspp75a2jnm8Z49cTaTqxTQJB3krNnVl1tABXIT3l/rUdYgwmUN2I/ea15clfj5BUl/stvxl400/15W+DtLeimMPHQVCTqqHkq6jmke2UNc2avRju8bAI="
+
