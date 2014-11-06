@@ -1,3 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.springframework.cloud.aws.context.config.java.ContextCredentialsProviderConfiguration,\
-org.springframework.cloud.aws.context.config.java.ContextRegionProviderConfiguration
+org.springframework.cloud.aws.context.config.java.ContextRegionProviderConfiguration,\
+org.springframework.cloud.aws.context.config.java.ContextStackConfiguration

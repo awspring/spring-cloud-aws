@@ -17,14 +17,22 @@
 package org.springframework.cloud.aws.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.support.TestApplication;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.SystemPropertyUtils;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -33,16 +41,38 @@ import static org.junit.Assert.assertTrue;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class)
-@IntegrationTest
+@SpringApplicationConfiguration(classes = TestApplication.class,initializers = ContextAutoConfigurationTest.CredentialsApplicationContextInitializer.class)
+@IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack","cloud.aws.region.static=EU_WEST_1"})
 public class ContextAutoConfigurationTest {
 
 	@Autowired
 	private AWSCredentialsProvider credentialsProvider;
 
+	@Autowired
+	private ResourceIdResolver resourceIdResolver;
+
 	@Test
-	public void defaultCredentialsProvider_configuredBecauseNoExplicitCredentialsConfigured_returnsDefaultAwsCredentialsProviderConfiguration() throws Exception {
+	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
 		assertNotNull(this.credentialsProvider);
-		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(this.credentialsProvider));
+		assertTrue(AWSCredentialsProviderChain.class.isInstance(this.credentialsProvider));
+	}
+
+	@Test
+	public void resourceIdResolver_configuredBecauseOfStackConfiguration_resolvesIdToPhysicalId() throws Exception {
+		assertNotNull(this.resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket"));
+	}
+
+	public static class CredentialsApplicationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>{
+
+		@Override
+		public void initialize(ConfigurableApplicationContext applicationContext) {
+			String accessFile = SystemPropertyUtils.resolvePlaceholders("${els.config.dir}/access.properties");
+			try {
+				applicationContext.getEnvironment().getPropertySources().addLast(new ResourcePropertySource(
+						new FileSystemResource(accessFile)));
+			} catch (IOException e) {
+				throw new RuntimeException("Error loading access.properties for testing", e);
+			}
+		}
 	}
 }

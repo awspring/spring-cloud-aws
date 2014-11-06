@@ -85,8 +85,8 @@ characters.
 An example file will look like this
 
 -------------------------------------------
-accessKey=ilaugsjdlkahgsdlaksdhg
-secretKey=aöksjdhöadjs,höalsdhjköalsdjhasd+
+cloud.aws.credentials.accessKey=ilaugsjdlkahgsdlaksdhg
+cloud.aws.credentials.secretKey=aöksjdhöadjs,höalsdhjköalsdjhasd+
 rdsPassword=someVerySecretPassword
 -------------------------------------------
 

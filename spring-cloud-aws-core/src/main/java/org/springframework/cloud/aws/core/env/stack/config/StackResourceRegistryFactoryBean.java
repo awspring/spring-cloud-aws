@@ -20,9 +20,9 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,16 +33,25 @@ import java.util.Map;
  * the specified stack.
  *
  * @author Christian Stettler
+ * @author Agim Emruli
  */
 @RuntimeUse
-class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
+public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
 
 	private final AmazonCloudFormation amazonCloudFormationClient;
 	private final StackNameProvider stackNameProvider;
 
-	StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, StackNameProvider stackNameProvider) {
+	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.stackNameProvider = stackNameProvider;
+	}
+
+	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, String stackName) {
+		this(amazonCloudFormationClient, new StaticStackNameProvider(stackName));
+	}
+
+	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient) {
+		this(amazonCloudFormationClient, new AutoDetectingStackNameProvider(amazonCloudFormationClient));
 	}
 
 	@Override

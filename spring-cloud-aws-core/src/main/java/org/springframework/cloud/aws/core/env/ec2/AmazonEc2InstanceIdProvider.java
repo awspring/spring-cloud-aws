@@ -27,7 +27,7 @@ import com.amazonaws.util.EC2MetadataUtils;
  * @author Agim Emruli
  * @author Christian Stettler
  */
-class AmazonEc2InstanceIdProvider implements InstanceIdProvider {
+public class AmazonEc2InstanceIdProvider implements InstanceIdProvider {
 
 	@Override
 	public String getCurrentInstanceId() {

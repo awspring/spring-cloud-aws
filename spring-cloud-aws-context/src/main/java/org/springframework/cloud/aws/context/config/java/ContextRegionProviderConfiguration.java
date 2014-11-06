@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Arrays;
+
 /**
  * @author Agim Emruli
  */
@@ -45,6 +47,15 @@ public class ContextRegionProviderConfiguration {
 	@Bean(name = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME")
 	@ConditionalOnProperty("cloud.aws.region.static")
 	public RegionProvider staticRegionProvider() {
-		return new StaticRegionProvider(Regions.fromName(this.environment.getProperty("cloud.aws.region.static")));
+		String regionName = this.environment.getProperty("cloud.aws.region.static");
+		Regions region;
+		try {
+			region = Regions.valueOf(regionName);
+		} catch (IllegalArgumentException iae) {
+			throw new IllegalArgumentException("Error parsing region with name:'" + regionName +
+					"' valid values are:'" + Arrays.toString(Regions.values()) + "'",iae);
+		}
+
+		return new StaticRegionProvider(region);
 	}
 }
