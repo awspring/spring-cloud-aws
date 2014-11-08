@@ -21,9 +21,12 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
+import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +59,11 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackR
 
 	@Override
 	public Class<?> getObjectType() {
-		return StackResourceRegistry.class;
+		return ListableStackResourceFactory.class;
 	}
 
 	@Override
-	protected StackResourceRegistry createInstance() throws Exception {
+	protected ListableStackResourceFactory createInstance() throws Exception {
 		String stackName = this.stackNameProvider.getStackName();
 		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
@@ -68,11 +71,14 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackR
 		return new StaticStackResourceRegistry(stackName, convertToStackResourceMappings(stackResourceSummaries));
 	}
 
-	private static Map<String, String> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
-		Map<String, String> stackResourceMappings = new HashMap<>();
+	private static Map<String, StackResource> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
+		Map<String, StackResource> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
-			stackResourceMappings.put(stackResourceSummary.getLogicalResourceId(), stackResourceSummary.getPhysicalResourceId());
+			stackResourceMappings.put(stackResourceSummary.getLogicalResourceId(),
+					new StackResource(stackResourceSummary.getLogicalResourceId(),
+							stackResourceSummary.getPhysicalResourceId(),
+							stackResourceSummary.getResourceType()));
 		}
 
 		return stackResourceMappings;
@@ -82,14 +88,14 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackR
 	/**
 	 * Stack resource registry containing a static mapping of logical resource ids to physical resource ids.
 	 */
-	private static class StaticStackResourceRegistry implements StackResourceRegistry {
+	private static class StaticStackResourceRegistry implements ListableStackResourceFactory {
 
 		private final String stackName;
-		private final Map<String, String> physicalResourceIdsByLogicalResourceId;
+		private final Map<String, StackResource> stackResourceByLogicalId;
 
-		private StaticStackResourceRegistry(String stackName, Map<String, String> physicalResourceIdsByLogicalResourceId) {
+		private StaticStackResourceRegistry(String stackName, Map<String, StackResource> stackResourceByLogicalId) {
 			this.stackName = stackName;
-			this.physicalResourceIdsByLogicalResourceId = physicalResourceIdsByLogicalResourceId;
+			this.stackResourceByLogicalId = stackResourceByLogicalId;
 		}
 
 		@Override
@@ -99,9 +105,17 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackR
 
 		@Override
 		public String lookupPhysicalResourceId(String logicalResourceId) {
-			return this.physicalResourceIdsByLogicalResourceId.get(logicalResourceId);
+			if (this.stackResourceByLogicalId.containsKey(logicalResourceId)) {
+				return this.stackResourceByLogicalId.get(logicalResourceId).getPhysicalId();
+			} else {
+				return null;
+			}
 		}
 
+		@Override
+		public Collection<StackResource> getAllResources() {
+			return this.stackResourceByLogicalId.values();
+		}
 	}
 
 }

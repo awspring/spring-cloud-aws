@@ -20,8 +20,10 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.junit.Test;
+import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
+import org.springframework.cloud.aws.core.env.stack.StackResource;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,6 +56,27 @@ public class StackResourceRegistryFactoryBeanTest {
 		// Assert
 		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdOne"), is("physicalResourceIdOne"));
 		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"), is("physicalResourceIdTwo"));
+	}
+
+	@Test
+	public void createInstance_stackWithTwoResources_listsBothResources() throws Exception {
+		// Arrange
+		Map<String, String> resourceIdMappings = new HashMap<>();
+		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
+		resourceIdMappings.put("logicalResourceIdTwo", "physicalResourceIdTwo");
+
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean("myStack", resourceIdMappings);
+
+		// Act
+		ListableStackResourceFactory stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
+
+		// Assert
+		assertThat(stackResourceRegistry.getAllResources().size(), is(2));
+		for (StackResource stackResource : stackResourceRegistry.getAllResources()) {
+			assertThat(stackResource.getLogicalId(), anyOf(is("logicalResourceIdOne"), is("logicalResourceIdTwo")));
+			assertThat(stackResource.getPhysicalId(), anyOf(is("physicalResourceIdOne"), is("physicalResourceIdTwo")));
+			assertThat(stackResource.getType(), is("Amazon::SES::Test"));
+		}
 	}
 
 	@Test
@@ -116,7 +140,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		StackResourceSummary stackResourceSummary = mock(StackResourceSummary.class);
 		when(stackResourceSummary.getLogicalResourceId()).thenReturn(logicalResourceId);
 		when(stackResourceSummary.getPhysicalResourceId()).thenReturn(physicalResourceId);
-
+		when(stackResourceSummary.getResourceType()).thenReturn("Amazon::SES::Test");
 		return stackResourceSummary;
 	}
 

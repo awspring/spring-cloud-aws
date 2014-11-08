@@ -24,15 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
+import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.support.TestApplication;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.SystemPropertyUtils;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -41,8 +36,9 @@ import static org.junit.Assert.assertTrue;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = TestApplication.class,initializers = ContextAutoConfigurationTest.CredentialsApplicationContextInitializer.class)
-@IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack","cloud.aws.region.static=EU_WEST_1"})
+@SpringApplicationConfiguration(classes = TestApplication.class)
+@IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack", "cloud.aws.region.static=EU_WEST_1",
+		"spring.config.location=${els.config.dir}/access.properties"})
 public class ContextAutoConfigurationTest {
 
 	@Autowired
@@ -50,6 +46,9 @@ public class ContextAutoConfigurationTest {
 
 	@Autowired
 	private ResourceIdResolver resourceIdResolver;
+
+	@Autowired
+	private ListableStackResourceFactory listableStackResourceFactory;
 
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
@@ -62,17 +61,15 @@ public class ContextAutoConfigurationTest {
 		assertNotNull(this.resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket"));
 	}
 
-	public static class CredentialsApplicationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>{
-
-		@Override
-		public void initialize(ConfigurableApplicationContext applicationContext) {
-			String accessFile = SystemPropertyUtils.resolvePlaceholders("${els.config.dir}/access.properties");
-			try {
-				applicationContext.getEnvironment().getPropertySources().addLast(new ResourcePropertySource(
-						new FileSystemResource(accessFile)));
-			} catch (IOException e) {
-				throw new RuntimeException("Error loading access.properties for testing", e);
+	@Test
+	public void listableStackResourceFactory_availableInApplicationContext_returnsAllResources() throws Exception {
+		StackResource emptyBucket = null;
+		for (StackResource stackResource : this.listableStackResourceFactory.getAllResources()) {
+			if ("EmptyBucket".equals(stackResource.getLogicalId())) {
+				emptyBucket = stackResource;
+				break;
 			}
 		}
+		assertNotNull(emptyBucket);
 	}
 }
