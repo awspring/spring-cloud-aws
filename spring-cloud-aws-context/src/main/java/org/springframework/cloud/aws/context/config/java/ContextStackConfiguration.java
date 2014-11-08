@@ -22,8 +22,6 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
@@ -43,11 +41,6 @@ public class ContextStackConfiguration {
 
 	@Autowired
 	private Environment environment;
-
-	@Bean(name = "org.springframework.cloud.aws.core.env.ResourceIdResolver.BEAN_NAME")
-	public ResourceIdResolver resourceIdResolver() {
-		return new StackResourceRegistryDetectingResourceIdResolver();
-	}
 
 	@Bean
 	@ConditionalOnProperty("cloud.aws.stack.auto")

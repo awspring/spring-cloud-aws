@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -63,5 +65,11 @@ public class ContextCredentialsProviderConfiguration {
 	@ConditionalOnProperty("cloud.aws.credentials.instanceProfile")
 	public AWSCredentialsProvider instanceProfile() {
 		return new InstanceProfileCredentialsProvider();
+	}
+
+	//TODO: Check if there is a better place for this
+	@Bean(name = "org.springframework.cloud.aws.core.env.ResourceIdResolver.BEAN_NAME")
+	public ResourceIdResolver resourceIdResolver() {
+		return new StackResourceRegistryDetectingResourceIdResolver();
 	}
 }

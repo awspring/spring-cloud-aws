@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.cache.CacheManager;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -38,7 +39,9 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
-@IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack", "cloud.aws.region.static=EU_WEST_1",
+@IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack",
+		"cloud.aws.region.static=EU_WEST_1",
+		"cloud.aws.cache.name=CacheCluster",
 		"spring.config.location=${els.config.dir}/access.properties"})
 public class ContextAutoConfigurationTest {
 
@@ -53,6 +56,9 @@ public class ContextAutoConfigurationTest {
 
 	@Autowired
 	private JavaMailSender javaMailSender;
+
+	@Autowired
+	private CacheManager cacheManager;
 
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
@@ -80,5 +86,10 @@ public class ContextAutoConfigurationTest {
 	@Test
 	public void mailSender_configuredBecauseSpringMailSupportAvailable_configuredJavaMailSender() throws Exception {
 		assertNotNull(this.javaMailSender);
+	}
+
+	@Test
+	public void cacheManager_configuredWithExplicitCacheName_configuredCacheManager() throws Exception {
+		assertNotNull(this.cacheManager);
 	}
 }

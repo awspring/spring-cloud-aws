@@ -3,4 +3,5 @@ org.springframework.cloud.aws.context.config.java.ContextInstanceDataConfigurati
 org.springframework.cloud.aws.context.config.java.ContextCredentialsProviderConfiguration,\
 org.springframework.cloud.aws.context.config.java.ContextRegionProviderConfiguration,\
 org.springframework.cloud.aws.context.config.java.ContextStackConfiguration,\
-org.springframework.cloud.aws.mail.config.java.MailSenderConfiguration
+org.springframework.cloud.aws.mail.config.java.MailSenderConfiguration,\
+org.springframework.cloud.aws.cache.config.java.CacheConfiguration
