@@ -27,6 +27,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.support.TestApplication;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertNotNull;
@@ -50,6 +51,9 @@ public class ContextAutoConfigurationTest {
 	@Autowired
 	private ListableStackResourceFactory listableStackResourceFactory;
 
+	@Autowired
+	private JavaMailSender javaMailSender;
+
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
 		assertNotNull(this.credentialsProvider);
@@ -71,5 +75,10 @@ public class ContextAutoConfigurationTest {
 			}
 		}
 		assertNotNull(emptyBucket);
+	}
+
+	@Test
+	public void mailSender_configuredBecauseSpringMailSupportAvailable_configuredJavaMailSender() throws Exception {
+		assertNotNull(this.javaMailSender);
 	}
 }
