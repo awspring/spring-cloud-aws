@@ -23,22 +23,17 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.EnvironmentTestUtils;
-import org.springframework.cloud.aws.context.config.InstanceIdServer;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
@@ -62,21 +57,8 @@ public class ContextStackConfigurationTest {
 		this.context.register(AutoConfigurationStackRegistryTestConfiguration.class);
 		this.context.register(ContextStackConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
-		HttpServer httpServer = InstanceIdServer.setupHttpServer();
-		httpServer.createContext("/latest/meta-data/instance-id", new HttpHandler() {
-
-			private final String instanceId = "test";
-
-			@Override
-			public void handle(HttpExchange httpExchange) throws IOException {
-				httpExchange.sendResponseHeaders(200, this.instanceId.getBytes().length);
-
-				OutputStream responseBody = httpExchange.getResponseBody();
-				responseBody.write(this.instanceId.getBytes());
-				responseBody.flush();
-				responseBody.close();
-			}
-		});
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		//Act
 		this.context.refresh();
@@ -84,7 +66,7 @@ public class ContextStackConfigurationTest {
 		//Assert
 		assertNotNull(this.context.getBean(StackResourceRegistry.class));
 
-		InstanceIdServer.shutdownHttpServer();
+		MetaDataServer.shutdownHttpServer();
 	}
 
 	@Test
@@ -140,4 +122,5 @@ public class ContextStackConfigurationTest {
 			return amazonCloudFormation;
 		}
 	}
+
 }

@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
  * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the Spring Cloud AWS context
@@ -34,7 +34,7 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("context-credentials", new ContextCredentialsBeanDefinitionParser());
 		registerBeanDefinitionParser("context-resource-loader", new ContextResourceLoaderBeanDefinitionParser());
 		registerBeanDefinitionParser("context-region", new ContextRegionBeanDefinitionParser());
-		registerBeanDefinitionParser("context-instance-placeholder", new ContextInstanceDataPlaceholderResolverBeanDefinitionParser());
+		registerBeanDefinitionParser("context-instance-placeholder", new ContextInstanceDataPropertySourceBeanDefinitionParser());
 		registerBeanDefinitionParser("stack-configuration", new StackConfigurationBeanDefinitionParser());
 	}
 }

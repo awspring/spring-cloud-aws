@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.aws.context.config;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -59,16 +57,4 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 
 		//Assert
 	}
-
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
-		InstanceIdServer.setupHttpServer();
-	}
-
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
-		InstanceIdServer.shutdownHttpServer();
-	}
-
-
 }
