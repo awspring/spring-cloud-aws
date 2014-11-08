@@ -44,6 +44,7 @@ public class StaticMemcachedFactoryBeanTest {
 
 		memcachedClient.shutdown();
 
+		TestMemcacheServer.stopServer();
 	}
 
 }

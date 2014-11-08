@@ -61,6 +61,7 @@ public class TestMemcacheServer {
 	public static void stopServer() {
 		try {
 			daemon.stop();
+			daemon = null;
 		} finally {
 			System.clearProperty("net.spy.log.LoggerImpl");
 		}
