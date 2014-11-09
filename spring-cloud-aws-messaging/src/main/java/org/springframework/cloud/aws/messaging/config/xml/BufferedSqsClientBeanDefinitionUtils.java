@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -27,9 +27,9 @@ import org.w3c.dom.Element;
  * @author Alain Sahli
  * @author Agim Emruli
  */
-final class BufferedSqsClientBeanDefinitionUtils {
+public final class BufferedSqsClientBeanDefinitionUtils {
 
-	static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
+	public static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
 	static final String BUFFERED_SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
 
 	private BufferedSqsClientBeanDefinitionUtils() {
