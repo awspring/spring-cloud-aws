@@ -8,10 +8,10 @@ before_install:
 install:
 - mvn --settings .settings.xml install -P docs -q -U -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
 - ./docs/src/main/asciidoc/ghpages.sh
-script: mvn --settings .settings.xml test -nsu -Dmaven.test.redirectTestOutputToFile=true
+script: mvn --settings .settings.xml deploy -nsu -Dmaven.test.redirectTestOutputToFile=true
 env:
   global:
   - GIT_NAME="Dave Syer"
   - GIT_EMAIL=dsyer@pivotal.io
-  - secure: "VtB9B/MENKA93R2QMIg5ohOf3bOy9ZiNncTkgXVxkQVILmmSMYjq+afspp75a2jnm8Z49cTaTqxTQJB3krNnVl1tABXIT3l/rUdYgwmUN2I/ea15clfj5BUl/stvxl400/15W+DtLeimMPHQVCTqqHkq6jmke2UNc2avRju8bAI="
-
+  - CI_DEPLOY_USERNAME=buildmaster
+  - secure: QbE2ttq/fQf1ZZ83A/JEPflT3XZTKVdYU3uvMd/XAml7qyzqrTwI/bQJZPyIWxe/3jvSINViL4BspRWj5zTdaY/4QHKuahXUlz+JQifL0plvGGndQoZfO3yI2dCaLuKmk0NpOQW3gh22/UON4wT/k/X/KYQn+gq7e8KMz+N151o=
