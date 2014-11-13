@@ -26,6 +26,7 @@ import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +116,17 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackR
 		@Override
 		public Collection<StackResource> getAllResources() {
 			return this.stackResourceByLogicalId.values();
+		}
+
+		@Override
+		public Collection<StackResource> resourcesByType(String type) {
+			List<StackResource> result = new ArrayList<>();
+			for (StackResource stackResource : this.stackResourceByLogicalId.values()) {
+				if (stackResource.getType().equals(type)) {
+					result.add(stackResource);
+				}
+			}
+			return result;
 		}
 	}
 
