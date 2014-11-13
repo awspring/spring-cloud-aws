@@ -17,13 +17,12 @@
 package org.springframework.cloud.aws.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.cache.CacheManager;
+import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -32,7 +31,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -58,12 +56,11 @@ public class ContextAutoConfigurationTest {
 	private JavaMailSender javaMailSender;
 
 	@Autowired
-	private CacheManager cacheManager;
+	private CacheInterceptor cacheInterceptor;
 
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
 		assertNotNull(this.credentialsProvider);
-		assertTrue(AWSCredentialsProviderChain.class.isInstance(this.credentialsProvider));
 	}
 
 	@Test
@@ -89,7 +86,7 @@ public class ContextAutoConfigurationTest {
 	}
 
 	@Test
-	public void cacheManager_configuredWithExplicitCacheName_configuredCacheManager() throws Exception {
-		assertNotNull(this.cacheManager);
+	public void cacheManagerInterceptor_configuredWithExplicitCacheName_configuredCacheInterceptor() throws Exception {
+		assertNotNull(this.cacheInterceptor);
 	}
 }
