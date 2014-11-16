@@ -107,6 +107,17 @@ provides support to configure an application context specific credentials that a
 by Spring Cloud AWS components. Therefore there must be *exactly one* configuration of the credentials for an entire application
 context.
 
+[TIP]
+====
+The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the clients if there is no dedicated credentials
+ provider defined. This will essentially use the following authentication information
+
+* use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+* use th system properties `aws.accessKeyId` and `aws.secretKey`
+* use the user specific profile credentials file
+* use the instance profile credentials (see below)
+====
+
 Based on the overall credentials policy there are different options to configure the credentials. The possible ones are described in
 the following sub-chapters.
 

@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -24,11 +23,14 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 import java.util.List;
+
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation which parses the
@@ -76,6 +78,8 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 		}
 
 		builder.addConstructorArgValue(credentialsProviders);
+
+		replaceDefaultCredentialsProvider(parserContext.getRegistry(), CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 
 	}
 

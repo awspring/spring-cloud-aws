@@ -18,14 +18,16 @@ package org.springframework.cloud.aws.core.credentials;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,12 +51,17 @@ public class CredentialsProviderFactoryBeanTest {
 
 
 	@Test
-	public void testCreateWithZeroProviders() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("No credential providers specified");
-		//noinspection ResultOfObjectAllocationIgnored
-		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Collections.<AWSCredentialsProvider>emptyList());
+	public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
+		//Arrange
+		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
 		credentialsProviderFactoryBean.afterPropertiesSet();
+
+		//Act
+		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
+
+		//Assert
+		assertNotNull(credentialsProvider);
+		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
 	}
 
 
