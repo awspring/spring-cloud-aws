@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.aws.messaging.config.java.MessagingConfiguration

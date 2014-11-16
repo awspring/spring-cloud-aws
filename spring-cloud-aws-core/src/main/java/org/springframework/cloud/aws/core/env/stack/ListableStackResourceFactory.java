@@ -25,4 +25,6 @@ public interface ListableStackResourceFactory extends StackResourceRegistry {
 
 	Collection<StackResource> getAllResources();
 
+	Collection<StackResource> resourcesByType(String type);
+
 }
