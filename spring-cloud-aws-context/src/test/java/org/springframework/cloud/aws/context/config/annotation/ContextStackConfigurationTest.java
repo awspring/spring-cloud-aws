@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package org.springframework.cloud.aws.context.config.annotation;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
@@ -27,8 +27,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.EnvironmentTestUtils;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.context.MetaDataServer;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -36,27 +35,28 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class ContextStackAutoConfigurationTest {
+public class ContextStackConfigurationTest {
+
 
 	private AnnotationConfigApplicationContext context;
-
 
 	@After
 	public void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
+
+		MetaDataServer.shutdownHttpServer();
 	}
 
 	@Test
-	public void stackRegistry_autoConfigurationEnabled_returnsAutoConfiguredStackRegistry() throws Exception {
+	public void stackRegistry_noStackNameConfigured_returnsAutoConfiguredStackRegistry() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(AutoConfigurationStackRegistryTestConfiguration.class);
-		this.context.register(ContextStackAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
+		this.context.register(ApplicationConfigurationWithEmptyStackName.class);
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
@@ -64,41 +64,29 @@ public class ContextStackAutoConfigurationTest {
 		this.context.refresh();
 
 		//Assert
-		assertNotNull(this.context.getBean(StackResourceRegistry.class));
-
-		MetaDataServer.shutdownHttpServer();
+		StackResourceRegistry stackResourceRegistry = this.context.getBean(StackResourceRegistry.class);
+		assertNotNull(stackResourceRegistry);
+		assertEquals("testStack", stackResourceRegistry.getStackName());
 	}
 
 	@Test
-	public void stackRegistry_manualConfigurationEnabled_returnsAutoConfiguredStackRegistry() throws Exception {
+	public void stackRegistry_stackNameConfigured_returnsConfiguredStackRegistryForName() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
-		this.context.register(ContextStackAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.name:manualStackName");
 
 		//Act
 		this.context.refresh();
 
 		//Assert
-		assertNotNull(this.context.getBean(StackResourceRegistry.class));
-	}
-
-	@Test
-	public void resourceIdResolver_withoutAnyStackConfiguration_availableAsConfiguredBean() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextStackAutoConfiguration.class);
-		//Act
-		this.context.refresh();
-
-		//Assert
-		assertNotNull(this.context.getBean(ResourceIdResolver.class));
-
+		StackResourceRegistry stackResourceRegistry = this.context.getBean(StackResourceRegistry.class);
+		assertNotNull(stackResourceRegistry);
+		assertEquals("manualStackName",stackResourceRegistry.getStackName());
 	}
 
 	@Configuration
-	static class AutoConfigurationStackRegistryTestConfiguration {
+	@EnableStackConfiguration
+	static class ApplicationConfigurationWithEmptyStackName {
 
 		@Bean
 		public AmazonCloudFormation amazonCloudFormation() {
@@ -112,6 +100,7 @@ public class ContextStackAutoConfigurationTest {
 	}
 
 	@Configuration
+	@EnableStackConfiguration(stackName = "manualStackName")
 	static class ManualConfigurationStackRegistryTestConfiguration {
 
 		@Bean
@@ -122,4 +111,5 @@ public class ContextStackAutoConfigurationTest {
 			return amazonCloudFormation;
 		}
 	}
+
 }

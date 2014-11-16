@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.context.config.annotation.ContextStackConfiguration;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -36,31 +33,29 @@ import org.springframework.core.env.Environment;
 @Import(ContextCredentialsProviderAutoConfiguration.class)
 public class ContextStackAutoConfiguration {
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
-
-	@Autowired
-	private Environment environment;
-
-	@Bean
-	@ConditionalOnProperty("cloud.aws.stack.auto")
-	public StackResourceRegistryFactoryBean autoDetectingStackResourceRegistry(AmazonCloudFormation amazonCloudFormationClient) {
-		return new StackResourceRegistryFactoryBean(amazonCloudFormationClient);
-	}
-
-	@Bean
+	@Configuration
 	@ConditionalOnProperty("cloud.aws.stack.name")
-	public StackResourceRegistryFactoryBean staticStackResourceRegistry(AmazonCloudFormation amazonCloudFormationClient) {
-		return new StackResourceRegistryFactoryBean(amazonCloudFormationClient, this.environment.getProperty("cloud.aws.stack.name"));
+	public static class StackManualDetectConfiguration extends ContextStackConfiguration {
+
+		@Autowired
+		private Environment environment;
+
+		@Override
+		@Bean
+		public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation, this.environment.getProperty("cloud.aws.stack.name"));
+		}
 	}
 
-	@Bean
-	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
-	public AmazonCloudFormation amazonCloudFormation(AWSCredentialsProvider credentialsProvider) {
-		AmazonCloudFormationClient formationClient = new AmazonCloudFormationClient(credentialsProvider);
-		if (this.regionProvider != null) {
-			formationClient.setRegion(this.regionProvider.getRegion());
+
+	@Configuration
+	@ConditionalOnProperty("cloud.aws.stack.auto")
+	public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
+
+		@Override
+		@Bean
+		public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation);
 		}
-		return formationClient;
 	}
 }
