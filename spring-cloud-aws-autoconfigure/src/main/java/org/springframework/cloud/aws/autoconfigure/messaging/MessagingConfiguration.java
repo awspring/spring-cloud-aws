@@ -21,13 +21,10 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
-import org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,11 +38,18 @@ public class MessagingConfiguration {
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
 
-	@Bean(name = BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME)
-	@ConditionalOnMissingBean(name = BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME)
-	@ConditionalOnBean(name = CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)
-	public AmazonSQS amazonSqs(AWSCredentialsProvider awsCredentialsProvider) {
-		AmazonSQSAsyncClient amazonSQSAsyncClient = new AmazonSQSAsyncClient(awsCredentialsProvider);
+	@Autowired(required = false)
+	private AWSCredentialsProvider awsCredentialsProvider;
+
+	@Bean
+	@ConditionalOnMissingAmazonClient(AmazonSQS.class)
+	public AmazonSQS amazonSqs() {
+		AmazonSQSAsyncClient amazonSQSAsyncClient;
+		if (this.awsCredentialsProvider != null) {
+			amazonSQSAsyncClient = new AmazonSQSAsyncClient(this.awsCredentialsProvider);
+		} else {
+			amazonSQSAsyncClient = new AmazonSQSAsyncClient();
+		}
 
 		if (this.regionProvider != null) {
 			amazonSQSAsyncClient.setRegion(this.regionProvider.getRegion());
@@ -55,14 +59,9 @@ public class MessagingConfiguration {
 	}
 
 	@ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
-	@ConditionalOnBean(name = CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)
 	@EnableSqs
 	@Configuration
 	public static class SqsListenerAutoConfiguration {
 
-		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			return new SimpleMessageListenerContainerFactory();
-		}
 	}
 }

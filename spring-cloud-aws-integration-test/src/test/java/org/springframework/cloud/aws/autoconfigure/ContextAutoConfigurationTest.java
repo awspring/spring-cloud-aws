@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context;
+package org.springframework.cloud.aws.autoconfigure;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import org.junit.Test;
@@ -26,11 +26,13 @@ import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
+import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.cloud.aws.support.TestApplication;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -57,6 +59,9 @@ public class ContextAutoConfigurationTest {
 
 	@Autowired
 	private CacheInterceptor cacheInterceptor;
+
+	@Autowired
+	private SimpleMessageListenerContainer simpleMessageListenerContainer;
 
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
@@ -88,5 +93,11 @@ public class ContextAutoConfigurationTest {
 	@Test
 	public void cacheManagerInterceptor_configuredWithExplicitCacheName_configuredCacheInterceptor() throws Exception {
 		assertNotNull(this.cacheInterceptor);
+	}
+
+	@Test
+	public void simpleMessageListenerContainer_withoutExistingContainerBean_configuredAndRunning() throws Exception {
+		assertNotNull(this.simpleMessageListenerContainer);
+		assertTrue(this.simpleMessageListenerContainer.isRunning());
 	}
 }
