@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.config.annotation;
 
-import com.amazonaws.services.sqs.AmazonSQS;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
@@ -28,23 +26,12 @@ import java.util.List;
 
 /**
  * @author Alain Sahli
+ * @since 1.0
  */
 @Configuration
-public class DelegatingQueueMessageHandlerConfiguration extends QueueMessageHandlerConfigurationSupport {
+public class DelegatingSqsConfiguration extends SqsConfigurationSupport {
 
 	private final QueueMessageHandlerConfigurerComposite configurers = new QueueMessageHandlerConfigurerComposite();
-
-	@Autowired
-	@Override
-	public void setAmazonSqs(AmazonSQS amazonSqs) {
-		super.setAmazonSqs(amazonSqs);
-	}
-
-	@Autowired(required = false)
-	@Override
-	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
-		super.setResourceIdResolver(resourceIdResolver);
-	}
 
 	@Autowired(required = false)
 	public void setConfigurers(List<QueueMessageHandlerConfigurer> configurers) {
@@ -55,12 +42,12 @@ public class DelegatingQueueMessageHandlerConfiguration extends QueueMessageHand
 	}
 
 	@Override
-	protected void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+	public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
 		this.configurers.addReturnValueHandlers(returnValueHandlers);
 	}
 
 	@Override
-	protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		this.configurers.addArgumentResolvers(argumentResolvers);
 	}
 
