@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
@@ -40,7 +41,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -125,14 +125,14 @@ public class DelegatingSqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withoutAwsCredentials_shouldCreateAClientWithEmptyCredentialsProvider() throws Exception {
+	public void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithMissingAwsCredentials.class);
 
 		// Assert
 		AmazonSQSBufferedAsyncClient bufferedAmazonSqsClient = applicationContext.getBean(AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(bufferedAmazonSqsClient, "realSQS");
-		assertNull(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"));
+		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider")));
 	}
 
 	@Test
