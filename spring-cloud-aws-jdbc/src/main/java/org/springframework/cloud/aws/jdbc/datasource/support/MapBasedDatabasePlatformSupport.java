@@ -66,9 +66,10 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	@Override
 	public String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName) {
 		String scheme = this.getSchemeNames().get(databaseType);
+		String authenticationInfo = this.getAuthenticationInfo().get(databaseType);
 		Assert.notNull(databaseType, String.format("No scheme name found for database :'%s'", databaseType.name()));
 		try {
-			return new URI(scheme, null, hostname, port, "/" + databaseName, null, null).toString();
+			return new URI(scheme, authenticationInfo, hostname, port, databaseName != null ? "/" + databaseName : null, null, null).toString();
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Error constructing URI from Host:'" + hostname + "' and port:'" +
 					port + "' and database name:'" + databaseName + "'!");
@@ -92,4 +93,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
 	 * @return Map containing the schema (and sub-scheme) names for every support database platform
 	 */
 	protected abstract Map<DatabaseType, String> getSchemeNames();
+
+
+	protected abstract Map<DatabaseType, String> getAuthenticationInfo();
 }

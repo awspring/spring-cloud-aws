@@ -18,11 +18,11 @@ package org.springframework.cloud.aws.jdbc.datasource;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.junit.Test;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
+import org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.springframework.transaction.TransactionDefinition;
 
 import java.beans.PropertyDescriptor;
@@ -75,6 +75,11 @@ public class TomcatJdbcDataSourceFactoryTest {
 			@Override
 			protected Map<DatabaseType, String> getSchemeNames() {
 				return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:sql");
+			}
+
+			@Override
+			protected Map<DatabaseType, String> getAuthenticationInfo() {
+				return Collections.emptyMap();
 			}
 		});
 

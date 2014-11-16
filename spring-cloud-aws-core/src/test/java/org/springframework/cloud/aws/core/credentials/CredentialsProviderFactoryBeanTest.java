@@ -24,9 +24,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,11 +52,16 @@ public class CredentialsProviderFactoryBeanTest {
 
 
 	@Test
-	public void getObject_withZeroProvider_createsDefaultAwsCredentialsProviderChain() throws Exception {
-		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Collections.<AWSCredentialsProvider>emptyList());
+	public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
+		//Arrange
+		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
 		credentialsProviderFactoryBean.afterPropertiesSet();
 
+		//Act
 		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
+
+		//Assert
+		assertNotNull(credentialsProvider);
 		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
 	}
 

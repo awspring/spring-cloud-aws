@@ -83,5 +83,10 @@ public class MapBasedDatabasePlatformSupportTest {
 		protected Map<DatabaseType, String> getSchemeNames() {
 			return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
 		}
+
+		@Override
+		protected Map<DatabaseType, String> getAuthenticationInfo() {
+			return Collections.emptyMap();
+		}
 	}
 }

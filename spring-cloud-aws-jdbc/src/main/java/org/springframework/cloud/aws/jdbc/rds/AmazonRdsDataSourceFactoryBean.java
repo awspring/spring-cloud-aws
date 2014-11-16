@@ -21,13 +21,13 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
 import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.StringUtils;
@@ -198,7 +198,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
-		return new DataSourceInformation(DatabaseType.valueOf(dbInstance.getEngine().toUpperCase()),
+		return new DataSourceInformation(DatabaseType.fromEngine(dbInstance.getEngine()),
 				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
 				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
 	}

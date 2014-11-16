@@ -17,9 +17,6 @@
 package org.springframework.cloud.aws.core.config;
 
 import com.amazonaws.regions.Regions;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -28,6 +25,9 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -41,6 +41,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
 	private static final String REGION_PROVIDER_BEAN_NAME = RegionProvider.class.getName() + ".BEAN_NAME";
+	private static final String CREDENTIALS_PROVIDER_BEAN_NAME = CredentialsProviderFactoryBean.class.getName() + ".BEAN_NAME";
 
 	private AmazonWebserviceClientConfigurationUtils() {
 		// Avoid instantiation
@@ -71,10 +72,12 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
 		}
 
+		registerCredentialsProviderIfNeeded(beanDefinitionRegistry);
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(serviceNameClassName);
 
 		//Configure constructor parameters
-		builder.addConstructorArgReference(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+		builder.addConstructorArgReference(CREDENTIALS_PROVIDER_BEAN_NAME);
 
 		//Configure destroy method
 		builder.setDestroyMethodName("shutdown");
@@ -130,5 +133,20 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
 		}
+	}
+
+	private static void registerCredentialsProviderIfNeeded(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
+			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+		}
+	}
+
+	public static void replaceDefaultCredentialsProvider(BeanDefinitionRegistry registry, String customGlobalCredentialsProvider) {
+		if (registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
+			registry.removeBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME);
+		}
+		registry.registerAlias(customGlobalCredentialsProvider, CREDENTIALS_PROVIDER_BEAN_NAME);
 	}
 }

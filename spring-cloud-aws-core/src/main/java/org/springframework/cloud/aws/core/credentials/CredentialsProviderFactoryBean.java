@@ -22,6 +22,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,6 +37,10 @@ public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCrede
 	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "credentialsProvider";
 
 	private final List<AWSCredentialsProvider> delegates;
+
+	public CredentialsProviderFactoryBean() {
+		this(Collections.<AWSCredentialsProvider>emptyList());
+	}
 
 	public CredentialsProviderFactoryBean(List<AWSCredentialsProvider> delegates) {
 		Assert.notNull(delegates, "Delegates must not be null");
