@@ -28,7 +28,6 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,7 +42,7 @@ public class CredentialsProviderFactoryBeanTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
-	public void getObject_withNullProvider_reportsError() throws Exception {
+	public void testCreateWithNullCredentialsProvider() throws Exception {
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("not be null");
 		//noinspection ResultOfObjectAllocationIgnored
@@ -67,7 +66,7 @@ public class CredentialsProviderFactoryBeanTest {
 
 
 	@Test
-	public void getObject_withMultipleProvider_createsProviderChainWithAllProviders() throws Exception {
+	public void testCreateWithMultiple() throws Exception {
 		AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
 		AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
 

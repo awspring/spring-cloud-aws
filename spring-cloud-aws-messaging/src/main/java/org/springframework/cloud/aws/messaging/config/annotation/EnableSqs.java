@@ -25,10 +25,11 @@ import java.lang.annotation.Target;
 
 /**
  * @author Alain Sahli
+ * @since 1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(SqsConfiguration.class)
+@Import(DelegatingSqsConfiguration.class)
 public @interface EnableSqs {
 
 }

@@ -14,33 +14,57 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.messaging;
+package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
+import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+
+import java.util.List;
 
 /**
  * @author Alain Sahli
+ * @since 1.0
  */
-@Configuration
-public class MessagingConfiguration {
+public class SqsConfigurationSupport {
+
+	@Autowired(required = false)
+	private AWSCredentialsProvider awsCredentialsProvider;
 
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
 
 	@Autowired(required = false)
-	private AWSCredentialsProvider awsCredentialsProvider;
+	private ResourceIdResolver resourceIdResolver;
 
+	@Autowired(required = false)
+	private SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;
+
+	@Bean
+	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQS amazonSqs) {
+		if (this.simpleMessageListenerContainerFactory == null) {
+			this.simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory(amazonSqs);
+			this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
+		}
+
+		addReturnValueHandlers(this.simpleMessageListenerContainerFactory.getCustomReturnValueHandlers());
+		addArgumentResolvers(this.simpleMessageListenerContainerFactory.getCustomArgumentResolvers());
+
+		return this.simpleMessageListenerContainerFactory.createSimpleMessageListenerContainer();
+	}
+
+	@Lazy
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonSQS.class)
 	public AmazonSQS amazonSqs() {
@@ -58,10 +82,10 @@ public class MessagingConfiguration {
 		return new AmazonSQSBufferedAsyncClient(amazonSQSAsyncClient);
 	}
 
-	@ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
-	@EnableSqs
-	@Configuration
-	public static class SqsListenerAutoConfiguration {
-
+	protected void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
 	}
+
+	protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+	}
+
 }
