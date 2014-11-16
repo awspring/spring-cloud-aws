@@ -29,10 +29,6 @@ import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,12 +36,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.PropertyValue;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
+import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -130,12 +128,40 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_noCredentialsDefined_reportsError() throws Exception {
-		this.expectedException.expect(BeanCreationException.class);
-		this.expectedException.expectMessage(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+	public void parseInternal_noCredentialsDefined_returnsClientWithDefaultCredentialsProvider() throws Exception {
+		//Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		//noinspection ResultOfObjectAllocationIgnored
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-noCredentials.xml", getClass());
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+		beanDefinitionBuilder.setFactoryMethod("mock");
+		beanDefinitionBuilder.addConstructorArgValue(AmazonRDS.class);
+		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
+
+		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-noCredentials.xml", getClass()));
+
+		AmazonRDS client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonRDSClient.class.getName()), AmazonRDS.class);
+
+		when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+				new DescribeDBInstancesResult().
+						withDBInstances(new DBInstance().
+										withDBInstanceStatus("available").
+										withDBName("test").
+										withDBInstanceIdentifier("test").
+										withEngine("mysql").
+										withMasterUsername("admin").
+										withEndpoint(new Endpoint().
+														withAddress("localhost").
+														withPort(3306)
+										).withReadReplicaDBInstanceIdentifiers("read1")
+						)
+		);
+
+		//Act
+		DataSource dataSource = beanFactory.getBean(DataSource.class);
+
+		//Assert
+		assertTrue(dataSource instanceof DynamicDataSource);
 	}
 
 	@Test

@@ -61,7 +61,6 @@ public final class DataSourceInformation {
 		Assert.notNull(databaseType, "DatabaseType must not be null");
 		Assert.notNull(hostName, "Hostname must not be null");
 		Assert.notNull(port, "Port must not be null");
-		Assert.notNull(databaseName, "DatabaseName must not be null");
 		Assert.notNull(userName, "UserName must not be null");
 		Assert.notNull(password, "Password must not be null");
 
@@ -107,7 +106,7 @@ public final class DataSourceInformation {
 	 * <ul>
 	 * <li>MySQL - This is the database name to connect to </li>
 	 * <li>Oracle - This is the system id (SID) to connect to</li>
-	 * <li>MSSQL - This information is not used at all</li>
+	 * <li>SQLSERVER - This information is not used at all</li>
 	 * </ul>
 	 *
 	 * @return - The database name that can be used to connect to the database.

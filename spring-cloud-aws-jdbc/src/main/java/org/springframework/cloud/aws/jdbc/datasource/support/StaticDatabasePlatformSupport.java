@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.jdbc.datasource.support;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
+	private static final String JDBC_SCHEME_NAME = "jdbc:";
 	private final Map<DatabaseType, String> driverClassNameMappings;
 	private final Map<DatabaseType, String> schemeNames;
 
@@ -34,8 +36,8 @@ public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSuppo
 	 * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with the configuration information
 	 */
 	public StaticDatabasePlatformSupport() {
-		this.driverClassNameMappings = Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
-		this.schemeNames = Collections.singletonMap(DatabaseType.MYSQL, "jdbc:mysql");
+		this.driverClassNameMappings = getDefaultDriverClassNameMappings();
+		this.schemeNames = getDefaultSchemeNames();
 	}
 
 	@Override
@@ -46,5 +48,28 @@ public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSuppo
 	@Override
 	protected Map<DatabaseType, String> getSchemeNames() {
 		return this.schemeNames;
+	}
+
+	@Override
+	protected Map<DatabaseType, String> getAuthenticationInfo() {
+		return Collections.singletonMap(DatabaseType.ORACLE, "@");
+	}
+
+	private static Map<DatabaseType,String> getDefaultDriverClassNameMappings() {
+		HashMap<DatabaseType, String> driverClassNameMappings = new HashMap<>();
+		driverClassNameMappings.put(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.ORACLE, "oracle.jdbc.OracleDriver");
+		driverClassNameMappings.put(DatabaseType.SQLSERVER, "net.sourceforge.jtds.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.POSTGRES, "org.postgresql.Driver");
+		return Collections.unmodifiableMap(driverClassNameMappings);
+	}
+
+	private static Map<DatabaseType,String> getDefaultSchemeNames() {
+		HashMap<DatabaseType, String> schemeNamesMappings = new HashMap<>();
+		schemeNamesMappings.put(DatabaseType.MYSQL, JDBC_SCHEME_NAME + "mysql");
+		schemeNamesMappings.put(DatabaseType.ORACLE, JDBC_SCHEME_NAME + "oracle:thin");
+		schemeNamesMappings.put(DatabaseType.SQLSERVER, JDBC_SCHEME_NAME + "jtds:sqlserver");
+		schemeNamesMappings.put(DatabaseType.POSTGRES, JDBC_SCHEME_NAME + "postgresql");
+		return Collections.unmodifiableMap(schemeNamesMappings);
 	}
 }
