@@ -20,8 +20,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +33,8 @@ import org.springframework.core.env.Environment;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextCredentialsProviderConfiguration.class)
-public class ContextStackConfiguration {
+@Import(ContextCredentialsProviderAutoConfiguration.class)
+public class ContextStackAutoConfiguration {
 
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
@@ -55,7 +55,7 @@ public class ContextStackConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(name = "amazonCloudFormation")
+	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
 	public AmazonCloudFormation amazonCloudFormation(AWSCredentialsProvider credentialsProvider) {
 		AmazonCloudFormationClient formationClient = new AmazonCloudFormationClient(credentialsProvider);
 		if (this.regionProvider != null) {

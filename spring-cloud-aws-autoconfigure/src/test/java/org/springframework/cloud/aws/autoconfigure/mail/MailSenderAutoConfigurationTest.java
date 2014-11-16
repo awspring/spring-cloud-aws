@@ -24,13 +24,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
-public class MailSenderConfigurationTest {
+public class MailSenderAutoConfigurationTest {
 
 	@Test
 	public void mailSender_MailSenderWithJava_configuresJavaMailSender() throws Exception {
 		//Arrange
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.register(MailSenderConfiguration.class);
+		context.register(MailSenderAutoConfiguration.class);
 
 		//Act
 		context.refresh();

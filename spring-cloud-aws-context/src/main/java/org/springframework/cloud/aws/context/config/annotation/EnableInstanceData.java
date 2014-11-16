@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package org.springframework.cloud.aws.context.config.annotation;
 
-import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,20 +24,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author Alain Sahli
- * @since 1.0
+ * Enables a {@link org.springframework.core.env.PropertySource} that resolve instance meta-data through
+ * the amazon meta data service that is available on EC instances.
+ *
+ * <b>Note:</b>This annotation does not have any effect outside the EC2 environment.
+ *
+ * @author Agim Emruli
  */
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Conditional(OnMissingAmazonClientCondition.class)
-public @interface ConditionalOnMissingAmazonClient {
-
-	/**
-	 * <p>The Amazon clients that needs to be available in order to match the condition.</p>
-	 *
-	 * <b>IMPORTANT</b>: This condition does not verify the presence of a client, based on the type, but based on the
-	 * default name as computed in {@link org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
-	 */
-	Class<?> value();
+@Import(ContextInstanceDataConfiguration.class)
+public @interface EnableInstanceData {
 
 }

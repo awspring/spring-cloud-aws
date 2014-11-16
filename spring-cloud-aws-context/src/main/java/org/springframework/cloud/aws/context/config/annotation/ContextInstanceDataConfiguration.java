@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package org.springframework.cloud.aws.context.config.annotation;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.cloud.aws.context.annotation.ConditionOnAwsCloudEnvironment;

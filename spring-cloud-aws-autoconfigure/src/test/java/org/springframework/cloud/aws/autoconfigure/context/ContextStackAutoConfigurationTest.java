@@ -38,7 +38,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
 
-public class ContextStackConfigurationTest {
+public class ContextStackAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -55,7 +55,7 @@ public class ContextStackConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(AutoConfigurationStackRegistryTestConfiguration.class);
-		this.context.register(ContextStackConfiguration.class);
+		this.context.register(ContextStackAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
@@ -74,7 +74,7 @@ public class ContextStackConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
-		this.context.register(ContextStackConfiguration.class);
+		this.context.register(ContextStackAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.name:manualStackName");
 
 		//Act
@@ -88,7 +88,7 @@ public class ContextStackConfigurationTest {
 	public void resourceIdResolver_withoutAnyStackConfiguration_availableAsConfiguredBean() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextStackConfiguration.class);
+		this.context.register(ContextStackAutoConfiguration.class);
 		//Act
 		this.context.refresh();
 
