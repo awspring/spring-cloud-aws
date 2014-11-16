@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.java;
+package org.springframework.cloud.aws.context.annotation;
 
 import org.springframework.context.annotation.Conditional;
 

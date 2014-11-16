@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.java;
+package org.springframework.cloud.aws.context.annotation;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.util.EC2MetadataUtils;

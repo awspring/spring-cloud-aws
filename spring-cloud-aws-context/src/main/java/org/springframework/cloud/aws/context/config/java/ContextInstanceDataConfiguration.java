@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context.config.java;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.cloud.aws.context.annotation.ConditionOnAwsCloudEnvironment;
 import org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
