@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.jdbc.datasource.support;
 
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.util.Assert;
 
 /**
  * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
@@ -28,5 +29,18 @@ public enum DatabaseType {
 	@RuntimeUse
 	ORACLE,
 	@RuntimeUse
-	MSSQL
+	SQLSERVER,
+	@RuntimeUse
+	POSTGRES;
+
+
+	public static DatabaseType fromEngine(String engineName){
+		Assert.notNull(engineName, "Engine must not be null");
+		for (DatabaseType databaseType : values()) {
+			if (engineName.toUpperCase().startsWith(databaseType.toString())) {
+				return databaseType;
+			}
+		}
+		throw new IllegalStateException("No database type found for engine:'" + engineName + "'");
+	}
 }
