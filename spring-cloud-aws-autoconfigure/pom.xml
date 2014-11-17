@@ -38,6 +38,7 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-aws-messaging</artifactId>
       <version>${project.parent.version}</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -16,17 +16,31 @@
 
 package org.springframework.cloud.aws.autoconfigure.messaging;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.aws.messaging.config.annotation.EnableSns;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Alain Sahli
  */
+@ConditionalOnClass(name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 @Configuration
-@ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
-@EnableSqs
 public class MessagingAutoConfiguration {
+
+	@ConditionalOnMissingBean(name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+	@EnableSqs
+	@Configuration
+	public static class SqsAutoConfiguration {
+
+	}
+
+	@ConditionalOnClass(name = "org.springframework.web.method.support.HandlerMethodArgumentResolver")
+	@EnableSns
+	@Configuration
+	public static class SnsAutoConfiguration {
+
+	}
 
 }
