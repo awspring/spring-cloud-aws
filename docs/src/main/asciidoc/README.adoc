@@ -143,3 +143,7 @@ http://de.linkedin.com/in/agimemruli[LinkedIn])
 * Alain Sahli (http://twitter.com/sahlialain[Twitter] /
 http://ch.linkedin.com/in/asahli[LinkedIn])
 * Christian Stettler (http://twitter.com/chrisstettler[Twitter])
+
+== Contributing
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/src/main/asciidoc/contributing.adoc[]
