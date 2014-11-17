@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package org.springframework.cloud.aws.context.config.annotation;
 
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.cloud.aws.context.MetaDataServer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -64,5 +66,24 @@ public class ContextInstanceDataConfigurationTest {
 
 		//Assert
 		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+	}
+
+	@Test
+	public void propertySource_enableInstanceData_propertySourceConfigured() throws Exception {
+		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+
+		//Act
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
+
+		//Assert
+		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+	}
+
+	@Configuration
+	@EnableInstanceData
+	public static class ApplicationConfiguration {
+
 	}
 }

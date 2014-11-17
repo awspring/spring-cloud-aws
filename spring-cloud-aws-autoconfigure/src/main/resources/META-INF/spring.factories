@@ -1,8 +1,8 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataConfiguration,\
-org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderConfiguration,\
-org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderConfiguration,\
-org.springframework.cloud.aws.autoconfigure.context.ContextStackConfiguration,\
-org.springframework.cloud.aws.autoconfigure.mail.MailSenderConfiguration,\
-org.springframework.cloud.aws.autoconfigure.cache.CacheConfiguration,\
-org.springframework.cloud.aws.autoconfigure.messaging.MessagingConfiguration
+org.springframework.cloud.aws.context.config.annotation.ContextInstanceDataConfiguration,\
+org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.mail.MailSenderAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.messaging.MessagingAutoConfiguration

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package org.springframework.cloud.aws.context.config.annotation;
 
-import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,20 +24,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author Alain Sahli
- * @since 1.0
+ * Enables Cloudformation support for the application context configuration.
+ *
+ * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Conditional(OnMissingAmazonClientCondition.class)
-public @interface ConditionalOnMissingAmazonClient {
+@Target(ElementType.TYPE)
+@Import(ContextStackConfiguration.class)
+public @interface EnableStackConfiguration {
 
 	/**
-	 * <p>The Amazon clients that needs to be available in order to match the condition.</p>
-	 *
-	 * <b>IMPORTANT</b>: This condition does not verify the presence of a client, based on the type, but based on the
-	 * default name as computed in {@link org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
+	 * The stack name to be used to retrieve the stack configuration. The stack is auto detected
+	 * if this attribute is not specified
+	 * @return the configured stack name if used
 	 */
-	Class<?> value();
-
+	String stackName() default "";
 }

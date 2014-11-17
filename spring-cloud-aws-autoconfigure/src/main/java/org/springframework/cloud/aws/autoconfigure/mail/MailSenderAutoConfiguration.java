@@ -21,9 +21,9 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderConfiguration;
+import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderAutoConfiguration;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender;
 import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender;
@@ -40,14 +40,14 @@ import javax.mail.Session;
  */
 @Configuration
 @ConditionalOnClass(MailSender.class)
-@Import(ContextCredentialsProviderConfiguration.class)
-public class MailSenderConfiguration {
+@Import(ContextCredentialsProviderAutoConfiguration.class)
+public class MailSenderAutoConfiguration {
 
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
 
 	@Bean
-	@ConditionalOnMissingBean(name = "amazonSimpleEmailService")
+	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
 	public AmazonSimpleEmailService amazonSimpleEmailService(AWSCredentialsProvider credentialsProvider) {
 		AmazonSimpleEmailServiceClient serviceClient = new AmazonSimpleEmailServiceClient(credentialsProvider);
 		if (this.regionProvider != null) {

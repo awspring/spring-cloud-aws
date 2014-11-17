@@ -22,10 +22,10 @@ import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
 import net.spy.memcached.MemcachedClient;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -33,22 +33,22 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Agim Emruli
  */
-public class ElasticMemcachedFactoryBean extends AbstractFactoryBean<MemcachedClient> {
+public class ElastiCacheMemcachedFactoryBean extends AbstractFactoryBean<MemcachedClient> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticMemcachedFactoryBean.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheMemcachedFactoryBean.class);
 	private static final int SHUTDOWN_DELAY = 10;
 
 	private final AmazonElastiCache amazonElastiCache;
 	private final String cacheClusterId;
 	private final ResourceIdResolver resourceIdResolver;
 
-	public ElasticMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, ResourceIdResolver resourceIdResolver) {
+	public ElastiCacheMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, ResourceIdResolver resourceIdResolver) {
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
 		this.cacheClusterId = cacheClusterId;
 	}
 
-	public ElasticMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
+	public ElastiCacheMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
 		this(amazonElastiCache, cacheClusterId, null);
 	}
 

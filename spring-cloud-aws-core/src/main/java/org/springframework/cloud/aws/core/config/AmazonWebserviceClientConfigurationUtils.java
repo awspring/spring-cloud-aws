@@ -26,7 +26,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -40,8 +39,8 @@ import java.beans.Introspector;
 public final class AmazonWebserviceClientConfigurationUtils {
 
 	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
-	private static final String REGION_PROVIDER_BEAN_NAME = RegionProvider.class.getName() + ".BEAN_NAME";
-	private static final String CREDENTIALS_PROVIDER_BEAN_NAME = CredentialsProviderFactoryBean.class.getName() + ".BEAN_NAME";
+	public static final String REGION_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME";
+	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.BEAN_NAME";
 
 	private AmazonWebserviceClientConfigurationUtils() {
 		// Avoid instantiation

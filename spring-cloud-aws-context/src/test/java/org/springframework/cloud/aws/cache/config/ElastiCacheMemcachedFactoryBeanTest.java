@@ -25,18 +25,18 @@ import com.amazonaws.services.elasticache.model.Endpoint;
 import net.spy.memcached.MemcachedClient;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.cloud.aws.cache.ElasticMemcachedFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ElasticMemcachedFactoryBeanTest {
+public class ElastiCacheMemcachedFactoryBeanTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
@@ -52,7 +52,7 @@ public class ElasticMemcachedFactoryBeanTest {
 		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
 				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(
 						new Endpoint().withAddress("localhost").withPort(memcachedPort)).withCacheClusterStatus("available").withEngine("memcached")));
-		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "memcached");
+		ElastiCacheMemcachedFactoryBean elastiCacheAddressProvider = new ElastiCacheMemcachedFactoryBean(amazonElastiCache, "memcached");
 
 		// Act
 		elastiCacheAddressProvider.afterPropertiesSet();
@@ -77,7 +77,7 @@ public class ElasticMemcachedFactoryBeanTest {
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
 		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("memcached");
 
-		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "test", resourceIdResolver);
+		ElastiCacheMemcachedFactoryBean elastiCacheAddressProvider = new ElastiCacheMemcachedFactoryBean(amazonElastiCache, "test", resourceIdResolver);
 
 		// Act
 		elastiCacheAddressProvider.afterPropertiesSet();
@@ -100,7 +100,7 @@ public class ElasticMemcachedFactoryBeanTest {
 		when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).
 				thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withEngine("redis")));
 
-		ElasticMemcachedFactoryBean elastiCacheAddressProvider = new ElasticMemcachedFactoryBean(amazonElastiCache, "memcached");
+		ElastiCacheMemcachedFactoryBean elastiCacheAddressProvider = new ElastiCacheMemcachedFactoryBean(amazonElastiCache, "memcached");
 
 		// Act
 		elastiCacheAddressProvider.afterPropertiesSet();

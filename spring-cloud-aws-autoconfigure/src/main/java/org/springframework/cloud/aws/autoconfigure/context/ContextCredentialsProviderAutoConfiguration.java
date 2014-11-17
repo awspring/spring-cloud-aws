@@ -37,7 +37,7 @@ import java.util.List;
  * @author Agim Emruli
  */
 @Configuration
-public class ContextCredentialsProviderConfiguration {
+public class ContextCredentialsProviderAutoConfiguration {
 
 	@Autowired
 	private Environment environment;

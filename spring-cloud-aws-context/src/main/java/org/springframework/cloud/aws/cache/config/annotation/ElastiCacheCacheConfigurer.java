@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.cache;
+package org.springframework.cloud.aws.cache.config.annotation;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import net.spy.memcached.MemcachedClientIF;
@@ -23,7 +23,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.cloud.aws.cache.ElasticMemcachedFactoryBean;
+import org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean;
 import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * @author Agim Emruli
  */
-public class ElasticCacheConfigurer extends CachingConfigurerSupport {
+public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 
 	private final AmazonElastiCache amazonElastiCache;
 
@@ -41,7 +41,7 @@ public class ElasticCacheConfigurer extends CachingConfigurerSupport {
 
 	private final List<String> cacheNames;
 
-	public ElasticCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, List<String> cacheNames) {
+	public ElastiCacheCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, List<String> cacheNames) {
 		this.cacheNames = cacheNames;
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
@@ -60,9 +60,9 @@ public class ElasticCacheConfigurer extends CachingConfigurerSupport {
 		return simpleCacheManager;
 	}
 
-	public Cache clusterCache(String cacheName) {
+	protected Cache clusterCache(String cacheName) {
 		try {
-			ElasticMemcachedFactoryBean memcachedFactoryBean = new ElasticMemcachedFactoryBean(this.amazonElastiCache,
+			ElastiCacheMemcachedFactoryBean memcachedFactoryBean = new ElastiCacheMemcachedFactoryBean(this.amazonElastiCache,
 					cacheName, this.resourceIdResolver);
 			memcachedFactoryBean.afterPropertiesSet();
 			return new DisposableSpringSpringMemcached(memcachedFactoryBean.getObject(),

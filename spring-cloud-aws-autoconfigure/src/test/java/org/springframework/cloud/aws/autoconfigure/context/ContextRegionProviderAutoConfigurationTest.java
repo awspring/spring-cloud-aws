@@ -31,7 +31,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Agim Emruli
  */
-public class ContextRegionProviderConfigurationTest {
+public class ContextRegionProviderAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -47,7 +47,7 @@ public class ContextRegionProviderConfigurationTest {
 	public void regionProvider_autoDetectionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextRegionProviderConfiguration.class);
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.auto");
 
 		//Act
@@ -61,7 +61,7 @@ public class ContextRegionProviderConfigurationTest {
 	public void regionProvider_staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextRegionProviderConfiguration.class);
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:EU_WEST_1");
 
 		//Act

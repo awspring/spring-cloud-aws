@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import com.amazonaws.regions.Regions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
@@ -32,19 +33,18 @@ import java.util.Arrays;
  * @author Agim Emruli
  */
 @Configuration
-public class ContextRegionProviderConfiguration {
+public class ContextRegionProviderAutoConfiguration {
 
 	@Autowired
 	private Environment environment;
 
-	//TODO: Check how to re-use the constant in AmazonWebserviceClientConfigurationUtils
-	@Bean(name = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME")
+	@Bean(name = AmazonWebserviceClientConfigurationUtils.REGION_PROVIDER_BEAN_NAME)
 	@ConditionalOnProperty("cloud.aws.region.auto")
 	public RegionProvider autoDetectingRegionProvider() {
 		return new Ec2MetadataRegionProvider();
 	}
 
-	@Bean(name = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME")
+	@Bean(name = AmazonWebserviceClientConfigurationUtils.REGION_PROVIDER_BEAN_NAME)
 	@ConditionalOnProperty("cloud.aws.region.static")
 	public RegionProvider staticRegionProvider() {
 		String regionName = this.environment.getProperty("cloud.aws.region.static");

@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Agim Emruli
  */
-public class ContextCredentialsProviderConfigurationTest {
+public class ContextCredentialsProviderAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -52,7 +52,7 @@ public class ContextCredentialsProviderConfigurationTest {
 	@Test
 	public void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() throws Exception {
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextCredentialsProviderConfiguration.class);
+		this.context.register(ContextCredentialsProviderAutoConfiguration.class);
 		this.context.refresh();
 		assertNotNull(this.context.getBean(AWSCredentialsProvider.class));
 		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(this.context.getBean(AWSCredentialsProvider.class)));
@@ -61,7 +61,7 @@ public class ContextCredentialsProviderConfigurationTest {
 	@Test
 	public void credentialsProvider_accessKeyAndSecretKeyConfigured_configuresStaticCredentialsProviderWithAccessAndSecretKey() {
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextCredentialsProviderConfiguration.class);
+		this.context.register(ContextCredentialsProviderAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context,
 				"cloud.aws.credentials.accessKey:foo",
 				"cloud.aws.credentials.secretKey:bar");
@@ -82,7 +82,7 @@ public class ContextCredentialsProviderConfigurationTest {
 	@Test
 	public void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextCredentialsProviderConfiguration.class);
+		this.context.register(ContextCredentialsProviderAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context,
 				"cloud.aws.credentials.instanceProfile");
 		this.context.refresh();

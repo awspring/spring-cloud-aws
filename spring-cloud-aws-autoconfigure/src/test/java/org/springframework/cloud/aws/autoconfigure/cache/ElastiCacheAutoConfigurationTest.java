@@ -25,7 +25,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.BasicOperation;
 import org.springframework.cache.interceptor.CacheInterceptor;
@@ -43,7 +42,7 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 
-public class CacheConfigurationTest {
+public class ElastiCacheAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -53,28 +52,11 @@ public class CacheConfigurationTest {
 	}
 
 	@Test
-	public void cacheManager_configuredWithCluster_configuresCacheManager() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(MockCacheConfiguration.class);
-		this.context.register(CacheConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.cache.name:sampleCache");
-
-		//Act
-		this.context.refresh();
-
-		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "sampleCache");
-		assertEquals(1, caches.size());
-	}
-
-	@Test
 	public void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(MockCacheConfigurationWithStackCaches.class);
-		this.context.register(CacheConfiguration.class);
+		this.context.register(ElastiCacheAutoConfiguration.class);
 
 		//Act
 		this.context.refresh();
@@ -89,7 +71,7 @@ public class CacheConfigurationTest {
 	public void cacheManager_configuredNoCachesWithNoStack_configuresNoCacheManager() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(CacheConfiguration.class);
+		this.context.register(ElastiCacheAutoConfiguration.class);
 
 		//Act
 		this.context.refresh();
@@ -103,21 +85,6 @@ public class CacheConfigurationTest {
 	@AfterClass
 	public static void shutdownCacheServer() throws Exception {
 		TestMemcacheServer.stopServer();
-	}
-
-	@Configuration
-	public static class MockCacheConfiguration {
-
-		@Bean
-		public AmazonElastiCache amazonElastiCache() {
-			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
-			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCache"))).
-					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
-							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
-							withEngine("memcached")));
-			return amazonElastiCache;
-		}
 	}
 
 	private static Collection<? extends Cache> getCachesFromInterceptor(CacheInterceptor cacheInterceptor, final String... cacheNames) {

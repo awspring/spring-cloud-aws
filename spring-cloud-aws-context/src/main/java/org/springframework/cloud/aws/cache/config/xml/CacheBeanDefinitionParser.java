@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.aws.cache.config.xml;
 
-import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -26,6 +24,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -48,7 +48,7 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 	private static final String CACHE_REF_ELEMENT_NAME = "cache-ref";
 	private static final String CACHE_ELEMENT_NAME = "cache";
 
-	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElasticMemcachedFactoryBean";
+	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean";
 	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.springframework.cloud.aws.cache.StaticMemcachedFactoryBean";
 	private static final String ELASTI_CACHE_CLIENT_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
 
