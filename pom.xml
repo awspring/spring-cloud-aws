@@ -185,6 +185,17 @@
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 				<version>1.0.0.BUILD-SNAPSHOT</version>
 			</dependency>
+			<dependency>
+				<groupId>javax.mail</groupId>
+				<artifactId>javax.mail-api</artifactId>
+				<version>${javax-mail.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.activation</groupId>
+						<artifactId>activation</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
