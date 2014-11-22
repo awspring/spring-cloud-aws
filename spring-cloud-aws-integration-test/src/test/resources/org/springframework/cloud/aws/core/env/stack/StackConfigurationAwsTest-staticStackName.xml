@@ -23,7 +23,7 @@
 	   					   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<aws-context:context-credentials>
-		<aws-context:simple-credentials access-key="${accessKey}" secret-key="${secretKey}" />
+		<aws-context:simple-credentials access-key="${cloud.aws.credentials.accessKey}" secret-key="${cloud.aws.credentials.secretKey}" />
 	</aws-context:context-credentials>
 
 	<aws-context:context-region region="EU_WEST_1" />

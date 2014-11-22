@@ -79,7 +79,7 @@
     <inspection_tool class="EmptyClass" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignorableAnnotations">
         <value>
-          <item value="org.springframework.test.annotation.IfProfileValue" />
+          <item value="org.springframework.context.annotation.Configuration" />
         </value>
       </option>
       <option name="ignoreClassWithParameterization" value="false" />
@@ -321,7 +321,9 @@
     <inspection_tool class="UtilityClassWithPublicConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UtilityClassWithoutPrivateConstructor" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignorableAnnotations">
-        <value />
+        <value>
+          <item value="org.springframework.context.annotation.Configuration" />
+        </value>
       </option>
       <option name="ignoreClassesWithOnlyMain" value="false" />
     </inspection_tool>

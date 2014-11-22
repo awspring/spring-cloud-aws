@@ -17,16 +17,15 @@
 package org.springframework.cloud.aws.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
+
+import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
  * @author Agim Emruli
+ * @author Alain Sahli
  */
 public class NotificationHandlerMethodArgumentResolverFactoryBean extends AbstractFactoryBean<HandlerMethodArgumentResolver> {
 
@@ -44,10 +43,6 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean extends Abstra
 
 	@Override
 	protected HandlerMethodArgumentResolver createInstance() throws Exception {
-		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
-		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(this.amazonSns));
-		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
-		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
-		return composite;
+		return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
 	}
 }

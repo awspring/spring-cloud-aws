@@ -17,13 +17,13 @@
 package org.springframework.cloud.aws.context.config.xml;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.core.io.ClassPathResource;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Agim Emruli
  */
-public class ContextInstanceDataPlaceholderResolverBeanDefinitionParserTest {
+public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 
 	@Test
 	public void parseInternal_singleElementDefined_beanDefinitionCreated() throws Exception {

@@ -16,18 +16,11 @@
 
 package org.springframework.cloud.aws.context.config;
 
-import com.amazonaws.SDKGlobalConfiguration;
-import com.sun.net.httpserver.HttpServer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.util.SocketUtils;
-
-import java.net.InetSocketAddress;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -36,11 +29,6 @@ import static org.mockito.Mockito.mock;
  * @author Agim Emruli
  */
 public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
-
-	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
-
-	@SuppressWarnings("StaticNonFinalField")
-	private static HttpServer httpServer;
 
 	@Test
 	public void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource() throws Exception {
@@ -68,29 +56,5 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 		processor.postProcessBeanFactory(staticApplicationContext);
 
 		//Assert
-	}
-
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
-		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
-		httpServer = HttpServer.create(address, -1);
-		httpServer.start();
-		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
-	}
-
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
-		if (httpServer != null) {
-			httpServer.stop(10);
-		}
-		resetMetadataEndpointUrlOverwrite();
-	}
-
-	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
-		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
-	}
-
-	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 }

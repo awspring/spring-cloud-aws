@@ -31,7 +31,7 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 /**
  * @author Agim Emruli
  */
-class ContextInstanceDataPlaceholderResolverBeanDefinitionParser extends AbstractBeanDefinitionParser {
+class ContextInstanceDataPropertySourceBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	private static final String POST_PROCESSOR_CLASS_NAME = "org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor";
 	private static final String POST_PROCESSOR_BEAN_NAME = "AmazonEc2InstanceDataPropertySourcePostProcessor";

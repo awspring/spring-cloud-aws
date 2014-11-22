@@ -51,16 +51,17 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 	}
 
 	@Override
-	public void send(SimpleMailMessage simpleMessage) throws MailException {
-		send(new SimpleMailMessage[]{simpleMessage});
+	public void send(SimpleMailMessage simpleMailMessage) throws MailException {
+		send(new SimpleMailMessage[]{simpleMailMessage});
 	}
 
+	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
-	public void send(SimpleMailMessage[] simpleMessages) throws MailException {
+	public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
 
 		Map<Object, Exception> failedMessages = new HashMap<>();
 
-		for (SimpleMailMessage simpleMessage : simpleMessages) {
+		for (SimpleMailMessage simpleMessage : simpleMailMessages) {
 			try {
 				SendEmailResult sendEmailResult = getEmailService().sendEmail(prepareMessage(simpleMessage));
 				if (LOGGER.isDebugEnabled()) {

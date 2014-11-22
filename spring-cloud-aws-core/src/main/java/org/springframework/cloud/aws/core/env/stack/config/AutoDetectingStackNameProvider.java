@@ -19,14 +19,17 @@ package org.springframework.cloud.aws.core.env.stack.config;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
-import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceIdProvider;
+import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
+import org.springframework.util.Assert;
 
 /**
  * Represents a stack name provider that automatically detects the current stack name based on the amazon elastic cloud
  * environment.
  *
  * @author Christian Stettler
+ * @author Agim Emruli
  */
 class AutoDetectingStackNameProvider implements StackNameProvider, InitializingBean {
 
@@ -38,10 +41,15 @@ class AutoDetectingStackNameProvider implements StackNameProvider, InitializingB
 	AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, InstanceIdProvider instanceIdProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.instanceIdProvider = instanceIdProvider;
+		afterPropertiesSet();
+	}
+
+	AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient) {
+		this(amazonCloudFormationClient, new AmazonEc2InstanceIdProvider());
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		this.stackName = autoDetectStackName(this.amazonCloudFormationClient, this.instanceIdProvider.getCurrentInstanceId());
 	}
 
@@ -51,6 +59,7 @@ class AutoDetectingStackNameProvider implements StackNameProvider, InitializingB
 	}
 
 	private static String autoDetectStackName(AmazonCloudFormation amazonCloudFormationClient, String instanceId) {
+		Assert.notNull(instanceId, "No valid instance id defined");
 		DescribeStackResourcesResult describeStackResourcesResult = amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId(instanceId));
 
 		if (describeStackResourcesResult.getStackResources().isEmpty()) {

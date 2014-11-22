@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.springframework.mail.MailParseException;
-import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -99,7 +98,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 
 		when(emailService.sendRawEmail(Matchers.isA(SendRawEmailRequest.class))).thenReturn(new SendRawEmailResult().withMessageId("123"));
-		mailSender.send(new MimeMessage[]{createMimeMessage(), createMimeMessage()});
+		mailSender.send(createMimeMessage(), createMimeMessage());
 		verify(emailService, times(2)).sendRawEmail(Matchers.isA(SendRawEmailRequest.class));
 	}
 
@@ -211,7 +210,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 				thenReturn(new SendRawEmailResult());
 
 		try {
-			mailSender.send(new MimeMessage[]{createMimeMessage(), failureMail, createMimeMessage()});
+			mailSender.send(createMimeMessage(), failureMail, createMimeMessage());
 			fail("Exception expected due to error while sending mail");
 		} catch (MailSendException e) {
 			assertEquals(1, e.getFailedMessages().size());
@@ -234,7 +233,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			//expected due to empty mail message
 			assertEquals(1, e.getFailedMessages().size());
 			//noinspection ThrowableResultOfMethodCallIgnored
-			assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailPreparationException);
+			assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailParseException);
 		}
 
 		MimeMessage failureMessage = null;
