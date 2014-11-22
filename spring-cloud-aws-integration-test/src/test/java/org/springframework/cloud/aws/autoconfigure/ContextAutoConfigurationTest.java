@@ -43,8 +43,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(classes = TestApplication.class)
 @IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack",
 		"cloud.aws.region.static=EU_WEST_1",
-		"cloud.aws.rds.dbInstanceIdentifier:RdsSingleMicroInstance",
-		"cloud.aws.rds.password:${rdsPassword}",
+		"cloud.aws.rds.RdsSingleMicroInstance.password:${rdsPassword}",
 		"spring.config.location=${els.config.dir}/access.properties"})
 public class ContextAutoConfigurationTest {
 

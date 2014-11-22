@@ -20,6 +20,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.bind.PropertySourceUtils;
 import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
@@ -28,9 +29,14 @@ import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourc
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Agim Emruli
@@ -39,30 +45,42 @@ import org.springframework.util.StringUtils;
 @ConditionalOnClass(AmazonRDSClient.class)
 public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar,EnvironmentAware {
 
-	private Environment environment;
+	private static final String PREFIX = "cloud.aws.rds";
+
+	private ConfigurableEnvironment environment;
 
 	@Override
-	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
-		BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(this.environment.getProperty("cloud.aws.rds.readReplicaSupport", Boolean.class,false));
+		String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
+				registerAmazonWebserviceClient(this, registry, AmazonRDSClient.class.getName(), null, null).getBeanName();
+		Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
+		for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
+			registerDataSource(registry, amazonRdsClientBeanName,dbInstanceEntry.getKey(),dbInstanceEntry.getValue().get("password"),
+					Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
+					dbInstanceEntry.getValue().get("username"));
+		}
+	}
+
+	private void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName,String dbInstanceIdentifier,
+									String password, boolean readReplica, String userName) {
+		BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
 
 		//Constructor (mandatory) args
-		String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, beanDefinitionRegistry, AmazonRDSClient.class.getName(), null, null).getBeanName();
+
 		datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
-		datasourceBuilder.addConstructorArgValue(this.environment.getRequiredProperty("cloud.aws.rds.dbInstanceIdentifier"));
-		datasourceBuilder.addConstructorArgValue(this.environment.getRequiredProperty("cloud.aws.rds.password"));
+		datasourceBuilder.addConstructorArgValue(dbInstanceIdentifier);
+		datasourceBuilder.addConstructorArgValue(password);
 
 		//optional args
-		if (StringUtils.hasText(this.environment.getProperty("cloud.aws.rds.username"))) {
-			datasourceBuilder.addPropertyValue("username", this.environment.getProperty("cloud.aws.rds.username"));
-		}
+		datasourceBuilder.addPropertyValue("username", userName);
 
 		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry);
 		datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
 
 		datasourceBuilder.addPropertyValue("dataSourceFactory", BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class).getBeanDefinition());
 
-		beanDefinitionRegistry.registerBeanDefinition(this.environment.getRequiredProperty("cloud.aws.rds.dbInstanceIdentifier"), datasourceBuilder.getBeanDefinition());
+		beanDefinitionRegistry.registerBeanDefinition(dbInstanceIdentifier, datasourceBuilder.getBeanDefinition());
 	}
 
 	private BeanDefinitionBuilder getBeanDefinitionBuilderForDataSource(boolean readReplicaEnabled) {
@@ -77,6 +95,40 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		this.environment = environment;
+		Assert.isInstanceOf(ConfigurableEnvironment.class,environment,"Amazon RDS auto configuration requires a configurable environment");
+		this.environment = (ConfigurableEnvironment) environment;
+	}
+
+	private Map<String,Map<String,String>> getDbInstanceConfigurations() {
+		Map<String, Object> subProperties = PropertySourceUtils.getSubProperties(this.environment.getPropertySources(), PREFIX);
+		Map<String, Map<String,String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
+		for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
+			String instanceName = extractConfigurationSubPropertyGroup(subProperty.getKey());
+			if(!dbConfigurationMap.containsKey(instanceName)) {
+				dbConfigurationMap.put(instanceName, new HashMap<String, String>());
+			};
+
+			String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
+			if (StringUtils.hasText(subPropertyName)) {
+				dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
+			}
+		}
+		return dbConfigurationMap;
+	}
+
+	private static String extractConfigurationSubPropertyGroup(String propertyName) {
+		if (propertyName.lastIndexOf(".") > 1) {
+			return propertyName.substring(1, propertyName.lastIndexOf("."));
+		}else {
+			return propertyName.substring(1);
+		}
+
+	}
+
+	private static String extractConfigurationSubPropertyName(String propertyName) {
+		if (!propertyName.contains(".")) {
+			return propertyName;
+		}
+		return propertyName.substring(propertyName.lastIndexOf(".") + 1);
 	}
 }

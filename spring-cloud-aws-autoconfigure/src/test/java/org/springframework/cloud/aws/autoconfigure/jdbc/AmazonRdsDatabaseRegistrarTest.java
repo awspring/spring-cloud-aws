@@ -53,7 +53,7 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.dbInstanceIdentifier:test","cloud.aws.rds.password:secret");
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret");
 
 		//Act
 		this.context.refresh();
@@ -61,8 +61,24 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
 		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+	}
 
+	@Test
+	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaAndMultipleDatabases_configuresBothDatabases() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ApplicationConfigurationWithMultipleDatabases.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret","cloud.aws.rds.anotherOne.password:verySecret");
 
+		//Act
+		this.context.refresh();
+
+		//Assert
+		assertNotNull(this.context.getBean("test",DataSource.class));
+		assertNotNull(this.context.getBean("&test",AmazonRdsDataSourceFactoryBean.class));
+
+		assertNotNull(this.context.getBean("anotherOne",DataSource.class));
+		assertNotNull(this.context.getBean("&anotherOne",AmazonRdsDataSourceFactoryBean.class));
 	}
 
 	@Test
@@ -70,8 +86,8 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithReadReplica.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.dbInstanceIdentifier:test","cloud.aws.rds.password:secret",
-				"cloud.aws.rds.readReplicaSupport:true");
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
+				"cloud.aws.rds.test.readReplicaSupport:true");
 
 		//Act
 		this.context.refresh();
@@ -99,6 +115,45 @@ public class AmazonRdsDatabaseRegistrarTest {
 															withAddress("localhost").
 															withPort(3306)
 											).withReadReplicaDBInstanceIdentifiers("read1")
+							)
+			);
+			return client;
+		}
+
+	}
+
+	@Import(AmazonRdsDatabaseRegistrar.class)
+	public static class ApplicationConfigurationWithMultipleDatabases {
+
+		@Bean
+		public AmazonRDS amazonRDS() {
+			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("test").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											)
+							)
+			);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("anotherOne"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("anotherOne").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											)
 							)
 			);
 			return client;
