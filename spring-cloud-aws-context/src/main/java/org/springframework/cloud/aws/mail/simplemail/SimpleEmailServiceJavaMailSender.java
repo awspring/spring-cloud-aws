@@ -57,9 +57,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	}
 
 	@Override
-	public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
+	public MimeMessage createMimeMessage(InputStream inputStream) throws MailException {
 		try {
-			return new MimeMessage(Session.getInstance(new Properties()), contentStream);
+			return new MimeMessage(Session.getInstance(new Properties()), inputStream);
 		} catch (MessagingException e) {
 			throw new MailParseException("Could not parse raw MIME content", e);
 		}
@@ -71,8 +71,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	}
 
 
+	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
-	public void send(MimeMessage[] mimeMessages) throws MailException {
+	public void send(MimeMessage... mimeMessages) throws MailException {
 		Map<Object, Exception> failedMessages = new HashMap<>();
 
 		for (MimeMessage mimeMessage : mimeMessages) {
@@ -99,8 +100,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		send(new MimeMessagePreparator[]{mimeMessagePreparator});
 	}
 
+	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
-	public void send(MimeMessagePreparator[] mimeMessagePreparators) throws MailException {
+	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
 		MimeMessage mimeMessage = createMimeMessage();
 		for (MimeMessagePreparator mimeMessagePreparator : mimeMessagePreparators) {
 			try {
