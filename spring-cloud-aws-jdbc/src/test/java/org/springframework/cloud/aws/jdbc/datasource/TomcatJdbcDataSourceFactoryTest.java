@@ -154,7 +154,6 @@ public class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setMaxAge(100);
 		tomcatJdbcDataSourceFactory.setUseLock(true);
 		tomcatJdbcDataSourceFactory.setSuspectTimeout(200);
-		tomcatJdbcDataSourceFactory.setDataSource(new DataSource());
 		tomcatJdbcDataSourceFactory.setDataSourceJNDI("foo");
 		tomcatJdbcDataSourceFactory.setAlternateUsernameAllowed(true);
 		tomcatJdbcDataSourceFactory.setCommitOnReturn(true);
