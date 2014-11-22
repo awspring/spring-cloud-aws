@@ -25,7 +25,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.boot.test.EnvironmentTestUtils;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -66,7 +66,7 @@ public class ContextCredentialsProviderAutoConfigurationTest {
 				"cloud.aws.credentials.accessKey:foo",
 				"cloud.aws.credentials.secretKey:bar");
 		this.context.refresh();
-		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProviderChain.class);
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProviderChain.class);
 		assertNotNull(awsCredentialsProvider);
 
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
@@ -86,7 +86,7 @@ public class ContextCredentialsProviderAutoConfigurationTest {
 		EnvironmentTestUtils.addEnvironment(this.context,
 				"cloud.aws.credentials.instanceProfile");
 		this.context.refresh();
-		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
 		assertNotNull(awsCredentialsProvider);
 
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =

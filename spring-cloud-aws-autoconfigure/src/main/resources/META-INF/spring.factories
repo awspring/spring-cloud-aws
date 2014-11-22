@@ -5,4 +5,5 @@ org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoCon
 org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.mail.MailSenderAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration,\
-org.springframework.cloud.aws.autoconfigure.messaging.MessagingAutoConfiguration
+org.springframework.cloud.aws.autoconfigure.messaging.MessagingAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseRegistrar

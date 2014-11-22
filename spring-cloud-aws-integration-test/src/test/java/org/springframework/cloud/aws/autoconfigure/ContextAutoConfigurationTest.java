@@ -31,6 +31,8 @@ import org.springframework.cloud.aws.support.TestApplication;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.sql.DataSource;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -41,7 +43,8 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(classes = TestApplication.class)
 @IntegrationTest({"cloud.aws.stack.name=IntegrationTestStack",
 		"cloud.aws.region.static=EU_WEST_1",
-		"cloud.aws.cache.name=CacheCluster",
+		"cloud.aws.rds.dbInstanceIdentifier:RdsSingleMicroInstance",
+		"cloud.aws.rds.password:${rdsPassword}",
 		"spring.config.location=${els.config.dir}/access.properties"})
 public class ContextAutoConfigurationTest {
 
@@ -62,6 +65,9 @@ public class ContextAutoConfigurationTest {
 
 	@Autowired
 	private SimpleMessageListenerContainer simpleMessageListenerContainer;
+
+	@Autowired
+	private DataSource dataSource;
 
 	@Test
 	public void credentialsProvider_providerChainConfiguredBecauseCredentialsGiven_returnsAwsCredentialsProvider() throws Exception {
@@ -99,5 +105,10 @@ public class ContextAutoConfigurationTest {
 	public void simpleMessageListenerContainer_withoutExistingContainerBean_configuredAndRunning() throws Exception {
 		assertNotNull(this.simpleMessageListenerContainer);
 		assertTrue(this.simpleMessageListenerContainer.isRunning());
+	}
+
+	@Test
+	public void dataSource_withExplicitDataSourceConfiguration_configuredAndAvailable() throws Exception {
+		assertNotNull(this.dataSource);
 	}
 }

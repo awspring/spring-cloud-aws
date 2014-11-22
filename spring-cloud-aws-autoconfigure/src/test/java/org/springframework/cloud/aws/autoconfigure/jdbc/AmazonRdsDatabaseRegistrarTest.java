@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.annotation;
+package org.springframework.cloud.aws.autoconfigure.jdbc;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -25,17 +25,19 @@ import com.amazonaws.services.rds.model.Endpoint;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import javax.sql.DataSource;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-public class AmazonRdsInstanceConfigurationTest {
+public class AmazonRdsDatabaseRegistrarTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -49,9 +51,12 @@ public class AmazonRdsInstanceConfigurationTest {
 	@Test
 	public void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica() throws Exception {
 		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.dbInstanceIdentifier:test","cloud.aws.rds.password:secret");
 
 		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplica.class);
+		this.context.refresh();
 
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
@@ -63,16 +68,20 @@ public class AmazonRdsInstanceConfigurationTest {
 	@Test
 	public void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled() throws Exception {
 		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ApplicationConfigurationWithReadReplica.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.dbInstanceIdentifier:test","cloud.aws.rds.password:secret",
+				"cloud.aws.rds.readReplicaSupport:true");
 
 		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithReadReplica.class);
+		this.context.refresh();
 
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
 		assertNotNull(this.context.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
 	}
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret")
+	@Import(AmazonRdsDatabaseRegistrar.class)
 	public static class ApplicationConfigurationWithoutReadReplica {
 
 		@Bean
@@ -97,7 +106,7 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	}
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret",readReplicaSupport = true)
+	@Import(AmazonRdsDatabaseRegistrar.class)
 	public static class ApplicationConfigurationWithReadReplica {
 
 		@Bean

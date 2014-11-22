@@ -50,16 +50,16 @@ public class AmazonRdsInstanceConfiguration implements ImportAware {
 	private RegionProvider regionProvider;
 
 	@Override
-	public void setImportMetadata(AnnotationMetadata importMetadata) {
+	public void setImportMetadata(AnnotationMetadata annotationMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
+				annotationMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
-				"@EnableRdsInstance is not present on importing class " + importMetadata.getClassName());
+				"@EnableRdsInstance is not present on importing class " + annotationMetadata.getClassName());
 	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonRDS.class)
-	public AmazonRDS amazonRds() {
+	public AmazonRDS amazonRDS() {
 		AmazonRDS amazonRds;
 		if (this.credentialsProvider != null) {
 			amazonRds = new AmazonRDSClient(this.credentialsProvider);

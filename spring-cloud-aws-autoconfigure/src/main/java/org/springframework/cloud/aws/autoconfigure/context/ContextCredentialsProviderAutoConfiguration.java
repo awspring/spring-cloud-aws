@@ -22,7 +22,7 @@ import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
@@ -42,8 +42,7 @@ public class ContextCredentialsProviderAutoConfiguration {
 	@Autowired
 	private Environment environment;
 
-	@Bean(name = CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)
-	@ConditionalOnMissingBean(name = CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)
+	@Bean(name = {AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME})
 	public FactoryBean<AWSCredentialsProvider> defaultCredentialsProvider() throws Exception {
 		List<AWSCredentialsProvider> awsCredentialsProviders = new ArrayList<>();
 		if (this.environment.containsProperty("cloud.aws.credentials.accessKey")) {

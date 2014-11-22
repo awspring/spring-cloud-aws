@@ -17,13 +17,11 @@
 package org.springframework.cloud.aws.support;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
  * @author Agim Emruli
  */
-//TODO: Disable data source for now
-@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
+@EnableAutoConfiguration
 public class TestApplication {
 
 }
