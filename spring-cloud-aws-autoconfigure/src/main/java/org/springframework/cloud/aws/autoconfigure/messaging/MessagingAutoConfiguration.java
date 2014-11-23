@@ -29,14 +29,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MessagingAutoConfiguration {
 
-	@ConditionalOnMissingBean(name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+	@ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 	@EnableSqs
 	@Configuration
 	public static class SqsAutoConfiguration {
 
 	}
 
-	@ConditionalOnClass(name = "org.springframework.web.method.support.HandlerMethodArgumentResolver")
+	@ConditionalOnClass(name = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
 	@EnableSns
 	@Configuration
 	public static class SnsAutoConfiguration {
