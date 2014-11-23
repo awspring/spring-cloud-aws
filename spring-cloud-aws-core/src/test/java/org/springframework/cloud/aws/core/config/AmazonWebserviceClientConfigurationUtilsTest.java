@@ -118,6 +118,16 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		//Assert
 	}
 
+	@Test
+	public void generateBeanName_withInterfaceAndCapitalLetterInSequence_producesDeCapitalizedBeanName() throws Exception {
+		//Arrange
+
+		//Act
+		String beanName = AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.rds.AmazonRDS");
+
+		//Assert
+		assertEquals("amazonRDS",beanName);
+	}
 
 	private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {
 
