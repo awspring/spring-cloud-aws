@@ -81,7 +81,7 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 
 	@Bean
 	public CachingConfigurer cachingConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver) {
-		if (this.annotationAttributes.getStringArray("clusters").length > 0) {
+		if (this.annotationAttributes != null && this.annotationAttributes.getStringArray("clusters").length > 0) {
 			return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
 					Arrays.asList(this.annotationAttributes.getStringArray("clusters")));
 		} else {
