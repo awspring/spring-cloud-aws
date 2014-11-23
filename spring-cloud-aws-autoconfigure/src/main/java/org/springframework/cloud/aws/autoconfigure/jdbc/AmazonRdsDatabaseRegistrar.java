@@ -43,7 +43,7 @@ import java.util.Map;
  */
 @Configuration
 @ConditionalOnClass(AmazonRDSClient.class)
-public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar,EnvironmentAware {
+public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
 	private static final String PREFIX = "cloud.aws.rds";
 
@@ -56,13 +56,13 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 				registerAmazonWebserviceClient(this, registry, AmazonRDSClient.class.getName(), null, null).getBeanName();
 		Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
 		for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
-			registerDataSource(registry, amazonRdsClientBeanName,dbInstanceEntry.getKey(),dbInstanceEntry.getValue().get("password"),
+			registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
 					Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
 					dbInstanceEntry.getValue().get("username"));
 		}
 	}
 
-	private void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName,String dbInstanceIdentifier,
+	private void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName, String dbInstanceIdentifier,
 									String password, boolean readReplica, String userName) {
 		BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
 
@@ -95,18 +95,19 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		Assert.isInstanceOf(ConfigurableEnvironment.class,environment,"Amazon RDS auto configuration requires a configurable environment");
+		Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "Amazon RDS auto configuration requires a configurable environment");
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
-	private Map<String,Map<String,String>> getDbInstanceConfigurations() {
+	private Map<String, Map<String, String>> getDbInstanceConfigurations() {
 		Map<String, Object> subProperties = PropertySourceUtils.getSubProperties(this.environment.getPropertySources(), PREFIX);
-		Map<String, Map<String,String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
+		Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
 		for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
 			String instanceName = extractConfigurationSubPropertyGroup(subProperty.getKey());
-			if(!dbConfigurationMap.containsKey(instanceName)) {
+			if (!dbConfigurationMap.containsKey(instanceName)) {
 				dbConfigurationMap.put(instanceName, new HashMap<String, String>());
-			};
+			}
+			;
 
 			String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
 			if (StringUtils.hasText(subPropertyName)) {
@@ -119,7 +120,7 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 	private static String extractConfigurationSubPropertyGroup(String propertyName) {
 		if (propertyName.lastIndexOf(".") > 1) {
 			return propertyName.substring(1, propertyName.lastIndexOf("."));
-		}else {
+		} else {
 			return propertyName.substring(1);
 		}
 
