@@ -230,6 +230,76 @@ While it is theoretically possible to use multiple regions per application, we s
 are hosted only inside one region and split the application if it is hosted in different regions at the same time.
 ====
 
+==== Spring Boot auto-configuration
+Following the Spring Cloud umbrella project, Spring Cloud AWS provides also dedicated Spring Boot support. Spring Cloud
+AWS can be configured using Spring Boot properties and will also automatically guess any sensible configuration based on
+the general setup.
+
+===== Maven dependencies
+Spring Cloud AWS provides a dedicated module to enable the Spring Boot support. That module must be added to the general
+maven dependency inside the application. The typical configuration will look like this
+
+[source,xml,indent=0]
+----
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-aws-autoconfigure</artifactId>
+    <version>{spring-cloud-version}</version>
+  </dependency>>
+</dependencies>
+----
+
+Additional dependencies to enable particular features like messaging and jdbc have to been added. Spring Cloud AWS will
+only configure classes that are available in the Spring Boot applications classpath.
+
+===== Configuring credentials
+Spring Boot provides a standard way to define properties with property file or yaml configuration files. Spring Cloud
+AWS provides support to configure the credential information with the Spring Boot application configuration files.
+Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.credentials.accessKey
+|AKIAIOSFODNN7EXAMPLE
+|The access key to be used with a static provider
+
+|cloud.aws.credentials.secretKey
+|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+|The secret key to be used with a static provider
+
+|cloud.aws.credentials.instanceProfile
+|
+|Configures an instance profile credentials provider with no further configuration
+|===
+
+===== Configuring region
+Like for the credentials, the Spring Cloud AWS module supports also the configuration of the region inside the Spring
+Boot configuration files. The region can be automatically detected or explicitly configured (e.g. in case of local tests
+against the AWS cloud).
+
+The properties to configure the region are shown below
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.region.auto
+|
+|Enables automatic region detection based on the EC2 meta data service
+
+|cloud.aws.region.static
+|EU_WEST_1
+|Configures a static region for the application. Possible regions are (currently) US_EAST_1, US_WEST_1, US_WEST_2,
+EU_WEST_1, EU_CENTRAL_1, AP_SOUTHEAST_1, AP_SOUTHEAST_2, AP_NORTHEAST_1, SA_EAST_1, CN_NORTH_1
+|===
+
 == Cloud environment
 Applications often need environment specific configuration information, especially in changing environments like in the
 Amazon cloud environment. Spring Cloud AWS provides a support to retrieve and use environment specific data inside the
@@ -241,7 +311,7 @@ EC2 environment. The metadata can be queried using a special HTTP address that p
 AWS enables application to access this metadata directly in expression or property placeholder without the need to call
 an external HTTP service.
 
-==== Enabling instance metadata support
+==== Enabling instance metadata support with XML
 The instance metadata retrieval support is enabled through an XML element like the standard property placeholder in Spring.
 The following code sample demonstrates the activation of the instance metadata support inside an application context.
 
@@ -257,6 +327,23 @@ The following code sample demonstrates the activation of the instance metadata s
 Instance metadata can be retrieved without an authorized service call, therefore the configuration above does not require
 any region or security specific configuration.
 ====
+
+==== Enabling instance metadata support with Java
+The instance meta-data can also be configured within a Java configuration class without the need for an XML configuration.
+The next example shows a typical Spring `@Configuration` class that enables the instance metadata with the
+org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
+
+[source,java,indent=0]
+----
+  @Configuration
+  @EnableInstanceData
+  public static class ApplicationConfiguration {
+  }
+----
+
+==== Enabling instance metadata support in Spring Boot
+The instance meta-data is automatically available in a Spring Boot application as a property source if the application
+is running on a EC2 instance.
 
 ==== Using instance metadata
 Instance metadata can be used in XML, Java placeholders and expressions. The example below demonstrates the usage of
@@ -559,6 +646,47 @@ respective stack configuration information at runtime.
     ...
 </beans>
 ----
+
+=== CloudFormation configuration with Java config classes
+Spring Cloud AWS also supports the configuration of the CloudFormation support within Java classes avoiding the use of
+ XML inside the application configuration. Spring Cloud AWS provides the annotation
+ `og.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration` that allows the automatic and manual
+ stack configuration. The next example shows a configuration class that configures the CloudFormation support with an
+ explicit stack name (here `anualStackName`).
+
+[source,java,indent=0]
+----
+@Configuration
+@EnableStackConfiguration(stackName = "manualStackName")
+class ApplicationConfiguration {
+}
+----
+
+[TIP]
+====
+Do not define the `tackName` attribute if an automatic stack name should be enabled.
+====
+
+=== CloudFormation configuration in Spring Boot
+Spring Cloud AWS support also the configuration of the CloudFormation support within the Spring Boot configuration. The
+manual and automatic stack configuration can be defined with properties that are described in the table below.
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.stack.name
+|myStackName
+|The name of the manually configured stack name that will be used to retrieve the resources.
+
+|cloud.aws.stack.auto
+|
+|Enables the automatic stack name detection for the application.
+
+|===
+
 
 === Manual name resolution
 Spring Cloud AWS uses the CloudFormation stack to resolve all resources internally using the logical names. In some circumstances
@@ -1023,7 +1151,7 @@ caching abstraction providing a cache manager based on the memcached protocol.
 Support for the Redis cache protocol is planned in a future release.
 ====
 
-=== Configuring caching
+=== Configuring caching with XML
 The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
 is already imported in the project. The cache integration provides an own namespace to configure cache clusters that are
 hosted in the Amazon ElastiCache service. The next example contains a configuration for the cache cluster and the Spring
@@ -1054,23 +1182,7 @@ configuration to enable declarative, annotation-based caching.
 The configuration above configures a `cache-manager` with one cache with the name `CacheCluster` that represents an
 http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ManagingCacheClusters.html[ElasticCache cluster].
 
-=== Using caching
-Based on the configuration of the cache, developers can annotate their methods to use the caching for method return values.
-The next example contains a caching declaration for a service for which the return values should be cached
-
-[source,java,indent=0]
-----
-@Service
-public class ExpensiveService {
-
-    @Cacheable("CacheCluster")
-    public String calculateExpensiveValue(String key){
-		...
-    }
-}
-----
-
-=== Mixing caches
+==== Mixing caches
 Applications may have the need for multiple caches that are maintained by one central cache cluster. The Spring Cloud
 AWS caching support allows to define multiple caches inside one cache-manager and also to use externally defined caches
 inside the cache manager.
@@ -1090,7 +1202,7 @@ a `cache-cluster` configuration.
 </beans>
 ----
 
-=== Defining expiration
+==== Defining expiration
 The Spring cache demarcation does not support expiry time configuration and leaves it up to the cache implementation
 to support an expiry time. The Spring Cloud AWS cache configuration supports the expiry time setting per cache. The
 expiry time will be passed to the memcached service.
@@ -1106,6 +1218,42 @@ No configured values implies that there is an infinite expiration time.
 		<aws-cache:cache-cluster expiration="10000" name="CacheCluster" />
 	</aws-cache:cache-manager>
 </beans>
+----
+
+=== Configuring caching using Java configuration
+Spring Cloud AWS also support the cache configuration with Java configuration classes. On any `Configuration` class,
+the caching can be configured using the `org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache`
+annotation provided by Spring Cloud AWS. The next example shows a configuration of two cache clusters using the `lusters`
+attribute.
+
+[source,java,indent=0]
+----
+
+@EnableElastiCache(clusters = {"firstCache", "secondCache"})
+public class ApplicationConfiguration {
+}
+----
+
+IMPORTANT: If you leave the `clusters` attribute empty, then all the caches inside your CloudFormation stack (if available)
+will be configured automatically.
+
+=== Configuring caching in Spring Boot
+The caches will automatically be configured in Spring Boot without any explicit configuration property.
+
+=== Using caching
+Based on the configuration of the cache, developers can annotate their methods to use the caching for method return values.
+The next example contains a caching declaration for a service for which the return values should be cached
+
+[source,java,indent=0]
+----
+@Service
+public class ExpensiveService {
+
+    @Cacheable("CacheCluster")
+    public String calculateExpensiveValue(String key){
+		...
+    }
+}
 ----
 
 === Memcached client implementation
@@ -1259,6 +1407,58 @@ with custom pool properties.
 ----
 
 A full list of all configuration attributes with their value is available http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[here].
+
+=== Configuring data source with Java config
+Spring Cloud AWS also supports the configuration of the data source within an `@Configuration` class. The
+`rg.springframework.cloud.aws.jdbc.config.annotation.EnableRdsInstance` annotation can be used to configure one data
+source. Multiple ones can be used to configure more then one data source. Each annotation will generate exactly one
+data source bean.
+
+The class below shows a data source configuration inside a configuration class
+
+[source,java,indent=0]
+----
+@Configuration
+@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret",readReplicaSupport = true)
+public class ApplicationConfiguration {
+}
+----
+
+TIP: The configuration attributes are the same like in the XML element. The required attributes are also the same like
+for the XML configuration (the `dbInstanceIdentifier` and `password` attribute)
+
+=== Configuring data source in Spring Boot
+The data sources can also be configured using the Spring Boot configuration files. Because of the dynamic number of
+data sources inside one application, the Spring Boot properties must be configured for each data source.
+
+A data source configuration consists of the general property name `cloud.aws.rds.<instanceName>`  for the data source identifier
+following the sub properties for the particular data source where `instanceName` is the name of the concrete instance. The table below
+outlines all properties for a data source using `test` as the instance identifier.
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.rds.test
+|
+|The configuration property the configures a data source with the name test
+
+|cloud.aws.rds.test.password
+|verySecret
+|The password for the db instance test
+
+|cloud.aws.rds.test.username
+|admin
+|The username for the db instance test (optional)
+
+|cloud.aws.rds.test.readReplicaSupport
+|true
+|If read-replicas should be used for the data source (see below)
+
+|===
+
 
 === Read-replica configuration
 Amazon RDS allows to use http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html[MySQL read-replica]

@@ -2,7 +2,7 @@
 
 = Spring Cloud for Amazon Web Services
 
-Spring Cloud AWS, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
+Spring Cloud for Amazon Web Services, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
 
 = Checking out and building
 To check out the project and build it from source, do the following:
@@ -145,3 +145,43 @@ http://de.linkedin.com/in/agimemruli[LinkedIn])
 * Alain Sahli (http://twitter.com/sahlialain[Twitter] /
 http://ch.linkedin.com/in/asahli[LinkedIn])
 * Christian Stettler (http://twitter.com/chrisstettler[Twitter])
+
+== Contributing
+
+Spring Cloud is released under the non-restrictive Apache 2.0 license. If you would like
+to contribute something, or simply want to hack on the code this document should help
+you get started.
+
+=== Sign the Contributor License Agreement
+Before we accept a non-trivial patch or pull request we will need you to sign the
+https://support.springsource.com/spring_committer_signup[contributor's agreement].
+Signing the contributor's agreement does not grant anyone commit rights to the main
+repository, but it does mean that we can accept your contributions, and you will get an
+author credit if we do.  Active contributors might be asked to join the core team, and
+given the ability to merge pull requests.
+
+=== Code Conventions and Housekeeping
+None of these is essential for a pull request, but they will all help.  They can also be
+added after the original pull request but before a merge.
+
+* Use the Spring Framework code format conventions. If you use Eclipse
+  you can import formatter settings using the
+  `eclipse-code-formatter.xml` file from the
+  https://github.com/spring-cloud/build/tree/master/eclipse-coding-conventions.xml[Spring
+  Cloud Build] project. If using IntelliJ, you can use the
+  http://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
+  Plugin] to import the same file.
+* Make sure all new `.java` files to have a simple Javadoc class comment with at least an
+  `@author` tag identifying you, and preferably at least a paragraph on what the class is
+  for.
+* Add the ASF license header comment to all new `.java` files (copy from existing files
+  in the project)
+* Add yourself as an `@author` to the .java files that you modify substantially (more
+  than cosmetic changes).
+* Add some Javadocs and, if you change the namespace, some XSD doc elements.
+* A few unit tests would help a lot as well -- someone has to do it.
+* If no-one else is using your branch, please rebase it against the current master (or
+  other target branch in the main project).
+* When writing a commit message please follow http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
+  if you are fixing an existing issue please add `Fixes gh-XXXX` at the end of the commit
+  message (where XXXX is the issue number).
