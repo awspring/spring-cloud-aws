@@ -107,7 +107,6 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 			if (!dbConfigurationMap.containsKey(instanceName)) {
 				dbConfigurationMap.put(instanceName, new HashMap<String, String>());
 			}
-			;
 
 			String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
 			if (StringUtils.hasText(subPropertyName)) {
