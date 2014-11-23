@@ -171,7 +171,7 @@ public class DelegatingSqsConfigurationTest {
 		}
 
 		@Bean
-		public AmazonSQS amazonSqs() {
+		public AmazonSQS amazonSQS() {
 			return CUSTOM_SQS_CLIENT;
 		}
 
@@ -225,7 +225,7 @@ public class DelegatingSqsConfigurationTest {
 
 		@Bean
 		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory(amazonSqs());
+			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory(amazonSQS());
 			factory.setAutoStartup(AUTO_STARTUP);
 			factory.setMaxNumberOfMessages(MAX_NUMBER_OF_MESSAGES);
 			factory.setMessageHandler(MESSAGE_HANDLER);
@@ -238,7 +238,7 @@ public class DelegatingSqsConfigurationTest {
 		}
 
 		@Bean
-		public AmazonSQS amazonSqs() {
+		public AmazonSQS amazonSQS() {
 			return AMAZON_SQS;
 		}
 

@@ -67,7 +67,7 @@ public class SqsConfigurationSupport {
 	@Lazy
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonSQS.class)
-	public AmazonSQS amazonSqs() {
+	public AmazonSQS amazonSQS() {
 		AmazonSQSAsyncClient amazonSQSAsyncClient;
 		if (this.awsCredentialsProvider != null) {
 			amazonSQSAsyncClient = new AmazonSQSAsyncClient(this.awsCredentialsProvider);

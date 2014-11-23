@@ -128,7 +128,7 @@ public class SnsConfigurationTest {
 		public static final AmazonSNS AMAZON_SNS = mock(AmazonSNS.class);
 
 		@Bean
-		public AmazonSNS amazonSns() {
+		public AmazonSNS amazonSNS() {
 			return AMAZON_SNS;
 		}
 

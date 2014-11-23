@@ -42,7 +42,7 @@ public class SnsConfiguration extends WebMvcConfigurerAdapter {
 
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
-	public AmazonSNS amazonSns() {
+	public AmazonSNS amazonSNS() {
 		if (this.awsCredentialsProvider != null) {
 			return new AmazonSNSClient(this.awsCredentialsProvider);
 		} else {
@@ -52,6 +52,6 @@ public class SnsConfiguration extends WebMvcConfigurerAdapter {
 
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-		argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns()));
+		argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSNS()));
 	}
 }
