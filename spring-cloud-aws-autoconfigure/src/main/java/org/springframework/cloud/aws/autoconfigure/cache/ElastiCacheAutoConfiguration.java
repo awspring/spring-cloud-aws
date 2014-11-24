@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.cache;
 
+import net.spy.memcached.MemcachedClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderAutoConfiguration;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
 import org.springframework.context.annotation.Configuration;
@@ -27,5 +29,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(ContextCredentialsProviderAutoConfiguration.class)
 @EnableElastiCache
+@ConditionalOnClass(value = MemcachedClient.class)
 public class ElastiCacheAutoConfiguration {
 }
