@@ -16,12 +16,11 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
-	   xmlns:cache="http://www.springframework.org/schema/cache"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   	http://www.springframework.org/schema/cloud/aws/cache http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   	http://www.springframework.org/schema/cloud/aws/cache http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
 
 	<import resource="classpath:Integration-test-context.xml" />
 
@@ -32,5 +31,5 @@
 
 	<cache:annotation-driven />
 
-	<context:component-scan base-package="org.springframework.cloud.aws.cache" />
+  <bean class="org.springframework.cloud.aws.cache.CachingService" />
 </beans>

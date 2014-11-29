@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -26,15 +26,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Agim Emruli
  */
 @Service
-@CacheConfig(cacheNames = "CacheCluster")
 public class CachingService {
 
 	private final AtomicInteger invocationCount = new AtomicInteger(0);
 
-	@Cacheable
+	@Cacheable("CacheCluster")
 	public String expensiveMethod(String key) {
 		this.invocationCount.incrementAndGet();
 		return key.toUpperCase();
+	}
+
+	@CacheEvict("CacheCluster")
+	public void deleteCacheKey(String key) {
+		// do nothing, we just want to delete the entry
 	}
 
 	public AtomicInteger getInvocationCount() {
