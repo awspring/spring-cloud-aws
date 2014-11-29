@@ -18,13 +18,11 @@
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
-	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:tx="http://www.springframework.org/schema/tx"
 	   xmlns:aop="http://www.springframework.org/schema/aop"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	   http://www.springframework.org/schema/cloud/aws/jdbc http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd
-	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 	   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 	   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
 
@@ -45,7 +43,7 @@
 		<property name="backOffPeriod" value="12" />
 	</bean>
 
-	<context:component-scan base-package="org.springframework.cloud.aws.jdbc" />
+	<bean class="org.springframework.cloud.aws.jdbc.SimpleDatabaseService" />
 
 	<tx:annotation-driven />
 

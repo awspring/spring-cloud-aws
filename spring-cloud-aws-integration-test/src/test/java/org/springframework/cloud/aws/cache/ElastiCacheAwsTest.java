@@ -16,24 +16,22 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.springframework.cloud.aws.support.profile.AmazonWebserviceProfileValueSource;
-import org.springframework.cloud.aws.support.profile.IfAmazonWebserviceEnvironment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cloud.aws.support.profile.AmazonWebserviceProfileValueSource;
+import org.springframework.cloud.aws.support.profile.IfAmazonWebserviceEnvironment;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
 @ProfileValueSourceConfiguration(AmazonWebserviceProfileValueSource.class)
-public class ElastiCacheAwsTest {
+public abstract class ElastiCacheAwsTest {
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired

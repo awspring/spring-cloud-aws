@@ -26,7 +26,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.mail.internet.MimeMessage;
@@ -42,9 +41,8 @@ import javax.mail.internet.MimeMessage;
  *
  * @author Agim Emruli
  */
-@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MailSenderAwsTest {
+public abstract class MailSenderAwsTest {
 
 	@Autowired
 	private MailSender mailSender;
