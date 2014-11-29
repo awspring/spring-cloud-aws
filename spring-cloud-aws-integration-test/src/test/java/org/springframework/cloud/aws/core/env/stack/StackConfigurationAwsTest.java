@@ -16,132 +16,85 @@
 
 package org.springframework.cloud.aws.core.env.stack;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.support.TestStackInstanceIdService;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.support.TestStackEnvironment;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("StackConfigurationAwsTest-context.xml")
-public class StackConfigurationAwsTest {
-
-	private final List<ClassPathXmlApplicationContext> loadedApplicationContexts = new ArrayList<>();
+public abstract class StackConfigurationAwsTest {
 
 	@Autowired
-	private TestStackInstanceIdService testStackInstanceIdService;
+	private ListableStackResourceFactory stackResourceFactory;
 
-	@Before
-	public void enableInstanceIdMetadataService() {
-		this.testStackInstanceIdService.enable();
-	}
+	@Autowired
+	private ResourceIdResolver resourceIdResolver;
 
-	@After
-	public void disableInstanceIdMetadataService() {
-		this.testStackInstanceIdService.disable();
-	}
+	@Test
+	public void resourcesByType_withResourceType_containsMinimumResources() throws Exception {
+		// Arrange
 
-	@After
-	public void destroyApplicationContexts() {
-		for (ClassPathXmlApplicationContext applicationContext : this.loadedApplicationContexts) {
-			applicationContext.close();
-		}
+		// Act
+		Collection<StackResource> resourcesByType = this.stackResourceFactory.resourcesByType("AWS::EC2::Instance");
+
+		// Assert
+		assertEquals(1, resourcesByType.size());
+
+		StackResource stackResource = resourcesByType.iterator().next();
+		assertEquals("UserTagAndUserDataInstance", stackResource.getLogicalId());
+		assertEquals("AWS::EC2::Instance", stackResource.getType());
 	}
 
 	@Test
-	public void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposed() {
+	public void lookupPhysicalResourceId_withEC2Instance_returnsPhysicalName() throws Exception {
 		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
 
 		// Act
-		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
+		String physicalResourceId = this.stackResourceFactory.lookupPhysicalResourceId("UserTagAndUserDataInstance");
 
 		// Assert
-		assertThat(resourceIdResolver, is(not(nullValue())));
+		assertNotNull(physicalResourceId);
+		assertNotEquals("UserTagAndUserDataInstance", physicalResourceId);
 	}
 
 	@Test
-	public void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName() {
+	public void getAllResources_withConfiguredStack_returnsNonEmptyResourceList() throws Exception {
 		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
 
 		// Act
-		StackResourceRegistry staticStackNameProviderBasedStackResourceRegistry = applicationContext.getBean("IntegrationTestStack", StackResourceRegistry.class);
+		Collection<StackResource> allResources = this.stackResourceFactory.getAllResources();
 
 		// Assert
-		assertThat(staticStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
+		assertFalse(allResources.isEmpty());
 	}
 
 	@Test
-	public void stackResourceRegistry_stackConfigurationWithoutStaticName_stackResourceRegistryBeanExposedUnderGeneratedName() {
+	public void getStackName_withManuallyConfiguredStackName_returnsManuallyConfiguredStackName() throws Exception {
 		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
 
 		// Act
-		StackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry = applicationContext.getBean("org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean#0", StackResourceRegistry.class);
+		String stackName = this.stackResourceFactory.getStackName();
 
 		// Assert
-		assertThat(autoDetectingStackNameProviderBasedStackResourceRegistry, is(not(nullValue())));
+		assertEquals(TestStackEnvironment.DEFAULT_STACK_NAME, stackName);
 	}
 
-	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	public void resourceIdResolver_configuredByDefault_notNull() {
 		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
-		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
 
 		// Act
-		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket");
 
 		// Assert
-		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
-	}
-
-	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
-		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("autoDetectStackName");
-		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
-
-		// Act
-		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("EmptyBucket");
-
-		// Assert
-		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
-	}
-
-	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_returnsLogicalResourceIdAsPhysicalResourceId() {
-		// Arrange
-		ClassPathXmlApplicationContext applicationContext = loadApplicationContext("staticStackName");
-		ResourceIdResolver resourceIdResolver = applicationContext.getBean(ResourceIdResolver.class);
-
-		// Act
-		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("nonExistingLogicalResourceId");
-
-		// Assert
-		assertThat(physicalResourceId, is("nonExistingLogicalResourceId"));
-	}
-
-	private ClassPathXmlApplicationContext loadApplicationContext(String configurationName) {
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(StackConfigurationAwsTest.class.getSimpleName() + "-" + configurationName + ".xml", StackConfigurationAwsTest.class);
-		this.loadedApplicationContexts.add(applicationContext);
-
-		return applicationContext;
+		assertNotNull(this.resourceIdResolver);
 	}
 
 }

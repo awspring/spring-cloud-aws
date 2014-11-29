@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
@@ -55,7 +56,7 @@ public class ContextInstanceDataConfigurationTest {
 	public void propertySource_cloudEnvironment_propertySourceConfigured() throws Exception {
 		//Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
 
 		this.context = new AnnotationConfigApplicationContext();
@@ -66,19 +67,21 @@ public class ContextInstanceDataConfigurationTest {
 
 		//Assert
 		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+		httpServer.removeContext(httpContext);
 	}
 
 	@Test
 	public void propertySource_enableInstanceData_propertySourceConfigured() throws Exception {
 		//Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		//Act
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
 
 		//Assert
 		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+		httpServer.removeContext(httpContext);
 	}
 
 	@Configuration

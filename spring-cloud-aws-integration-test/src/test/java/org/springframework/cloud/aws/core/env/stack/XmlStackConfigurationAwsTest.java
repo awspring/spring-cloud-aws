@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache;
+package org.springframework.cloud.aws.core.env.stack;
 
-import org.springframework.cloud.aws.IntegrationTestConfig;
-import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Agim Emruli
  */
-@ContextConfiguration(classes = JavaElastiCacheAwsTest.JavaElastiCacheAwsTestConfig.class)
-public class JavaElastiCacheAwsTest extends ElastiCacheAwsTest {
+@ContextConfiguration
+public class XmlStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
-	@Configuration
-	@EnableElastiCache(clusters = "CacheCluster")
-	@Import(IntegrationTestConfig.class)
-	@ComponentScan
-	static class JavaElastiCacheAwsTestConfig {
-
-	}
 }

@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context;
 
 import com.amazonaws.SDKGlobalConfiguration;
+import com.amazonaws.util.EC2MetadataUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -24,7 +25,9 @@ import org.springframework.util.SocketUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 /**
  * @author Agim Emruli
@@ -59,6 +62,7 @@ public final class MetaDataServer {
 			httpServer = null;
 		}
 		resetMetadataEndpointUrlOverwrite();
+		resetMetaDataCache();
 	}
 
 	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
@@ -67,6 +71,16 @@ public final class MetaDataServer {
 
 	private static void resetMetadataEndpointUrlOverwrite() {
 		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+	}
+
+	private static void resetMetaDataCache() {
+		try {
+			Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
+			metadataCacheField.setAccessible(true);
+			metadataCacheField.set(null, new HashMap<String, String>());
+		} catch (Exception e) {
+			throw new IllegalStateException("Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
+		}
 	}
 
 	public static class HttpResponseWriterHandler implements HttpHandler {

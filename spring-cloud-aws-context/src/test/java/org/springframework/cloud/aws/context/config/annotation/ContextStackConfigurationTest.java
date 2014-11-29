@@ -23,6 +23,7 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class ContextStackConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithEmptyStackName.class);
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		//Act
 		this.context.refresh();
@@ -67,6 +68,8 @@ public class ContextStackConfigurationTest {
 		StackResourceRegistry stackResourceRegistry = this.context.getBean(StackResourceRegistry.class);
 		assertNotNull(stackResourceRegistry);
 		assertEquals("testStack", stackResourceRegistry.getStackName());
+
+		httpServer.removeContext(httpContext);
 	}
 
 	@Test

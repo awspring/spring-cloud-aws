@@ -25,6 +25,7 @@ import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistry
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -35,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  */
 @Configuration
+@Import(ContextDefaultConfiguration.class)
 public class ContextStackConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;

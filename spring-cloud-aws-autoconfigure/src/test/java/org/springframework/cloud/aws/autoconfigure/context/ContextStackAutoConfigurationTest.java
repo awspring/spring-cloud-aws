@@ -23,6 +23,7 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class ContextStackAutoConfigurationTest {
 		this.context.register(ContextStackAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		//Act
 		this.context.refresh();
@@ -66,6 +67,7 @@ public class ContextStackAutoConfigurationTest {
 		//Assert
 		assertNotNull(this.context.getBean(StackResourceRegistry.class));
 
+		httpServer.removeContext(httpContext);
 		MetaDataServer.shutdownHttpServer();
 	}
 
