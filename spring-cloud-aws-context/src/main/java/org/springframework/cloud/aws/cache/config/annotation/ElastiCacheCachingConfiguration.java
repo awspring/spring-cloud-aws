@@ -22,13 +22,14 @@ import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -42,6 +43,7 @@ import java.util.List;
  * @author Agim Emruli
  */
 @Configuration
+@Import(ContextDefaultConfiguration.class)
 public class ElastiCacheCachingConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
@@ -101,9 +103,5 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 		return cacheNames;
 	}
 
-	//TODO: Check if there is a better place for this
-	@Bean(name = "org.springframework.cloud.aws.core.env.ResourceIdResolver.BEAN_NAME")
-	public ResourceIdResolver resourceIdResolver() {
-		return new StackResourceRegistryDetectingResourceIdResolver();
-	}
+
 }
