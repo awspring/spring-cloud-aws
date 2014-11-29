@@ -24,9 +24,13 @@ import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -61,6 +65,65 @@ public class ContextCredentialsProviderConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithAccessKeyAndSecretKey.class);
 
+		//Act
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AWSCredentialsProvider.class);
+
+		//Assert
+		assertNotNull(awsCredentialsProvider);
+
+		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
+				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
+		assertEquals(1, credentialsProviders.size());
+		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+
+		assertEquals("accessTest", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
+		assertEquals("testSecret", awsCredentialsProvider.getCredentials().getAWSSecretKey());
+	}
+
+	@Test
+	public void credentialsProvider_configWithAccessAndSecretKeyAsExpressions_staticAwsCredentialsProviderConfiguredWithResolvedExpressions() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+
+		Map<String, Object> secretAndAccessKeyMap = new HashMap<>();
+		secretAndAccessKeyMap.put("accessKey", "accessTest");
+		secretAndAccessKeyMap.put("secretKey", "testSecret");
+
+		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", secretAndAccessKeyMap));
+
+		this.context.register(ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions.class);
+		this.context.refresh();
+		//Act
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AWSCredentialsProvider.class);
+
+		//Assert
+		assertNotNull(awsCredentialsProvider);
+
+		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
+				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
+		assertEquals(1, credentialsProviders.size());
+		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+
+		assertEquals("accessTest", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
+		assertEquals("testSecret", awsCredentialsProvider.getCredentials().getAWSSecretKey());
+	}
+
+	@Test
+	public void credentialsProvider_configWithAccessAndSecretKeyAsPlaceHolders_staticAwsCredentialsProviderConfiguredWithResolvedPlaceHolders() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+
+		Map<String, Object> secretAndAccessKeyMap = new HashMap<>();
+		secretAndAccessKeyMap.put("accessKey", "accessTest");
+		secretAndAccessKeyMap.put("secretKey", "testSecret");
+
+		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", secretAndAccessKeyMap));
+		PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+		configurer.setPropertySources(this.context.getEnvironment().getPropertySources());
+
+		this.context.getBeanFactory().registerSingleton("configurer", configurer);
+		this.context.register(ApplicationConfigurationWithAccessKeyAndSecretKeyAsPlaceHolder.class);
+		this.context.refresh();
 		//Act
 		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AWSCredentialsProvider.class);
 
@@ -119,6 +182,16 @@ public class ContextCredentialsProviderConfigurationTest {
 
 	@EnableCredentialsProvider(accessKey = "accessTest",secretKey = "testSecret")
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKey {
+	}
+
+	@EnableCredentialsProvider(accessKey = "#{environment.accessKey}", secretKey = "#{environment.secretKey}")
+	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions {
+
+	}
+
+	@EnableCredentialsProvider(accessKey = "${accessKey}", secretKey = "${secretKey}")
+	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsPlaceHolder {
+
 	}
 
 	@EnableCredentialsProvider(accessKey = "accessTest",secretKey = "testSecret",instanceProfile = true)

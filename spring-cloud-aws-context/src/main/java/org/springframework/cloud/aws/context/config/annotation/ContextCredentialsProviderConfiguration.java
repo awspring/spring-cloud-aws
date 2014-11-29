@@ -21,7 +21,10 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.cloud.aws.core.config.support.ContextAnnotationConfigUtil;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +45,9 @@ public class ContextCredentialsProviderConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
 
+	@Autowired
+	private ConfigurableBeanFactory beanFactory;
+
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
@@ -55,8 +61,9 @@ public class ContextCredentialsProviderConfiguration implements ImportAware {
 		List<AWSCredentialsProvider> awsCredentialsProviders = new ArrayList<>();
 
 		if (StringUtils.hasText(this.annotationAttributes.getString("accessKey"))) {
-			awsCredentialsProviders.add(new StaticCredentialsProvider(new BasicAWSCredentials(this.annotationAttributes.getString("accessKey"),
-					this.annotationAttributes.getString("secretKey"))));
+			awsCredentialsProviders.add(new StaticCredentialsProvider(new BasicAWSCredentials(
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("accessKey")),
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("secretKey")))));
 		}
 
 		if (this.annotationAttributes.getBoolean("instanceProfile")) {
