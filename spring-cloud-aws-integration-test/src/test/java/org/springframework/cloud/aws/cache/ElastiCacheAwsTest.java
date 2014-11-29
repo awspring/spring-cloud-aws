@@ -43,6 +43,9 @@ public abstract class ElastiCacheAwsTest {
 	@Test
 	@IfAmazonWebserviceEnvironment
 	public void expensiveServiceWithCacheManager() throws Exception {
+		this.cachingService.deleteCacheKey("foo");
+		this.cachingService.deleteCacheKey("BAR");
+
 		assertEquals(0, this.cachingService.getInvocationCount().get());
 
 		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
