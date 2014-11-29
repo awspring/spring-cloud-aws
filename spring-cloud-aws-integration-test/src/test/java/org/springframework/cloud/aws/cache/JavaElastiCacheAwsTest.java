@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.aws.cache;
 
+import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -28,6 +30,7 @@ public class JavaElastiCacheAwsTest extends ElastiCacheAwsTest {
 
 	@Configuration
 	@EnableElastiCache(clusters = "CacheCluster")
+	@Import(IntegrationTestConfig.class)
 	static class JavaElastiCacheAwsTestConfig {
 
 	}
