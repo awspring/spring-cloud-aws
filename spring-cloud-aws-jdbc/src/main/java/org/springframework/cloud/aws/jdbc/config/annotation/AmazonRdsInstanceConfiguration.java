@@ -21,12 +21,17 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
+import org.springframework.cloud.aws.core.config.support.ContextAnnotationConfigUtil;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -39,6 +44,7 @@ import javax.sql.DataSource;
  * @author Agim Emruli
  */
 @Configuration
+@Import(ContextDefaultConfiguration.class)
 public class AmazonRdsInstanceConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
@@ -49,12 +55,15 @@ public class AmazonRdsInstanceConfiguration implements ImportAware {
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
 
+	@Autowired
+	private ConfigurableBeanFactory beanFactory;
+
 	@Override
-	public void setImportMetadata(AnnotationMetadata annotationMetadata) {
+	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
-				annotationMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
+				importMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
-				"@EnableRdsInstance is not present on importing class " + annotationMetadata.getClassName());
+				"@EnableRdsInstance is not present on importing class " + importMetadata.getClassName());
 	}
 
 	@Bean
@@ -74,21 +83,23 @@ public class AmazonRdsInstanceConfiguration implements ImportAware {
 	}
 
 	@Bean
-	public FactoryBean<DataSource> dataSource(AmazonRDS amazonRds) {
+	public FactoryBean<DataSource> dataSource(AmazonRDS amazonRds, ResourceIdResolver resourceIdResolver) {
 		AmazonRdsDataSourceFactoryBean dataSourceFactoryBean;
 		if (this.annotationAttributes.getBoolean("readReplicaSupport")) {
 			dataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(amazonRds,
-					this.annotationAttributes.getString("dbInstanceIdentifier"),
-					this.annotationAttributes.getString("password"));
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("dbInstanceIdentifier")),
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("password")));
 		} else {
 			dataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRds,
-					this.annotationAttributes.getString("dbInstanceIdentifier"),
-					this.annotationAttributes.getString("password"));
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("dbInstanceIdentifier")),
+					ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("password")));
 		}
 
 		if (StringUtils.hasText(this.annotationAttributes.getString("username"))) {
-			dataSourceFactoryBean.setUsername(this.annotationAttributes.getString("username"));
+			dataSourceFactoryBean.setUsername(ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("username")));
 		}
+
+		dataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		return dataSourceFactoryBean;
 	}

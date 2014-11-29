@@ -29,8 +29,11 @@ import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.MapPropertySource;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -56,8 +59,46 @@ public class AmazonRdsInstanceConfigurationTest {
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
 		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+	}
 
+	@Test
+	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		HashMap<String, Object> propertySourceProperties = new HashMap<>();
+		propertySourceProperties.put("dbInstanceIdentifier", "test");
+		propertySourceProperties.put("password", "secret");
+		propertySourceProperties.put("username", "admin");
 
+		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
+
+		//Act
+		this.context.register(ApplicationConfigurationWithoutReadReplicaAndExpressions.class);
+		this.context.refresh();
+
+		//Assert
+		assertNotNull(this.context.getBean(DataSource.class));
+		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+	}
+
+	@Test
+	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		HashMap<String, Object> propertySourceProperties = new HashMap<>();
+		propertySourceProperties.put("dbInstanceIdentifier", "test");
+		propertySourceProperties.put("password", "secret");
+		propertySourceProperties.put("username", "admin");
+
+		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
+
+		//Act
+		this.context.register(ApplicationConfigurationWithoutReadReplicaAndPlaceHolder.class);
+		this.context.refresh();
+
+		//Assert
+		assertNotNull(this.context.getBean(DataSource.class));
+		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
 	}
 
 	@Test
@@ -93,6 +134,60 @@ public class AmazonRdsInstanceConfigurationTest {
 							)
 			);
 			return client;
+		}
+
+	}
+
+	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
+	public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
+
+		@Bean
+		public AmazonRDS amazonRDS() {
+			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("test").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											).withReadReplicaDBInstanceIdentifiers("read1")
+							)
+			);
+			return client;
+		}
+	}
+
+	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}", password = "${password}", username = "${username}")
+	public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
+
+		@Bean
+		public AmazonRDS amazonRDS() {
+			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("test").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											).withReadReplicaDBInstanceIdentifiers("read1")
+							)
+			);
+			return client;
+		}
+
+		@Bean
+		static PropertySourcesPlaceholderConfigurer configurer() {
+			return new PropertySourcesPlaceholderConfigurer();
 		}
 
 	}
@@ -133,6 +228,5 @@ public class AmazonRdsInstanceConfigurationTest {
 			);
 			return client;
 		}
-
 	}
 }
