@@ -26,11 +26,4 @@
 
 	<aws-context:context-instance-placeholder instance-id-provider="testStackEnvironment"
 											  user-tags-map="instanceData" />
-
-	<bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean">
-		<property name="value1" value="#{instanceData['tag1']}" />
-		<property name="value2" value="#{instanceData['tag2']}" />
-		<property name="value3" value="#{instanceData['tag3']}" />
-		<property name="value4" value="#{instanceData['tag4']}" />
-	</bean>
 </beans>

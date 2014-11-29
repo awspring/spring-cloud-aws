@@ -97,11 +97,9 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 		if (this.stackResourceFactory != null) {
 			for (StackResource stackResource : this.stackResourceFactory.
 					resourcesByType("AWS::ElastiCache::CacheCluster")) {
-				cacheNames.add(stackResource.getPhysicalId());
+				cacheNames.add(stackResource.getLogicalId());
 			}
 		}
 		return cacheNames;
 	}
-
-
 }

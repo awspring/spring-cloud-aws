@@ -16,14 +16,20 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * @author Agim Emruli
  */
 public class SimpleConfigurationBean {
 
+	@Value("#{environment.key1}")
 	private String value1;
+	@Value("#{environment.key2}")
 	private String value2;
+	@Value("${key3}")
 	private String value3;
+	@Value("${instance-id}")
 	private String value4;
 
 	public String getValue1() {

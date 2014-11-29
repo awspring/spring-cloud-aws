@@ -16,13 +16,15 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
-import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.cloud.aws.support.TestStackInstanceIdService;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,7 +39,7 @@ public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 	private TestStackInstanceIdService testStackInstanceIdService;
 
 	@Autowired
-	private SimpleConfigurationBean simpleConfigurationBean;
+	private ConfigurableApplicationContext context;
 
 	@Before
 	public void enableInstanceIdMetadataService() {
@@ -51,9 +53,14 @@ public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 
 	@Test
 	public void testGetUserProperties() throws Exception {
-		Assert.assertEquals("tagv1", this.simpleConfigurationBean.getValue1());
-		Assert.assertEquals("tagv2", this.simpleConfigurationBean.getValue2());
-		Assert.assertEquals("tagv3", this.simpleConfigurationBean.getValue3());
-		Assert.assertEquals("tagv4", this.simpleConfigurationBean.getValue4());
+
+		Assert.assertEquals("tagv1", this.context.getBeanFactory().getBeanExpressionResolver().
+				evaluate("#{instanceData['tag1']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv2", this.context.getBeanFactory().getBeanExpressionResolver().
+				evaluate("#{instanceData['tag2']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv3", this.context.getBeanFactory().getBeanExpressionResolver().
+				evaluate("#{instanceData['tag3']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv4", this.context.getBeanFactory().getBeanExpressionResolver().
+				evaluate("#{instanceData['tag4']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
 	}
 }

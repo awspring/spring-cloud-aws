@@ -23,7 +23,6 @@ import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ import java.util.Map;
  * @author Agim Emruli
  */
 @RuntimeUse
-public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<StackResourceRegistry> {
+public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<ListableStackResourceFactory> {
 
 	private final AmazonCloudFormation amazonCloudFormationClient;
 	private final StackNameProvider stackNameProvider;

@@ -76,7 +76,7 @@ public class ElastiCacheCachingConfigurationTest {
 
 		//Assert
 		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "sampleCacheOne", "sampleCacheTwo");
+		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "sampleCacheOneLogical", "sampleCacheTwoLogical");
 		assertEquals(2, caches.size());
 	}
 
@@ -135,12 +135,12 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOne"))).
+			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical"))).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwo"))).
+			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical"))).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));

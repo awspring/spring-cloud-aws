@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.support;
+package org.springframework.cloud.aws.core.env.ec2;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Agim Emruli
  */
-@EnableAutoConfiguration
-public class TestApplication {
+@ContextConfiguration
+public class XmlAmazonEc2InstanceDataPropertySourceAwsTest extends AmazonEc2InstanceDataPropertySourceAwsTest {
+
 
 }

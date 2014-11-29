@@ -24,12 +24,8 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<aws-context:context-instance-placeholder />
+  <aws-context:context-instance-placeholder />
 
-	<bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean">
-		<property name="value1" value="#{environment.key1}" />
-		<property name="value2" value="#{environment.key2}" />
-		<property name="value3" value="${key3}" />
-		<property name="value4" value="${instance-id}" />
-	</bean>
+  <bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean" />
+
 </beans>
