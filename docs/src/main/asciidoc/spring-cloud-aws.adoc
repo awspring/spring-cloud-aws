@@ -318,7 +318,7 @@ The following code sample demonstrates the activation of the instance metadata s
 [source,xml,indent=0]
 ----
    <beans ...>
-     	<aws-context:context-instance-placeholder />
+     	<aws-context:context-instance-data />
    </beans>
 ----
 
@@ -336,7 +336,7 @@ org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
 [source,java,indent=0]
 ----
   @Configuration
-  @EnableInstanceData
+  @EnableContextInstanceData
   public static class ApplicationConfiguration {
   }
 ----
@@ -496,14 +496,14 @@ A CloudFormation template for the configuration of the instance tags is outlined
 
 To retrieve the instance tags, Spring Cloud AWS has to make authenticated requests and therefore it will need the region
 and security configuration before actually resolving the placeholders. Also because the instance tags are not available while starting
-the application context, they can only be referenced as expressions and not with placeholders. The `context-instance-placeholder`
+the application context, they can only be referenced as expressions and not with placeholders. The `context-instance-data`
 element defines an attribute `user-tags-map` that will create a map in the application context for the name. This map
 can then be queried using expression for other bean definitions.
 
 [source,xml,indent=0]
 ----
  <beans ...>
-  <aws-context:context-instance-placeholder user-tags-map="instanceData" />
+  <aws-context:context-instance-data user-tags-map="instanceData" />
  </beans>
 ----
 
@@ -529,7 +529,7 @@ A java bean might resolve expressions with the `@Value` annotation.
 
 ==== Configuring custom EC2 client
 In some circumstances it is necessary to have a custom EC2 client to retrieve the instance information. The
-`context-instance-placeholder` element supports a custom EC2 client with the `amazon-ec2` attribute. The next
+`context-instance-data` element supports a custom EC2 client with the `amazon-ec2` attribute. The next
 example shows the use of a custom EC2 client that might have a special configuration in place.
 
 [source,xml,indent=0]
@@ -538,7 +538,7 @@ example shows the use of a custom EC2 client that might have a special configura
 
   <aws-context:context-credentials>....</aws-context:context-credentials>
   <aws-context:context-region ... />
-  <aws-context:context-instance-placeholder  amazon-ec2="myCustomClient"/>
+  <aws-context:context-instance-data  amazon-ec2="myCustomClient"/>
 
   <bean id="myCustomClient" class="com.amazonaws.services.ec2.AmazonEC2Client">
 	...

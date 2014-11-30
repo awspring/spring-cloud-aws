@@ -36,7 +36,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class ContextRegionProviderConfigurationTest {
+public class ContextRegionConfigurationTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
@@ -155,25 +155,25 @@ public class ContextRegionProviderConfigurationTest {
 	}
 
 	@Configuration
-	@EnableRegionProvider(region = "EU_WEST_1")
+	@EnableContextRegion(region = "EU_WEST_1")
 	static class ApplicationConfigurationWithStaticRegionProvider {
 
 	}
 
 	@Configuration
-	@EnableRegionProvider(autoDetect = true)
+	@EnableContextRegion(autoDetect = true)
 	static class ApplicationConfigurationWithDynamicRegionProvider {
 
 	}
 
 	@Configuration
-	@EnableRegionProvider(region = "#{environment.region}")
+	@EnableContextRegion(region = "#{environment.region}")
 	static class ApplicationConfigurationWithExpressionRegion {
 
 	}
 
 	@Configuration
-	@EnableRegionProvider(region = "${region}")
+	@EnableContextRegion(region = "${region}")
 	static class ApplicationConfigurationWithPlaceHolderRegion {
 
 		@Bean
@@ -183,19 +183,19 @@ public class ContextRegionProviderConfigurationTest {
 	}
 
 	@Configuration
-	@EnableRegionProvider
+	@EnableContextRegion
 	static class ApplicationConfigurationWithNoRegion {
 
 	}
 
 	@Configuration
-	@EnableRegionProvider(autoDetect = true, region = "EU_WEST_1")
+	@EnableContextRegion(autoDetect = true, region = "EU_WEST_1")
 	static class ApplicationConfigurationWithAutoDetectionAndRegion {
 
 	}
 
 	@Configuration
-	@EnableRegionProvider(region = "EU_WAST_1")
+	@EnableContextRegion(region = "EU_WAST_1")
 	static class ApplicationConfigurationWithWrongRegion {
 
 	}

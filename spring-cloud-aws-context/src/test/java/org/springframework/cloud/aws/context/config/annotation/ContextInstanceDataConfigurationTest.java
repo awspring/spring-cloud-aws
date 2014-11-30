@@ -85,7 +85,7 @@ public class ContextInstanceDataConfigurationTest {
 	}
 
 	@Configuration
-	@EnableInstanceData
+	@EnableContextInstanceData
 	public static class ApplicationConfiguration {
 
 	}

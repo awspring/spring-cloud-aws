@@ -22,7 +22,7 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsProviderAutoConfiguration;
+import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender;
@@ -40,7 +40,7 @@ import javax.mail.Session;
  */
 @Configuration
 @ConditionalOnClass(MailSender.class)
-@Import(ContextCredentialsProviderAutoConfiguration.class)
+@Import(ContextCredentialsAutoConfiguration.class)
 public class MailSenderAutoConfiguration {
 
 	@Autowired(required = false)

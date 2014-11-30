@@ -20,6 +20,6 @@
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
-	<context:context-instance-placeholder user-tags-map="myUserTags" />
+  <context:context-instance-data user-tags-map="myUserTags" />
 
 </beans>

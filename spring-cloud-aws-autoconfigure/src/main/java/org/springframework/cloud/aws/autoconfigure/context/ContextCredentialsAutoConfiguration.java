@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Configuration
 @Import(ContextDefaultConfiguration.class)
-public class ContextCredentialsProviderAutoConfiguration {
+public class ContextCredentialsAutoConfiguration {
 
 	@Autowired
 	private Environment environment;

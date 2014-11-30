@@ -133,7 +133,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="context-instance-placeholder">
+	<xsd:element name="context-instance-data">
 		<xsd:annotation>
 			<xsd:documentation
 					source="java:org.springframework.cloud.aws.context.config.xml.ContextInstanceDataPlaceholderResolverBeanDefinitionParser">

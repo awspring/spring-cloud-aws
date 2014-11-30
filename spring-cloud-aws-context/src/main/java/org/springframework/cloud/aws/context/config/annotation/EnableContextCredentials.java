@@ -31,9 +31,9 @@ import java.lang.annotation.Target;
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Import(ContextCredentialsProviderConfiguration.class)
+@Import(ContextCredentialsConfiguration.class)
 @Target(ElementType.TYPE)
-public @interface EnableCredentialsProvider {
+public @interface EnableContextCredentials {
 
 	/**
 	 * Configures the access key that will be used by the credentials provider.

@@ -26,17 +26,17 @@ import java.lang.annotation.Target;
 /**
  * Configures a {@link org.springframework.cloud.aws.core.region.RegionProvider} instance for the application context. The
  * region provider will be used for all Amazon Web Service clients that are created inside the application context (by
- * the Spring Cloud AWS classes). A region can be either manually configured {@link EnableRegionProvider#region()} with
+ * the Spring Cloud AWS classes). A region can be either manually configured {@link EnableContextRegion#region()} with
  * a constant expression, dynamic expression (using a SpEL expression) or a place holder. The region can also be dynamically
  * retrieved from the EC2 instance meta-data if the application context is running inside a EC2 instance by enabling the
- * {@link EnableRegionProvider#autoDetect()} attribute.
+ * {@link EnableContextRegion#autoDetect()} attribute.
  *
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(ContextRegionProviderConfiguration.class)
-public @interface EnableRegionProvider {
+@Import(ContextRegionConfiguration.class)
+public @interface EnableContextRegion {
 
 	/**
 	 * Configures the region as a String value. The value must match to an enum defined in
@@ -51,7 +51,7 @@ public @interface EnableRegionProvider {
 	 * Configures the auto-detection of a region that should be fetched from the EC2 meta-data. Disabled by default.
 	 *
 	 * @return - configures if the region should be fetched by the EC2 meta-data. Must be false if a region is configured
-	 * in the {@link EnableRegionProvider#region()} attribute.
+	 * in the {@link EnableContextRegion#region()} attribute.
 	 */
 	boolean autoDetect() default false;
 }

@@ -41,7 +41,7 @@ import java.util.List;
  * @author Agim Emruli
  */
 @Configuration
-public class ContextCredentialsProviderConfiguration implements ImportAware {
+public class ContextCredentialsConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
 
@@ -51,9 +51,9 @@ public class ContextCredentialsProviderConfiguration implements ImportAware {
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableCredentialsProvider.class.getName(), false));
+				importMetadata.getAnnotationAttributes(EnableContextCredentials.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
-				"@EnableCredentialsProvider is not present on importing class " + importMetadata.getClassName());
+				"@EnableContextCredentials is not present on importing class " + importMetadata.getClassName());
 	}
 
 	@Bean(name = AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME)

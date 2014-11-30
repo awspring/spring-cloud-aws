@@ -35,14 +35,14 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  */
 @Configuration
-public class ContextRegionProviderConfiguration implements ImportAware {
+public class ContextRegionConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableRegionProvider.class.getName(), false));
+				importMetadata.getAnnotationAttributes(EnableContextRegion.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
 				"@EnableRegionProvider is not present on importing class " + importMetadata.getClassName());
 	}

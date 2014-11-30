@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableInstanceData;
+import org.springframework.cloud.aws.context.config.annotation.EnableContextInstanceData;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -30,7 +30,7 @@ public class JavaAmazonEc2InstanceDataPropertySourceAwsTest extends AmazonEc2Ins
 
 
 	@Configuration
-	@EnableInstanceData
+	@EnableContextInstanceData
 	static class JavaAmazonEc2InstanceDataPropertySourceAwsTestConfig {
 
 		@Bean

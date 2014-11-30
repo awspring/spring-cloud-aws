@@ -34,6 +34,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(ContextInstanceDataConfiguration.class)
-public @interface EnableInstanceData {
+public @interface EnableContextInstanceData {
 
 }

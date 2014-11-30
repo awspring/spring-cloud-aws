@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class ContextCredentialsProviderConfigurationTest {
+public class ContextCredentialsConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -175,30 +175,29 @@ public class ContextCredentialsProviderConfigurationTest {
 	}
 
 
-
-	@EnableCredentialsProvider
+	@EnableContextCredentials
 	public static class ApplicationConfigurationWithDefaultCredentialsProvider {
 	}
 
-	@EnableCredentialsProvider(accessKey = "accessTest",secretKey = "testSecret")
+	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret")
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKey {
 	}
 
-	@EnableCredentialsProvider(accessKey = "#{environment.accessKey}", secretKey = "#{environment.secretKey}")
+	@EnableContextCredentials(accessKey = "#{environment.accessKey}", secretKey = "#{environment.secretKey}")
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions {
 
 	}
 
-	@EnableCredentialsProvider(accessKey = "${accessKey}", secretKey = "${secretKey}")
+	@EnableContextCredentials(accessKey = "${accessKey}", secretKey = "${secretKey}")
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsPlaceHolder {
 
 	}
 
-	@EnableCredentialsProvider(accessKey = "accessTest",secretKey = "testSecret",instanceProfile = true)
+	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret", instanceProfile = true)
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAndInstanceProfile {
 	}
 
-	@EnableCredentialsProvider(instanceProfile = true)
+	@EnableContextCredentials(instanceProfile = true)
 	public static class ApplicationConfigurationWithInstanceProfileOnly {
 	}
 }

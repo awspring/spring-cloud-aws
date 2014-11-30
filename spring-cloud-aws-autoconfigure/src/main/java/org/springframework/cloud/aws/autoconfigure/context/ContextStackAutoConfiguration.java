@@ -30,7 +30,7 @@ import org.springframework.core.env.Environment;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextCredentialsProviderAutoConfiguration.class)
+@Import(ContextCredentialsAutoConfiguration.class)
 public class ContextStackAutoConfiguration {
 
 	@Configuration
