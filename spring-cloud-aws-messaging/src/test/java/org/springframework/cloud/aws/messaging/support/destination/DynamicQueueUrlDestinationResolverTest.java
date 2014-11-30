@@ -23,8 +23,8 @@ import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.junit.Test;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 
 import static org.junit.Assert.assertEquals;
@@ -90,5 +90,10 @@ public class DynamicQueueUrlDestinationResolverTest {
 
 		assertEquals("http://queue.com", physicalResourceId);
 
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void instantiation_withNullAmazonClient_shouldThrowAnError() throws Exception {
+		new DynamicQueueUrlDestinationResolver(null, null);
 	}
 }

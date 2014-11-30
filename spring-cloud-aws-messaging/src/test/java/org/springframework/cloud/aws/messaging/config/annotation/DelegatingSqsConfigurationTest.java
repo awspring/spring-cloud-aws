@@ -32,7 +32,9 @@ import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerCon
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -60,7 +62,7 @@ public class DelegatingSqsConfigurationTest {
 
 		// Assert
 		assertTrue(container.isRunning());
-		QueueMessageHandler queueMessageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(container, "messageHandler");
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		assertTrue(QueueMessageHandler.class.isInstance(queueMessageHandler));
 
 		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler.getCustomReturnValueHandlers().get(0);
@@ -84,8 +86,7 @@ public class DelegatingSqsConfigurationTest {
 	public void configuration_withRegisteredConfigurers_shouldBeCalled() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class, ConfigurationWithConfigurer.class);
-		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		QueueMessageHandler messageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(container, "messageHandler");
+		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertEquals(1, messageHandler.getCustomArgumentResolvers().size());
@@ -99,8 +100,7 @@ public class DelegatingSqsConfigurationTest {
 	public void configuration_withMultipleRegisteredConfigurers_shouldAllBeCalled() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class, ConfigurationWithConfigurer.class, AnotherConfigurationWithConfigurer.class);
-		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		QueueMessageHandler messageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(container, "messageHandler");
+		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertEquals(2, messageHandler.getCustomArgumentResolvers().size());
@@ -125,6 +125,29 @@ public class DelegatingSqsConfigurationTest {
 	}
 
 	@Test
+	public void configuration_withCustomSendToMessageTemplate_shouldUseTheConfiguredTemplate() throws Exception {
+		// Arrange & Act
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithCustomSendToMessageTemplate.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		// Assert
+		assertEquals(1, queueMessageHandler.getReturnValueHandlers().size());
+		assertEquals(ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE,
+				ReflectionTestUtils.getField(queueMessageHandler.getReturnValueHandlers().get(0), "messageTemplate"));
+	}
+
+	@Test
+	public void queueMessageHandlerBeanMustBeSetOnContainer() throws Exception {
+		// Arrange & Act
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class);
+		SimpleMessageListenerContainer simpleMessageListenerContainer = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		// Assert
+		assertEquals(queueMessageHandler, ReflectionTestUtils.getField(simpleMessageListenerContainer, "messageHandler"));
+	}
+
+	@Test
 	public void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithMissingAwsCredentials.class);
@@ -138,14 +161,13 @@ public class DelegatingSqsConfigurationTest {
 	@Test
 	public void configuration_withCustomFactoryAndMultipleRegisteredConfigurers_resolversShouldBeAddedToTheMessageHandler() throws Exception {
 		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithCustomContainerFactory.class,
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class,
 				ConfigurationWithConfigurer.class, AnotherConfigurationWithConfigurer.class);
-		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		QueueMessageHandler messageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(container, "messageHandler");
+		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertEquals(2, messageHandler.getCustomArgumentResolvers().size());
-		assertEquals(2, messageHandler.getCustomReturnValueHandlers().size());
+		assertEquals(3, messageHandler.getCustomReturnValueHandlers().size());
 	}
 
 	@EnableSqs
@@ -217,18 +239,25 @@ public class DelegatingSqsConfigurationTest {
 		public static final AmazonSQS AMAZON_SQS = mock(AmazonSQS.class);
 		public static final boolean AUTO_STARTUP = true;
 		public static final int MAX_NUMBER_OF_MESSAGES = 1456;
-		public static final QueueMessageHandler MESSAGE_HANDLER = new QueueMessageHandler();
+		public static final QueueMessageHandler MESSAGE_HANDLER;
 		public static final ResourceIdResolver RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 		public static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 		public static final int VISIBILITY_TIMEOUT = 1789;
 		public static final int WAIT_TIME_OUT = 12;
 
+		static {
+			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+			queueMessageHandler.setApplicationContext(new StaticApplicationContext());
+			MESSAGE_HANDLER = queueMessageHandler;
+		}
+
 		@Bean
 		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory(amazonSQS());
+			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+			factory.setAmazonSqs(amazonSQS());
 			factory.setAutoStartup(AUTO_STARTUP);
 			factory.setMaxNumberOfMessages(MAX_NUMBER_OF_MESSAGES);
-			factory.setMessageHandler(MESSAGE_HANDLER);
+			factory.setQueueMessageHandler(MESSAGE_HANDLER);
 			factory.setResourceIdResolver(RESOURCE_ID_RESOLVER);
 			factory.setTaskExecutor(TASK_EXECUTOR);
 			factory.setVisibilityTimeout(VISIBILITY_TIMEOUT);
@@ -240,6 +269,22 @@ public class DelegatingSqsConfigurationTest {
 		@Bean
 		public AmazonSQS amazonSQS() {
 			return AMAZON_SQS;
+		}
+
+	}
+
+	@EnableSqs
+	@Configuration
+	public static class ConfigurationWithCustomSendToMessageTemplate {
+
+		public static final DestinationResolvingMessageSendingOperations SEND_TO_MESSAGE_TEMPLATE = mock(DestinationResolvingMessageSendingOperations.class);
+
+		@Bean
+		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+			factory.setSendToMessageTemplate(SEND_TO_MESSAGE_TEMPLATE);
+
+			return factory;
 		}
 
 	}

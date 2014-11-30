@@ -25,6 +25,7 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.util.Assert;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,6 +41,8 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 	private boolean autoCreate;
 
 	public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		Assert.notNull(amazonSqs, "amazonSqs must not be null");
+
 		this.amazonSqs = amazonSqs;
 		this.resourceIdResolver = resourceIdResolver;
 	}

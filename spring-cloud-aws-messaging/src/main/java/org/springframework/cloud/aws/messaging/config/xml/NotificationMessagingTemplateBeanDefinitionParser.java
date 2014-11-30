@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -45,15 +45,8 @@ public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractS
 			builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
-		registerStringMessageConverter(builder);
 		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-	}
-
-	private void registerStringMessageConverter(BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
-		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		builder.addPropertyValue("messageConverter", stringMessageConverterBuilder.getBeanDefinition());
 	}
 
 }

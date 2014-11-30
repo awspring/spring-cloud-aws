@@ -22,9 +22,24 @@ import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChann
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageReceivingOperations;
+import org.springframework.util.ClassUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * <b>IMPORTANT</b>: For the message conversion this class always tries to first use the {@link StringMessageConverter}
+ * as it fits the underlying message channel type. If a message converter is set through the constructor then it is
+ * added to a composite converter already containing the {@link StringMessageConverter}.
+ * If {@link QueueMessagingTemplate#setMessageConverter(MessageConverter)} is used, then the {@link CompositeMessageConverter}
+ * containing the {@link StringMessageConverter} will not be used anymore and the {@code String} payloads are also going
+ * to be converted with the set converter.
+ *
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
@@ -33,13 +48,50 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 
 	private final AmazonSQS amazonSqs;
 
-	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
-		super(new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver));
-		this.amazonSqs = amazonSqs;
-	}
+	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
+			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplate.class.getClassLoader());
 
 	public QueueMessagingTemplate(AmazonSQS amazonSqs) {
-		this(amazonSqs, null);
+		this(amazonSqs, null, null);
+	}
+
+	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		this(amazonSqs, resourceIdResolver, null);
+	}
+
+	/**
+	 * Initializes the messaging template by configuring the destination resolver as well as the message
+	 * converter.
+	 *
+	 * @param amazonSqs
+	 * 		The {@link AmazonSQS} client, cannot be {@code null}.
+	 * @param resourceIdResolver
+	 * 		The {@link ResourceIdResolver} to be used for resolving logical queue names.
+	 * @param messageConverter
+	 * 		A {@link MessageConverter} that is going to be added to the composite converter.
+	 */
+	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
+		super(new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver));
+		this.amazonSqs = amazonSqs;
+		initMessageConverter(messageConverter);
+	}
+
+	private void initMessageConverter(MessageConverter messageConverter) {
+		List<MessageConverter> messageConverters = new ArrayList<>();
+
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		messageConverters.add(stringMessageConverter);
+
+		if (messageConverter != null) {
+			messageConverters.add(messageConverter);
+		} else if (JACKSON_2_PRESENT) {
+			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
+			messageConverters.add(mappingJackson2MessageConverter);
+		}
+
+		setMessageConverter(new CompositeMessageConverter(messageConverters));
 	}
 
 	@Override

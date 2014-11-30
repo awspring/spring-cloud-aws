@@ -18,33 +18,17 @@ package org.springframework.cloud.aws.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.messaging.config.annotation.SqsConfigurationSupport;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Alain Sahli
  * @since 1.0
  */
 public class SimpleMessageListenerContainerFactory {
-
-	private static final boolean JACKSON_2_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", SqsConfigurationSupport.class.getClassLoader()) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", SqsConfigurationSupport.class.getClassLoader());
 
 	private TaskExecutor taskExecutor;
 
@@ -58,18 +42,11 @@ public class SimpleMessageListenerContainerFactory {
 
 	private AmazonSQS amazonSqs;
 
-	private QueueMessageHandler messageHandler;
+	private QueueMessageHandler queueMessageHandler;
 
 	private ResourceIdResolver resourceIdResolver;
 
-	private final List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<>();
-
-	private final List<HandlerMethodReturnValueHandler> customReturnValueHandlers = new ArrayList<>();
-
-	public SimpleMessageListenerContainerFactory(AmazonSQS amazonSqs) {
-		Assert.notNull(amazonSqs, "amazonSqs must not be null");
-		this.amazonSqs = amazonSqs;
-	}
+	private DestinationResolvingMessageSendingOperations sendToMessageTemplate;
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
@@ -100,8 +77,12 @@ public class SimpleMessageListenerContainerFactory {
 		return this.amazonSqs;
 	}
 
-	public void setMessageHandler(QueueMessageHandler messageHandler) {
-		this.messageHandler = messageHandler;
+	public void setQueueMessageHandler(QueueMessageHandler messageHandler) {
+		this.queueMessageHandler = messageHandler;
+	}
+
+	public QueueMessageHandler getQueueMessageHandler() {
+		return this.queueMessageHandler;
 	}
 
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
@@ -112,12 +93,12 @@ public class SimpleMessageListenerContainerFactory {
 		return this.resourceIdResolver;
 	}
 
-	public List<HandlerMethodArgumentResolver> getCustomArgumentResolvers() {
-		return this.customArgumentResolvers;
+	public void setSendToMessageTemplate(DestinationResolvingMessageSendingOperations sendToMessageTemplate) {
+		this.sendToMessageTemplate = sendToMessageTemplate;
 	}
 
-	public List<HandlerMethodReturnValueHandler> getCustomReturnValueHandlers() {
-		return this.customReturnValueHandlers;
+	public DestinationResolvingMessageSendingOperations getSendToMessageTemplate() {
+		return this.sendToMessageTemplate;
 	}
 
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {
@@ -133,14 +114,6 @@ public class SimpleMessageListenerContainerFactory {
 		if (this.maxNumberOfMessages != null) {
 			simpleMessageListenerContainer.setMaxNumberOfMessages(this.maxNumberOfMessages);
 		}
-		if (this.messageHandler != null) {
-			this.messageHandler.setCustomArgumentResolvers(this.customArgumentResolvers);
-			this.messageHandler.setCustomReturnValueHandlers(this.customReturnValueHandlers);
-
-			simpleMessageListenerContainer.setMessageHandler(this.messageHandler);
-		} else {
-			simpleMessageListenerContainer.setMessageHandler(getDefaultMessageHandler());
-		}
 		if (this.visibilityTimeout != null) {
 			simpleMessageListenerContainer.setVisibilityTimeout(this.visibilityTimeout);
 		}
@@ -152,35 +125,5 @@ public class SimpleMessageListenerContainerFactory {
 		}
 
 		return simpleMessageListenerContainer;
-	}
-
-	private QueueMessageHandler getDefaultMessageHandler() {
-		this.customReturnValueHandlers.add(new SendToHandlerMethodReturnValueHandler(getDefaultSendToQueueMessagingTemplate(this.amazonSqs, this.resourceIdResolver)));
-
-		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
-		queueMessageHandler.setCustomArgumentResolvers(this.customArgumentResolvers);
-		queueMessageHandler.setCustomReturnValueHandlers(this.customReturnValueHandlers);
-
-		return queueMessageHandler;
-	}
-
-	protected QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
-		QueueMessagingTemplate sendToQueueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-		List<MessageConverter> messageConverters = new ArrayList<>(2);
-
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		stringMessageConverter.setSerializedPayloadClass(String.class);
-		messageConverters.add(stringMessageConverter);
-
-		if (JACKSON_2_PRESENT) {
-			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
-			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
-			messageConverters.add(mappingJackson2MessageConverter);
-		}
-
-		CompositeMessageConverter compositeMessageConverter = new CompositeMessageConverter(messageConverters);
-		sendToQueueMessagingTemplate.setMessageConverter(compositeMessageConverter);
-
-		return sendToQueueMessagingTemplate;
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
@@ -29,6 +30,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -36,6 +41,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MimeType;
 
 import java.nio.charset.Charset;
@@ -403,6 +409,17 @@ public class SimpleMessageListenerContainerTest {
 		assertEquals(mimeType, this.stringMessageCaptor.getValue().getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
+	@Test
+	public void queueMessageHandler_withJavaConfig_shouldScanTheListenerMethods() throws Exception {
+		// Arrange & Act
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(SqsTestConfig.class, TestMessageListener.class);
+		SimpleMessageListenerContainer simpleMessageListenerContainer = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		QueueMessageHandler queueMessageHandler = (QueueMessageHandler) ReflectionTestUtils.getField(simpleMessageListenerContainer, "messageHandler");
+
+		// Assert
+		assertEquals(1, queueMessageHandler.getHandlerMethods().size());
+	}
+
 	private static class TestMessageListener {
 
 		private String message;
@@ -431,6 +448,20 @@ public class SimpleMessageListenerContainerTest {
 		public String getMessage() {
 			return this.message;
 		}
+	}
+
+	@Configuration
+	@EnableSqs
+	protected static class SqsTestConfig {
+
+		@Bean
+		public AmazonSQS amazonSQS() {
+			AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
+			when(mockAmazonSQS.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+					withQueueUrl("http://testQueue.amazonaws.com"));
+			return mockAmazonSQS;
+		}
+
 	}
 
 }
