@@ -16,13 +16,10 @@
 
 package org.springframework.cloud.aws;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import org.springframework.cloud.aws.context.config.annotation.EnableCredentialsProvider;
+import org.springframework.cloud.aws.context.config.annotation.EnableRegionProvider;
 import org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.cloud.aws.support.TestStackEnvironment;
 import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 import org.springframework.context.annotation.Bean;
@@ -37,12 +34,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @EnableCredentialsProvider(accessKey = "${cloud.aws.credentials.accessKey}", secretKey = "${cloud.aws.credentials.secretKey}")
 @EnableStackConfiguration(stackName = "IntegrationTestStack")
 @PropertySource("file://${els.config.dir}/access.properties")
+@EnableRegionProvider(region = "EU_WEST_1")
 public class IntegrationTestConfig {
-
-	@Bean(name = AmazonWebserviceClientConfigurationUtils.REGION_PROVIDER_BEAN_NAME)
-	public RegionProvider regionProvider() {
-		return new StaticRegionProvider(Regions.EU_WEST_1);
-	}
 
 	@Bean
 	public TestStackEnvironment testStackEnvironment(AmazonCloudFormation amazonCloudFormation) {
