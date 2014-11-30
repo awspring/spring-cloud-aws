@@ -17,10 +17,9 @@
 package org.springframework.cloud.aws.messaging;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
@@ -34,8 +33,7 @@ import static org.junit.Assert.assertEquals;
  * @author Alain Sahli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class QueueMessagingTemplateIntegrationTest {
+public abstract class QueueMessagingTemplateIntegrationTest {
 
 	private static final String JSON_QUEUE_NAME = "JsonQueue";
 	private static final String STRING_QUEUE_NAME = "StringQueue";

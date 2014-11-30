@@ -16,16 +16,15 @@
 
 package org.springframework.cloud.aws.messaging;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
+import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
+import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.concurrent.CountDownLatch;
@@ -38,8 +37,7 @@ import static org.junit.Assert.assertTrue;
  * @author Alain Sahli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class NotificationMessagingTemplateIntegrationTest {
+public abstract class NotificationMessagingTemplateIntegrationTest {
 
 	@Autowired
 	private NotificationMessagingTemplate notificationMessagingTemplate;
