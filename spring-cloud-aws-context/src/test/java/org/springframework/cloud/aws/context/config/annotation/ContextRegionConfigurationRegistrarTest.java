@@ -22,7 +22,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -36,7 +36,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class ContextRegionConfigurationTest {
+public class ContextRegionConfigurationRegistrarTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
@@ -112,7 +112,7 @@ public class ContextRegionConfigurationTest {
 	@Test
 	public void regionProvider_withNoRegionAndNoAutoDetection_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(BeanCreationException.class);
+		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("Region must be manually configured or autoDetect enabled");
 
 		this.context = new AnnotationConfigApplicationContext();
@@ -128,7 +128,7 @@ public class ContextRegionConfigurationTest {
 	@Test
 	public void regionProvider_withRegionAndAutoDetection_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(BeanCreationException.class);
+		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No region must be configured if autoDetect is defined as true");
 
 		this.context = new AnnotationConfigApplicationContext();
@@ -144,8 +144,8 @@ public class ContextRegionConfigurationTest {
 	@Test
 	public void regionProvider_withConfiguredWrongRegion_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(BeanCreationException.class);
-		this.expectedException.expectMessage("No enum constant");
+		this.expectedException.expect(UnsatisfiedDependencyException.class);
+		this.expectedException.expectMessage("no matching editors or conversion strategy found");
 
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithWrongRegion.class);
 

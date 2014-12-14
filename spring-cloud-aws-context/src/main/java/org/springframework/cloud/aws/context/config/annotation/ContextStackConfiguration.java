@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextDefaultConfiguration.class)
+@Import(ContextDefaultConfigurationRegistrar.class)
 public class ContextStackConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;

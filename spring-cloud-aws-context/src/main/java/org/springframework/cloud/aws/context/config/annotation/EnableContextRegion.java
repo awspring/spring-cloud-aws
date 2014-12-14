@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(ContextRegionConfiguration.class)
+@Import(ContextRegionConfigurationRegistrar.class)
 public @interface EnableContextRegion {
 
 	/**

@@ -22,7 +22,7 @@ import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -43,7 +43,7 @@ import java.util.List;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextDefaultConfiguration.class)
+@Import(ContextDefaultConfigurationRegistrar.class)
 public class ElastiCacheCachingConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;

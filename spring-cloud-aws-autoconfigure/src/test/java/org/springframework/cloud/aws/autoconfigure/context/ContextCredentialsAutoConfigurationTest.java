@@ -51,9 +51,14 @@ public class ContextCredentialsAutoConfigurationTest {
 
 	@Test
 	public void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() throws Exception {
+		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextCredentialsAutoConfiguration.class);
+
+		// Act
 		this.context.refresh();
+
+		// Assert
 		assertNotNull(this.context.getBean(AWSCredentialsProvider.class));
 		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(this.context.getBean(AWSCredentialsProvider.class)));
 	}

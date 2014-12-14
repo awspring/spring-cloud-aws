@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package org.springframework.cloud.aws.context.config.annotation;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.env.Environment;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.Assert;
 
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerRegionProvider;
 
@@ -30,24 +29,18 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextRegionProviderAutoConfiguration.Registrar.class)
-public class ContextRegionProviderAutoConfiguration {
+public class ContextRegionConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
-	static class Registrar implements EnvironmentAware, ImportBeanDefinitionRegistrar {
+	@Override
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
+				importingClassMetadata.getAnnotationAttributes(EnableContextRegion.class.getName(), false));
+		Assert.notNull(annotationAttributes,
+				"@EnableRegionProvider is not present on importing class " + importingClassMetadata.getClassName());
 
-		private Environment environment;
+		boolean autoDetect = annotationAttributes.getBoolean("autoDetect");
+		String configuredRegion = annotationAttributes.getString("region");
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			if (this.environment.containsProperty("cloud.aws.region.auto") || this.environment.containsProperty("cloud.aws.region.static")) {
-				registerRegionProvider(registry, this.environment.containsProperty("cloud.aws.region.auto"),
-						this.environment.getProperty("cloud.aws.region.static"));
-			}
-		}
-
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
-		}
+		registerRegionProvider(registry, autoDetect, configuredRegion);
 	}
 }

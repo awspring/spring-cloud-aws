@@ -16,10 +16,11 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.type.AnnotationMetadata;
 
 /**
  * Configuration class that configures "default" beans that are used by all components.
@@ -27,11 +28,10 @@ import org.springframework.context.annotation.Configuration;
  * @author Agim Emruli
  */
 @Configuration
-public class ContextDefaultConfiguration {
+public class ContextDefaultConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
-	@Bean(name = "org.springframework.cloud.aws.core.env.ResourceIdResolver.BEAN_NAME")
-	public ResourceIdResolver resourceIdResolver() {
-		return new StackResourceRegistryDetectingResourceIdResolver();
+	@Override
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
 	}
-
 }
