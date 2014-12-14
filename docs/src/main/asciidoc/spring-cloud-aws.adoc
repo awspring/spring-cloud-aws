@@ -220,7 +220,7 @@ The configuration might look like this for a database service (described later)
 ----
  <beans ...>
   <aws-context:context-region region="EU_CENTRAL_1" />
-  <jdbc:dataSource ... region="EU_WEST_1" />
+  <jdbc:data-source ... region="EU_WEST_1" />
  </beans>
 ----
 
@@ -603,7 +603,7 @@ resource is configured using a CloudFormation template, defining a logical name 
 The datasource is then created and will receive a physical name (e.g. ir142c39k6o5irj) as the database service name. Application
 developers can still use the logical name (in this case `applicationDatabase`) to interact with the database. The example
 below shows the stack configuration which is defined by the element `aws-context:stack-configuration` and resolves automatically
-the particular stack. The `dataSource` element uses the logical name for the `db-instance-identifier` attribute to work with
+the particular stack. The `data-source` element uses the logical name for the `db-instance-identifier` attribute to work with
 the database.
 
 [source,xml,indent=0]
@@ -622,7 +622,7 @@ the database.
 
   <aws-context:stack-configuration/>
 
-  <jdbc:dataSource id="dataSource" db-instance-identifier="applicationDatabase" ... />
+  <jdbc:data-source db-instance-identifier="applicationDatabase" ... />
 </beans>
 ----
 
@@ -1347,10 +1347,10 @@ to configure the datasource with the minimum attributes as shown in the example:
 
  <aws-context:context-region region="..."/>
 
-<jdbc:dataSource id="dataSource"
+<jdbc:data-source
 		 db-instance-identifier="myRdsDatabase"
 		 password="${rdsPassword}">
-</jdbc:dataSource>
+</jdbc:data-source>
 </beans>
 ----
 
@@ -1396,12 +1396,12 @@ with custom pool properties.
 
  <aws-context:context-region region="..."/>
 
- <jdbc:dataSource id="dataSource"
+ <jdbc:data-source
 		 db-instance-identifier="myRdsDatabase"
 		 password="${rdsPassword}">
 		 <jdbc:pool-attributes initialSize="1" " maxActive="200" minIdle="10"
          		testOnBorrow="true" validationQuery="SELECT 1" />
- </jdbc:dataSource>
+ </jdbc:data-source>
 
 </beans>
 ----
@@ -1482,10 +1482,10 @@ The read-replica support can be enabled with the `read-replica` attribute in the
 [source,xml,indent=0]
 ----
 <beans ..>
- <jdbc:dataSource id="dataSource" db-instance-identifier="RdsSingleMicroInstance"
+ <jdbc:data-source db-instance-identifier="RdsSingleMicroInstance"
 	password="${rdsPassword}" read-replica-support="true">
 
- </jdbc:dataSource>
+ </jdbc:data-source>
 </beans>
 ----
 
@@ -1615,18 +1615,18 @@ database is outlined below:
 ----
 <beans>
  <aws-context:stack-configuration/>
- <jdbc:dataSource id="dataSource" db-instance-identifier="myRdsDatabase" password="${rdsPassword}" read-replica-support="true"/>
+ <jdbc:data-source db-instance-identifier="myRdsDatabase" password="${rdsPassword}" read-replica-support="true"/>
 </beans>
 ----
 
 === Database tags
 Amazon RDS instances can also be configured using RDS database specific tags, allowing users to configure database specific
 configuration metadata with the database. Database instance specific tags can be configured using the `user-tags-map` attribute
-on the `dataSource` element. Configuring the tags support like in the example below:
+on the `data-source` element. Configuring the tags support like in the example below:
 
 [source,xml,indent=0]
 ----
-	<jdbc:dataSource id="dataSource"
+	<jdbc:data-source
 		db-instance-identifier="myRdsDatabase"
 		password="${rdsPassword}" user-tags-map="dbTags" />
 ----

@@ -26,7 +26,7 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password"
+  <jdbc:data-source db-instance-identifier="test" password="password"
 					 region-provider="myRegionProvider" region="EU_WEST_1" />
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">

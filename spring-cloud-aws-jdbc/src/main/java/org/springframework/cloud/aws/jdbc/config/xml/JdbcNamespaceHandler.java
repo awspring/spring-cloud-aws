@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.jdbc.config.xml;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 
 /**
@@ -31,7 +31,7 @@ public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("dataSource", new AmazonRdsDataSourceBeanDefinitionParser());
+		registerBeanDefinitionParser("data-source", new AmazonRdsDataSourceBeanDefinitionParser());
 		registerBeanDefinitionParser("retry-interceptor", new AmazonRdsRetryInterceptorBeanDefinitionParser());
 	}
 }

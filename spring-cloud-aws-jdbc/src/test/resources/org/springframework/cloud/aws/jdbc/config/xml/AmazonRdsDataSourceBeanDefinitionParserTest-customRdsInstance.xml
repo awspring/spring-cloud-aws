@@ -26,7 +26,7 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password" user-tags-map="dsTags"
+	<jdbc:data-source db-instance-identifier="test" password="password" user-tags-map="dsTags"
 					 amazon-rds="amazonRds" amazon-identity-management="myIdentityService" />
 
 	<bean id="amazonRds" class="org.mockito.Mockito" factory-method="mock">

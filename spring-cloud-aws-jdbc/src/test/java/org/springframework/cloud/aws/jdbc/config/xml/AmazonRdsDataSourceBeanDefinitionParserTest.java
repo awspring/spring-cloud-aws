@@ -121,7 +121,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-readReplicaEnabled.xml", getClass()));
 
 		//Act
-		BeanDefinition beanDefinition = beanFactory.getBeanDefinition("dataSource");
+		BeanDefinition beanDefinition = beanFactory.getBeanDefinition("test");
 
 		//Assert
 		assertEquals(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class.getName(), beanDefinition.getBeanClassName());
@@ -194,7 +194,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 						)
 		);
 
-		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
+		BeanDefinition definition = beanFactory.getBeanDefinition("test");
 		assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
 		assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 		assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
@@ -215,7 +215,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-poolAttributes.xml", getClass()));
 
-		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
+		BeanDefinition definition = beanFactory.getBeanDefinition("test");
 
 		//Act
 		BeanDefinition dataSourceFactory = (BeanDefinition) definition.getPropertyValues().getPropertyValue("dataSourceFactory").getValue();
@@ -255,7 +255,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-defaultPoolAttributes.xml", getClass()));
 
 		//Act
-		BeanDefinition definition = beanFactory.getBeanDefinition("dataSource");
+		BeanDefinition definition = beanFactory.getBeanDefinition("test");
 		BeanDefinition dataSourceFactory = (BeanDefinition) definition.getPropertyValues().getPropertyValue("dataSourceFactory").getValue();
 
 		//Assert
