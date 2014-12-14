@@ -46,7 +46,7 @@ public class SimpleMessageListenerContainerFactory {
 
 	private ResourceIdResolver resourceIdResolver;
 
-	private DestinationResolvingMessageSendingOperations sendToMessageTemplate;
+	private DestinationResolvingMessageSendingOperations<?> sendToMessageTemplate;
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
@@ -93,11 +93,11 @@ public class SimpleMessageListenerContainerFactory {
 		return this.resourceIdResolver;
 	}
 
-	public void setSendToMessageTemplate(DestinationResolvingMessageSendingOperations sendToMessageTemplate) {
+	public void setSendToMessageTemplate(DestinationResolvingMessageSendingOperations<?> sendToMessageTemplate) {
 		this.sendToMessageTemplate = sendToMessageTemplate;
 	}
 
-	public DestinationResolvingMessageSendingOperations getSendToMessageTemplate() {
+	public DestinationResolvingMessageSendingOperations<?> getSendToMessageTemplate() {
 		return this.sendToMessageTemplate;
 	}
 
