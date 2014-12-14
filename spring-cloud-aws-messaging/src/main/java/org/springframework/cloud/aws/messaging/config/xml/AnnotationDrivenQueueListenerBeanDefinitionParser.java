@@ -16,11 +16,6 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -28,13 +23,15 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
+import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
+import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.core.Conventions;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
-
-import java.util.List;
 
 import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils.getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName;
 
@@ -48,13 +45,8 @@ import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClie
  */
 public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
-	private static final boolean JACKSON_2_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
-
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-
 		BeanDefinitionBuilder containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
 
 		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
@@ -95,18 +87,14 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	private static String getMessageHandlerBeanName(Element element, ParserContext parserContext, String sqsClientBeanName) {
 		BeanDefinitionBuilder queueMessageHandlerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
 
-		queueMessageHandlerDefinitionBuilder.addPropertyValue("defaultReturnValueHandler",
-				createSendToHandlerMethodReturnValueHandlerBeanDefinition(element, parserContext, sqsClientBeanName));
-
 		ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
 		if (!argumentResolvers.isEmpty()) {
 			queueMessageHandlerDefinitionBuilder.addPropertyValue("customArgumentResolvers", argumentResolvers);
 		}
 
-		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, parserContext);
-		if (!returnValueHandlers.isEmpty()) {
-			queueMessageHandlerDefinitionBuilder.addPropertyValue("customReturnValueHandlers", returnValueHandlers);
-		}
+		ManagedList<BeanDefinition> returnValueHandlers = getReturnValueHandlers(element, parserContext);
+		returnValueHandlers.add(createSendToHandlerMethodReturnValueHandlerBeanDefinition(element, parserContext, sqsClientBeanName));
+		queueMessageHandlerDefinitionBuilder.addPropertyValue("customReturnValueHandlers", returnValueHandlers);
 
 		String messageHandlerBeanName = parserContext.getReaderContext().generateBeanName(queueMessageHandlerDefinitionBuilder.getBeanDefinition());
 		parserContext.getRegistry().registerBeanDefinition(messageHandlerBeanName, queueMessageHandlerDefinitionBuilder.getBeanDefinition());
@@ -124,32 +112,13 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			templateBuilder.addConstructorArgReference(sqsClientBeanName);
 			templateBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 
-			registerMessageConverters(templateBuilder);
 			beanDefinitionBuilder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
 
 		return beanDefinitionBuilder.getBeanDefinition();
 	}
 
-	private static void registerMessageConverters(BeanDefinitionBuilder builder) {
-		List<BeanDefinition> messageConverters = new ManagedList<>();
-
-		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
-		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
-
-		if (JACKSON_2_PRESENT) {
-			BeanDefinitionBuilder jacksonBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-			jacksonBeanDefinitionBuilder.addPropertyValue("serializedPayloadClass", String.class);
-			messageConverters.add(jacksonBeanDefinitionBuilder.getBeanDefinition());
-		}
-
-		BeanDefinitionBuilder compositeMessageConverterBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.CompositeMessageConverter");
-		compositeMessageConverterBeanDefinitionBuilder.addConstructorArgValue(messageConverters);
-		builder.addPropertyValue("messageConverter", compositeMessageConverterBeanDefinitionBuilder.getBeanDefinition());
-	}
-
-	private static ManagedList<BeanDefinitionHolder> getArgumentResolvers(Element element, ParserContext parserContext) {
+	private static ManagedList<BeanDefinition> getArgumentResolvers(Element element, ParserContext parserContext) {
 		Element resolversElement = DomUtils.getChildElementByTagName(element, "argument-resolvers");
 		if (resolversElement != null) {
 			return extractBeanSubElements(resolversElement, parserContext);
@@ -158,7 +127,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		}
 	}
 
-	private static ManagedList<BeanDefinitionHolder> getReturnValueHandlers(Element element, ParserContext parserContext) {
+	private static ManagedList<BeanDefinition> getReturnValueHandlers(Element element, ParserContext parserContext) {
 		Element handlersElement = DomUtils.getChildElementByTagName(element, "return-value-handlers");
 		if (handlersElement != null) {
 			return extractBeanSubElements(handlersElement, parserContext);
@@ -167,13 +136,13 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 		}
 	}
 
-	private static ManagedList<BeanDefinitionHolder> extractBeanSubElements(Element parentElement, ParserContext parserContext) {
-		ManagedList<BeanDefinitionHolder> list = new ManagedList<>();
+	private static ManagedList<BeanDefinition> extractBeanSubElements(Element parentElement, ParserContext parserContext) {
+		ManagedList<BeanDefinition> list = new ManagedList<>();
 		list.setSource(parserContext.extractSource(parentElement));
 		for (Element beanElement : DomUtils.getChildElementsByTagName(parentElement, "bean")) {
 			BeanDefinitionHolder beanDef = parserContext.getDelegate().parseBeanDefinitionElement(beanElement);
 			beanDef = parserContext.getDelegate().decorateBeanDefinitionIfRequired(beanElement, beanDef);
-			list.add(beanDef);
+			list.add(beanDef.getBeanDefinition());
 		}
 		return list;
 	}

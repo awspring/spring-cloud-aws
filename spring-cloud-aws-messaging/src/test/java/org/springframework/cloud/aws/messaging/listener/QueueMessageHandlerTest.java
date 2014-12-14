@@ -19,9 +19,6 @@ package org.springframework.cloud.aws.messaging.listener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -30,6 +27,10 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
+import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
@@ -120,7 +121,9 @@ public class QueueMessageHandlerTest {
 
 	private AbstractBeanDefinition getQueueMessageHandlerBeanDefinition() {
 		BeanDefinitionBuilder queueMessageHandlerBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
-		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("defaultReturnValueHandler", new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
+		ManagedList<HandlerMethodReturnValueHandler> returnValueHandlers = new ManagedList<>(1);
+		returnValueHandlers.add(new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
+		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("returnValueHandlers", returnValueHandlers);
 		return queueMessageHandlerBeanDefinitionBuilder.getBeanDefinition();
 	}
 

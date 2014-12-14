@@ -25,6 +25,8 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.junit.Assert.assertEquals;
@@ -134,6 +136,19 @@ public class QueueMessagingTemplateTest {
 		String message = queueMessagingTemplate.receiveAndConvert("my-queue", String.class);
 
 		assertEquals("My message", message);
+	}
+
+	@Test
+	public void instantiation_withConverter_shouldAddItToTheCompositeConverter() throws Exception {
+		// Arrange
+		SimpleMessageConverter simpleMessageConverter = new SimpleMessageConverter();
+
+		// Act
+		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(createAmazonSqs(), null, simpleMessageConverter);
+
+		// Assert
+		assertEquals(2, ((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter()).getConverters().size());
+		assertEquals(simpleMessageConverter, ((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter()).getConverters().get(1));
 	}
 
 	private AmazonSQS createAmazonSqs() {

@@ -25,6 +25,9 @@ import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmaz
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
+import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
@@ -54,14 +57,45 @@ public class SqsConfigurationSupport {
 	@Bean
 	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQS amazonSqs) {
 		if (this.simpleMessageListenerContainerFactory == null) {
-			this.simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory(amazonSqs);
+			this.simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+		}
+		if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
+			this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
+		}
+		if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null) {
 			this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
 		}
 
-		addReturnValueHandlers(this.simpleMessageListenerContainerFactory.getCustomReturnValueHandlers());
-		addArgumentResolvers(this.simpleMessageListenerContainerFactory.getCustomArgumentResolvers());
+		SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory.createSimpleMessageListenerContainer();
+		simpleMessageListenerContainer.setMessageHandler(queueMessageHandler(amazonSqs));
+		return simpleMessageListenerContainer;
+	}
 
-		return this.simpleMessageListenerContainerFactory.createSimpleMessageListenerContainer();
+	@Bean
+	public QueueMessageHandler queueMessageHandler(AmazonSQS amazonSqs) {
+		if (this.simpleMessageListenerContainerFactory != null && this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
+			return this.simpleMessageListenerContainerFactory.getQueueMessageHandler();
+		} else {
+			return getDefaultMessageHandler(amazonSqs);
+		}
+	}
+
+	private QueueMessageHandler getDefaultMessageHandler(AmazonSQS amazonSqs) {
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		addArgumentResolvers(queueMessageHandler.getCustomArgumentResolvers());
+		addReturnValueHandlers(queueMessageHandler.getCustomReturnValueHandlers());
+
+		if (this.simpleMessageListenerContainerFactory != null && this.simpleMessageListenerContainerFactory.getSendToMessageTemplate() != null) {
+			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(this.simpleMessageListenerContainerFactory.getSendToMessageTemplate()));
+		} else {
+			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(getDefaultSendToQueueMessagingTemplate(amazonSqs, this.resourceIdResolver)));
+		}
+
+		return queueMessageHandler;
+	}
+
+	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 	}
 
 	@Lazy
@@ -87,5 +121,4 @@ public class SqsConfigurationSupport {
 
 	protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 	}
-
 }

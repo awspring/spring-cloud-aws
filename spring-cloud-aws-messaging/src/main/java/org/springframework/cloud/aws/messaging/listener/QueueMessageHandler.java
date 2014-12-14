@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
@@ -35,6 +34,7 @@ import org.springframework.messaging.handler.invocation.AbstractExceptionHandler
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.comparator.ComparableComparator;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -55,14 +55,9 @@ import java.util.Set;
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
 
-	private HandlerMethodReturnValueHandler defaultReturnValueHandler;
+	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
+			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
 
-	@RuntimeUse
-	public void setDefaultReturnValueHandler(HandlerMethodReturnValueHandler defaultReturnValueHandler) {
-		this.defaultReturnValueHandler = defaultReturnValueHandler;
-	}
-
-	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 		resolvers.addAll(getCustomArgumentResolvers());
@@ -82,9 +77,6 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
 		ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
 		handlers.addAll(this.getCustomReturnValueHandlers());
-		if (this.defaultReturnValueHandler != null) {
-			handlers.add(this.defaultReturnValueHandler);
-		}
 
 		return handlers;
 	}
@@ -148,10 +140,12 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
 		List<MessageConverter> payloadArgumentConverters = new ArrayList<>();
 
-		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
-		jacksonMessageConverter.setSerializedPayloadClass(String.class);
-		jacksonMessageConverter.setStrictContentTypeMatch(true);
-		payloadArgumentConverters.add(jacksonMessageConverter);
+		if (JACKSON_2_PRESENT) {
+			MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+			jacksonMessageConverter.setSerializedPayloadClass(String.class);
+			jacksonMessageConverter.setStrictContentTypeMatch(true);
+			payloadArgumentConverters.add(jacksonMessageConverter);
+		}
 
 		ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
 		objectMessageConverter.setStrictContentTypeMatch(true);

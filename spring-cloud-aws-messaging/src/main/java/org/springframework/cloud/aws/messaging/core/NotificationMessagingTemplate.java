@@ -21,6 +21,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
 
@@ -38,6 +39,13 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
 		super(new DynamicTopicDestinationResolver(amazonSns, resourceIdResolver));
 		this.amazonSns = amazonSns;
+		initMessageConverter();
+	}
+
+	private void initMessageConverter() {
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		setMessageConverter(stringMessageConverter);
 	}
 
 	public NotificationMessagingTemplate(AmazonSNS amazonSns) {

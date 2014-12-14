@@ -16,20 +16,13 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
-import org.springframework.util.ClassUtils;
+import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
-
-import java.util.List;
 
 import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils.getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName;
 
@@ -40,9 +33,6 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 
 	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
 	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
-	private static final boolean JACKSON_2_PRESENT =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader()) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", QueueMessagingTemplateBeanDefinitionParser.class.getClassLoader());
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -57,32 +47,12 @@ public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBe
 			builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
 		}
 
-		registerMessageConverters(builder, element);
 		builder.addConstructorArgReference(amazonSqsClientBeanName);
 		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-	}
-
-	private void registerMessageConverters(BeanDefinitionBuilder builder, Element element) {
-		List<BeanMetadataElement> messageConverters = new ManagedList<>();
-
-		BeanDefinitionBuilder stringMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.StringMessageConverter");
-		stringMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-		messageConverters.add(stringMessageConverterBuilder.getBeanDefinition());
 
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			messageConverters.add(new RuntimeBeanReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE)));
-		} else {
-			if (JACKSON_2_PRESENT) {
-				BeanDefinitionBuilder jacksonMessageConverterBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
-				jacksonMessageConverterBuilder.addPropertyValue("serializedPayloadClass", String.class);
-				messageConverters.add(jacksonMessageConverterBuilder.getBeanDefinition());
-			}
+			builder.addConstructorArgReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
 		}
-
-		BeanDefinitionBuilder compositeMessageConverterBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition("org.springframework.messaging.converter.CompositeMessageConverter");
-		compositeMessageConverterBeanDefinitionBuilder.addConstructorArgValue(messageConverters);
-
-		builder.addPropertyValue(Conventions.attributeNameToPropertyName(MESSAGE_CONVERTER_ATTRIBUTE), compositeMessageConverterBeanDefinitionBuilder.getBeanDefinition());
 	}
 
 }

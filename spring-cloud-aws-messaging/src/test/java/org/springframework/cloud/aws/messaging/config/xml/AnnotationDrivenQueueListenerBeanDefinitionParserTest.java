@@ -20,20 +20,21 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
+import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
+import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.MethodParameter;
@@ -160,9 +161,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertNotNull(queueMessageHandler);
 
 		assertEquals(1, queueMessageHandler.getPropertyValues().size());
-		AbstractBeanDefinition returnValueHandler = (AbstractBeanDefinition) queueMessageHandler.getPropertyValues().getPropertyValue("defaultReturnValueHandler").getValue();
+		ManagedList returnValueHandlers = (ManagedList) queueMessageHandler.getPropertyValues().getPropertyValue("customReturnValueHandlers").getValue();
+		assertEquals(1, returnValueHandlers.size());
+		RootBeanDefinition sendToReturnValueHandler = (RootBeanDefinition) returnValueHandlers.get(0);
+
 		assertEquals("messageTemplate",
-				((RuntimeBeanReference) returnValueHandler.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
+				((RuntimeBeanReference) sendToReturnValueHandler.getConstructorArgumentValues().getArgumentValue(0, RuntimeBeanReference.class).getValue()).getBeanName());
 	}
 
 	@Test
@@ -212,7 +216,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		//Assert
 		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
-		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().size());
+		assertEquals(2, applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().size());
 		assertTrue(TestHandlerMethodReturnValueHandler.class.isInstance(applicationContext.getBean(QueueMessageHandler.class).getCustomReturnValueHandlers().get(0)));
 	}
 

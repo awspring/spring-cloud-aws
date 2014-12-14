@@ -18,14 +18,14 @@ package org.springframework.cloud.aws.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
