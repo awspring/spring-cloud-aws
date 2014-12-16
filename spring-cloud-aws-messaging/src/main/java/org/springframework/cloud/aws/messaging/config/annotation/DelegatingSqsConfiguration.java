@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.messaging.config.annotation;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -31,7 +31,7 @@ import java.util.List;
  * @since 1.0
  */
 @Configuration
-@Import(ContextDefaultConfiguration.class)
+@Import(ContextDefaultConfigurationRegistrar.class)
 public class DelegatingSqsConfiguration extends SqsConfigurationSupport {
 
 	private final QueueMessageHandlerConfigurerComposite configurers = new QueueMessageHandlerConfigurerComposite();

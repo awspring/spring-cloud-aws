@@ -277,7 +277,7 @@ public class DelegatingSqsConfigurationTest {
 	@Configuration
 	public static class ConfigurationWithCustomSendToMessageTemplate {
 
-		public static final DestinationResolvingMessageSendingOperations SEND_TO_MESSAGE_TEMPLATE = mock(DestinationResolvingMessageSendingOperations.class);
+		public static final DestinationResolvingMessageSendingOperations<?> SEND_TO_MESSAGE_TEMPLATE = mock(DestinationResolvingMessageSendingOperations.class);
 
 		@Bean
 		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {

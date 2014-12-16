@@ -27,7 +27,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
 				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd" />
 
-	<xsd:element name="dataSource">
+	<xsd:element name="data-source">
 		<xsd:annotation>
 			<xsd:documentation source="java:org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean">
 				<![CDATA[
@@ -51,15 +51,6 @@
 			</xsd:sequence>
 
 			<xsd:attributeGroup ref="aws-context:locationAttributeGroup" />
-
-			<xsd:attribute name="id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-					The unique identifier for a bean. A bean id may not be used more than once
-					within the same <beans> element.
-								]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

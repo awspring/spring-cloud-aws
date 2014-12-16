@@ -16,47 +16,38 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotationMetadata;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerCredentialsProvider;
 
 /**
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextDefaultConfiguration.class)
+@Import({ContextDefaultConfigurationRegistrar.class, ContextCredentialsAutoConfiguration.Registrar.class})
 public class ContextCredentialsAutoConfiguration {
 
-	@Autowired
-	private Environment environment;
+	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
-	@Bean(name = {AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME})
-	public FactoryBean<AWSCredentialsProvider> defaultCredentialsProvider() throws Exception {
-		List<AWSCredentialsProvider> awsCredentialsProviders = new ArrayList<>();
-		if (this.environment.containsProperty("cloud.aws.credentials.accessKey")) {
-			awsCredentialsProviders.add(new StaticCredentialsProvider(new BasicAWSCredentials(this.environment.getProperty("cloud.aws.credentials.accessKey"),
-					this.environment.getProperty("cloud.aws.credentials.secretKey"))));
+		private Environment environment;
+
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = environment;
 		}
 
-		if (this.environment.containsProperty("cloud.aws.credentials.instanceProfile")) {
-			awsCredentialsProviders.add(new InstanceProfileCredentialsProvider());
+		@Override
+		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+			registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
+					this.environment.getProperty("cloud.aws.credentials.secretKey"),
+					this.environment.containsProperty("cloud.aws.credentials.instanceProfile"));
 		}
-
-		return new CredentialsProviderFactoryBean(awsCredentialsProviders);
 	}
-
-
 }

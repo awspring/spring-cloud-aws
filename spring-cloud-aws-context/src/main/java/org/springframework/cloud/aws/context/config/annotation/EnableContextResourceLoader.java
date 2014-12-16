@@ -24,33 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Enables a credentials provider configuration for the application context, that
- * credentials provider is used for all automatically created amazon web services client
- * (either through annotations or xml).
- *
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Import(ContextCredentialsConfigurationRegistrar.class)
 @Target(ElementType.TYPE)
-public @interface EnableContextCredentials {
+@Import(ContextResourceLoaderConfigurationRegistrar.class)
+public @interface EnableContextResourceLoader {
 
-	/**
-	 * Configures the access key that will be used by the credentials provider.
-	 *
-	 * @return accessKey that should be used for all web service requests
-	 */
-	String accessKey() default "";
-
-	/**
-	 * Configures the secret key that will be used by the credentials provider
-	 * @return secretKey that should be used for all web service requests
-	 */
-	String secretKey() default "";
-
-	/**
-	 * Enables a instance profile specific credentials provider
-	 * @return true if the instance profile credentials provider should be configured
-	 */
-	boolean instanceProfile() default false;
 }

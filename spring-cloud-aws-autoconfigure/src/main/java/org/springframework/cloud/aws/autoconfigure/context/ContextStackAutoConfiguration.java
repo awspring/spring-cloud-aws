@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.context.config.annotation.ContextStackConfiguration;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +31,7 @@ import org.springframework.core.env.Environment;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextCredentialsAutoConfiguration.class)
+@Import({ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class})
 public class ContextStackAutoConfiguration {
 
 	@Configuration

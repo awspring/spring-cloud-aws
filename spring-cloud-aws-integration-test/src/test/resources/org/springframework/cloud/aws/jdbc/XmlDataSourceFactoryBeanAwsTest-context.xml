@@ -28,13 +28,13 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-	<jdbc:dataSource id="dataSource"
+	<jdbc:data-source
 					 db-instance-identifier="RdsSingleMicroInstance"
 					 password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
 		<jdbc:pool-attributes initialSize="1"
 							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
 							  testOnBorrow="true" validationQuery="SELECT 1" />
-	</jdbc:dataSource>
+	</jdbc:data-source>
 
 	<jdbc:retry-interceptor db-instance-identifier="RdsSingleMicroInstance"
 							id="myInterceptor" back-off-policy="backOffPolicy" max-number-of-retries="10" />
@@ -48,7 +48,8 @@
 	<tx:annotation-driven />
 
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource" />
+		<!--suppress SpringModelInspection -->
+		<property name="dataSource" ref="RdsSingleMicroInstance" />
 	</bean>
 
 	<aop:config>

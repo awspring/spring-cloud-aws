@@ -161,7 +161,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertNotNull(queueMessageHandler);
 
 		assertEquals(1, queueMessageHandler.getPropertyValues().size());
-		ManagedList returnValueHandlers = (ManagedList) queueMessageHandler.getPropertyValues().getPropertyValue("customReturnValueHandlers").getValue();
+		ManagedList<?> returnValueHandlers = (ManagedList<?>) queueMessageHandler.getPropertyValues().getPropertyValue("customReturnValueHandlers").getValue();
 		assertEquals(1, returnValueHandlers.size());
 		RootBeanDefinition sendToReturnValueHandler = (RootBeanDefinition) returnValueHandlers.get(0);
 

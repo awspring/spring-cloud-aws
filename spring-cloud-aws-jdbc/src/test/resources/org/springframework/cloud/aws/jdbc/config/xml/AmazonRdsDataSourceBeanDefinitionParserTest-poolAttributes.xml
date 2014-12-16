@@ -26,7 +26,7 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-	<jdbc:dataSource id="dataSource" db-instance-identifier="test" password="password">
+	<jdbc:data-source db-instance-identifier="test" password="password">
 		<jdbc:pool-attributes connectionProperties="foo=bar" defaultAutoCommit="true"
 							  defaultCatalog="mySchema" defaultReadOnly="true"
 							  defaultTransactionIsolation="2" initialSize="10"
@@ -36,5 +36,5 @@
 							  testOnReturn="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="4000"
 							  validationQuery="SELECT 1"
 							  validatorClassName="org.springframework.cloud.aws.jdbc.config.xml.SampleValidator" />
-	</jdbc:dataSource>
+	</jdbc:data-source>
 </beans>

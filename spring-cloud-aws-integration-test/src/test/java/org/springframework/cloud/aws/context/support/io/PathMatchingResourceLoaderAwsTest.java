@@ -18,12 +18,11 @@ package org.springframework.cloud.aws.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.ByteArrayInputStream;
@@ -43,8 +42,7 @@ import static org.junit.Assert.assertEquals;
  */
 @SuppressWarnings("SpringJavaAutowiringInspection")
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class PathMatchingResourceLoaderAwsTest {
+public abstract class PathMatchingResourceLoaderAwsTest {
 
 	private static final List<String> FILES_FOR_HIERARCHY = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
 			"foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");

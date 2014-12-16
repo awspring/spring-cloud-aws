@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.aws.jdbc.datasource;
 
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
+import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -48,7 +48,7 @@ public class DynamicDataSourceTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Rule
-	public Timeout timeout = new Timeout(30 * 1000);
+	public Timeout timeout = new Timeout(30 * 1000, TimeUnit.MILLISECONDS);
 
 	@Test
 	public void testGetConnectionWithReadyDataSource() throws Exception {

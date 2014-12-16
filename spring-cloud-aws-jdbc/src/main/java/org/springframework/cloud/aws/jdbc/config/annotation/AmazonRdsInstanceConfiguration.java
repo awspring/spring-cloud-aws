@@ -19,11 +19,14 @@ package org.springframework.cloud.aws.jdbc.config.annotation;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfiguration;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.config.support.ContextAnnotationConfigUtil;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
@@ -44,8 +47,8 @@ import javax.sql.DataSource;
  * @author Agim Emruli
  */
 @Configuration
-@Import(ContextDefaultConfiguration.class)
-public class AmazonRdsInstanceConfiguration implements ImportAware {
+@Import(ContextDefaultConfigurationRegistrar.class)
+public class AmazonRdsInstanceConfiguration implements ImportAware, BeanFactoryAware {
 
 	private AnnotationAttributes annotationAttributes;
 
@@ -55,7 +58,6 @@ public class AmazonRdsInstanceConfiguration implements ImportAware {
 	@Autowired(required = false)
 	private RegionProvider regionProvider;
 
-	@Autowired
 	private ConfigurableBeanFactory beanFactory;
 
 	@Override
@@ -102,5 +104,10 @@ public class AmazonRdsInstanceConfiguration implements ImportAware {
 		dataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		return dataSourceFactoryBean;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
 	}
 }
