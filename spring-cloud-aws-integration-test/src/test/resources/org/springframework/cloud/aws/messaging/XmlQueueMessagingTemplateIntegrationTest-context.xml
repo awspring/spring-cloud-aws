@@ -37,7 +37,4 @@
 	<aws-messaging:queue-messaging-template id="queueMessagingTemplateWithCustomConverter" message-converter="objectMessageConverter"
 											default-destination="StreamQueue" />
 	<bean id="objectMessageConverter" class="org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter" />
-
-	<!--suppress UnparsedCustomBeanInspection -->
-	<aws-messaging:queue-messaging-template id="jsonMessage" />
 </beans>

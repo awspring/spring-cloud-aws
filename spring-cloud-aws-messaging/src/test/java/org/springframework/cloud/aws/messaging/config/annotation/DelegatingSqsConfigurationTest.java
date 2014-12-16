@@ -18,12 +18,15 @@ package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
@@ -170,6 +173,17 @@ public class DelegatingSqsConfigurationTest {
 		assertEquals(3, messageHandler.getCustomReturnValueHandlers().size());
 	}
 
+	@Test
+	public void configuration_withRegionProvider_shouldUseItForClient() throws Exception {
+		// Arrange & Act
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithRegionProvider.class);
+		AmazonSQS bufferedAmazonSqsClient = applicationContext.getBean(AmazonSQS.class);
+		AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(bufferedAmazonSqsClient, "realSQS");
+
+		// Assert
+		assertEquals("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqs, "endpoint").toString());
+	}
+
 	@EnableSqs
 	@Configuration
 	public static class MinimalConfiguration {
@@ -292,6 +306,13 @@ public class DelegatingSqsConfigurationTest {
 	@EnableSqs
 	@Configuration
 	public static class ConfigurationWithMissingAwsCredentials {
+
+	}
+
+	@EnableSqs
+	@EnableContextRegion(region = "EU_WEST_1")
+	@Configuration
+	public static class ConfigurationWithRegionProvider {
 
 	}
 

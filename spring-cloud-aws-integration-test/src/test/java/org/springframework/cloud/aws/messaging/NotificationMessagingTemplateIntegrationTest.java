@@ -85,7 +85,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest {
 	}
 
 	@RuntimeUse
-	private static class NotificationReceiver {
+	protected static class NotificationReceiver {
 
 		private CountDownLatch countDownLatch;
 		private String message;

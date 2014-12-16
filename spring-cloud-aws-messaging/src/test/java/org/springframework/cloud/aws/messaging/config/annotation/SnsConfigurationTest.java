@@ -17,9 +17,12 @@
 package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mock.web.MockServletContext;
@@ -91,6 +94,17 @@ public class SnsConfigurationTest {
 		assertEquals(SnsConfigurationWithCustomAmazonClient.AMAZON_SNS, ReflectionTestUtils.getField(notificationStatusHandlerMethodArgumentResolver, "amazonSns"));
 	}
 
+	@Test
+	public void enableSns_withRegionProvided_shouldBeUsedToCreateClient() throws Exception {
+		// Arrange & Act
+		this.webApplicationContext.register(SnsConfigurationWithRegionProvider.class);
+		this.webApplicationContext.refresh();
+		AmazonSNS amazonSns = this.webApplicationContext.getBean(AmazonSNS.class);
+
+		// Assert
+		assertEquals("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"), ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
+	}
+
 	private NotificationStatusHandlerMethodArgumentResolver getNotificationStatusHandlerMethodArgumentResolver(List<HandlerMethodArgumentResolver> resolvers) {
 		for (HandlerMethodArgumentResolver resolver : resolvers) {
 			if (resolver instanceof NotificationStatusHandlerMethodArgumentResolver) {
@@ -131,6 +145,13 @@ public class SnsConfigurationTest {
 		public AmazonSNS amazonSNS() {
 			return AMAZON_SNS;
 		}
+
+	}
+
+	@EnableWebMvc
+	@EnableContextRegion(region = "EU_WEST_1")
+	@EnableSns
+	protected static class SnsConfigurationWithRegionProvider {
 
 	}
 
