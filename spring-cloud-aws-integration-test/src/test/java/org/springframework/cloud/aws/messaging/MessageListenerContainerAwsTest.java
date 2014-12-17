@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-public abstract class MessageListenerContainerAwsTest {
+public abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 
 	private static final int BATCH_MESSAGE_SIZE = 10;
 

@@ -47,7 +47,7 @@ import static org.junit.Assert.assertTrue;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public abstract class QueueListenerTest {
+public abstract class QueueListenerTest extends AbstractContainerTest {
 
 	@Autowired
 	private MessageListener messageListener;

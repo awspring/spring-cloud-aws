@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
  * @author Alain Sahli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public abstract class NotificationMessagingTemplateIntegrationTest {
+public abstract class NotificationMessagingTemplateIntegrationTest extends AbstractContainerTest {
 
 	@Autowired
 	private NotificationMessagingTemplate notificationMessagingTemplate;
@@ -46,7 +46,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest {
 	private NotificationReceiver notificationReceiver;
 
 	@Before
-	public void setUp() throws Exception {
+	public void resetMocks() throws Exception {
 		this.notificationReceiver.reset();
 	}
 
