@@ -27,6 +27,7 @@ import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
@@ -177,6 +178,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
+		Assert.notNull(dbInstance, "DbInstance must not be null");
+		Assert.notNull(dbInstance.getEndpoint(), "The database instance has no endpoint available!");
 		return new DataSourceInformation(DatabaseType.fromEngine(dbInstance.getEngine()),
 				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(),
 				StringUtils.hasText(this.databaseName) ? this.databaseName : dbInstance.getDBName(),
