@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Import;
 import javax.sql.DataSource;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class AmazonRdsDatabaseRegistrarTest {
@@ -61,6 +62,26 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
 		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+	}
+
+	@Test
+	public void configureBean_withCustomDataBaseName_configuresFactoryBeanWithCustomDatabaseName() throws Exception {
+		//Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
+				"cloud.aws.rds.test.databaseName:fooDb");
+
+		//Act
+		this.context.refresh();
+
+		//Assert
+		DataSource dataSource = this.context.getBean(DataSource.class);
+		assertNotNull(dataSource);
+		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
+		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl().endsWith("fooDb"));
 	}
 
 	@Test

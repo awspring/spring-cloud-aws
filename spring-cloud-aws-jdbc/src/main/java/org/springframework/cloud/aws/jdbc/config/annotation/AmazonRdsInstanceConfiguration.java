@@ -101,6 +101,10 @@ public class AmazonRdsInstanceConfiguration implements ImportAware, BeanFactoryA
 			dataSourceFactoryBean.setUsername(ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("username")));
 		}
 
+		if (StringUtils.hasText(this.annotationAttributes.getString("databaseName"))) {
+			dataSourceFactoryBean.setDatabaseName(ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("databaseName")));
+		}
+
 		dataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		return dataSourceFactoryBean;

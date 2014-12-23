@@ -1457,6 +1457,10 @@ outlines all properties for a data source using `test` as the instance identifie
 |true
 |If read-replicas should be used for the data source (see below)
 
+|cloud.aws.rds.test.databaseName
+|fooDb
+|Custom database name if the default one from rds should not be used
+
 |===
 
 

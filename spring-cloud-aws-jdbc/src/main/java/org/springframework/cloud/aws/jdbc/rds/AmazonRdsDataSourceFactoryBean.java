@@ -49,6 +49,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	private DataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
 	private String username;
+	private String databaseName;
 	private ResourceIdResolver resourceIdResolver;
 
 	/**
@@ -94,6 +95,16 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * Configures an own database name to be used if the default database (that is configured in the meta-data) should not
+	 * be used.
+	 *
+	 * @param databaseName - the database name to be used while connecting
+	 */
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
 	}
 
 	/**
@@ -167,7 +178,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
 		return new DataSourceInformation(DatabaseType.fromEngine(dbInstance.getEngine()),
-				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
+				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(),
+				StringUtils.hasText(this.databaseName) ? this.databaseName : dbInstance.getDBName(),
 				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
 	}
 }

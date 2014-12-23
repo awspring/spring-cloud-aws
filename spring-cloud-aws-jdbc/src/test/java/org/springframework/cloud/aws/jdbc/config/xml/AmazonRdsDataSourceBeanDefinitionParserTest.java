@@ -197,6 +197,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
 		assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 		assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
+		assertEquals("fooDb", definition.getPropertyValues().getPropertyValue("databaseName").getValue());
 
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 

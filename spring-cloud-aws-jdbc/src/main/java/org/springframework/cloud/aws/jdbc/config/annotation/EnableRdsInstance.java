@@ -35,6 +35,8 @@ public @interface EnableRdsInstance {
 
 	String username() default "";
 
+	String databaseName() default "";
+
 	String password();
 
 	boolean readReplicaSupport() default false;

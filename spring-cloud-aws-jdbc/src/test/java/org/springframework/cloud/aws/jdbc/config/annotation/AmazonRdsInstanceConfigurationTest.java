@@ -36,6 +36,7 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class AmazonRdsInstanceConfigurationTest {
@@ -59,6 +60,22 @@ public class AmazonRdsInstanceConfigurationTest {
 		//Assert
 		assertNotNull(this.context.getBean(DataSource.class));
 		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+	}
+
+	@Test
+	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDatabaseName() throws Exception {
+		//Arrange
+
+		//Act
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDbName.class);
+
+		//Assert
+		DataSource dataSource = this.context.getBean(DataSource.class);
+		assertNotNull(dataSource);
+		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
+		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl().endsWith("fooDb"));
 	}
 
 	@Test
@@ -115,6 +132,31 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret")
 	public static class ApplicationConfigurationWithoutReadReplica {
+
+		@Bean
+		public AmazonRDS amazonRDS() {
+			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("test").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											).withReadReplicaDBInstanceIdentifiers("read1")
+							)
+			);
+			return client;
+		}
+
+	}
+
+	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", databaseName = "fooDb")
+	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
 
 		@Bean
 		public AmazonRDS amazonRDS() {
