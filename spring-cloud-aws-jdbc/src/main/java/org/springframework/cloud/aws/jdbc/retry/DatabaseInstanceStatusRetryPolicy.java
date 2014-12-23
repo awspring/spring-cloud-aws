@@ -22,10 +22,9 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.jdbc.rds.InstanceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
@@ -143,7 +142,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 
 		if (describeDBInstancesResult.getDBInstances().size() == 1) {
 			DBInstance dbInstance = describeDBInstancesResult.getDBInstances().get(0);
-			InstanceStatus instanceStatus = InstanceStatus.valueOf(dbInstance.getDBInstanceStatus().toUpperCase());
+			InstanceStatus instanceStatus = InstanceStatus.fromDatabaseStatus(dbInstance.getDBInstanceStatus());
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Status of database to be retried is {}", instanceStatus);
 			}
