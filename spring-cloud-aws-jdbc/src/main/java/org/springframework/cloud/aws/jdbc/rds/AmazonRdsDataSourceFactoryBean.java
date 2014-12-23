@@ -25,11 +25,8 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
-import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
@@ -40,14 +37,6 @@ import java.text.MessageFormat;
  * Relational Database service instance. This factory bean retrieves all the metadata from the AWS RDS service in
  * order to create and configure a datasource. This class uses the {@link AmazonRDS} service to retrieve the metadata
  * and the {@link DataSourceFactory} to actually create the datasource.
- * <p>
- * The created datasource of this implementation is a {@link DynamicDataSource} which allows the creation of a "proxy"
- * datasource to allow this factory bean to complete. The DynamicDataSource class will use the {@link
- * org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource.DataSourceStatus} implementation provided by this class to
- * actually check whenever this datasource is available. If you want to make sure that the datasource is available
- * before this class returns the object, then pass a {@link org.springframework.core.task.SyncTaskExecutor} which will
- * effectively wait till the datasource is available before returning the object.
- * </p>
  *
  * @author Agim Emruli
  * @since 1.0
@@ -60,7 +49,6 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	private DataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
 	private String username;
-	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 	private ResourceIdResolver resourceIdResolver;
 
 	/**
@@ -88,7 +76,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * {@link TomcatJdbcDataSourceFactory} by default if not configured.
 	 *
 	 * @param dataSourceFactory
-	 * 		- A fully configured DataSourceFactory instance, will be used by the DynamicDataSource to actually create the
+	 * 		- A fully configured DataSourceFactory instance, will be used to actually create the
 	 * 		datasource.
 	 */
 	public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
@@ -106,21 +94,6 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 */
 	public void setUsername(String username) {
 		this.username = username;
-	}
-
-	/**
-	 * Allows to configure a different TaskExecutor which will be passed to the DynamicDataSource in order to retrieve
-	 * the
-	 * DataSourceStatus status. Uses a {@link SimpleAsyncTaskExecutor} by default which will create a thread to
-	 * retrieve
-	 * the datasource status.
-	 *
-	 * @param taskExecutor
-	 * 		- A configured TaskExecutor implementation. May be a pooled one or even a managed one. See TaskExecutor
-	 * 		implementations for further details.
-	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
 	}
 
 	/**
@@ -146,9 +119,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 
 	@Override
 	protected void destroyInstance(DataSource instance) throws Exception {
-		if (instance instanceof DynamicDataSource) {
-			((DynamicDataSource) instance).destroyDataSource();
-		}
+		this.dataSourceFactory.closeDataSource(instance);
 	}
 
 	/**
@@ -158,7 +129,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 *
 	 * @param identifier
 	 * 		- the database identifier for the data source configured in amazon rds
-	 * @return a fully configured and initialized {@link org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource}
+	 * @return a fully configured and initialized {@link javax.sql.DataSource}
 	 * @throws java.lang.IllegalStateException
 	 * 		if no database has been found
 	 * @throws java.lang.Exception
@@ -166,10 +137,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 */
 	protected DataSource createDataSourceInstance(String identifier) throws Exception {
 		DBInstance instance = getDbInstance(identifier);
-
-		DynamicDataSource dynamicDataSource = new DynamicDataSource(fromRdsInstance(instance), this.dataSourceFactory, new AmazonRdsInstanceStatus(this.amazonRds, instance.getDBInstanceIdentifier()), this.taskExecutor);
-		dynamicDataSource.afterPropertiesSet();
-		return dynamicDataSource;
+		return this.dataSourceFactory.createDataSource(fromRdsInstance(instance));
 	}
 
 	/**
@@ -201,30 +169,5 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		return new DataSourceInformation(DatabaseType.fromEngine(dbInstance.getEngine()),
 				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(), dbInstance.getDBName(),
 				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
-	}
-
-	/**
-	 * SPI implementation of the {@link org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource.DataSourceStatus}
-	 * interface.
-	 * Check the datasource status through the AWS RDS metadata and returns <code>true</code> once the datasource is
-	 * available.
-	 */
-	static class AmazonRdsInstanceStatus implements DynamicDataSource.DataSourceStatus {
-
-		private final AmazonRDS amazonRDS;
-		private final String instanceIdentifier;
-
-		AmazonRdsInstanceStatus(AmazonRDS amazonRDS, String instanceIdentifier) {
-			this.amazonRDS = amazonRDS;
-			this.instanceIdentifier = instanceIdentifier;
-		}
-
-		@Override
-		public boolean isDataSourceAvailable() {
-			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(this.instanceIdentifier));
-			DBInstance instance = describeDBInstancesResult.getDBInstances().get(0);
-			InstanceStatus instanceStatus = InstanceStatus.valueOf(instance.getDBInstanceStatus().toUpperCase());
-			return instanceStatus.isAvailable();
-		}
 	}
 }
