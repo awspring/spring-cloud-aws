@@ -1427,6 +1427,37 @@ public class ApplicationConfiguration {
 TIP: The configuration attributes are the same like in the XML element. The required attributes are also the same like
 for the XML configuration (the `dbInstanceIdentifier` and `password` attribute)
 
+==== Java based data source pool configuration
+It is also possible to override the pool configuration with custom values. Spring Cloud AWS provides a
+`org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer` that creates a
+`org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory` which might contain custom pool attributes. The next
+examples shows the implementation of on configurer that overrides the validation query and the initial size.
+
+[source,java,indent=0]
+----
+@Configuration
+@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret")
+public class ApplicationConfiguration {
+
+    @Bean
+    public RdsInstanceConfigurer instanceConfigurer(){
+        return new RdsInstanceConfigurer() {
+            @Override
+        	public DataSourceFactory getDataSourceFactory() {
+        		TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+        		dataSourceFactory.setInitialSize(10);
+        		dataSourceFactory.setValidationQuery("SELECT 1 FROM DUAL");
+        		return dataSourceFactory;
+        	}
+        };
+    }
+}
+----
+
+TIP: This class returns an anonymous class of type `org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer`,
+ that class might be of course also a standalone class.
+
+
 === Configuring data source in Spring Boot
 The data sources can also be configured using the Spring Boot configuration files. Because of the dynamic number of
 data sources inside one application, the Spring Boot properties must be configured for each data source.

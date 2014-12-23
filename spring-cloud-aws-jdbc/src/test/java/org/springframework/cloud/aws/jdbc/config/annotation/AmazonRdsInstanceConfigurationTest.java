@@ -25,6 +25,8 @@ import com.amazonaws.services.rds.model.Endpoint;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
+import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -35,6 +37,7 @@ import org.springframework.core.env.MapPropertySource;
 import javax.sql.DataSource;
 import java.util.HashMap;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -76,6 +79,23 @@ public class AmazonRdsInstanceConfigurationTest {
 
 		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
 		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl().endsWith("fooDb"));
+	}
+
+	@Test
+	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDataSourceFactory() throws Exception {
+		//Arrange
+
+		//Act
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory.class);
+
+		//Assert
+		DataSource dataSource = this.context.getBean(DataSource.class);
+		assertNotNull(dataSource);
+		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
+		assertEquals("SELECT 1 FROM TEST", ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getValidationQuery());
+		assertEquals(0, ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize());
 	}
 
 	@Test
@@ -178,6 +198,44 @@ public class AmazonRdsInstanceConfigurationTest {
 			return client;
 		}
 
+	}
+
+	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
+	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory {
+
+		@Bean
+		public AmazonRDS amazonRDS() {
+			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+					new DescribeDBInstancesResult().
+							withDBInstances(new DBInstance().
+											withDBInstanceStatus("available").
+											withDBName("test").
+											withDBInstanceIdentifier("test").
+											withEngine("mysql").
+											withMasterUsername("admin").
+											withEndpoint(new Endpoint().
+															withAddress("localhost").
+															withPort(3306)
+											).withReadReplicaDBInstanceIdentifiers("read1")
+							)
+			);
+			return client;
+		}
+
+		@Bean
+		public RdsInstanceConfigurer instanceConfigurer() {
+			return new RdsInstanceConfigurer() {
+
+				@Override
+				public DataSourceFactory getDataSourceFactory() {
+					TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+					dataSourceFactory.setInitialSize(0);
+					dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
+					return dataSourceFactory;
+				}
+			};
+		}
 	}
 
 	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
