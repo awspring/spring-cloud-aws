@@ -40,7 +40,8 @@ public class ContextRegionProviderAutoConfiguration {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 			if (this.environment.containsProperty("cloud.aws.region.auto") || this.environment.containsProperty("cloud.aws.region.static")) {
-				registerRegionProvider(registry, this.environment.containsProperty("cloud.aws.region.auto"),
+				registerRegionProvider(registry, this.environment.getProperty("cloud.aws.region.auto", Boolean.class, true) &&
+								!(this.environment.containsProperty("cloud.aws.region.static")),
 						this.environment.getProperty("cloud.aws.region.static"));
 			}
 		}
