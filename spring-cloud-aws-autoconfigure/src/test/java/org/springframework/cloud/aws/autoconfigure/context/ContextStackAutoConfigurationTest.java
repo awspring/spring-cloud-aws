@@ -57,7 +57,6 @@ public class ContextStackAutoConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(AutoConfigurationStackRegistryTestConfiguration.class);
 		this.context.register(ContextStackAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 

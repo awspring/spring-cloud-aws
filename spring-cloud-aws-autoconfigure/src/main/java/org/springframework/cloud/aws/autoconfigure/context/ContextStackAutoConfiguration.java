@@ -53,7 +53,7 @@ public class ContextStackAutoConfiguration {
 
 
 	@Configuration
-	@ConditionalOnProperty(value = "cloud.aws.stack.auto", matchIfMissing = true)
+	@ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
 	@ConditionalOnAwsCloudEnvironment
 	public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
