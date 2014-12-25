@@ -55,6 +55,7 @@ public class ContextStackAutoConfiguration {
 	@Configuration
 	@ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
 	@ConditionalOnAwsCloudEnvironment
+	@ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
 	public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
 		@Override

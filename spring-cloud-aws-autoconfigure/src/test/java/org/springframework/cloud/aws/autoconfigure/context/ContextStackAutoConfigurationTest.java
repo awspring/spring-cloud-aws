@@ -90,6 +90,7 @@ public class ContextStackAutoConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextStackAutoConfiguration.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto:false");
 		//Act
 		this.context.refresh();
 
