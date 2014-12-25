@@ -38,7 +38,6 @@ public class ContextStackAutoConfiguration {
 
 	@Configuration
 	@ConditionalOnProperty("cloud.aws.stack.name")
-	@ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
 	public static class StackManualDetectConfiguration extends ContextStackConfiguration {
 
 		@Autowired

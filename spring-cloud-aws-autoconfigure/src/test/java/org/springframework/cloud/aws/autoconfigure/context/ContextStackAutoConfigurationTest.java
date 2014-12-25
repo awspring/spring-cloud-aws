@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ContextStackAutoConfigurationTest {
 
@@ -96,7 +97,7 @@ public class ContextStackAutoConfigurationTest {
 
 		//Assert
 		assertNotNull(this.context.getBean(ResourceIdResolver.class));
-
+		assertTrue(this.context.getBeansOfType(StackResourceRegistry.class).isEmpty());
 	}
 
 	@Configuration
