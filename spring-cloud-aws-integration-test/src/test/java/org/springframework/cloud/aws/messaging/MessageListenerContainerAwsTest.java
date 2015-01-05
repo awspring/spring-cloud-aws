@@ -70,7 +70,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 		countDownLatch.await();
 	}
 
-	@Test
+	@Test(timeout = 60000)
 	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
 		this.messageReceiver.getCountDownLatch().await(1, TimeUnit.MINUTES);
 	}

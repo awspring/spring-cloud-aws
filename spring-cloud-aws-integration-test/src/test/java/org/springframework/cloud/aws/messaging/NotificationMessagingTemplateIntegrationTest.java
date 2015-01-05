@@ -50,7 +50,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 		this.notificationReceiver.reset();
 	}
 
-	@Test
+	@Test(timeout = 50000)
 	public void send_validTextMessage_shouldBeDelivered() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -67,7 +67,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 		assertEquals(subject, this.notificationReceiver.getSubject());
 	}
 
-	@Test
+	@Test(timeout = 50000)
 	public void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
