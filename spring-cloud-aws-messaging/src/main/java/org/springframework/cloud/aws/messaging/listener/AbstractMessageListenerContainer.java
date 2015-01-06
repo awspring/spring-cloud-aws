@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private AmazonSQS amazonSqs;
+	private AmazonSQSAsync amazonSqs;
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private DestinationResolver<String> destinationResolver;
 	private String beanName;
@@ -98,7 +99,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		return this.logger;
 	}
 
-	protected AmazonSQS getAmazonSqs() {
+	protected AmazonSQSAsync getAmazonSqs() {
 		return this.amazonSqs;
 	}
 
@@ -111,7 +112,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	 * @param amazonSqs
 	 * 		the amazon sqs instance. Must not be null
 	 */
-	public void setAmazonSqs(AmazonSQS amazonSqs) {
+	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
 		this.amazonSqs = amazonSqs;
 	}
 

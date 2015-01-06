@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
@@ -70,9 +71,9 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 		countDownLatch.await();
 	}
 
-	@Test(timeout = 60000)
+	@Test
 	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
-		this.messageReceiver.getCountDownLatch().await(1, TimeUnit.MINUTES);
+		assertTrue(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES));
 	}
 
 	static class MessageReceiver {

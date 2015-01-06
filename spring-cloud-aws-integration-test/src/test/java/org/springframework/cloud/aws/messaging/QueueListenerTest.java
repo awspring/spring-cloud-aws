@@ -58,7 +58,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 	@Autowired
 	private QueueMessagingTemplate queueMessagingTemplate;
 
-	@Test(timeout = 50000)
+	@Test
 	public void messageMapping_singleMessageOnQueue_messageReceived() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
@@ -72,7 +72,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
 	}
 
-	@Test(timeout = 50000)
+	@Test
 	public void send_simpleString_shouldBeReceivedWithoutDoubleQuotes() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
@@ -86,7 +86,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
 	}
 
-	@Test(timeout = 50000)
+	@Test
 	public void sendToAnnotation_WithAValidDestination_messageIsSent() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
@@ -102,7 +102,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
 	}
 
-	@Test(timeout = 50000)
+	@Test
 	public void receiveMessage_withArgumentAnnotatedWithHeaderOrHeaders_shouldReceiveHeaderValues() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
