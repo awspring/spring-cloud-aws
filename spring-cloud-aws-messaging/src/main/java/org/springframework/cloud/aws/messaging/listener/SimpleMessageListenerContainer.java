@@ -18,10 +18,10 @@ package org.springframework.cloud.aws.messaging.listener;
 
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
@@ -98,7 +98,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		String beanName = getBeanName();
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
 		threadPoolTaskExecutor.setThreadNamePrefix(beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
-		int spinningThreads = this.getMessageRequests().size();
+		int spinningThreads = this.getRegisteredQueues().size();
 
 		if (spinningThreads > 0) {
 			threadPoolTaskExecutor.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
@@ -116,38 +116,41 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	private void scheduleMessageListeners() {
-		this.stopLatch = new CountDownLatch(getMessageRequests().size());
-		for (Map.Entry<String, ReceiveMessageRequest> messageRequest : getMessageRequests().entrySet()) {
+		this.stopLatch = new CountDownLatch(getRegisteredQueues().size());
+		for (Map.Entry<String, RegisteredQueue> messageRequest : getRegisteredQueues().entrySet()) {
 			getTaskExecutor().execute(new SignalExecutingRunnable(this.stopLatch, new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue())));
 		}
 	}
 
-	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
 		try {
 			getMessageHandler().handleMessage(stringMessage);
-		} catch (Throwable throwable) {
-			handleError(throwable);
+			getAmazonSqs().deleteMessageAsync(deleteMessageRequest);
+		} catch (MessagingException messagingException) {
+			if (!hasRedrivePolicy) {
+				getAmazonSqs().deleteMessageAsync(deleteMessageRequest);
+			}
 		}
 	}
 
 	private class AsynchronousMessageListener implements Runnable {
 
-		private final ReceiveMessageRequest receiveMessageRequest;
+		private final RegisteredQueue registeredQueue;
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest) {
+		private AsynchronousMessageListener(String logicalQueueName, RegisteredQueue registeredQueue) {
 			this.logicalQueueName = logicalQueueName;
-			this.receiveMessageRequest = receiveMessageRequest;
+			this.registeredQueue = registeredQueue;
 		}
 
 		@Override
 		public void run() {
 			while (isRunning()) {
-				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.receiveMessageRequest);
+				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.registeredQueue.getReceiveMessageRequest());
 				CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
-						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl());
+						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.registeredQueue);
 						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
 					} else {
 						break;
@@ -167,11 +170,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		private final Message message;
 		private final String logicalQueueName;
 		private final String queueUrl;
+		private final boolean hasRedrivePolicy;
 
-		private MessageExecutor(String logicalQueueName, Message message, String queueUrl) {
+		private MessageExecutor(String logicalQueueName, Message message, RegisteredQueue registeredQueue) {
 			this.logicalQueueName = logicalQueueName;
 			this.message = message;
-			this.queueUrl = queueUrl;
+			this.queueUrl = registeredQueue.getReceiveMessageRequest().getQueueUrl();
+			this.hasRedrivePolicy = registeredQueue.hasRedrivePolicy();
 		}
 
 		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
@@ -193,8 +198,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					withPayload(payload).
 					setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
 			copyAttributesToHeaders(messageBuilder);
-			executeMessage(messageBuilder.build());
-			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			executeMessage(messageBuilder.build(), new DeleteMessageRequest(this.queueUrl, receiptHandle), this.hasRedrivePolicy);
 		}
 	}
 

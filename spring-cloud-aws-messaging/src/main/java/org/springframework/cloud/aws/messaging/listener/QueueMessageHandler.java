@@ -21,10 +21,12 @@ import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgume
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.springframework.messaging.handler.HandlerMethod;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
@@ -135,6 +137,12 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected void handleNoMatch(Set<MappingInformation> ts, String lookupDestination, Message<?> message) {
 		this.logger.warn("No match found");
+	}
+
+	@Override
+	protected void processHandlerMethodException(HandlerMethod handlerMethod, Exception ex, Message<?> message) {
+		super.processHandlerMethodException(handlerMethod, ex, message);
+		throw new MessagingException("An exception occurred while invoking the handler method");
 	}
 
 	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {

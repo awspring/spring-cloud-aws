@@ -18,6 +18,9 @@ package org.springframework.cloud.aws.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
+import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +59,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private final Object lifecycleMonitor = new Object();
 	private final Set<String> queues = new HashSet<>();
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private final Map<String, ReceiveMessageRequest> messageRequests = new HashMap<>();
+	private final Map<String, RegisteredQueue> registeredQueues = new HashMap<>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQSAsync amazonSqs;
@@ -79,8 +82,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	private boolean active;
 	private boolean running;
 
-	public Map<String, ReceiveMessageRequest> getMessageRequests() {
-		return Collections.unmodifiableMap(this.messageRequests);
+	public Map<String, RegisteredQueue> getRegisteredQueues() {
+		return Collections.unmodifiableMap(this.registeredQueues);
 	}
 
 	protected QueueMessageHandler getMessageHandler() {
@@ -313,7 +316,10 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 				if (getWaitTimeOut() != null) {
 					receiveMessageRequest.setWaitTimeSeconds(getWaitTimeOut());
 				}
-				this.messageRequests.put(queue, receiveMessageRequest);
+
+				GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
+						.withAttributeNames(QueueAttributeName.RedrivePolicy));
+				this.registeredQueues.put(queue, new RegisteredQueue(receiveMessageRequest, queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString())));
 			}
 
 			this.running = true;
@@ -367,6 +373,26 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		@Override
 		public void handleError(Throwable t) {
 			getLogger().error("Error occurred while processing message", t);
+		}
+	}
+
+	protected static class RegisteredQueue {
+
+		private final ReceiveMessageRequest receiveMessageRequest;
+
+		private final boolean hasRedrivePolicy;
+
+		public RegisteredQueue(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy) {
+			this.receiveMessageRequest = receiveMessageRequest;
+			this.hasRedrivePolicy = hasRedrivePolicy;
+		}
+
+		public boolean hasRedrivePolicy() {
+			return this.hasRedrivePolicy;
+		}
+
+		public ReceiveMessageRequest getReceiveMessageRequest() {
+			return this.receiveMessageRequest;
 		}
 	}
 }

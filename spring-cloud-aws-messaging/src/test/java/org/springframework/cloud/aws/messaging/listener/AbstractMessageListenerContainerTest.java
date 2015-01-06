@@ -17,14 +17,16 @@
 package org.springframework.cloud.aws.messaging.listener;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
+import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.RegisteredQueue;
+import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
@@ -41,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -225,14 +228,15 @@ public class AbstractMessageListenerContainerTest {
 
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
+		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
 
-		Map<String, ReceiveMessageRequest> messageRequests = container.getMessageRequests();
-		assertEquals("http://testQueue.amazonaws.com", messageRequests.get("testQueue").getQueueUrl());
-		assertEquals(11L, messageRequests.get("testQueue").getMaxNumberOfMessages().longValue());
-		assertEquals(22L, messageRequests.get("testQueue").getVisibilityTimeout().longValue());
-		assertEquals(33L, messageRequests.get("testQueue").getWaitTimeSeconds().longValue());
+		Map<String, RegisteredQueue> registeredQueues = container.getRegisteredQueues();
+		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue").getReceiveMessageRequest().getQueueUrl());
+		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
+		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest().getVisibilityTimeout().longValue());
+		assertEquals(33L, registeredQueues.get("testQueue").getReceiveMessageRequest().getWaitTimeSeconds().longValue());
 	}
 
 	@Test
@@ -259,18 +263,19 @@ public class AbstractMessageListenerContainerTest {
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://anotherTestQueue.amazonaws.com"));
+		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
 
-		Map<String, ReceiveMessageRequest> messageRequests = container.getMessageRequests();
-		assertEquals("http://testQueue.amazonaws.com", messageRequests.get("testQueue").getQueueUrl());
-		assertEquals(11L, messageRequests.get("testQueue").getMaxNumberOfMessages().longValue());
-		assertEquals(22L, messageRequests.get("testQueue").getVisibilityTimeout().longValue());
-		assertEquals(33L, messageRequests.get("testQueue").getWaitTimeSeconds().longValue());
-		assertEquals("http://anotherTestQueue.amazonaws.com", messageRequests.get("anotherTestQueue").getQueueUrl());
-		assertEquals(11L, messageRequests.get("anotherTestQueue").getMaxNumberOfMessages().longValue());
-		assertEquals(22L, messageRequests.get("anotherTestQueue").getVisibilityTimeout().longValue());
-		assertEquals(33L, messageRequests.get("anotherTestQueue").getWaitTimeSeconds().longValue());
+		Map<String, RegisteredQueue> registeredQueues = container.getRegisteredQueues();
+		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue").getReceiveMessageRequest().getQueueUrl());
+		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
+		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest().getVisibilityTimeout().longValue());
+		assertEquals(33L, registeredQueues.get("testQueue").getReceiveMessageRequest().getWaitTimeSeconds().longValue());
+		assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
+		assertEquals(11L, registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
+		assertEquals(22L, registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getVisibilityTimeout().longValue());
+		assertEquals(33L, registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getWaitTimeSeconds().longValue());
 	}
 
 	@Test
