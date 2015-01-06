@@ -250,7 +250,7 @@ maven dependency inside the application. The typical configuration will look lik
 </dependencies>
 ----
 
-Additional dependencies to enable particular features like messaging and jdbc have to been added. Spring Cloud AWS will
+Additional dependencies to enable particular features like messaging and jdbc have to be added. Spring Cloud AWS will
 only configure classes that are available in the Spring Boot applications classpath.
 
 ===== Configuring credentials
