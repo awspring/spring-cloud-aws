@@ -16,28 +16,13 @@
 
 package org.springframework.cloud.aws.jdbc.config.annotation;
 
-import org.springframework.context.annotation.Import;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 
 /**
  * @author Agim Emruli
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Import(AmazonRdsInstanceConfiguration.class)
-public @interface EnableRdsInstance {
+public interface RdsInstanceConfigurer {
 
-	String dbInstanceIdentifier();
+	DataSourceFactory getDataSourceFactory();
 
-	String username() default "";
-
-	String databaseName() default "";
-
-	String password();
-
-	boolean readReplicaSupport() default false;
 }

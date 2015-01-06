@@ -18,7 +18,6 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
@@ -50,7 +49,7 @@ public class ContextCredentialsAutoConfigurationTest {
 	}
 
 	@Test
-	public void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() throws Exception {
+	public void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChainWithInstanceProfile() throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextCredentialsAutoConfiguration.class);
@@ -59,8 +58,13 @@ public class ContextCredentialsAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(AWSCredentialsProvider.class));
-		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(this.context.getBean(AWSCredentialsProvider.class)));
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+		assertNotNull(awsCredentialsProvider);
+
+		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
+				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
+		assertEquals(1, credentialsProviders.size());
+		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 	}
 
 	@Test

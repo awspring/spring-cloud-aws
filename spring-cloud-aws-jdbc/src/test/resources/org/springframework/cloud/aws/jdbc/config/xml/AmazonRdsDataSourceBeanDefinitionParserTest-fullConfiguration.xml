@@ -27,7 +27,7 @@
 	</context:context-credentials>
 
 	<jdbc:data-source db-instance-identifier="test" password="password" username="myUser"
-					 read-replica-support="false">
+					  read-replica-support="false" database-name="fooDb">
 		<jdbc:pool-attributes connectionProperties="foo=bar" defaultAutoCommit="true"
 							  defaultCatalog="mySchema" defaultReadOnly="true"
 							  defaultTransactionIsolationName="READ_COMMITTED" initialSize="10"

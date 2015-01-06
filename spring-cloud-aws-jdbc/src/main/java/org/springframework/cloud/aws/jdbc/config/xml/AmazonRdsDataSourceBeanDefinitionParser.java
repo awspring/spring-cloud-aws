@@ -28,6 +28,7 @@ import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigura
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
+import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -53,6 +54,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 	private static final String USER_TAG_FACTORY_BEAN_CLASS_NAME = "org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceUserTagsFactoryBean";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
+	private static final String DATABASE_NAME = "database-name";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -67,6 +69,10 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 		//optional args
 		if (StringUtils.hasText(element.getAttribute(USERNAME))) {
 			datasourceBuilder.addPropertyValue(USERNAME, element.getAttribute(USERNAME));
+		}
+
+		if (StringUtils.hasText(element.getAttribute(DATABASE_NAME))) {
+			datasourceBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DATABASE_NAME), element.getAttribute(DATABASE_NAME));
 		}
 
 		datasourceBuilder.addPropertyValue("dataSourceFactory", createDataSourceFactoryBeanDefinition(element));

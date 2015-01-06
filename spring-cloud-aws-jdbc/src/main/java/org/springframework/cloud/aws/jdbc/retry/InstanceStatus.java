@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package org.springframework.cloud.aws.jdbc.retry;
 
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
@@ -53,7 +53,19 @@ public enum InstanceStatus {
 	 * but a modification is in progress. This can be the case if an read-replica instance is added to the database itself.
 	 */
 	@RuntimeUse
-	MODIFYING(true, true);
+	MODIFYING(true, true),
+
+	/**
+	 * Database state which defines that the database is deleting. Thus it is assumed that is is deleted.
+	 */
+	@RuntimeUse
+	DELETING(false, false),
+
+	/**
+	 * Unknown status, which assumes the database is not available and not retryable
+	 */
+	@RuntimeUse
+	UNKNOWN(false, false);
 
 	/**
 	 * boolean flag indicating if a second attempt to execute the operation will succeed
@@ -93,5 +105,14 @@ public enum InstanceStatus {
 	 */
 	public boolean isAvailable() {
 		return this.available;
+	}
+
+	static InstanceStatus fromDatabaseStatus(String databaseStatus) {
+		for (InstanceStatus instanceStatus : values()) {
+			if (instanceStatus.name().equalsIgnoreCase(databaseStatus)) {
+				return instanceStatus;
+			}
+		}
+		return UNKNOWN;
 	}
 }

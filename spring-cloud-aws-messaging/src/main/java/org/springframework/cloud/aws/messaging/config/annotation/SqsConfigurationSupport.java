@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,7 @@ public class SqsConfigurationSupport {
 	private SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;
 
 	@Bean
-	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQS amazonSqs) {
+	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
 		if (this.simpleMessageListenerContainerFactory == null) {
 			this.simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
 		}
@@ -99,9 +100,9 @@ public class SqsConfigurationSupport {
 	}
 
 	@Lazy
-	@Bean
+	@Bean(destroyMethod = "shutdown")
 	@ConditionalOnMissingAmazonClient(AmazonSQS.class)
-	public AmazonSQS amazonSQS() {
+	public AmazonSQSAsync amazonSQS() {
 		AmazonSQSAsyncClient amazonSQSAsyncClient;
 		if (this.awsCredentialsProvider != null) {
 			amazonSQSAsyncClient = new AmazonSQSAsyncClient(this.awsCredentialsProvider);

@@ -21,13 +21,11 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import org.junit.Test;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
-import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
 import org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.junit.Test;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 import javax.sql.DataSource;
@@ -69,7 +67,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 
 		AmazonRdsReadReplicaAwareDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(mock(DataSource.class));
 
 		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
@@ -77,7 +75,6 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 		//Assert
 		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
 		assertNotNull(datasource);
-		assertTrue(datasource instanceof DynamicDataSource);
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
 	}
@@ -138,11 +135,12 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 		Connection connection = mock(Connection.class);
 
 		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(createdDataSource);
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "read1", "admin", "secret"))).thenReturn(createdDataSource);
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "read2", "admin", "secret"))).thenReturn(createdDataSource);
 		when(createdDataSource.getConnection()).thenReturn(connection);
 
 		AmazonRdsReadReplicaAwareDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 
 		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();

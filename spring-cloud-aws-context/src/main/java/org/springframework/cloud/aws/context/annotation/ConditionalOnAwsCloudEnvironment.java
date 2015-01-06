@@ -36,6 +36,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Conditional(OnAwsCloudEnvironmentCondition.class)
-public @interface ConditionOnAwsCloudEnvironment {
+public @interface ConditionalOnAwsCloudEnvironment {
 
 }

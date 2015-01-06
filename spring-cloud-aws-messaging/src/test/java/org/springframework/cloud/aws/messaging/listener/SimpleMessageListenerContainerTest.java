@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
@@ -455,8 +454,8 @@ public class SimpleMessageListenerContainerTest {
 	protected static class SqsTestConfig {
 
 		@Bean
-		public AmazonSQS amazonSQS() {
-			AmazonSQS mockAmazonSQS = mock(AmazonSQS.class);
+		public AmazonSQSAsync amazonSQS() {
+			AmazonSQSAsync mockAmazonSQS = mock(AmazonSQSAsync.class);
 			when(mockAmazonSQS.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
 					withQueueUrl("http://testQueue.amazonaws.com"));
 			return mockAmazonSQS;

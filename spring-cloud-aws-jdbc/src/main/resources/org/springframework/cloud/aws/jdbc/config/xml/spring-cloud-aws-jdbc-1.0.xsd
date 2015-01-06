@@ -65,7 +65,14 @@
 												]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="password" type="xsd:string" use="optional">
+			<xsd:attribute name="database-name" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The database name to be used if not the default database configured in RDS
+												]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="password" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 					The password that will be used to connect to the database

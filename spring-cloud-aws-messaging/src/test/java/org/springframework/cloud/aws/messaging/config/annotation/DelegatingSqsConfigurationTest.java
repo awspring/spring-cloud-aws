@@ -20,7 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.junit.Rule;
@@ -81,7 +81,7 @@ public class DelegatingSqsConfigurationTest {
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithCustomAmazonClient.class);
 
 		// Assert
-		AmazonSQS amazonSqsClient = applicationContext.getBean(AmazonSQS.class);
+		AmazonSQSAsync amazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
 		assertEquals(ConfigurationWithCustomAmazonClient.CUSTOM_SQS_CLIENT, amazonSqsClient);
 	}
 
@@ -177,7 +177,7 @@ public class DelegatingSqsConfigurationTest {
 	public void configuration_withRegionProvider_shouldUseItForClient() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithRegionProvider.class);
-		AmazonSQS bufferedAmazonSqsClient = applicationContext.getBean(AmazonSQS.class);
+		AmazonSQSAsync bufferedAmazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
 		AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(bufferedAmazonSqsClient, "realSQS");
 
 		// Assert
@@ -199,7 +199,7 @@ public class DelegatingSqsConfigurationTest {
 	@Configuration
 	public static class ConfigurationWithCustomAmazonClient {
 
-		public static final AmazonSQS CUSTOM_SQS_CLIENT = mock(AmazonSQS.class);
+		public static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class);
 
 		@Bean
 		public AWSCredentialsProvider awsCredentials() {
@@ -207,7 +207,7 @@ public class DelegatingSqsConfigurationTest {
 		}
 
 		@Bean
-		public AmazonSQS amazonSQS() {
+		public AmazonSQSAsync amazonSQS() {
 			return CUSTOM_SQS_CLIENT;
 		}
 
@@ -250,7 +250,7 @@ public class DelegatingSqsConfigurationTest {
 	@Configuration
 	public static class ConfigurationWithCustomContainerFactory {
 
-		public static final AmazonSQS AMAZON_SQS = mock(AmazonSQS.class);
+		public static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class);
 		public static final boolean AUTO_STARTUP = true;
 		public static final int MAX_NUMBER_OF_MESSAGES = 1456;
 		public static final QueueMessageHandler MESSAGE_HANDLER;
@@ -281,7 +281,7 @@ public class DelegatingSqsConfigurationTest {
 		}
 
 		@Bean
-		public AmazonSQS amazonSQS() {
+		public AmazonSQSAsync amazonSQS() {
 			return AMAZON_SQS;
 		}
 

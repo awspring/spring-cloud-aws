@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ContextStackAutoConfigurationTest {
 
@@ -57,7 +58,6 @@ public class ContextStackAutoConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(AutoConfigurationStackRegistryTestConfiguration.class);
 		this.context.register(ContextStackAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto");
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
@@ -91,12 +91,13 @@ public class ContextStackAutoConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextStackAutoConfiguration.class);
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto:false");
 		//Act
 		this.context.refresh();
 
 		//Assert
 		assertNotNull(this.context.getBean(ResourceIdResolver.class));
-
+		assertTrue(this.context.getBeansOfType(StackResourceRegistry.class).isEmpty());
 	}
 
 	@Configuration

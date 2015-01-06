@@ -58,12 +58,12 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 		for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
 			registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
 					Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
-					dbInstanceEntry.getValue().get("username"));
+					dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
 		}
 	}
 
 	private void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName, String dbInstanceIdentifier,
-									String password, boolean readReplica, String userName) {
+									String password, boolean readReplica, String userName, String databaseName) {
 		BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
 
 		//Constructor (mandatory) args
@@ -74,6 +74,7 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 
 		//optional args
 		datasourceBuilder.addPropertyValue("username", userName);
+		datasourceBuilder.addPropertyValue("databaseName", databaseName);
 
 		String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry);
 		datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);

@@ -42,7 +42,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -103,7 +102,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 
 		//Assert
-		assertTrue(dataSource instanceof DynamicDataSource);
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
 	}
 
 	@Test
@@ -161,7 +160,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 
 		//Assert
-		assertTrue(dataSource instanceof DynamicDataSource);
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
 	}
 
 	@Test
@@ -198,12 +197,13 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 		assertEquals("test", definition.getConstructorArgumentValues().getArgumentValue(1, String.class).getValue());
 		assertEquals("password", definition.getConstructorArgumentValues().getArgumentValue(2, String.class).getValue());
 		assertEquals("myUser", definition.getPropertyValues().getPropertyValue("username").getValue());
+		assertEquals("fooDb", definition.getPropertyValues().getPropertyValue("databaseName").getValue());
 
 		DataSource dataSource = beanFactory.getBean(DataSource.class);
 
 		//Assert
 		assertNotNull(dataSource);
-		assertTrue(dataSource instanceof DynamicDataSource);
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
 	}
 
 	@Test
@@ -386,6 +386,6 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 
 		//Assert
 		assertEquals("value2", dsTags.get("key1"));
-		assertTrue(dataSource instanceof DynamicDataSource);
+		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
 	}
 }

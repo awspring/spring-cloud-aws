@@ -63,7 +63,6 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 	 * @return a ReadOnlyRoutingDataSource that is wrapped with a LazyConnectionDataSourceProxy
 	 * @throws Exception
 	 * 		if the underlying data source setup throws any exception
-	 * @see org.springframework.cloud.aws.jdbc.datasource.DynamicDataSource
 	 */
 	@Override
 	protected DataSource createInstance() throws Exception {

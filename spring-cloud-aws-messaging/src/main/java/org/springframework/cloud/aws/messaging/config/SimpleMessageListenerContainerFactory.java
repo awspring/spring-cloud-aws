@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
@@ -40,7 +41,7 @@ public class SimpleMessageListenerContainerFactory {
 
 	private boolean autoStartup = true;
 
-	private AmazonSQS amazonSqs;
+	private AmazonSQSAsync amazonSqs;
 
 	private QueueMessageHandler queueMessageHandler;
 
@@ -68,7 +69,7 @@ public class SimpleMessageListenerContainerFactory {
 		this.autoStartup = autoStartup;
 	}
 
-	public void setAmazonSqs(AmazonSQS amazonSqs) {
+	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
 		Assert.notNull(amazonSqs, "amazonSqs must not be null");
 		this.amazonSqs = amazonSqs;
 	}

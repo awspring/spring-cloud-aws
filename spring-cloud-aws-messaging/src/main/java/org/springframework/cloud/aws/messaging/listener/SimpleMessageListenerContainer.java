@@ -118,7 +118,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private void scheduleMessageListeners() {
 		this.stopLatch = new CountDownLatch(getMessageRequests().size());
 		for (Map.Entry<String, ReceiveMessageRequest> messageRequest : getMessageRequests().entrySet()) {
-			getTaskExecutor().execute(new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue(), this.stopLatch));
+			getTaskExecutor().execute(new SignalExecutingRunnable(this.stopLatch, new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue())));
 		}
 	}
 
@@ -133,13 +133,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private class AsynchronousMessageListener implements Runnable {
 
 		private final ReceiveMessageRequest receiveMessageRequest;
-		private final CountDownLatch messageBatchLatch;
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest, CountDownLatch messageBatchLatch) {
+		private AsynchronousMessageListener(String logicalQueueName, ReceiveMessageRequest receiveMessageRequest) {
 			this.logicalQueueName = logicalQueueName;
 			this.receiveMessageRequest = receiveMessageRequest;
-			this.messageBatchLatch = messageBatchLatch;
 		}
 
 		@Override
@@ -150,7 +148,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
 						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.receiveMessageRequest.getQueueUrl());
-						getTaskExecutor().execute(new CountingRunnableDecorator(messageBatchLatch, messageExecutor));
+						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
 					} else {
 						break;
 					}
@@ -161,7 +159,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					Thread.currentThread().interrupt();
 				}
 			}
-			this.messageBatchLatch.countDown();
 		}
 	}
 
@@ -197,18 +194,17 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
 			copyAttributesToHeaders(messageBuilder);
 			executeMessage(messageBuilder.build());
-			getAmazonSqs().deleteMessage(new DeleteMessageRequest(this.queueUrl, receiptHandle));
-			getLogger().debug("Deleted message with id {} and receipt handle {}", this.message.getMessageId(), this.message.getReceiptHandle());
+			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 		}
 	}
 
-	private static class CountingRunnableDecorator implements Runnable {
+	private static class SignalExecutingRunnable implements Runnable {
 
 		private final CountDownLatch countDownLatch;
 		private final Runnable runnable;
 
-		private CountingRunnableDecorator(CountDownLatch countDownLatch, Runnable runnable) {
-			this.countDownLatch = countDownLatch;
+		private SignalExecutingRunnable(CountDownLatch endSignal, Runnable runnable) {
+			this.countDownLatch = endSignal;
 			this.runnable = runnable;
 		}
 

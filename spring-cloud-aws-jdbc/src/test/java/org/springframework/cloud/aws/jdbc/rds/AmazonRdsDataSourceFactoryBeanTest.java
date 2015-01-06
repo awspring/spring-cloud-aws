@@ -22,20 +22,17 @@ import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.task.SyncTaskExecutor;
 
 import javax.sql.DataSource;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,6 +73,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+		DataSource dataSource = mock(DataSource.class);
 
 		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("bar");
 
@@ -94,17 +92,17 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 						)
 		);
 
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 		amazonRdsDataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
 		//Assert
-		DataSource dataSource = amazonRdsDataSourceFactoryBean.getObject();
-		assertNotNull(dataSource);
+		assertNotNull(amazonRdsDataSourceFactoryBean.getObject());
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
 	}
@@ -114,6 +112,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		//Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+		DataSource dataSource = mock(DataSource.class);
 
 		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 				new DescribeDBInstancesResult().
@@ -130,9 +129,10 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 						)
 		);
 
+		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 
 		//Act
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
@@ -169,7 +169,6 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
 		amazonRdsDataSourceFactoryBean.getObject();
@@ -202,26 +201,10 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
 		amazonRdsDataSourceFactoryBean.setUsername("superAdmin");
 		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setTaskExecutor(new SyncTaskExecutor());
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 		amazonRdsDataSourceFactoryBean.getObject();
 
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
-	}
-
-	@SuppressWarnings("NonBooleanMethodNameMayNotStartWithQuestion")
-	@Test
-	public void isDataSourceAvailable_statusChangeToRebooting_reportsCorrectDataSourceAvailability() throws Exception {
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		AmazonRdsDataSourceFactoryBean.AmazonRdsInstanceStatus amazonRdsInstanceStatus = new AmazonRdsDataSourceFactoryBean.AmazonRdsInstanceStatus(amazonRDS, "test");
-
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().withDBInstanceStatus("available")), new DescribeDBInstancesResult().withDBInstances(new DBInstance().withDBInstanceStatus("rebooting"))
-		);
-
-		assertTrue(amazonRdsInstanceStatus.isDataSourceAvailable());
-		assertFalse(amazonRdsInstanceStatus.isDataSourceAvailable());
 	}
 }

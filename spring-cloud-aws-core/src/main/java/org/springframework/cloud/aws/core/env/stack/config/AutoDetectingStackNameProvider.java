@@ -62,11 +62,11 @@ class AutoDetectingStackNameProvider implements StackNameProvider, InitializingB
 		Assert.notNull(instanceId, "No valid instance id defined");
 		DescribeStackResourcesResult describeStackResourcesResult = amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId(instanceId));
 
-		if (describeStackResourcesResult.getStackResources().isEmpty()) {
+		if (describeStackResourcesResult == null || describeStackResourcesResult.getStackResources() == null ||
+				describeStackResourcesResult.getStackResources().isEmpty()) {
 			throw new IllegalStateException("No stack resources found in stack for EC2 instance '" + instanceId + "'");
 		}
 
 		return describeStackResourcesResult.getStackResources().get(0).getStackName();
 	}
-
 }

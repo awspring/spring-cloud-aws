@@ -30,6 +30,7 @@ import org.springframework.cloud.aws.context.config.annotation.ContextDefaultCon
 import org.springframework.cloud.aws.core.config.support.ContextAnnotationConfigUtil;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -39,9 +40,11 @@ import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * @author Agim Emruli
@@ -59,6 +62,7 @@ public class AmazonRdsInstanceConfiguration implements ImportAware, BeanFactoryA
 	private RegionProvider regionProvider;
 
 	private ConfigurableBeanFactory beanFactory;
+	private DataSourceFactory dataSourceFactory;
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
@@ -66,6 +70,19 @@ public class AmazonRdsInstanceConfiguration implements ImportAware, BeanFactoryA
 				importMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
 				"@EnableRdsInstance is not present on importing class " + importMetadata.getClassName());
+	}
+
+	@Autowired(required = false)
+	public void setConfigurers(List<RdsInstanceConfigurer> configurers) {
+		if (CollectionUtils.isEmpty(configurers)) {
+			return;
+		}
+		if (configurers.size() > 1) {
+			throw new IllegalStateException("Only one RdsInstanceConfigurer may exist");
+		}
+
+		RdsInstanceConfigurer configurer = configurers.iterator().next();
+		this.dataSourceFactory = configurer.getDataSourceFactory();
 	}
 
 	@Bean
@@ -101,6 +118,13 @@ public class AmazonRdsInstanceConfiguration implements ImportAware, BeanFactoryA
 			dataSourceFactoryBean.setUsername(ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("username")));
 		}
 
+		if (StringUtils.hasText(this.annotationAttributes.getString("databaseName"))) {
+			dataSourceFactoryBean.setDatabaseName(ContextAnnotationConfigUtil.resolveStringValue(this.beanFactory, this.annotationAttributes.getString("databaseName")));
+		}
+
+		if (this.dataSourceFactory != null) {
+			dataSourceFactoryBean.setDataSourceFactory(this.dataSourceFactory);
+		}
 		dataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
 		return dataSourceFactoryBean;
