@@ -38,7 +38,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -138,8 +137,8 @@ public class SimpleMessageListenerContainerTest {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
-				assertEquals("messageContent", message.getPayload());
 				countDownLatch.countDown();
+				assertEquals("messageContent", message.getPayload());
 			}
 		};
 		container.setMessageHandler(messageHandler);
@@ -154,11 +153,12 @@ public class SimpleMessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").
-				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
-						new Message().withBody("messageContent"))).
-				thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
+						new Message().withBody("messageContent")))
+				.thenReturn(new ReceiveMessageResult());
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
@@ -206,54 +206,14 @@ public class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	public void testListenerMethodThrowsException() throws Exception {
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
-
-			@Override
-			protected void handleError(Throwable throwable) {
-				assertNotNull(throwable);
-				assertTrue(IllegalArgumentException.class.isInstance(throwable));
-				super.stop();
-			}
-		};
-		AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-		container.setTaskExecutor(taskExecutor);
-
-		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
-		container.setAmazonSqs(sqs);
-
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
-
-			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
-				throw new IllegalArgumentException("expected exception");
-			}
-		};
-		container.setMessageHandler(messageHandler);
-		container.setBeanName("testContainerName");
-
-		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
-				withQueueUrl("http://testQueue.amazonaws.com"));
-
-		container.afterPropertiesSet();
-
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com"))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
-						new Message().withBody("messageContent"))).
-				thenReturn(new ReceiveMessageResult());
-
-		container.start();
-	}
-
-	@Test
 	public void listener_withMultipleMessageHandlers_shouldBeCalled() throws Exception {
 		final CountDownLatch countDownLatch = new CountDownLatch(2);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
@@ -274,14 +234,16 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").
-				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"))).
-				thenReturn(new ReceiveMessageResult());
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All").
-				withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent"))).
-				thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")))
+				.thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent")))
+				.thenReturn(new ReceiveMessageResult());
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
@@ -299,9 +261,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 
@@ -321,9 +283,11 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID")))).
-				thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID"))))
+				.thenReturn(new ReceiveMessageResult());
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		// Act
@@ -379,9 +343,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 
@@ -402,12 +366,14 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		MimeType mimeType = new MimeType("text", "plain", Charset.forName("UTF-8"));
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").
-						withAttributes(Collections.singletonMap("SenderId", "ID")).
-						withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").
-								withStringValue(mimeType.toString()))))).
-				thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")
+						.withAttributes(Collections.singletonMap("SenderId", "ID"))
+						.withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String")
+								.withStringValue(mimeType.toString())))))
+				.thenReturn(new ReceiveMessageResult());
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		// Act
@@ -439,9 +405,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 
@@ -463,8 +429,10 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMaxNumberOfMessages(10)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
 
 		// Act
@@ -483,9 +451,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 
@@ -507,7 +475,7 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMaxNumberOfMessages(10).withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
 
@@ -527,9 +495,9 @@ public class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-				super.executeMessage(stringMessage, deleteMessageRequest, hasRedrivePolicy);
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
 			}
 		};
 
@@ -551,15 +519,17 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
-				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMaxNumberOfMessages(10)
+				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
 
 		// Act
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.MINUTES));
+		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
 		container.stop();
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest("http://testQueue.amazonaws.com", "ReceiptHandle")));
 	}
@@ -594,6 +564,7 @@ public class SimpleMessageListenerContainerTest {
 		}
 	}
 
+	@SuppressWarnings("NonExceptionNameEndsWithException")
 	private static class TestMessageListenerThatThrowsAnException {
 
 		@SuppressWarnings("UnusedDeclaration")

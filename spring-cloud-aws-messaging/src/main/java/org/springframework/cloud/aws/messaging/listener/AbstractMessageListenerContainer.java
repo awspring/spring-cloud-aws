@@ -35,7 +35,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.ErrorHandler;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,11 +54,12 @@ import java.util.Set;
 abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
 
 	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
+	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
 	private final Set<String> queues = new HashSet<>();
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-	private final Map<String, RegisteredQueue> registeredQueues = new HashMap<>();
+	private final Map<String, QueueAttributes> registeredQueues = new HashMap<>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private AmazonSQSAsync amazonSqs;
@@ -77,12 +77,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	//Optional settings with defaults
 	private boolean autoStartup = true;
 	private int phase = Integer.MAX_VALUE;
-	private ErrorHandler errorHandler = new LoggingErrorHandler();
 	//Settings that are changed at runtime
 	private boolean active;
 	private boolean running;
 
-	public Map<String, RegisteredQueue> getRegisteredQueues() {
+	protected Map<String, QueueAttributes> getRegisteredQueues() {
 		return Collections.unmodifiableMap(this.registeredQueues);
 	}
 
@@ -238,20 +237,6 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		this.phase = phase;
 	}
 
-	protected ErrorHandler getErrorHandler() {
-		return this.errorHandler;
-	}
-
-	/**
-	 * A custom error handler that will be called in case of any message listener error.
-	 *
-	 * @param errorHandler
-	 * 		custom error handler implementation
-	 */
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
-
 	public boolean isActive() {
 		synchronized (this.getLifecycleMonitor()) {
 			return this.active;
@@ -307,6 +292,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 						withMessageAttributeNames(MessageHeaders.CONTENT_TYPE);
 				if (getMaxNumberOfMessages() != null) {
 					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
+				} else {
+					receiveMessageRequest.withMaxNumberOfMessages(DEFAULT_MAX_NUMBER_OF_MESSAGES);
 				}
 
 				if (getVisibilityTimeout() != null) {
@@ -319,7 +306,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 				GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
 						.withAttributeNames(QueueAttributeName.RedrivePolicy));
-				this.registeredQueues.put(queue, new RegisteredQueue(receiveMessageRequest, queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString())));
+				this.registeredQueues.put(queue, new QueueAttributes(receiveMessageRequest, queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString())));
 			}
 
 			this.running = true;
@@ -362,27 +349,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	}
 
-	protected void handleError(Throwable throwable) {
-		if (getErrorHandler() != null) {
-			getErrorHandler().handleError(throwable);
-		}
-	}
-
-	private class LoggingErrorHandler implements ErrorHandler {
-
-		@Override
-		public void handleError(Throwable t) {
-			getLogger().error("Error occurred while processing message", t);
-		}
-	}
-
-	protected static class RegisteredQueue {
+	protected static class QueueAttributes {
 
 		private final ReceiveMessageRequest receiveMessageRequest;
 
 		private final boolean hasRedrivePolicy;
 
-		public RegisteredQueue(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy) {
+		public QueueAttributes(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy) {
 			this.receiveMessageRequest = receiveMessageRequest;
 			this.hasRedrivePolicy = hasRedrivePolicy;
 		}

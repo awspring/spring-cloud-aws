@@ -117,40 +117,33 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private void scheduleMessageListeners() {
 		this.stopLatch = new CountDownLatch(getRegisteredQueues().size());
-		for (Map.Entry<String, RegisteredQueue> messageRequest : getRegisteredQueues().entrySet()) {
+		for (Map.Entry<String, QueueAttributes> messageRequest : getRegisteredQueues().entrySet()) {
 			getTaskExecutor().execute(new SignalExecutingRunnable(this.stopLatch, new AsynchronousMessageListener(messageRequest.getKey(), messageRequest.getValue())));
 		}
 	}
 
-	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage, DeleteMessageRequest deleteMessageRequest, boolean hasRedrivePolicy) {
-		try {
-			getMessageHandler().handleMessage(stringMessage);
-			getAmazonSqs().deleteMessageAsync(deleteMessageRequest);
-		} catch (MessagingException messagingException) {
-			if (!hasRedrivePolicy) {
-				getAmazonSqs().deleteMessageAsync(deleteMessageRequest);
-			}
-		}
+	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+		getMessageHandler().handleMessage(stringMessage);
 	}
 
 	private class AsynchronousMessageListener implements Runnable {
 
-		private final RegisteredQueue registeredQueue;
+		private final QueueAttributes queueAttributes;
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName, RegisteredQueue registeredQueue) {
+		private AsynchronousMessageListener(String logicalQueueName, QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
-			this.registeredQueue = registeredQueue;
+			this.queueAttributes = queueAttributes;
 		}
 
 		@Override
 		public void run() {
 			while (isRunning()) {
-				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.registeredQueue.getReceiveMessageRequest());
+				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.queueAttributes.getReceiveMessageRequest());
 				CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 				for (Message message : receiveMessageResult.getMessages()) {
 					if (isRunning()) {
-						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.registeredQueue);
+						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.queueAttributes);
 						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
 					} else {
 						break;
@@ -172,11 +165,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		private final String queueUrl;
 		private final boolean hasRedrivePolicy;
 
-		private MessageExecutor(String logicalQueueName, Message message, RegisteredQueue registeredQueue) {
+		private MessageExecutor(String logicalQueueName, Message message, QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
 			this.message = message;
-			this.queueUrl = registeredQueue.getReceiveMessageRequest().getQueueUrl();
-			this.hasRedrivePolicy = registeredQueue.hasRedrivePolicy();
+			this.queueUrl = queueAttributes.getReceiveMessageRequest().getQueueUrl();
+			this.hasRedrivePolicy = queueAttributes.hasRedrivePolicy();
 		}
 
 		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
@@ -198,7 +191,15 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					withPayload(payload).
 					setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
 			copyAttributesToHeaders(messageBuilder);
-			executeMessage(messageBuilder.build(), new DeleteMessageRequest(this.queueUrl, receiptHandle), this.hasRedrivePolicy);
+			try {
+				executeMessage(messageBuilder.build());
+				getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+			} catch (MessagingException e) {
+				if (!this.hasRedrivePolicy) {
+					getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+				}
+
+			}
 		}
 	}
 

@@ -60,6 +60,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
 
+	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 		resolvers.addAll(getCustomArgumentResolvers());
@@ -142,7 +143,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected void processHandlerMethodException(HandlerMethod handlerMethod, Exception ex, Message<?> message) {
 		super.processHandlerMethodException(handlerMethod, ex, message);
-		throw new MessagingException("An exception occurred while invoking the handler method");
+		throw new MessagingException("An exception occurred while invoking the handler method", ex);
 	}
 
 	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {

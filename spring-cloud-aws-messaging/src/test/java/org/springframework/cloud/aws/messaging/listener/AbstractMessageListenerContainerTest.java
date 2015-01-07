@@ -24,14 +24,12 @@ import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.RegisteredQueue;
+import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.util.ErrorHandler;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -44,10 +42,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -232,7 +227,7 @@ public class AbstractMessageListenerContainerTest {
 
 		container.start();
 
-		Map<String, RegisteredQueue> registeredQueues = container.getRegisteredQueues();
+		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
 		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue").getReceiveMessageRequest().getQueueUrl());
 		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
 		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest().getVisibilityTimeout().longValue());
@@ -267,7 +262,7 @@ public class AbstractMessageListenerContainerTest {
 
 		container.start();
 
-		Map<String, RegisteredQueue> registeredQueues = container.getRegisteredQueues();
+		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
 		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue").getReceiveMessageRequest().getQueueUrl());
 		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
 		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest().getVisibilityTimeout().longValue());
@@ -387,70 +382,6 @@ public class AbstractMessageListenerContainerTest {
 				}
 			}
 		});
-	}
-
-	@Test
-	public void testWithDefaultErrorHandler() throws Exception {
-		final Logger logger = mock(Logger.class);
-
-		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
-
-			@Override
-			protected Logger getLogger() {
-				return logger;
-			}
-
-			@Override
-			protected void doStart() {
-			}
-
-			@Override
-			protected void doStop() {
-			}
-
-
-		};
-
-		container.handleError(new Throwable("test"));
-		verify(logger, times(1)).error(isA(String.class), isA(Throwable.class));
-	}
-
-	@Test
-	public void testWithNullConfiguredErrorHandler() throws Exception {
-		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
-
-			@Override
-			protected void doStart() {
-			}
-
-			@Override
-			protected void doStop() {
-			}
-		};
-
-		container.setErrorHandler(null);
-		container.handleError(new Throwable("test"));
-	}
-
-	@Test
-	public void testWithCustomErrorHandler() throws Exception {
-		ErrorHandler errorHandler = mock(ErrorHandler.class);
-
-		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
-
-			@Override
-			protected void doStart() {
-			}
-
-			@Override
-			protected void doStop() {
-			}
-		};
-
-		container.setErrorHandler(errorHandler);
-		Throwable throwable = new Throwable("test");
-		container.handleError(throwable);
-		verify(errorHandler, times(1)).handleError(throwable);
 	}
 
 	@Test
