@@ -41,7 +41,10 @@ public class BootQueueListenerTest extends QueueListenerTest {
 
 		@Bean
 		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			return new SimpleMessageListenerContainerFactory();
+			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+			factory.setVisibilityTimeout(5);
+
+			return factory;
 		}
 
 		@Bean
@@ -60,6 +63,11 @@ public class BootQueueListenerTest extends QueueListenerTest {
 		@Bean
 		public MessageListenerWithSendTo messageListenerWithSendTo() {
 			return new MessageListenerWithSendTo();
+		}
+
+		@Bean
+		public RedrivePolicyTestListener redrivePolicyTestListener() {
+			return new RedrivePolicyTestListener();
 		}
 
 	}

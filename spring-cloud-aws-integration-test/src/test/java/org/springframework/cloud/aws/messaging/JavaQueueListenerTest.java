@@ -42,6 +42,7 @@ public class JavaQueueListenerTest extends QueueListenerTest {
 		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(QueueMessagingTemplate queueMessagingTemplate) {
 			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
 			factory.setSendToMessageTemplate(queueMessagingTemplate);
+			factory.setVisibilityTimeout(5);
 
 			return factory;
 		}
@@ -52,13 +53,18 @@ public class JavaQueueListenerTest extends QueueListenerTest {
 		}
 
 		@Bean
-		public QueueListenerTest.MessageListener messageListener() {
-			return new QueueListenerTest.MessageListener();
+		public MessageListener messageListener() {
+			return new MessageListener();
 		}
 
 		@Bean
-		public QueueListenerTest.MessageListenerWithSendTo messageListenerWithSendTo() {
-			return new QueueListenerTest.MessageListenerWithSendTo();
+		public MessageListenerWithSendTo messageListenerWithSendTo() {
+			return new MessageListenerWithSendTo();
+		}
+
+		@Bean
+		public RedrivePolicyTestListener redrivePolicyTestListener() {
+			return new RedrivePolicyTestListener();
 		}
 
 	}

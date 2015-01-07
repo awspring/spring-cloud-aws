@@ -25,6 +25,7 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
@@ -54,6 +55,9 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 	@Autowired
 	private MessageListenerWithSendTo messageListenerWithSendTo;
+
+	@Autowired
+	private RedrivePolicyTestListener redrivePolicyTestListener;
 
 	@Autowired
 	private QueueMessagingTemplate queueMessagingTemplate;
@@ -117,6 +121,19 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		assertNotNull(this.messageListener.getAllHeaders());
 	}
 
+	@Test
+	public void redrivePolicy_withMessageMappingThrowingAnException_messageShouldAppearInDeadLetterQueue() throws Exception {
+		// Arrange
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		this.redrivePolicyTestListener.setCountDownLatch(countDownLatch);
+
+		// Act
+		this.queueMessagingTemplate.convertAndSend("QueueWithRedrivePolicy", "Hello");
+
+		// Assert
+		assertTrue(countDownLatch.await(15, TimeUnit.SECONDS));
+	}
+
 	public static class MessageListener {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
@@ -172,6 +189,33 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 		public List<String> getReceivedMessages() {
 			return this.receivedMessages;
+		}
+
+	}
+
+	public static class RedrivePolicyTestListener {
+
+		private CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		public void setCountDownLatch(CountDownLatch countDownLatch) {
+			this.countDownLatch = countDownLatch;
+		}
+
+		@RuntimeUse
+		@MessageMapping("QueueWithRedrivePolicy")
+		public void receiveThrowingException(String message) {
+			throw new RuntimeException();
+		}
+
+		@RuntimeUse
+		@MessageMapping("DeadLetterQueue")
+		public void receiveDeadLetters(String message) {
+			this.countDownLatch.countDown();
+		}
+
+		@MessageExceptionHandler(RuntimeException.class)
+		public void handle() {
+			// Empty body just to avoid unnecessary log output because no exception handler was found.
 		}
 
 	}

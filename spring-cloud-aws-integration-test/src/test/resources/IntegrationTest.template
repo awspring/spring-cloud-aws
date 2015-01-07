@@ -131,6 +131,25 @@
 			"Properties": {
 			}
 		},
+	  "QueueWithRedrivePolicy": {
+		"Type": "AWS::SQS::Queue",
+		"Properties": {
+		  "RedrivePolicy": {
+			"deadLetterTargetArn": {
+			  "Fn::GetAtt": [
+				"DeadLetterQueue",
+				"Arn"
+			  ]
+			},
+			"maxReceiveCount": 1
+		  }
+		}
+	  },
+	  "DeadLetterQueue": {
+		"Type": "AWS::SQS::Queue",
+		"Properties": {
+		}
+	  },
 		"NotificationQueue": {
 			"Type": "AWS::SQS::Queue"
 		},
