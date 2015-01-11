@@ -37,6 +37,7 @@ import org.springframework.util.MimeType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
@@ -442,6 +443,51 @@ public class QueueMessageChannelTest {
 
 		// Act
 		messageChannel.receive();
+	}
+
+	@Test
+	public void sendMessage_withBinaryMessageHeader_shouldBeSentAsBinaryMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		ByteBuffer headerValue = ByteBuffer.wrap("My binary data!".getBytes());
+		String headerName = "MyHeader";
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(headerName, headerValue).build();
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertTrue(sent);
+		assertEquals(headerValue, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getBinaryValue());
+		assertEquals("Binary", sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
+	}
+
+	@Test
+	public void receiveMessage_withBinaryMessageHeader_shouldBeReceivedAsByteBufferMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		ByteBuffer headerValue = ByteBuffer.wrap("My binary data!".getBytes());
+		String headerName = "MyHeader";
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+				withWaitTimeSeconds(0).
+				withMaxNumberOfMessages(1).
+				withAttributeNames(QueueMessageChannel.ATTRIBUTE_NAMES).
+				withMessageAttributeNames("All"))).
+				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
+						withMessageAttributes(Collections.singletonMap(headerName,
+								new MessageAttributeValue().withDataType("Binary").withBinaryValue(headerValue)))));
+
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Act
+		Message<?> receivedMessage = messageChannel.receive();
+
+		// Assert
+		assertEquals(headerValue, receivedMessage.getHeaders().get(headerName));
 	}
 
 }

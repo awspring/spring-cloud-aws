@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,10 +85,20 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));
 			} else if (messageHeaderValue instanceof Number) {
 				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
+			} else if (messageHeaderValue instanceof ByteBuffer) {
+				messageAttributes.put(messageHeaderName, getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
+			} else {
+				this.logger.warn(String.format("Message header with name '%s' and type '%s' cannot be sent as" +
+								" message attribute because it is not supported by SQS.", messageHeaderName,
+						messageHeaderValue != null ? messageHeaderValue.getClass().getName() : ""));
 			}
 		}
 
 		return messageAttributes;
+	}
+
+	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
+		return new MessageAttributeValue().withDataType("Binary").withBinaryValue(messageHeaderValue);
 	}
 
 	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
@@ -151,6 +162,8 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 				if (numberValue != null) {
 					messageHeaders.put(messageAttribute.getKey(), numberValue);
 				}
+			} else if ("Binary".equals(messageAttribute.getValue().getDataType())) {
+				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getBinaryValue());
 			}
 		}
 
