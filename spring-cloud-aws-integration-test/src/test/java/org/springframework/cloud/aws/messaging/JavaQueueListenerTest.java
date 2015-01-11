@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging;
 import com.amazonaws.services.sqs.AmazonSQS;
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
@@ -39,10 +40,17 @@ public class JavaQueueListenerTest extends QueueListenerTest {
 	protected static class JavaQueueListenerTestConfiguration {
 
 		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(QueueMessagingTemplate queueMessagingTemplate) {
+		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
 			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
-			factory.setSendToMessageTemplate(queueMessagingTemplate);
 			factory.setVisibilityTimeout(5);
+
+			return factory;
+		}
+
+		@Bean
+		public QueueMessageHandlerFactory queueMessageHandlerFactory(QueueMessagingTemplate queueMessagingTemplate) {
+			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+			factory.setSendToMessagingTemplate(queueMessagingTemplate);
 
 			return factory;
 		}

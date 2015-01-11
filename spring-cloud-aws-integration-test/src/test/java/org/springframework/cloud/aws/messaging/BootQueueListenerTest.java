@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.context.annotation.Bean;
@@ -48,9 +49,14 @@ public class BootQueueListenerTest extends QueueListenerTest {
 		}
 
 		@Bean
-		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver, SimpleMessageListenerContainerFactory factory) {
+		public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+			return new QueueMessageHandlerFactory();
+		}
+
+		@Bean
+		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver, QueueMessageHandlerFactory factory) {
 			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-			factory.setSendToMessageTemplate(queueMessagingTemplate);
+			factory.setSendToMessagingTemplate(queueMessagingTemplate);
 
 			return queueMessagingTemplate;
 		}

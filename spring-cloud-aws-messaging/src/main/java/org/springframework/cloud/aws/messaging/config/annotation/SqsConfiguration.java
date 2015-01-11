@@ -23,25 +23,25 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
-
-import java.util.List;
 
 /**
  * @author Alain Sahli
  * @since 1.0
  */
-public class SqsConfigurationSupport {
+@Configuration
+@Import(ContextDefaultConfigurationRegistrar.class)
+public class SqsConfiguration {
 
 	@Autowired(required = false)
 	private AWSCredentialsProvider awsCredentialsProvider;
@@ -53,13 +53,13 @@ public class SqsConfigurationSupport {
 	private ResourceIdResolver resourceIdResolver;
 
 	@Autowired(required = false)
-	private SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;
+	private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+
+	@Autowired(required = false)
+	private final QueueMessageHandlerFactory queueMessageHandlerFactory = new QueueMessageHandlerFactory();
 
 	@Bean
 	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
-		if (this.simpleMessageListenerContainerFactory == null) {
-			this.simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
-		}
 		if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
 			this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
 		}
@@ -74,29 +74,19 @@ public class SqsConfigurationSupport {
 
 	@Bean
 	public QueueMessageHandler queueMessageHandler(AmazonSQS amazonSqs) {
-		if (this.simpleMessageListenerContainerFactory != null && this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
+		if (this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
 			return this.simpleMessageListenerContainerFactory.getQueueMessageHandler();
 		} else {
-			return getDefaultMessageHandler(amazonSqs);
+			return getMessageHandler(amazonSqs);
 		}
 	}
 
-	private QueueMessageHandler getDefaultMessageHandler(AmazonSQS amazonSqs) {
-		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
-		addArgumentResolvers(queueMessageHandler.getCustomArgumentResolvers());
-		addReturnValueHandlers(queueMessageHandler.getCustomReturnValueHandlers());
-
-		if (this.simpleMessageListenerContainerFactory != null && this.simpleMessageListenerContainerFactory.getSendToMessageTemplate() != null) {
-			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(this.simpleMessageListenerContainerFactory.getSendToMessageTemplate()));
-		} else {
-			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(getDefaultSendToQueueMessagingTemplate(amazonSqs, this.resourceIdResolver)));
+	private QueueMessageHandler getMessageHandler(AmazonSQS amazonSqs) {
+		if (this.queueMessageHandlerFactory.getAmazonSqs() == null) {
+			this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
 		}
 
-		return queueMessageHandler;
-	}
-
-	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
-		return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+		return this.queueMessageHandlerFactory.createQueueMessageHandler();
 	}
 
 	@Lazy
@@ -115,11 +105,5 @@ public class SqsConfigurationSupport {
 		}
 
 		return new AmazonSQSBufferedAsyncClient(amazonSQSAsyncClient);
-	}
-
-	protected void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
-	}
-
-	protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 	}
 }

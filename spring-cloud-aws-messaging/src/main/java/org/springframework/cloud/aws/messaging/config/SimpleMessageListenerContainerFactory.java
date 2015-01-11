@@ -22,7 +22,6 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.util.Assert;
 
 /**
@@ -46,8 +45,6 @@ public class SimpleMessageListenerContainerFactory {
 	private QueueMessageHandler queueMessageHandler;
 
 	private ResourceIdResolver resourceIdResolver;
-
-	private DestinationResolvingMessageSendingOperations<?> sendToMessageTemplate;
 
 	/**
 	 * Configures the {@link org.springframework.core.task.TaskExecutor} which is used to poll messages and execute them
@@ -126,15 +123,14 @@ public class SimpleMessageListenerContainerFactory {
 	 * Configures the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} that must be used
 	 * to handle incoming messages.
 	 * <p><b>NOTE</b>: It is rather unlikely that the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler}
-	 * must be configured with this setter. Consider using the {@link org.springframework.cloud.aws.messaging.config.annotation.QueueMessageHandlerConfigurerAdapter}
-	 * to configure the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} before using this
-	 * setter.</p>
+	 * must be configured with this setter. Consider using the
+	 * {@link org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory} to configure the
+	 * {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} before using this setter.</p>
 	 *
 	 * @param messageHandler
 	 * 		the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} that must be used by the
 	 * 		container, must not be {@code null}.
-	 * @see org.springframework.cloud.aws.messaging.config.annotation.QueueMessageHandlerConfigurerAdapter
-	 * @see org.springframework.cloud.aws.messaging.config.annotation.QueueMessageHandlerConfigurer
+	 * @see org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory
 	 */
 	public void setQueueMessageHandler(QueueMessageHandler messageHandler) {
 		Assert.notNull(messageHandler, "messageHandler must not be null");
@@ -158,23 +154,6 @@ public class SimpleMessageListenerContainerFactory {
 
 	public ResourceIdResolver getResourceIdResolver() {
 		return this.resourceIdResolver;
-	}
-
-	/**
-	 * Configures the {@link org.springframework.messaging.core.DestinationResolvingMessageSendingOperations} template
-	 * used by the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} to send return values of
-	 * handler methods.
-	 *
-	 * @param sendToMessageTemplate
-	 * 		A {@link org.springframework.messaging.core.DestinationResolvingMessageSendingOperations} template for
-	 * 		sending return values of handler methods.
-	 */
-	public void setSendToMessageTemplate(DestinationResolvingMessageSendingOperations<?> sendToMessageTemplate) {
-		this.sendToMessageTemplate = sendToMessageTemplate;
-	}
-
-	public DestinationResolvingMessageSendingOperations<?> getSendToMessageTemplate() {
-		return this.sendToMessageTemplate;
 	}
 
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {

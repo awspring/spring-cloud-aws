@@ -79,7 +79,9 @@
     <inspection_tool class="EmptyClass" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignorableAnnotations">
         <value>
+          <item value="org.springframework.boot.test.SpringApplicationConfiguration" />
           <item value="org.springframework.context.annotation.Configuration" />
+          <item value="org.springframework.test.context.ContextConfiguration" />
         </value>
       </option>
       <option name="ignoreClassWithParameterization" value="false" />

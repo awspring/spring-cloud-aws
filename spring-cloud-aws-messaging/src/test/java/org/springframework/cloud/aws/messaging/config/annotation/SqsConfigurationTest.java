@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
@@ -42,7 +44,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,7 +54,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Alain Sahli
  */
-public class DelegatingSqsConfigurationTest {
+public class SqsConfigurationTest {
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
@@ -86,28 +88,24 @@ public class DelegatingSqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withRegisteredConfigurers_shouldBeCalled() throws Exception {
+	public void messageHandler_withFactoryConfiguration_shouldUseCustomValues() throws Exception {
 		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class, ConfigurationWithConfigurer.class);
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithCustomizedMessageHandler.class);
 		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertEquals(1, messageHandler.getCustomArgumentResolvers().size());
-		assertEquals(ConfigurationWithConfigurer.CUSTOM_ARGUMENT_RESOLVER, messageHandler.getCustomArgumentResolvers().get(0));
+		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_ARGUMENT_RESOLVER, messageHandler.getCustomArgumentResolvers().get(0));
 
 		assertEquals(2, messageHandler.getCustomReturnValueHandlers().size());
-		assertEquals(ConfigurationWithConfigurer.CUSTOM_RETURN_VALUE_HANDLER, messageHandler.getCustomReturnValueHandlers().get(0));
-	}
+		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_RETURN_VALUE_HANDLER, messageHandler.getCustomReturnValueHandlers().get(0));
 
-	@Test
-	public void configuration_withMultipleRegisteredConfigurers_shouldAllBeCalled() throws Exception {
-		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class, ConfigurationWithConfigurer.class, AnotherConfigurationWithConfigurer.class);
-		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
+		Object sendToMessageTemplate = ReflectionTestUtils.getField(messageHandler.getReturnValueHandlers().get(1), "messageTemplate");
+		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_AMAZON_SQS, ReflectionTestUtils.getField(sendToMessageTemplate, "amazonSqs"));
 
-		// Assert
-		assertEquals(2, messageHandler.getCustomArgumentResolvers().size());
-		assertEquals(3, messageHandler.getCustomReturnValueHandlers().size());
+		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate, "destinationResolver");
+		Object targetDestinationResolver = ReflectionTestUtils.getField(destinationResolver, "targetDestinationResolver");
+		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_RESOURCE_ID_RESOLVER, ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"));
 	}
 
 	@Test
@@ -162,18 +160,6 @@ public class DelegatingSqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withCustomFactoryAndMultipleRegisteredConfigurers_resolversShouldBeAddedToTheMessageHandler() throws Exception {
-		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(MinimalConfiguration.class,
-				ConfigurationWithConfigurer.class, AnotherConfigurationWithConfigurer.class);
-		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
-
-		// Assert
-		assertEquals(2, messageHandler.getCustomArgumentResolvers().size());
-		assertEquals(3, messageHandler.getCustomReturnValueHandlers().size());
-	}
-
-	@Test
 	public void configuration_withRegionProvider_shouldUseItForClient() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationWithRegionProvider.class);
@@ -215,35 +201,24 @@ public class DelegatingSqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration
-	public static class ConfigurationWithConfigurer extends QueueMessageHandlerConfigurerAdapter {
+	public static class ConfigurationWithCustomizedMessageHandler extends MinimalConfiguration {
 
 		public static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(HandlerMethodReturnValueHandler.class);
 		public static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(HandlerMethodArgumentResolver.class);
+		public static final AmazonSQS CUSTOM_AMAZON_SQS = mock(AmazonSQS.class);
+		public static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
-		@Override
-		public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
-			returnValueHandlers.add(CUSTOM_RETURN_VALUE_HANDLER);
+		@Bean
+		public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+			factory.setArgumentResolvers(Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
+			factory.setReturnValueHandlers(Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
+			factory.setAmazonSqs(CUSTOM_AMAZON_SQS);
+			factory.setResourceIdResolver(CUSTOM_RESOURCE_ID_RESOLVER);
+
+			return factory;
 		}
 
-		@Override
-		public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-			argumentResolvers.add(CUSTOM_ARGUMENT_RESOLVER);
-		}
-	}
-
-	@EnableSqs
-	@Configuration
-	public static class AnotherConfigurationWithConfigurer extends QueueMessageHandlerConfigurerAdapter {
-
-		@Override
-		public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
-			returnValueHandlers.add(mock(HandlerMethodReturnValueHandler.class));
-		}
-
-		@Override
-		public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-			argumentResolvers.add(mock(HandlerMethodArgumentResolver.class));
-		}
 	}
 
 	@EnableSqs
@@ -294,9 +269,9 @@ public class DelegatingSqsConfigurationTest {
 		public static final DestinationResolvingMessageSendingOperations<?> SEND_TO_MESSAGE_TEMPLATE = mock(DestinationResolvingMessageSendingOperations.class);
 
 		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
-			factory.setSendToMessageTemplate(SEND_TO_MESSAGE_TEMPLATE);
+		public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+			factory.setSendToMessagingTemplate(SEND_TO_MESSAGE_TEMPLATE);
 
 			return factory;
 		}
