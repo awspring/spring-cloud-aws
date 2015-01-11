@@ -240,7 +240,7 @@ public class QueueMessageChannelTest {
 				withMessageAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
 						withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
-								new MessageAttributeValue().withDataType("String").withStringValue(mimeType.toString())))));
+								new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(mimeType.toString())))));
 
 		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
@@ -269,7 +269,7 @@ public class QueueMessageChannelTest {
 		// Assert
 		assertTrue(sent);
 		assertEquals(headerValue, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getStringValue());
-		assertEquals("String", sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertEquals(MessageAttributeDataTypes.STRING, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
 	}
 
 	@Test
@@ -285,7 +285,7 @@ public class QueueMessageChannelTest {
 				withMessageAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
 						withMessageAttributes(Collections.singletonMap(headerName,
-								new MessageAttributeValue().withDataType("String").withStringValue(headerValue)))));
+								new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(headerValue)))));
 
 		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
@@ -330,21 +330,21 @@ public class QueueMessageChannelTest {
 		// Assert
 		assertTrue(sent);
 		Map<String, MessageAttributeValue> messageAttributes = sendMessageRequestArgumentCaptor.getValue().getMessageAttributes();
-		assertEquals("Number.java.lang.Double", messageAttributes.get("double").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Double", messageAttributes.get("double").getDataType());
 		assertEquals(String.valueOf(doubleValue), messageAttributes.get("double").getStringValue());
-		assertEquals("Number.java.lang.Long", messageAttributes.get("long").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Long", messageAttributes.get("long").getDataType());
 		assertEquals(String.valueOf(longValue), messageAttributes.get("long").getStringValue());
-		assertEquals("Number.java.lang.Integer", messageAttributes.get("integer").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer", messageAttributes.get("integer").getDataType());
 		assertEquals(String.valueOf(integerValue), messageAttributes.get("integer").getStringValue());
-		assertEquals("Number.java.lang.Byte", messageAttributes.get("byte").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte", messageAttributes.get("byte").getDataType());
 		assertEquals(String.valueOf(byteValue), messageAttributes.get("byte").getStringValue());
-		assertEquals("Number.java.lang.Short", messageAttributes.get("short").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Short", messageAttributes.get("short").getDataType());
 		assertEquals(String.valueOf(shortValue), messageAttributes.get("short").getStringValue());
-		assertEquals("Number.java.lang.Float", messageAttributes.get("float").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Float", messageAttributes.get("float").getDataType());
 		assertEquals(String.valueOf(floatValue), messageAttributes.get("float").getStringValue());
-		assertEquals("Number.java.math.BigInteger", messageAttributes.get("bigInteger").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger", messageAttributes.get("bigInteger").getDataType());
 		assertEquals(String.valueOf(bigIntegerValue), messageAttributes.get("bigInteger").getStringValue());
-		assertEquals("Number.java.math.BigDecimal", messageAttributes.get("bigDecimal").getDataType());
+		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal", messageAttributes.get("bigDecimal").getDataType());
 		assertEquals(String.valueOf(bigDecimalValue), messageAttributes.get("bigDecimal").getStringValue());
 	}
 
@@ -355,21 +355,21 @@ public class QueueMessageChannelTest {
 
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
 		double doubleValue = 1234.56;
-		messageAttributes.put("double", new MessageAttributeValue().withDataType("Number.java.lang.Double").withStringValue(String.valueOf(doubleValue)));
+		messageAttributes.put("double", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Double").withStringValue(String.valueOf(doubleValue)));
 		long longValue = 1234L;
-		messageAttributes.put("long", new MessageAttributeValue().withDataType("Number.java.lang.Long").withStringValue(String.valueOf(longValue)));
+		messageAttributes.put("long", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Long").withStringValue(String.valueOf(longValue)));
 		int integerValue = 1234;
-		messageAttributes.put("integer", new MessageAttributeValue().withDataType("Number.java.lang.Integer").withStringValue(String.valueOf(integerValue)));
+		messageAttributes.put("integer", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer").withStringValue(String.valueOf(integerValue)));
 		byte byteValue = 2;
-		messageAttributes.put("byte", new MessageAttributeValue().withDataType("Number.java.lang.Byte").withStringValue(String.valueOf(byteValue)));
+		messageAttributes.put("byte", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte").withStringValue(String.valueOf(byteValue)));
 		short shortValue = 12;
-		messageAttributes.put("short", new MessageAttributeValue().withDataType("Number.java.lang.Short").withStringValue(String.valueOf(shortValue)));
+		messageAttributes.put("short", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Short").withStringValue(String.valueOf(shortValue)));
 		float floatValue = 1234.56f;
-		messageAttributes.put("float", new MessageAttributeValue().withDataType("Number.java.lang.Float").withStringValue(String.valueOf(floatValue)));
+		messageAttributes.put("float", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Float").withStringValue(String.valueOf(floatValue)));
 		BigInteger bigIntegerValue = new BigInteger("616416546156");
-		messageAttributes.put("bigInteger", new MessageAttributeValue().withDataType("Number.java.math.BigInteger").withStringValue(String.valueOf(bigIntegerValue)));
+		messageAttributes.put("bigInteger", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger").withStringValue(String.valueOf(bigIntegerValue)));
 		BigDecimal bigDecimalValue = new BigDecimal("7834938");
-		messageAttributes.put("bigDecimal", new MessageAttributeValue().withDataType("Number.java.math.BigDecimal").withStringValue(String.valueOf(bigDecimalValue)));
+		messageAttributes.put("bigDecimal", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal").withStringValue(String.valueOf(bigDecimalValue)));
 
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
@@ -404,7 +404,7 @@ public class QueueMessageChannelTest {
 
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
 		AtomicInteger atomicInteger = new AtomicInteger(17);
-		messageAttributes.put("atomicInteger", new MessageAttributeValue().withDataType("Number.java.util.concurrent.atomic.AtomicInteger").withStringValue(String.valueOf(atomicInteger)));
+		messageAttributes.put("atomicInteger", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".java.util.concurrent.atomic.AtomicInteger").withStringValue(String.valueOf(atomicInteger)));
 
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
@@ -429,7 +429,7 @@ public class QueueMessageChannelTest {
 				" into a Number because target class was not found.");
 
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
-		messageAttributes.put("classNotFound", new MessageAttributeValue().withDataType("Number.class.not.Found").withStringValue("12"));
+		messageAttributes.put("classNotFound", new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + ".class.not.Found").withStringValue("12"));
 
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
@@ -463,7 +463,7 @@ public class QueueMessageChannelTest {
 		// Assert
 		assertTrue(sent);
 		assertEquals(headerValue, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getBinaryValue());
-		assertEquals("Binary", sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertEquals(MessageAttributeDataTypes.BINARY, sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
 	}
 
 	@Test
@@ -479,7 +479,7 @@ public class QueueMessageChannelTest {
 				withMessageAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
 						withMessageAttributes(Collections.singletonMap(headerName,
-								new MessageAttributeValue().withDataType("Binary").withBinaryValue(headerValue)))));
+								new MessageAttributeValue().withDataType(MessageAttributeDataTypes.BINARY).withBinaryValue(headerValue)))));
 
 		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 

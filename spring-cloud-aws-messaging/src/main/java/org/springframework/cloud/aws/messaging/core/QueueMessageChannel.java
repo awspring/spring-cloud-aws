@@ -98,26 +98,26 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	}
 
 	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
-		return new MessageAttributeValue().withDataType("Binary").withBinaryValue(messageHeaderValue);
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.BINARY).withBinaryValue(messageHeaderValue);
 	}
 
 	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
 		if (messageHeaderValue instanceof MimeType) {
-			return new MessageAttributeValue().withDataType("String").withStringValue(messageHeaderValue.toString());
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(messageHeaderValue.toString());
 		} else if (messageHeaderValue instanceof String) {
-			return new MessageAttributeValue().withDataType("String").withStringValue((String) messageHeaderValue);
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue((String) messageHeaderValue);
 		}
 		return null;
 	}
 
 	private MessageAttributeValue getStringMessageAttribute(String messageHeaderValue) {
-		return new MessageAttributeValue().withDataType("String").withStringValue(messageHeaderValue);
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(messageHeaderValue);
 	}
 
 	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
 		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()), "Only standard number types are accepted as message header.");
 
-		return new MessageAttributeValue().withDataType("Number." + messageHeaderValue.getClass().getName()).withStringValue(messageHeaderValue.toString());
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName()).withStringValue(messageHeaderValue.toString());
 	}
 
 	@Override
@@ -147,31 +147,44 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		messageHeaders.put(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
 		messageHeaders.put(RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME, message.getReceiptHandle());
 
-		for (Map.Entry<String, String> attributeKeyValuePair : message.getAttributes().entrySet()) {
-			messageHeaders.put(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
-		}
-
-		for (Map.Entry<String, MessageAttributeValue> messageAttribute : message.getMessageAttributes().entrySet()) {
-			if (MessageHeaders.CONTENT_TYPE.equals(messageAttribute.getKey())) {
-				messageHeaders.put(MessageHeaders.CONTENT_TYPE,
-						MimeType.valueOf(message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
-			} else if ("String".equals(messageAttribute.getValue().getDataType())) {
-				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getStringValue());
-			} else if (messageAttribute.getValue().getDataType().startsWith("Number")) {
-				Object numberValue = getNumberValue(messageAttribute.getValue());
-				if (numberValue != null) {
-					messageHeaders.put(messageAttribute.getKey(), numberValue);
-				}
-			} else if ("Binary".equals(messageAttribute.getValue().getDataType())) {
-				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getBinaryValue());
-			}
-		}
+		messageHeaders.putAll(getAttributesAsMessageHeaders(message));
+		messageHeaders.putAll(getMessageAttributesAsMessageHeaders(message));
 
 		return new GenericMessage<>(message.getBody(), messageHeaders);
 	}
 
+	private Map<String, Object> getAttributesAsMessageHeaders(com.amazonaws.services.sqs.model.Message message) {
+		Map<String, Object> messageHeaders = new HashMap<>();
+		for (Map.Entry<String, String> attributeKeyValuePair : message.getAttributes().entrySet()) {
+			messageHeaders.put(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
+		}
+
+		return messageHeaders;
+	}
+
+	private Map<String, Object> getMessageAttributesAsMessageHeaders(com.amazonaws.services.sqs.model.Message message) {
+		Map<String, Object> messageHeaders = new HashMap<>();
+		for (Map.Entry<String, MessageAttributeValue> messageAttribute : message.getMessageAttributes().entrySet()) {
+			if (MessageHeaders.CONTENT_TYPE.equals(messageAttribute.getKey())) {
+				messageHeaders.put(MessageHeaders.CONTENT_TYPE,
+						MimeType.valueOf(message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
+			} else if (MessageAttributeDataTypes.STRING.equals(messageAttribute.getValue().getDataType())) {
+				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getStringValue());
+			} else if (messageAttribute.getValue().getDataType().startsWith(MessageAttributeDataTypes.NUMBER)) {
+				Object numberValue = getNumberValue(messageAttribute.getValue());
+				if (numberValue != null) {
+					messageHeaders.put(messageAttribute.getKey(), numberValue);
+				}
+			} else if (MessageAttributeDataTypes.BINARY.equals(messageAttribute.getValue().getDataType())) {
+				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getBinaryValue());
+			}
+		}
+
+		return messageHeaders;
+	}
+
 	private Object getNumberValue(MessageAttributeValue value) {
-		String numberType = value.getDataType().substring("Number.".length());
+		String numberType = value.getDataType().substring(MessageAttributeDataTypes.NUMBER.length() + 1);
 		try {
 			Class<? extends Number> numberTypeClass = Class.forName(numberType).asSubclass(Number.class);
 			return NumberUtils.parseNumber(value.getStringValue(), numberTypeClass);
