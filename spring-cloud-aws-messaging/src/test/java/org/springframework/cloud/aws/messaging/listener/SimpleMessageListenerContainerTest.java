@@ -154,7 +154,7 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
 						new Message().withBody("messageContent")))
@@ -235,12 +235,12 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")))
 				.thenReturn(new ReceiveMessageResult());
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent")))
 				.thenReturn(new ReceiveMessageResult());
@@ -284,7 +284,7 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID"))))
 				.thenReturn(new ReceiveMessageResult());
@@ -367,7 +367,7 @@ public class SimpleMessageListenerContainerTest {
 
 		MimeType mimeType = new MimeType("text", "plain", Charset.forName("UTF-8"));
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")
 						.withAttributes(Collections.singletonMap("SenderId", "ID"))
@@ -430,7 +430,7 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)
+				.withMessageAttributeNames("All")
 				.withMaxNumberOfMessages(10)))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
@@ -475,7 +475,7 @@ public class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMaxNumberOfMessages(10).withMessageAttributeNames(MessageHeaders.CONTENT_TYPE))).
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All").withMaxNumberOfMessages(10).withMessageAttributeNames("All"))).
 				thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
 
@@ -521,7 +521,7 @@ public class SimpleMessageListenerContainerTest {
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
 				.withMaxNumberOfMessages(10)
-				.withMessageAttributeNames(MessageHeaders.CONTENT_TYPE)))
+				.withMessageAttributeNames("All")))
 				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
 						new ReceiveMessageResult());
 
