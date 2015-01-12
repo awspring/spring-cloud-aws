@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.core;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,7 +53,7 @@ public class NotificationMessagingTemplateTest {
 
 		// Assert
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
-				"Message content", null));
+				"Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
 	}
 
 	@Test
@@ -66,7 +68,7 @@ public class NotificationMessagingTemplateTest {
 		notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
 
 		// Assert
-		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
 	}
 
 	@Test
@@ -82,7 +84,7 @@ public class NotificationMessagingTemplateTest {
 		notificationMessagingTemplate.sendNotification("My message", "My subject");
 
 		// Assert
-		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject"));
+		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
