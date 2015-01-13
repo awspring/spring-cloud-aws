@@ -25,16 +25,29 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoints using the Spring Controller model.
+ * This annotation configures a method to receive notification messages on the method. A notification method
+ * can have two parameters annotation by the {@link org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage}
+ * annotation to receive the payload and and a {@link org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject}
+ * annotation to receive the subject of a notification.
+ *
+ * A notification controller will be mapped to a particular url inside the application context. The mapped url
+ * must be configured inside the Amazon Web Service platform as a subscription. Before receiving any notification
+ * itself a controller must confirm the subscription. Controllers will use a
+ * {@link org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationSubscriptionMapping} annotated method
+ * to confirm the subscription.
+ *
+ * The mapping of the controller to a URL has to be done using a {@link org.springframework.web.bind.annotation.RequestMapping}
+ * annotation. Typically one controller class will contain all the methods used to confirm a subscription, receive
+ * notifications and receive the unsubscribe message.
+ *
+ * <b>Note:</b> Currently this annotation does not allow an explicit mapping of controller methods to URLs. Therefore
+ * this annotation can only be used in one controller class that has an class level @RequestMapping annotation.
+ *
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping(headers = "x-amz-sns-message-type=Notification", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationMessageMapping {
-
-	/**
-	 * @return the configured url of the topic subscription
-	 * @see org.springframework.web.bind.annotation.RequestMapping#value()
-	 */
-	String[] value() default {};
 }
