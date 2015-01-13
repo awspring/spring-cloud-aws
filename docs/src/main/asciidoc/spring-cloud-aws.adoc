@@ -547,8 +547,8 @@ example shows the use of a custom EC2 client that might have a special configura
 ----
 
 ==== Injecting the default EC2 client
-By default Spring Cloud AWS configures an EC2 client with the specified region and security credentials. Application
-developers can inject the EC2 client directly into their code using the `@Autowired` annotation.
+If there are user tags configured for the instance data (see above) Spring Cloud AWS configures an EC2 client with
+the specified region and security credentials. Application developers can inject the EC2 client directly into their code using the `@Autowired` annotation.
 
 [source,java,indent=0]
 ----
