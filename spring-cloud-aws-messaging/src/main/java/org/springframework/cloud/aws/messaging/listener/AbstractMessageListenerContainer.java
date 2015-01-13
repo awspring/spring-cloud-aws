@@ -31,7 +31,6 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
@@ -53,7 +52,8 @@ import java.util.Set;
  */
 abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
 
-	private static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
+	private static final String RECEIVING_ATTRIBUTES = "All";
+	public static final String RECEIVING_MESSAGE_ATTRIBUTES = "All";
 	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
@@ -288,8 +288,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 			for (String queue : this.queues) {
 				String destinationUrl = getDestinationResolver().resolveDestination(queue);
 				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
-						withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
-						withMessageAttributeNames(MessageHeaders.CONTENT_TYPE);
+						withAttributeNames(RECEIVING_ATTRIBUTES).
+						withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
 				if (getMaxNumberOfMessages() != null) {
 					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
 				} else {

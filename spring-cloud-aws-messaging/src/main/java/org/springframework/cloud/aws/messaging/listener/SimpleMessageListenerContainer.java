@@ -20,15 +20,15 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.MimeType;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+
+import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.createMessage;
 
 /**
  * @author Agim Emruli
@@ -172,27 +172,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			this.hasRedrivePolicy = queueAttributes.hasRedrivePolicy();
 		}
 
-		private void copyAttributesToHeaders(MessageBuilder<String> messageBuilder) {
-			for (Map.Entry<String, String> attribute : this.message.getAttributes().entrySet()) {
-				messageBuilder.setHeader(attribute.getKey(), attribute.getValue());
-			}
-
-			if (this.message.getMessageAttributes().containsKey(MessageHeaders.CONTENT_TYPE)) {
-				messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE,
-						MimeType.valueOf(this.message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
-			}
-		}
-
 		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
-			String payload = this.message.getBody();
-			MessageBuilder<String> messageBuilder = MessageBuilder.
-					withPayload(payload).
-					setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName);
-			copyAttributesToHeaders(messageBuilder);
+			org.springframework.messaging.Message<String> queueMessage = createMessage(this.message,
+					Collections.<String, Object>singletonMap(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName));
 			try {
-				executeMessage(messageBuilder.build());
+				executeMessage(queueMessage);
 				getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			} catch (MessagingException e) {
 				if (!this.hasRedrivePolicy) {

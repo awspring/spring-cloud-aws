@@ -28,11 +28,15 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.AbstractMessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.util.NumberUtils;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.createMessage;
 
 /**
  * @author Agim Emruli
@@ -41,9 +45,8 @@ import java.util.Map;
  */
 public class QueueMessageChannel extends AbstractMessageChannel implements PollableChannel {
 
-	static final String MESSAGE_RECEIVING_ATTRIBUTE_NAMES = "All";
-	private static final String RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME = "ReceiptHandle";
-	private static final String MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME = "MessageId";
+	static final String ATTRIBUTE_NAMES = "All";
+	public static final String MESSAGE_ATTRIBUTE_NAMES = "All";
 	private final AmazonSQS amazonSqs;
 	private final String queueUrl;
 
@@ -56,7 +59,7 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	protected boolean sendInternal(Message<?> message, long timeout) {
 		try {
 			SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload())).withDelaySeconds(getDelaySeconds(timeout));
-			Map<String, MessageAttributeValue> messageAttributes = getContentTypeMessageAttributes(message);
+			Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
 			if (!messageAttributes.isEmpty()) {
 				sendMessageRequest.withMessageAttributes(messageAttributes);
 			}
@@ -68,18 +71,51 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		return true;
 	}
 
-	private Map<String, MessageAttributeValue> getContentTypeMessageAttributes(Message<?> message) {
-		Map<String, MessageAttributeValue> messageAttributes = new HashMap<>(1);
-		Object mimeType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		if (mimeType != null) {
-			if (mimeType instanceof MimeType) {
-				messageAttributes.put(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").withStringValue(mimeType.toString()));
-			} else if (mimeType instanceof String) {
-				messageAttributes.put(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String").withStringValue((String) mimeType));
+	private Map<String, MessageAttributeValue> getMessageAttributes(Message<?> message) {
+		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
+		for (Map.Entry<String, Object> messageHeader : message.getHeaders().entrySet()) {
+			String messageHeaderName = messageHeader.getKey();
+			Object messageHeaderValue = messageHeader.getValue();
+
+			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
+				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
+			} else if (messageHeaderValue instanceof String) {
+				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));
+			} else if (messageHeaderValue instanceof Number) {
+				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
+			} else if (messageHeaderValue instanceof ByteBuffer) {
+				messageAttributes.put(messageHeaderName, getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
+			} else {
+				this.logger.warn(String.format("Message header with name '%s' and type '%s' cannot be sent as" +
+								" message attribute because it is not supported by SQS.", messageHeaderName,
+						messageHeaderValue != null ? messageHeaderValue.getClass().getName() : ""));
 			}
 		}
 
 		return messageAttributes;
+	}
+
+	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.BINARY).withBinaryValue(messageHeaderValue);
+	}
+
+	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
+		if (messageHeaderValue instanceof MimeType) {
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(messageHeaderValue.toString());
+		} else if (messageHeaderValue instanceof String) {
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue((String) messageHeaderValue);
+		}
+		return null;
+	}
+
+	private MessageAttributeValue getStringMessageAttribute(String messageHeaderValue) {
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(messageHeaderValue);
+	}
+
+	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
+		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()), "Only standard number types are accepted as message header.");
+
+		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName()).withStringValue(messageHeaderValue.toString());
 	}
 
 	@Override
@@ -93,8 +129,8 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 				new ReceiveMessageRequest(this.queueUrl).
 						withMaxNumberOfMessages(1).
 						withWaitTimeSeconds(Long.valueOf(timeout).intValue()).
-						withAttributeNames(MESSAGE_RECEIVING_ATTRIBUTE_NAMES).
-						withMessageAttributeNames(MessageHeaders.CONTENT_TYPE));
+						withAttributeNames(ATTRIBUTE_NAMES).
+						withMessageAttributeNames(MESSAGE_ATTRIBUTE_NAMES));
 		if (receiveMessageResult.getMessages().isEmpty()) {
 			return null;
 		}
@@ -102,23 +138,6 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		Message<String> message = createMessage(amazonMessage);
 		this.amazonSqs.deleteMessage(new DeleteMessageRequest(this.queueUrl, amazonMessage.getReceiptHandle()));
 		return message;
-	}
-
-	private Message<String> createMessage(com.amazonaws.services.sqs.model.Message message) {
-		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(message.getBody());
-		messageBuilder.setHeader(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
-		messageBuilder.setHeader(RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME, message.getReceiptHandle());
-
-		for (Map.Entry<String, String> attributeKeyValuePair : message.getAttributes().entrySet()) {
-			messageBuilder.setHeader(attributeKeyValuePair.getKey(), attributeKeyValuePair.getValue());
-		}
-
-		if (message.getMessageAttributes().containsKey(MessageHeaders.CONTENT_TYPE)) {
-			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE,
-					MimeType.valueOf(message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
-		}
-
-		return messageBuilder.build();
 	}
 
 	// returns 0 if there is a negative value for the delay seconds

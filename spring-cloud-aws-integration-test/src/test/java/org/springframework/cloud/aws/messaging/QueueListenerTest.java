@@ -31,6 +31,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertTrue;
  * @author Alain Sahli
  * @since 1.0
  */
+@SuppressWarnings({"AbstractClassWithoutAbstractMethods", "SpringJavaAutowiringInspection"})
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class QueueListenerTest extends AbstractContainerTest {
 
@@ -113,12 +115,22 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		this.messageListener.getReceivedMessages().clear();
 
 		// Act
-		this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Is the header received?").build());
+		ByteBuffer binaryValue = ByteBuffer.wrap("Binary value".getBytes());
+		int numberValue = 123456;
+		String stringValue = "String value";
+		this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Is the header received?")
+				.setHeader("stringHeader", stringValue)
+				.setHeader("numberHeader", numberValue)
+				.setHeader("binaryHeader", binaryValue)
+				.build());
 
 		// Assert
 		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
 		assertNotNull(this.messageListener.getSenderId());
 		assertNotNull(this.messageListener.getAllHeaders());
+		assertEquals(stringValue, this.messageListener.getAllHeaders().get("stringHeader"));
+		assertEquals(numberValue, this.messageListener.getAllHeaders().get("numberHeader"));
+		assertEquals(binaryValue, this.messageListener.getAllHeaders().get("binaryHeader"));
 	}
 
 	@Test
