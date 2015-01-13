@@ -25,7 +25,7 @@
 	</aws-context:context-credentials>
 
 	<bean id="myCustomRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-		<constructor-arg value="AP_SOUTHEAST_2" />
+      <constructor-arg value="ap-southeast-2" />
 	</bean>
 
 	<aws-context:stack-configuration stack-name="test" region-provider="myCustomRegionProvider" />

@@ -189,7 +189,7 @@ derived because the application is not hosted on a EC2 instance (e.g. local test
 [source,xml,indent=0]
 ----
 <beans ...>
-  	<aws-context:context-region region="EU_WEST_1"/>
+  	<aws-context:context-region region="eu-west-1"/>
 </beans>
 ----
 
@@ -219,8 +219,8 @@ The configuration might look like this for a database service (described later)
 [source,xml,indent=0]
 ----
  <beans ...>
-  <aws-context:context-region region="EU_CENTRAL_1" />
-  <jdbc:data-source ... region="EU_WEST_1" />
+  <aws-context:context-region region="eu-central-1" />
+  <jdbc:data-source ... region="eu-west-1" />
  </beans>
 ----
 
@@ -295,9 +295,10 @@ The properties to configure the region are shown below
 |Enables automatic region detection based on the EC2 meta data service
 
 |cloud.aws.region.static
-|EU_WEST_1
-|Configures a static region for the application. Possible regions are (currently) US_EAST_1, US_WEST_1, US_WEST_2,
-EU_WEST_1, EU_CENTRAL_1, AP_SOUTHEAST_1, AP_SOUTHEAST_2, AP_NORTHEAST_1, SA_EAST_1, CN_NORTH_1
+|eu-west-1
+|Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
+eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
+configured with own region meta data
 |===
 
 == Cloud environment
@@ -1714,7 +1715,7 @@ attachment as simple mail messages. A configuration with the necessary elements 
 	  ..
 	</aws-context:context-credentials>
 
-	<aws-context:context-region region="EU_WEST_1" />
+	<aws-context:context-region region="eu-west-1" />
 
 	<aws-mail:mail-sender id="testSender" />
 
@@ -1821,8 +1822,8 @@ an SES service, the client is overridden to us a valid region EU-WEST-1.
 ----
 <beans ...>
 
- <aws-context:context-region region="EU_CENTRAL_1" />
- <aws-mail:mail-sender id="testSender" region="EU_WEST_1"/>
+ <aws-context:context-region region="eu-central-1" />
+ <aws-mail:mail-sender id="testSender" region="eu-west-1"/>
 
 </beans>
 ----

@@ -27,7 +27,7 @@
 		<aws-context:simple-credentials access-key="${cloud.aws.credentials.accessKey}" secret-key="${cloud.aws.credentials.secretKey}" />
 	</aws-context:context-credentials>
 
-	<aws-context:context-region region="EU_WEST_1" />
+	<aws-context:context-region region="eu-west-1" />
 
 	<context:property-placeholder location="file://${els.config.dir}/access.properties" />
 

@@ -22,7 +22,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -80,7 +80,7 @@ public class ContextRegionConfigurationRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.getEnvironment().getPropertySources().addLast(
-				new MapPropertySource("test", Collections.<String, Object>singletonMap("region", "EU_WEST_1")));
+				new MapPropertySource("test", Collections.<String, Object>singletonMap("region", Regions.EU_WEST_1.getName())));
 		this.context.register(ApplicationConfigurationWithExpressionRegion.class);
 
 		// Act
@@ -97,7 +97,7 @@ public class ContextRegionConfigurationRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.getEnvironment().getPropertySources().addLast(
-				new MapPropertySource("test", Collections.<String, Object>singletonMap("region", "EU_WEST_1")));
+				new MapPropertySource("test", Collections.<String, Object>singletonMap("region", Regions.EU_WEST_1.getName())));
 		this.context.register(ApplicationConfigurationWithPlaceHolderRegion.class);
 
 		// Act
@@ -144,8 +144,8 @@ public class ContextRegionConfigurationRegistrarTest {
 	@Test
 	public void regionProvider_withConfiguredWrongRegion_reportsError() throws Exception {
 		//Arrange
-		this.expectedException.expect(UnsatisfiedDependencyException.class);
-		this.expectedException.expectMessage("no matching editors or conversion strategy found");
+		this.expectedException.expect(BeanCreationException.class);
+		this.expectedException.expectMessage("not a valid region");
 
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithWrongRegion.class);
 
@@ -155,7 +155,7 @@ public class ContextRegionConfigurationRegistrarTest {
 	}
 
 	@Configuration
-	@EnableContextRegion(region = "EU_WEST_1")
+	@EnableContextRegion(region = "eu-west-1")
 	static class ApplicationConfigurationWithStaticRegionProvider {
 
 	}
@@ -189,13 +189,13 @@ public class ContextRegionConfigurationRegistrarTest {
 	}
 
 	@Configuration
-	@EnableContextRegion(autoDetect = true, region = "EU_WEST_1")
+	@EnableContextRegion(autoDetect = true, region = "eu-west-1")
 	static class ApplicationConfigurationWithAutoDetectionAndRegion {
 
 	}
 
 	@Configuration
-	@EnableContextRegion(region = "EU_WAST_1")
+	@EnableContextRegion(region = "eu-wast-1")
 	static class ApplicationConfigurationWithWrongRegion {
 
 	}

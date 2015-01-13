@@ -19,5 +19,5 @@
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
 
-	<context:context-region region="SA_EAST_1" />
+  <context:context-region region="sa-east-1" />
 </beans>

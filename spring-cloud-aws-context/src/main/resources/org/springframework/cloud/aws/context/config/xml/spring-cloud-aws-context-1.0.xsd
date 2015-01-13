@@ -185,7 +185,7 @@
 				allows users to configure the particular region.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="region" type="regionType" use="optional">
+		<xsd:attribute name="region" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>The region that will be used, must be one of the valid regions.
 				</xsd:documentation>
@@ -238,59 +238,6 @@
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:simpleType name="regionType">
-		<xsd:annotation>
-			<xsd:documentation>The region type which could be a directly enumerated string or an expression or
-				placeholder
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:union memberTypes="regionTypeEnumeration expressionType placeholderType" />
-	</xsd:simpleType>
-
-	<xsd:simpleType name="regionTypeEnumeration">
-		<xsd:annotation>
-			<xsd:documentation>
-				The logical name of the region. Possible regions are available on
-				http://docs.amazonwebservices.com/general/latest/gr/rande.html
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="US_EAST_1" />
-			<xsd:enumeration value="US_WEST_1" />
-			<xsd:enumeration value="US_WEST_2" />
-			<xsd:enumeration value="EU_WEST_1" />
-			<xsd:enumeration value="EU_CENTRAL_1" />
-			<xsd:enumeration value="AP_SOUTHEAST_1" />
-			<xsd:enumeration value="AP_SOUTHEAST_2" />
-			<xsd:enumeration value="AP_NORTHEAST_1" />
-			<xsd:enumeration value="SA_EAST_1" />
-			<xsd:enumeration value="CN_NORTH_1" />
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:simpleType name="expressionType">
-		<xsd:annotation>
-			<xsd:documentation>Type that can be used if regular expression like #{foo.bar} should be allowed in a
-				normally fixed enumeration. This is useful to allow enumerations to be resolved at runtime
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:pattern value="[#]\{.+\}" />
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:simpleType name="placeholderType">
-		<xsd:annotation>
-			<xsd:documentation>Type that can be used if placeholder expression like ${foo.bar} should be allowed in a
-				normally fixed enumeration. This is useful to allow enumerations to be resolved at configuration time
-				through a property source
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:pattern value="[$]\{.+\}" />
-		</xsd:restriction>
-	</xsd:simpleType>
 
 	<xsd:element name="stack-configuration">
 		<xsd:annotation>

@@ -149,7 +149,7 @@ public class SnsConfigurationTest {
 	}
 
 	@EnableWebMvc
-	@EnableContextRegion(region = "EU_WEST_1")
+	@EnableContextRegion(region = "eu-west-1")
 	@EnableSns
 	protected static class SnsConfigurationWithRegionProvider {
 

@@ -65,7 +65,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		//Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
-		beanFactory.registerSingleton("myRegionProvider", new StaticRegionProvider(Regions.AP_SOUTHEAST_2));
+		beanFactory.registerSingleton("myRegionProvider", new StaticRegionProvider(Regions.AP_SOUTHEAST_2.getName()));
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
 				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "myRegionProvider", null);
@@ -88,7 +88,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, "EU_WEST_1");
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, Regions.EU_WEST_1.getName());
 
 		//Act
 		beanFactory.preInstantiateSingletons();
@@ -110,7 +110,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 		beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
 
 		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", "EU_WEST_1");
+				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", Regions.EU_WEST_1.getName());
 
 		//Act
 		beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);

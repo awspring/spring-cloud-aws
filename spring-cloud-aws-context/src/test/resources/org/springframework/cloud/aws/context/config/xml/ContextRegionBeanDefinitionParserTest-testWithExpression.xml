@@ -24,6 +24,6 @@
 
 
 	<util:properties id="configuration">
-		<prop key="region">SA_EAST_1</prop>
+      <prop key="region">sa-east-1</prop>
 	</util:properties>
 </beans>

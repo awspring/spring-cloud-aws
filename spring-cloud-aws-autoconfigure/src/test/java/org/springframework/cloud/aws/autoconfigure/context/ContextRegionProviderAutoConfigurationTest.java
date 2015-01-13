@@ -62,7 +62,7 @@ public class ContextRegionProviderAutoConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextRegionProviderAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:EU_WEST_1");
+		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:eu-west-1");
 
 		//Act
 		this.context.refresh();

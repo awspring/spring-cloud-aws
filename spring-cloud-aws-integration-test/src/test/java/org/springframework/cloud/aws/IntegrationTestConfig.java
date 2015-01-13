@@ -34,7 +34,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @EnableContextCredentials(accessKey = "${cloud.aws.credentials.accessKey}", secretKey = "${cloud.aws.credentials.secretKey}")
 @EnableStackConfiguration(stackName = "IntegrationTestStack")
 @PropertySource("file://${els.config.dir}/access.properties")
-@EnableContextRegion(region = "EU_WEST_1")
+@EnableContextRegion(region = "eu-west-1")
 public class IntegrationTestConfig {
 
 	@Bean

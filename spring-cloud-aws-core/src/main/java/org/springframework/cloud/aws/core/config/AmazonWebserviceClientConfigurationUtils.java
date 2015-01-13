@@ -91,7 +91,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
 		} else if (StringUtils.hasText(customRegion)) {
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.Region");
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.RegionUtils");
 			beanDefinitionBuilder.setFactoryMethod("getRegion");
 			beanDefinitionBuilder.addConstructorArgValue(customRegion);
 			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
@@ -128,7 +128,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
-			builder.addConstructorArgValue(Regions.DEFAULT_REGION);
+			builder.addConstructorArgValue(Regions.DEFAULT_REGION.getName());
 			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
 		}

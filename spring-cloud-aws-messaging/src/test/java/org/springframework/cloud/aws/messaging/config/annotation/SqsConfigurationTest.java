@@ -285,7 +285,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@EnableContextRegion(region = "EU_WEST_1")
+	@EnableContextRegion(region = "eu-west-1")
 	@Configuration
 	public static class ConfigurationWithRegionProvider {
 

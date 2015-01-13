@@ -17,8 +17,9 @@
 package org.springframework.cloud.aws.core.region;
 
 import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
+import com.amazonaws.regions.RegionUtils;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.util.Assert;
 
 /**
  * Static {@link RegionProvider} implementation that can used to statically configure a region. The region could be
@@ -38,8 +39,9 @@ public class StaticRegionProvider implements RegionProvider {
 	 * 		- the region that will be statically returned in {@link #getRegion()}
 	 */
 	@RuntimeUse
-	public StaticRegionProvider(Regions configuredRegion) {
-		this.configuredRegion = Region.getRegion(configuredRegion);
+	public StaticRegionProvider(String configuredRegion) {
+		this.configuredRegion = RegionUtils.getRegion(configuredRegion);
+		Assert.notNull(this.configuredRegion, "The region '" + configuredRegion + "' is not a valid region!");
 	}
 
 	/**

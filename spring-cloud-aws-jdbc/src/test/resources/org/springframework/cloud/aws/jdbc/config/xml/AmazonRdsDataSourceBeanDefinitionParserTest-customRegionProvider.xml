@@ -30,6 +30,6 @@
 					 region-provider="myRegionProvider" />
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-		<constructor-arg value="EU_WEST_1" />
+      <constructor-arg value="eu-west-1" />
 	</bean>
 </beans>

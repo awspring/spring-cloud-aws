@@ -24,6 +24,6 @@
 		<aws-context:instance-profile-credentials />
 	</aws-context:context-credentials>
 
-	<aws-context:stack-configuration stack-name="test" region="SA_EAST_1" />
+  <aws-context:stack-configuration stack-name="test" region="sa-east-1" />
 
 </beans>
