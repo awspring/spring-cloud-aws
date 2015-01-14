@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
@@ -38,9 +39,15 @@ public class ContextResourceLoaderConfigurationRegistrar implements ImportBeanDe
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
 
-		BeanDefinitionBuilder resolver = BeanDefinitionBuilder.genericBeanDefinition(PathMatchingSimpleStorageResourcePatternResolver.class);
+		//TODO: Add support for specifying a custom task executor
+		BeanDefinitionBuilder resolver = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageResourceLoader.class);
 		resolver.addConstructorArgReference(client.getBeanName());
-		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(resolver.getBeanDefinition(), registry);
+
+		BeanDefinitionBuilder pathMatcher = BeanDefinitionBuilder.genericBeanDefinition(PathMatchingSimpleStorageResourcePatternResolver.class);
+		pathMatcher.addConstructorArgReference(client.getBeanName());
+		pathMatcher.addConstructorArgValue(resolver.getBeanDefinition());
+
+		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(pathMatcher.getBeanDefinition(), registry);
 
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
 		beanDefinitionBuilder.addConstructorArgReference(resolverBeanName);
