@@ -23,17 +23,16 @@ package org.springframework.cloud.aws.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.WritableResource;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.FileCopyUtils;
@@ -59,8 +58,7 @@ import static org.junit.Assert.assertTrue;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class ResourceLoaderAwsTest {
+public abstract class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";
 	private final List<String> createdObjects = new ArrayList<>();
