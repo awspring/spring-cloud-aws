@@ -24,10 +24,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Agim Emruli
+ * @author Gleb Schukin
  */
 public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition{
 
 	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
+
+	private static Boolean isCloudEnvironment;
 
 	@Override
 	public ConfigurationPhase getConfigurationPhase() {
@@ -36,10 +39,14 @@ public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition{
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		try {
-			return EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
-		} catch (AmazonClientException e) {
-			return false;
+		if (isCloudEnvironment == null) {
+			try {
+				isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
+			} catch (AmazonClientException e) {
+				isCloudEnvironment = false;
+			}
 		}
+
+		return isCloudEnvironment;
 	}
 }
