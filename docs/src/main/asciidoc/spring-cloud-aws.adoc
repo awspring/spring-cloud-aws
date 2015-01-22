@@ -1,6 +1,11 @@
 = Spring Cloud AWS
 Agim Emruli; Alain Sahli
+:doctype: book
+:toc:
+:toclevels: 4
 :source-highlighter: prettify
+:numbered:
+:icons: font
 
 include::intro.adoc[]
 
