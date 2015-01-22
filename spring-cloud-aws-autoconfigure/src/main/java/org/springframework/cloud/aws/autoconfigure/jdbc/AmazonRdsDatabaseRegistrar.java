@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.autoconfigure.jdbc;
 
-import com.amazonaws.services.rds.AmazonRDSClient;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -42,7 +41,7 @@ import java.util.Map;
  * @author Agim Emruli
  */
 @Configuration
-@ConditionalOnClass(AmazonRDSClient.class)
+@ConditionalOnClass(name = "com.amazonaws.services.rds.AmazonRDSClient")
 public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
 	private static final String PREFIX = "cloud.aws.rds";
@@ -53,7 +52,7 @@ public class AmazonRdsDatabaseRegistrar implements ImportBeanDefinitionRegistrar
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
 		String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(this, registry, AmazonRDSClient.class.getName(), null, null).getBeanName();
+				registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
 		Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
 		for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
 			registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
