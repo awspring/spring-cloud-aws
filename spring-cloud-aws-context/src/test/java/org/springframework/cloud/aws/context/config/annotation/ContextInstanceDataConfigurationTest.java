@@ -21,10 +21,15 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.cloud.aws.context.MetaDataServer;
+import org.springframework.cloud.aws.context.annotation.OnAwsCloudEnvironmentCondition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ContextInstanceDataConfigurationTest {
@@ -88,5 +93,13 @@ public class ContextInstanceDataConfigurationTest {
 	@EnableContextInstanceData
 	public static class ApplicationConfiguration {
 
+	}
+
+	@After
+	public void restContextInstanceDataCondition() throws IllegalAccessException {
+		Field field = ReflectionUtils.findField(OnAwsCloudEnvironmentCondition.class, "isCloudEnvironment");
+		assertNotNull(field);
+		ReflectionUtils.makeAccessible(field);
+		field.set(null, null);
 	}
 }
