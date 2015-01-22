@@ -30,7 +30,6 @@ import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 
 import javax.sql.DataSource;
 
@@ -38,7 +37,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class AmazonRdsDatabaseRegistrarTest {
+public class AmazonRdsDatabaseAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -54,6 +53,7 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
+		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret");
 
 		//Act
@@ -69,6 +69,7 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
+		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
 				"cloud.aws.rds.test.databaseName:fooDb");
 
@@ -89,6 +90,7 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithMultipleDatabases.class);
+		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret","cloud.aws.rds.anotherOne.password:verySecret");
 
 		//Act
@@ -107,6 +109,7 @@ public class AmazonRdsDatabaseRegistrarTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithReadReplica.class);
+		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
 				"cloud.aws.rds.test.readReplicaSupport:true");
 
@@ -118,11 +121,10 @@ public class AmazonRdsDatabaseRegistrarTest {
 		assertNotNull(this.context.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
 	}
 
-	@Import(AmazonRdsDatabaseRegistrar.class)
 	public static class ApplicationConfigurationWithoutReadReplica {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		public AmazonRDSClient amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
 					new DescribeDBInstancesResult().
@@ -143,7 +145,6 @@ public class AmazonRdsDatabaseRegistrarTest {
 
 	}
 
-	@Import(AmazonRdsDatabaseRegistrar.class)
 	public static class ApplicationConfigurationWithMultipleDatabases {
 
 		@Bean
@@ -182,7 +183,6 @@ public class AmazonRdsDatabaseRegistrarTest {
 
 	}
 
-	@Import(AmazonRdsDatabaseRegistrar.class)
 	public static class ApplicationConfigurationWithReadReplica {
 
 		@Bean
