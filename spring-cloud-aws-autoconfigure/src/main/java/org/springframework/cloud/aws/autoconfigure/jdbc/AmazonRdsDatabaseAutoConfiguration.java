@@ -18,7 +18,9 @@ package org.springframework.cloud.aws.autoconfigure.jdbc;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.bind.PropertySourceUtils;
 import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
@@ -43,6 +45,7 @@ import java.util.Map;
  * @author Alain Sahli
  */
 @Configuration
+@AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
 @ConditionalOnClass(name = "com.amazonaws.services.rds.AmazonRDSClient")
 public class AmazonRdsDatabaseAutoConfiguration {
