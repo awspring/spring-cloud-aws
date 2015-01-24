@@ -24,7 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
 import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -46,10 +45,8 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 	private static final String CACHE_MANAGER = "cacheManager";
 	private static final String CACHE_CLUSTER_ELEMENT_NAME = "cache-cluster";
 	private static final String CACHE_REF_ELEMENT_NAME = "cache-ref";
-	private static final String CACHE_ELEMENT_NAME = "cache";
 
-	private static final String ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean";
-	private static final String MEMCACHE_CLIENT_CLASS_NAME = "org.springframework.cloud.aws.cache.StaticMemcachedFactoryBean";
+	private static final String ELASTICACHE_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElastiCacheFactoryBean";
 	private static final String ELASTI_CACHE_CLIENT_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
 
 	@Override
@@ -84,13 +81,7 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 					break;
 				case CACHE_CLUSTER_ELEMENT_NAME:
 					String cacheClusterId = getRequiredAttribute("name", cacheElement, parserContext);
-					caches.add(createCache(cacheClusterId, createElastiCacheFactoryBean(cacheElement, parserContext,
-							cacheClusterId), cacheElement.getAttribute("expiration")));
-					break;
-				case CACHE_ELEMENT_NAME:
-					String name = getRequiredAttribute("name", cacheElement, parserContext);
-					String address = getRequiredAttribute("address", cacheElement, parserContext);
-					caches.add(createCache(name, createStaticMemcachedFactoryBean(address), cacheElement.getAttribute("expiration")));
+					caches.add(createElastiCacheFactoryBean(cacheElement, parserContext, cacheClusterId, createDefaultCacheFactories(cacheElement, parserContext)));
 					break;
 				default:
 					parserContext.getReaderContext().error("Unknown element detected",parserContext.extractSource(cacheElement));
@@ -108,28 +99,29 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 		}
 	}
 
-	private static BeanDefinition createCache(String name, BeanDefinition memCachedClient, String expiration) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(SimpleSpringMemcached.class);
-		beanDefinitionBuilder.addConstructorArgValue(memCachedClient);
-		beanDefinitionBuilder.addConstructorArgValue(name);
-		if (StringUtils.hasText(expiration)) {
-			beanDefinitionBuilder.addPropertyValue("expiration", expiration);
-		}
-		return beanDefinitionBuilder.getBeanDefinition();
+	private static ManagedList<BeanDefinition> createDefaultCacheFactories(Element element, ParserContext parserContext) {
+		ManagedList<BeanDefinition> result = new ManagedList<>();
+		result.setSource(parserContext.extractSource(element));
+		result.add(getCacheFactory("org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory", element));
+		result.add(getCacheFactory("org.springframework.cloud.aws.cache.redis.RedisCacheFactory", element));
+		return result;
 	}
 
-	private static BeanDefinition createStaticMemcachedFactoryBean(String address) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(MEMCACHE_CLIENT_CLASS_NAME);
-		beanDefinitionBuilder.addConstructorArgValue(address);
-		return beanDefinitionBuilder.getBeanDefinition();
-	}
-
-	private static BeanDefinition createElastiCacheFactoryBean(Element source, ParserContext parserContext, String clusterId) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_MEMCACHE_CLIENT_FACTORY_BEAN);
+	private static BeanDefinition createElastiCacheFactoryBean(Element source, ParserContext parserContext, String clusterId, ManagedList<BeanDefinition> cacheFactories) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ELASTICACHE_FACTORY_BEAN);
 		beanDefinitionBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(source, parserContext,
 				"amazon-elasti-cache", ELASTI_CACHE_CLIENT_CLASS_NAME));
 		beanDefinitionBuilder.addConstructorArgValue(clusterId);
 		beanDefinitionBuilder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+		beanDefinitionBuilder.addConstructorArgValue(cacheFactories);
 		return beanDefinitionBuilder.getBeanDefinition();
+	}
+
+	private static BeanDefinition getCacheFactory(String className, Element element) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(className);
+		if (StringUtils.hasText(element.getAttribute("expiration"))) {
+			builder.addPropertyValue("expiryTime", element.getAttribute("expiration"));
+		}
+		return builder.getBeanDefinition();
 	}
 }

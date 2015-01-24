@@ -17,17 +17,17 @@
 package org.springframework.cloud.aws.cache.config.annotation;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
-import net.spy.memcached.MemcachedClientIF;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean;
-import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
+import org.springframework.cloud.aws.cache.ElastiCacheFactoryBean;
+import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
+import org.springframework.cloud.aws.cache.redis.RedisCacheFactory;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,28 +62,12 @@ public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 
 	protected Cache clusterCache(String cacheName) {
 		try {
-			ElastiCacheMemcachedFactoryBean memcachedFactoryBean = new ElastiCacheMemcachedFactoryBean(this.amazonElastiCache,
-					cacheName, this.resourceIdResolver);
-			memcachedFactoryBean.afterPropertiesSet();
-			return new DisposableSpringSpringMemcached(memcachedFactoryBean.getObject(),
-					cacheName);
+			ElastiCacheFactoryBean cacheFactoryBean = new ElastiCacheFactoryBean(this.amazonElastiCache,
+					cacheName, this.resourceIdResolver, Arrays.asList(new MemcachedCacheFactory(), new RedisCacheFactory()));
+			cacheFactoryBean.afterPropertiesSet();
+			return cacheFactoryBean.getObject();
 		} catch (Exception e) {
 			throw new RuntimeException("Error creating cache", e);
-		}
-	}
-
-	private static class DisposableSpringSpringMemcached extends SimpleSpringMemcached implements DisposableBean {
-
-		private final MemcachedClientIF memcachedClient;
-
-		private DisposableSpringSpringMemcached(MemcachedClientIF memcachedClient, String cacheName) {
-			super(memcachedClient, cacheName);
-			this.memcachedClient = memcachedClient;
-		}
-
-		@Override
-		public void destroy() throws Exception {
-			this.memcachedClient.shutdown();
 		}
 	}
 }

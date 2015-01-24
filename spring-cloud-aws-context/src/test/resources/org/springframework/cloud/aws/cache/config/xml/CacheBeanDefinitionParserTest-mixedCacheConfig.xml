@@ -24,16 +24,11 @@
 	   http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd">
 
 	<aws-cache:cache-manager id="cacheManager">
-		<aws-cache:cache address="localhost:#{systemProperties['memcachedPort']}" name="memc" />
-		<aws-cache:cache-ref ref="memcached" />
+      <aws-cache:cache-cluster name="memcached" />
+      <aws-cache:cache-ref ref="memc" />
 	</aws-cache:cache-manager>
 
-	<bean id="memcached" class="org.springframework.cloud.aws.cache.SimpleSpringMemcached">
-		<constructor-arg name="cacheName" value="memcached" />
-		<constructor-arg>
-			<bean class="org.springframework.cloud.aws.cache.StaticMemcachedFactoryBean">
-				<constructor-arg name="address" value="localhost:#{systemProperties['memcachedPort']}" />
-			</bean>
-		</constructor-arg>
+  <bean id="memc" class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.springframework.cache.Cache" />
 	</bean>
 </beans>

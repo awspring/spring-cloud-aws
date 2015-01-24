@@ -39,7 +39,6 @@
 			<xsd:choice minOccurs="1" maxOccurs="unbounded">
 				<xsd:element name="cache-ref" type="cacheRefType" minOccurs="0" />
 				<xsd:element name="cache-cluster" type="cacheClusterType" minOccurs="0" />
-				<xsd:element name="cache" type="cacheConfigurationType" minOccurs="0" />
 			</xsd:choice>
 			<xsd:attribute name="id" use="optional">
 				<xsd:annotation>
@@ -60,27 +59,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-	</xsd:complexType>
-
-	<xsd:complexType name="cacheConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="abstractCacheConfiguration">
-				<xsd:attribute name="address" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							The address of the cache
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="name" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							The name of the cache.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-			</xsd:extension>
-		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="cacheClusterType">

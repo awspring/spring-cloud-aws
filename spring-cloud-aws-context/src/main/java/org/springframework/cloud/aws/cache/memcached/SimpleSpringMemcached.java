@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache;
+package org.springframework.cloud.aws.cache.memcached;
 
 import net.spy.memcached.MemcachedClientIF;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.Assert;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Agim Emruli
@@ -71,7 +73,13 @@ public class SimpleSpringMemcached implements Cache {
 	public void put(Object key, Object value) {
 		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
-		this.memcachedClientIF.add((String) key, this.expiration, value);
+		try {
+			this.memcachedClientIF.add((String) key, this.expiration, value).get();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException e) {
+			throw new IllegalArgumentException("Error writing key" + key, e);
+		}
 	}
 
 	/**
@@ -93,7 +101,13 @@ public class SimpleSpringMemcached implements Cache {
 	public void evict(Object key) {
 		Assert.notNull(key, "key parameter is mandatory");
 		Assert.isAssignable(String.class, key.getClass());
-		this.memcachedClientIF.delete((String) key);
+		try {
+			this.memcachedClientIF.delete((String) key).get();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException e) {
+			throw new IllegalArgumentException("Error evicting items" + key);
+		}
 	}
 
 	@Override

@@ -21,44 +21,46 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
-import net.spy.memcached.MemcachedClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.cache.Cache;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 /**
  * @author Agim Emruli
  */
-public class ElastiCacheMemcachedFactoryBean extends AbstractFactoryBean<MemcachedClient> {
+public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheMemcachedFactoryBean.class);
-	private static final int SHUTDOWN_DELAY = 10;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheFactoryBean.class);
 
 	private final AmazonElastiCache amazonElastiCache;
 	private final String cacheClusterId;
 	private final ResourceIdResolver resourceIdResolver;
+	private final List<? extends CacheFactory> cacheFactories;
 
-	public ElastiCacheMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, ResourceIdResolver resourceIdResolver) {
+	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId,
+								  ResourceIdResolver resourceIdResolver, List<? extends CacheFactory> cacheFactories) {
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
 		this.cacheClusterId = cacheClusterId;
+		this.cacheFactories = cacheFactories;
 	}
 
-	public ElastiCacheMemcachedFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId) {
-		this(amazonElastiCache, cacheClusterId, null);
-	}
-
-	@Override
-	public Class<MemcachedClient> getObjectType() {
-		return MemcachedClient.class;
+	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, List<CacheFactory> cacheFactories) {
+		this(amazonElastiCache, cacheClusterId, null, cacheFactories);
 	}
 
 	@Override
-	protected MemcachedClient createInstance() throws Exception {
+	public Class<Cache> getObjectType() {
+		return Cache.class;
+	}
+
+	@Override
+	protected Cache createInstance() throws Exception {
 		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName()));
 
 		CacheCluster cacheCluster = describeCacheClustersResult.getCacheClusters().get(0);
@@ -66,21 +68,20 @@ public class ElastiCacheMemcachedFactoryBean extends AbstractFactoryBean<Memcach
 			LOGGER.warn("Cache cluster is not available now. Connection may fail during cache access. Current status is {}", cacheCluster.getCacheClusterStatus());
 		}
 
-		if (!"memcached".equals(cacheCluster.getEngine())) {
-			throw new IllegalStateException("Currently only memcached is supported as the cache cluster engine");
+		for (CacheFactory cacheFactory : this.cacheFactories) {
+			if (cacheFactory.isSupportingCacheArchitecture(cacheCluster.getEngine())) {
+				Endpoint configurationEndpoint = cacheCluster.getConfigurationEndpoint();
+				return cacheFactory.createCache(this.cacheClusterId, configurationEndpoint.getAddress(), configurationEndpoint.getPort());
+			}
 		}
 
-		Endpoint configurationEndpoint = cacheCluster.getConfigurationEndpoint();
-
-		// We return every time one configuration endpoint. The amazon memcached client will connect to all nodes.
-		return new MemcachedClient(new InetSocketAddress(configurationEndpoint.getAddress(), configurationEndpoint.getPort()));
+		throw new IllegalArgumentException("No CacheFactory configured for engine: " + cacheCluster.getEngine());
 	}
 
 	@Override
-	protected void destroyInstance(MemcachedClient instance) throws Exception {
-		boolean shutdownCompleted = instance.shutdown(SHUTDOWN_DELAY, TimeUnit.SECONDS);
-		if (!shutdownCompleted) {
-			LOGGER.warn("Error shutting down memcached client after :'" + SHUTDOWN_DELAY + "' seconds");
+	protected void destroyInstance(Cache instance) throws Exception {
+		if (instance instanceof DisposableBean) {
+			((DisposableBean) instance).destroy();
 		}
 	}
 
