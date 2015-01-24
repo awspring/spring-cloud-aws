@@ -534,6 +534,53 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest("http://testQueue.amazonaws.com", "ReceiptHandle")));
 	}
 
+	@Test
+	public void executeMessage_exceptionIsThrownInHandlerMethodWithDeletionOnFalseAndNoRedrivePolicy_shouldNotDeleteMessage() throws Exception {
+		// Arrange
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
+
+			@Override
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
+			}
+		};
+		container.setDeleteMessageOnExceptionHandling(false);
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
+		container.setAmazonSqs(sqs);
+
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		container.setMessageHandler(messageHandler);
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListenerThatThrowsAnException.class);
+
+		when(sqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+				withQueueUrl("http://testQueue.amazonaws.com"));
+		when(sqs.getQueueAttributes(new GetQueueAttributesRequest("http://testQueue.amazonaws.com").withAttributeNames(QueueAttributeName.RedrivePolicy))).
+				thenReturn(new GetQueueAttributesResult());
+
+		messageHandler.setApplicationContext(applicationContext);
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMaxNumberOfMessages(10)
+				.withMessageAttributeNames("All")))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+						new ReceiveMessageResult());
+
+		// Act
+		container.start();
+
+		// Assert
+		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		container.stop();
+		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest("http://testQueue.amazonaws.com", "ReceiptHandle")));
+	}
+
 	private static class TestMessageListener {
 
 		private String message;
