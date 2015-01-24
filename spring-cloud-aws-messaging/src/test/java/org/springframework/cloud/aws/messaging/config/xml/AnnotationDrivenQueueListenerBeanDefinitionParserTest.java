@@ -44,6 +44,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -51,6 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -262,6 +264,27 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
 		assertEquals("https://" + Region.getRegion(Regions.AP_SOUTHEAST_1).getServiceEndpoint("sqs"), ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString());
+	}
+
+	@Test
+	public void parseInternal_customDestinationResolver_isUsedOnTheContainer() throws Exception {
+		// Arrange & Act
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-custom-destination-resolver.xml", getClass());
+
+		// Assert
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		DestinationResolver customDestinationResolver = applicationContext.getBean(DestinationResolver.class);
+		assertEquals(customDestinationResolver, ReflectionTestUtils.getField(container, "destinationResolver"));
+	}
+
+	@Test
+	public void parseInternal_deleteMessageOnExceptionHandlingSetToFalse_shouldBeFalseOnContainer() throws Exception {
+		// Arrange & Act
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-delete-message-on-exception-handling-false.xml", getClass());
+
+		// Assert
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		assertFalse(container.isDeleteMessageOnExceptionHandling());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {

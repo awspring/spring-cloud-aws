@@ -45,28 +45,44 @@ import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClie
  */
 public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
+	private static final String TASK_EXECUTOR_ATTRIBUTE = "task-executor";
+	private static final String MAX_NUMBER_OF_MESSAGES_ATTRIBUTE = "max-number-of-messages";
+	private static final String VISIBILITY_TIMEOUT_ATTRIBUTE = "visibility-timeout";
+	private static final String WAIT_TIME_OUT_ATTRIBUTE = "wait-time-out";
+	private static final String AUTO_STARTUP_ATTRIBUTE = "auto-startup";
+	private static final String DESTINATION_RESOLVER_ATTRIBUTE = "destination-resolver";
+	private static final String DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE = "delete-message-on-exception-handling";
+
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder containerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
 
-		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
+		if (StringUtils.hasText(element.getAttribute(TASK_EXECUTOR_ATTRIBUTE))) {
+			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName(TASK_EXECUTOR_ATTRIBUTE), element.getAttribute(TASK_EXECUTOR_ATTRIBUTE));
 		}
 
-		if (StringUtils.hasText(element.getAttribute("max-number-of-messages"))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("max-number-of-messages"), element.getAttribute("max-number-of-messages"));
+		if (StringUtils.hasText(element.getAttribute(MAX_NUMBER_OF_MESSAGES_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(MAX_NUMBER_OF_MESSAGES_ATTRIBUTE), element.getAttribute(MAX_NUMBER_OF_MESSAGES_ATTRIBUTE));
 		}
 
-		if (StringUtils.hasText(element.getAttribute("visibility-timeout"))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("visibility-timeout"), element.getAttribute("visibility-timeout"));
+		if (StringUtils.hasText(element.getAttribute(VISIBILITY_TIMEOUT_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(VISIBILITY_TIMEOUT_ATTRIBUTE), element.getAttribute(VISIBILITY_TIMEOUT_ATTRIBUTE));
 		}
 
-		if (StringUtils.hasText(element.getAttribute("wait-time-out"))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("wait-time-out"), element.getAttribute("wait-time-out"));
+		if (StringUtils.hasText(element.getAttribute(WAIT_TIME_OUT_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(WAIT_TIME_OUT_ATTRIBUTE), element.getAttribute(WAIT_TIME_OUT_ATTRIBUTE));
 		}
 
-		if (StringUtils.hasText(element.getAttribute("auto-startup"))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName("auto-startup"), element.getAttribute("auto-startup"));
+		if (StringUtils.hasText(element.getAttribute(AUTO_STARTUP_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(AUTO_STARTUP_ATTRIBUTE), element.getAttribute(AUTO_STARTUP_ATTRIBUTE));
+		}
+
+		if (StringUtils.hasText(element.getAttribute(DESTINATION_RESOLVER_ATTRIBUTE))) {
+			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName(DESTINATION_RESOLVER_ATTRIBUTE), element.getAttribute(DESTINATION_RESOLVER_ATTRIBUTE));
+		}
+
+		if (StringUtils.hasText(element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE), element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE));
 		}
 
 		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
