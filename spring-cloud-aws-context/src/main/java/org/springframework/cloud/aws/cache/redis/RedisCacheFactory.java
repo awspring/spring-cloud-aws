@@ -27,7 +27,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.ClassUtils;
-import redis.clients.jedis.JedisShardInfo;
 
 /**
  * @author Agim Emruli
@@ -56,17 +55,28 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 		}
 	}
 
-	//TODO: Add and test other connection factories
 	@Override
 	protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
 		if (JEDIS_AVAILABLE) {
-			return new JedisConnectionFactory(new JedisShardInfo(hostName, port));
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+			connectionFactory.setHostName(hostName);
+			connectionFactory.setPort(port);
+			return connectionFactory;
 		} else if (JREDIS_AVAILABLE) {
-			return new JredisConnectionFactory();
+			JredisConnectionFactory connectionFactory = new JredisConnectionFactory();
+			connectionFactory.setHostName(hostName);
+			connectionFactory.setPort(port);
+			return connectionFactory;
 		} else if (SRP_AVAILABLE) {
-			return new SrpConnectionFactory();
+			SrpConnectionFactory connectionFactory = new SrpConnectionFactory();
+			connectionFactory.setHostName(hostName);
+			connectionFactory.setPort(port);
+			return connectionFactory;
 		} else if (LETTUCE_AVAILABLE) {
-			return new LettuceConnectionFactory();
+			LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+			lettuceConnectionFactory.setHostName(hostName);
+			lettuceConnectionFactory.setPort(port);
+			return lettuceConnectionFactory;
 		} else {
 			throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
 					"Please add one of the implementation to your classpath");
