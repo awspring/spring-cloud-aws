@@ -278,7 +278,7 @@ Spring Cloud AWS provides the following properties to configure the credentials 
 |The secret key to be used with a static provider
 
 |cloud.aws.credentials.instanceProfile
-|
+|true
 |Configures an instance profile credentials provider with no further configuration
 |===
 
@@ -296,7 +296,7 @@ The properties to configure the region are shown below
 |description
 
 |cloud.aws.region.auto
-|
+|true
 |Enables automatic region detection based on the EC2 meta data service
 
 |cloud.aws.region.static
@@ -688,7 +688,7 @@ manual and automatic stack configuration can be defined with properties that are
 |The name of the manually configured stack name that will be used to retrieve the resources.
 
 |cloud.aws.stack.auto
-|
+|true
 |Enables the automatic stack name detection for the application.
 
 |===
@@ -1480,7 +1480,7 @@ outlines all properties for a data source using `test` as the instance identifie
 
 |cloud.aws.rds.test
 |
-|The configuration property the configures a data source with the name test
+|The configuration property that configures a data source with the name test
 
 |cloud.aws.rds.test.password
 |verySecret

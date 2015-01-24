@@ -3,16 +3,15 @@ cache:
   directories:
     - $HOME/.m2
 language: java
-before_install:
+before_script:
   - git config user.name "$GIT_NAME"
   - git config user.email "$GIT_EMAIL"
   - git config credential.helper "store --file=.git/credentials"
   - echo "https://$GH_TOKEN:@github.com" > .git/credentials
   - gem install asciidoctor
-install:
-- mvn --settings .settings.xml install -P docs -q -U -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
-- ./docs/src/main/asciidoc/ghpages.sh
-script: mvn --settings .settings.xml deploy -nsu -Dmaven.test.redirectTestOutputToFile=true
+  - chmod +x travis-build.sh
+install: true
+script: ./travis-build.sh
 env:
   global:
   - GIT_NAME="Dave Syer"
