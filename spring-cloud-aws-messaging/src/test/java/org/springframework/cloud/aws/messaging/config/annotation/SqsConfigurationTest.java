@@ -34,11 +34,13 @@ import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerConta
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
+import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
@@ -123,6 +125,9 @@ public class SqsConfigurationTest {
 		assertEquals(ConfigurationWithCustomContainerFactory.TASK_EXECUTOR, ReflectionTestUtils.getField(container, "taskExecutor"));
 		assertEquals(ConfigurationWithCustomContainerFactory.VISIBILITY_TIMEOUT, ReflectionTestUtils.getField(container, "visibilityTimeout"));
 		assertEquals(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT, ReflectionTestUtils.getField(container, "waitTimeOut"));
+
+		assertEquals(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER, ReflectionTestUtils.getField(container, "destinationResolver"));
+		assertEquals(ConfigurationWithCustomContainerFactory.DELETE_MESSAGE_ON_EXCEPTION_HANDLING, ReflectionTestUtils.getField(container, "deleteMessageOnExceptionHandling"));
 	}
 
 	@Test
@@ -233,6 +238,8 @@ public class SqsConfigurationTest {
 		public static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 		public static final int VISIBILITY_TIMEOUT = 1789;
 		public static final int WAIT_TIME_OUT = 12;
+		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQS.class));
+		public static final Boolean DELETE_MESSAGE_ON_EXCEPTION_HANDLING = false;
 
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -251,6 +258,8 @@ public class SqsConfigurationTest {
 			factory.setTaskExecutor(TASK_EXECUTOR);
 			factory.setVisibilityTimeout(VISIBILITY_TIMEOUT);
 			factory.setWaitTimeOut(WAIT_TIME_OUT);
+			factory.setDestinationResolver(DESTINATION_RESOLVER);
+			factory.setDeleteMessageOnExceptionHandling(DELETE_MESSAGE_ON_EXCEPTION_HANDLING);
 
 			return factory;
 		}

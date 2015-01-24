@@ -22,6 +22,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -45,6 +46,10 @@ public class SimpleMessageListenerContainerFactory {
 	private QueueMessageHandler queueMessageHandler;
 
 	private ResourceIdResolver resourceIdResolver;
+
+	DestinationResolver<String> destinationResolver;
+
+	private Boolean deleteMessageOnExceptionHandling;
 
 	/**
 	 * Configures the {@link org.springframework.core.task.TaskExecutor} which is used to poll messages and execute them
@@ -157,6 +162,34 @@ public class SimpleMessageListenerContainerFactory {
 		return this.resourceIdResolver;
 	}
 
+	/**
+	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
+	 * this instance. <br/>
+	 * This setter can be used when a custom configured {@link org.springframework.messaging.core.DestinationResolver}
+	 * must be provided. (For example if one want to have the {@link org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver}
+	 * with the auto creation of queues set to {@code true}.
+	 *
+	 * @param destinationResolver
+	 * 		another or customized {@link org.springframework.messaging.core.DestinationResolver}
+	 */
+	public void setDestinationResolver(DestinationResolver<String> destinationResolver) {
+		this.destinationResolver = destinationResolver;
+	}
+
+	/**
+	 * Defines if a message must be deleted or not if the handler method throws an exception and the exception handler
+	 * method is called. By default this value is set to {@code true} which means that the message is deleted to avoid
+	 * poison messages. If this value is set to {@code false} it is the responsibility of the exception handler method to delete
+	 * the message. The exception handler method can inject the message headers with {@link org.springframework.messaging.handler.annotation.Headers}
+	 * in order to get the receipt handle.
+	 *
+	 * @param deleteMessageOnExceptionHandling
+	 * 		whether a message must be deleted or not when the handler method throws an exception
+	 */
+	public void setDeleteMessageOnExceptionHandling(Boolean deleteMessageOnExceptionHandling) {
+		this.deleteMessageOnExceptionHandling = deleteMessageOnExceptionHandling;
+	}
+
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {
 		Assert.notNull(this.amazonSqs, "amazonSqs must not be null");
 
@@ -178,6 +211,12 @@ public class SimpleMessageListenerContainerFactory {
 		}
 		if (this.resourceIdResolver != null) {
 			simpleMessageListenerContainer.setResourceIdResolver(this.resourceIdResolver);
+		}
+		if (this.destinationResolver != null) {
+			simpleMessageListenerContainer.setDestinationResolver(this.destinationResolver);
+		}
+		if (this.deleteMessageOnExceptionHandling != null) {
+			simpleMessageListenerContainer.setDeleteMessageOnExceptionHandling(this.deleteMessageOnExceptionHandling);
 		}
 
 		return simpleMessageListenerContainer;
