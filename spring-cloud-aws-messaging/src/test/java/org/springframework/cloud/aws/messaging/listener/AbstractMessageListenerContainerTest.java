@@ -24,10 +24,13 @@ import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
 import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
@@ -43,6 +46,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -396,7 +400,45 @@ public class AbstractMessageListenerContainerTest {
 		assertTrue(abstractMessageListenerContainer.isDestroyCalled());
 	}
 
+	@Test
+	public void receiveMessageRequests_withDestinationResolverThrowingException_shouldLogWarningAndNotCreateRequest() throws Exception {
+		// Arrange
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
+		Logger loggerMock = container.getLogger();
+
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		container.setAmazonSqs(mock);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		messageHandler.setApplicationContext(applicationContext);
+		container.setMessageHandler(messageHandler);
+		applicationContext.registerSingleton("messageListener", MessageListener.class);
+		applicationContext.registerSingleton("anotherMessageListener", AnotherMessageListener.class);
+
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+
+		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
+				thenThrow(new DestinationResolutionException("Queue not found"));
+		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue"))).
+				thenReturn(new GetQueueUrlResult().withQueueUrl("http://anotherTestQueue.amazonaws.com"));
+		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		// Act
+		container.start();
+
+		// Assert
+		ArgumentCaptor<String> logMsgArgCaptor = ArgumentCaptor.forClass(String.class);
+		verify(loggerMock).warn(logMsgArgCaptor.capture(), any(DestinationResolutionException.class));
+		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
+		assertNull(registeredQueues.get("testQueue"));
+		assertEquals("The queue with name 'testQueue' does not exist.", logMsgArgCaptor.getValue());
+		assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
+	}
+
 	private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
+
+		private final Logger mock = mock(Logger.class);
 
 		@Override
 		protected void doStart() {
@@ -404,6 +446,11 @@ public class AbstractMessageListenerContainerTest {
 
 		@Override
 		protected void doStop() {
+		}
+
+		@Override
+		protected Logger getLogger() {
+			return this.mock;
 		}
 	}
 

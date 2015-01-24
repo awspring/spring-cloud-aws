@@ -32,6 +32,7 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
@@ -286,7 +287,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		getLogger().debug("Starting container with name {}", getBeanName());
 		synchronized (this.getLifecycleMonitor()) {
 			for (String queue : this.queues) {
-				String destinationUrl = getDestinationResolver().resolveDestination(queue);
+				String destinationUrl;
+				try {
+					destinationUrl = getDestinationResolver().resolveDestination(queue);
+				} catch (DestinationResolutionException e) {
+					getLogger().warn(String.format("The queue with name '%s' does not exist.", queue), e);
+					continue;
+				}
 				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
 						withAttributeNames(RECEIVING_ATTRIBUTES).
 						withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
