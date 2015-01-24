@@ -51,7 +51,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	private static final String WAIT_TIME_OUT_ATTRIBUTE = "wait-time-out";
 	private static final String AUTO_STARTUP_ATTRIBUTE = "auto-startup";
 	private static final String DESTINATION_RESOLVER_ATTRIBUTE = "destination-resolver";
-	private static final String DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE = "delete-message-on-exception-handling";
+	private static final String DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE = "delete-message-on-exception";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -81,8 +81,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName(DESTINATION_RESOLVER_ATTRIBUTE), element.getAttribute(DESTINATION_RESOLVER_ATTRIBUTE));
 		}
 
-		if (StringUtils.hasText(element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE), element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_HANDLING_ATTRIBUTE));
+		if (StringUtils.hasText(element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE))) {
+			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE), element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE));
 		}
 
 		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);

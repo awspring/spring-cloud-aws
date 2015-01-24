@@ -546,7 +546,7 @@ public class SimpleMessageListenerContainerTest {
 				super.executeMessage(stringMessage);
 			}
 		};
-		container.setDeleteMessageOnExceptionHandling(false);
+		container.setDeleteMessageOnException(false);
 
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);

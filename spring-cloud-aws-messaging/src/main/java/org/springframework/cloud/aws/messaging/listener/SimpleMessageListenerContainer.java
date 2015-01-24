@@ -44,7 +44,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private volatile CountDownLatch stopLatch;
 	private boolean defaultTaskExecutor;
-	private boolean deleteMessageOnExceptionHandling = true;
+	private boolean deleteMessageOnException = true;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -54,12 +54,12 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		this.taskExecutor = taskExecutor;
 	}
 
-	public boolean isDeleteMessageOnExceptionHandling() {
-		return this.deleteMessageOnExceptionHandling;
+	public boolean isDeleteMessageOnException() {
+		return this.deleteMessageOnException;
 	}
 
-	public void setDeleteMessageOnExceptionHandling(boolean deleteMessageOnExceptionHandling) {
-		this.deleteMessageOnExceptionHandling = deleteMessageOnExceptionHandling;
+	public void setDeleteMessageOnException(boolean deleteMessageOnException) {
+		this.deleteMessageOnException = deleteMessageOnException;
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				executeMessage(queueMessage);
 				getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			} catch (MessagingException e) {
-				if (!this.hasRedrivePolicy && SimpleMessageListenerContainer.this.isDeleteMessageOnExceptionHandling()) {
+				if (!this.hasRedrivePolicy && SimpleMessageListenerContainer.this.isDeleteMessageOnException()) {
 					getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 				}
 

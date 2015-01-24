@@ -47,9 +47,9 @@ public class SimpleMessageListenerContainerFactory {
 
 	private ResourceIdResolver resourceIdResolver;
 
-	DestinationResolver<String> destinationResolver;
+	private DestinationResolver<String> destinationResolver;
 
-	private Boolean deleteMessageOnExceptionHandling;
+	private Boolean deleteMessageOnException;
 
 	/**
 	 * Configures the {@link org.springframework.core.task.TaskExecutor} which is used to poll messages and execute them
@@ -183,11 +183,11 @@ public class SimpleMessageListenerContainerFactory {
 	 * the message. The exception handler method can inject the message headers with {@link org.springframework.messaging.handler.annotation.Headers}
 	 * in order to get the receipt handle.
 	 *
-	 * @param deleteMessageOnExceptionHandling
+	 * @param deleteMessageOnException
 	 * 		whether a message must be deleted or not when the handler method throws an exception
 	 */
-	public void setDeleteMessageOnExceptionHandling(Boolean deleteMessageOnExceptionHandling) {
-		this.deleteMessageOnExceptionHandling = deleteMessageOnExceptionHandling;
+	public void setDeleteMessageOnException(Boolean deleteMessageOnException) {
+		this.deleteMessageOnException = deleteMessageOnException;
 	}
 
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {
@@ -215,8 +215,8 @@ public class SimpleMessageListenerContainerFactory {
 		if (this.destinationResolver != null) {
 			simpleMessageListenerContainer.setDestinationResolver(this.destinationResolver);
 		}
-		if (this.deleteMessageOnExceptionHandling != null) {
-			simpleMessageListenerContainer.setDeleteMessageOnExceptionHandling(this.deleteMessageOnExceptionHandling);
+		if (this.deleteMessageOnException != null) {
+			simpleMessageListenerContainer.setDeleteMessageOnException(this.deleteMessageOnException);
 		}
 
 		return simpleMessageListenerContainer;

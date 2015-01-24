@@ -127,7 +127,7 @@ public class SqsConfigurationTest {
 		assertEquals(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT, ReflectionTestUtils.getField(container, "waitTimeOut"));
 
 		assertEquals(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER, ReflectionTestUtils.getField(container, "destinationResolver"));
-		assertEquals(ConfigurationWithCustomContainerFactory.DELETE_MESSAGE_ON_EXCEPTION_HANDLING, ReflectionTestUtils.getField(container, "deleteMessageOnExceptionHandling"));
+		assertEquals(ConfigurationWithCustomContainerFactory.DELETE_MESSAGE_ON_EXCEPTION, ReflectionTestUtils.getField(container, "deleteMessageOnException"));
 	}
 
 	@Test
@@ -239,7 +239,7 @@ public class SqsConfigurationTest {
 		public static final int VISIBILITY_TIMEOUT = 1789;
 		public static final int WAIT_TIME_OUT = 12;
 		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQS.class));
-		public static final Boolean DELETE_MESSAGE_ON_EXCEPTION_HANDLING = false;
+		public static final Boolean DELETE_MESSAGE_ON_EXCEPTION = false;
 
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -259,7 +259,7 @@ public class SqsConfigurationTest {
 			factory.setVisibilityTimeout(VISIBILITY_TIMEOUT);
 			factory.setWaitTimeOut(WAIT_TIME_OUT);
 			factory.setDestinationResolver(DESTINATION_RESOLVER);
-			factory.setDeleteMessageOnExceptionHandling(DELETE_MESSAGE_ON_EXCEPTION_HANDLING);
+			factory.setDeleteMessageOnException(DELETE_MESSAGE_ON_EXCEPTION);
 
 			return factory;
 		}

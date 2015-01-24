@@ -278,13 +278,13 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_deleteMessageOnExceptionHandlingSetToFalse_shouldBeFalseOnContainer() throws Exception {
+	public void parseInternal_deleteMessageOnExceptionFalse_shouldBeFalseOnContainer() throws Exception {
 		// Arrange & Act
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-delete-message-on-exception-handling-false.xml", getClass());
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-delete-message-on-exception-false.xml", getClass());
 
 		// Assert
 		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		assertFalse(container.isDeleteMessageOnExceptionHandling());
+		assertFalse(container.isDeleteMessageOnException());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
