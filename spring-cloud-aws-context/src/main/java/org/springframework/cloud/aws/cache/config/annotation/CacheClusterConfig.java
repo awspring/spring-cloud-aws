@@ -38,7 +38,7 @@ public @interface CacheClusterConfig {
 	String name();
 
 	/**
-	 * Configures the expiration time of the particular cache cluster. The expiration time is based on the cache level
+	 * Configures the expiration time of the particular cache cluster in seconds. The expiration time is based on the cache level
 	 * and is implementation specific. Typically this expiration time will configure the expiration of one item at the
 	 * time the item is inserted into the cache regardless of the last access.
 	 *

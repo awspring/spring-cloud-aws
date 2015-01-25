@@ -80,7 +80,7 @@ public @interface EnableElastiCache {
 	AdviceMode mode() default AdviceMode.PROXY;
 
 	/**
-	 * Configures the default expiration time if there is no custom expiration time configuration with a
+	 * Configures the default expiration time in seconds if there is no custom expiration time configuration with a
 	 * {@link org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig} configuration for the cache. The
 	 * expiration time is implementation specific (e.g. Redis or Memcached) and could therefore differ in the behaviour
 	 * based on the cache implementation.

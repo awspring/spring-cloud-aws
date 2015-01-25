@@ -1150,12 +1150,12 @@ provides, since version 3.1, a unified Cache abstraction to allow declarative ca
 declarative transactions.
 
 Spring Cloud AWS integrates the http://aws.amazon.com/elasticache/[Amazon ElastiCache] service into the Spring unified
-caching abstraction providing a cache manager based on the memcached and the redis protocol. The caching support fo Spring
-Cloud AWS provides an own implementation memcached implementation for Elasitcache and uses
+caching abstraction providing a cache manager based on the memcached and the redis protocol. The caching support for Spring
+Cloud AWS provides an own memcached implementation for Elasitcache and uses
 http://projects.spring.io/spring-data-redis/[Spring Data Redis] for Redis caches.
 
 === Configuring dependencies for Redis caches
-Spring Cloud AWS delivery an own implementation of a memcached cache, therefore no other dependencies are needed. For memcached
+Spring Cloud AWS delivers an own implementation of a memcached cache, therefore no other dependencies are needed. For redis
 Spring Cloud AWS relies on Spring Data Redis to support caching and also to allow multiple Redis drivers to be used. Spring
 Cloud AWS supports all Redis drivers that Spring Data Redis supports (currently Jedis, JRedis, SRP and Lettuce) with Jedis
  being used internally for testing against Elasticache. A dependency definition for Redis with Jedis is shown in the example
@@ -1176,7 +1176,7 @@ Cloud AWS supports all Redis drivers that Spring Data Redis supports (currently 
 </dependencies>
 ----
 
-Spring CLoud AWS will automatically detect the Redis driver and will use one of them automatically.
+Spring Cloud AWS will automatically detect the Redis driver and will use one of them automatically.
 
 === Configuring caching with XML
 The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
@@ -1262,7 +1262,7 @@ will be configured automatically.
 
 ==== Configuring expiry time for caches
 The java configuration also allows to configure the expiry time for the caches. This can be done for all
-caches using the `defaultExpiration` attribute as show in the example below.
+caches using the `defaultExpiration` attribute as shown in the example below.
 
 [source,java,indent=0]
 ----
@@ -1272,7 +1272,8 @@ public class ApplicationConfiguration {
 }
 ----
 
-or on a cache level using the `@CacheClusterConfig` annotations expiration attribute as shown below.
+The expiration can be defined on a cache level using the `@CacheClusterConfig` annotations expiration attribute as shown below (using seconds as
+the value).
 
 [source,java,indent=0]
 ----
