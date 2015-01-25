@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.listener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -36,10 +37,12 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -53,9 +56,14 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,6 +78,12 @@ public class QueueMessageHandlerTest {
 
 	@Mock
 	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
+
+	@Before
+	public void setUp() throws Exception {
+		//noinspection RedundantArrayCreation to avoid unchecked generic array creation for varargs parameter with Java 8.
+		reset(new DestinationResolvingMessageSendingOperations<?>[]{this.messageTemplate});
+	}
 
 	@Test
 	public void receiveMessage_methodAnnotatedWithMessageMappingAnnotation_methodInvokedForIncomingMessage() throws Exception {
@@ -125,6 +139,30 @@ public class QueueMessageHandlerTest {
 		returnValueHandlers.add(new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
 		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("returnValueHandlers", returnValueHandlers);
 		return queueMessageHandlerBeanDefinitionBuilder.getBeanDefinition();
+	}
+
+	@Test
+	public void receiveAndReplayMessage_withExceptionThrownInSendTo_shouldCallExceptionHandler() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler", getQueueMessageHandlerBeanDefinition());
+		applicationContext.refresh();
+
+		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
+		doThrow(new RuntimeException()).when(this.messageTemplate).convertAndSend(anyString(), anyObject());
+		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
+		messageListener.setExceptionHandlerCalled(false);
+
+		// Act
+		try {
+			messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+		} catch (MessagingException e) {
+			// ignore
+		}
+
+		// Assert
+		assertTrue(messageListener.isExceptionHandlerCalled());
 	}
 
 	@Test
@@ -284,6 +322,16 @@ public class QueueMessageHandlerTest {
 
 		private String lastReceivedMessage;
 
+		private boolean exceptionHandlerCalled;
+
+		public boolean isExceptionHandlerCalled() {
+			return this.exceptionHandlerCalled;
+		}
+
+		public void setExceptionHandlerCalled(boolean exceptionHandlerCalled) {
+			this.exceptionHandlerCalled = exceptionHandlerCalled;
+		}
+
 		@MessageMapping("receive")
 		public void receive(@Payload String value) {
 			this.lastReceivedMessage = value;
@@ -294,6 +342,11 @@ public class QueueMessageHandlerTest {
 		public String receiveAndReply(String value) {
 			this.lastReceivedMessage = value;
 			return value.toUpperCase();
+		}
+
+		@MessageExceptionHandler(RuntimeException.class)
+		public void handleException() {
+			this.exceptionHandlerCalled = true;
 		}
 
 		private String getLastReceivedMessage() {
