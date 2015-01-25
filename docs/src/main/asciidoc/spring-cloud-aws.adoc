@@ -1150,12 +1150,33 @@ provides, since version 3.1, a unified Cache abstraction to allow declarative ca
 declarative transactions.
 
 Spring Cloud AWS integrates the http://aws.amazon.com/elasticache/[Amazon ElastiCache] service into the Spring unified
-caching abstraction providing a cache manager based on the memcached protocol.
+caching abstraction providing a cache manager based on the memcached and the redis protocol. The caching support fo Spring
+Cloud AWS provides an own implementation memcached implementation for Elasitcache and uses
+http://projects.spring.io/spring-data-redis/[Spring Data Redis] for Redis caches.
 
-[TIP]
-====
-Support for the Redis cache protocol is planned in a future release.
-====
+=== Configuring dependencies for Redis caches
+Spring Cloud AWS delivery an own implementation of a memcached cache, therefore no other dependencies are needed. For memcached
+Spring Cloud AWS relies on Spring Data Redis to support caching and also to allow multiple Redis drivers to be used. Spring
+Cloud AWS supports all Redis drivers that Spring Data Redis supports (currently Jedis, JRedis, SRP and Lettuce) with Jedis
+ being used internally for testing against Elasticache. A dependency definition for Redis with Jedis is shown in the example
+
+[source,xml,indent=0]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-redis</artifactId>
+        <version>${spring-data-redis.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>redis.clients</groupId>
+    	<artifactId>jedis</artifactId>
+    	<version>2.6.1</version>
+    </dependency>
+</dependencies>
+----
+
+Spring CLoud AWS will automatically detect the Redis driver and will use one of them automatically.
 
 === Configuring caching with XML
 The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
@@ -1194,15 +1215,13 @@ AWS caching support allows to define multiple caches inside one cache-manager an
 inside the cache manager.
 
 The example below demonstrates a configuration example that contains a pre-configured cache with an `cache-ref` element
-(which might be a local cache), a `cache` with an explicit address (that is probably hosted outside ElastiCache) and
-a `cache-cluster` configuration.
+(which might be a local cache) and a `cache-cluster` configuration for Elasticache cache clusters.
 
 [source,xml,indent=0]
 ----
 <beans ...>
 	<aws-cache:cache-manager id="cacheManager">
 		<aws-cache:cache-ref ref="memcached" />
-		<aws-cache:cache address="someLocalServer:4321" name="memc" />
 		<aws-cache:cache-cluster name="SimpleCache"/>
 	</aws-cache:cache-manager>
 </beans>
@@ -1213,14 +1232,13 @@ The Spring cache demarcation does not support expiry time configuration and leav
 to support an expiry time. The Spring Cloud AWS cache configuration supports the expiry time setting per cache. The
 expiry time will be passed to the memcached service.
 
-The `cache` and `cache-cluster` elements accept an expiration attribute that defines the expiration time in seconds.
+The `cache-cluster` element accepts an expiration attribute that defines the expiration time in seconds.
 No configured values implies that there is an infinite expiration time.
 
 [source,xml,indent=0]
 ----
 <beans>
 	<aws-cache:cache-manager>
-		<aws-cache:cache address="someLocalServer:4321" name="memc" expiration="423"/>
 		<aws-cache:cache-cluster expiration="10000" name="CacheCluster" />
 	</aws-cache:cache-manager>
 </beans>
@@ -1229,19 +1247,41 @@ No configured values implies that there is an infinite expiration time.
 === Configuring caching using Java configuration
 Spring Cloud AWS also support the cache configuration with Java configuration classes. On any `Configuration` class,
 the caching can be configured using the `org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache`
-annotation provided by Spring Cloud AWS. The next example shows a configuration of two cache clusters using the `lusters`
-attribute.
+annotation provided by Spring Cloud AWS. The next example shows a configuration of two cache clusters.
 
 [source,java,indent=0]
 ----
 
-@EnableElastiCache(clusters = {"firstCache", "secondCache"})
+@EnableElastiCache({@CacheClusterConfig(name = "firstCache"), @CacheClusterConfig(name = "secondCache")})
 public class ApplicationConfiguration {
 }
 ----
 
-IMPORTANT: If you leave the `clusters` attribute empty, then all the caches inside your CloudFormation stack (if available)
+IMPORTANT: If you leave the `value` attribute empty, then all the caches inside your CloudFormation stack (if available)
 will be configured automatically.
+
+==== Configuring expiry time for caches
+The java configuration also allows to configure the expiry time for the caches. This can be done for all
+caches using the `defaultExpiration` attribute as show in the example below.
+
+[source,java,indent=0]
+----
+
+@EnableElastiCache(defaultExpiration = 23)
+public class ApplicationConfiguration {
+}
+----
+
+or on a cache level using the `@CacheClusterConfig` annotations expiration attribute as shown below.
+
+[source,java,indent=0]
+----
+
+@EnableElastiCache({@CacheClusterConfig(name = "firstCache", expiration = 23), @CacheClusterConfig(name = "secondCache", expiration = 42)})
+public class ApplicationConfiguration {
+}
+----
+
 
 === Configuring caching in Spring Boot
 The caches will automatically be configured in Spring Boot without any explicit configuration property.
