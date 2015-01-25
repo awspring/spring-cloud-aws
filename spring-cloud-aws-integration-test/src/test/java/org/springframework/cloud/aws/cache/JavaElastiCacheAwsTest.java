@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.cache;
 
 import org.springframework.cloud.aws.IntegrationTestConfig;
+import org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class JavaElastiCacheAwsTest extends ElastiCacheAwsTest {
 
 	@Configuration
-	@EnableElastiCache(clusters = "CacheCluster")
+	@EnableElastiCache(@CacheClusterConfig(name = "CacheCluster"))
 	@Import(IntegrationTestConfig.class)
 	@ComponentScan
 	static class JavaElastiCacheAwsTestConfig {

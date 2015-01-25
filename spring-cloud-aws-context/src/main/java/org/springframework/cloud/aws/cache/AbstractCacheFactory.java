@@ -29,7 +29,11 @@ import java.util.Map;
 public abstract class AbstractCacheFactory<T> implements CacheFactory, DisposableBean {
 
 	private final Map<String, T> nativeConnectionClients = new HashMap<>();
+	private final Map<String, Integer> expiryTimePerCache = new HashMap<>();
 	private int expiryTime;
+
+	protected AbstractCacheFactory() {
+	}
 
 	@Override
 	public void destroy() throws Exception {
@@ -65,8 +69,17 @@ public abstract class AbstractCacheFactory<T> implements CacheFactory, Disposabl
 		this.expiryTime = expiryTime;
 	}
 
+	public void setExpiryTimePerCache(Map<String, Integer> expiryTimePerCache) {
+		this.expiryTimePerCache.putAll(expiryTimePerCache);
+	}
+
 	@SuppressWarnings("UnusedParameters")
 	protected int getExpiryTime(String cacheName) {
+		if (this.expiryTimePerCache.containsKey(cacheName) &&
+				this.expiryTimePerCache.get(cacheName) != null &&
+				this.expiryTimePerCache.get(cacheName) != 0) {
+			return this.expiryTimePerCache.get(cacheName);
+		}
 		return getExpiryTime();
 	}
 }

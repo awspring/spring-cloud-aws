@@ -33,8 +33,8 @@ import java.lang.annotation.Target;
  * instance, because it is provided by this annotation itself. Therefore users only need to add this annotation
  * into one configuration file and configure the necessary cache names.
  *
- * If there is no {@link EnableElastiCache#clusters()} attribute configured, then all caches inside a stack
- * (if the application is running in one stack) will be used.
+ * If there is no {@link org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache#value()} ()} attribute
+ * configured, then all caches inside a stack (if the application is running in one stack) will be used.
  *
  * @author Agim Emruli
  */
@@ -53,7 +53,7 @@ public @interface EnableElastiCache {
 	 *
 	 * @return - the configured cache instances for the application.
 	 */
-	String[] clusters() default {};
+	CacheClusterConfig[] value() default {};
 
 	/**
 	 * Indicate whether subclass-based (CGLIB) proxies are to be created as opposed
@@ -76,4 +76,5 @@ public @interface EnableElastiCache {
 	 */
 	AdviceMode mode() default AdviceMode.PROXY;
 
+	int defaultExpiration() default 0;
 }

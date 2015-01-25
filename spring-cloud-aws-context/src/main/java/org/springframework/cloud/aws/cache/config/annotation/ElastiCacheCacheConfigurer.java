@@ -21,13 +21,11 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.cloud.aws.cache.CacheFactory;
 import org.springframework.cloud.aws.cache.ElastiCacheFactoryBean;
-import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
-import org.springframework.cloud.aws.cache.redis.RedisCacheFactory;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,10 +39,14 @@ public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 
 	private final List<String> cacheNames;
 
-	public ElastiCacheCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, List<String> cacheNames) {
+	private final List<CacheFactory> cacheFactories;
+
+	public ElastiCacheCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver,
+									  List<String> cacheNames, List<CacheFactory> cacheFactories) {
 		this.cacheNames = cacheNames;
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
+		this.cacheFactories = cacheFactories;
 	}
 
 	@Override
@@ -63,7 +65,7 @@ public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 	protected Cache clusterCache(String cacheName) {
 		try {
 			ElastiCacheFactoryBean cacheFactoryBean = new ElastiCacheFactoryBean(this.amazonElastiCache,
-					cacheName, this.resourceIdResolver, Arrays.asList(new MemcachedCacheFactory(), new RedisCacheFactory()));
+					cacheName, this.resourceIdResolver, this.cacheFactories);
 			cacheFactoryBean.afterPropertiesSet();
 			return cacheFactoryBean.getObject();
 		} catch (Exception e) {
