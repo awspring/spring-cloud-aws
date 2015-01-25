@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache;
+package org.springframework.cloud.aws.cache.memcached;
 
 import net.spy.memcached.MemcachedClientIF;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.cache.Cache;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -270,6 +271,7 @@ public class SimpleSpringMemcachedTest {
 		//Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		when(client.add("test", 0, null)).thenReturn(new AsyncResult<>(true));
 
 		//Act
 		cache.put("test", null);
@@ -284,6 +286,7 @@ public class SimpleSpringMemcachedTest {
 		//Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		when(client.add("test", 0, "cachedElement")).thenReturn(new AsyncResult<>(true));
 
 		//Act
 		cache.put("test", "cachedElement");
@@ -299,6 +302,7 @@ public class SimpleSpringMemcachedTest {
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 		cache.setExpiration(42);
+		when(client.add("test", 42, "cachedElement")).thenReturn(new AsyncResult<>(true));
 
 		//Act
 		cache.put("test", "cachedElement");
@@ -345,6 +349,7 @@ public class SimpleSpringMemcachedTest {
 		//Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		when(client.delete("test")).thenReturn(new AsyncResult<>(true));
 
 		//Act
 		cache.evict("test");
@@ -372,6 +377,7 @@ public class SimpleSpringMemcachedTest {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+		when(client.add("key", 0, "value")).thenReturn(new AsyncResult<>(true));
 
 		// Act
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");

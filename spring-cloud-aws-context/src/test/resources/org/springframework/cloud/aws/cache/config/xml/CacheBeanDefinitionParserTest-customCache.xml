@@ -16,7 +16,8 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   		http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -28,11 +29,15 @@
 	</aws-cache:cache-manager>
 
 
-	<bean id="memc" class="org.springframework.cloud.aws.cache.SimpleSpringMemcached">
+	<bean id="memc" class="org.springframework.cloud.aws.cache.memcached.SimpleSpringMemcached">
 		<constructor-arg name="cacheName" value="memc" />
 		<constructor-arg>
-			<bean class="org.springframework.cloud.aws.cache.StaticMemcachedFactoryBean">
-				<constructor-arg name="address" value="localhost:#{systemProperties['memcachedPort']}" />
+			<bean class="net.spy.memcached.MemcachedClient">
+				<constructor-arg>
+					<bean class="net.spy.memcached.AddrUtil" factory-method="getAddresses">
+						<constructor-arg value="localhost:#{systemProperties['memcachedPort']}" />
+					</bean>
+				</constructor-arg>
 			</bean>
 		</constructor-arg>
 	</bean>

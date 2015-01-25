@@ -33,8 +33,8 @@ import java.lang.annotation.Target;
  * instance, because it is provided by this annotation itself. Therefore users only need to add this annotation
  * into one configuration file and configure the necessary cache names.
  *
- * If there is no {@link EnableElastiCache#clusters()} attribute configured, then all caches inside a stack
- * (if the application is running in one stack) will be used.
+ * If there is no {@link org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache#value()} ()} attribute
+ * configured, then all caches inside a stack (if the application is running in one stack) will be used.
  *
  * @author Agim Emruli
  */
@@ -45,15 +45,18 @@ import java.lang.annotation.Target;
 public @interface EnableElastiCache {
 
 	/**
-	 * Configures the cache cluster names for the caching configuration. Support one or multiple caches
-	 * names with their physical cache name (as configured in the ElastiCache service) or their logical
+	 * Configures the cache clusters for the caching configuration. Support one or multiple caches
+	 * {@link org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig} configurations with their
+	 * physical cache name (as configured in the ElastiCache service) or their logical
 	 * cache name if the caches are configured inside a stack and
 	 * {@link org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration} annotation
 	 * is used inside the application.
 	 *
+	 * The CacheClusterConfig annotation also configures cache specific attributes like the expiration time.
+	 *
 	 * @return - the configured cache instances for the application.
 	 */
-	String[] clusters() default {};
+	CacheClusterConfig[] value() default {};
 
 	/**
 	 * Indicate whether subclass-based (CGLIB) proxies are to be created as opposed
@@ -76,4 +79,13 @@ public @interface EnableElastiCache {
 	 */
 	AdviceMode mode() default AdviceMode.PROXY;
 
+	/**
+	 * Configures the default expiration time in seconds if there is no custom expiration time configuration with a
+	 * {@link org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig} configuration for the cache. The
+	 * expiration time is implementation specific (e.g. Redis or Memcached) and could therefore differ in the behaviour
+	 * based on the cache implementation.
+	 *
+	 * @return - the default expiration time for all caches that do not contain a specific expiration time on cache level
+	 */
+	int defaultExpiration() default 0;
 }

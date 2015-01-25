@@ -17,14 +17,12 @@
 package org.springframework.cloud.aws.cache.config.annotation;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
-import net.spy.memcached.MemcachedClientIF;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.cloud.aws.cache.ElastiCacheMemcachedFactoryBean;
-import org.springframework.cloud.aws.cache.SimpleSpringMemcached;
+import org.springframework.cloud.aws.cache.CacheFactory;
+import org.springframework.cloud.aws.cache.ElastiCacheFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import java.util.ArrayList;
@@ -41,10 +39,14 @@ public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 
 	private final List<String> cacheNames;
 
-	public ElastiCacheCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver, List<String> cacheNames) {
+	private final List<CacheFactory> cacheFactories;
+
+	public ElastiCacheCacheConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver,
+									  List<String> cacheNames, List<CacheFactory> cacheFactories) {
 		this.cacheNames = cacheNames;
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
+		this.cacheFactories = cacheFactories;
 	}
 
 	@Override
@@ -62,28 +64,12 @@ public class ElastiCacheCacheConfigurer extends CachingConfigurerSupport {
 
 	protected Cache clusterCache(String cacheName) {
 		try {
-			ElastiCacheMemcachedFactoryBean memcachedFactoryBean = new ElastiCacheMemcachedFactoryBean(this.amazonElastiCache,
-					cacheName, this.resourceIdResolver);
-			memcachedFactoryBean.afterPropertiesSet();
-			return new DisposableSpringSpringMemcached(memcachedFactoryBean.getObject(),
-					cacheName);
+			ElastiCacheFactoryBean cacheFactoryBean = new ElastiCacheFactoryBean(this.amazonElastiCache,
+					cacheName, this.resourceIdResolver, this.cacheFactories);
+			cacheFactoryBean.afterPropertiesSet();
+			return cacheFactoryBean.getObject();
 		} catch (Exception e) {
 			throw new RuntimeException("Error creating cache", e);
-		}
-	}
-
-	private static class DisposableSpringSpringMemcached extends SimpleSpringMemcached implements DisposableBean {
-
-		private final MemcachedClientIF memcachedClient;
-
-		private DisposableSpringSpringMemcached(MemcachedClientIF memcachedClient, String cacheName) {
-			super(memcachedClient, cacheName);
-			this.memcachedClient = memcachedClient;
-		}
-
-		@Override
-		public void destroy() throws Exception {
-			this.memcachedClient.shutdown();
 		}
 	}
 }
