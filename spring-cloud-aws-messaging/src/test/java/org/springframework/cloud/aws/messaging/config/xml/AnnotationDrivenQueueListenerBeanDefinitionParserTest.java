@@ -273,7 +273,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		// Assert
 		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		DestinationResolver customDestinationResolver = applicationContext.getBean(DestinationResolver.class);
+		DestinationResolver<?> customDestinationResolver = applicationContext.getBean(DestinationResolver.class);
 		assertEquals(customDestinationResolver, ReflectionTestUtils.getField(container, "destinationResolver"));
 	}
 
