@@ -21,7 +21,6 @@ import com.amazonaws.util.EC2MetadataUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.codec.binary.Base64;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,7 +49,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	@Test
 	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
 		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA:valueA;keyB:valueB".getBytes("UTF-8")).getBytes()));
+		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA:valueA;keyB:valueB".getBytes("UTF-8")));
 
 		//Act
 		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
@@ -65,12 +64,11 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	@Test
 	public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
 		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(Base64.encodeBase64String("keyA=valueD,keyB=valueE".getBytes("ISO-8859-1")).getBytes()));
+		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA=valueD,keyB=valueE".getBytes("UTF-8")));
 
 		//Act
 		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		amazonEc2InstanceDataPropertySource.setUserDataAttributeEncoding("ISO-8859-1");
 		amazonEc2InstanceDataPropertySource.setUserDataAttributeSeparator(",");
 		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
 

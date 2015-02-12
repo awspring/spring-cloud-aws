@@ -20,7 +20,6 @@ import com.amazonaws.SDKGlobalConfiguration;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.codec.binary.Base64;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -53,7 +52,7 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 	public static void setupHttpServer() throws Exception {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 		httpServer = HttpServer.create(address, -1);
-		httpServer.createContext("/latest/user-data", new StringWritingHttpHandler(Base64.encodeBase64("key1:value1;key2:value2;key3:value3".getBytes())));
+		httpServer.createContext("/latest/user-data", new StringWritingHttpHandler("key1:value1;key2:value2;key3:value3".getBytes()));
 		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i123456".getBytes()));
 		httpServer.start();
 		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());

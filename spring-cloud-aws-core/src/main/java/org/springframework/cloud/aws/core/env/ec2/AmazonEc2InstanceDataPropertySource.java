@@ -18,7 +18,6 @@ package org.springframework.cloud.aws.core.env.ec2;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.util.EC2MetadataUtils;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
@@ -28,7 +27,6 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,8 +45,6 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 	private static final Properties KNOWN_PROPERTY_NAMES;
 
 	private String userDataAttributeSeparator = DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR;
-	private static final Charset DEFAULT_USER_DATA_ATTRIBUTE_ENCODING = Charset.forName("UTF-8");
-	private Charset userDataAttributeEncoding = DEFAULT_USER_DATA_ATTRIBUTE_ENCODING;
 	private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
 
@@ -68,10 +64,6 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 
 	public AmazonEc2InstanceDataPropertySource(String name) {
 		super(name, new Object());
-	}
-
-	public void setUserDataAttributeEncoding(String userDataAttributeEncoding) {
-		this.userDataAttributeEncoding = Charset.forName(userDataAttributeEncoding);
 	}
 
 	public void setUserDataAttributeSeparator(String userDataAttributeSeparator) {
@@ -111,17 +103,15 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
 	private Map<String, String> getUserData() {
 		if (this.cachedUserData == null) {
 			Map<String, String> userDataMap = new LinkedHashMap<>();
-			String encodedUserData = null;
+			String userData = null;
 			try {
-				encodedUserData = EC2MetadataUtils.getUserData();
+				userData = EC2MetadataUtils.getUserData();
 			} catch (AmazonClientException e) {
 				//Suppress exception if we are not able to contact the service,
 				//because that is quite often the case if we run in unit tests outside the environment.
 				LOGGER.warn("Error getting instance user-data error message is '{}'", e.getMessage());
 			}
-			if (StringUtils.hasText(encodedUserData)) {
-				byte[] bytes = Base64.decodeBase64(encodedUserData);
-				String userData = new String(bytes, this.userDataAttributeEncoding);
+			if (StringUtils.hasText(userData)) {
 				String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
 				for (String userDataAttribute : userDataAttributes) {
 					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.userDataValueSeparator);
