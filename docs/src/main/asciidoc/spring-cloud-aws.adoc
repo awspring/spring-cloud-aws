@@ -417,7 +417,7 @@ A CloudFormation for the configuration of the user data is outlined below:
    	 "Properties": {
    	  "ImageId": "ami-6a56b81d",
    	  "UserData": {
-   	     "Fn::Base64": "data1=value1;data2=value2"
+   	     "Fn::Base64": "data1:value1;data2:value2"
    	   },
    	  "InstanceType": "t1.micro",
    	 }
@@ -441,11 +441,6 @@ public class SecondConfigurationBean {
 	private String secondDataOption;
 }
 ----
-
-[NOTE]
-====
-User data stored in a base 64 encoded representation is automatically decoded by Spring Cloud AWS
-====
 
 ==== Using instance tags
 User configured properties can also be configured with tags instead of user data. Tags are a global concept in the context

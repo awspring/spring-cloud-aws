@@ -25,7 +25,7 @@
 				"DisableApiTermination": "FALSE",
 				"ImageId": "ami-6a56b81d",
 				"UserData": {
-					"Fn::Base64": "data1=value1;data2=value2"
+					"Fn::Base64": "data1:value1;data2:value2"
 				},
 				"InstanceType": "t1.micro",
 				"Tags": [
