@@ -166,11 +166,11 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	}
 
 	@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
-	static class MappingInformation implements Comparable<MappingInformation> {
+	protected static class MappingInformation implements Comparable<MappingInformation> {
 
 		private final Set<String> logicalResourceIds;
 
-		private MappingInformation(Set<String> logicalResourceIds) {
+		public MappingInformation(Set<String> logicalResourceIds) {
 			this.logicalResourceIds = Collections.unmodifiableSet(logicalResourceIds);
 		}
 
