@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.context.config.support;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -64,7 +65,7 @@ public final class ContextConfigurationUtils {
 		AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry, REGION_PROVIDER_BEAN_NAME);
 	}
 
-	public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey, boolean instanceProfile) {
+	public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey, boolean instanceProfile, String profileName, String profilePath) {
 		BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
 
 		ManagedList<BeanDefinition> awsCredentialsProviders = new ManagedList<>();
@@ -82,6 +83,16 @@ public final class ContextConfigurationUtils {
 
 		if (instanceProfile) {
 			awsCredentialsProviders.add(BeanDefinitionBuilder.rootBeanDefinition(InstanceProfileCredentialsProvider.class).getBeanDefinition());
+		}
+
+		if (StringUtils.hasText(profileName)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ProfileCredentialsProvider.class);
+			if (StringUtils.hasText(profilePath)) {
+				builder.addConstructorArgValue(profilePath);
+			}
+
+			builder.addConstructorArgValue(profileName);
+			awsCredentialsProviders.add(builder.getBeanDefinition());
 		}
 
 		factoryBeanBuilder.addConstructorArgValue(awsCredentialsProviders);

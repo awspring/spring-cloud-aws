@@ -53,4 +53,8 @@ public @interface EnableContextCredentials {
 	 * @return true if the instance profile credentials provider should be configured
 	 */
 	boolean instanceProfile() default false;
+
+	String profileName() default "";
+
+	String profilePath() default "";
 }

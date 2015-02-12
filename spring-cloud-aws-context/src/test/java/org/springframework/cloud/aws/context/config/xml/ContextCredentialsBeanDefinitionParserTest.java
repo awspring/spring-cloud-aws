@@ -20,16 +20,27 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
+import org.apache.http.client.CredentialsProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -114,5 +125,46 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		AWSCredentials credentials = awsCredentialsProvider.getCredentials();
 		assertEquals("foo", credentials.getAWSAccessKeyId());
 		assertEquals("bar", credentials.getAWSSecretKey());
+	}
+
+	@Test
+	public void parseBean_withProfileCredentialsProvider_createProfileCredentialsProvider() {
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-profileCredentialsProvider.xml", getClass());
+
+		AWSCredentialsProvider awsCredentialsProvider = applicationContext.getBean(
+				AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+		assertNotNull(awsCredentialsProvider);
+
+		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
+				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
+		assertEquals(1, credentialsProviders.size());
+		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+
+		assertEquals("test", ReflectionTestUtils.getField(credentialsProviders.get(0), "profileName"));
+	}
+
+
+	@Test
+	public void parseBean_withProfileCredentialsProviderAndProfileFile_createProfileCredentialsProvider() throws IOException {
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+
+		Map<String, Object> secretAndAccessKeyMap = new HashMap<>();
+		secretAndAccessKeyMap.put("profilePath", new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile().getAbsolutePath());
+
+		applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", secretAndAccessKeyMap));
+		PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+		configurer.setPropertySources(applicationContext.getEnvironment().getPropertySources());
+
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-profileCredentialsProviderWithFile.xml", getClass()));
+
+		applicationContext.refresh();
+
+		AWSCredentialsProvider provider = applicationContext.getBean(
+				AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+		assertNotNull(provider);
+
+		assertEquals("testAccessKey", provider.getCredentials().getAWSAccessKeyId());
+		assertEquals("testSecretKey", provider.getCredentials().getAWSSecretKey());
 	}
 }

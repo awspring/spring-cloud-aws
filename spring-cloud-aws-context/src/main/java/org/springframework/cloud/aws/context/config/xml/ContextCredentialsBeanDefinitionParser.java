@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider;
@@ -43,6 +44,7 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 
 	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.internal.StaticCredentialsProvider";
 	private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
+	private static final String PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.profile.ProfileCredentialsProvider";
 
 	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
 	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-key";
@@ -74,6 +76,10 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 
 			if ("instance-profile-credentials".equals(credentialsProviderElement.getLocalName())) {
 				credentialsProviders.add(getCredentialsProvider(INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME));
+			}
+
+			if ("profile-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getProfileConfiguration(credentialsProviderElement).toArray()));
 			}
 		}
 
@@ -109,6 +115,18 @@ class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitio
 		builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
 		builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
 		return builder.getBeanDefinition();
+	}
+
+	private static List<String> getProfileConfiguration(Element element) {
+		List<String> constructorArguments = new ArrayList<>(2);
+		if (StringUtils.hasText(element.getAttribute("profilePath"))) {
+			constructorArguments.add(element.getAttribute("profilePath"));
+		}
+
+		if (StringUtils.hasText(element.getAttribute("profileName"))) {
+			constructorArguments.add(element.getAttribute("profileName"));
+		}
+		return constructorArguments;
 	}
 
 	/**

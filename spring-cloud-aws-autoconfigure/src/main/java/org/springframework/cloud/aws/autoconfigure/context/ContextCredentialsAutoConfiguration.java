@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import com.amazonaws.auth.profile.ProfilesConfigFile;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.context.EnvironmentAware;
@@ -48,8 +49,9 @@ public class ContextCredentialsAutoConfiguration {
 			registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
 					this.environment.getProperty("cloud.aws.credentials.secretKey"),
 					this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
-							!this.environment.containsProperty("cloud.aws.credentials.accessKey")
-			);
+							!this.environment.containsProperty("cloud.aws.credentials.accessKey"),
+					this.environment.getProperty("cloud.aws.credentials.profileName", ProfilesConfigFile.DEFAULT_PROFILE_NAME),
+					this.environment.getProperty("cloud.aws.credentials.profilePath"));
 		}
 	}
 }
