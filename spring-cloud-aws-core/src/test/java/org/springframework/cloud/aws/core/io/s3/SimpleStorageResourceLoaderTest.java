@@ -80,7 +80,7 @@ public class SimpleStorageResourceLoaderTest {
 
 		assertNotNull(resourceLoader.getResource("s3://prefix.bucket/object.suffix"));
 
-		verify(amazonS3, times(2)).getObjectMetadata("bucket", "object");
+		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}
 
 
