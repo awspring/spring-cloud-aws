@@ -24,7 +24,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import static org.junit.Assert.assertNotNull;
 
-public class ContextResourceLoaderConfigurationRegistrarTest {
+public class ContextResourceLoaderConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 

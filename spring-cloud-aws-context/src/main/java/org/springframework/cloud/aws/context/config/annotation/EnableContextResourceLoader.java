@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(ContextResourceLoaderConfigurationRegistrar.class)
+@Import(ContextResourceLoaderConfiguration.class)
 public @interface EnableContextResourceLoader {
 
 }

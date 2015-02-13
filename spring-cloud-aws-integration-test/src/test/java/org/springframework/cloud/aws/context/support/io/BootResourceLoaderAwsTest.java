@@ -27,7 +27,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringApplicationConfiguration(classes = BootResourceLoaderAwsTest.BootResourceLoaderAwsTestConfig.class)
-@IntegrationTest
+@IntegrationTest({"cloud.aws.loader.corePoolSize=10", "cloud.aws.loader.queueCapacity=0"})
 public class BootResourceLoaderAwsTest extends ResourceLoaderAwsTest {
 
 	@SpringBootApplication
