@@ -42,7 +42,7 @@ public class ResourceLoaderBeanPostProcessorTest {
 		ApplicationContext context = mock(ApplicationContext.class, withSettings().extraInterfaces(ResourceLoader.class, BeanFactory.class));
 		when(context.getClassLoader()).thenReturn(getClass().getClassLoader());
 
-		ApplicationContext proxyApplicationContext = resourceLoaderBeanPostProcessor.decorateApplicationContext(context);
+		ApplicationContext proxyApplicationContext = resourceLoaderBeanPostProcessor.getApplicationContextProxy(context);
 
 		proxyApplicationContext.getBean(Object.class);
 		proxyApplicationContext.getStartupDate();

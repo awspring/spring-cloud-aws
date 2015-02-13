@@ -17,13 +17,11 @@
 package org.springframework.cloud.aws.context.support.io;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ResourceLoader;
@@ -45,7 +43,7 @@ import java.lang.reflect.Proxy;
 public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware, BeanFactoryPostProcessor {
 
 	private final ResourceLoader resourceLoader;
-	private ApplicationContext applicationContext;
+	private ApplicationContext applicationContextProxy;
 
 	public ResourceLoaderBeanPostProcessor(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;
@@ -53,7 +51,11 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = decorateApplicationContext(applicationContext);
+		if (applicationContext instanceof GenericApplicationContext) {
+			((GenericApplicationContext) applicationContext).setResourceLoader(this.resourceLoader);
+		} else {
+			this.applicationContextProxy = getApplicationContextProxy(applicationContext);
+		}
 	}
 
 	@Override
@@ -62,8 +64,8 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 			((ResourceLoaderAware) bean).setResourceLoader(this.resourceLoader);
 		}
 
-		if (bean instanceof ApplicationContextAware) {
-			((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
+		if (this.applicationContextProxy != null && bean instanceof ApplicationContextAware) {
+			((ApplicationContextAware) bean).setApplicationContext(this.applicationContextProxy);
 		}
 		return bean;
 	}
@@ -74,21 +76,17 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 	}
 
 
-	protected ApplicationContext decorateApplicationContext(ApplicationContext target) {
-		if (target instanceof GenericApplicationContext) {
-			((GenericApplicationContext) target).setResourceLoader(this.resourceLoader);
-			return target;
-		} else {
-			Class<?>[] interfaces = ClassUtils.getAllInterfaces(target);
-			return (ApplicationContext) Proxy.newProxyInstance(target.getClassLoader(), interfaces, new ResourceLoaderInvocationHandler(this.resourceLoader, target));
-		}
+	protected ApplicationContext getApplicationContextProxy(ApplicationContext target) {
+		Class<?>[] interfaces = ClassUtils.getAllInterfaces(target);
+		return (ApplicationContext) Proxy.newProxyInstance(target.getClassLoader(), interfaces,
+				new ResourceLoaderInvocationHandler(this.resourceLoader, target));
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		beanFactory.registerResolvableDependency(ApplicationContext.class, this.applicationContext);
-		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this.applicationContext);
-		beanFactory.registerResolvableDependency(BeanFactory.class, this.applicationContext);
+		if (this.applicationContextProxy != null) {
+			beanFactory.registerResolvableDependency(ApplicationContext.class, this.applicationContextProxy);
+		}
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this.resourceLoader);
 	}
 
