@@ -581,6 +581,19 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest("http://testQueue.amazonaws.com", "ReceiptHandle")));
 	}
 
+	@Test
+	public void doStop_containerNotRunning_shouldNotThrowAnException() throws Exception {
+		// Arrange
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setMessageHandler(mock(QueueMessageHandler.class));
+		container.setAutoStartup(false);
+		container.afterPropertiesSet();
+
+		// Act & Assert
+		container.stop();
+	}
+
 	private static class TestMessageListener {
 
 		private String message;

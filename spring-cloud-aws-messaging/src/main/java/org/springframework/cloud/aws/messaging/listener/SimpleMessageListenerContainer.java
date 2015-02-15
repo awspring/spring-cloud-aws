@@ -82,7 +82,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	@Override
 	protected void doStop() {
 		try {
-			this.stopLatch.await();
+			if (this.stopLatch != null) {
+				this.stopLatch.await();
+			}
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
