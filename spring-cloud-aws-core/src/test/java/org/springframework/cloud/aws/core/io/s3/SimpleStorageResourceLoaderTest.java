@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,7 +48,7 @@ public class SimpleStorageResourceLoaderTest {
 		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 		ObjectMetadata metadata = new ObjectMetadata();
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
@@ -73,7 +75,7 @@ public class SimpleStorageResourceLoaderTest {
 
 		ObjectMetadata metadata = new ObjectMetadata();
 		
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
