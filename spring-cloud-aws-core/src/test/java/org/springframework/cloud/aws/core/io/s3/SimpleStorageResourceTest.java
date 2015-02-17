@@ -16,23 +16,6 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.springframework.core.task.SyncTaskExecutor;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Date;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -40,6 +23,26 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Date;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.core.task.SyncTaskExecutor;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.S3Object;
 
 /**
  * @author Agim Emruli
@@ -53,7 +56,7 @@ public class SimpleStorageResourceTest {
 	public void exists_withExistingObjectMetadata_returnsTrue() throws Exception {
 		//Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(new ObjectMetadata());
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
@@ -66,7 +69,7 @@ public class SimpleStorageResourceTest {
 	public void exists_withoutExistingObjectMetadata_returnsFalse() throws Exception {
 		//Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(null);
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
@@ -81,7 +84,7 @@ public class SimpleStorageResourceTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		objectMetadata.setContentLength(1234L);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(objectMetadata);
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
@@ -97,7 +100,7 @@ public class SimpleStorageResourceTest {
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		Date lastModified = new Date();
 		objectMetadata.setLastModified(lastModified);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(objectMetadata);
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
@@ -113,7 +116,7 @@ public class SimpleStorageResourceTest {
 		this.expectedException.expectMessage("not found");
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(null);
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
 
 		//Act
@@ -130,7 +133,7 @@ public class SimpleStorageResourceTest {
 		this.expectedException.expectMessage("not found");
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(null);
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
 
 		//Act
@@ -143,7 +146,7 @@ public class SimpleStorageResourceTest {
 	public void getFileName_existingObject_returnsFileNameWithoutBucketNameFromParameterWithoutActuallyFetchingTheFile() throws Exception {
 		//Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(null);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(null);
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
@@ -157,12 +160,12 @@ public class SimpleStorageResourceTest {
 		//Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ObjectMetadata objectMetadata = mock(ObjectMetadata.class);
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(objectMetadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(objectMetadata);
 
 		S3Object s3Object = new S3Object();
 		s3Object.setObjectMetadata(objectMetadata);
 		s3Object.setObjectContent(new ByteArrayInputStream(new byte[]{42}));
-		when(amazonS3.getObject("bucket", "object")).thenReturn(s3Object);
+		when(amazonS3.getObject(any(GetObjectRequest.class))).thenReturn(s3Object);
 
 		//Act
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());

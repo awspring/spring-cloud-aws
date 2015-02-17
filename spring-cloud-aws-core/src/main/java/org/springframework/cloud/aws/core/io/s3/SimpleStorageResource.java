@@ -16,22 +16,6 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.UploadPartRequest;
-import com.amazonaws.services.s3.model.UploadPartResult;
-import com.amazonaws.util.BinaryUtils;
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.WritableResource;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -48,6 +32,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.WritableResource;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.amazonaws.services.s3.model.UploadPartResult;
+import com.amazonaws.util.BinaryUtils;
+
 /**
  * {@link org.springframework.core.io.Resource} implementation for {@code com.amazonaws.services.s3.model.S3Object}
  * handles. Implements the extended {@link WritableResource} interface.
@@ -60,16 +63,22 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 
 	private final String bucketName;
 	private final String objectName;
+	private final String versionId;
 	private final AmazonS3 amazonS3;
 	private final TaskExecutor taskExecutor;
 
 	private volatile ObjectMetadata objectMetadata;
 
 	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
+		this(amazonS3, bucketName, objectName, taskExecutor, null);
+	}
+	
+	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor, String versionId) {
+		this.amazonS3 = amazonS3;
 		this.bucketName = bucketName;
 		this.objectName = objectName;
-		this.amazonS3 = amazonS3;
 		this.taskExecutor = taskExecutor;
+		this.versionId = versionId;
 	}
 
 	@Override
@@ -78,13 +87,21 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		builder.append(this.bucketName);
 		builder.append("' and object='");
 		builder.append(this.objectName);
+		if (this.versionId != null) {
+			builder.append("' and versionId='");
+			builder.append(this.versionId);
+		}
 		builder.append("']");
 		return builder.toString();
 	}
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return this.amazonS3.getObject(this.bucketName, this.objectName).getObjectContent();
+		GetObjectRequest getObjectRequest = new GetObjectRequest(this.bucketName, this.objectName);
+		if (this.versionId != null) {
+			getObjectRequest.setVersionId(this.versionId);
+		}
+		return this.amazonS3.getObject(getObjectRequest).getObjectContent();
 	}
 
 	@Override
@@ -110,13 +127,18 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 	private ObjectMetadata getRequiredObjectMetadata() throws FileNotFoundException {
 		ObjectMetadata metadata = getObjectMetadata();
 		if (metadata == null) {
-			throw new FileNotFoundException(new StringBuilder().
+			StringBuilder builder = new StringBuilder().
 					append("Resource with bucket='").
 					append(this.bucketName).
 					append("' and objectName='").
-					append(this.objectName).
-					append("' not found!").
-					toString());
+					append(this.objectName);
+			if (this.versionId != null) {
+				builder.append("' and versionId='");
+				builder.append(this.versionId);
+			}
+			builder.append("' not found!");
+			
+			throw new FileNotFoundException(builder.toString());
 		}
 		return metadata;
 	}
@@ -134,7 +156,11 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 	private ObjectMetadata getObjectMetadata() {
 		if (this.objectMetadata == null) {
 			try {
-				this.objectMetadata = this.amazonS3.getObjectMetadata(this.bucketName, this.objectName);
+				GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(bucketName, objectName);
+				if (this.versionId != null) {
+					metadataRequest.setVersionId(versionId);
+				}
+				this.objectMetadata = this.amazonS3.getObjectMetadata(metadataRequest);
 			} catch (AmazonS3Exception e) {
 				if (e.getStatusCode() == 404) {
 					this.objectMetadata = null;

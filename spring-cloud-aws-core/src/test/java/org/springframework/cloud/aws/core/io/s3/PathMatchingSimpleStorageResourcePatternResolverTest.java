@@ -18,12 +18,15 @@ package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.ClassUtils;
@@ -37,6 +40,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -146,7 +150,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		ObjectListing objectListingWithPrefixFooOneBarOne = createObjectListingMock(Arrays.asList(createS3ObjectSummaryWithKey("fooOne/barOne/test.txt")), Collections.<String>emptyList(), false);
 		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", "fooOne/barOne/", "/")))).thenReturn(objectListingWithPrefixFooOneBarOne);
 
-		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
 
 		return amazonS3;
 	}
@@ -164,7 +168,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("anotherBucket", null, null)))).thenReturn(objectListingWithOneFile);
 		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBuckez", null, null)))).thenReturn(emptyObjectListing);
 
-		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
 		return amazonS3;
 	}
 
@@ -230,7 +234,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 		);
 		when(amazonS3.listObjects(argThat(new ListObjectsRequestMatcher("myBucket", null, null)))).thenReturn(fullObjectListing);
 
-		when(amazonS3.getObjectMetadata(anyString(), anyString())).thenReturn(new ObjectMetadata());
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
 
 		return amazonS3;
 	}

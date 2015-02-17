@@ -51,7 +51,6 @@ public class SimpleStorageResourceLoaderTest {
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
-
 	}
 
 	@Test
@@ -60,6 +59,21 @@ public class SimpleStorageResourceLoaderTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
 		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+		String resourceName = "s3://bucket/object/";
+		Resource resource = resourceLoader.getResource(resourceName);
+		assertNotNull(resource);
+	}
+	
+	@Test
+	public void testGetResourceWithVersionId() throws Exception {
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+		ObjectMetadata metadata = new ObjectMetadata();
+		
+		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
@@ -82,7 +96,6 @@ public class SimpleStorageResourceLoaderTest {
 
 		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}
-
 
 	@Test
 	public void testGetResourceWithMalFormedUrl() throws Exception {
@@ -126,6 +139,7 @@ public class SimpleStorageResourceLoaderTest {
 		resourceLoader.getResource("s3://bucket/key");
 		resourceLoader.getResource("S3://BuCket/key");
 		resourceLoader.getResource("s3://bucket/folder1/folder2/key");
+		resourceLoader.getResource("s3://bucket/folder1/folder2/key^versionIdValue");
 	}
 
 }
