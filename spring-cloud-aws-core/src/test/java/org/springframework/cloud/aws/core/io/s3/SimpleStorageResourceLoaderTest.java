@@ -77,7 +77,7 @@ public class SimpleStorageResourceLoaderTest {
 		
 		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
-		String resourceName = "s3://bucket/object/";
+		String resourceName = "s3://bucket/object^versionIdValue";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
 	}
