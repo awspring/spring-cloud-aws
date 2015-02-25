@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,12 +48,11 @@ public class SimpleStorageResourceLoaderTest {
 		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 		ObjectMetadata metadata = new ObjectMetadata();
-		when(amazonS3.getObjectMetadata("bucket", "object")).thenReturn(metadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
-
 	}
 
 	@Test
@@ -62,6 +63,21 @@ public class SimpleStorageResourceLoaderTest {
 		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 		String resourceName = "s3://bucket/object/";
+		Resource resource = resourceLoader.getResource(resourceName);
+		assertNotNull(resource);
+	}
+	
+	@Test
+	public void testGetResourceWithVersionId() throws Exception {
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+
+		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+		ObjectMetadata metadata = new ObjectMetadata();
+		
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
+
+		String resourceName = "s3://bucket/object^versionIdValue";
 		Resource resource = resourceLoader.getResource(resourceName);
 		assertNotNull(resource);
 	}
@@ -82,7 +98,6 @@ public class SimpleStorageResourceLoaderTest {
 
 		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}
-
 
 	@Test
 	public void testGetResourceWithMalFormedUrl() throws Exception {
@@ -126,6 +141,7 @@ public class SimpleStorageResourceLoaderTest {
 		resourceLoader.getResource("s3://bucket/key");
 		resourceLoader.getResource("S3://BuCket/key");
 		resourceLoader.getResource("s3://bucket/folder1/folder2/key");
+		resourceLoader.getResource("s3://bucket/folder1/folder2/key^versionIdValue");
 	}
 
 }

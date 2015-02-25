@@ -29,6 +29,7 @@ final class SimpleStorageNameUtils {
 
 	private static final String S3_PROTOCOL_PREFIX = "s3://";
 	private static final String PATH_DELIMITER = "/";
+	private static final String VERSION_DELIMITER = "^";
 
 	private SimpleStorageNameUtils() {
 		// Avoid instantiation
@@ -60,12 +61,33 @@ final class SimpleStorageNameUtils {
 		if (bucketEndIndex == -1 || bucketEndIndex == S3_PROTOCOL_PREFIX.length()) {
 			throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
 		}
+		
+		if (location.contains(VERSION_DELIMITER)) {
+			return getObjectNameFromLocation(location.substring(0, location.indexOf(VERSION_DELIMITER)));
+		}
 
 		if (location.endsWith(PATH_DELIMITER)) {
 			return location.substring(++bucketEndIndex, location.length() - 1);
 		}
 
 		return location.substring(++bucketEndIndex, location.length());
+	}
+	
+	static String getVersionIdFromLocation(String location) {
+		Assert.notNull(location, "Location must not be null");
+		if (!isSimpleStorageResource(location)) {
+			throw new IllegalArgumentException("The location :'" + location + "' is not a valid S3 location");
+		}
+		int objectNameEndIndex = location.indexOf(VERSION_DELIMITER, S3_PROTOCOL_PREFIX.length());
+		if (objectNameEndIndex == -1 || location.endsWith(VERSION_DELIMITER)) {
+			return null;
+		}
+		
+		if (objectNameEndIndex == S3_PROTOCOL_PREFIX.length()) {
+			throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
+		}
+
+		return location.substring(++objectNameEndIndex, location.length());
 	}
 
 	static String getLocationForBucketAndObject(String bucketName, String objectName) {
@@ -78,6 +100,11 @@ final class SimpleStorageNameUtils {
 		location.append(PATH_DELIMITER);
 		location.append(objectName);
 		return location.toString();
+	}
+	
+	static String getLocationForBucketAndObjectAndVersionId(String bucketName, String objectName, String versionId) {
+		String location = getLocationForBucketAndObject(bucketName, objectName);
+		return new StringBuffer(location).append(VERSION_DELIMITER).append(versionId).toString();
 	}
 
 	static String stripProtocol(String location) {

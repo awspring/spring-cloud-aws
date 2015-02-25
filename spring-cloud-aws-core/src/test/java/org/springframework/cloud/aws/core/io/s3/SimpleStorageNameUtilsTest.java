@@ -22,7 +22,9 @@ import org.junit.rules.ExpectedException;
 
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getBucketNameFromLocation;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObject;
+import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObjectAndVersionId;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getObjectNameFromLocation;
+import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getVersionIdFromLocation;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.isSimpleStorageResource;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.stripProtocol;
 import static org.junit.Assert.assertEquals;
@@ -59,6 +61,8 @@ public class SimpleStorageNameUtilsTest {
 
 		assertEquals("foo", getBucketNameFromLocation("s3://foo/bar/baz/boo/"));
 		assertEquals("fo*", getBucketNameFromLocation("s3://fo*/bar/baz/boo/"));
+		
+		assertEquals("foo", getBucketNameFromLocation("s3://foo/bar/baz/boo/^versionIdValue"));
 	}
 
 	@Test
@@ -100,11 +104,19 @@ public class SimpleStorageNameUtilsTest {
 	public void testGetObjectNameFromLocation() throws Exception {
 		assertEquals("bar", getObjectNameFromLocation("s3://foo/bar"));
 		assertEquals("ba*", getObjectNameFromLocation("s3://foo/ba*"));
+		assertEquals("bar", getObjectNameFromLocation("s3://foo/bar^versionIdValue"));
 
 		assertEquals("bar/baz/boo", getObjectNameFromLocation("s3://foo/bar/baz/boo/"));
 		assertEquals("bar/ba*/boo", getObjectNameFromLocation("s3://foo/bar/ba*/boo/"));
 		assertEquals("bar/baz/boo.txt", getObjectNameFromLocation("s3://foo/bar/baz/boo.txt/"));
 		assertEquals("bar/ba*/boo.txt", getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/"));
+		assertEquals("bar/ba*/boo.txt", getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue"));
+	}
+	
+	@Test
+	public void testGetVersionIdFromLocation() throws Exception {
+		assertEquals("versionIdValue", getVersionIdFromLocation("s3://foo/bar^versionIdValue"));
+		assertEquals("versionIdValue", getVersionIdFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue"));
 	}
 
 	@Test
@@ -127,12 +139,20 @@ public class SimpleStorageNameUtilsTest {
 		assertEquals("s3://foo/bar/baz", getLocationForBucketAndObject("foo", "bar/baz"));
 		assertEquals("s3://foo/bar/baz.txt", getLocationForBucketAndObject("foo", "bar/baz.txt"));
 	}
+	
+	@Test
+	public void testGetLocationForObjectNameAndBucketAndVersionId() throws Exception {
+		assertEquals("s3://foo/bar^versionIdValue", getLocationForBucketAndObjectAndVersionId("foo", "bar", "versionIdValue"));
+		assertEquals("s3://foo/bar/baz^versionIdValue", getLocationForBucketAndObjectAndVersionId("foo", "bar/baz", "versionIdValue"));
+		assertEquals("s3://foo/bar/baz.txt^versionIdValue", getLocationForBucketAndObjectAndVersionId("foo", "bar/baz.txt", "versionIdValue"));
+	}
 
 	@Test
 	public void testStripProtocol() throws Exception {
 		assertEquals("foo/bar", stripProtocol("s3://foo/bar"));
 		assertEquals("foo/bar/baz", stripProtocol("s3://foo/bar/baz"));
 		assertEquals("foo/bar.txt", stripProtocol("s3://foo/bar.txt"));
+		assertEquals("foo/bar.txt^versionIdValue", stripProtocol("s3://foo/bar.txt^versionIdValue"));
 		assertEquals("", stripProtocol("s3://"));
 	}
 
