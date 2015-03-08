@@ -19,6 +19,8 @@ package org.springframework.cloud.aws.messaging.listener;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -45,6 +47,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private volatile CountDownLatch stopLatch;
 	private boolean defaultTaskExecutor;
 	private boolean deleteMessageOnException = true;
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleMessageListenerContainer.class);
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -192,6 +195,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				executeMessage(queueMessage);
 				getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 			} catch (MessagingException e) {
+				LOGGER.error("Exception encountered while processing message.", e);
 				if (!this.hasRedrivePolicy && SimpleMessageListenerContainer.this.isDeleteMessageOnException()) {
 					getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 				}
