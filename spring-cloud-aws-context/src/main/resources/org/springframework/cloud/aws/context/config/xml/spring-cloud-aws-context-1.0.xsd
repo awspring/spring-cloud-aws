@@ -164,7 +164,7 @@
 	<xsd:element name="context-instance-data">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.springframework.cloud.aws.context.config.xml.ContextInstanceDataPlaceholderResolverBeanDefinitionParser">
+					source="java:org.springframework.cloud.aws.context.config.xml.ContextInstanceDataPropertySourceBeanDefinitionParser">
 				<![CDATA[
 				Configures a property placeholder that is capable to resolver instance data specific placeholder (like instance id)
 			]]></xsd:documentation>
