@@ -35,6 +35,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 			<optional>true</optional>
 		</dependency>
@@ -51,10 +55,12 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-elasticache</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-ses</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -69,10 +75,12 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>elasticache-java-cluster-client</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-redis</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>redis.clients</groupId>

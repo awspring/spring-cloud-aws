@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -48,6 +49,8 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String ELASTICACHE_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElastiCacheFactoryBean";
 	private static final String ELASTI_CACHE_CLIENT_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
+	private static final String MEMCACHED_FACTORY_CLASS_NAME = "org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory";
+	private static final String REDIS_CONNECTION_FACTORY_CLASS_NAME = "org.springframework.cloud.aws.cache.redis.RedisCacheFactory";
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -102,8 +105,13 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 	private static ManagedList<BeanDefinition> createDefaultCacheFactories(Element element, ParserContext parserContext) {
 		ManagedList<BeanDefinition> result = new ManagedList<>();
 		result.setSource(parserContext.extractSource(element));
-		result.add(getCacheFactory("org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory", element));
-		result.add(getCacheFactory("org.springframework.cloud.aws.cache.redis.RedisCacheFactory", element));
+		if (ClassUtils.isPresent("net.spy.memcached.MemcachedClient", parserContext.getReaderContext().getBeanClassLoader())) {
+			result.add(getCacheFactory(MEMCACHED_FACTORY_CLASS_NAME, element));
+		}
+
+		if (ClassUtils.isPresent("org.springframework.data.redis.connection.RedisConnectionFactory", parserContext.getReaderContext().getBeanClassLoader())) {
+			result.add(getCacheFactory(REDIS_CONNECTION_FACTORY_CLASS_NAME, element));
+		}
 		return result;
 	}
 

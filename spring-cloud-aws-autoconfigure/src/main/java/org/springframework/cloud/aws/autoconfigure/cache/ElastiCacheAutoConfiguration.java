@@ -29,6 +29,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableElastiCache
-@ConditionalOnClass(value = MemcachedClient.class)
+@ConditionalOnClass(MemcachedClient.class)
 public class ElastiCacheAutoConfiguration {
 }

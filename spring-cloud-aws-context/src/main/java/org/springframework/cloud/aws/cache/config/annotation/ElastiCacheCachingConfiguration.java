@@ -24,6 +24,7 @@ import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.cache.CacheFactory;
 import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
 import org.springframework.cloud.aws.cache.redis.RedisCacheFactory;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnClass;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
@@ -102,6 +103,7 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 	}
 
 	@Bean
+	@ConditionalOnClass("org.springframework.data.redis.connection.RedisConnectionFactory")
 	public RedisCacheFactory redisCacheFactory() {
 		RedisCacheFactory redisCacheFactory = new RedisCacheFactory();
 		redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
@@ -111,6 +113,7 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 	}
 
 	@Bean
+	@ConditionalOnClass("net.spy.memcached.MemcachedClient")
 	public MemcachedCacheFactory memcachedCacheFactory() {
 		MemcachedCacheFactory redisCacheFactory = new MemcachedCacheFactory();
 		redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
