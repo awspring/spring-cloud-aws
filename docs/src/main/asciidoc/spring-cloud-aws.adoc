@@ -1,6 +1,8 @@
 = Spring Cloud AWS
 Agim Emruli; Alain Sahli
-:doctype: book
+:github: https://github.com/spring-cloud/spring-cloud-aws
+:githubmaster: {github}/tree/master
+:docslink: {githubmaster}/docs/src/main/asciidoc
 :toc:
 :toclevels: 4
 :source-highlighter: prettify
@@ -8,6 +10,8 @@ Agim Emruli; Alain Sahli
 :icons: font
 
 include::intro.adoc[]
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing-docs.adoc[]
 
 == Using Amazon Web Services
 
