@@ -16,21 +16,17 @@
 
 package org.springframework.cloud.aws.autoconfigure.jdbc;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.bind.PropertySourceUtils;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
+import org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
@@ -48,9 +44,10 @@ import java.util.Map;
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
 @ConditionalOnClass(name = "com.amazonaws.services.rds.AmazonRDSClient")
+@ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
 public class AmazonRdsDatabaseAutoConfiguration {
 
-	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+	public static class Registrar extends AmazonRdsInstanceConfiguration.AbstractRegistrar implements EnvironmentAware {
 
 		private static final String PREFIX = "cloud.aws.rds";
 
@@ -66,38 +63,6 @@ public class AmazonRdsDatabaseAutoConfiguration {
 						Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
 						dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
 			}
-		}
-
-		private void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName, String dbInstanceIdentifier,
-										String password, boolean readReplica, String userName, String databaseName) {
-			BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
-
-			//Constructor (mandatory) args
-
-			datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
-			datasourceBuilder.addConstructorArgValue(dbInstanceIdentifier);
-			datasourceBuilder.addConstructorArgValue(password);
-
-			//optional args
-			datasourceBuilder.addPropertyValue("username", userName);
-			datasourceBuilder.addPropertyValue("databaseName", databaseName);
-
-			String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry);
-			datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
-
-			datasourceBuilder.addPropertyValue("dataSourceFactory", BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class).getBeanDefinition());
-
-			beanDefinitionRegistry.registerBeanDefinition(dbInstanceIdentifier, datasourceBuilder.getBeanDefinition());
-		}
-
-		private BeanDefinitionBuilder getBeanDefinitionBuilderForDataSource(boolean readReplicaEnabled) {
-			BeanDefinitionBuilder datasourceBuilder;
-			if (readReplicaEnabled) {
-				datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
-			} else {
-				datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
-			}
-			return datasourceBuilder;
 		}
 
 		@Override

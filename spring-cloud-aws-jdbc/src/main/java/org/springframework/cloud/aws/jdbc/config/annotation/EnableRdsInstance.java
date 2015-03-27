@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(AmazonRdsInstanceConfiguration.class)
+@Import({AmazonRdsInstanceConfiguration.Registrar.class, AmazonRdsInstanceConfiguration.class})
 public @interface EnableRdsInstance {
 
 	String dbInstanceIdentifier();
