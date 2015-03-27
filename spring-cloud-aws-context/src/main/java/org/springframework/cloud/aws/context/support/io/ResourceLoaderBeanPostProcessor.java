@@ -23,6 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.support.ApplicationObjectSupport;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ClassUtils;
@@ -64,7 +65,8 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, Appli
 			((ResourceLoaderAware) bean).setResourceLoader(this.resourceLoader);
 		}
 
-		if (this.applicationContextProxy != null && bean instanceof ApplicationContextAware) {
+		if (this.applicationContextProxy != null && bean instanceof ApplicationContextAware &&
+				!(bean instanceof ApplicationObjectSupport)) {
 			((ApplicationContextAware) bean).setApplicationContext(this.applicationContextProxy);
 		}
 		return bean;
