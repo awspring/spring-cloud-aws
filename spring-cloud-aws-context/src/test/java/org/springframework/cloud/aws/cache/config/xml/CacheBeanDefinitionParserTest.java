@@ -255,7 +255,7 @@ public class CacheBeanDefinitionParserTest {
 
 		//Assert
 		assertNotNull(beanDefinition);
-		assertNotNull(beanDefinition.getPropertyValues().get("region"));
+		assertNotNull(beanDefinition.getPropertyValues().get("customRegion"));
 	}
 
 	@Test

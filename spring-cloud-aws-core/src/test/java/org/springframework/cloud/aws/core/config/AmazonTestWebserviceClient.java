@@ -27,11 +27,11 @@ import static org.springframework.util.Assert.notNull;
  * @author Agim Emruli
  *         Test stub used by {@link AmazonWebserviceClientConfigurationUtilsTest}
  */
-class AmazonTestWebserviceClient extends AmazonWebServiceClient {
+public class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	private Region region;
 
-	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
+	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
 		super(new ClientConfiguration());
 		notNull(awsCredentialsProvider);
 	}

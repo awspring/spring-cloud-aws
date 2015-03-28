@@ -19,8 +19,6 @@ package org.springframework.cloud.aws.core.config;
 import com.amazonaws.regions.Regions;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -73,35 +71,23 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 		registerCredentialsProviderIfNeeded(beanDefinitionRegistry);
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(serviceNameClassName);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonWebserviceClientFactoryBean.class);
 
 		//Configure constructor parameters
+		builder.addConstructorArgValue(serviceNameClassName);
 		builder.addConstructorArgReference(CREDENTIALS_PROVIDER_BEAN_NAME);
-
-		//Configure destroy method
-		builder.setDestroyMethodName("shutdown");
 
 		//Configure source of the bean definition
 		builder.getRawBeanDefinition().setSource(source);
 
 		//Configure region properties (either custom region provider or custom region)
 		if (StringUtils.hasText(customRegionProvider)) {
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
-			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(customRegionProvider));
-			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
-			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+			builder.addPropertyReference("regionProvider", customRegionProvider);
 		} else if (StringUtils.hasText(customRegion)) {
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition("com.amazonaws.regions.RegionUtils");
-			beanDefinitionBuilder.setFactoryMethod("getRegion");
-			beanDefinitionBuilder.addConstructorArgValue(customRegion);
-			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+			builder.addPropertyValue("customRegion", customRegion);
 		} else {
 			registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
-
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
-			beanDefinitionBuilder.addPropertyValue("targetObject", new RuntimeBeanReference(REGION_PROVIDER_BEAN_NAME));
-			beanDefinitionBuilder.addPropertyValue("targetMethod", "getRegion");
-			builder.addPropertyValue("region", beanDefinitionBuilder.getBeanDefinition());
+			builder.addPropertyReference("regionProvider", REGION_PROVIDER_BEAN_NAME);
 		}
 
 		return builder.getBeanDefinition();
