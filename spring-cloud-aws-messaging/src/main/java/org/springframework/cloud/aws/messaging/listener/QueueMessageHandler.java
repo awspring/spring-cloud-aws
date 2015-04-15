@@ -16,9 +16,13 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -43,7 +47,6 @@ import org.springframework.validation.Validator;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -55,7 +58,7 @@ import java.util.Set;
  * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
+public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation>  {
 
 	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
@@ -100,11 +103,36 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 			throw new IllegalStateException("@MessageMapping annotation must have at least one destination");
 		}
 
-		Set<String> logicalResourceIds = new HashSet<>(messageMappingAnnotation.value().length);
-		logicalResourceIds.addAll(Arrays.asList(messageMappingAnnotation.value()));
-
-		return new MappingInformation(logicalResourceIds);
+		return new MappingInformation(resolveDestinationNames(messageMappingAnnotation.value()));
 	}
+
+	private Set<String> resolveDestinationNames(String[] destinationNames) {
+		Set<String> result = new HashSet<>(destinationNames.length);
+
+		for (String destinationName : destinationNames) {
+			result.add(resolveName(destinationName));
+		}
+
+		return result;
+	}
+
+	private String resolveName(String name) {
+		if (!(getApplicationContext() instanceof ConfigurableApplicationContext)) {
+			return name;
+		}
+
+		ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) getApplicationContext();
+		ConfigurableBeanFactory configurableBeanFactory = applicationContext.getBeanFactory();
+
+		String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
+		BeanExpressionResolver exprResolver = configurableBeanFactory.getBeanExpressionResolver();
+		if (exprResolver == null) {
+			return name;
+		}
+		Object result = exprResolver.evaluate(placeholdersResolved, new BeanExpressionContext(configurableBeanFactory, null));
+		return result != null ? result.toString() : name;
+	}
+
 
 	@Override
 	protected Set<String> getDirectLookupDestinations(MappingInformation mapping) {

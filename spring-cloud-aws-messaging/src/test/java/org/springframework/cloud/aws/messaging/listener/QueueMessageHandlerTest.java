@@ -32,8 +32,10 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
@@ -180,6 +182,46 @@ public class QueueMessageHandlerTest {
 
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue two!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueTwo").build());
 		assertEquals("Hello from queue two!", incomingMessageHandler.getLastReceivedMessage());
+	}
+
+	@Test
+	public void receiveMessage_methodAnnotatedWithMessageMappingContainingExpression_methodInvokedOnResolvedExpression() throws Exception {
+		//Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("myQueue", "resolvedQueue")));
+		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithExpressionName.class);
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		//Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "resolvedQueue").build());
+
+		//Assert
+		IncomingMessageHandlerWithExpressionName incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithExpressionName.class);
+		assertEquals("Hello from resolved queue!", incomingMessageHandler.getLastReceivedMessage());
+	}
+
+	@Test
+	public void receiveMessage_methodAnnotatedWithMessageMappingContainingPlaceholder_methodInvokedOnResolvedPlaceholder() throws Exception {
+		//Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("custom.queueName", "resolvedQueue")));
+
+		applicationContext.registerSingleton("ppc", PropertySourcesPlaceholderConfigurer.class);
+		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithPlaceholderName.class);
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		//Act
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "resolvedQueue").build());
+
+		//Assert
+		IncomingMessageHandlerWithPlaceholderName incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithPlaceholderName.class);
+		assertEquals("Hello from resolved queue!", incomingMessageHandler.getLastReceivedMessage());
 	}
 
 	@Test
@@ -364,6 +406,36 @@ public class QueueMessageHandlerTest {
 
 		@RuntimeUse
 		@MessageMapping({"queueOne", "queueTwo"})
+		public void receive(String value) {
+			this.lastReceivedMessage = value;
+		}
+	}
+
+	private static class IncomingMessageHandlerWithExpressionName {
+
+		private String lastReceivedMessage;
+
+		public String getLastReceivedMessage() {
+			return this.lastReceivedMessage;
+		}
+
+		@RuntimeUse
+		@MessageMapping("#{environment.myQueue}")
+		public void receive(String value) {
+			this.lastReceivedMessage = value;
+		}
+	}
+
+	private static class IncomingMessageHandlerWithPlaceholderName {
+
+		private String lastReceivedMessage;
+
+		public String getLastReceivedMessage() {
+			return this.lastReceivedMessage;
+		}
+
+		@RuntimeUse
+		@MessageMapping("${custom.queueName}")
 		public void receive(String value) {
 			this.lastReceivedMessage = value;
 		}
