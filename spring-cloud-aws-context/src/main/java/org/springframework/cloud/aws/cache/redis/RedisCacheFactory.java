@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.cache.redis;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.cloud.aws.cache.AbstractCacheFactory;
-import org.springframework.data.redis.cache.PublicRedisCache;
+import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
@@ -45,7 +45,7 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 
 	@Override
 	public Cache createCache(String cacheName, String host, int port) throws Exception {
-		return new PublicRedisCache(cacheName, null, getRedisTemplate(getConnectionFactory(host, port)), getExpiryTime(cacheName));
+		return new RedisCache(cacheName, null, getRedisTemplate(getConnectionFactory(host, port)), getExpiryTime(cacheName));
 	}
 
 	@Override
