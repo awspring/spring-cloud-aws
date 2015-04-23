@@ -27,6 +27,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
@@ -63,11 +64,11 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessor implements Priorit
 		if (this.environment instanceof ConfigurableEnvironment) {
 			AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME);
 
-			if (this.valueSeparator != null) {
+			if (StringUtils.hasText(this.valueSeparator)) {
 				propertySource.setUserDataValueSeparator(this.valueSeparator);
 			}
 
-			if (this.attributeSeparator != null) {
+			if (StringUtils.hasText(this.attributeSeparator)) {
 				propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
 			}
 
