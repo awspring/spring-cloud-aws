@@ -14,33 +14,38 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.annotation;
+package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.util.Assert;
 
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerInstanceDataPropertySource;
 
 /**
  * @author Agim Emruli
  */
-@SuppressWarnings("NonFinalUtilityClass")
 @Configuration
-@ConditionalOnAwsCloudEnvironment
-public class ContextInstanceDataConfiguration implements ImportBeanDefinitionRegistrar {
+@Import(ContextInstanceDataAutoConfiguration.Registrar.class)
+public class ContextInstanceDataAutoConfiguration {
 
-	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
-				importingClassMetadata.getAnnotationAttributes(EnableContextInstanceData.class.getName(), false));
-		Assert.notNull(annotationAttributes,
-				"@EnableContextInstanceData is not present on importing class " + importingClassMetadata.getClassName());
-		registerInstanceDataPropertySource(registry, annotationAttributes.getString("valueSeparator"),
-				annotationAttributes.getString("attributeSeparator"));
+	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+
+		private Environment environment;
+
+		@Override
+		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+			registerInstanceDataPropertySource(registry, this.environment.getProperty("cloud.aws.instance.data.valueSeparator"),
+					this.environment.getProperty("cloud.aws.instance.data.attributeSeparator"));
+		}
+
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = environment;
+		}
 	}
 }

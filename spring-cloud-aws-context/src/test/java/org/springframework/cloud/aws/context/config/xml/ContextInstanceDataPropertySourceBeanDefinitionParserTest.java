@@ -17,13 +17,17 @@
 package org.springframework.cloud.aws.context.config.xml;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.cloud.aws.context.MetaDataServer;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 import static org.junit.Assert.assertEquals;
@@ -82,5 +86,26 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 		BeanReference beanReference = (BeanReference) valueHolder.getValue();
 		assertEquals("amazonEC2Client", beanReference.getBeanName());
 		assertFalse(beanFactory.containsBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonEC2Client.class.getName())));
+	}
+
+	@Test
+	public void parseInternal_singleElementWithCustomAttributeAndValueSeparator_postProcessorCreatedWithCustomAttributeAndValueSeparator() throws Exception {
+		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b/c=d"));
+
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-customAttributeAndValueSeparator.xml", getClass()));
+
+		applicationContext.refresh();
+
+		//Assert
+		assertEquals("b", applicationContext.getEnvironment().getProperty("a"));
+		assertEquals("d", applicationContext.getEnvironment().getProperty("c"));
+
+		httpServer.removeContext(httpContext);
 	}
 }

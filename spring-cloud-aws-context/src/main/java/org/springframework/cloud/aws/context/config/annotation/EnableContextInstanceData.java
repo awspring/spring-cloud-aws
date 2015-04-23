@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
+import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
@@ -35,5 +36,20 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Import(ContextInstanceDataConfiguration.class)
 public @interface EnableContextInstanceData {
+
+	/**
+	 * Allows to configure the value separator for the user data configured attributes. These is by default
+	 * the ':' character following the Spring general place holder support {@link PlaceholderConfigurerSupport}
+	 *
+	 * @return the custom configured value separator
+	 */
+	String valueSeparator() default PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+
+	/**
+	 * Allows to configure the attribute separator to separate multiple attributes in one global user data string.
+	 *
+	 * @return the custom configured attribute separator or ';' as the default
+	 */
+	String attributeSeparator() default ";";
 
 }

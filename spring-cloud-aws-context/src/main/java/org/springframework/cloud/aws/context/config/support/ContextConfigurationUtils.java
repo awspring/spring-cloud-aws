@@ -38,6 +38,9 @@ import org.springframework.util.StringUtils;
  */
 public final class ContextConfigurationUtils {
 
+	private static final String POST_PROCESSOR_CLASS_NAME = "org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor";
+	private static final String POST_PROCESSOR_BEAN_NAME = "AmazonEc2InstanceDataPropertySourcePostProcessor";
+
 	private static final String REGION_PROVIDER_BEAN_NAME = "regionProvider";
 
 	private ContextConfigurationUtils() {
@@ -100,5 +103,13 @@ public final class ContextConfigurationUtils {
 		registry.registerBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, factoryBeanBuilder.getBeanDefinition());
 
 		AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+	}
+
+	public static void registerInstanceDataPropertySource(BeanDefinitionRegistry registry, String valueSeparator, String attributeSeparator) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(POST_PROCESSOR_CLASS_NAME);
+		builder.addPropertyValue("valueSeparator", valueSeparator);
+		builder.addPropertyValue("attributeSeparator", attributeSeparator);
+
+		registry.registerBeanDefinition(POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
 	}
 }

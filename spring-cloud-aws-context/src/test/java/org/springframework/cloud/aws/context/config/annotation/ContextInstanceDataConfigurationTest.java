@@ -48,31 +48,13 @@ public class ContextInstanceDataConfigurationTest {
 	public void propertySource_nonCloudEnvironment_noBeanConfigured() throws Exception {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataConfiguration.class);
+		this.context.register(ApplicationConfiguration.class);
 
 		//Act
 		this.context.refresh();
 
 		//Assert
 		assertTrue(this.context.getBeanFactoryPostProcessors().isEmpty());
-	}
-
-	@Test
-	public void propertySource_cloudEnvironment_propertySourceConfigured() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
-
-
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataConfiguration.class);
-
-		//Act
-		this.context.refresh();
-
-		//Assert
-		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
-		httpServer.removeContext(httpContext);
 	}
 
 	@Test
@@ -89,9 +71,53 @@ public class ContextInstanceDataConfigurationTest {
 		httpServer.removeContext(httpContext);
 	}
 
+	@Test
+	public void propertySource_enableInstanceDataWithCustomAttributeSeparator_propertySourceConfiguredAndUsesCustomAttributeSeparator() throws Exception {
+		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
+
+		//Act
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomAttributeSeparator.class);
+
+		//Assert
+		assertEquals("b", this.context.getEnvironment().getProperty("a"));
+		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+
+		httpServer.removeContext(httpContext);
+	}
+
+	@Test
+	public void propertySource_enableInstanceDataWithCustomValueSeparator_propertySourceConfiguredAndUsesCustomValueSeparator() throws Exception {
+		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
+
+		//Act
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomValueSeparator.class);
+
+		//Assert
+		assertEquals("b", this.context.getEnvironment().getProperty("a"));
+		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+
+		httpServer.removeContext(httpContext);
+	}
+
 	@Configuration
 	@EnableContextInstanceData
 	public static class ApplicationConfiguration {
+
+	}
+
+	@Configuration
+	@EnableContextInstanceData(attributeSeparator = "/")
+	public static class ApplicationConfigurationWithCustomAttributeSeparator {
+
+	}
+
+	@Configuration
+	@EnableContextInstanceData(valueSeparator = "=")
+	public static class ApplicationConfigurationWithCustomValueSeparator {
 
 	}
 

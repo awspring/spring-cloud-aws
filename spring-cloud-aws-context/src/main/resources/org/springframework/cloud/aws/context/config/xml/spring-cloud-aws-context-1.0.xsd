@@ -203,6 +203,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="value-separator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Value separator used to separate the values inside the user data (same default
+						like property place holders default)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="attribute-separator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Attribute separator used to separate the attributes inside the global user data
+						string
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

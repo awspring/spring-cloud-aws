@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.aws.context.config;
 
-import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceDataPropertySource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceDataPropertySource;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
@@ -37,6 +37,8 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessor implements Priorit
 	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
 
 	private Environment environment;
+	private String valueSeparator;
+	private String attributeSeparator;
 
 	@Override
 	public void setEnvironment(Environment environment) {
@@ -48,10 +50,28 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessor implements Priorit
 		return Ordered.HIGHEST_PRECEDENCE;
 	}
 
+	public void setValueSeparator(String valueSeparator) {
+		this.valueSeparator = valueSeparator;
+	}
+
+	public void setAttributeSeparator(String attributeSeparator) {
+		this.attributeSeparator = attributeSeparator;
+	}
+
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (this.environment instanceof ConfigurableEnvironment) {
-			((ConfigurableEnvironment) this.environment).getPropertySources().addLast(new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME));
+			AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME);
+
+			if (this.valueSeparator != null) {
+				propertySource.setUserDataValueSeparator(this.valueSeparator);
+			}
+
+			if (this.attributeSeparator != null) {
+				propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
+			}
+
+			((ConfigurableEnvironment) this.environment).getPropertySources().addLast(propertySource);
 		} else {
 			LOGGER.warn("Environment is not of type '{}' property source with instance data is not available", ConfigurableEnvironment.class.getName());
 		}
