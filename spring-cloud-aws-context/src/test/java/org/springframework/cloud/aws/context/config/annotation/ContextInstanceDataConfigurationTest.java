@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.context.config.annotation;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.cloud.aws.context.MetaDataServer;
 import org.springframework.cloud.aws.context.annotation.OnAwsCloudEnvironmentCondition;
@@ -121,7 +122,7 @@ public class ContextInstanceDataConfigurationTest {
 
 	}
 
-	@After
+	@Before
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(OnAwsCloudEnvironmentCondition.class, "isCloudEnvironment");
 		assertNotNull(field);

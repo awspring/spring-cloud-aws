@@ -26,15 +26,19 @@ import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.EnvironmentTestUtils;
+import org.springframework.cloud.aws.context.annotation.OnAwsCloudEnvironmentCondition;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
@@ -44,6 +48,13 @@ public class ContextStackAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
+	@Before
+	public void restContextInstanceDataCondition() throws IllegalAccessException {
+		Field field = ReflectionUtils.findField(OnAwsCloudEnvironmentCondition.class, "isCloudEnvironment");
+		assertNotNull(field);
+		ReflectionUtils.makeAccessible(field);
+		field.set(null, null);
+	}
 
 	@After
 	public void tearDown() throws Exception {
