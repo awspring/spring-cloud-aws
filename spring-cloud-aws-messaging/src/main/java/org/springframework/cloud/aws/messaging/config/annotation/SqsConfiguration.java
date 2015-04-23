@@ -21,6 +21,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
@@ -42,6 +43,9 @@ import org.springframework.context.annotation.Lazy;
 @Configuration
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class SqsConfiguration {
+
+	@Autowired
+	public BeanFactory beanFactory;
 
 	@Autowired(required = false)
 	private AWSCredentialsProvider awsCredentialsProvider;
@@ -85,6 +89,8 @@ public class SqsConfiguration {
 		if (this.queueMessageHandlerFactory.getAmazonSqs() == null) {
 			this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
 		}
+
+		this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
 
 		return this.queueMessageHandlerFactory.createQueueMessageHandler();
 	}

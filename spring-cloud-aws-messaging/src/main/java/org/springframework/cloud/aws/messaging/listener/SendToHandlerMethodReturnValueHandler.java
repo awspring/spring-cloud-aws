@@ -16,6 +16,12 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
@@ -25,10 +31,12 @@ import org.springframework.util.Assert;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  */
-public class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
+public class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler, BeanFactoryAware {
 
 	private final DestinationResolvingMessageSendingOperations<?> messageTemplate;
+	private BeanFactory beanFactory;
 
 	public SendToHandlerMethodReturnValueHandler(DestinationResolvingMessageSendingOperations<?> messageTemplate) {
 		this.messageTemplate = messageTemplate;
@@ -53,6 +61,27 @@ public class SendToHandlerMethodReturnValueHandler implements HandlerMethodRetur
 
 	private String getDestinationName(MethodParameter returnType) {
 		String[] destination = returnType.getMethodAnnotation(SendTo.class).value();
-		return destination.length > 0 ? destination[0] : null;
+		return destination.length > 0 ? resolveName(destination[0]) : null;
+	}
+
+	private String resolveName(String name) {
+		if (!(this.beanFactory instanceof ConfigurableBeanFactory)) {
+			return name;
+		}
+
+		ConfigurableBeanFactory configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
+
+		String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
+		BeanExpressionResolver exprResolver = configurableBeanFactory.getBeanExpressionResolver();
+		if (exprResolver == null) {
+			return name;
+		}
+		Object result = exprResolver.evaluate(placeholdersResolved, new BeanExpressionContext(configurableBeanFactory, null));
+		return result != null ? result.toString() : name;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 }

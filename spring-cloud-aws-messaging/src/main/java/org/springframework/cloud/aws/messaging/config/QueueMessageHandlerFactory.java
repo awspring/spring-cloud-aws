@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
@@ -44,6 +45,8 @@ public class QueueMessageHandlerFactory {
 
 	private ResourceIdResolver resourceIdResolver;
 
+	private BeanFactory beanFactory;
+
 	public void setArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		this.argumentResolvers = argumentResolvers;
 	}
@@ -53,12 +56,12 @@ public class QueueMessageHandlerFactory {
 	}
 
 	/**
-	 * Configures the {@link org.springframework.messaging.core.DestinationResolvingMessageSendingOperations} template
-	 * used by the {@link org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler} to
+	 * Configures the {@link DestinationResolvingMessageSendingOperations} template
+	 * used by the {@link SendToHandlerMethodReturnValueHandler} to
 	 * send return values of handler methods.
 	 *
 	 * @param sendToMessagingTemplate
-	 * 		A {@link org.springframework.messaging.core.DestinationResolvingMessageSendingOperations} template for
+	 * 		A {@link DestinationResolvingMessageSendingOperations} template for
 	 * 		sending return values of handler methods.
 	 */
 	public void setSendToMessagingTemplate(DestinationResolvingMessageSendingOperations<?> sendToMessagingTemplate) {
@@ -66,17 +69,17 @@ public class QueueMessageHandlerFactory {
 	}
 
 	/**
-	 * <p>Sets the {@link com.amazonaws.services.sqs.AmazonSQS} client that is going to be used to create a new
-	 * {@link org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate} if {@code sendToMessagingTemplate} is
+	 * <p>Sets the {@link AmazonSQS} client that is going to be used to create a new
+	 * {@link QueueMessagingTemplate} if {@code sendToMessagingTemplate} is
 	 * {@code null}. This template is used by the
-	 * {@link org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler} to send the return
+	 * {@link SendToHandlerMethodReturnValueHandler} to send the return
 	 * values of handler methods annotated with {@link org.springframework.messaging.handler.annotation.SendTo}.</p>
-	 * <p>An {@link com.amazonaws.services.sqs.AmazonSQS} client is only needed if {@code sendToMessagingTemplate} is
+	 * <p>An {@link AmazonSQS} client is only needed if {@code sendToMessagingTemplate} is
 	 * {@code null}.</p>
 	 *
 	 * @param amazonSqs
-	 * 		The {@link com.amazonaws.services.sqs.AmazonSQS} client that is going to be used by the
-	 * 		{@link org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler} to send
+	 * 		The {@link AmazonSQS} client that is going to be used by the
+	 * 		{@link SendToHandlerMethodReturnValueHandler} to send
 	 * 		messages.
 	 */
 	public void setAmazonSqs(AmazonSQS amazonSqs) {
@@ -92,11 +95,23 @@ public class QueueMessageHandlerFactory {
 	 *
 	 * @param resourceIdResolver
 	 * 		the resourceIdResolver to use for resolving logical to physical ids in a CloudFormation environment. This
-	 * 		resolver will be used by the {@link org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate}
-	 * 		created for the {@link org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler}.
+	 * 		resolver will be used by the {@link QueueMessagingTemplate}
+	 * 		created for the {@link SendToHandlerMethodReturnValueHandler}.
 	 */
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
 		this.resourceIdResolver = resourceIdResolver;
+	}
+
+	/**
+	 * Configures a {@link BeanFactory} that should be used to resolve expressions and placeholder for
+	 * {@link org.springframework.messaging.handler.annotation.SendTo} annotations. If not set, then no
+	 * expressions or place holders will be resolved.
+	 *
+	 * @param beanFactory
+	 * 		- the bean factory used to resolve expressions and / or place holders
+	 */
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
 	}
 
 	public QueueMessageHandler createQueueMessageHandler() {
@@ -108,12 +123,17 @@ public class QueueMessageHandlerFactory {
 		if (!CollectionUtils.isEmpty(this.returnValueHandlers)) {
 			queueMessageHandler.getCustomReturnValueHandlers().addAll(this.returnValueHandlers);
 		}
+
+		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
 		if (this.sendToMessagingTemplate != null) {
-			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(this.sendToMessagingTemplate));
+			sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.sendToMessagingTemplate);
 		} else {
-			queueMessageHandler.getCustomReturnValueHandlers().add(new SendToHandlerMethodReturnValueHandler(
-					getDefaultSendToQueueMessagingTemplate(this.amazonSqs, this.resourceIdResolver)));
+			sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(
+					getDefaultSendToQueueMessagingTemplate(this.amazonSqs, this.resourceIdResolver));
+
 		}
+		sendToHandlerMethodReturnValueHandler.setBeanFactory(this.beanFactory);
+		queueMessageHandler.getCustomReturnValueHandlers().add(sendToHandlerMethodReturnValueHandler);
 
 		return queueMessageHandler;
 	}

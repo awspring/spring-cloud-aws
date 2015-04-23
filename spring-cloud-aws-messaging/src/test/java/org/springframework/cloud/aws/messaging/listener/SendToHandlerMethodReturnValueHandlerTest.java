@@ -16,17 +16,21 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.mock.env.MockPropertySource;
 
 import java.lang.reflect.Method;
 
@@ -38,6 +42,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SendToHandlerMethodReturnValueHandlerTest {
@@ -118,6 +123,54 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
+	public void handleReturnValue_withExpressionInSendToName_templateIsCalled() throws Exception {
+		// Arrange
+		Method validSendToMethod = this.getClass().getDeclaredMethod("expressionMethod");
+		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("queueName", "myTestQueue");
+
+		applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
+		applicationContext.refresh();
+
+		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+		sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
+
+		// Act
+		sendToHandlerMethodReturnValueHandler.handleReturnValue("expression method", methodParameter, MessageBuilder.withPayload("Nothing").build());
+
+		// Assert
+		verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("expression method"));
+	}
+
+	@Test
+	public void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled() throws Exception {
+		// Arrange
+		Method validSendToMethod = this.getClass().getDeclaredMethod("placeHolderMethod");
+		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("placeholderQueueName", "myTestQueue");
+
+		applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
+		applicationContext.registerBeanDefinition("resolver", BeanDefinitionBuilder.genericBeanDefinition(PropertySourcesPlaceholderConfigurer.class).getBeanDefinition());
+
+		applicationContext.refresh();
+
+		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+		sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
+
+		// Act
+		sendToHandlerMethodReturnValueHandler.handleReturnValue("placeholder method", methodParameter, MessageBuilder.withPayload("Nothing").build());
+
+		// Assert
+		verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("placeholder method"));
+	}
+
+	@Test
 	public void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled() throws Exception {
 		// Arrange
 		Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
@@ -150,5 +203,19 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	@RuntimeUse
 	private String invalidSendToMethod() {
 		return "Just Hello!";
+	}
+
+	@SuppressWarnings("SameReturnValue")
+	@RuntimeUse
+	@SendTo("#{environment.queueName}")
+	private String expressionMethod() {
+		return "expression method";
+	}
+
+	@SuppressWarnings("SameReturnValue")
+	@RuntimeUse
+	@SendTo("${placeholderQueueName}")
+	private String placeHolderMethod() {
+		return "placeholder method";
 	}
 }
