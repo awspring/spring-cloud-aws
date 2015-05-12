@@ -17,11 +17,8 @@
 package org.springframework.cloud.aws.context.support.io;
 
 import org.junit.Test;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.StaticApplicationContext;
@@ -57,9 +54,6 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		FieldInjectionTarget fieldInjectionTarget = staticApplicationContext.getBean(FieldInjectionTarget.class);
-		assertNotNull(fieldInjectionTarget.getApplicationContext());
-		Resource applicationContextResource = fieldInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		assertSame(resource, applicationContextResource);
 
 		assertNotNull(fieldInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = fieldInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
@@ -84,9 +78,6 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		MethodInjectionTarget methodInjectionTarget = staticApplicationContext.getBean(MethodInjectionTarget.class);
-		assertNotNull(methodInjectionTarget.getApplicationContext());
-		Resource applicationContextResource = methodInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		assertSame(resource, applicationContextResource);
 
 		assertNotNull(methodInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = methodInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
@@ -111,9 +102,6 @@ public class ResourceLoaderTest {
 		staticApplicationContext.refresh();
 
 		ConstructorInjectionTarget constructorInjectionTarget = staticApplicationContext.getBean(ConstructorInjectionTarget.class);
-		assertNotNull(constructorInjectionTarget.getApplicationContext());
-		Resource applicationContextResource = constructorInjectionTarget.getApplicationContext().getResource("s3://bucket/object");
-		assertSame(resource, applicationContextResource);
 
 		assertNotNull(constructorInjectionTarget.getResourceLoader());
 		Resource resourceLoaderResource = constructorInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
@@ -141,59 +129,11 @@ public class ResourceLoaderTest {
 		assertSame(resource, resourceLoaderResource);
 	}
 
-	@Test
-	public void testApplicationContextAwareBean() throws Exception {
-		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
-
-		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinition.addConstructorArgValue(resourceLoader);
-
-		staticApplicationContext.registerBeanDefinition("beanPostProcessor", beanDefinition.getBeanDefinition());
-		staticApplicationContext.registerSingleton("client", ApplicationContextAwareBean.class);
-		staticApplicationContext.refresh();
-
-		ApplicationContextAwareBean applicationContextAware = staticApplicationContext.getBean(ApplicationContextAwareBean.class);
-		assertNotNull(applicationContextAware.getApplicationContext());
-		Resource resourceLoaderResource = applicationContextAware.getApplicationContext().getResource("s3://bucket/object");
-		assertSame(resource, resourceLoaderResource);
-	}
-
-
-	@Test
-	public void testWithCustomResourceLoaderForApplicationContext() throws Exception {
-		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
-
-		staticApplicationContext.setResourceLoader(resourceLoader);
-		staticApplicationContext.registerSingleton("client", ApplicationContextAwareBean.class);
-
-		staticApplicationContext.refresh();
-
-		ApplicationContextAwareBean applicationContextAwareBean = staticApplicationContext.getBean(ApplicationContextAwareBean.class);
-		Resource resourceLoaderResource = applicationContextAwareBean.getApplicationContext().getResource("s3://bucket/object");
-		assertNotNull(resourceLoaderResource);
-		assertSame(resource, resourceLoaderResource);
-	}
-
 	private static final class FieldInjectionTarget {
-
-		@Autowired
-		private ApplicationContext applicationContext;
 
 		@SuppressWarnings("SpringJavaAutowiringInspection")
 		@Autowired
 		private ResourceLoader resourceLoader;
-
-		public ApplicationContext getApplicationContext() {
-			return this.applicationContext;
-		}
 
 		public ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
@@ -202,18 +142,7 @@ public class ResourceLoaderTest {
 
 	private static final class MethodInjectionTarget {
 
-		private ApplicationContext applicationContext;
-
 		private ResourceLoader resourceLoader;
-
-		public ApplicationContext getApplicationContext() {
-			return this.applicationContext;
-		}
-
-		@Autowired
-		public void setApplicationContext(ApplicationContext applicationContext) {
-			this.applicationContext = applicationContext;
-		}
 
 		public ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
@@ -228,16 +157,10 @@ public class ResourceLoaderTest {
 	private static final class ConstructorInjectionTarget {
 
 		private final ResourceLoader resourceLoader;
-		private final ApplicationContext applicationContext;
 
 		@Autowired
-		private ConstructorInjectionTarget(@SuppressWarnings("SpringJavaAutowiringInspection") ResourceLoader resourceLoader, ApplicationContext applicationContext) {
+		private ConstructorInjectionTarget(@SuppressWarnings("SpringJavaAutowiringInspection") ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
-			this.applicationContext = applicationContext;
-		}
-
-		public ApplicationContext getApplicationContext() {
-			return this.applicationContext;
 		}
 
 		public ResourceLoader getResourceLoader() {
@@ -257,20 +180,6 @@ public class ResourceLoaderTest {
 		@Override
 		public void setResourceLoader(ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
-		}
-	}
-
-	private static final class ApplicationContextAwareBean implements ApplicationContextAware {
-
-		private ApplicationContext applicationContext;
-
-		public ApplicationContext getApplicationContext() {
-			return this.applicationContext;
-		}
-
-		@Override
-		public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-			this.applicationContext = applicationContext;
 		}
 	}
 }

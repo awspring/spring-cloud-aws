@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -63,8 +62,6 @@ public abstract class ResourceLoaderAwsTest {
 	private static final String S3_PREFIX = "s3://";
 	private final List<String> createdObjects = new ArrayList<>();
 	@Autowired
-	private ApplicationContext applicationContext;
-	@Autowired
 	private ResourceLoader resourceLoader;
 	@SuppressWarnings("SpringJavaAutowiringInspection")
 	@Autowired
@@ -74,22 +71,10 @@ public abstract class ResourceLoaderAwsTest {
 	private StackResourceRegistry stackResourceRegistry;
 
 	@Test
-	public void testUploadAndDownloadOfSmallFileWithInjectedApplicationContext() throws Exception {
-		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
-		uploadFileTestFile(bucketName, "testUploadAndDownloadOfSmallFileWithInjectedApplicationContext", "Test Content");
-		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedApplicationContext");
-		assertTrue(resource.exists());
-		InputStream inputStream = resource.getInputStream();
-		assertNotNull(inputStream);
-		assertEquals("Test Content", FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
-		assertEquals("Test Content".length(), resource.contentLength());
-	}
-
-	@Test
 	public void testUploadAndDownloadOfSmallFileWithInjectedResourceLoader() throws Exception {
 		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 		uploadFileTestFile(bucketName, "testUploadAndDownloadOfSmallFileWithInjectedResourceLoader", "hello world");
-		Resource resource = this.applicationContext.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
 		assertTrue(resource.exists());
 		InputStream inputStream = resource.getInputStream();
 		assertNotNull(inputStream);
