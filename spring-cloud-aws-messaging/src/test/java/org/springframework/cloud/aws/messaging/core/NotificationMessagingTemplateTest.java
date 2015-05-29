@@ -16,23 +16,20 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.Test;
+import org.springframework.messaging.support.MessageBuilder;
+
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
-import org.junit.Test;
-import org.springframework.messaging.core.MessagePostProcessor;
-import org.springframework.messaging.support.MessageBuilder;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Alain Sahli
@@ -85,48 +82,6 @@ public class NotificationMessagingTemplateTest {
 
 		// Assert
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void convertAndSend_withDestinationAndPayload_shouldThrowExceptionWithNonStringPayload() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-
-		// Act
-		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void convertAndSend_withDestinationPayloadAndHeaders_shouldThrowExceptionWithNonStringPayload() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-
-		// Act
-		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), Collections.<String, Object>singletonMap("header", "value"));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void convertAndSend_withDestinationPayloadAndMessagePostProcessor_shouldThrowExceptionWithNonStringPayload() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
-
-		// Act
-		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), messagePostProcessor);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void convertAndSend_withDestinationPayloadMessagePostProcessorAndHeaders_shouldThrowExceptionWithNonStringPayload() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
-
-		// Act
-		notificationMessagingTemplate.convertAndSend("destination", Arrays.asList("A payload"), Collections.<String, Object>singletonMap("header", "value"), messagePostProcessor);
 	}
 
 }

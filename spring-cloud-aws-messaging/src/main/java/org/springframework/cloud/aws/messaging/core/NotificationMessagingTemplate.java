@@ -16,17 +16,20 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import com.amazonaws.services.sns.AmazonSNS;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicTopicDestinationResolver;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.core.MessagePostProcessor;
-import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
-import java.util.Collections;
-import java.util.Map;
+import com.amazonaws.services.sns.AmazonSNS;
 
 /**
  * @author Alain Sahli
@@ -36,68 +39,39 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 
 	private final AmazonSNS amazonSns;
 
-	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-		super(new DynamicTopicDestinationResolver(amazonSns, resourceIdResolver));
-		this.amazonSns = amazonSns;
-		initMessageConverter();
-	}
-
-	private void initMessageConverter() {
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		stringMessageConverter.setSerializedPayloadClass(String.class);
-		setMessageConverter(stringMessageConverter);
-	}
+	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
+			"com.fasterxml.jackson.databind.ObjectMapper", NotificationMessagingTemplate.class.getClassLoader());
 
 	public NotificationMessagingTemplate(AmazonSNS amazonSns) {
-		this(amazonSns, null);
+		this(amazonSns, null, null);
 	}
 
-	/**
-	 * <b>IMPORTANT</b>: the underlying message channel {@link org.springframework.cloud.aws.messaging.core.TopicMessageChannel} only
-	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
-	 *
-	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
-	 */
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload) throws MessagingException {
-		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
-		super.convertAndSend(destinationName, payload);
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
+		this(amazonSns, resourceIdResolver, null);
 	}
 
-	/**
-	 * <b>IMPORTANT</b>: the underlying message channel {@link org.springframework.cloud.aws.messaging.core.TopicMessageChannel} only
-	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
-	 *
-	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
-	 */
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers) throws MessagingException {
-		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
-		super.convertAndSend(destinationName, payload, headers);
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
+		super(new DynamicTopicDestinationResolver(amazonSns, resourceIdResolver));
+		this.amazonSns = amazonSns;
+		initMessageConverter(messageConverter);
 	}
 
-	/**
-	 * <b>IMPORTANT</b>: the underlying message channel {@link org.springframework.cloud.aws.messaging.core.TopicMessageChannel} only
-	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
-	 *
-	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
-	 */
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor) throws MessagingException {
-		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
-		super.convertAndSend(destinationName, payload, postProcessor);
-	}
+	private void initMessageConverter(MessageConverter messageConverter) {
+		List<MessageConverter> messageConverters = new ArrayList<>();
 
-	/**
-	 * <b>IMPORTANT</b>: the underlying message channel {@link org.springframework.cloud.aws.messaging.core.TopicMessageChannel} only
-	 * supports {@code String} as payload. Therefore only {@code String} payloads are accepted.
-	 *
-	 * @see org.springframework.messaging.core.MessageSendingOperations#convertAndSend(Object, Object, java.util.Map)
-	 */
-	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers, MessagePostProcessor postProcessor) throws MessagingException {
-		Assert.isInstanceOf(String.class, payload, "Payload must be of type string");
-		super.convertAndSend(destinationName, payload, headers, postProcessor);
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		messageConverters.add(stringMessageConverter);
+
+		if (messageConverter != null) {
+			messageConverters.add(messageConverter);
+		} else if (JACKSON_2_PRESENT) {
+			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
+			messageConverters.add(mappingJackson2MessageConverter);
+		}
+
+		setMessageConverter(new CompositeMessageConverter(messageConverters));
 	}
 
 	@Override
