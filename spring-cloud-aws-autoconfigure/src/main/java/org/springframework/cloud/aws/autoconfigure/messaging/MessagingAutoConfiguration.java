@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  */
 @ConditionalOnClass(name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 @Configuration
@@ -36,11 +37,10 @@ public class MessagingAutoConfiguration {
 
 	}
 
-	@ConditionalOnClass(name = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
+	@ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
 	@EnableSns
 	@Configuration
 	public static class SnsAutoConfiguration {
 
 	}
-
 }

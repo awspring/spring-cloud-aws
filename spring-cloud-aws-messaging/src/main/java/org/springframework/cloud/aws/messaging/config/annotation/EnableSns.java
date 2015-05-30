@@ -25,11 +25,12 @@ import java.lang.annotation.Target;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(SnsConfiguration.class)
+@Import({SnsConfiguration.class, SnsWebConfiguration.class})
 public @interface EnableSns {
 
 }

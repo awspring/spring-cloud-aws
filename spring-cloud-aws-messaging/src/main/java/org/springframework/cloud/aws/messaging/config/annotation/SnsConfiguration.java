@@ -24,19 +24,14 @@ import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmaz
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-
-import java.util.List;
-
-import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
  * @author Alain Sahli
+ * @author Agim Emruli
  * @since 1.0
  */
 @Configuration
-public class SnsConfiguration extends WebMvcConfigurerAdapter {
+public class SnsConfiguration {
 
 	@Autowired(required = false)
 	private AWSCredentialsProvider awsCredentialsProvider;
@@ -59,10 +54,5 @@ public class SnsConfiguration extends WebMvcConfigurerAdapter {
 		}
 
 		return amazonSNSClient;
-	}
-
-	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-		argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSNS()));
 	}
 }
