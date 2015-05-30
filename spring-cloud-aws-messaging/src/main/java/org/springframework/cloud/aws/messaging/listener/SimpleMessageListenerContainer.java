@@ -160,7 +160,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.queueAttributes);
 						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
 					} else {
-						break;
+						messageBatchLatch.countDown();
 					}
 				}
 				try {
@@ -216,8 +216,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		@Override
 		public void run() {
-			this.runnable.run();
-			this.countDownLatch.countDown();
+			try {
+				this.runnable.run();
+			} finally {
+				this.countDownLatch.countDown();
+			}
 		}
 	}
 }
