@@ -54,7 +54,7 @@ also the Amazon SDK that are needed to operate the modules. The general dependen
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-aws-context</artifactId>
     <version>{spring-cloud-version}</version>
-  </dependency>>
+  </dependency>
 </dependencies>
 ----
 
