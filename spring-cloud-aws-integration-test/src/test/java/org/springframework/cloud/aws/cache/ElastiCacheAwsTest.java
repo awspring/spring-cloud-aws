@@ -57,4 +57,22 @@ public abstract class ElastiCacheAwsTest {
 		assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
 		assertEquals(2, this.cachingService.getInvocationCount().get());
 	}
+
+	@Test
+	@IfAmazonWebserviceEnvironment
+	public void expensiveServiceWithRedisCacheManager() throws Exception {
+		this.cachingService.deleteRedisCacheKey("foo");
+		this.cachingService.deleteRedisCacheKey("bar");
+
+		assertEquals(0, this.cachingService.getInvocationCount().get());
+
+		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
+		assertEquals(1, this.cachingService.getInvocationCount().get());
+
+		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
+		assertEquals(1, this.cachingService.getInvocationCount().get());
+
+		assertEquals("BAR", this.cachingService.expensiveRedisMethod("bar"));
+		assertEquals(2, this.cachingService.getInvocationCount().get());
+	}
 }

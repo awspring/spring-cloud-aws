@@ -70,7 +70,10 @@ public class CacheBeanDefinitionParserTest {
 		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
 		//Replay invocation that will be called
-		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+		memcached.setShowCacheNodeInfo(true);
+
+		when(client.describeCacheClusters(memcached)).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -127,7 +130,11 @@ public class CacheBeanDefinitionParserTest {
 		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
 		//Replay invocation that will be called
-		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+
+		DescribeCacheClustersRequest memcached1 = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+		memcached1.setShowCacheNodeInfo(true);
+
+		when(client.describeCacheClusters(memcached1)).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -174,7 +181,10 @@ public class CacheBeanDefinitionParserTest {
 		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
 		//Replay invocation that will be called
-		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+		memcached.setShowCacheNodeInfo(true);
+
+		when(client.describeCacheClusters(memcached)).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -221,7 +231,10 @@ public class CacheBeanDefinitionParserTest {
 		when(resourceIdResolver.resolveToPhysicalResourceId("testMemcached")).thenReturn("memcached");
 
 		//Replay invocation that will be called
-		when(client.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+		memcached.setShowCacheNodeInfo(true);
+
+		when(client.describeCacheClusters(memcached)).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
@@ -269,7 +282,10 @@ public class CacheBeanDefinitionParserTest {
 
 		AmazonElastiCache amazonElastiCacheMock = beanFactory.getBean("customClient", AmazonElastiCache.class);
 
-		when(amazonElastiCacheMock.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("memcached"))).thenReturn(
+		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+		memcached.setShowCacheNodeInfo(true);
+
+		when(amazonElastiCacheMock.describeCacheClusters(memcached)).thenReturn(
 				new DescribeCacheClustersResult().withCacheClusters(
 						new CacheCluster().withCacheClusterId("memcached").
 								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).

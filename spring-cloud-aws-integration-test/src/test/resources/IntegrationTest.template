@@ -238,7 +238,20 @@
 				"Engine": "memcached",
 				"NumCacheNodes": "1"
 			}
-		}
+		},
+		"RedisCacheCluster": {
+        	"Type": "AWS::ElastiCache::CacheCluster",
+        	"Properties": {
+        		"CacheNodeType": "cache.t1.micro",
+        		"CacheSecurityGroupNames": [
+        			{
+        				"Ref": "CacheSecurityGroup"
+        			}
+        		],
+        		"Engine": "redis",
+        		"NumCacheNodes": "1"
+        	}
+        }
 	},
 	"Outputs": {
 		"InstanceId": {

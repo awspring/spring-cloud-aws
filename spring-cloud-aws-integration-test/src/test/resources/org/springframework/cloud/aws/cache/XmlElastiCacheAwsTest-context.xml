@@ -27,6 +27,7 @@
 	<!--suppress UnparsedCustomBeanInspection -->
 	<aws-cache:cache-manager>
 		<aws-cache:cache-cluster expiration="10000" name="CacheCluster" />
+        <aws-cache:cache-cluster expiration="10000" name="RedisCacheCluster" />
 	</aws-cache:cache-manager>
 
 	<cache:annotation-driven />

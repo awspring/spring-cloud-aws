@@ -61,16 +61,20 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
 	@Override
 	protected Cache createInstance() throws Exception {
-		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName()));
+		DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName());
+		describeCacheClustersRequest.setShowCacheNodeInfo(true);
+
+		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(describeCacheClustersRequest);
 
 		CacheCluster cacheCluster = describeCacheClustersResult.getCacheClusters().get(0);
 		if (!"available".equals(cacheCluster.getCacheClusterStatus())) {
 			LOGGER.warn("Cache cluster is not available now. Connection may fail during cache access. Current status is {}", cacheCluster.getCacheClusterStatus());
 		}
 
+		Endpoint configurationEndpoint = getEndpointForCache(cacheCluster);
+
 		for (CacheFactory cacheFactory : this.cacheFactories) {
 			if (cacheFactory.isSupportingCacheArchitecture(cacheCluster.getEngine())) {
-				Endpoint configurationEndpoint = cacheCluster.getConfigurationEndpoint();
 				return cacheFactory.createCache(this.cacheClusterId, configurationEndpoint.getAddress(), configurationEndpoint.getPort());
 			}
 		}
@@ -87,5 +91,18 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
 	private String getCacheClusterName() {
 		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId) : this.cacheClusterId;
+	}
+
+	private static Endpoint getEndpointForCache(CacheCluster cacheCluster) {
+		if (cacheCluster.getConfigurationEndpoint() != null) {
+			return cacheCluster.getConfigurationEndpoint();
+		}
+
+		if (!cacheCluster.getCacheNodes().isEmpty()) {
+			return cacheCluster.getCacheNodes().get(0).getEndpoint();
+		}
+
+		throw new IllegalArgumentException("No Configuration Endpoint or Cache Node available to " +
+				"receive address information for cluster:'" + cacheCluster.getCacheClusterId() + "'");
 	}
 }

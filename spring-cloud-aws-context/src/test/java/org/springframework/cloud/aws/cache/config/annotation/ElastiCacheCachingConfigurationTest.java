@@ -205,11 +205,15 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("firstCache"))).
+			DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest().withCacheClusterId("firstCache");
+			describeCacheClustersRequest.setShowCacheNodeInfo(true);
+			Mockito.when(amazonElastiCache.describeCacheClusters(describeCacheClustersRequest)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("secondCache"))).
+			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest().withCacheClusterId("secondCache");
+			secondCache.setShowCacheNodeInfo(true);
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
@@ -224,11 +228,17 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("firstCache"))).
+			DescribeCacheClustersRequest firstCache = new DescribeCacheClustersRequest().withCacheClusterId("firstCache");
+			firstCache.setShowCacheNodeInfo(true);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("secondCache"))).
+			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest().withCacheClusterId("secondCache");
+			secondCache.setShowCacheNodeInfo(true);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
@@ -244,11 +254,17 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("firstCache"))).
+			DescribeCacheClustersRequest firstCache = new DescribeCacheClustersRequest().withCacheClusterId("firstCache");
+			firstCache.setShowCacheNodeInfo(true);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("secondCache"))).
+			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest().withCacheClusterId("secondCache");
+			secondCache.setShowCacheNodeInfo(true);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
@@ -266,12 +282,18 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical"))).
+			DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical");
+			sampleCacheOneLogical.setShowCacheNodeInfo(Boolean.TRUE);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical"))).
+			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical");
+			sampleCacheTwoLogical.setShowCacheNodeInfo(Boolean.TRUE);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
@@ -295,12 +317,18 @@ public class ElastiCacheCachingConfigurationTest {
 		public AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical"))).
+			DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical");
+			sampleCacheOneLogical.setShowCacheNodeInfo(Boolean.TRUE);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical"))).
+			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical");
+			sampleCacheTwoLogical.setShowCacheNodeInfo(Boolean.TRUE);
+
+			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical)).
 					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
 							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
 							withEngine("memcached")));

@@ -41,6 +41,18 @@ public class CachingService {
 		// do nothing, we just want to delete the entry
 	}
 
+	@Cacheable("RedisCacheCluster")
+	public String expensiveRedisMethod(String key) {
+		this.invocationCount.incrementAndGet();
+		return key.toUpperCase();
+	}
+
+	@CacheEvict("RedisCacheCluster")
+	public void deleteRedisCacheKey(String key) {
+		// do nothing, we just want to delete the entry
+	}
+
+
 	public AtomicInteger getInvocationCount() {
 		return this.invocationCount;
 	}
