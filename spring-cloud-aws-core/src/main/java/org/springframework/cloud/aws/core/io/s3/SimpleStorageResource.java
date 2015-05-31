@@ -16,28 +16,9 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.WritableResource;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
-
+import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -50,6 +31,28 @@ import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.util.BinaryUtils;
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.WritableResource;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
 
 /**
  * {@link org.springframework.core.io.Resource} implementation for {@code com.amazonaws.services.s3.model.S3Object}
@@ -72,7 +75,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
 		this(amazonS3, bucketName, objectName, taskExecutor, null);
 	}
-	
+
 	SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor, String versionId) {
 		this.amazonS3 = amazonS3;
 		this.bucketName = bucketName;
@@ -124,6 +127,22 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		return this.objectName;
 	}
 
+	@Override
+	public URL getURL() throws IOException {
+		if (this.amazonS3 instanceof AmazonS3Client) {
+			Region region = ((AmazonS3Client) this.amazonS3).getRegion().toAWSRegion();
+			return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME), "/" + this.bucketName + "/" + this.objectName);
+		} else {
+			return super.getURL();
+		}
+	}
+
+	@Override
+	public File getFile() throws IOException {
+		throw new UnsupportedOperationException("Amazon S3 resource can not be resolved to java.io.File objects.Use " +
+				"getInputStream() to retrieve the contents of the object!");
+	}
+
 	private ObjectMetadata getRequiredObjectMetadata() throws FileNotFoundException {
 		ObjectMetadata metadata = getObjectMetadata();
 		if (metadata == null) {
@@ -137,7 +156,7 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 				builder.append(this.versionId);
 			}
 			builder.append("' not found!");
-			
+
 			throw new FileNotFoundException(builder.toString());
 		}
 		return metadata;
@@ -156,9 +175,9 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 	private ObjectMetadata getObjectMetadata() {
 		if (this.objectMetadata == null) {
 			try {
-				GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(bucketName, objectName);
+				GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(this.bucketName, this.objectName);
 				if (this.versionId != null) {
-					metadataRequest.setVersionId(versionId);
+					metadataRequest.setVersionId(this.versionId);
 				}
 				this.objectMetadata = this.amazonS3.getObjectMetadata(metadataRequest);
 			} catch (AmazonS3Exception e) {

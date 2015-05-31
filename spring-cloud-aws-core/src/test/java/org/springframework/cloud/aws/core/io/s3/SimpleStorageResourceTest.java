@@ -16,20 +16,14 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Date;
-
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.Region;
+import com.amazonaws.services.s3.model.S3Object;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,12 +31,20 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.task.SyncTaskExecutor;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
@@ -191,6 +193,36 @@ public class SimpleStorageResourceTest {
 		assertTrue(description.contains("2"));
 	}
 
+	@Test
+	public void getUrl_existingObject_returnsUrlWithS3Prefix() throws Exception {
+
+		AmazonS3Client amazonS3 = mock(AmazonS3Client.class);
+
+		when(amazonS3.getRegion()).thenReturn(Region.EU_Ireland);
+
+		//Act
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
+
+		//Assert
+		assertEquals(new URL("https://s3-eu-west-1.amazonaws.com/bucket/object"), simpleStorageResource.getURL());
+
+	}
+
+	@Test
+	public void getFile_existingObject_throwsMeaningFullException() throws Exception {
+
+		this.expectedException.expect(UnsupportedOperationException.class);
+		this.expectedException.expectMessage("getInputStream()");
+
+		AmazonS3Client amazonS3 = mock(AmazonS3Client.class);
+
+		//Act
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
+
+		//Assert
+		simpleStorageResource.getFile();
+
+	}
 
 	@Test
 	public void writeFile_forNewFile_writesFileContent() throws Exception {
