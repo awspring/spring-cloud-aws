@@ -95,12 +95,8 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	@Override
 	protected MappingInformation getMappingForMethod(Method method, Class<?> handlerType) {
 		MessageMapping messageMappingAnnotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
-		if (messageMappingAnnotation == null) {
+		if (messageMappingAnnotation == null || messageMappingAnnotation.value().length < 1) {
 			return null;
-		}
-
-		if (messageMappingAnnotation.value().length < 1) {
-			throw new IllegalStateException("@MessageMapping annotation must have at least one destination");
 		}
 
 		return new MappingInformation(resolveDestinationNames(messageMappingAnnotation.value()));

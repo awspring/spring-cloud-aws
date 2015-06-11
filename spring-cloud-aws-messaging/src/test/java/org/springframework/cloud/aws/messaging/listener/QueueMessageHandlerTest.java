@@ -52,6 +52,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.support.MessageBuilder;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 
@@ -359,6 +360,19 @@ public class QueueMessageHandlerTest {
 		assertEquals("Hello World!", notificationMessageReceiver.getMessage());
 	}
 
+	@Test
+	public void getMappingForMethod_methodWithEmptyMessageMappingValue_shouldReturnNull() throws Exception {
+		// Arrange
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		Method receiveMethod = MessageMappingAnnotationWithEmptyValue.class.getMethod("receive");
+
+		// Act
+		QueueMessageHandler.MappingInformation mappingInformation = queueMessageHandler.getMappingForMethod(receiveMethod, null);
+
+		// Assert
+		assertNull(mappingInformation);
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
@@ -539,5 +553,15 @@ public class QueueMessageHandlerTest {
 		public String getMessage() {
 			return this.message;
 		}
+	}
+
+	private static class MessageMappingAnnotationWithEmptyValue {
+
+		@RuntimeUse
+		@MessageMapping
+		public void receive() {
+
+		}
+
 	}
 }
