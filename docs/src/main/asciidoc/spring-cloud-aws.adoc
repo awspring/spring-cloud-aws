@@ -122,7 +122,7 @@ The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the c
  provider defined. This will essentially use the following authentication information
 
 * use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-* use th system properties `aws.accessKeyId` and `aws.secretKey`
+* use the system properties `aws.accessKeyId` and `aws.secretKey`
 * use the user specific profile credentials file
 * use the instance profile credentials (see below)
 ====
@@ -240,7 +240,7 @@ are hosted only inside one region and split the application if it is hosted in d
 ====
 
 ==== Spring Boot auto-configuration
-Following the Spring Cloud umbrella project, Spring Cloud AWS provides also dedicated Spring Boot support. Spring Cloud
+Following the Spring Cloud umbrella project, Spring Cloud AWS also provides dedicated Spring Boot support. Spring Cloud
 AWS can be configured using Spring Boot properties and will also automatically guess any sensible configuration based on
 the general setup.
 
@@ -259,11 +259,11 @@ maven dependency inside the application. The typical configuration will look lik
 </dependencies>
 ----
 
-Additional dependencies to enable particular features like messaging and jdbc have to be added. Spring Cloud AWS will
-only configure classes that are available in the Spring Boot applications classpath.
+Additional dependencies to enable particular features like messaging and JDBC have to be added. Spring Cloud AWS will
+only configure classes that are available in the Spring Boot application's classpath.
 
 ===== Configuring credentials
-Spring Boot provides a standard way to define properties with property file or yaml configuration files. Spring Cloud
+Spring Boot provides a standard way to define properties with property file or YAML configuration files. Spring Cloud
 AWS provides support to configure the credential information with the Spring Boot application configuration files.
 Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
 
@@ -287,7 +287,7 @@ Spring Cloud AWS provides the following properties to configure the credentials 
 |===
 
 ===== Configuring region
-Like for the credentials, the Spring Cloud AWS module supports also the configuration of the region inside the Spring
+Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
 Boot configuration files. The region can be automatically detected or explicitly configured (e.g. in case of local tests
 against the AWS cloud).
 
@@ -339,9 +339,9 @@ any region or security specific configuration.
 ====
 
 ==== Enabling instance metadata support with Java
-The instance meta-data can also be configured within a Java configuration class without the need for an XML configuration.
+The instance metadata can also be configured within a Java configuration class without the need for an XML configuration.
 The next example shows a typical Spring `@Configuration` class that enables the instance metadata with the
-org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
+`org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
 
 [source,java,indent=0]
 ----
@@ -352,8 +352,8 @@ org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
 ----
 
 ==== Enabling instance metadata support in Spring Boot
-The instance meta-data is automatically available in a Spring Boot application as a property source if the application
-is running on a EC2 instance.
+The instance metadata is automatically available in a Spring Boot application as a property source if the application
+is running on an EC2 instance.
 
 ==== Using instance metadata
 Instance metadata can be used in XML, Java placeholders and expressions. The example below demonstrates the usage of
@@ -405,12 +405,12 @@ Besides the default instance metadata it is also possible to configure user data
 parsed by Spring Cloud AWS. The user data can be defined while starting an EC2 instance with the application. Spring Cloud AWS
 expects the format `<key>:<value>;<key>:<value>` inside the user data so that it can parse the string and extract the key value pairs.
 
-The user data can be configured either using the management console shown below or a http://aws.amazon.com/cloudformation/aws-cloudformation-templates/[CloudFormation template].
+The user data can be configured using either the management console shown below or a http://aws.amazon.com/cloudformation/aws-cloudformation-templates/[CloudFormation template].
 
 image::cloud-environment-user-data.png[User data in the management console]
 
 
-A CloudFormation for the configuration of the user data is outlined below:
+A CloudFormation template snippet for the configuration of the user data is outlined below:
 
 [source,json,indent=0]
 ----
@@ -427,7 +427,6 @@ A CloudFormation for the configuration of the user data is outlined below:
    	 }
    }
    ...
-
 ----
 
 The user data can be accessed directly in the application context like the instance metadata through placeholders
@@ -464,12 +463,12 @@ like user data also with a CloudFormation template shown afterwards.
 
 image::cloud-environment-instance-tags.png[Instance data in the management console]
 
-A CloudFormation template for the configuration of the instance tags is outlined below:
+A CloudFormation template snippet for the configuration of the instance tags is outlined below:
 
 
 [source,json,indent=0]
 ----
-   ...
+...
 "Resources": {
 	"UserTagAndUserDataInstance": {
 		"Type": "AWS::EC2::Instance",
@@ -497,6 +496,7 @@ A CloudFormation template for the configuration of the instance tags is outlined
 		}
 	}
 }
+...
 ----
 
 To retrieve the instance tags, Spring Cloud AWS has to make authenticated requests and therefore it will need the region
@@ -569,7 +569,7 @@ public class ApplicationService {
 ----
 
 == Managing cloud environments
-Managing environment manually with the management console does not scale and can become error-prone with the increasing
+Managing environments manually with the management console does not scale and can become error-prone with the increasing
 complexity of the infrastructure. Amazon Web services offers a http://aws.amazon.com/cloudformation/[CloudFormation]
 service that allows to define stack configuration templates and bootstrap the whole infrastructure with the services.
 In order to allow multiple stacks in parallel, each resource in the stack receives a unique physical name that contains
@@ -639,7 +639,7 @@ documentation.
 
 
 === Manual CloudFormation configuration
-If the application is not running inside an stack configured EC2 instance, then the stack configuration must be configured
+If the application is not running inside a stack configured EC2 instance, then the stack configuration must be configured
 manually. The configuration consists of an additional element attribute `stack-name` that will be used to resolve all the
 respective stack configuration information at runtime.
 
@@ -657,7 +657,7 @@ Spring Cloud AWS also supports the configuration of the CloudFormation support w
  XML inside the application configuration. Spring Cloud AWS provides the annotation
  `og.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration` that allows the automatic and manual
  stack configuration. The next example shows a configuration class that configures the CloudFormation support with an
- explicit stack name (here `anualStackName`).
+ explicit stack name (here `manualStackName`).
 
 [source,java,indent=0]
 ----
@@ -669,11 +669,11 @@ class ApplicationConfiguration {
 
 [TIP]
 ====
-Do not define the `tackName` attribute if an automatic stack name should be enabled.
+Do not define the `stackName` attribute if an automatic stack name should be enabled.
 ====
 
 === CloudFormation configuration in Spring Boot
-Spring Cloud AWS support also the configuration of the CloudFormation support within the Spring Boot configuration. The
+Spring Cloud AWS also supports the configuration of the CloudFormation support within the Spring Boot configuration. The
 manual and automatic stack configuration can be defined with properties that are described in the table below.
 
 [cols="3*", options="header"]
@@ -718,7 +718,7 @@ public class ApplicationService {
 ----
 
 === Stack Tags
-Like for the Amazon EC2 instances, CloudFormation provides also Stack specific tags that can be used to
+Like for the Amazon EC2 instances, CloudFormation also provides stack specific tags that can be used to
 configure stack specific configuration information and receive them inside the application. This can for example be a
 stage specific configuration property (like DEV, INT, PRD).
 
@@ -731,7 +731,7 @@ stage specific configuration property (like DEV, INT, PRD).
 </beans>
 ----
 
-The application can then access the stack tags with a expression like `#{stackTags.key1}`.
+The application can then access the stack tags with an expression like `#{stackTags.key1}`.
 
 === Using custom CloudFormation client
 Like for the EC2 configuration setup, the `aws-context:stack-configuration` element supports a custom CloudFormation client
@@ -748,14 +748,14 @@ with a special setup. The client itself can be configured using the `amazon-clou
 ----
 
 == Messaging
-Spring Cloud AWS provides a http://aws.amazon.com/sqs/[Amazon SQS] and http://aws.amazon.com/sqs/[Amazon SNS] integration
+Spring Cloud AWS provides http://aws.amazon.com/sqs/[Amazon SQS] and http://aws.amazon.com/sqs/[Amazon SNS] integration
 that simplifies the publication and consumption of messages over SQS or SNS. While SQS fully relies on the messaging API
 introduced with Spring 4.0, SNS only partially implements it as the receiving part must be handled differently for
 push notifications.
 
 === Configuring messaging
 Before using and configuring the messaging support, the application has to include the respective module dependency
-into his maven configuration. Spring Cloud AWS Messaging support comes as a separate module to allow the modularized use
+into the Maven configuration. Spring Cloud AWS Messaging support comes as a separate module to allow the modularized use
 of the modules.
 
 ==== Maven dependency configuration
@@ -773,17 +773,17 @@ The Spring Cloud AWS messaging module comes as a standalone module and can be im
 
 === SQS support
 Amazon SQS is a hosted messaging service on the Amazon Web Service platform that provides point-to-point communication
-with queues. Compared to JMS or other message services Amazon SQS has several features and limitation that should be
+with queues. Compared to JMS or other message services Amazon SQS has several features and limitations that should be
 taken into consideration.
 
-* Amazon SQS allows only `String` payloads, any `Object` must be transformed into a String representation.
+* Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
 	Spring Cloud AWS  has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
-* Amazon SQS has no transaction support, messages might therefore be retrieved twice. Application have to be written in
+* Amazon SQS has no transaction support, so messages might therefore be retrieved twice. Application have to be written in
 	an idempotent way so that they can receive a message twice.
-* Amazon SQS has a maximum message size of 256kb per message, bigger messages will fail to be sent.
+* Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
 
 ==== Sending a message
-The `QueueMessagingTemplate` contains many convenience methods to send a message.There are send methods that specify the
+The `QueueMessagingTemplate` contains many convenience methods to send a message. There are send methods that specify the
 destination using a `QueueMessageChannel` object and those that specify the destination using a string which is going to
 be resolved against the SQS API. The send method that takes no destination argument uses the default destination.
 
@@ -906,10 +906,10 @@ public void queueListener(Person person) {
 }
 ----
 
-In this example a queue listener container is started, that polls the SQS `queueName` passed to the `MessageMapping`
+In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
 annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
 
-Additionally to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
+In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
 annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
 containing all headers.
 
@@ -991,8 +991,8 @@ The next graphic shows a typical example of an Amazon SNS architecture.
 image::sns-overview.png[SNS Overview]
 
 Spring Cloud AWS supports Amazon SNS by providing support to send notifications with a `NotificationMessagingTemplate` and
-to receive notifications with the HTTP/HTTPS endpoint using the Spring Web MVC '@Controller' based programming model. Amazon
-SQS based subscriptions can be used with the annotation-driven message support that is provided by the Spring Cloud AWS messaging.
+to receive notifications with the HTTP/HTTPS endpoint using the Spring Web MVC `@Controller` based programming model. Amazon
+SQS based subscriptions can be used with the annotation-driven message support that is provided by the Spring Cloud AWS messaging module.
 
 ==== Sending a message
 The `NotificationMessagingTemplate` contains two convenience methods to send a notification. The first one specifies the
@@ -1031,11 +1031,11 @@ This example constructs a new `NotificationMessagingTemplate` by passing an `Ama
 method the convenience `sendNotification` method is used to send a `message` with `subject` to an SNS topic. The
 destination in the `sendNotification` method is a string value that must match the topic name defined on AWS. This value
 is resolved at runtime by the Amazon SNS client. Optionally a `ResourceIdResolver` implementation can be passed to the
-`NotificationMessagingTemplate` constructor to resolve resources by logical name when running inside a CloudFormation stack
-(see <<Managing cloud environments>> for more information about resource name resolution).
+`NotificationMessagingTemplate` constructor to resolve resources by logical name when running inside a CloudFormation stack.
+(See <<Managing cloud environments>> for more information about resource name resolution.)
 
 It is recommended to use the XML messaging namespace to create `NotificationMessagingTemplate` as it will automatically
-configure the SNS client as setup the default converter.
+configure the SNS client to setup the default converter.
 
 [source,xml,indent=0]
 ----
@@ -1095,12 +1095,13 @@ XML configuration is listed below.
 		<ref bean="notificationResolver" />
 	</mvc:argument-resolvers>
 </mvc:annotation-driven>
+
 <aws-messaging:notification-argument-resolver id="notificationResolver" />
 ----
 
-The `aws-messaging:notification-argument-resolver` element registers three argument resolvers
-(NotificationStatusHandlerMethodArgumentResolver, NotificationMessageHandlerMethodArgumentResolver,
-NotificationSubjectHandlerMethodArgumentResolver).
+The `aws-messaging:notification-argument-resolver` element registers three argument resolvers:
+`NotificationStatusHandlerMethodArgumentResolver`, `NotificationMessageHandlerMethodArgumentResolver`,
+and `NotificationSubjectHandlerMethodArgumentResolver`.
 
 === Using CloudFormation
 Amazon SQS queues and SNS topics can be configured within a stack and then be used by applications. Spring Cloud AWS
@@ -1127,6 +1128,7 @@ as shown below:
 [source,xml,indent=0]
 ----
 <aws-messaging:queue-messaging-template default-destination="LogicalQueueName" />
+
 <aws-messaging:notification-messaging-template default-destination="LogicalTopicName" />
 ----
 
@@ -1143,21 +1145,21 @@ When using the logical names like in the example above, the stack can be created
 configuration or code changes inside the application.
 
 == Caching
-Caching in a cloud environment is useful for applications in the cloud to reduce the latency and to save database round trips.
+Caching in a cloud environment is useful for applications to reduce the latency and to save database round trips.
 Reducing database round trips can significantly reduce the requirements for the database instance. The Spring Framework
-provides, since version 3.1, a unified Cache abstraction to allow declarative caching in application analogous to the
+provides, since version 3.1, a unified Cache abstraction to allow declarative caching in applications analogous to the
 declarative transactions.
 
 Spring Cloud AWS integrates the http://aws.amazon.com/elasticache/[Amazon ElastiCache] service into the Spring unified
-caching abstraction providing a cache manager based on the memcached and the redis protocol. The caching support for Spring
-Cloud AWS provides an own memcached implementation for Elasitcache and uses
+caching abstraction providing a cache manager based on the memcached and Redis protocols. The caching support for Spring
+Cloud AWS provides its own memcached implementation for ElastiCache and uses
 http://projects.spring.io/spring-data-redis/[Spring Data Redis] for Redis caches.
 
 === Configuring dependencies for Redis caches
-Spring Cloud AWS delivers an own implementation of a memcached cache, therefore no other dependencies are needed. For redis
+Spring Cloud AWS delivers its own implementation of a memcached cache, therefore no other dependencies are needed. For Redis
 Spring Cloud AWS relies on Spring Data Redis to support caching and also to allow multiple Redis drivers to be used. Spring
 Cloud AWS supports all Redis drivers that Spring Data Redis supports (currently Jedis, JRedis, SRP and Lettuce) with Jedis
- being used internally for testing against Elasticache. A dependency definition for Redis with Jedis is shown in the example
+ being used internally for testing against ElastiCache. A dependency definition for Redis with Jedis is shown in the example
 
 [source,xml,indent=0]
 ----
@@ -1179,7 +1181,7 @@ Spring Cloud AWS will automatically detect the Redis driver and will use one of 
 
 === Configuring caching with XML
 The cache support for Spring Cloud AWS resides in the context module and can therefore be used if the context module
-is already imported in the project. The cache integration provides an own namespace to configure cache clusters that are
+is already imported in the project. The cache integration provides its own namespace to configure cache clusters that are
 hosted in the Amazon ElastiCache service. The next example contains a configuration for the cache cluster and the Spring
 configuration to enable declarative, annotation-based caching.
 
@@ -1195,7 +1197,7 @@ configuration to enable declarative, annotation-based caching.
 
 	<aws-context:context-credentials>
 		...
-    </aws-context:context-credentials>
+        </aws-context:context-credentials>
 
 	<aws-cache:cache-manager>
 		<aws-cache:cache-cluster name="CacheCluster" />
@@ -1210,11 +1212,11 @@ http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ManagingCacheClust
 
 ==== Mixing caches
 Applications may have the need for multiple caches that are maintained by one central cache cluster. The Spring Cloud
-AWS caching support allows to define multiple caches inside one cache-manager and also to use externally defined caches
+AWS caching support allows to define multiple caches inside one cache manager and also to use externally defined caches
 inside the cache manager.
 
-The example below demonstrates a configuration example that contains a pre-configured cache with an `cache-ref` element
-(which might be a local cache) and a `cache-cluster` configuration for Elasticache cache clusters.
+The example below demonstrates a configuration example that contains a pre-configured cache with a `cache-ref` element
+(which might be a local cache) and a `cache-cluster` configuration for ElastiCache cache clusters.
 
 [source,xml,indent=0]
 ----
@@ -1260,7 +1262,7 @@ IMPORTANT: If you leave the `value` attribute empty, then all the caches inside 
 will be configured automatically.
 
 ==== Configuring expiry time for caches
-The java configuration also allows to configure the expiry time for the caches. This can be done for all
+The Java configuration also allows to configure the expiry time for the caches. This can be done for all
 caches using the `defaultExpiration` attribute as shown in the example below.
 
 [source,java,indent=0]
@@ -1296,7 +1298,7 @@ The next example contains a caching declaration for a service for which the retu
 public class ExpensiveService {
 
     @Cacheable("CacheCluster")
-    public String calculateExpensiveValue(String key){
+    public String calculateExpensiveValue(String key) {
 		...
     }
 }
@@ -1309,7 +1311,7 @@ Amazon AWS supports a dynamic configuration and delivers an enhanced memcached c
 http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/AutoDiscovery.html[auto-discovery] of new nodes based on
 a central configuration endpoint.
 
-Spring Cloud AWS relies on the Amazon Elasticache Client implementation and therefore has a dependency on that.
+Spring Cloud AWS relies on the Amazon ElastiCache Client implementation and therefore has a dependency on that.
 
 === Using CloudFormation
 Amazon ElastiCache clusters can also be configured within a stack and then be used by applications. Spring Cloud AWS
@@ -1336,7 +1338,7 @@ The cache cluster can then be used with the name `CacheCluster` inside the appli
 [source,xml,indent=0]
 ----
 <beans...>
-	<aws-cache:cache-manager>
+    <aws-cache:cache-manager>
     	<aws-cache:cache-cluster name="CacheCluster" expiration="15"/>
     </aws-cache:cache-manager>
 <beans>
@@ -1347,18 +1349,18 @@ without any configuration change inside the application.
 
 == Data Access with JDBC
 
-Spring has a broad support of data access technologies build on top of JDBC like the JdbcTemplate and dedicated ORM (JPA,
+Spring has a broad support of data access technologies built on top of JDBC like `JdbcTemplate` and dedicated ORM (JPA,
 Hibernate support). Spring Cloud AWS enables application developers to re-use their JDBC technology of choice and access the
-http://aws.amazon.com/rds/[Amazon Relational Database Service] with a declarative configuration. The main support of Spring
-Cloud AWS for JDBC data access are
+http://aws.amazon.com/rds/[Amazon Relational Database Service] with a declarative configuration. The main support provided by Spring
+Cloud AWS for JDBC data access are:
 
- * Automatic datasource configuration and setup based on the Amazon RDS database instance.
+ * Automatic data source configuration and setup based on the Amazon RDS database instance.
  * Automatic read-replica detection and configuration for Amazon RDS database instances.
  * Retry-support to handle exception during Multi-AZ failover inside the data center.
 
 === Configuring data source
 Before using and configuring the database support, the application has to include the respective module dependency
-into his maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
+into its Maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
 modules.
 
 ==== Maven dependency configuration
@@ -1375,9 +1377,9 @@ The Spring Cloud AWS JDBC module comes as a standalone module and can be importe
 ----
 
 ==== Basic data source configuration
-The datasource configuration requires the security and region configuration as a minimum allowing Spring Cloud AWS to retrieve
+The data source configuration requires the security and region configuration as a minimum allowing Spring Cloud AWS to retrieve
 the database metadata information with the Amazon RDS service. Spring Cloud AWS provides an additional `jdbc` specific namespace
-to configure the datasource with the minimum attributes as shown in the example:
+to configure the data source with the minimum attributes as shown in the example:
 
 [source,xml,indent=0]
 ----
@@ -1400,12 +1402,12 @@ to configure the datasource with the minimum attributes as shown in the example:
 </beans>
 ----
 
-The minimum configuration parameters are a unique `id` for the datasource, a valid `db-instance-identifier` attribute
+The minimum configuration parameters are a unique `id` for the data source, a valid `db-instance-identifier` attribute
 that points to a valid Amazon RDS database instance. The master user password for the master user. If there is another
 user to be used (which is recommended) then the `username` attribute can be set.
 
 With this configuration Spring Cloud AWS fetches all the necessary metadata and creates a
-http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[Tomcat JDBC pool] with the default properties. The datasource
+http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html[Tomcat JDBC pool] with the default properties. The data source
 can be later injected into any Spring Bean as shown below:
 
 [source,java,indent=0]
@@ -1423,13 +1425,13 @@ public class SimpleDatabaseService implements DatabaseService {
 }
 ----
 
-It is possible to qualify the datasource injection point with an `@Qualifier` annotation to allow multiple datasource
+It is possible to qualify the data source injection point with an `@Qualifier` annotation to allow multiple data source
 configurations inside one application context and still use auto-wiring.
 
-==== Datasource pool configuration
+==== Data source pool configuration
 Spring Cloud AWS creates a new Tomcat JDBC pool with the default properties. Often these default properties do not meet the
-requirements of the application with regards to pool size and other settings. The datasource configuration supports the configuration
-of all valid pool properties with a nested XML element. The following example demonstrates the re-configuration of the datasource
+requirements of the application with regards to pool size and other settings. The data source configuration supports the configuration
+of all valid pool properties with a nested XML element. The following example demonstrates the re-configuration of the data source
 with custom pool properties.
 
 [source,xml,indent=0]
@@ -1456,7 +1458,7 @@ A full list of all configuration attributes with their value is available http:/
 
 === Configuring data source with Java config
 Spring Cloud AWS also supports the configuration of the data source within an `@Configuration` class. The
-`rg.springframework.cloud.aws.jdbc.config.annotation.EnableRdsInstance` annotation can be used to configure one data
+`org.springframework.cloud.aws.jdbc.config.annotation.EnableRdsInstance` annotation can be used to configure one data
 source. Multiple ones can be used to configure more then one data source. Each annotation will generate exactly one
 data source bean.
 
@@ -1465,19 +1467,19 @@ The class below shows a data source configuration inside a configuration class
 [source,java,indent=0]
 ----
 @Configuration
-@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret",readReplicaSupport = true)
+@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret", readReplicaSupport = true)
 public class ApplicationConfiguration {
 }
 ----
 
-TIP: The configuration attributes are the same like in the XML element. The required attributes are also the same like
+TIP: The configuration attributes are the same in the XML element. The required attributes are also the same
 for the XML configuration (the `dbInstanceIdentifier` and `password` attribute)
 
 ==== Java based data source pool configuration
 It is also possible to override the pool configuration with custom values. Spring Cloud AWS provides a
 `org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer` that creates a
 `org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory` which might contain custom pool attributes. The next
-examples shows the implementation of on configurer that overrides the validation query and the initial size.
+examples shows the implementation of one configurer that overrides the validation query and the initial size.
 
 [source,java,indent=0]
 ----
@@ -1486,7 +1488,7 @@ examples shows the implementation of on configurer that overrides the validation
 public class ApplicationConfiguration {
 
     @Bean
-    public RdsInstanceConfigurer instanceConfigurer(){
+    public RdsInstanceConfigurer instanceConfigurer() {
         return new RdsInstanceConfigurer() {
             @Override
         	public DataSourceFactory getDataSourceFactory() {
@@ -1501,7 +1503,7 @@ public class ApplicationConfiguration {
 ----
 
 TIP: This class returns an anonymous class of type `org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer`,
- that class might be of course also a standalone class.
+ which might also of course be a standalone class.
 
 
 === Configuring data source in Spring Boot
@@ -1543,7 +1545,7 @@ outlines all properties for a data source using `test` as the instance identifie
 
 === Read-replica configuration
 Amazon RDS allows to use http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html[MySQL read-replica]
-instances to increase the overall throughput of the database by offloading read data access to a one or many read-replica
+instances to increase the overall throughput of the database by offloading read data access to one or more read-replica
 slaves while maintaining the data in one master database.
 
 Spring Cloud AWS supports the use of read-replicas in combination with Spring read-only transactions. If the read-replica
@@ -1554,7 +1556,7 @@ for write operations.
 ====
 Using read-replica instances does not guarantee strict http://en.wikipedia.org/wiki/ACID[ACID] semantics for the database
 access and should be used with care. This is due to the fact that the read-replica might be behind and a write might not
-be immediately visible to the read transaction. Therefore it is recommended to make only transaction read-only that read
+be immediately visible to the read transaction. Therefore it is recommended to use read-replica instances only for transactions that read
 data which is not changed very often and where outdated data can be handled by the application.
 ====
 
@@ -1606,16 +1608,16 @@ mechanism to recover transactions that fail during a Multi-AZ failover.
 
 [NOTE]
 ====
-In most cases it is better to provide a user direct feedback instead of trying potentially long and often retries within
+In most cases it is better to provide direct feedback to a user instead of trying potentially long and frequent retries within
 a user interaction. Therefore the fail-over support is primarily useful for batch application or applications where the
 responsiveness of a service call is not critical.
 ====
 
 The Spring Cloud AWS JDBC module provides a retry interceptor that can be used to decorate services with an interceptor.
-The interceptor will retry the database operation again if there is a temporary error due to an Multi-AZ failover. A Multi-AZ
+The interceptor will retry the database operation again if there is a temporary error due to a Multi-AZ failover. A Multi-AZ
 failover typically lasts only a couple of seconds, therefore a retry of the business transaction will likely succeed.
 
-The interceptor can be configured as a regular bean and then be used by an pointcut expression to decorate the respective
+The interceptor can be configured as a regular bean and then be used by a pointcut expression to decorate the respective
 method calls with the interceptor. The interceptor must have a configured database to retrieve the current status (if it
 is a temporary fail-over or a permanent error) from the Amazon RDS service.
 
@@ -1655,8 +1657,8 @@ for the service.
 
 image::jdbc-retry-interceptor.png[Retry interceptor]
 
-=== Cloudformation support
-Spring Cloud AWS supports database instance that are configured with CloudFormation. Spring Cloud AWS can use the logical
+=== CloudFormation support
+Spring Cloud AWS supports database instances that are configured with CloudFormation. Spring Cloud AWS can use the logical
 name inside the database configuration and lookup the concrete database with the generated physical resource name. A database
 configuration can be easily configured in CloudFormation with a template definition that might look like the following
 example.
@@ -1688,14 +1690,15 @@ example.
 }
 ----
 
-The database can then be configured using the name set in the template, also the read-replica can
-be enabled to use the configured read replica database in the application. A configuration to use the configured
+The database can then be configured using the name set in the template. Also, the read-replica can
+be enabled to use the configured read-replica database in the application. A configuration to use the configured
 database is outlined below:
 
 [source,xml,indent=0]
 ----
 <beans>
  <aws-context:stack-configuration/>
+
  <jdbc:data-source db-instance-identifier="myRdsDatabase" password="${rdsPassword}" read-replica-support="true"/>
 </beans>
 ----
@@ -1703,7 +1706,7 @@ database is outlined below:
 === Database tags
 Amazon RDS instances can also be configured using RDS database specific tags, allowing users to configure database specific
 configuration metadata with the database. Database instance specific tags can be configured using the `user-tags-map` attribute
-on the `data-source` element. Configuring the tags support like in the example below:
+on the `data-source` element. Configure the tags support like in the example below:
 
 [source,xml,indent=0]
 ----
@@ -1712,7 +1715,7 @@ on the `data-source` element. Configuring the tags support like in the example b
 		password="${rdsPassword}" user-tags-map="dbTags" />
 ----
 
-Allows the developer to access the properties in the code using expressions like shown in the class below:
+That allows the developer to access the properties in the code using expressions like shown in the class below:
 
 [source,java,indent=0]
 ----
@@ -1729,25 +1732,25 @@ The database tag `aws:cloudformation:aws:cloudformation:stack-name` is a default
 database is configured using CloudFormation.
 ====
 
-==Sending mails
+== Sending mails
 Spring has a built-in support to send e-mails based on the http://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API]
-to avoid any static method calls while using the Java Mail API and thus supporting the testability of application.
+to avoid any static method calls while using the Java Mail API and thus supporting the testability of an application.
 Spring Cloud AWS supports the http://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
 
 As a result Spring Cloud AWS users can decide to use the Spring Cloud AWS implementation of the Amazon SES service or
-use the standard Java Mail API based implementation that send e-mails via SMTP to Amazon SES
+use the standard Java Mail API based implementation that sends e-mails via SMTP to Amazon SES.
 
 [TIP]
 ====
-It is preferred to use the Spring Cloud AWS implementation instead of the SMTP mainly for performance reasons.
-Spring Cloud AWS uses one API call to send a mail message, the SMTP protocol makes multiple requests (EHLO, MAIL FROM, RCPT TO, DATA, QUIT)
+It is preferred to use the Spring Cloud AWS implementation instead of SMTP mainly for performance reasons.
+Spring Cloud AWS uses one API call to send a mail message, while the SMTP protocol makes multiple requests (EHLO, MAIL FROM, RCPT TO, DATA, QUIT)
 until it sends an e-mail.
 ====
 
 === Configuring the mail sender
 Spring Cloud AWS provides an XML element to configure a Spring `org.springframework.mail.MailSender` implementation for the
 client to be used. The default mail sender works without a Java Mail dependency and is capable of sending messages without
-attachment as simple mail messages. A configuration with the necessary elements will look like this:
+attachments as simple mail messages. A configuration with the necessary elements will look like this:
 
 
 [source,xml,indent=0]
@@ -1778,7 +1781,7 @@ public class MailSendingService {
 	private MailSender mailSender;
 
 	@Autowired
-	public MailSendingService(MailSender mailSender){
+	public MailSendingService(MailSender mailSender) {
 		this.mailSender = mailSender;
 	}
 
@@ -1795,10 +1798,10 @@ public class MailSendingService {
 
 
 === Sending attachments
-Sending attachments with e-mail protocol requires mime messages to be created and sent. In order to create MimeMessages,
-the Java Mail dependency is required and have to be included into the classpath. Spring Cloud AWS will detect the
+Sending attachments with e-mail requires MIME messages to be created and sent. In order to create MIME messages,
+the Java Mail dependency is required and has to be included in the classpath. Spring Cloud AWS will detect the
 dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows to create and
-build mime messages and send them. A dependency configuration for the Java Mail API is the only change in the configuration
+build MIME messages and send them. A dependency configuration for the Java Mail API is the only change in the configuration
 which is shown below.
 
 [source,xml,indent=0]
@@ -1824,7 +1827,7 @@ messages. There is no http://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-
 on the Amazon AWS side.
 ====
 
-Sending the mail requires the application developer to use the `JavaMailSender` to send an e-mail that is shown in the example
+Sending the mail requires the application developer to use the `JavaMailSender` to send an e-mail as shown in the example
 below.
 
 [source,java,indent=0]
@@ -1834,7 +1837,7 @@ public class MailSendingService {
 	private JavaMailSender mailSender;
 
    	@Autowired
-	public MailSendingService(JavaMailSender mailSender){
+	public MailSendingService(JavaMailSender mailSender) {
 		this.mailSender = mailSender;
 	}
 
@@ -1861,7 +1864,7 @@ Amazon SES is not available in all http://docs.aws.amazon.com/ses/latest/Develop
 Amazon Web Services cloud. Therefore an application hosted and operated in a region that does not support the mail
 service will produce an error while using the mail service. Therefore the region must be overridden for the mail
 sender configuration. The example below shows a typical combination of a region (EU-CENTRAL-1) that does not provide
-an SES service, the client is overridden to us a valid region EU-WEST-1.
+an SES service where the client is overridden to use a valid region (EU-WEST-1).
 
 [source,xml,indent=0]
 ----
@@ -1874,9 +1877,9 @@ an SES service, the client is overridden to us a valid region EU-WEST-1.
 ----
 
 === Authenticating e-mails
-To avoid any spam attacks on the Amazon SES mail service, application without production access must
+To avoid any spam attacks on the Amazon SES mail service, applications without production access must
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each
-e-mail receiver otherwise the mail sender will throw an `com.amazonaws.services.simpleemail.model.MessageRejectedException`.
+e-mail receiver otherwise the mail sender will throw a `com.amazonaws.services.simpleemail.model.MessageRejectedException`.
 
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
 and will disable the need for mail address verification.
@@ -1884,13 +1887,13 @@ and will disable the need for mail address verification.
 == Resource handling
 The Spring Framework provides a `org.springframework.core.io.ResourceLoader` abstraction to load files from the filesystem,
 servlet context and the classpath. Spring Cloud AWS adds support for the http://aws.amazon.com/s3/[Amazon S3] service
-to load and write resources with the resource loader and fa `s3` protocol.
+to load and write resources with the resource loader and the `s3` protocol.
 
 The resource loader is part of the context module, therefore no additional dependencies are necessary to use the resource
 handling support.
 
 === Configuring the resource loader
-Spring Cloud AWS does not modify the default resource loader until an explicit configuration with an XML namespace element.
+Spring Cloud AWS does not modify the default resource loader unless it encounters an explicit configuration with an XML namespace element.
 The configuration consists of one element for the whole application context that is shown below:
 
 [source,xml,indent=0]
@@ -1902,7 +1905,7 @@ The configuration consists of one element for the whole application context that
 
 	<aws-context:context-credentials>
     		...
-    </aws-context:context-credentials>
+        </aws-context:context-credentials>
 
 	<aws-context:context-resource-loader/>
 </beans>
@@ -1935,28 +1938,28 @@ public class SimpleResourceLoadingBean {
 
 === Uploading files
 Since Spring Framework 3.1 the resource loader can also be used to upload files with the `org.springframework.core.io.WritableResource`
-interface which is a specialization of the `rg.springframework.core.io.ResourceLoader` interface. Clients can upload files
-with the use of the `WritableResource` interface. The next example demonstrates an upload of a resource using the resource loader.
+interface which is a specialization of the `org.springframework.core.io.ResourceLoader` interface. Clients can upload files
+using the `WritableResource` interface. The next example demonstrates an upload of a resource using the resource loader.
 
 [source,java,indent=0]
 ----
 public class SimpleResourceLoadingBean {
 
-	@Autowired
-	private ResourceLoader resourceLoader;
+    @Autowired
+    private ResourceLoader resourceLoader;
 
-	public void writeResource() throws IOException {
-    	Resource resource = this.resourceLoader.getResource("s3://myBucket/rootFile.log");
-    	WritableResource writableResource = (WritableResource) resource;
-    	try(OutputStream outputStream = writableResource.getOutputStream()){
-    		outputStream.write("test".getBytes());
-    	}
+    public void writeResource() throws IOException {
+        Resource resource = this.resourceLoader.getResource("s3://myBucket/rootFile.log");
+        WritableResource writableResource = (WritableResource) resource;
+        try (OutputStream outputStream = writableResource.getOutputStream()) {
+            outputStream.write("test".getBytes());
+        }
     }
 }
 ----
 
 ==== Uploading multi-part files
-Amazon S3 supports the upload with http://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html[multi-parts] to
+Amazon S3 supports http://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html[multi-part uploads] to
 increase the general throughput while uploading. Spring Cloud AWS by default only uses one thread to upload the files and
 therefore does not provide parallel upload support. Users can configure a custom `org.springframework.core.task.TaskExecutor`
 for the resource loader. The resource loader will queue multiple threads at the same time to use parallel multi-part uploads.
@@ -1973,16 +1976,16 @@ The configuration for a resource loader that uploads with 10 Threads looks like 
 
 [WARNING]
 ====
-Spring Cloud AWS consumes up to 5 MB (the minimum part size) of memory per thread. Therefore each parallel thread will incur
-a memory footprint of 5 MB in the heap, a thread size of 10 will consume therefore up to 50 mb of heap space. Spring Cloud
-AWS releases the memory as soon as possible. Also the example above shows that there is no `queue-capacity` configured,
+Spring Cloud AWS consumes up to 5 MB (at a minimum) of memory per thread. Therefore each parallel thread will incur
+a memory footprint of 5 MB in the heap, and a thread size of 10 will consume therefore up to 50 mb of heap space. Spring Cloud
+AWS releases the memory as soon as possible. Also, the example above shows that there is no `queue-capacity` configured,
 because queued requests would also consume memory.
 ====
 
 ==== Uploading with the TransferManager
 The Amazon SDK also provides a high-level abstraction that is useful to upload files, also with multiple threads using
 the multi-part functionality. A `com.amazonaws.services.s3.transfer.TransferManager` can be easily created in the application
-code and injected with the already pre-configured `com.amazonaws.services.s3.AmazonS3` client that is already created
+code and injected with the pre-configured `com.amazonaws.services.s3.AmazonS3` client that is already created
 with the Spring Cloud AWS resource loader configuration.
 
 This example shows the use of the `transferManager` within an application to upload files from the hard-drive.
@@ -1994,8 +1997,7 @@ public class SimpleResourceLoadingBean {
 	@Autowired
 	private AmazonS3 amazonS3;
 
-
-	public void withTransferManager(){
+	public void withTransferManager() {
 		TransferManager transferManager = new TransferManager(this.amazonS3);
 		transferManager.upload("myBucket","filename",new File("someFile"));
 	}
@@ -2003,7 +2005,7 @@ public class SimpleResourceLoadingBean {
 ----
 
 === Searching resources
-The Spring resource loader also supports collecting resources based on an ANT-style path specification. Spring Cloud AWS
+The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
 offers the same support to resolve resources within a bucket and even throughout buckets. The next example shows the resource
 resolution by using different patterns.
 
@@ -2024,7 +2026,7 @@ public class SimpleResourceLoadingBean {
 
 [WARNING]
 ====
-Resolving resources throughout all buckets can be very time consuming based on the number of buckets a user owns.
+Resolving resources throughout all buckets can be very time consuming depending on the number of buckets a user owns.
 ====
 
 === Using CloudFormation
