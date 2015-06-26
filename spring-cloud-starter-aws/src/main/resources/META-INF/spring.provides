@@ -1,0 +1,1 @@
+provides: spring-cloud-aws-context, spring-cloud-aws-autoconfigure
