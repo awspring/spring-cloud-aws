@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.springframework.mail.MailParseException;
+import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -233,7 +234,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			//expected due to empty mail message
 			assertEquals(1, e.getFailedMessages().size());
 			//noinspection ThrowableResultOfMethodCallIgnored
-			assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailParseException);
+			assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailPreparationException);
 		}
 
 		MimeMessage failureMessage = null;
