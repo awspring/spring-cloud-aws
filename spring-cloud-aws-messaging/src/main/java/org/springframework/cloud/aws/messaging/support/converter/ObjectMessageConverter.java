@@ -58,6 +58,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		String messagePayload = message.getPayload().toString();
@@ -89,6 +90,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 		return result;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public Object convertToInternal(Object payload, MessageHeaders headers) {
 		if (!(payload instanceof Serializable)) {
