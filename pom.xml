@@ -310,7 +310,7 @@
 
 	<properties>
         <bintray.package>aws</bintray.package>
-		<aws-java-sdk.version>1.9.39</aws-java-sdk.version>
+		<aws-java-sdk.version>1.10.7</aws-java-sdk.version>
 		<jmemcached.version>1.0.0</jmemcached.version>
 		<spring-retry.version>1.1.2.RELEASE</spring-retry.version>
 	</properties>
