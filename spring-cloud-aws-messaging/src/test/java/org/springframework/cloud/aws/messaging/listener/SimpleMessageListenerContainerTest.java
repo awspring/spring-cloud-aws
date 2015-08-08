@@ -131,7 +131,6 @@ public class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
@@ -592,6 +591,49 @@ public class SimpleMessageListenerContainerTest {
 
 		// Act & Assert
 		container.stop();
+	}
+
+	@Test
+	public void receiveMessage_throwsAnException_operationShouldBeRetried() throws Exception {
+		// Arrange
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+		when(amazonSqs.receiveMessage(any(ReceiveMessageRequest.class))).thenThrow(new RuntimeException("Boom!"))
+				.thenReturn(new ReceiveMessageResult()
+						.withMessages(new Message().withBody("messageContent"),
+								new Message().withBody("messageContent")));
+
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+
+			@Override
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
+				countDownLatch.countDown();
+				assertEquals("messageContent", message.getPayload());
+			}
+		};
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		messageHandler.setApplicationContext(applicationContext);
+
+		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("testQueue"))).thenReturn(new GetQueueUrlResult().
+				withQueueUrl("http://testQueue.amazonaws.com"));
+		messageHandler.afterPropertiesSet();
+
+		when(amazonSqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setBackOffTime(0);
+		container.setAmazonSqs(amazonSqs);
+		container.setMessageHandler(messageHandler);
+		container.setAutoStartup(false);
+		container.afterPropertiesSet();
+
+		// Act
+		container.start();
+
+		// Assert
+		assertTrue(countDownLatch.await(1, TimeUnit.SECONDS));
 	}
 
 	private static class TestMessageListener {

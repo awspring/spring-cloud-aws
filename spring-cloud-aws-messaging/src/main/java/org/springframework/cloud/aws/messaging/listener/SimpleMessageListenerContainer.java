@@ -48,6 +48,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	private boolean defaultTaskExecutor;
 	private boolean deleteMessageOnException = true;
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleMessageListenerContainer.class);
+	private long backOffTime = 10000;
 
 	protected TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
@@ -63,6 +64,25 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	public void setDeleteMessageOnException(boolean deleteMessageOnException) {
 		this.deleteMessageOnException = deleteMessageOnException;
+	}
+
+	/**
+	 * @return The number of milliseconds the polling thread must wait before trying to recover when an error occurs
+	 * (e.g. connection timeout)
+	 */
+	public long getBackOffTime() {
+		return this.backOffTime;
+	}
+
+	/**
+	 * The number of milliseconds the polling thread must wait before trying to recover when an error occurs
+	 * (e.g. connection timeout)
+	 *
+	 * @param backOffTime
+	 * 		in milliseconds
+	 */
+	public void setBackOffTime(long backOffTime) {
+		this.backOffTime = backOffTime;
 	}
 
 	@Override
@@ -153,20 +173,31 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		@Override
 		public void run() {
 			while (isRunning()) {
-				ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.queueAttributes.getReceiveMessageRequest());
-				CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
-				for (Message message : receiveMessageResult.getMessages()) {
-					if (isRunning()) {
-						MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.queueAttributes);
-						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
-					} else {
-						messageBatchLatch.countDown();
-					}
-				}
 				try {
-					messageBatchLatch.await();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
+					ReceiveMessageResult receiveMessageResult = getAmazonSqs().receiveMessage(this.queueAttributes.getReceiveMessageRequest());
+					CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
+					for (Message message : receiveMessageResult.getMessages()) {
+						if (isRunning()) {
+							MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message, this.queueAttributes);
+							getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
+						} else {
+							messageBatchLatch.countDown();
+						}
+					}
+					try {
+						messageBatchLatch.await();
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				} catch (Exception e) {
+					getLogger().warn("An Exception occurred while pooling queue '{}'. The failing operation will be " +
+							"retried in {} milliseconds", this.logicalQueueName, getBackOffTime(), e);
+					try {
+						//noinspection BusyWait
+						Thread.sleep(getBackOffTime());
+					} catch (InterruptedException ie) {
+						Thread.currentThread().interrupt();
+					}
 				}
 			}
 		}
@@ -199,7 +230,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				if (!this.hasRedrivePolicy && SimpleMessageListenerContainer.this.isDeleteMessageOnException()) {
 					getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
 				}
-
 			}
 		}
 	}
