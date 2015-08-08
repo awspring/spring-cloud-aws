@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(SqsConfiguration.class)
+@Import({SqsClientConfiguration.class, SqsConfiguration.class})
 public @interface EnableSqs {
 
 }

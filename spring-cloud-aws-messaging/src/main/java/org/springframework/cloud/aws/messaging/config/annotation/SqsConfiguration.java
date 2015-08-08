@@ -16,17 +16,12 @@
 
 package org.springframework.cloud.aws.messaging.config.annotation;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
-import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
@@ -34,7 +29,6 @@ import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerCon
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Alain Sahli
@@ -46,12 +40,6 @@ public class SqsConfiguration {
 
 	@Autowired
 	public BeanFactory beanFactory;
-
-	@Autowired(required = false)
-	private AWSCredentialsProvider awsCredentialsProvider;
-
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
 
 	@Autowired(required = false)
 	private ResourceIdResolver resourceIdResolver;
@@ -93,23 +81,5 @@ public class SqsConfiguration {
 		this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
 
 		return this.queueMessageHandlerFactory.createQueueMessageHandler();
-	}
-
-	@Lazy
-	@Bean(destroyMethod = "shutdown")
-	@ConditionalOnMissingAmazonClient(AmazonSQS.class)
-	public AmazonSQSAsync amazonSQS() {
-		AmazonSQSAsyncClient amazonSQSAsyncClient;
-		if (this.awsCredentialsProvider != null) {
-			amazonSQSAsyncClient = new AmazonSQSAsyncClient(this.awsCredentialsProvider);
-		} else {
-			amazonSQSAsyncClient = new AmazonSQSAsyncClient();
-		}
-
-		if (this.regionProvider != null) {
-			amazonSQSAsyncClient.setRegion(this.regionProvider.getRegion());
-		}
-
-		return new AmazonSQSBufferedAsyncClient(amazonSQSAsyncClient);
 	}
 }
