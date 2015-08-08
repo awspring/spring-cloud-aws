@@ -964,7 +964,7 @@ the `DestinationResolvingMessageSendingOperations` interface.
 
 [source,xml,indent=0]
 ----
-<aws-messaging:annotation-driven-queue-listener annotation-driven-queue-listener="queueMessagingTemplate"/>
+<aws-messaging:annotation-driven-queue-listener send-to-message-template="queueMessagingTemplate"/>
 ----
 
 [source,java,indent=0]
@@ -978,9 +978,26 @@ public List<Leaf> extractLeafs(Tree tree) {
 
 In this example the `extractLeafs` method will receive messages coming from the `treeQueue` and then return a
 `List` of ``Leaf``s which is going to be sent to the `leafsQueue`. Note that on the
-`aws-messaging:annotation-driven-queue-listener` XML element there is an attribute `annotation-driven-queue-listener`
+`aws-messaging:annotation-driven-queue-listener` XML element there is an attribute `send-to-message-template`
 that specifies `QueueMessagingTemplate` as the messaging template to be used to send the return value of the message
 listener method.
+
+==== The SimpleMessageListenerContainerFactory
+The `SimpleMessageListenerContainer` can also be configured with Java by creating a bean of type `SimpleMessageListenerContainerFactory`.
+
+[source,java,indent=0]
+----
+@Bean
+public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(AmazonSQSAsync amazonSqs) {
+	SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+	factory.setAmazonSqs(amazonSqs);
+	factory.setAutoStartup(false);
+	factory.setMaxNumberOfMessages(5);
+	// ...
+
+	return factory;
+}
+----
 
 === SNS support
 Amazon SNS is a publish-subscribe messaging system that allows clients to publish notification to a particular topic. Other
