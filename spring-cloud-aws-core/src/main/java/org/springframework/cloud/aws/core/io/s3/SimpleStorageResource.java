@@ -181,7 +181,8 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 				}
 				this.objectMetadata = this.amazonS3.getObjectMetadata(metadataRequest);
 			} catch (AmazonS3Exception e) {
-				if (e.getStatusCode() == 404) {
+				// Catch 404 (object not found) and 301 (bucket not found, moved permanently)
+				if (e.getStatusCode() == 404 || e.getStatusCode() == 301) {
 					this.objectMetadata = null;
 				} else {
 					throw e;

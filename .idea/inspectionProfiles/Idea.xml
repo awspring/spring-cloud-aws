@@ -3,7 +3,9 @@
     <option name="myName" value="Idea" />
     <option name="myLocal" value="false" />
     <inspection_tool class="AbstractClassNeverImplemented" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="AbstractClassWithoutAbstractMethods" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="AbstractClassWithoutAbstractMethods" enabled="true" level="INFO" enabled_by_default="false">
+      <scope name="Production" level="WARNING" enabled="true" />
+    </inspection_tool>
     <inspection_tool class="AbstractMethodCallInConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AbstractMethodOverridesConcreteMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AccessToNonThreadSafeStaticFieldFromInstance" enabled="true" level="WARNING" enabled_by_default="true">

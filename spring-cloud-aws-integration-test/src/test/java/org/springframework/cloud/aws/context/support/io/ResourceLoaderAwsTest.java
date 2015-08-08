@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -141,6 +142,19 @@ public abstract class ResourceLoaderAwsTest {
 		this.createdObjects.add("test-file.jpg");
 	}
 
+	@Test
+	public void exists_withNonExistingObject_shouldReturnFalse() throws Exception {
+		// Arrange
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+
+		// Act & Assert
+		assertFalse(this.resourceLoader.getResource(S3_PREFIX + bucketName + "/dummy-file.txt").exists());
+	}
+
+	@Test
+	public void exists_withNonExistingBucket_shouldReturnFalse() throws Exception {
+		assertFalse(this.resourceLoader.getResource(S3_PREFIX + "dummy-bucket/dummy-file.txt").exists());
+	}
 
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
 	@After
