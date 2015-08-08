@@ -43,7 +43,8 @@ import java.util.Map;
 @Configuration
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
-@ConditionalOnClass(name = "com.amazonaws.services.rds.AmazonRDSClient")
+@ConditionalOnClass(name = {"com.amazonaws.services.rds.AmazonRDSClient",
+		"org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration"})
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
 public class AmazonRdsDatabaseAutoConfiguration {
 
