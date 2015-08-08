@@ -125,9 +125,9 @@ public class SqsConfigurationTest {
 		assertEquals(ConfigurationWithCustomContainerFactory.TASK_EXECUTOR, ReflectionTestUtils.getField(container, "taskExecutor"));
 		assertEquals(ConfigurationWithCustomContainerFactory.VISIBILITY_TIMEOUT, ReflectionTestUtils.getField(container, "visibilityTimeout"));
 		assertEquals(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT, ReflectionTestUtils.getField(container, "waitTimeOut"));
-
-		assertEquals(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER, ReflectionTestUtils.getField(container, "destinationResolver"));
+		assertTrue(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils.getField(container, "destinationResolver"));
 		assertEquals(ConfigurationWithCustomContainerFactory.DELETE_MESSAGE_ON_EXCEPTION, ReflectionTestUtils.getField(container, "deleteMessageOnException"));
+		assertEquals(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME, container.getBackOffTime());
 	}
 
 	@Test
@@ -138,7 +138,7 @@ public class SqsConfigurationTest {
 
 		// Assert
 		assertEquals(1, queueMessageHandler.getReturnValueHandlers().size());
-		assertEquals(ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE,
+		assertTrue(ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE ==
 				ReflectionTestUtils.getField(queueMessageHandler.getReturnValueHandlers().get(0), "messageTemplate"));
 	}
 
@@ -240,6 +240,7 @@ public class SqsConfigurationTest {
 		public static final int WAIT_TIME_OUT = 12;
 		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQS.class));
 		public static final Boolean DELETE_MESSAGE_ON_EXCEPTION = false;
+		public static final long BACK_OFF_TIME = 5000;
 
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -260,6 +261,7 @@ public class SqsConfigurationTest {
 			factory.setWaitTimeOut(WAIT_TIME_OUT);
 			factory.setDestinationResolver(DESTINATION_RESOLVER);
 			factory.setDeleteMessageOnException(DELETE_MESSAGE_ON_EXCEPTION);
+			factory.setBackOffTime(BACK_OFF_TIME);
 
 			return factory;
 		}

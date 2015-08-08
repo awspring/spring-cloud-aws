@@ -51,13 +51,15 @@ public class SimpleMessageListenerContainerFactory {
 
 	private Boolean deleteMessageOnException;
 
+	private Long backOffTime;
+
 	/**
-	 * Configures the {@link org.springframework.core.task.TaskExecutor} which is used to poll messages and execute them
+	 * Configures the {@link TaskExecutor} which is used to poll messages and execute them
 	 * by calling the handler methods.
-	 * If no {@link org.springframework.core.task.TaskExecutor} is set, a default one is created.
+	 * If no {@link TaskExecutor} is set, a default one is created.
 	 *
 	 * @param taskExecutor
-	 * 		The {@link org.springframework.core.task.TaskExecutor} used by the container
+	 * 		The {@link TaskExecutor} used by the container
 	 * @see SimpleMessageListenerContainer#createDefaultTaskExecutor()
 	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -110,11 +112,11 @@ public class SimpleMessageListenerContainerFactory {
 	}
 
 	/**
-	 * Sets the {@link com.amazonaws.services.sqs.AmazonSQSAsync} that is going to be used by the container to interact
+	 * Sets the {@link AmazonSQSAsync} that is going to be used by the container to interact
 	 * with the messaging (SQS) API.
 	 *
 	 * @param amazonSqs
-	 * 		The {@link com.amazonaws.services.sqs.AmazonSQSAsync}, must not be {@code null}.
+	 * 		The {@link AmazonSQSAsync}, must not be {@code null}.
 	 */
 	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
 		Assert.notNull(amazonSqs, "amazonSqs must not be null");
@@ -126,17 +128,17 @@ public class SimpleMessageListenerContainerFactory {
 	}
 
 	/**
-	 * Configures the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} that must be used
+	 * Configures the {@link QueueMessageHandler} that must be used
 	 * to handle incoming messages.
-	 * <p><b>NOTE</b>: It is rather unlikely that the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler}
+	 * <p><b>NOTE</b>: It is rather unlikely that the {@link QueueMessageHandler}
 	 * must be configured with this setter. Consider using the
-	 * {@link org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory} to configure the
-	 * {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} before using this setter.</p>
+	 * {@link QueueMessageHandlerFactory} to configure the
+	 * {@link QueueMessageHandler} before using this setter.</p>
 	 *
 	 * @param messageHandler
-	 * 		the {@link org.springframework.cloud.aws.messaging.listener.QueueMessageHandler} that must be used by the
+	 * 		the {@link QueueMessageHandler} that must be used by the
 	 * 		container, must not be {@code null}.
-	 * @see org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory
+	 * @see QueueMessageHandlerFactory
 	 */
 	public void setQueueMessageHandler(QueueMessageHandler messageHandler) {
 		Assert.notNull(messageHandler, "messageHandler must not be null");
@@ -165,12 +167,12 @@ public class SimpleMessageListenerContainerFactory {
 	/**
 	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
 	 * this instance. <br/>
-	 * This setter can be used when a custom configured {@link org.springframework.messaging.core.DestinationResolver}
+	 * This setter can be used when a custom configured {@link DestinationResolver}
 	 * must be provided. (For example if one want to have the {@link org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver}
 	 * with the auto creation of queues set to {@code true}.
 	 *
 	 * @param destinationResolver
-	 * 		another or customized {@link org.springframework.messaging.core.DestinationResolver}
+	 * 		another or customized {@link DestinationResolver}
 	 */
 	public void setDestinationResolver(DestinationResolver<String> destinationResolver) {
 		this.destinationResolver = destinationResolver;
@@ -188,6 +190,25 @@ public class SimpleMessageListenerContainerFactory {
 	 */
 	public void setDeleteMessageOnException(Boolean deleteMessageOnException) {
 		this.deleteMessageOnException = deleteMessageOnException;
+	}
+
+	/**
+	 * @return The number of milliseconds the polling thread must wait before trying to recover when an error occurs
+	 * (e.g. connection timeout)
+	 */
+	public Long getBackOffTime() {
+		return this.backOffTime;
+	}
+
+	/**
+	 * The number of milliseconds the polling thread must wait before trying to recover when an error occurs
+	 * (e.g. connection timeout). Default value is 10000 milliseconds.
+	 *
+	 * @param backOffTime
+	 * 		in milliseconds
+	 */
+	public void setBackOffTime(Long backOffTime) {
+		this.backOffTime = backOffTime;
 	}
 
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {
@@ -217,6 +238,9 @@ public class SimpleMessageListenerContainerFactory {
 		}
 		if (this.deleteMessageOnException != null) {
 			simpleMessageListenerContainer.setDeleteMessageOnException(this.deleteMessageOnException);
+		}
+		if (this.backOffTime != null) {
+			simpleMessageListenerContainer.setBackOffTime(this.backOffTime);
 		}
 
 		return simpleMessageListenerContainer;

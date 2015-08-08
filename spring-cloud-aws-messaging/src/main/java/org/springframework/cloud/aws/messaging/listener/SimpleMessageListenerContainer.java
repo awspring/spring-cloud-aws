@@ -76,7 +76,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	/**
 	 * The number of milliseconds the polling thread must wait before trying to recover when an error occurs
-	 * (e.g. connection timeout)
+	 * (e.g. connection timeout). Default is 10000 milliseconds.
 	 *
 	 * @param backOffTime
 	 * 		in milliseconds
