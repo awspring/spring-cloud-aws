@@ -57,7 +57,7 @@ public class MailSenderAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingClass("org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
+	@ConditionalOnMissingClass(name = "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
 	public MailSender simpleMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
 		return new SimpleEmailServiceMailSender(amazonSimpleEmailService);
 	}
