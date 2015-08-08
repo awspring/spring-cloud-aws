@@ -42,6 +42,7 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -490,4 +491,47 @@ public class QueueMessageChannelTest {
 		assertEquals(headerValue, receivedMessage.getHeaders().get(headerName));
 	}
 
+	@Test
+	public void sendMessage_withUuidAsId_shouldConvertUuidToString() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").build();
+		UUID uuid = (UUID) message.getHeaders().get(MessageHeaders.ID);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertTrue(sent);
+		assertEquals(uuid.toString(), sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(MessageHeaders.ID).getStringValue());
+	}
+
+	@Test
+	public void receiveMessage_withIdOfTypeString_IdShouldBeConvertedToUuid() throws Exception {
+		// Arrange
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		UUID uuid = UUID.randomUUID();
+		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
+				withWaitTimeSeconds(0).
+				withMaxNumberOfMessages(1).
+				withAttributeNames(QueueMessageChannel.ATTRIBUTE_NAMES).
+				withMessageAttributeNames("All"))).
+				thenReturn(new ReceiveMessageResult().withMessages(new com.amazonaws.services.sqs.model.Message().withBody("Hello").
+						withMessageAttributes(Collections.singletonMap(MessageHeaders.ID,
+								new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING).withStringValue(uuid.toString())))));
+
+		PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Act
+		Message<?> receivedMessage = messageChannel.receive();
+
+		// Assert
+		Object idMessageHeader = receivedMessage.getHeaders().get(MessageHeaders.ID);
+		assertTrue(UUID.class.isInstance(idMessageHeader));
+		assertEquals(uuid, idMessageHeader);
+	}
 }

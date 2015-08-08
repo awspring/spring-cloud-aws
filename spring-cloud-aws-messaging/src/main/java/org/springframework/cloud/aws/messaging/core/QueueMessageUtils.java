@@ -27,6 +27,7 @@ import org.springframework.util.NumberUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Alain Sahli
@@ -54,7 +55,7 @@ public final class QueueMessageUtils {
 		messageHeaders.putAll(getAttributesAsMessageHeaders(message));
 		messageHeaders.putAll(getMessageAttributesAsMessageHeaders(message));
 
-		return new GenericMessage<>(message.getBody(), messageHeaders);
+		return new GenericMessage<>(message.getBody(), new SqsMessageHeaders(messageHeaders));
 	}
 
 	private static Map<String, Object> getAttributesAsMessageHeaders(com.amazonaws.services.sqs.model.Message message) {
@@ -70,8 +71,9 @@ public final class QueueMessageUtils {
 		Map<String, Object> messageHeaders = new HashMap<>();
 		for (Map.Entry<String, MessageAttributeValue> messageAttribute : message.getMessageAttributes().entrySet()) {
 			if (MessageHeaders.CONTENT_TYPE.equals(messageAttribute.getKey())) {
-				messageHeaders.put(MessageHeaders.CONTENT_TYPE,
-						MimeType.valueOf(message.getMessageAttributes().get(MessageHeaders.CONTENT_TYPE).getStringValue()));
+				messageHeaders.put(MessageHeaders.CONTENT_TYPE, MimeType.valueOf(messageAttribute.getValue().getStringValue()));
+			} else if (MessageHeaders.ID.equals(messageAttribute.getKey())) {
+				messageHeaders.put(MessageHeaders.ID, UUID.fromString(messageAttribute.getValue().getStringValue()));
 			} else if (MessageAttributeDataTypes.STRING.equals(messageAttribute.getValue().getDataType())) {
 				messageHeaders.put(messageAttribute.getKey(), messageAttribute.getValue().getStringValue());
 			} else if (messageAttribute.getValue().getDataType().startsWith(MessageAttributeDataTypes.NUMBER)) {

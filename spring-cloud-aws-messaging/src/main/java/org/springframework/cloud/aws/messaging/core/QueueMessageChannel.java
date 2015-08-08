@@ -79,6 +79,8 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 
 			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
+			} else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
+				messageAttributes.put(messageHeaderName, getStringMessageAttribute(messageHeaderValue.toString()));
 			} else if (messageHeaderValue instanceof String) {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));
 			} else if (messageHeaderValue instanceof Number) {
