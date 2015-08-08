@@ -16,117 +16,106 @@
 
 package org.springframework.cloud.aws.context.support.io;
 
+import com.amazonaws.services.s3.AmazonS3;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.springframework.beans.factory.support.BeanDefinitionReaderUtils.generateBeanName;
 
 /**
  *
  */
-public class ResourceLoaderTest {
-
+public class ResourceLoaderTestBeanPostProcessorTest {
 
 	@Test
-	public void testInjectionForFields() throws Exception {
-
+	public void postProcessBeans_beanWithFieldInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+		//Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		configureApplicationContext(staticApplicationContext);
 
-		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinition.addConstructorArgValue(resourceLoader);
-
-		staticApplicationContext.registerBeanDefinition("beanPostProcessor", beanDefinition.getBeanDefinition());
 		staticApplicationContext.registerSingleton("client", FieldInjectionTarget.class);
 		staticApplicationContext.refresh();
 
+		//Act
 		FieldInjectionTarget fieldInjectionTarget = staticApplicationContext.getBean(FieldInjectionTarget.class);
 
+		//Assert
 		assertNotNull(fieldInjectionTarget.getResourceLoader());
-		Resource resourceLoaderResource = fieldInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		assertSame(resource, resourceLoaderResource);
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(fieldInjectionTarget.getResourceLoader()));
 	}
 
 	@Test
-	public void testInjectionForMethods() throws Exception {
-
+	public void postProcessBeans_beanWithMethodInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+		//Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		configureApplicationContext(staticApplicationContext);
 
-		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinition.addConstructorArgValue(resourceLoader);
-
-		staticApplicationContext.registerBeanDefinition("beanPostProcessor", beanDefinition.getBeanDefinition());
 		staticApplicationContext.registerSingleton("client", MethodInjectionTarget.class);
+
 		staticApplicationContext.refresh();
 
+		//Act
 		MethodInjectionTarget methodInjectionTarget = staticApplicationContext.getBean(MethodInjectionTarget.class);
 
+		//Assert
 		assertNotNull(methodInjectionTarget.getResourceLoader());
-		Resource resourceLoaderResource = methodInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		assertSame(resource, resourceLoaderResource);
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(methodInjectionTarget.getResourceLoader()));
 	}
 
 	@Test
-	public void testInjectionForConstructor() throws Exception {
-
+	public void postProcessBeans_beanWithConstructorInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+		//Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		configureApplicationContext(staticApplicationContext);
 
-		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinition.addConstructorArgValue(resourceLoader);
-
-		staticApplicationContext.registerBeanDefinition("beanPostProcessor", beanDefinition.getBeanDefinition());
 		staticApplicationContext.registerSingleton("client", ConstructorInjectionTarget.class);
 		staticApplicationContext.refresh();
 
+		//Act
 		ConstructorInjectionTarget constructorInjectionTarget = staticApplicationContext.getBean(ConstructorInjectionTarget.class);
 
+		//Assert
 		assertNotNull(constructorInjectionTarget.getResourceLoader());
-		Resource resourceLoaderResource = constructorInjectionTarget.getResourceLoader().getResource("s3://bucket/object");
-		assertSame(resource, resourceLoaderResource);
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(constructorInjectionTarget.getResourceLoader()));
 	}
 
 	@Test
-	public void testResourceLoaderAwareBean() throws Exception {
+	public void postProcessBeans_beanWithResourceLoaderAwareInterface_receivesSimpleStorageResourceLoader() throws Exception {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
-		ResourceLoader resourceLoader = mock(ResourceLoader.class);
-		Resource resource = mock(Resource.class);
-		when(resourceLoader.getResource("s3://bucket/object")).thenReturn(resource);
+		configureApplicationContext(staticApplicationContext);
 
-		BeanDefinitionBuilder beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-		beanDefinition.addConstructorArgValue(resourceLoader);
-
-		staticApplicationContext.registerBeanDefinition("beanPostProcessor", beanDefinition.getBeanDefinition());
 		staticApplicationContext.registerSingleton("client", ResourceLoaderAwareBean.class);
 		staticApplicationContext.refresh();
 
 		ResourceLoaderAwareBean resourceLoaderAwareBean = staticApplicationContext.getBean(ResourceLoaderAwareBean.class);
 		assertNotNull(resourceLoaderAwareBean.getResourceLoader());
-		Resource resourceLoaderResource = resourceLoaderAwareBean.getResourceLoader().getResource("s3://bucket/object");
-		assertSame(resource, resourceLoaderResource);
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+	}
+
+	private static void configureApplicationContext(StaticApplicationContext staticApplicationContext) {
+		AmazonS3 amazonS3Mock = mock(AmazonS3.class);
+
+		AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
+		builder.addConstructorArgValue(amazonS3Mock);
+		AbstractBeanDefinition definition = builder.getBeanDefinition();
+
+		staticApplicationContext.registerBeanDefinition(generateBeanName(definition, staticApplicationContext), definition);
 	}
 
 	private static final class FieldInjectionTarget {

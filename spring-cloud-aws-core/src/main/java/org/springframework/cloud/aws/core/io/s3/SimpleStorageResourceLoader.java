@@ -42,6 +42,11 @@ public class SimpleStorageResourceLoader implements ResourceLoader, Initializing
 	 */
 	private TaskExecutor taskExecutor;
 
+	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ResourceLoader delegate) {
+		this.amazonS3 = amazonS3;
+		this.delegate = delegate;
+	}
+
 	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
 		this.amazonS3 = amazonS3;
 		this.delegate = new DefaultResourceLoader(classLoader);

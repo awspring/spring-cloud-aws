@@ -23,13 +23,11 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Matchers;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.PathMatcher;
 
 import java.io.IOException;
@@ -38,10 +36,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -102,22 +98,13 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 	}
 
 	@Test
-	public void testWithCustomClassLoader() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-
-		assertSame(ClassUtils.getDefaultClassLoader(), new PathMatchingSimpleStorageResourcePatternResolver(amazonS3).getClassLoader());
-
-
-		ClassLoader classLoader = mock(ClassLoader.class);
-		assertSame(classLoader, new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, classLoader).getClassLoader());
-	}
-
-	@Test
 	public void testWithCustomPathMatcher() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		PathMatcher pathMatcher = mock(PathMatcher.class);
 
-		PathMatchingSimpleStorageResourcePatternResolver patternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3);
+		PathMatchingSimpleStorageResourcePatternResolver patternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3,
+				new SimpleStorageResourceLoader(amazonS3),
+				new PathMatchingResourcePatternResolver());
 		patternResolver.setPathMatcher(pathMatcher);
 
 		patternResolver.getResources("s3://foo/bar");
@@ -254,7 +241,8 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 	}
 
 	private ResourcePatternResolver getResourceLoader(AmazonS3 amazonS3) {
-		return new PathMatchingSimpleStorageResourcePatternResolver(amazonS3);
+		return new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, new SimpleStorageResourceLoader(amazonS3),
+				new PathMatchingResourcePatternResolver());
 	}
 
 	private static class ListObjectsRequestMatcher extends ArgumentMatcher<ListObjectsRequest> {

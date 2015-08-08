@@ -17,7 +17,6 @@
 package org.springframework.cloud.aws.context.config.xml;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -39,44 +38,26 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
 public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String RESOURCE_LOADER_CLASS_NAME = "org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader";
-	private static final String RESOURCE_RESOLVER_CLASS_NAME = "org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver";
 	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
 	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor";
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
-		builder.addConstructorArgValue(getResourceLoaderBeanDefinition(element, parserContext));
 
-		registerPostProcessor(parserContext);
+		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
+					element.getAttribute("task-executor"));
+		}
 	}
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return RESOURCE_RESOLVER_CLASS_NAME;
+		return BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), false);
 	}
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return RESOURCE_RESOLVER_CLASS_NAME;
-	}
-
-	private static BeanDefinition getResourceLoaderBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_CLASS_NAME);
-		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
-
-		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"), element.getAttribute("task-executor"));
-		}
-
-		return builder.getBeanDefinition();
-	}
-
-	private static void registerPostProcessor(ParserContext parserContext) {
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(RESOURCE_LOADER_BEAN_POST_PROCESSOR);
-		beanDefinitionBuilder.addConstructorArgReference(RESOURCE_RESOLVER_CLASS_NAME);
-
-		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), parserContext.getRegistry());
+		return RESOURCE_LOADER_BEAN_POST_PROCESSOR;
 	}
 }

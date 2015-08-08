@@ -24,8 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -44,22 +42,13 @@ public class ContextResourceLoaderConfiguration {
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
 
-			BeanDefinitionBuilder resolver = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageResourceLoader.class);
-			resolver.addConstructorArgReference(client.getBeanName());
+			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
+			beanDefinitionBuilder.addConstructorArgReference(client.getBeanName());
 
 			BeanDefinition taskExecutor = getTaskExecutorDefinition();
 			if (taskExecutor != null) {
-				resolver.addPropertyValue("taskExecutor", taskExecutor);
+				beanDefinitionBuilder.addPropertyValue("taskExecutor", taskExecutor);
 			}
-
-			BeanDefinitionBuilder pathMatcher = BeanDefinitionBuilder.genericBeanDefinition(PathMatchingSimpleStorageResourcePatternResolver.class);
-			pathMatcher.addConstructorArgReference(client.getBeanName());
-			pathMatcher.addConstructorArgValue(resolver.getBeanDefinition());
-
-			String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(pathMatcher.getBeanDefinition(), registry);
-
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-			beanDefinitionBuilder.addConstructorArgReference(resolverBeanName);
 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
 		}

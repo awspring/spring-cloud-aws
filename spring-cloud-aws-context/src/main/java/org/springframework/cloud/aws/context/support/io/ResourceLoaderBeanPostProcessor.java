@@ -16,12 +16,19 @@
 
 package org.springframework.cloud.aws.context.support.io;
 
+import com.amazonaws.services.s3.AmazonS3;
+import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.task.TaskExecutor;
 
 /**
  * {@link BeanPostProcessor} and {@link BeanFactoryPostProcessor} implementation that allows classes to receive
@@ -32,12 +39,18 @@ import org.springframework.core.io.ResourceLoader;
  * @author Alain Sahli
  * @since 1.0
  */
-public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, BeanFactoryPostProcessor {
+public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, BeanFactoryPostProcessor, Ordered, ResourceLoaderAware {
 
-	private final ResourceLoader resourceLoader;
+	private final AmazonS3 amazonS3;
+	private ResourceLoader resourceLoader;
+	private TaskExecutor executor;
 
-	public ResourceLoaderBeanPostProcessor(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
+	public ResourceLoaderBeanPostProcessor(AmazonS3 amazonS3) {
+		this.amazonS3 = amazonS3;
+	}
+
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.executor = taskExecutor;
 	}
 
 	@Override
@@ -55,6 +68,31 @@ public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, BeanF
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(this.amazonS3, this.resourceLoader);
+		if (this.executor != null) {
+			simpleStorageResourceLoader.setTaskExecutor(this.executor);
+		}
+
+		try {
+			simpleStorageResourceLoader.afterPropertiesSet();
+		} catch (Exception e) {
+			throw new BeanInstantiationException(SimpleStorageResourceLoader.class, "Error instantiating class", e);
+		}
+
+		this.resourceLoader = new PathMatchingSimpleStorageResourcePatternResolver(this.amazonS3,
+				simpleStorageResourceLoader, (ResourcePatternResolver) this.resourceLoader);
+
+
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this.resourceLoader);
+	}
+
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE;
+	}
+
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
 	}
 }

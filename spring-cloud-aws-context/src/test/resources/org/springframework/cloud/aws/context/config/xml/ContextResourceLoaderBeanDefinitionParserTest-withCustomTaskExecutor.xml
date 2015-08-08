@@ -28,4 +28,5 @@
 
 	<task:executor id="taskExecutor" pool-size="10" rejection-policy="CALLER_RUNS" queue-capacity="0" />
 
+	<bean class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean" />
 </beans>

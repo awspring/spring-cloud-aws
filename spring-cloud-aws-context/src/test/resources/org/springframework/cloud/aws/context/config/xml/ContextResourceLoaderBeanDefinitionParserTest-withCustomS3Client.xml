@@ -28,4 +28,6 @@
 
 	<bean id="customS3Client" class="com.amazonaws.services.s3.AmazonS3Client" />
 
+	<bean class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean" />
+
 </beans>

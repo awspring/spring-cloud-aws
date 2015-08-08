@@ -26,4 +26,6 @@
 
 	<aws-context:context-resource-loader />
 
+	<bean class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean" />
+
 </beans>

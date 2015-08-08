@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
@@ -64,45 +63,19 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
 
 	/**
-	 * Constructor that receives an already pre-configured {@link org.springframework.core.io.ResourceLoader} instance that
-	 * is capable of handling S3 resources and other resources (like classpath as well).
-	 *
-	 * @param amazonS3
-	 * 		- an pre-configured Amazon S3 client
-	 * @param simpleStorageResourceLoader
-	 * 		- the resource loader that is called to actually load the resource.
-	 * @see org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader
+	 * Construct a new instance of the {@link PathMatchingSimpleStorageResourcePatternResolver} with a
+	 * {@link SimpleStorageResourceLoader} to load AmazonS3 instances, and also a delegate {@link ResourcePatternResolver}
+	 * to resolve resource on default path (like file and classpath)
+	 * @param amazonS3 - used to retrieve the directory listings
+	 * @param simpleStorageResourceLoader - used to retrieve object from amazon s3
+	 * @param resourcePatternResolverDelegate - delegate resolver used to resolve common path (file, classpath, servlet etc.)
 	 */
-	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ResourceLoader simpleStorageResourceLoader) {
+	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ResourceLoader simpleStorageResourceLoader,
+															ResourcePatternResolver resourcePatternResolverDelegate) {
 		Assert.notNull(amazonS3);
 		this.amazonS3 = amazonS3;
 		this.simpleStorageResourceLoader = simpleStorageResourceLoader;
-		this.resourcePatternResolverDelegate = new PathMatchingResourcePatternResolver();
-	}
-
-	/**
-	 * Simple constructor which will use the thread context class loader
-	 * at the time of actual resource access.
-	 *
-	 * @param amazonS3
-	 * 		An AmazonS3 client - Must not be null.
-	 */
-	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3) {
-		this(amazonS3, new SimpleStorageResourceLoader(amazonS3));
-	}
-
-	/**
-	 * Constructor which will pass the given {@code classLoader} to the {@link ResourceLoader}.
-	 *
-	 * @param amazonS3
-	 * 		An AmazonS3 client - Must not be null.
-	 * @param classLoader
-	 * 		the ClassLoader to load classpath resources with,
-	 * 		or {@code null} for using the thread context class loader
-	 * 		at the time of actual resource access {@link org.springframework.core.io.DefaultResourceLoader}
-	 */
-	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ClassLoader classLoader) {
-		this(amazonS3, new SimpleStorageResourceLoader(amazonS3, classLoader));
+		this.resourcePatternResolverDelegate = resourcePatternResolverDelegate;
 	}
 
 	/**
@@ -111,7 +84,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	 *
 	 * @param pathMatcher
 	 * 		The pathMatches implementation used, must not be null
-	 * @see org.springframework.util.AntPathMatcher
+	 * @see AntPathMatcher
 	 */
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");

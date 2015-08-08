@@ -19,10 +19,14 @@ package org.springframework.cloud.aws.context.config.annotation;
 
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ResourceLoader;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ContextResourceLoaderConfigurationTest {
 
@@ -41,15 +45,31 @@ public class ContextResourceLoaderConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
 
 		//Act
-		PathMatchingSimpleStorageResourcePatternResolver resourceLoader =
-				this.context.getBean(PathMatchingSimpleStorageResourcePatternResolver.class);
+		ApplicationBean bean =
+				this.context.getBean(ApplicationBean.class);
 
 		//Assert
-		assertNotNull(resourceLoader);
+		assertNotNull(bean.getResourceLoader());
+		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(bean.getResourceLoader()));
 	}
 
 	@EnableContextResourceLoader
 	static class ApplicationConfigurationWithResourceLoader {
 
+		@Bean
+		public ApplicationBean appBean() {
+			return new ApplicationBean();
+		}
+
+	}
+
+	static class ApplicationBean {
+
+		@Autowired
+		private ResourceLoader resourceLoader;
+
+		private ResourceLoader getResourceLoader() {
+			return this.resourceLoader;
+		}
 	}
 }

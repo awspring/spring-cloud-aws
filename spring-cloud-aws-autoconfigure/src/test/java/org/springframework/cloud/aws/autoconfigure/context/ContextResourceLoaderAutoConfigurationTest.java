@@ -18,10 +18,12 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,6 +47,7 @@ public class ContextResourceLoaderAutoConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextResourceLoaderAutoConfiguration.class);
+		this.context.register(ApplicationBean.class);
 
 		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.loader.corePoolSize:10",
 				"cloud.aws.loader.maxPoolSize:20",
@@ -54,7 +57,7 @@ public class ContextResourceLoaderAutoConfigurationTest {
 		this.context.refresh();
 
 		//Assert
-		PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(PathMatchingSimpleStorageResourcePatternResolver.class);
+		PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(ApplicationBean.class).getResourceLoader();
 		assertNotNull(resourceLoader);
 
 		SimpleStorageResourceLoader simpleStorageResourceLoader = (SimpleStorageResourceLoader) ReflectionTestUtils.getField(resourceLoader, "simpleStorageResourceLoader");
@@ -72,16 +75,28 @@ public class ContextResourceLoaderAutoConfigurationTest {
 		//Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextResourceLoaderAutoConfiguration.class);
+		this.context.register(ApplicationBean.class);
 
 		//Act
 		this.context.refresh();
 
 		//Assert
-		PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(PathMatchingSimpleStorageResourcePatternResolver.class);
+		PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(ApplicationBean.class).getResourceLoader();
 		assertNotNull(resourceLoader);
 
 		SimpleStorageResourceLoader simpleStorageResourceLoader = (SimpleStorageResourceLoader) ReflectionTestUtils.getField(resourceLoader, "simpleStorageResourceLoader");
 		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageResourceLoader, "taskExecutor");
 		assertNotNull(taskExecutor);
+	}
+
+
+	static class ApplicationBean {
+
+		@Autowired
+		private ResourceLoader resourceLoader;
+
+		public PathMatchingSimpleStorageResourcePatternResolver getResourceLoader() {
+			return (PathMatchingSimpleStorageResourcePatternResolver) this.resourceLoader;
+		}
 	}
 }
