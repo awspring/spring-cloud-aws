@@ -102,7 +102,7 @@ public class SimpleMessageListenerContainerFactory {
 	}
 
 	/**
-	 * Configures if this container should be automatically started. The default value is true
+	 * Configures if this container should be automatically started. The default value is true.
 	 *
 	 * @param autoStartup
 	 * 		- false if the container will be manually started

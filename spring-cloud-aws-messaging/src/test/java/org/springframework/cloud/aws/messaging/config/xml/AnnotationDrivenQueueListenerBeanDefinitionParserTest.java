@@ -274,7 +274,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		// Assert
 		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
 		DestinationResolver<?> customDestinationResolver = applicationContext.getBean(DestinationResolver.class);
-		assertEquals(customDestinationResolver, ReflectionTestUtils.getField(container, "destinationResolver"));
+		assertTrue(customDestinationResolver == ReflectionTestUtils.getField(container, "destinationResolver"));
 	}
 
 	@Test
@@ -285,6 +285,16 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		// Assert
 		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
 		assertFalse(container.isDeleteMessageOnException());
+	}
+
+	@Test
+	public void parseInternal_definedBackOffTime_shouldBeSetOnContainer() throws Exception {
+		// Arrange & Act
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-back-off-time.xml", getClass());
+
+		// Assert
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
+		assertEquals(5000L, container.getBackOffTime());
 	}
 
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
