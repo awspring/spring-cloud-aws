@@ -33,6 +33,7 @@ import org.springframework.core.task.SyncTaskExecutor;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -222,6 +223,21 @@ public class SimpleStorageResourceTest {
 		//Assert
 		simpleStorageResource.getFile();
 
+	}
+
+	@Test
+	public void createRelative_existingObject_returnsRelativeCreatedFile() throws IOException {
+
+		//Arrange
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
+
+		//Act
+		SimpleStorageResource subObject = simpleStorageResource.createRelative("subObject");
+
+		//Assert
+		assertEquals("object/subObject", subObject.getFilename());
 	}
 
 	@Test

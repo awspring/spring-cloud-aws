@@ -83,6 +83,27 @@ public abstract class ResourceLoaderAwsTest {
 		assertEquals("hello world".length(), resource.contentLength());
 	}
 
+	@Test
+	public void testUploadFileWithRelativePath() throws Exception {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		uploadFileTestFile(bucketName, "testUploadFileWithRelativePathParent", "hello world");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/testUploadFileWithRelativePathParent");
+		assertTrue(resource.exists());
+
+		WritableResource childFileResource = (WritableResource) resource.createRelative("child");
+
+		OutputStream outputStream = childFileResource.getOutputStream();
+		outputStream.write("hello world".getBytes("UTF-8"));
+		outputStream.close();
+
+		this.createdObjects.add(childFileResource.getFilename());
+
+		InputStream inputStream = childFileResource.getInputStream();
+		assertNotNull(inputStream);
+		assertEquals("hello world", FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
+		assertEquals("hello world".length(), childFileResource.contentLength());
+	}
+
 	private void uploadFileTestFile(String bucketName, String objectKey, String content) throws UnsupportedEncodingException {
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		objectMetadata.setContentLength(content.length());

@@ -172,6 +172,12 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		return new SimpleStorageOutputStream();
 	}
 
+	@Override
+	public SimpleStorageResource createRelative(String relativePath) throws IOException {
+		String relativeKey = this.objectName + "/" + relativePath;
+		return new SimpleStorageResource(this.amazonS3, this.bucketName, relativeKey, this.taskExecutor);
+	}
+
 	private ObjectMetadata getObjectMetadata() {
 		if (this.objectMetadata == null) {
 			try {
