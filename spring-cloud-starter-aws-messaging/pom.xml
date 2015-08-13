@@ -21,11 +21,11 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-aws</artifactId>
-		<version>1.0.3.RELEASE</version>
+		<version>1.0.4.BUILD-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-	<version>1.0.3.RELEASE</version>
+	<version>1.0.4.BUILD-SNAPSHOT</version>
 	<name>spring-cloud-starter-aws-messaging</name>
 	<description>Spring Cloud Starter AWS Messaging</description>
 	<url>http://projects.spring.io/spring-cloud</url>

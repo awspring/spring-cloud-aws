@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>1.0.3.RELEASE</version>
+	<version>1.0.4.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 	<description>Spring Cloud AWS</description>
@@ -166,42 +166,42 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-context</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-messaging</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-jdbc</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-core</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
-				<version>1.0.3.RELEASE</version>
+				<version>1.0.4.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.mail</groupId>
