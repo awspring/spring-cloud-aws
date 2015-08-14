@@ -22,7 +22,6 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
 		<version>1.1.0.BUILD-SNAPSHOT</version>
-		<relativePath />
 		<!-- lookup parent from repository -->
 	</parent>
 

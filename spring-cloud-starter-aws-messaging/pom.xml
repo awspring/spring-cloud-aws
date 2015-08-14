@@ -22,7 +22,6 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-aws</artifactId>
 		<version>1.1.0.BUILD-SNAPSHOT</version>
-		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-starter-aws-messaging</artifactId>
 	<version>1.1.0.BUILD-SNAPSHOT</version>
