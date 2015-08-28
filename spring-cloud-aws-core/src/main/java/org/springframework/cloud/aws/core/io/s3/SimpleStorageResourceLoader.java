@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -25,6 +24,8 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.ClassUtils;
+
+import com.amazonaws.services.s3.AmazonS3;
 
 /**
  * @author Agim Emruli
@@ -43,12 +44,12 @@ public class SimpleStorageResourceLoader implements ResourceLoader, Initializing
 	private TaskExecutor taskExecutor;
 
 	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ResourceLoader delegate) {
-		this.amazonS3 = amazonS3;
+		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
 		this.delegate = delegate;
 	}
 
 	public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
-		this.amazonS3 = amazonS3;
+		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
 		this.delegate = new DefaultResourceLoader(classLoader);
 	}
 

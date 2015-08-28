@@ -16,12 +16,15 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3Client;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.ResourceLoaderAware;
@@ -29,9 +32,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
  * @author Alain Sahli
@@ -103,13 +107,30 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomS3Client.xml", getClass());
 
 		//Act
-		PathMatchingSimpleStorageResourcePatternResolver patterMatchingLoader = (PathMatchingSimpleStorageResourcePatternResolver) applicationContext.getBean(ResourceLoaderBean.class).getResourceLoader();
+		PathMatchingSimpleStorageResourcePatternResolver patternMatchingLoader = (PathMatchingSimpleStorageResourcePatternResolver) applicationContext.getBean(ResourceLoaderBean.class).getResourceLoader();
 
-		//Assert
-		assertSame(applicationContext.getBean("customS3Client"), ReflectionTestUtils.getField(patterMatchingLoader, "amazonS3"));
+		//Assert that the proxied AmazonS2 instances are the same as the customS3Client in the app context.
+		AmazonS3 customS3Client = applicationContext.getBean(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = SimpleStorageResourceLoader.class.cast(ReflectionTestUtils.getField(patterMatchingLoader, "simpleStorageResourceLoader"));
-		assertSame(applicationContext.getBean("customS3Client"), ReflectionTestUtils.getField(resourceLoader, "amazonS3"));
+		AmazonS3 amazonS3FromPatternMatchingLoader = (AmazonS3) ReflectionTestUtils.getField(patternMatchingLoader, "amazonS3");
+
+		assertThat(AopUtils.isAopProxy(amazonS3FromPatternMatchingLoader), is(true));
+
+		Advised advised = (Advised) amazonS3FromPatternMatchingLoader;
+		AmazonS3 amazonS3WrappedInsidePatternMatchingLoader = (AmazonS3) advised.getTargetSource().getTarget();
+
+		assertSame(customS3Client, amazonS3WrappedInsidePatternMatchingLoader);
+
+		SimpleStorageResourceLoader resourceLoader = (SimpleStorageResourceLoader)
+				ReflectionTestUtils.getField(patternMatchingLoader, "simpleStorageResourceLoader");
+		AmazonS3 amazonS3FromResourceLoader = (AmazonS3) ReflectionTestUtils.getField(resourceLoader, "amazonS3");
+
+		assertThat(AopUtils.isAopProxy(amazonS3FromResourceLoader), is(true));
+
+		Advised advised2 = (Advised) amazonS3FromResourceLoader;
+		AmazonS3 amazonS3WrappedInsideSimpleStorageResourceLoader = (AmazonS3) advised2.getTargetSource().getTarget();
+
+		assertSame(customS3Client, amazonS3WrappedInsideSimpleStorageResourceLoader);
 	}
 
 

@@ -16,14 +16,16 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -32,12 +34,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 /**
  * A {@link ResourcePatternResolver} implementation which allows an ant-style path matching when
@@ -73,7 +75,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 	public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ResourceLoader simpleStorageResourceLoader,
 															ResourcePatternResolver resourcePatternResolverDelegate) {
 		Assert.notNull(amazonS3);
-		this.amazonS3 = amazonS3;
+		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
 		this.simpleStorageResourceLoader = simpleStorageResourceLoader;
 		this.resourcePatternResolverDelegate = resourcePatternResolverDelegate;
 	}
