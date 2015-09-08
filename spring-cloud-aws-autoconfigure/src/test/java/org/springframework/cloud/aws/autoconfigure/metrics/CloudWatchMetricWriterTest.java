@@ -79,7 +79,7 @@ public class CloudWatchMetricWriterTest {
         verify(sender).send(writer.createMetricDatumForUnknownValue(timerMetric));
 
         // Counter metric
-        Delta<Integer> counterMetric = new Delta<>("test.x", 1);
+        Delta<Integer> counterMetric = new Delta<>("test.c", 1);
         writer.increment(counterMetric);
         verify(sender).send(writer.createMetricDatumForCounterValue(counterMetric));
     }
