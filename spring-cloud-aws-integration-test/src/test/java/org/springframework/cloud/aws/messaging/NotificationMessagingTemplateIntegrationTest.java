@@ -24,7 +24,7 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
-import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.concurrent.CountDownLatch;
@@ -109,7 +109,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 		}
 
 		@RuntimeUse
-		@MessageMapping("NotificationQueue")
+		@SqsListener("NotificationQueue")
 		private void messageListener(@NotificationSubject String subject, @NotificationMessage String message) {
 			this.subject = subject;
 			this.message = message;

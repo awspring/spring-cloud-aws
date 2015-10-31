@@ -52,7 +52,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -275,16 +274,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
 		DestinationResolver<?> customDestinationResolver = applicationContext.getBean(DestinationResolver.class);
 		assertTrue(customDestinationResolver == ReflectionTestUtils.getField(container, "destinationResolver"));
-	}
-
-	@Test
-	public void parseInternal_deleteMessageOnExceptionFalse_shouldBeFalseOnContainer() throws Exception {
-		// Arrange & Act
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-delete-message-on-exception-false.xml", getClass());
-
-		// Assert
-		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		assertFalse(container.isDeleteMessageOnException());
 	}
 
 	@Test

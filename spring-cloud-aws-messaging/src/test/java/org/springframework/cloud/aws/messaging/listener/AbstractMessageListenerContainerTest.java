@@ -27,12 +27,12 @@ import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -457,7 +457,7 @@ public class AbstractMessageListenerContainerTest {
 	private static class MessageListener {
 
 		@SuppressWarnings({"UnusedDeclaration", "EmptyMethod"})
-		@MessageMapping("testQueue")
+		@SqsListener("testQueue")
 		public void listenerMethod(String ignore) {
 
 		}
@@ -466,7 +466,7 @@ public class AbstractMessageListenerContainerTest {
 	private static class AnotherMessageListener {
 
 		@SuppressWarnings({"UnusedDeclaration", "EmptyMethod"})
-		@MessageMapping("anotherTestQueue")
+		@SqsListener("anotherTestQueue")
 		public void listenerMethod(String ignore) {
 
 		}

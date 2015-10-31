@@ -19,9 +19,14 @@ package org.springframework.cloud.aws.messaging.listener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Appender;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.MutablePropertyValues;
@@ -32,6 +37,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
@@ -45,7 +51,6 @@ import org.springframework.messaging.core.DestinationResolvingMessageSendingOper
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -89,14 +94,14 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithMessageMappingAnnotation_methodInvokedForIncomingMessage() throws Exception {
+	public void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() throws Exception {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
 		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receive").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		assertEquals("testContent", messageListener.getLastReceivedMessage());
@@ -112,7 +117,7 @@ public class QueueMessageHandlerTest {
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
 		DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
 		MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
-		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue")));
+		Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")));
 		messageHandler.handleMessage(message);
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
@@ -122,14 +127,14 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveAndReplyMessage_methodAnnotatedWithMessageMappingAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() throws Exception {
+	public void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() throws Exception {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
 		applicationContext.registerBeanDefinition("queueMessageHandler", getQueueMessageHandlerBeanDefinition());
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+		messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receiveAndReply").build());
 
 		IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
 		assertEquals("testContent", messageListener.getLastReceivedMessage());
@@ -159,7 +164,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		try {
-			messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+			messageHandler.handleMessage(MessageBuilder.withPayload("testContent").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receiveAndReply").build());
 		} catch (MessagingException e) {
 			// ignore
 		}
@@ -169,7 +174,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithMessageMappingContainingMultipleQueueNames_methodInvokedForEachQueueName() throws Exception {
+	public void receiveMessage_methodAnnotatedWithSqsListenerContainingMultipleQueueNames_methodInvokedForEachQueueName() throws Exception {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithMultipleQueueNames.class);
 		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
@@ -178,15 +183,15 @@ public class QueueMessageHandlerTest {
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		IncomingMessageHandlerWithMultipleQueueNames incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithMultipleQueueNames.class);
 
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue one!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueOne").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue one!").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "queueOne").build());
 		assertEquals("Hello from queue one!", incomingMessageHandler.getLastReceivedMessage());
 
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue two!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "queueTwo").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from queue two!").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "queueTwo").build());
 		assertEquals("Hello from queue two!", incomingMessageHandler.getLastReceivedMessage());
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithMessageMappingContainingExpression_methodInvokedOnResolvedExpression() throws Exception {
+	public void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() throws Exception {
 		//Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("myQueue", "resolvedQueue")));
@@ -197,7 +202,7 @@ public class QueueMessageHandlerTest {
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		//Act
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "resolvedQueue").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "resolvedQueue").build());
 
 		//Assert
 		IncomingMessageHandlerWithExpressionName incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithExpressionName.class);
@@ -205,7 +210,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithMessageMappingContainingPlaceholder_methodInvokedOnResolvedPlaceholder() throws Exception {
+	public void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() throws Exception {
 		//Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("custom.queueName", "resolvedQueue")));
@@ -218,7 +223,7 @@ public class QueueMessageHandlerTest {
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		//Act
-		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "resolvedQueue").build());
+		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from resolved queue!").setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "resolvedQueue").build());
 
 		//Assert
 		IncomingMessageHandlerWithPlaceholderName incomingMessageHandler = applicationContext.getBean(IncomingMessageHandlerWithPlaceholderName.class);
@@ -238,7 +243,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender").setHeader("SenderId", "elsUnitTest")
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
 		assertEquals("Hello from a sender", messageReceiver.getPayload());
@@ -258,7 +263,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
 		assertEquals("Hello from a sender", messageReceiver.getPayload());
@@ -278,12 +283,12 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").setHeader("SenderId", "ID").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").setHeader("SenderId", "ID").build());
 
 		// Assert
 		assertNotNull(messageReceiver.getHeaders());
 		assertEquals("ID", messageReceiver.getHeaders().get("SenderId"));
-		assertEquals("testQueue", messageReceiver.getHeaders().get(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY));
+		assertEquals("testQueue", messageReceiver.getHeaders().get(QueueMessageHandler.LOGICAL_RESOURCE_ID));
 	}
 
 	@Test
@@ -304,7 +309,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receive").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receive").build());
 
 		// Assert
 		verify(handlerMethodArgumentResolver, times(1)).resolveArgument(any(MethodParameter.class), any(Message.class));
@@ -327,7 +332,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload("Hello from a sender")
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "receiveAndReply").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receiveAndReply").build());
 
 		// Assert
 		verify(handlerMethodReturnValueHandler, times(1)).handleReturnValue(any(Object.class), any(MethodParameter.class), any(Message.class));
@@ -353,7 +358,7 @@ public class QueueMessageHandlerTest {
 
 		// Act
 		queueMessageHandler.handleMessage(MessageBuilder.withPayload(payload)
-				.setHeader(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, "testQueue").build());
+				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
 		assertEquals("Hi!", notificationMessageReceiver.getSubject());
@@ -361,16 +366,52 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void getMappingForMethod_methodWithEmptyMessageMappingValue_shouldReturnNull() throws Exception {
+	public void getMappingForMethod_methodWithEmptySqsListenerValue_shouldReturnNull() throws Exception {
 		// Arrange
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
-		Method receiveMethod = MessageMappingAnnotationWithEmptyValue.class.getMethod("receive");
+		Method receiveMethod = SqsListenerAnnotationWithEmptyValue.class.getMethod("receive");
 
 		// Act
 		QueueMessageHandler.MappingInformation mappingInformation = queueMessageHandler.getMappingForMethod(receiveMethod, null);
 
 		// Assert
 		assertNull(mappingInformation);
+	}
+
+	@Test
+	public void getMappingForMethod_methodWithMessageMappingAnnotation_shouldReturnMappingInformation() throws Exception {
+		// Arrange
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		Method receiveMethod = MessageMappingAnnotationStillSupported.class.getMethod("receive", String.class);
+
+		// Act
+		QueueMessageHandler.MappingInformation mappingInformation = queueMessageHandler.getMappingForMethod(receiveMethod, null);
+
+		// Assert
+		assertTrue(mappingInformation.getLogicalResourceIds().contains("testQueue"));
+		assertEquals(SqsMessageDeletionPolicy.NO_REDRIVE, mappingInformation.getDeletionPolicy());
+	}
+
+	@Test
+	public void getMappingForMethod_methodWithDeletionPolicyNeverWithoutParameterTypeAcknowledgment_warningMustBeLogged() throws Exception {
+		// Arrange
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		Method receiveMethod = SqsListenerDeletionPolicyNeverNoAcknowledgment.class.getMethod("receive", String.class);
+
+		Appender mockAppender = mock(Appender.class);
+		LogManager.getRootLogger().addAppender(mockAppender);
+		LogManager.getRootLogger().setLevel(Level.WARN);
+
+		// Act
+		queueMessageHandler.getMappingForMethod(receiveMethod, null);
+
+		// Assert
+		ArgumentCaptor<LoggingEvent> loggingEventArgumentCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
+		verify(mockAppender).doAppend(loggingEventArgumentCaptor.capture());
+		LoggingEvent loggingEvent = loggingEventArgumentCaptor.getValue();
+		assertEquals(Level.WARN, loggingEvent.getLevel());
+		assertTrue(loggingEvent.getRenderedMessage().contains("receive"));
+		assertTrue(loggingEvent.getRenderedMessage().contains("org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListenerDeletionPolicyNeverNoAcknowledgment"));
 	}
 
 	@SuppressWarnings("UnusedDeclaration")
@@ -388,12 +429,12 @@ public class QueueMessageHandlerTest {
 			this.exceptionHandlerCalled = exceptionHandlerCalled;
 		}
 
-		@MessageMapping("receive")
+		@SqsListener("receive")
 		public void receive(@Payload String value) {
 			this.lastReceivedMessage = value;
 		}
 
-		@MessageMapping("receiveAndReply")
+		@SqsListener("receiveAndReply")
 		@SendTo("sendTo")
 		public String receiveAndReply(String value) {
 			this.lastReceivedMessage = value;
@@ -419,7 +460,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping({"queueOne", "queueTwo"})
+		@SqsListener({"queueOne", "queueTwo"})
 		public void receive(String value) {
 			this.lastReceivedMessage = value;
 		}
@@ -434,7 +475,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("#{environment.myQueue}")
+		@SqsListener("#{environment.myQueue}")
 		public void receive(String value) {
 			this.lastReceivedMessage = value;
 		}
@@ -449,7 +490,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("${custom.queueName}")
+		@SqsListener("${custom.queueName}")
 		public void receive(String value) {
 			this.lastReceivedMessage = value;
 		}
@@ -483,7 +524,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("testQueue")
+		@SqsListener("testQueue")
 		public void receive(DummyKeyValueHolder value) {
 			this.lastReceivedMessage = value;
 		}
@@ -503,7 +544,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("testQueue")
+		@SqsListener("testQueue")
 		public void receive(@Payload String payload, @Header(value = "SenderId", required = false) String senderId) {
 			this.senderId = senderId;
 			this.payload = payload;
@@ -526,7 +567,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("testQueue")
+		@SqsListener("testQueue")
 		public void receive(@Payload String payload, @Headers Map<String, String> headers) {
 			this.payload = payload;
 			this.headers = headers;
@@ -540,7 +581,7 @@ public class QueueMessageHandlerTest {
 		private String message;
 
 		@RuntimeUse
-		@MessageMapping("testQueue")
+		@SqsListener("testQueue")
 		public void receive(@NotificationSubject String subject, @NotificationMessage String message) {
 			this.subject = subject;
 			this.message = message;
@@ -555,13 +596,32 @@ public class QueueMessageHandlerTest {
 		}
 	}
 
-	private static class MessageMappingAnnotationWithEmptyValue {
+	private static class SqsListenerAnnotationWithEmptyValue {
 
 		@RuntimeUse
-		@MessageMapping
+		@SqsListener
 		public void receive() {
 
 		}
 
 	}
+
+	private static class MessageMappingAnnotationStillSupported {
+
+		@RuntimeUse
+		@SqsListener("testQueue")
+		public void receive(String message) {
+		}
+
+	}
+
+	private static class SqsListenerDeletionPolicyNeverNoAcknowledgment {
+
+		@RuntimeUse
+		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		public void receive(String message) {
+		}
+
+	}
+
 }

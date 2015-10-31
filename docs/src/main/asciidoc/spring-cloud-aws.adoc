@@ -900,7 +900,7 @@ Annotation-driven listener endpoints are the easiest way for listening on SQS me
 
 [source,java,indent=0]
 ----
-@MessageMapping("queueName")
+@SqsListener("queueName")
 public void queueListener(Person person) {
 	// ...
 }
@@ -969,7 +969,7 @@ the `DestinationResolvingMessageSendingOperations` interface.
 
 [source,java,indent=0]
 ----
-@MessageMapping("treeQueue")
+@SqsListener("treeQueue")
 @SendTo("leafsQueue")
 public List<Leaf> extractLeafs(Tree tree) {
 	// ...
@@ -1151,7 +1151,7 @@ as shown below:
 
 [source,java,indent=0]
 ----
-@MessageMapping("LogicalQueueName")
+@SqsListener("LogicalQueueName")
 public void receiveQueueMessages(Person person) {
 	// Logical names can also be used with messaging templates
 	this.notificationMessagingTemplate.sendNotification("anotherLogicalTopicName", "Message", "Subject");

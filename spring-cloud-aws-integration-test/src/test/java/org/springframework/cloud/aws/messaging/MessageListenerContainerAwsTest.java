@@ -26,8 +26,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 	static class MessageReceiver {
 
 		@RuntimeUse
-		@MessageMapping("LoadTestQueue")
+		@SqsListener("LoadTestQueue")
 		public void onMessage(String message) {
 			assertNotNull(message);
 			this.getCountDownLatch().countDown();

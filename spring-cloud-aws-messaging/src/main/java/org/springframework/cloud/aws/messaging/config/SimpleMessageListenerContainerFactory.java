@@ -49,8 +49,6 @@ public class SimpleMessageListenerContainerFactory {
 
 	private DestinationResolver<String> destinationResolver;
 
-	private Boolean deleteMessageOnException;
-
 	private Long backOffTime;
 
 	/**
@@ -179,20 +177,6 @@ public class SimpleMessageListenerContainerFactory {
 	}
 
 	/**
-	 * Defines if a message must be deleted or not if the handler method throws an exception and the exception handler
-	 * method is called. By default this value is set to {@code true} which means that the message is deleted to avoid
-	 * poison messages. If this value is set to {@code false} it is the responsibility of the exception handler method to delete
-	 * the message. The exception handler method can inject the message headers with {@link org.springframework.messaging.handler.annotation.Headers}
-	 * in order to get the receipt handle.
-	 *
-	 * @param deleteMessageOnException
-	 * 		whether a message must be deleted or not when the handler method throws an exception
-	 */
-	public void setDeleteMessageOnException(Boolean deleteMessageOnException) {
-		this.deleteMessageOnException = deleteMessageOnException;
-	}
-
-	/**
 	 * @return The number of milliseconds the polling thread must wait before trying to recover when an error occurs
 	 * (e.g. connection timeout)
 	 */
@@ -235,9 +219,6 @@ public class SimpleMessageListenerContainerFactory {
 		}
 		if (this.destinationResolver != null) {
 			simpleMessageListenerContainer.setDestinationResolver(this.destinationResolver);
-		}
-		if (this.deleteMessageOnException != null) {
-			simpleMessageListenerContainer.setDeleteMessageOnException(this.deleteMessageOnException);
 		}
 		if (this.backOffTime != null) {
 			simpleMessageListenerContainer.setBackOffTime(this.backOffTime);

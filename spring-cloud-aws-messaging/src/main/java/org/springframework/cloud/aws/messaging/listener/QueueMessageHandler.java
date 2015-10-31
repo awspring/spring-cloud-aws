@@ -19,6 +19,8 @@ package org.springframework.cloud.aws.messaging.listener;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
@@ -60,6 +62,8 @@ import java.util.Set;
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation>  {
 
+	static final String LOGICAL_RESOURCE_ID = "LogicalResourceId";
+	static final String ACKNOWLEDGMENT = "Acknowledgment";
 	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
 
@@ -72,6 +76,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new HeadersMethodArgumentResolver());
 		resolvers.add(new NotificationMessageArgumentResolver());
 		resolvers.add(new NotificationSubjectArgumentResolver());
+		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
 		resolvers.add(new PayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
@@ -94,12 +99,31 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected MappingInformation getMappingForMethod(Method method, Class<?> handlerType) {
-		MessageMapping messageMappingAnnotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
-		if (messageMappingAnnotation == null || messageMappingAnnotation.value().length < 1) {
-			return null;
+		SqsListener sqsListenerAnnotation = AnnotationUtils.findAnnotation(method, SqsListener.class);
+		if (sqsListenerAnnotation != null && sqsListenerAnnotation.value().length > 0) {
+			if (sqsListenerAnnotation.deletionPolicy() == SqsMessageDeletionPolicy.NEVER && hasNoAcknowledgmentParameter(method.getParameterTypes())) {
+				this.logger.warn("Listener method '" + method.getName() + "' in type '" + method.getDeclaringClass().getName() +
+						"' has deletion policy 'NEVER' but does not have a parameter of type Acknowledgment.");
+			}
+			return new MappingInformation(resolveDestinationNames(sqsListenerAnnotation.value()), sqsListenerAnnotation.deletionPolicy());
 		}
 
-		return new MappingInformation(resolveDestinationNames(messageMappingAnnotation.value()));
+		MessageMapping messageMappingAnnotation = AnnotationUtils.findAnnotation(method, MessageMapping.class);
+		if (messageMappingAnnotation != null && messageMappingAnnotation.value().length > 0) {
+			return new MappingInformation(resolveDestinationNames(messageMappingAnnotation.value()), SqsMessageDeletionPolicy.ALWAYS);
+		}
+
+		return null;
+	}
+
+	private boolean hasNoAcknowledgmentParameter(Class<?>[] parameterTypes) {
+		for (Class<?> parameterType : parameterTypes) {
+			if (ClassUtils.isAssignable(Acknowledgment.class, parameterType)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private Set<String> resolveDestinationNames(String[] destinationNames) {
@@ -137,7 +161,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	@Override
 	protected String getDestination(Message<?> message) {
-		return message.getHeaders().get(Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY).toString();
+		return message.getHeaders().get(LOGICAL_RESOURCE_ID).toString();
 	}
 
 	@Override
@@ -194,12 +218,19 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 		private final Set<String> logicalResourceIds;
 
-		public MappingInformation(Set<String> logicalResourceIds) {
+		private final SqsMessageDeletionPolicy deletionPolicy;
+
+		public MappingInformation(Set<String> logicalResourceIds, SqsMessageDeletionPolicy deletionPolicy) {
 			this.logicalResourceIds = Collections.unmodifiableSet(logicalResourceIds);
+			this.deletionPolicy = deletionPolicy;
 		}
 
 		public Set<String> getLogicalResourceIds() {
 			return this.logicalResourceIds;
+		}
+
+		public SqsMessageDeletionPolicy getDeletionPolicy() {
+			return this.deletionPolicy;
 		}
 
 		@SuppressWarnings("NullableProblems")
@@ -221,18 +252,4 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		}
 	}
 
-	/**
-	 * @author Alain Sahli
-	 * @author Agim Emruli
-	 */
-	@SuppressWarnings("ClassNamingConvention") // Only used internally and prefixed with the parent class
-	public static final class Headers {
-
-		public static final String LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY = "LogicalResourceId";
-
-		private Headers() {
-			// Avoid instantiation
-		}
-
-	}
 }

@@ -26,7 +26,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ClassUtils;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
@@ -46,7 +46,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private volatile CountDownLatch stopLatch;
 	private boolean defaultTaskExecutor;
-	private boolean deleteMessageOnException = true;
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleMessageListenerContainer.class);
 	private long backOffTime = 10000;
 
@@ -56,14 +55,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
-	}
-
-	public boolean isDeleteMessageOnException() {
-		return this.deleteMessageOnException;
-	}
-
-	public void setDeleteMessageOnException(boolean deleteMessageOnException) {
-		this.deleteMessageOnException = deleteMessageOnException;
 	}
 
 	/**
@@ -209,28 +200,59 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		private final String logicalQueueName;
 		private final String queueUrl;
 		private final boolean hasRedrivePolicy;
+		private final SqsMessageDeletionPolicy deletionPolicy;
 
 		private MessageExecutor(String logicalQueueName, Message message, QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
 			this.message = message;
 			this.queueUrl = queueAttributes.getReceiveMessageRequest().getQueueUrl();
 			this.hasRedrivePolicy = queueAttributes.hasRedrivePolicy();
+			this.deletionPolicy = queueAttributes.getDeletionPolicy();
 		}
 
 		@Override
 		public void run() {
 			String receiptHandle = this.message.getReceiptHandle();
-			org.springframework.messaging.Message<String> queueMessage = createMessage(this.message,
-					Collections.<String, Object>singletonMap(QueueMessageHandler.Headers.LOGICAL_RESOURCE_ID_MESSAGE_HEADER_KEY, this.logicalQueueName));
+			org.springframework.messaging.Message<String> queueMessage = getMessageForExecution();
 			try {
 				executeMessage(queueMessage);
-				getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
-			} catch (MessagingException e) {
-				LOGGER.error("Exception encountered while processing message.", e);
-				if (!this.hasRedrivePolicy && SimpleMessageListenerContainer.this.isDeleteMessageOnException()) {
-					getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
-				}
+				applyDeletionPolicyOnSuccess(receiptHandle);
+			} catch (MessagingException messagingException) {
+				applyDeletionPolicyOnError(receiptHandle, messagingException);
 			}
+		}
+
+		private void applyDeletionPolicyOnSuccess(String receiptHandle) {
+			if (this.deletionPolicy == SqsMessageDeletionPolicy.ON_SUCCESS ||
+					this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS ||
+					this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE) {
+				deleteMessage(receiptHandle);
+			}
+		}
+
+		private void applyDeletionPolicyOnError(String receiptHandle, MessagingException messagingException) {
+			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS ||
+					(this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE && !this.hasRedrivePolicy)) {
+				deleteMessage(receiptHandle);
+			} else if (this.deletionPolicy == SqsMessageDeletionPolicy.ON_SUCCESS) {
+				LOGGER.error("Exception encountered while processing message.", messagingException);
+			}
+		}
+
+		private void deleteMessage(String receiptHandle) {
+			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle));
+		}
+
+		private org.springframework.messaging.Message<String> getMessageForExecution() {
+			HashMap<String, Object> additionalHeaders = new HashMap<>();
+			additionalHeaders.put(QueueMessageHandler.LOGICAL_RESOURCE_ID, this.logicalQueueName);
+			if (this.deletionPolicy == SqsMessageDeletionPolicy.NEVER) {
+				String receiptHandle = this.message.getReceiptHandle();
+				QueueMessageAcknowledgment acknowledgment = new QueueMessageAcknowledgment(SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, receiptHandle);
+				additionalHeaders.put(QueueMessageHandler.ACKNOWLEDGMENT, acknowledgment);
+			}
+
+			return createMessage(this.message, additionalHeaders);
 		}
 	}
 

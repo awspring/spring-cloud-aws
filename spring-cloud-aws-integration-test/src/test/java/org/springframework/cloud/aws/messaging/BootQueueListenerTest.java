@@ -76,6 +76,11 @@ public class BootQueueListenerTest extends QueueListenerTest {
 			return new RedrivePolicyTestListener();
 		}
 
+		@Bean
+		public ManualDeletionPolicyTestListener manualDeletionPolicyTestListener() {
+			return new ManualDeletionPolicyTestListener();
+		}
+
 	}
 
 }

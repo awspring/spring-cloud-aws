@@ -38,9 +38,7 @@ import org.springframework.util.Assert;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Abstract base class for message listener containers providing basic lifecycle capabilities and collaborator for the
@@ -54,11 +52,10 @@ import java.util.Set;
 abstract class AbstractMessageListenerContainer implements InitializingBean, DisposableBean, SmartLifecycle, BeanNameAware {
 
 	private static final String RECEIVING_ATTRIBUTES = "All";
-	public static final String RECEIVING_MESSAGE_ATTRIBUTES = "All";
+	private static final String RECEIVING_MESSAGE_ATTRIBUTES = "All";
 	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object lifecycleMonitor = new Object();
-	private final Set<String> queues = new HashSet<>();
 	@SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
 	private final Map<String, QueueAttributes> registeredQueues = new HashMap<>();
 	//Mandatory settings, the container synchronizes this fields after calling the setters hence there is no further synchronization
@@ -126,8 +123,8 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	/**
 	 * Configures the destination resolver used to retrieve the queue url based on the destination name configured for
 	 * this instance. <br/>
-	 * This setter can be used when a custom configured {@link org.springframework.messaging.core.DestinationResolver}
-	 * must be provided. (For example if one want to have the {@link org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver}
+	 * This setter can be used when a custom configured {@link DestinationResolver}
+	 * must be provided. (For example if one want to have the {@link DynamicQueueUrlDestinationResolver}
 	 * with the auto creation of queues set to {@code true}.
 	 *
 	 * @param destinationResolver
@@ -253,7 +250,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		initialize();
 	}
 
-	protected void validateConfiguration() {
+	private void validateConfiguration() {
 		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
 		Assert.state(this.messageHandler != null, "messageHandler must not be null");
 	}
@@ -268,20 +265,14 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 				}
 			}
 
+			for (QueueMessageHandler.MappingInformation mappingInformation : this.messageHandler.getHandlerMethods().keySet()) {
+				for (String queue : mappingInformation.getLogicalResourceIds()) {
+					this.registeredQueues.put(queue, queueAttributes(queue, mappingInformation.getDeletionPolicy()));
+				}
+			}
+
 			this.active = true;
 			this.getLifecycleMonitor().notifyAll();
-
-			registerQueues();
-		}
-	}
-
-	private void registerQueues() {
-		for (QueueMessageHandler.MappingInformation mapping : this.messageHandler.getHandlerMethods().keySet()) {
-			Set<String> queueNames = mapping.getLogicalResourceIds();
-			for (String queueName : queueNames) {
-				Assert.state(!this.queues.contains(queueName), "Queue name can only be mapped on one method");
-				this.queues.add(queueName);
-			}
 		}
 	}
 
@@ -289,40 +280,43 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	public void start() {
 		getLogger().debug("Starting container with name {}", getBeanName());
 		synchronized (this.getLifecycleMonitor()) {
-			for (String queue : this.queues) {
-				String destinationUrl;
-				try {
-					destinationUrl = getDestinationResolver().resolveDestination(queue);
-				} catch (DestinationResolutionException e) {
-					getLogger().warn(String.format("The queue with name '%s' does not exist.", queue), e);
-					continue;
-				}
-				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
-						withAttributeNames(RECEIVING_ATTRIBUTES).
-						withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
-				if (getMaxNumberOfMessages() != null) {
-					receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
-				} else {
-					receiveMessageRequest.withMaxNumberOfMessages(DEFAULT_MAX_NUMBER_OF_MESSAGES);
-				}
-
-				if (getVisibilityTimeout() != null) {
-					receiveMessageRequest.withVisibilityTimeout(getVisibilityTimeout());
-				}
-
-				if (getWaitTimeOut() != null) {
-					receiveMessageRequest.setWaitTimeSeconds(getWaitTimeOut());
-				}
-
-				GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
-						.withAttributeNames(QueueAttributeName.RedrivePolicy));
-				this.registeredQueues.put(queue, new QueueAttributes(receiveMessageRequest, queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString())));
-			}
-
 			this.running = true;
 			this.getLifecycleMonitor().notifyAll();
 		}
 		doStart();
+	}
+
+	private QueueAttributes queueAttributes(String queue, SqsMessageDeletionPolicy deletionPolicy) {
+		String destinationUrl;
+		try {
+			destinationUrl = getDestinationResolver().resolveDestination(queue);
+		} catch (DestinationResolutionException e) {
+			getLogger().warn(String.format("The queue with name '%s' does not exist.", queue), e);
+			return null;
+		}
+
+		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
+				withAttributeNames(RECEIVING_ATTRIBUTES).
+				withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
+		if (getMaxNumberOfMessages() != null) {
+			receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
+		} else {
+			receiveMessageRequest.withMaxNumberOfMessages(DEFAULT_MAX_NUMBER_OF_MESSAGES);
+		}
+
+		if (getVisibilityTimeout() != null) {
+			receiveMessageRequest.withVisibilityTimeout(getVisibilityTimeout());
+		}
+
+		if (getWaitTimeOut() != null) {
+			receiveMessageRequest.setWaitTimeSeconds(getWaitTimeOut());
+		}
+
+		GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
+				.withAttributeNames(QueueAttributeName.RedrivePolicy));
+		boolean hasRedrivePolicy = queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString());
+
+		return new QueueAttributes(receiveMessageRequest, hasRedrivePolicy, deletionPolicy);
 	}
 
 	@Override
@@ -362,12 +356,13 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 	protected static class QueueAttributes {
 
 		private final ReceiveMessageRequest receiveMessageRequest;
-
 		private final boolean hasRedrivePolicy;
+		private final SqsMessageDeletionPolicy deletionPolicy;
 
-		public QueueAttributes(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy) {
+		public QueueAttributes(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy, SqsMessageDeletionPolicy deletionPolicy) {
 			this.receiveMessageRequest = receiveMessageRequest;
 			this.hasRedrivePolicy = hasRedrivePolicy;
+			this.deletionPolicy = deletionPolicy;
 		}
 
 		public boolean hasRedrivePolicy() {
@@ -376,6 +371,10 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 		public ReceiveMessageRequest getReceiveMessageRequest() {
 			return this.receiveMessageRequest;
+		}
+
+		public SqsMessageDeletionPolicy getDeletionPolicy() {
+			return this.deletionPolicy;
 		}
 	}
 }

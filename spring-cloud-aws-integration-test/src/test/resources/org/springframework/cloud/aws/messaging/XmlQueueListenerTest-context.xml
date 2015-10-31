@@ -36,5 +36,6 @@
 	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$MessageListener" />
 	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$MessageListenerWithSendTo" />
 	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$RedrivePolicyTestListener" />
+	<bean class="org.springframework.cloud.aws.messaging.QueueListenerTest$ManualDeletionPolicyTestListener" />
 
 </beans>

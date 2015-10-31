@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
+import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -63,6 +66,9 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 	@Autowired
 	private QueueMessagingTemplate queueMessagingTemplate;
+
+	@Autowired
+	private ManualDeletionPolicyTestListener manualDeletionPolicyTestListener;
 
 	@Test
 	public void messageMapping_singleMessageOnQueue_messageReceived() throws Exception {
@@ -146,6 +152,15 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		assertTrue(countDownLatch.await(15, TimeUnit.SECONDS));
 	}
 
+	@Test
+	public void manualDeletion_withAcknowledgmentCalled_shouldSucceedAndDeleteMessage() throws Exception {
+		// Act
+		this.queueMessagingTemplate.convertAndSend("ManualDeletionQueue", "Message");
+
+		// Assert
+		assertTrue(this.manualDeletionPolicyTestListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+	}
+
 	public static class MessageListener {
 
 		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
@@ -155,7 +170,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		private Map<String, Object> allHeaders;
 
 		@RuntimeUse
-		@MessageMapping("QueueListenerTest")
+		@SqsListener("QueueListenerTest")
 		public void receiveMessage(String message, @Header(value = "SenderId", required = false) String senderId, @Headers Map<String, Object> allHeaders) {
 			LOGGER.debug("Received message with content {}", message);
 			this.receivedMessages.add(message);
@@ -191,7 +206,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		private final List<String> receivedMessages = new ArrayList<>();
 
 		@RuntimeUse
-		@MessageMapping("SendToQueue")
+		@SqsListener("SendToQueue")
 		@SendTo("QueueListenerTest")
 		public String receiveMessage(String message) {
 			LOGGER.debug("Received message with content {}", message);
@@ -214,13 +229,13 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		}
 
 		@RuntimeUse
-		@MessageMapping("QueueWithRedrivePolicy")
+		@SqsListener(value = "QueueWithRedrivePolicy", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		public void receiveThrowingException(String message) {
 			throw new RuntimeException();
 		}
 
 		@RuntimeUse
-		@MessageMapping("DeadLetterQueue")
+		@SqsListener("DeadLetterQueue")
 		public void receiveDeadLetters(String message) {
 			this.countDownLatch.countDown();
 		}
@@ -228,6 +243,22 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		@MessageExceptionHandler(RuntimeException.class)
 		public void handle() {
 			// Empty body just to avoid unnecessary log output because no exception handler was found.
+		}
+
+	}
+
+	public static class ManualDeletionPolicyTestListener {
+
+		private final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		@SqsListener(value = "ManualDeletionQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		public void receive(String message, Acknowledgment acknowledgment) throws ExecutionException, InterruptedException {
+			acknowledgment.acknowledge().get();
+			this.countDownLatch.countDown();
+		}
+
+		public CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
 		}
 
 	}
