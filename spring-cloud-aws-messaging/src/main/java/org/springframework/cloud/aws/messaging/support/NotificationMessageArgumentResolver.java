@@ -22,7 +22,6 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Alain Sahli
@@ -31,18 +30,19 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 
 	private final MessageConverter converter;
 
-	public NotificationMessageArgumentResolver() {
-		this.converter = new NotificationRequestConverter();
+	public NotificationMessageArgumentResolver(MessageConverter converter) {
+		this.converter = new NotificationRequestConverter(converter);
 	}
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return (parameter.hasParameterAnnotation(NotificationMessage.class) &&
-				ClassUtils.isAssignable(String.class, parameter.getParameterType()));
+		return parameter.hasParameterAnnotation(NotificationMessage.class);
 	}
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, String.class)).getMessage();
+		NotificationRequestConverter.NotificationRequest notificationRequest = (NotificationRequestConverter.NotificationRequest)
+				this.converter.fromMessage(message, parameter.getParameterType());
+		return notificationRequest.getMessage();
 	}
 }

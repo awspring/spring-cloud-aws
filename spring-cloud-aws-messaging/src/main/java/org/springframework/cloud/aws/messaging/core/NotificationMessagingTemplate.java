@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.amazonaws.services.sns.AmazonSNS;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicTopicDestinationResolver;
@@ -29,7 +26,9 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.ClassUtils;
 
-import com.amazonaws.services.sns.AmazonSNS;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Alain Sahli
@@ -90,7 +89,7 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 	 * @param subject
 	 * 		The subject to send
 	 */
-	public void sendNotification(String destinationName, String message, String subject) {
+	public void sendNotification(String destinationName, Object message, String subject) {
 		this.convertAndSend(destinationName, message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
@@ -104,7 +103,7 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 	 * @param subject
 	 * 		The subject to send
 	 */
-	public void sendNotification(String message, String subject) {
+	public void sendNotification(Object message, String subject) {
 		this.convertAndSend(getRequiredDefaultDestination(), message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 }

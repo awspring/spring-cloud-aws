@@ -21,6 +21,7 @@ import org.springframework.cloud.aws.messaging.support.converter.NotificationReq
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ClassUtils;
 
@@ -32,7 +33,7 @@ public class NotificationSubjectArgumentResolver implements HandlerMethodArgumen
 	private final MessageConverter converter;
 
 	public NotificationSubjectArgumentResolver() {
-		this.converter = new NotificationRequestConverter();
+		this.converter = new NotificationRequestConverter(new StringMessageConverter());
 	}
 
 	@Override

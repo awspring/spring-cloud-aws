@@ -55,15 +55,15 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
-		String message = "Message content for SQS";
 		String subject = "A subject";
 
 		// Act
-		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", message, subject);
+		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals("Agim", this.notificationReceiver.getMessage().getFirstName());
+		assertEquals("Emruli", this.notificationReceiver.getMessage().getLastName());
 		assertEquals(subject, this.notificationReceiver.getSubject());
 	}
 
@@ -72,15 +72,15 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
-		String message = "Message content for default destination";
 		String subject = "Hello default destination";
 
 		// Act
-		this.notificationMessagingTemplate.sendNotification(message, subject);
+		this.notificationMessagingTemplate.sendNotification(new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
 		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		assertEquals(message, this.notificationReceiver.getMessage());
+		assertEquals("Agim", this.notificationReceiver.getMessage().getFirstName());
+		assertEquals("Emruli", this.notificationReceiver.getMessage().getLastName());
 		assertEquals(subject, this.notificationReceiver.getSubject());
 	}
 
@@ -88,14 +88,14 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 	protected static class NotificationReceiver {
 
 		private CountDownLatch countDownLatch;
-		private String message;
+		private TestPerson message;
 		private String subject;
 
 		private void setCountDownLatch(CountDownLatch countDownLatch) {
 			this.countDownLatch = countDownLatch;
 		}
 
-		private String getMessage() {
+		private TestPerson getMessage() {
 			return this.message;
 		}
 
@@ -110,12 +110,43 @@ public abstract class NotificationMessagingTemplateIntegrationTest extends Abstr
 
 		@RuntimeUse
 		@SqsListener("NotificationQueue")
-		private void messageListener(@NotificationSubject String subject, @NotificationMessage String message) {
+		private void messageListener(@NotificationSubject String subject, @NotificationMessage TestPerson message) {
 			this.subject = subject;
 			this.message = message;
 			this.countDownLatch.countDown();
 		}
 
+	}
+
+
+	public static class TestPerson {
+
+		private String firstName;
+		private String lastName;
+
+		public TestPerson() {
+		}
+
+		public TestPerson(String firstName, String lastName) {
+			this.firstName = firstName;
+			this.lastName = lastName;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
 	}
 
 }

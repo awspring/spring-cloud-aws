@@ -20,13 +20,13 @@ package org.springframework.cloud.aws.messaging.core;
  * @author Alain Sahli
  * @since 1.0
  */
-final class MessageAttributeDataTypes {
+public final class MessageAttributeDataTypes {
 
-	static final String BINARY = "Binary";
+	public static final String BINARY = "Binary";
 
-	static final String NUMBER = "Number";
+	public static final String NUMBER = "Number";
 
-	static final String STRING = "String";
+	public static final String STRING = "String";
 
 	private MessageAttributeDataTypes() {
 		// Avoid instantiation
