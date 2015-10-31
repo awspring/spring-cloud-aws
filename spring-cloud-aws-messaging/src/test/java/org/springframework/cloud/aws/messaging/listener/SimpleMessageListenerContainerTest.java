@@ -674,9 +674,9 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		// Assert
-		container.stop();
 		TestMessageListenerWithAllPossibleDeletionPolicies bean = applicationContext.getBean(TestMessageListenerWithAllPossibleDeletionPolicies.class);
 		assertTrue(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS));
+		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://alwaysSuccess.amazonaws.com", "alwaysSuccess")));
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://alwaysError.amazonaws.com", "alwaysError")));
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://onSuccessSuccess.amazonaws.com", "onSuccessSuccess")));
