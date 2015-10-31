@@ -20,9 +20,11 @@ import com.amazonaws.services.sns.AmazonSNS;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import static org.junit.Assert.assertTrue;
@@ -48,8 +50,10 @@ public class NotificationStatusHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+
 		//Act
-		resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 	}
@@ -65,8 +69,10 @@ public class NotificationStatusHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+
 		//Act
-		Object resolvedArgument = resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		Object resolvedArgument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 		assertTrue(resolvedArgument instanceof NotificationStatus);

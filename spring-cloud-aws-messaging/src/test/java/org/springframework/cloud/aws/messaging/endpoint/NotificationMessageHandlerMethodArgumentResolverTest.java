@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,12 +23,11 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import java.lang.reflect.Method;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class NotificationMessageHandlerMethodArgumentResolverTest {
 
@@ -50,8 +47,10 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+
 		//Act
-		resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 	}
@@ -65,29 +64,26 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "handleMethod", String.class, String.class), 0);
+
 		//Act
-		Object argument = resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 		assertEquals("asdasd", argument);
 	}
 
 	@Test
-	public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
+	public void supportsParameter_withIntegerParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
-		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Integer.class);
-		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "methodWithIntegerParameterType", Integer.class), 0);
 
 		// Act
 		boolean supportsParameter = resolver.supportsParameter(methodParameter);
 
 		// Assert
-		assertFalse(supportsParameter);
+		assertTrue(supportsParameter);
 	}
 
-	@SuppressWarnings("EmptyMethod")
-	@RuntimeUse
-	private void methodWithWrongParameterType(@NotificationMessage Integer message) {
-	}
 }
