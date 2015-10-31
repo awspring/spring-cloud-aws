@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.metrics;
+package org.springframework.cloud.aws.actuate.metrics;
 
 import com.amazonaws.services.cloudwatch.model.MetricDatum;
 import com.amazonaws.services.cloudwatch.model.StandardUnit;
@@ -37,18 +37,18 @@ public class CloudWatchMetricWriter implements MetricWriter {
 
     @Override
     public void increment(Delta<?> delta) {
-        sender.send(createMetricDatumForCounterValue(delta));
-    }
+		this.sender.send(createMetricDatumForCounterValue(delta));
+	}
 
     @Override
     public void set(Metric<?> value) {
-        sender.send(createMetricDatumForUnknownValue(value));
-    }
+		this.sender.send(createMetricDatumForUnknownValue(value));
+	}
 
     @Override
     public void reset(String metricName) {
-        sender.send(createEmptyMetricDatum(metricName));
-    }
+		this.sender.send(createEmptyMetricDatum(metricName));
+	}
 
     protected static MetricDatum createEmptyMetricDatum(String metricName) {
         return new MetricDatum().withMetricName(metricName).withValue(0.0);

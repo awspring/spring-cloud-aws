@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.metrics;
+package org.springframework.cloud.aws.autoconfigure.actuate;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
@@ -24,6 +24,9 @@ import org.springframework.boot.actuate.autoconfigure.ExportMetricWriter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.aws.actuate.metrics.BufferingCloudWatchMetricSender;
+import org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricSender;
+import org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricWriter;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.region.RegionProvider;
@@ -36,6 +39,7 @@ import org.springframework.context.annotation.Import;
  * with an {@link AmazonCloudWatchAsync} if its not already present.
  *
  * @author Simon Buettner
+ * @author Agim Emruli
  */
 @Configuration
 @Import(ContextCredentialsAutoConfiguration.class)
@@ -47,7 +51,7 @@ public class CloudWatchMetricAutoConfiguration {
     private RegionProvider regionProvider;
 
     @Autowired
-    CloudWatchMetricProperties cloudWatchMetricProperties;
+	private CloudWatchMetricProperties cloudWatchMetricProperties;
 
     @Bean
     @ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
@@ -61,20 +65,18 @@ public class CloudWatchMetricAutoConfiguration {
 
     @Bean
     @ExportMetricWriter
-    CloudWatchMetricWriter cloudWatchMetricWriter(CloudWatchMetricSender cloudWatchMetricSender) {
-        CloudWatchMetricWriter cloudWatchMetricWriter = new CloudWatchMetricWriter(cloudWatchMetricSender);
-        return cloudWatchMetricWriter;
-    }
+	CloudWatchMetricWriter cloudWatchMetricWriter(CloudWatchMetricSender cloudWatchMetricSender) {
+		return new CloudWatchMetricWriter(cloudWatchMetricSender);
+	}
 
     @Bean
     @ConditionalOnMissingBean(CloudWatchMetricSender.class)
     CloudWatchMetricSender cloudWatchMetricWriterSender(AmazonCloudWatchAsync amazonCloudWatchAsync) {
         return new BufferingCloudWatchMetricSender(
-            cloudWatchMetricProperties.getNamespace(),
-            cloudWatchMetricProperties.getMaxBuffer(),
-            cloudWatchMetricProperties.getNextRunDelayMillis(),
-            amazonCloudWatchAsync
+				this.cloudWatchMetricProperties.getNamespace(),
+				this.cloudWatchMetricProperties.getMaxBuffer(),
+				this.cloudWatchMetricProperties.getFixedDelayBetweenRuns(),
+				amazonCloudWatchAsync
         );
     }
-
 }

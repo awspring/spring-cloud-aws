@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.metrics;
+package org.springframework.cloud.aws.autoconfigure.actuate;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricWriter;
 
 /**
  * Configuration properties for {@link CloudWatchMetricWriter}.
  *
  * @author Simon Buettner
+ * @author Agim Emruli
  */
 @ConfigurationProperties(prefix = "cloud.aws.cloudwatch")
 public class CloudWatchMetricProperties {
@@ -39,33 +41,33 @@ public class CloudWatchMetricProperties {
     private int maxBuffer = Integer.MAX_VALUE;
 
     /**
-     * The delay of the next runnable which sends metrics to
-     * CloudWatch. A higher delay leads to more buffering and less but larger requests.
+	 * The delay of the background task which sends metrics to
+	 * CloudWatch. A higher delay leads to more buffering and less but larger requests.
      * A lower delay leads to a smaller buffer but more requests with less payload.
      */
-    private long nextRunDelayMillis = 1000;
+	private long fixedDelayBetweenRuns = 1000;
 
     public String getNamespace() {
-        return namespace;
-    }
+		return this.namespace;
+	}
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
     public int getMaxBuffer() {
-        return maxBuffer;
-    }
+		return this.maxBuffer;
+	}
 
     public void setMaxBuffer(int maxBuffer) {
         this.maxBuffer = maxBuffer;
     }
 
-    public long getNextRunDelayMillis() {
-        return nextRunDelayMillis;
-    }
+	public long getFixedDelayBetweenRuns() {
+		return this.fixedDelayBetweenRuns;
+	}
 
-    public void setNextRunDelayMillis(long nextRunDelayMillis) {
-        this.nextRunDelayMillis = nextRunDelayMillis;
-    }
+	public void setFixedDelayBetweenRuns(long fixedDelayBetweenRuns) {
+		this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
+	}
 }

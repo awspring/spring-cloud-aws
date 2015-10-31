@@ -43,6 +43,7 @@
 		<module>spring-cloud-aws-context</module>
 		<module>spring-cloud-aws-jdbc</module>
 		<module>spring-cloud-aws-messaging</module>
+		<module>spring-cloud-aws-actuator</module>
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-starter-aws</module>
 		<module>spring-cloud-starter-aws-jdbc</module>
@@ -205,6 +206,11 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+				<version>1.1.0.BUILD-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-aws-actuator</artifactId>
 				<version>1.1.0.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>

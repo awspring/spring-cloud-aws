@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.metrics;
+package org.springframework.cloud.aws.actuate.metrics;
 
 import com.amazonaws.services.cloudwatch.model.MetricDatum;
 
