@@ -74,11 +74,12 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 		resolvers.add(new HeaderMethodArgumentResolver(null, null));
 		resolvers.add(new HeadersMethodArgumentResolver());
-		resolvers.add(new NotificationMessageArgumentResolver());
+
 		resolvers.add(new NotificationSubjectArgumentResolver());
 		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
+		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter));
 		resolvers.add(new PayloadArgumentResolver(compositeMessageConverter, new NoOpValidator()));
 
 		return resolvers;

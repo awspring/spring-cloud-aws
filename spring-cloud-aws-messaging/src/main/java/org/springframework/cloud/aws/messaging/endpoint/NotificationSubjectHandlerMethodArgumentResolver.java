@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.util.ClassUtils;
-
-import java.util.HashMap;
 
 /**
  * @author Agim Emruli
@@ -34,10 +34,10 @@ public class NotificationSubjectHandlerMethodArgumentResolver extends AbstractNo
 	}
 
 	@Override
-	protected Object doResolverArgumentFromNotificationMessage(HashMap<String, String> content) {
-		if (!"Notification".equals(content.get("Type"))) {
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
+		if (!"Notification".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException("@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
 		}
-		return content.get("Subject");
+		return content.findPath("Subject").asText();
 	}
 }

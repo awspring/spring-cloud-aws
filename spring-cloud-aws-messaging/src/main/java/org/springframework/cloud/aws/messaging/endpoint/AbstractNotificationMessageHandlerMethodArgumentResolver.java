@@ -16,9 +16,12 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
@@ -26,7 +29,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
+import java.io.IOException;
 
 /**
  * @author Agim Emruli
@@ -41,17 +44,19 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver i
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 								  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+		Assert.notNull(parameter, "Parameter must not be null");
 		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
-			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(HashMap.class, createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
+			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(JsonNode.class,
+					createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
 		}
 
-		HashMap<String, String> content = (HashMap<String, String>) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
-		return doResolverArgumentFromNotificationMessage(content);
+		JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
+		return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest), parameter.getParameterType());
 	}
 
-	protected abstract Object doResolverArgumentFromNotificationMessage(HashMap<String, String> content);
+	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType);
 
-	private ServletServerHttpRequest createInputMessage(NativeWebRequest webRequest) {
+	private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		return new ServletServerHttpRequest(servletRequest);
 	}

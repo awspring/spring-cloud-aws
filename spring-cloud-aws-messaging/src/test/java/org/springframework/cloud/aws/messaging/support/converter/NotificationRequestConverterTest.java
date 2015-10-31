@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.junit.Assert.assertEquals;
@@ -40,12 +41,12 @@ public class NotificationRequestConverterTest {
 	@Test
 	public void testWriteMessageNotSupported() throws Exception {
 		this.expectedException.expect(UnsupportedOperationException.class);
-		new NotificationRequestConverter().toMessage("test", null);
+		new NotificationRequestConverter(new StringMessageConverter()).toMessage("test", null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void fromMessage_withoutMessage_shouldThrowAnException() throws Exception {
-		new NotificationRequestConverter().fromMessage(null, String.class);
+		new NotificationRequestConverter(new StringMessageConverter()).fromMessage(null, String.class);
 	}
 
 	@Test
@@ -58,7 +59,7 @@ public class NotificationRequestConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object notificationRequest = new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
 		assertTrue(NotificationRequestConverter.NotificationRequest.class.isInstance(notificationRequest));
@@ -75,7 +76,7 @@ public class NotificationRequestConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object notificationRequest = new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
 		assertTrue(NotificationRequestConverter.NotificationRequest.class.isInstance(notificationRequest));
@@ -89,7 +90,7 @@ public class NotificationRequestConverterTest {
 		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+		new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 	}
 
 	@Test
@@ -100,7 +101,7 @@ public class NotificationRequestConverterTest {
 		jsonObject.put("Type", "Subscription");
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+		new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 	}
 
 	@Test
@@ -111,7 +112,7 @@ public class NotificationRequestConverterTest {
 		jsonObject.put("Type", "Notification");
 		jsonObject.put("Subject", "Hello World!");
 		String payload = jsonObject.toString();
-		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(payload).build(), null);
+		new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 	}
 
 	@Test
@@ -119,6 +120,6 @@ public class NotificationRequestConverterTest {
 		this.expectedException.expect(MessageConversionException.class);
 		this.expectedException.expectMessage("Could not read JSON");
 		String message = "foo";
-		new NotificationRequestConverter().fromMessage(MessageBuilder.withPayload(message).build(), null);
+		new NotificationRequestConverter(new StringMessageConverter()).fromMessage(MessageBuilder.withPayload(message).build(), String.class);
 	}
 }

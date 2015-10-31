@@ -16,14 +16,24 @@
 
 package org.springframework.cloud.aws.messaging.support.converter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cloud.aws.messaging.core.MessageAttributeDataTypes;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
+import org.springframework.util.NumberUtils;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Agim Emruli
@@ -32,40 +42,55 @@ import java.util.Map;
  */
 public class NotificationRequestConverter implements MessageConverter {
 
-	private final MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
+	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final MessageConverter payloadConverter;
+
+
+	public NotificationRequestConverter(MessageConverter payloadConverter) {
+		this.payloadConverter = payloadConverter;
+	}
 
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		Assert.notNull(message, "message must not be null");
+		Assert.notNull(targetClass, "target class must not be null");
 
-		@SuppressWarnings("unchecked")
-		Map<String, String> jsonAttributes = (Map<String, String>) this.jsonMapper.fromMessage(message, Map.class);
-		if (!jsonAttributes.containsKey("Type")) {
+		JsonNode jsonNode;
+		try {
+			jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
+		} catch (Exception e) {
+			throw new MessageConversionException("Could not read JSON", e);
+		}
+		if (!jsonNode.has("Type")) {
 			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
 		}
 
-		if (!"Notification".equals(jsonAttributes.get("Type"))) {
+		if (!"Notification".equals(jsonNode.findValue("Type").asText())) {
 			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification", null);
 		}
 
-		if (!jsonAttributes.containsKey("Message")) {
+		if (!jsonNode.has("Message")) {
 			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message", null);
 		}
 
-		return new NotificationRequest(jsonAttributes.get("Subject"), jsonAttributes.get("Message"));
+		String messagePayload = jsonNode.findPath("Message").asText();
+		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload,
+				getMessageAttributesAsMessageHeaders(jsonNode.findPath("MessageAttributes")));
+		return new NotificationRequest(jsonNode.findPath("Subject").asText(),
+				this.payloadConverter.fromMessage(genericMessage, targetClass));
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders header) {
+	public Message<?> toMessage(Object payload, MessageHeaders headers) {
 		throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
 	}
 
 	public static class NotificationRequest {
 
 		private final String subject;
-		private final String message;
+		private final Object message;
 
-		public NotificationRequest(String subject, String message) {
+		public NotificationRequest(String subject, Object message) {
 			this.subject = subject;
 			this.message = message;
 		}
@@ -74,9 +99,48 @@ public class NotificationRequestConverter implements MessageConverter {
 			return this.subject;
 		}
 
-		public String getMessage() {
+		public Object getMessage() {
 			return this.message;
 		}
 	}
 
+
+	private static Map<String, Object> getMessageAttributesAsMessageHeaders(JsonNode message) {
+		Map<String, Object> messageHeaders = new HashMap<>();
+		Iterator<String> fieldNames = message.fieldNames();
+		while (fieldNames.hasNext()) {
+			String attributeName = fieldNames.next();
+			String attributeValue = message.get(attributeName).get("Value").asText();
+			String attributeType = message.get(attributeName).get("Type").asText();
+			if (MessageHeaders.CONTENT_TYPE.equals(attributeName)) {
+				messageHeaders.put(MessageHeaders.CONTENT_TYPE, MimeType.valueOf(attributeValue));
+			} else if (MessageHeaders.ID.equals(attributeName)) {
+				messageHeaders.put(MessageHeaders.ID, UUID.fromString(attributeValue));
+			} else {
+				if (MessageAttributeDataTypes.STRING.equals(attributeType)) {
+					messageHeaders.put(attributeName, attributeValue);
+				} else if (attributeType.startsWith(MessageAttributeDataTypes.NUMBER)) {
+					Object numberValue = getNumberValue(attributeType, attributeValue);
+					if (numberValue != null) {
+						messageHeaders.put(attributeName, numberValue);
+					}
+				} else if (MessageAttributeDataTypes.BINARY.equals(attributeName)) {
+					messageHeaders.put(attributeName, ByteBuffer.wrap(attributeType.getBytes()));
+				}
+			}
+		}
+
+		return messageHeaders;
+	}
+
+	private static Object getNumberValue(String attributeType, String attributeValue) {
+		String numberType = attributeType.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
+		try {
+			Class<? extends Number> numberTypeClass = Class.forName(numberType).asSubclass(Number.class);
+			return NumberUtils.parseNumber(attributeValue, numberTypeClass);
+		} catch (ClassNotFoundException e) {
+			throw new MessagingException(String.format("Message attribute with value '%s' and data type '%s' could not be converted " +
+					"into a Number because target class was not found.", attributeValue, attributeType), e);
+		}
+	}
 }

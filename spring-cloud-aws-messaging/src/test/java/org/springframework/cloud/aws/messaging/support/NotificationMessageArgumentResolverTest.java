@@ -18,11 +18,12 @@ package org.springframework.cloud.aws.messaging.support;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Test;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.junit.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.lang.reflect.Method;
@@ -36,7 +37,7 @@ public class NotificationMessageArgumentResolverTest {
 	@Test
 	public void supportsParameter_withNotificationMessageMethodParameter_shouldReturnTrue() throws Exception {
 		// Arrange
-		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
+		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(new StringMessageConverter());
 		Method methodWithNotificationMessageArgument = this.getClass().getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 
@@ -55,7 +56,7 @@ public class NotificationMessageArgumentResolverTest {
 	@Test
 	public void supportsParameter_withWrongMethodParameter_shouldReturnFalse() throws Exception {
 		// Arrange
-		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
+		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(new StringMessageConverter());
 		Method methodWithMissingAnnotation = this.getClass().getDeclaredMethod("methodWithMissingAnnotation", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation, 0);
 
@@ -72,9 +73,9 @@ public class NotificationMessageArgumentResolverTest {
 	}
 
 	@Test
-	public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
+	public void supportsParameter_withNonStringParameterType_shouldReturnTrue() throws Exception {
 		// Arrange
-		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
+		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(new StringMessageConverter());
 		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Long.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
 
@@ -82,7 +83,7 @@ public class NotificationMessageArgumentResolverTest {
 		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
 
 		// Assert
-		assertFalse(result);
+		assertTrue(result);
 	}
 
 	@SuppressWarnings("EmptyMethod")
@@ -93,7 +94,7 @@ public class NotificationMessageArgumentResolverTest {
 	@Test
 	public void resolveArgument_withValidMessagePayload_shouldReturnNotificationMessage() throws Exception {
 		// Arrange
-		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver();
+		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(new StringMessageConverter());
 		Method methodWithNotificationMessageArgument = this.getClass().getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 

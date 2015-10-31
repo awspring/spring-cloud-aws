@@ -17,9 +17,9 @@
 package org.springframework.cloud.aws.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.MethodParameter;
-
-import java.util.HashMap;
+import org.springframework.http.HttpInputMessage;
 
 /**
  * @author Agim Emruli
@@ -38,11 +38,11 @@ public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNot
 	}
 
 	@Override
-	protected Object doResolverArgumentFromNotificationMessage(HashMap<String, String> content) {
-		if (!"SubscriptionConfirmation".equals(content.get("Type")) && !"UnsubscribeConfirmation".equals(content.get("Type"))) {
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
+		if (!"SubscriptionConfirmation".equals(content.get("Type").asText()) && !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException("NotificationStatus is only available for subscription and unsubscription requests");
 		}
-		return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn"), content.get("Token"));
+		return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn").asText(), content.get("Token").asText());
 	}
 
 	private static class AmazonSnsNotificationStatus implements NotificationStatus {

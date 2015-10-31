@@ -16,15 +16,16 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import java.lang.reflect.Method;
@@ -50,8 +51,10 @@ public class NotificationSubjectHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+
 		//Act
-		resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 	}
@@ -65,8 +68,10 @@ public class NotificationSubjectHandlerMethodArgumentResolverTest {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
+		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+
 		//Act
-		Object argument = resolver.resolveArgument(null, null, new ServletWebRequest(servletRequest), null);
+		Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		//Assert
 		assertEquals("asdasd", argument);
