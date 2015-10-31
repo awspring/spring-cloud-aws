@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @author Alain Sahli
  * @since 1.0
  */
-public class AbstractMessageListenerContainerTest {
+public class MessageListenerContainerTest {
 
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
@@ -222,13 +222,13 @@ public class AbstractMessageListenerContainerTest {
 		container.setWaitTimeOut(33);
 
 		messageHandler.setApplicationContext(applicationContext);
-		messageHandler.afterPropertiesSet();
-		container.afterPropertiesSet();
 
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
 		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
 		container.start();
 
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
@@ -255,15 +255,14 @@ public class AbstractMessageListenerContainerTest {
 		container.setVisibilityTimeout(22);
 		container.setWaitTimeOut(33);
 
-		messageHandler.afterPropertiesSet();
-		container.afterPropertiesSet();
-
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://anotherTestQueue.amazonaws.com"));
 		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
 		container.start();
 
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
@@ -415,14 +414,14 @@ public class AbstractMessageListenerContainerTest {
 		applicationContext.registerSingleton("messageListener", MessageListener.class);
 		applicationContext.registerSingleton("anotherMessageListener", AnotherMessageListener.class);
 
-		messageHandler.afterPropertiesSet();
-		container.afterPropertiesSet();
-
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue"))).
 				thenThrow(new DestinationResolutionException("Queue not found"));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue"))).
 				thenReturn(new GetQueueUrlResult().withQueueUrl("http://anotherTestQueue.amazonaws.com"));
 		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
 
 		// Act
 		container.start();

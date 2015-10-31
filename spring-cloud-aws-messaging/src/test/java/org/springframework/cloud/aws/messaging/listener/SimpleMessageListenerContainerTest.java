@@ -623,12 +623,10 @@ public class SimpleMessageListenerContainerTest {
 	@Test
 	public void executeMessage_withDifferentDeletionPolicies_shouldActAccordingly() throws Exception {
 		// Arrange
-		final CountDownLatch countDownLatch = new CountDownLatch(1);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
 			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
-				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
 		};
@@ -677,7 +675,8 @@ public class SimpleMessageListenerContainerTest {
 
 		// Assert
 		TestMessageListenerWithAllPossibleDeletionPolicies bean = applicationContext.getBean(TestMessageListenerWithAllPossibleDeletionPolicies.class);
-		bean.getCountdownLatch().await(1L, TimeUnit.SECONDS);
+		assertTrue(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS));
+		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://alwaysSuccess.amazonaws.com", "alwaysSuccess")));
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://alwaysError.amazonaws.com", "alwaysError")));
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest("http://onSuccessSuccess.amazonaws.com", "onSuccessSuccess")));
