@@ -61,6 +61,8 @@ public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSuppo
 		driverClassNameMappings.put(DatabaseType.ORACLE, "oracle.jdbc.OracleDriver");
 		driverClassNameMappings.put(DatabaseType.SQLSERVER, "net.sourceforge.jtds.jdbc.Driver");
 		driverClassNameMappings.put(DatabaseType.POSTGRES, "org.postgresql.Driver");
+		driverClassNameMappings.put(DatabaseType.MARIA, "org.mariadb.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.AURORA, driverClassNameMappings.get(DatabaseType.MYSQL));
 		return Collections.unmodifiableMap(driverClassNameMappings);
 	}
 
@@ -70,6 +72,8 @@ public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSuppo
 		schemeNamesMappings.put(DatabaseType.ORACLE, JDBC_SCHEME_NAME + "oracle:thin");
 		schemeNamesMappings.put(DatabaseType.SQLSERVER, JDBC_SCHEME_NAME + "jtds:sqlserver");
 		schemeNamesMappings.put(DatabaseType.POSTGRES, JDBC_SCHEME_NAME + "postgresql");
+		schemeNamesMappings.put(DatabaseType.MARIA, JDBC_SCHEME_NAME + "mariadb");
+		schemeNamesMappings.put(DatabaseType.AURORA, schemeNamesMappings.get(DatabaseType.MYSQL));
 		return Collections.unmodifiableMap(schemeNamesMappings);
 	}
 }

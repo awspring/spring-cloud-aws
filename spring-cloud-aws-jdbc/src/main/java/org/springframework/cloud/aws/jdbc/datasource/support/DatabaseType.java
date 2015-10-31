@@ -31,7 +31,11 @@ public enum DatabaseType {
 	@RuntimeUse
 	SQLSERVER,
 	@RuntimeUse
-	POSTGRES;
+	POSTGRES,
+	@RuntimeUse
+	MARIA,
+	@RuntimeUse
+	AURORA;
 
 
 	public static DatabaseType fromEngine(String engineName){
