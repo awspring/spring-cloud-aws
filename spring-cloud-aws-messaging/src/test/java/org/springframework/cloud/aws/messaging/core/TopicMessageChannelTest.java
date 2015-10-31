@@ -20,16 +20,27 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
+import com.amazonaws.services.sns.model.SubscribeRequest;
+import com.amazonaws.services.sns.model.SubscribeResult;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -189,4 +200,22 @@ public class TopicMessageChannelTest {
 		assertEquals(MessageAttributeDataTypes.BINARY, publishRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType());
 	}
 
+	@Test
+	public void sendMessage_withUuidAsId_shouldConvertUuidToString() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		TopicMessageChannel messageChannel = new TopicMessageChannel(amazonSns, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").build();
+		UUID uuid = (UUID) message.getHeaders().get(MessageHeaders.ID);
+
+		ArgumentCaptor<PublishRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+		when(amazonSns.publish(sendMessageRequestArgumentCaptor.capture())).thenReturn(new PublishResult());
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertTrue(sent);
+		assertEquals(uuid.toString(), sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(MessageHeaders.ID).getStringValue());
+	}
 }
