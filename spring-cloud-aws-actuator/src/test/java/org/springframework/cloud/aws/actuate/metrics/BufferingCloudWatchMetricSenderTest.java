@@ -20,11 +20,13 @@ import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
 import com.amazonaws.services.cloudwatch.model.MetricDatum;
 import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertEquals;
@@ -49,6 +51,11 @@ public class BufferingCloudWatchMetricSenderTest {
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
+	}
+
+	@After
+	public void resetMocks() {
+		Mockito.reset(this.amazonCloudWatchAsyncClient);
 	}
 
 	@Test
