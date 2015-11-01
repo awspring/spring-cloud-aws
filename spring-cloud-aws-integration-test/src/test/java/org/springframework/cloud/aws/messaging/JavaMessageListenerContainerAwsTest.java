@@ -22,7 +22,7 @@ import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -48,7 +48,7 @@ public class JavaMessageListenerContainerAwsTest extends MessageListenerContaine
 		}
 
 		@Bean
-		public TaskExecutor taskExecutor() {
+		public AsyncTaskExecutor taskExecutor() {
 			ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
 			threadPoolTaskExecutor.setCorePoolSize(10);
 			threadPoolTaskExecutor.setMaxPoolSize(200);

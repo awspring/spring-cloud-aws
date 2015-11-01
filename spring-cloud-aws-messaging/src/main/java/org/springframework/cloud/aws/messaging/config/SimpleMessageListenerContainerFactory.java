@@ -21,6 +21,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  */
 public class SimpleMessageListenerContainerFactory {
 
-	private TaskExecutor taskExecutor;
+	private AsyncTaskExecutor taskExecutor;
 
 	private Integer maxNumberOfMessages;
 
@@ -60,7 +61,7 @@ public class SimpleMessageListenerContainerFactory {
 	 * 		The {@link TaskExecutor} used by the container
 	 * @see SimpleMessageListenerContainer#createDefaultTaskExecutor()
 	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(AsyncTaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
