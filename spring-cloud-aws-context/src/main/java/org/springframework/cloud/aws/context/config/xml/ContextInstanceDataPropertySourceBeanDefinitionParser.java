@@ -26,6 +26,7 @@ import org.springframework.cloud.aws.context.config.support.ContextConfiguration
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import static org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment;
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
@@ -53,8 +54,11 @@ class ContextInstanceDataPropertySourceBeanDefinitionParser extends AbstractBean
 					parserContext.getRegistry());
 		}
 
-		ContextConfigurationUtils.registerInstanceDataPropertySource(parserContext.getRegistry(),
-				element.getAttribute("value-separator"), element.getAttribute("attribute-separator"));
+		if (isRunningOnCloudEnvironment()) {
+			ContextConfigurationUtils.registerInstanceDataPropertySource(parserContext.getRegistry(),
+					element.getAttribute("value-separator"), element.getAttribute("attribute-separator"));
+		}
+
 		return null;
 	}
 }

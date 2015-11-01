@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,6 +31,7 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Agim Emruli
  */
 @Configuration
+@ConditionalOnAwsCloudEnvironment
 @Import(ContextInstanceDataAutoConfiguration.Registrar.class)
 public class ContextInstanceDataAutoConfiguration {
 

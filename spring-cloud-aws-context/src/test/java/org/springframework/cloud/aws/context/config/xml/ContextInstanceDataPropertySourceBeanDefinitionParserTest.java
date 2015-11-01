@@ -19,6 +19,8 @@ package org.springframework.cloud.aws.context.config.xml;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanReference;
@@ -26,9 +28,13 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.cloud.aws.context.MetaDataServer;
+import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -43,6 +49,8 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 	@Test
 	public void parseInternal_singleElementDefined_beanDefinitionCreated() throws Exception {
 		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
@@ -53,6 +61,25 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 		BeanFactoryPostProcessor postProcessor = beanFactory.getBean("AmazonEc2InstanceDataPropertySourcePostProcessor", BeanFactoryPostProcessor.class);
 		assertNotNull(postProcessor);
 		assertEquals(1, beanFactory.getBeanDefinitionCount());
+
+		httpServer.removeContext(instanceIdHttpContext);
+	}
+
+	@Test
+	public void parseInternal_missingAwsCloudEnvironment_missingBeanDefinition() throws Exception {
+		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler(null));
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+
+		//Act
+		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-context.xml", getClass()));
+
+		//Assert
+		assertFalse(beanFactory.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+
+		httpServer.removeContext(instanceIdHttpContext);
 	}
 
 	@Test
@@ -92,7 +119,8 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 	public void parseInternal_singleElementWithCustomAttributeAndValueSeparator_postProcessorCreatedWithCustomAttributeAndValueSeparator() throws Exception {
 		//Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b/c=d"));
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b/c=d"));
 
 		GenericApplicationContext applicationContext = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
@@ -106,6 +134,20 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 		assertEquals("b", applicationContext.getEnvironment().getProperty("a"));
 		assertEquals("d", applicationContext.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(httpContext);
+		httpServer.removeContext(instanceIdHttpContext);
+		httpServer.removeContext(userDataHttpContext);
+	}
+
+	@Before
+	public void restContextInstanceDataCondition() throws IllegalAccessException {
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+		assertNotNull(field);
+		ReflectionUtils.makeAccessible(field);
+		field.set(null, null);
+	}
+
+	@After
+	public void destroyMetaDataServer() throws Exception {
+		MetaDataServer.shutdownHttpServer();
 	}
 }
