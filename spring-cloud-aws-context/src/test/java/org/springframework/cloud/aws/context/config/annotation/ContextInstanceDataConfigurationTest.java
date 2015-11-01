@@ -22,7 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.cloud.aws.context.MetaDataServer;
-import org.springframework.cloud.aws.context.annotation.OnAwsCloudEnvironmentCondition;
+import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
@@ -124,7 +124,7 @@ public class ContextInstanceDataConfigurationTest {
 
 	@Before
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(OnAwsCloudEnvironmentCondition.class, "isCloudEnvironment");
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
 		assertNotNull(field);
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);

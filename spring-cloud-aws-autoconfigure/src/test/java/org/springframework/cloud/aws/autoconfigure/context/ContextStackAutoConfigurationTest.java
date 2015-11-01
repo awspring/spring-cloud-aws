@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.EnvironmentTestUtils;
-import org.springframework.cloud.aws.context.annotation.OnAwsCloudEnvironmentCondition;
+import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -50,7 +50,7 @@ public class ContextStackAutoConfigurationTest {
 
 	@Before
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(OnAwsCloudEnvironmentCondition.class, "isCloudEnvironment");
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
 		assertNotNull(field);
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);

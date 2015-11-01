@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.aws.context.annotation;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.util.EC2MetadataUtils;
+import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -28,10 +27,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition{
 
-	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
-
-	private static Boolean isCloudEnvironment;
-
 	@Override
 	public ConfigurationPhase getConfigurationPhase() {
 		return ConfigurationPhase.PARSE_CONFIGURATION;
@@ -39,14 +34,6 @@ public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition{
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		if (isCloudEnvironment == null) {
-			try {
-				isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
-			} catch (AmazonClientException e) {
-				isCloudEnvironment = false;
-			}
-		}
-
-		return isCloudEnvironment;
+		return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
 	}
 }

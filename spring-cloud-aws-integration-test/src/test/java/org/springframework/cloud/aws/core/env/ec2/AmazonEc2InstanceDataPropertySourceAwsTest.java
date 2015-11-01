@@ -26,12 +26,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Agim Emruli
@@ -56,6 +61,7 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i123456".getBytes()));
 		httpServer.start();
 		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
+		restContextInstanceDataCondition();
 	}
 
 	@AfterClass
@@ -98,5 +104,12 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 			responseBody.flush();
 			responseBody.close();
 		}
+	}
+
+	private static void restContextInstanceDataCondition() throws IllegalAccessException {
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+		assertNotNull(field);
+		ReflectionUtils.makeAccessible(field);
+		field.set(null, null);
 	}
 }
