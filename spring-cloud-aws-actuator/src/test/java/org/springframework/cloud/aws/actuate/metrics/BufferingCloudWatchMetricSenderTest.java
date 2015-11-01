@@ -87,7 +87,7 @@ public class BufferingCloudWatchMetricSenderTest {
 			sender.send(new MetricDatum().withMetricName("test"));
 		}
 
-		Thread.sleep(5);
+		Thread.sleep(15);
 
 		verify(this.amazonCloudWatchAsyncClient, times(3)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
 		assertEquals("There should be three requests", 3, this.putRequestCaptor.getAllValues().size());

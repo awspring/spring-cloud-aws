@@ -96,7 +96,7 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 
 	@Override
 	public void destroy() throws Exception {
-		this.scheduledFuture.cancel(true);
+		this.scheduledFuture.cancel(false);
 	}
 
 	private class CloudWatchMetricSenderRunnable implements Runnable {
