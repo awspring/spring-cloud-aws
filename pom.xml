@@ -21,12 +21,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>1.1.0.BUILD-SNAPSHOT</version>
+		<version>1.1.0.M1</version>
 		<!-- lookup parent from repository -->
 	</parent>
 
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>1.1.0.BUILD-SNAPSHOT</version>
+	<version>1.1.0.M1</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 	<description>Spring Cloud AWS</description>
@@ -171,47 +171,47 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-context</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-messaging</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-jdbc</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-core</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-aws-actuator</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
+				<version>1.1.0.M1</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.mail</groupId>
