@@ -22,7 +22,7 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
 		<version>1.1.0.BUILD-SNAPSHOT</version>
-		<!-- lookup parent from repository -->
+		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<artifactId>spring-cloud-aws</artifactId>
@@ -39,6 +39,7 @@
 	</scm>
 
 	<modules>
+		<module>spring-cloud-aws-dependencies</module>
 		<module>spring-cloud-aws-core</module>
 		<module>spring-cloud-aws-context</module>
 		<module>spring-cloud-aws-jdbc</module>
@@ -54,164 +55,16 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-core</artifactId>
-				<version>${aws-java-sdk.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>stax</groupId>
-						<artifactId>stax-api</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>activation</groupId>
-						<artifactId>activation</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-s3</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-ec2</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-cloudformation</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-elasticache</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-ses</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-cloudwatch</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.thimbleware.jmemcached</groupId>
-				<artifactId>jmemcached-core</artifactId>
-				<version>${jmemcached.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.retry</groupId>
-				<artifactId>spring-retry</artifactId>
-				<version>${spring-retry.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-rds</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-iam</artifactId>
-				<version>${aws-java-sdk.version}</version>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-aws-dependencies</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tomcat.extras</groupId>
 				<artifactId>tomcat-extras-juli-adapters</artifactId>
 				<version>${tomcat.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-sqs</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-sns</artifactId>
-				<version>${aws-java-sdk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>elasticache-java-cluster-client</artifactId>
-				<version>1.0.61.0</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>junit-dep</artifactId>
-						<groupId>junit</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>junit</artifactId>
-						<groupId>junit</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jmock-cglib</artifactId>
-						<groupId>jmock</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>log4j</artifactId>
-						<groupId>log4j</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jmock</artifactId>
-						<groupId>jmock</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>cglib-nodep</artifactId>
-						<groupId>cglib</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>commons-collections</artifactId>
-						<groupId>commons-collections</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-context</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-messaging</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-jdbc</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-core</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-aws-actuator</artifactId>
-				<version>1.1.0.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.mail</groupId>
@@ -223,11 +76,6 @@
 						<artifactId>activation</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>redis.clients</groupId>
-				<artifactId>jedis</artifactId>
-				<version>2.6.2</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -367,8 +215,5 @@
 
 	<properties>
 		<bintray.package>aws</bintray.package>
-		<aws-java-sdk.version>1.10.30</aws-java-sdk.version>
-		<jmemcached.version>1.0.0</jmemcached.version>
-		<spring-retry.version>1.1.2.RELEASE</spring-retry.version>
 	</properties>
 </project>
