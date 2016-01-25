@@ -32,10 +32,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.argThat;
@@ -128,6 +128,30 @@ public class StackResourceRegistryFactoryBeanTest {
 			assertThat(stackResource.getPhysicalId(), anyOf(is("physicalResourceIdOne"), is("physicalStackId"), is("physicalResourceIdTwo")));
 			assertThat(stackResource.getType(), anyOf(is("AWS::CloudFormation::Stack"), is("Amazon::SES::Test")));
 		}
+
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalNestedStack.logicalResourceIdTwo"), notNullValue());
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"), notNullValue());
+	}
+
+	@Test
+	public void createInstance_stackWithNestedStack_dontReturnDuplicateResourceId() throws Exception {
+		// Arrange
+		Map<String, String> resourceIdMappings = new HashMap<>();
+		resourceIdMappings.put("logicalNested1Stack", "physicalStackId");
+		resourceIdMappings.put("logicalNested1Stack.logicalResource", "physicalResourceIdOne");
+		resourceIdMappings.put("logicalNested2Stack", "physicalStackId");
+		resourceIdMappings.put("logicalNested2Stack.logicalResource", "physicalResourceIdTwo");
+
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, resourceIdMappings);
+
+		// Act
+		ListableStackResourceFactory stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
+
+		// Assert
+		assertThat(stackResourceRegistry.getAllResources().size(), is(4));
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalNested1Stack.logicalResource"), notNullValue());
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalNested2Stack.logicalResource"), notNullValue());
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResource"), nullValue());
 	}
 
 	private static StackResourceRegistryFactoryBean makeStackResourceRegistryFactoryBean(String stackName, Map<String, String> resourceIdMappings) {
@@ -152,7 +176,13 @@ public class StackResourceRegistryFactoryBeanTest {
 			String logicalResourceId = entry.getKey();
 			String physicalResourceId = entry.getValue();
 
-			String physicalStackName = logicalResourceId.contains(".") ? resourceIdMappings.get(logicalResourceId.substring(0, logicalResourceId.lastIndexOf("."))) : STACK_NAME;
+			String physicalStackName;
+			if (logicalResourceId.contains(".")) {
+				physicalStackName = resourceIdMappings.get(logicalResourceId.substring(0, logicalResourceId.lastIndexOf(".")));
+				logicalResourceId = logicalResourceId.substring(logicalResourceId.lastIndexOf(".") + 1);
+			} else {
+				physicalStackName = STACK_NAME;
+			}
 
 			List<StackResourceSummary> list = stackResourceSummaries.get(physicalStackName);
 			if (list == null) {

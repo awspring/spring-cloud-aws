@@ -93,8 +93,9 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		Map<String, StackResource> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
-			stackResourceMappings.put(toNestedResourceId(prefix, stackResourceSummary.getLogicalResourceId()),
-					new StackResource(stackResourceSummary.getLogicalResourceId(),
+			String logicalResourceId = toNestedResourceId(prefix, stackResourceSummary.getLogicalResourceId());
+			stackResourceMappings.put(logicalResourceId,
+					new StackResource(logicalResourceId,
 							stackResourceSummary.getPhysicalResourceId(),
 							stackResourceSummary.getResourceType()));
 		}
@@ -128,6 +129,21 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		public String lookupPhysicalResourceId(String logicalResourceId) {
 			if (this.stackResourceByLogicalId.containsKey(logicalResourceId)) {
 				return this.stackResourceByLogicalId.get(logicalResourceId).getPhysicalId();
+			} else if (!logicalResourceId.contains(".")) {
+				String prefix = "." + logicalResourceId;
+
+				String physicalId = null;
+				for (Map.Entry<String, StackResource> entry : stackResourceByLogicalId.entrySet()) {
+					if (entry.getKey() != null && entry.getKey().endsWith(prefix)) {
+						if (physicalId == null) {
+							physicalId = entry.getValue().getPhysicalId();
+						} else {
+							// unqualified resourceId is not unique
+							return null;
+						}
+					}
+				}
+				return physicalId;
 			} else {
 				return null;
 			}
