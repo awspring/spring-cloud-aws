@@ -19,9 +19,14 @@ package org.springframework.cloud.aws.context.config.annotation;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.ec2.AmazonEC2;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
+import org.springframework.cloud.aws.core.env.stack.config.StackNameProvider;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
+import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +52,12 @@ public class ContextStackConfiguration implements ImportAware {
 	@Autowired(required = false)
 	private AWSCredentialsProvider credentialsProvider;
 
+	@Autowired
+	private AmazonCloudFormation amazonCloudFormation;
+
+	@Autowired(required = false)
+	private AmazonEC2 amazonEc2;
+
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
@@ -55,12 +66,21 @@ public class ContextStackConfiguration implements ImportAware {
 				"@EnableStackConfiguration is not present on importing class " + importMetadata.getClassName());
 	}
 
+	public String getStackName() {
+		return this.annotationAttributes != null ? this.annotationAttributes.getString("stackName") : null;
+	}
+
 	@Bean
-	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
-		if (StringUtils.hasText(this.annotationAttributes.getString("stackName"))) {
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation, this.annotationAttributes.getString("stackName"));
-		}else{
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation);
+	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean() {
+		return new StackResourceRegistryFactoryBean(amazonCloudFormation, stackNameProvider());
+	}
+
+	protected StackNameProvider stackNameProvider() {
+		String stackName = getStackName();
+		if (StringUtils.hasText(stackName)) {
+			return new StaticStackNameProvider(stackName);
+		} else {
+			return new AutoDetectingStackNameProvider(amazonCloudFormation, amazonEc2);
 		}
 	}
 
