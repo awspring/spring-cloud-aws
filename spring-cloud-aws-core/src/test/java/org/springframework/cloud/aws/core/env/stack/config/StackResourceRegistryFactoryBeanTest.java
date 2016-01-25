@@ -20,6 +20,8 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+
+import org.hamcrest.CustomMatcher;
 import org.junit.Test;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -30,16 +32,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class StackResourceRegistryFactoryBeanTest {
+
+	private static final String STACK_NAME = "myStack";
 
 	@Test
 	public void createInstance_stackWithTwoResources_returnsStackResourceRegistryWithTwoResources() throws Exception {
@@ -48,7 +53,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
 		resourceIdMappings.put("logicalResourceIdTwo", "physicalResourceIdTwo");
 
-		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean("myStack", resourceIdMappings);
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, resourceIdMappings);
 
 		// Act
 		StackResourceRegistry stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
@@ -65,7 +70,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
 		resourceIdMappings.put("logicalResourceIdTwo", "physicalResourceIdTwo");
 
-		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean("myStack", resourceIdMappings);
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, resourceIdMappings);
 
 		// Act
 		ListableStackResourceFactory stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
@@ -82,25 +87,47 @@ public class StackResourceRegistryFactoryBeanTest {
 	@Test
 	public void createInstance_stackWithName_returnsStackResourceRegistryWithStackName() throws Exception {
 		// Arrange
-		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean("myStack", Collections.<String, String>emptyMap());
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, Collections.<String, String>emptyMap());
 
 		// Act
 		StackResourceRegistry stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.getStackName(), is("myStack"));
+		assertThat(stackResourceRegistry.getStackName(), is(STACK_NAME));
 	}
 
 	@Test
 	public void createInstance_stackWithNoResources_returnsStackResourceRegistryAnsweringWithNullForNonExistingLogicalResourceId() throws Exception {
 		// Arrange
-		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean("myStack", Collections.<String, String>emptyMap());
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, Collections.<String, String>emptyMap());
 
 		// Act
 		StackResourceRegistry stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
 
 		// Assert
 		assertThat(stackResourceRegistry.lookupPhysicalResourceId("nonExistingLogicalResourceId"), is(nullValue()));
+	}
+
+	@Test
+	public void createInstance_stackWithNestedStack() throws Exception {
+		// Arrange
+		Map<String, String> resourceIdMappings = new HashMap<>();
+		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
+		resourceIdMappings.put("logicalNestedStack", "physicalStackId");
+		resourceIdMappings.put("logicalNestedStack.logicalResourceIdTwo", "physicalResourceIdTwo");
+
+		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(STACK_NAME, resourceIdMappings);
+
+		// Act
+		ListableStackResourceFactory stackResourceRegistry = stackResourceRegistryFactoryBean.createInstance();
+
+		// Assert
+		assertThat(stackResourceRegistry.getAllResources().size(), is(3));
+		for (StackResource stackResource : stackResourceRegistry.getAllResources()) {
+			assertThat(stackResource.getLogicalId(), anyOf(is("logicalResourceIdOne"), is("logicalNestedStack"), is("logicalNestedStack.logicalResourceIdTwo")));
+			assertThat(stackResource.getPhysicalId(), anyOf(is("physicalResourceIdOne"), is("physicalStackId"), is("physicalResourceIdTwo")));
+			assertThat(stackResource.getType(), anyOf(is("AWS::CloudFormation::Stack"), is("Amazon::SES::Test")));
+		}
 	}
 
 	private static StackResourceRegistryFactoryBean makeStackResourceRegistryFactoryBean(String stackName, Map<String, String> resourceIdMappings) {
@@ -118,20 +145,42 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	private static AmazonCloudFormation makeAmazonCloudFormationClient(Map<String, String> resourceIdMappings) {
-		List<StackResourceSummary> stackResourceSummaries = new ArrayList<>();
+		Map<String, List<StackResourceSummary>> stackResourceSummaries = new HashMap<>();
+		stackResourceSummaries.put(STACK_NAME, new ArrayList<StackResourceSummary>()); // allow stack with no resources
 
 		for (Map.Entry<String, String> entry : resourceIdMappings.entrySet()) {
 			String logicalResourceId = entry.getKey();
 			String physicalResourceId = entry.getValue();
 
-			stackResourceSummaries.add(makeStackResourceSummary(logicalResourceId, physicalResourceId));
+			String physicalStackName = logicalResourceId.contains(".") ? resourceIdMappings.get(logicalResourceId.substring(0, logicalResourceId.lastIndexOf("."))) : STACK_NAME;
+
+			List<StackResourceSummary> list = stackResourceSummaries.get(physicalStackName);
+			if (list == null) {
+				list = new ArrayList<>();
+				stackResourceSummaries.put(physicalStackName, list);
+			}
+
+			list.add(makeStackResourceSummary(logicalResourceId, physicalResourceId));
 		}
 
-		ListStackResourcesResult listStackResourcesResult = mock(ListStackResourcesResult.class);
-		when(listStackResourcesResult.getStackResourceSummaries()).thenReturn(stackResourceSummaries);
-
 		AmazonCloudFormation amazonCloudFormationClient = mock(AmazonCloudFormation.class);
-		when(amazonCloudFormationClient.listStackResources(any(ListStackResourcesRequest.class))).thenReturn(listStackResourcesResult);
+
+		for (Map.Entry<String, List<StackResourceSummary>> entry : stackResourceSummaries.entrySet()) {
+			final String stackName = entry.getKey();
+
+			ListStackResourcesResult listStackResourcesResult = mock(ListStackResourcesResult.class);
+			when(listStackResourcesResult.getStackResourceSummaries()).thenReturn(entry.getValue());
+
+			when(amazonCloudFormationClient.listStackResources(argThat(new CustomMatcher<ListStackResourcesRequest>("describe stack '" + entry.getKey() + "'") {
+
+				@Override
+				public boolean matches(Object item) {
+					return item != null && stackName.equals(((ListStackResourcesRequest)item).getStackName());
+				}
+
+
+			}))).thenReturn(listStackResourcesResult);
+		}
 
 		return amazonCloudFormationClient;
 	}
@@ -140,7 +189,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		StackResourceSummary stackResourceSummary = mock(StackResourceSummary.class);
 		when(stackResourceSummary.getLogicalResourceId()).thenReturn(logicalResourceId);
 		when(stackResourceSummary.getPhysicalResourceId()).thenReturn(physicalResourceId);
-		when(stackResourceSummary.getResourceType()).thenReturn("Amazon::SES::Test");
+		when(stackResourceSummary.getResourceType()).thenReturn(logicalResourceId.endsWith("Stack") ? "AWS::CloudFormation::Stack" : "Amazon::SES::Test");
 		return stackResourceSummary;
 	}
 
