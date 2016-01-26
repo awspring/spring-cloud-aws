@@ -19,7 +19,7 @@ mail.properties
 *.ipr
 *.iws
 .project
-.classoath
+.classpath
 .settings/
 
 # Because re-configuring the directory in the share plugin leads to side effect we ignore the file
