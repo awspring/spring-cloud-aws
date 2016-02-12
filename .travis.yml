@@ -20,5 +20,6 @@ env:
   - GIT_EMAIL=dsyer@pivotal.io
   - CI_DEPLOY_USERNAME=buildmaster
   - FEATURE_BRANCH=$(echo ${TRAVIS_BRANCH} | grep "^.*/.*$" && echo true || echo false)
-  - MVN_GOAL=$([ "${TRAVIS_PULL_REQUEST}" == "false" -a "${TRAVIS_TAG}" == "" -a "${FEATURE_BRANCH}" == "false" ] && echo deploy || echo install)
+  - SPRING_CLOUD_BUILD=$(echo ${TRAVIS_REPO_SLUG} | grep "^spring-cloud/.*$" && echo true || echo false)
+  - MVN_GOAL=$([ "${TRAVIS_PULL_REQUEST}" == "false" -a "${TRAVIS_TAG}" == "" -a "${FEATURE_BRANCH}" == "false" -a "${SPRING-CLOUD_BUILD}" == "true" ] && echo deploy || echo install)
   - secure: "RlAkhuBBoUbd0QEp69la+sd0QfOZhg7cxs/BYiw5Z0Bvl0DCtDJCtXoezQXpeQkIkLzIWa8WjJSkM9aL9aP37bg/GzY3O4B2nuF5rw7otw0zua223ioent3MNbrqk+v2whBlOwCV4/LY3Qod3XvFnLRAQmNWnzSenwcJ4qUxP1Q="
