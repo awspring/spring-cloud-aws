@@ -3,18 +3,22 @@ cache:
   directories:
     - $HOME/.m2
 language: java
-before_script:
+before_install:
   - git config user.name "$GIT_NAME"
   - git config user.email "$GIT_EMAIL"
   - git config credential.helper "store --file=.git/credentials"
   - echo "https://$GH_TOKEN:@github.com" > .git/credentials
   - gem install asciidoctor
-  - chmod +x travis-build.sh
-install: true
-script: ./travis-build.sh
+install:
+- ./mvnw install -P docs -q -U -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
+- '[ "${MVN_GOAL}" == "deploy" ] && ./docs/src/main/asciidoc/ghpages.sh'
+script:
+- './mvnw -s .settings.xml $MVN_GOAL -nsu -Dmaven.test.redirectTestOutputToFile=true'
 env:
   global:
   - GIT_NAME="Dave Syer"
   - GIT_EMAIL=dsyer@pivotal.io
   - CI_DEPLOY_USERNAME=buildmaster
-  - secure: QbE2ttq/fQf1ZZ83A/JEPflT3XZTKVdYU3uvMd/XAml7qyzqrTwI/bQJZPyIWxe/3jvSINViL4BspRWj5zTdaY/4QHKuahXUlz+JQifL0plvGGndQoZfO3yI2dCaLuKmk0NpOQW3gh22/UON4wT/k/X/KYQn+gq7e8KMz+N151o=
+  - FEATURE_BRANCH=$(echo ${TRAVIS_BRANCH} | grep "^.*/.*$" && echo true || echo false)
+  - MVN_GOAL=$([ "${TRAVIS_PULL_REQUEST}" == "false" -a "${TRAVIS_TAG}" == "" -a "${FEATURE_BRANCH}" == "false" ] && echo deploy || echo install)
+  - secure: "RlAkhuBBoUbd0QEp69la+sd0QfOZhg7cxs/BYiw5Z0Bvl0DCtDJCtXoezQXpeQkIkLzIWa8WjJSkM9aL9aP37bg/GzY3O4B2nuF5rw7otw0zua223ioent3MNbrqk+v2whBlOwCV4/LY3Qod3XvFnLRAQmNWnzSenwcJ4qUxP1Q="
