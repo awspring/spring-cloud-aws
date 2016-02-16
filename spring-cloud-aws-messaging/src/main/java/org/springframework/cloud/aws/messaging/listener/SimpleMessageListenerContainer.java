@@ -268,7 +268,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 						Thread.currentThread().interrupt();
 					}
 				} catch (Exception e) {
-					getLogger().warn("An Exception occurred while pooling queue '{}'. The failing operation will be " +
+					getLogger().warn("An Exception occurred while polling queue '{}'. The failing operation will be " +
 							"retried in {} milliseconds", this.logicalQueueName, getBackOffTime(), e);
 					try {
 						//noinspection BusyWait
