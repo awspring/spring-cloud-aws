@@ -24,6 +24,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,18 +66,36 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 	@Override
 	protected ListableStackResourceFactory createInstance() throws Exception {
 		String stackName = this.stackNameProvider.getStackName();
+		return new StaticStackResourceRegistry(stackName, getResourceMappings("", stackName));
+	}
+
+	private Map<String, StackResource> getResourceMappings(String prefix, String stackName) {
 		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
 
-		return new StaticStackResourceRegistry(stackName, convertToStackResourceMappings(stackResourceSummaries));
+		Map<String, StackResource> stackResourceMappings = new HashMap<>();
+
+		Map<String, StackResource> current = convertToStackResourceMappings(prefix, stackResourceSummaries);
+		stackResourceMappings.putAll(current);
+
+		for (final Map.Entry<String, StackResource> e : current.entrySet()) {
+			final StackResource resource = e.getValue();
+
+			if ("AWS::CloudFormation::Stack".equals(resource.getType())) {
+				stackResourceMappings.putAll(getResourceMappings(e.getKey(), resource.getPhysicalId()));
+			}
+		}
+
+		return stackResourceMappings;
 	}
 
-	private static Map<String, StackResource> convertToStackResourceMappings(List<StackResourceSummary> stackResourceSummaries) {
+	protected Map<String, StackResource> convertToStackResourceMappings(String prefix, List<StackResourceSummary> stackResourceSummaries) {
 		Map<String, StackResource> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
-			stackResourceMappings.put(stackResourceSummary.getLogicalResourceId(),
-					new StackResource(stackResourceSummary.getLogicalResourceId(),
+			String logicalResourceId = toNestedResourceId(prefix, stackResourceSummary.getLogicalResourceId());
+			stackResourceMappings.put(logicalResourceId,
+					new StackResource(logicalResourceId,
 							stackResourceSummary.getPhysicalResourceId(),
 							stackResourceSummary.getResourceType()));
 		}
@@ -84,6 +103,9 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		return stackResourceMappings;
 	}
 
+	private String toNestedResourceId(String prefix, String logicalResourceId) {
+		return StringUtils.isEmpty(prefix) ? logicalResourceId : prefix + "." + logicalResourceId;
+	}
 
 	/**
 	 * Stack resource registry containing a static mapping of logical resource ids to physical resource ids.
@@ -107,6 +129,21 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		public String lookupPhysicalResourceId(String logicalResourceId) {
 			if (this.stackResourceByLogicalId.containsKey(logicalResourceId)) {
 				return this.stackResourceByLogicalId.get(logicalResourceId).getPhysicalId();
+			} else if (!logicalResourceId.contains(".")) {
+				String prefix = "." + logicalResourceId;
+
+				String physicalId = null;
+				for (Map.Entry<String, StackResource> entry : stackResourceByLogicalId.entrySet()) {
+					if (entry.getKey() != null && entry.getKey().endsWith(prefix)) {
+						if (physicalId == null) {
+							physicalId = entry.getValue().getPhysicalId();
+						} else {
+							// unqualified resourceId is not unique
+							return null;
+						}
+					}
+				}
+				return physicalId;
 			} else {
 				return null;
 			}
