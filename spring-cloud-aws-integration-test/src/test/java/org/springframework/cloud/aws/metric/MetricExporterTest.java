@@ -20,6 +20,7 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.cloud.aws.actuate.metrics.BufferingCloudWatchMetricSender;
 import org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -53,6 +55,16 @@ public class MetricExporterTest {
 	@Autowired
 	private GaugeService gaugeService;
 
+	@Autowired
+	private BufferingCloudWatchMetricSender bufferingCloudWatchMetricSender;
+
+	@Before
+	public void startMetriCSenderIfNecessary() throws Exception {
+		if (!this.bufferingCloudWatchMetricSender.isRunning()) {
+			this.bufferingCloudWatchMetricSender.start();
+		}
+	}
+
 	@Test
 	public void resetIncrementDecrementMetrics() throws Exception {
 		this.counterService.reset("metricExporterTest");
@@ -64,6 +76,9 @@ public class MetricExporterTest {
 		this.counterService.increment("metricExporterTest");
 		this.counterService.increment("metricExporterTest");
 
+		Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
+		this.bufferingCloudWatchMetricSender.stop();
+
 		ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("counter.metricExporterTest"));
 		Assert.assertEquals(1, listMetricsResult.getMetrics().size());
 	}
@@ -74,6 +89,9 @@ public class MetricExporterTest {
 		this.gaugeService.submit("gaugeService", 24);
 		this.gaugeService.submit("gaugeService", 22);
 		this.gaugeService.submit("gaugeService", 19);
+
+		Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
+		this.bufferingCloudWatchMetricSender.stop();
 
 		ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("gaugeService"));
 		Assert.assertEquals(1, listMetricsResult.getMetrics().size());

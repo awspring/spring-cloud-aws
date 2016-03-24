@@ -23,8 +23,9 @@ import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.concurrent.ScheduledFuture;
  * @author Agim Emruli
  * @since 1.1
  */
-public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, DisposableBean {
+public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, InitializingBean, DisposableBean, SmartLifecycle {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CloudWatchMetricWriter.class);
 
@@ -59,7 +60,9 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 	private final AmazonCloudWatchAsync amazonCloudWatchAsync;
 
 	private final LinkedBlockingQueue<MetricDatum> metricDataBuffer;
-	private final ScheduledFuture<?> scheduledFuture;
+	private ScheduledFuture<?> scheduledFuture;
+
+	private ThreadPoolTaskScheduler taskScheduler;
 
 	public BufferingCloudWatchMetricSender(String namespace, int maxBuffer, long fixedDelayBetweenRuns, AmazonCloudWatchAsync amazonCloudWatchAsync) {
 		Assert.hasText(namespace);
@@ -68,8 +71,6 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 		this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
 		this.amazonCloudWatchAsync = amazonCloudWatchAsync;
 		this.metricDataBuffer = new LinkedBlockingQueue<>(this.maxBuffer);
-		TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
-		this.scheduledFuture = taskScheduler.scheduleWithFixedDelay(new CloudWatchMetricSenderRunnable(), this.fixedDelayBetweenRuns);
 	}
 
 	@Override
@@ -95,8 +96,49 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 	}
 
 	@Override
+	public void afterPropertiesSet() throws Exception {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
+		taskScheduler.afterPropertiesSet();
+		this.taskScheduler = taskScheduler;
+	}
+
+	@Override
 	public void destroy() throws Exception {
-		this.scheduledFuture.cancel(false);
+		this.taskScheduler.destroy();
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return true;
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		this.stop();
+		callback.run();
+	}
+
+	@Override
+	public void start() {
+		this.scheduledFuture = this.taskScheduler.scheduleWithFixedDelay(new CloudWatchMetricSenderRunnable(), this.fixedDelayBetweenRuns);
+	}
+
+	@Override
+	public void stop() {
+		if (!this.scheduledFuture.isCancelled()) {
+			this.scheduledFuture.cancel(false);
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.scheduledFuture != null && !this.scheduledFuture.isCancelled() && !this.scheduledFuture.isDone();
+	}
+
+	@Override
+	public int getPhase() {
+		return Integer.MAX_VALUE;
 	}
 
 	private class CloudWatchMetricSenderRunnable implements Runnable {

@@ -63,10 +63,15 @@ public class BufferingCloudWatchMetricSenderTest {
 	public void send_withMetricData_sendsDataToCloudFormation() throws Exception {
 		BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", 10, 1, this.amazonCloudWatchAsyncClient);
 		MetricDatum metric = new MetricDatum().withMetricName("test");
+		sender.afterPropertiesSet();
+		sender.start();
+
 		sender.send(metric);
 
 		// Wait
-		Thread.sleep(15);
+		Thread.sleep(sender.getFixedDelayBetweenRuns());
+
+		sender.stop();
 
 		verify(this.amazonCloudWatchAsyncClient, times(1)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
 		assertEquals(metric.getMetricName(), this.putRequestCaptor.getValue().getMetricData().get(0).getMetricName());
@@ -78,16 +83,19 @@ public class BufferingCloudWatchMetricSenderTest {
 	@SuppressWarnings("unchecked")
 	public void testBufferLimit() throws Exception {
 		int maxBuffer = 40;
-		int metrics = 50;
 
 		BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", maxBuffer, 4, this.amazonCloudWatchAsyncClient);
+		sender.afterPropertiesSet();
+		sender.start();
 
 		// Add
+		int metrics = 50;
 		for (int i = 0; i < metrics; i++) {
 			sender.send(new MetricDatum().withMetricName("test"));
 		}
 
-		Thread.sleep(15);
+		Thread.sleep(sender.getFixedDelayBetweenRuns());
+		sender.stop();
 
 		verify(this.amazonCloudWatchAsyncClient, times(3)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
 		assertEquals("There should be three requests", 3, this.putRequestCaptor.getAllValues().size());
