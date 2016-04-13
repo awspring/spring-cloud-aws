@@ -69,8 +69,6 @@ public class BufferingCloudWatchMetricSenderTest {
 		sender.send(metric);
 
 		// Wait
-		Thread.sleep(sender.getFixedDelayBetweenRuns());
-
 		sender.stop();
 
 		verify(this.amazonCloudWatchAsyncClient, times(1)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
@@ -94,7 +92,6 @@ public class BufferingCloudWatchMetricSenderTest {
 			sender.send(new MetricDatum().withMetricName("test"));
 		}
 
-		Thread.sleep(sender.getFixedDelayBetweenRuns());
 		sender.stop();
 
 		verify(this.amazonCloudWatchAsyncClient, times(3)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());

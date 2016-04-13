@@ -30,8 +30,12 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A {@link CloudWatchMetricSender} implementation that internally uses a queue
@@ -50,6 +54,7 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 	 * limit of CloudWatch.
 	 */
 	private static final int MAX_METRIC_DATA_PER_REQUEST = 20;
+	private static final int FLUSH_TIMEOUT = 1000;
 
 	private final String namespace;
 
@@ -128,6 +133,16 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 	public void stop() {
 		if (!this.scheduledFuture.isCancelled()) {
 			this.scheduledFuture.cancel(false);
+		}
+		flushMetrics();
+	}
+
+	private void flushMetrics() {
+		Future<?> future = this.taskScheduler.submit(new CloudWatchMetricSenderRunnable());
+		try {
+			future.get(FLUSH_TIMEOUT, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			LOGGER.error("Error flushing metrics", e);
 		}
 	}
 
