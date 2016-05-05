@@ -38,6 +38,12 @@
 		<tag>HEAD</tag>
 	</scm>
 
+	<properties>
+		<bintray.package>aws</bintray.package>
+		<tomcat.version>8.0.33</tomcat.version>
+		<javax-mail.version>1.5.5</javax-mail.version>
+	</properties>
+
 	<modules>
 		<module>spring-cloud-aws-dependencies</module>
 		<module>spring-cloud-aws-core</module>
@@ -213,7 +219,4 @@
 		</profile>
 	</profiles>
 
-	<properties>
-		<bintray.package>aws</bintray.package>
-	</properties>
 </project>
