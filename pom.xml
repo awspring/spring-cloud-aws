@@ -42,6 +42,7 @@
 		<bintray.package>aws</bintray.package>
 		<tomcat.version>8.0.33</tomcat.version>
 		<javax-mail.version>1.5.5</javax-mail.version>
+		<log4j.version>1.2.17</log4j.version>
 	</properties>
 
 	<modules>
@@ -99,6 +100,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -131,7 +133,7 @@
 							<compilerArg>-Xlint:-options</compilerArg>
 							<!-- Disable serialversionuid warnings -->
 							<compilerArg>-Xlint:-serial</compilerArg>
-							<compilerArg>-Werror</compilerArg>
+							<!--compilerArg>-Werror</compilerArg-->
 						</compilerArgs>
 					</configuration>
 				</plugin>
