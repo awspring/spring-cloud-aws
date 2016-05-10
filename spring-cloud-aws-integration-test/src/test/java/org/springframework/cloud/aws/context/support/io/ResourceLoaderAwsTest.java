@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -92,9 +93,10 @@ public abstract class ResourceLoaderAwsTest {
 
 		WritableResource childFileResource = (WritableResource) resource.createRelative("child");
 
-		OutputStream outputStream = childFileResource.getOutputStream();
-		outputStream.write("hello world".getBytes("UTF-8"));
-		outputStream.close();
+		try (OutputStream outputStream = childFileResource.getOutputStream(); OutputStreamWriter writer = new OutputStreamWriter(outputStream)) {
+			writer.write("hello world");
+		}
+
 
 		this.createdObjects.add(childFileResource.getFilename());
 

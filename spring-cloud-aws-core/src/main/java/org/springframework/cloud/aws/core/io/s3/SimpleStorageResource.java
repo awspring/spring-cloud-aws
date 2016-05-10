@@ -229,6 +229,10 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 		@Override
 		public void close() throws IOException {
 			synchronized (this.monitor) {
+				if (this.currentOutputStream == null) {
+					return;
+				}
+
 				if (isMultiPartUpload()) {
 					finishMultiPartUpload();
 				} else {
