@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,8 @@ import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.BasicOperation;
-import org.springframework.cache.interceptor.CacheInterceptor;
-import org.springframework.cache.interceptor.CacheOperationInvocationContext;
-import org.springframework.cache.interceptor.CacheableOperation;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.cache.config.TestMemcacheServer;
 import org.springframework.cloud.aws.cache.memcached.SimpleSpringMemcached;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
@@ -38,10 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,19 +61,15 @@ public class ElastiCacheCachingConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithExplicitStackConfiguration.class);
 
 		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "firstCache", "secondCache");
-		assertEquals(2, caches.size());
-
-		Iterator<? extends Cache> cachesIterator = caches.iterator();
-		Cache firstCache = cachesIterator.next();
-		assertEquals("firstCache", firstCache.getName());
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+		assertEquals(2, cacheManager.getCacheNames().size());
+		Cache firstCache = cacheManager.getCache("firstCache");
+		assertNotNull(firstCache.getName());
 		assertEquals(0, getExpirationFromCache(firstCache));
 
-		Cache secondCache = cachesIterator.next();
-		assertEquals("secondCache", secondCache.getName());
+		Cache secondCache = cacheManager.getCache("secondCache");
+		assertNotNull(secondCache.getName());
 		assertEquals(0, getExpirationFromCache(secondCache));
-
 	}
 
 	@Test
@@ -89,17 +80,14 @@ public class ElastiCacheCachingConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithExplicitStackConfigurationAndExpiryTime.class);
 
 		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "firstCache", "secondCache");
-		assertEquals(2, caches.size());
-
-		Iterator<? extends Cache> cachesIterator = caches.iterator();
-		Cache firstCache = cachesIterator.next();
-		assertEquals("firstCache", firstCache.getName());
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+		assertEquals(2, cacheManager.getCacheNames().size());
+		Cache firstCache = cacheManager.getCache("firstCache");
+		assertNotNull(firstCache.getName());
 		assertEquals(23, getExpirationFromCache(firstCache));
 
-		Cache secondCache = cachesIterator.next();
-		assertEquals("secondCache", secondCache.getName());
+		Cache secondCache = cacheManager.getCache("secondCache");
+		assertNotNull(secondCache.getName());
 		assertEquals(42, getExpirationFromCache(secondCache));
 	}
 
@@ -111,17 +99,14 @@ public class ElastiCacheCachingConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime.class);
 
 		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "firstCache", "secondCache");
-		assertEquals(2, caches.size());
-
-		Iterator<? extends Cache> cachesIterator = caches.iterator();
-		Cache firstCache = cachesIterator.next();
-		assertEquals("firstCache", firstCache.getName());
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+		assertEquals(2, cacheManager.getCacheNames().size());
+		Cache firstCache = cacheManager.getCache("firstCache");
+		assertNotNull(firstCache.getName());
 		assertEquals(12, getExpirationFromCache(firstCache));
 
-		Cache secondCache = cachesIterator.next();
-		assertEquals("secondCache", secondCache.getName());
+		Cache secondCache = cacheManager.getCache("secondCache");
+		assertNotNull(secondCache.getName());
 		assertEquals(42, getExpirationFromCache(secondCache));
 	}
 
@@ -133,17 +118,14 @@ public class ElastiCacheCachingConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithNoExplicitStackConfiguration.class);
 
 		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "sampleCacheOneLogical", "sampleCacheTwoLogical");
-		assertEquals(2, caches.size());
-
-		Iterator<? extends Cache> cachesIterator = caches.iterator();
-		Cache firstCache = cachesIterator.next();
-		assertEquals("sampleCacheOneLogical", firstCache.getName());
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+		assertEquals(2, cacheManager.getCacheNames().size());
+		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
+		assertNotNull(firstCache.getName());
 		assertEquals(0, getExpirationFromCache(firstCache));
 
-		Cache secondCache = cachesIterator.next();
-		assertEquals("sampleCacheTwoLogical", secondCache.getName());
+		Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
+		assertNotNull(secondCache.getName());
 		assertEquals(0, getExpirationFromCache(secondCache));
 	}
 
@@ -155,48 +137,16 @@ public class ElastiCacheCachingConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithNoExplicitStackConfigurationAndDefaultExpiration.class);
 
 		//Assert
-		CacheInterceptor cacheInterceptor = this.context.getBean(CacheInterceptor.class);
-		Collection<? extends Cache> caches = getCachesFromInterceptor(cacheInterceptor, "sampleCacheOneLogical", "sampleCacheTwoLogical");
-		assertEquals(2, caches.size());
-
-		Iterator<? extends Cache> cachesIterator = caches.iterator();
-		Cache firstCache = cachesIterator.next();
-		assertEquals("sampleCacheOneLogical", firstCache.getName());
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+		assertEquals(2, cacheManager.getCacheNames().size());
+		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
+		assertNotNull(firstCache.getName());
 		assertEquals(23, getExpirationFromCache(firstCache));
 
-		Cache secondCache = cachesIterator.next();
-		assertEquals("sampleCacheTwoLogical", secondCache.getName());
+		Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
+		assertNotNull(secondCache.getName());
 		assertEquals(23, getExpirationFromCache(secondCache));
 	}
-
-
-	private static Collection<? extends Cache> getCachesFromInterceptor(CacheInterceptor cacheInterceptor, final String... cacheNames) {
-		return cacheInterceptor.getCacheResolver().resolveCaches(new CacheOperationInvocationContext<BasicOperation>() {
-
-			@Override
-			public BasicOperation getOperation() {
-				CacheableOperation cacheableOperation = new CacheableOperation();
-				cacheableOperation.setCacheNames(cacheNames);
-				return cacheableOperation;
-			}
-
-			@Override
-			public Object getTarget() {
-				return null;
-			}
-
-			@Override
-			public Method getMethod() {
-				return null;
-			}
-
-			@Override
-			public Object[] getArgs() {
-				return new Object[0];
-			}
-		});
-	}
-
 
 	@EnableElastiCache({@CacheClusterConfig(name = "firstCache"), @CacheClusterConfig(name = "secondCache")})
 	public static class ApplicationConfigurationWithExplicitStackConfiguration {

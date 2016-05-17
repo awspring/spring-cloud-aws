@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.Assert;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -67,6 +68,12 @@ public class SimpleSpringMemcached implements Cache {
 		}
 		Assert.isAssignable(type, result.getClass());
 		return type.cast(result);
+	}
+
+	// Spring Framework 4.3 new API
+	//@Override
+	public <T> T get(Object key, Callable<T> valueLoader) {
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class MailSenderAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingClass(name = "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
+	@ConditionalOnMissingClass("org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
 	public MailSender simpleMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
 		return new SimpleEmailServiceMailSender(amazonSimpleEmailService);
 	}
