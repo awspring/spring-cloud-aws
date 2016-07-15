@@ -15,4 +15,5 @@
 #
 
 http\://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd=org/springframework/cloud/aws/jdbc/config/xml/spring-cloud-aws-jdbc-1.0.xsd
-http\://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd=org/springframework/cloud/aws/jdbc/config/xml/spring-cloud-aws-jdbc-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.1.xsd=org/springframework/cloud/aws/jdbc/config/xml/spring-cloud-aws-jdbc-1.1.xsd
+http\://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd=org/springframework/cloud/aws/jdbc/config/xml/spring-cloud-aws-jdbc-1.1.xsd

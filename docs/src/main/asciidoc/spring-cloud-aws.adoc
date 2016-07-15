@@ -1404,7 +1404,7 @@ to configure the data source with the minimum attributes as shown in the example
 	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/jdbc
-	   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd">
 
  <aws-context:context-credentials>
   ...
