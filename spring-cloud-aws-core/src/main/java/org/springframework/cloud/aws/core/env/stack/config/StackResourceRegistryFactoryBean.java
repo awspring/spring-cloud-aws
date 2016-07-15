@@ -78,8 +78,8 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		Map<String, StackResource> current = convertToStackResourceMappings(prefix, stackResourceSummaries);
 		stackResourceMappings.putAll(current);
 
-		for (final Map.Entry<String, StackResource> e : current.entrySet()) {
-			final StackResource resource = e.getValue();
+		for (Map.Entry<String, StackResource> e : current.entrySet()) {
+			StackResource resource = e.getValue();
 
 			if ("AWS::CloudFormation::Stack".equals(resource.getType())) {
 				stackResourceMappings.putAll(getResourceMappings(e.getKey(), resource.getPhysicalId()));
@@ -89,7 +89,7 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 		return stackResourceMappings;
 	}
 
-	protected Map<String, StackResource> convertToStackResourceMappings(String prefix, List<StackResourceSummary> stackResourceSummaries) {
+	private Map<String, StackResource> convertToStackResourceMappings(String prefix, List<StackResourceSummary> stackResourceSummaries) {
 		Map<String, StackResource> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
@@ -133,7 +133,7 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 				String prefix = "." + logicalResourceId;
 
 				String physicalId = null;
-				for (Map.Entry<String, StackResource> entry : stackResourceByLogicalId.entrySet()) {
+				for (Map.Entry<String, StackResource> entry : this.stackResourceByLogicalId.entrySet()) {
 					if (entry.getKey() != null && entry.getKey().endsWith(prefix)) {
 						if (physicalId == null) {
 							physicalId = entry.getValue().getPhysicalId();

@@ -60,7 +60,7 @@ import java.util.Set;
  * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation>  {
+public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
 
 	static final String LOGICAL_RESOURCE_ID = "LogicalResourceId";
 	static final String ACKNOWLEDGMENT = "Acknowledgment";
