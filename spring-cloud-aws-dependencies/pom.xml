@@ -72,37 +72,7 @@
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>elasticache-java-cluster-client</artifactId>
-				<version>1.0.61.0</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>junit-dep</artifactId>
-						<groupId>junit</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>junit</artifactId>
-						<groupId>junit</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jmock-cglib</artifactId>
-						<groupId>jmock</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>log4j</artifactId>
-						<groupId>log4j</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jmock</artifactId>
-						<groupId>jmock</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>cglib-nodep</artifactId>
-						<groupId>cglib</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>commons-collections</artifactId>
-						<groupId>commons-collections</groupId>
-					</exclusion>
-				</exclusions>
+				<version>1.1.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
