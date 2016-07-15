@@ -1774,7 +1774,7 @@ attachments as simple mail messages. A configuration with the necessary elements
 ----
 <beans xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
    xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/mail
-      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd">
+      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 	<aws-context:context-credentials>
 	  ..
