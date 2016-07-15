@@ -36,6 +36,6 @@ public interface Acknowledgment {
 	 *
 	 * @return a {@link Future} as the acknowledgment can involve some asynchronous request (i.e. request to an AWS API).
 	 */
-	Future<Void> acknowledge();
+	Future<?> acknowledge();
 
 }

@@ -20,6 +20,7 @@ import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.model.MetricDatum;
 import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
+import com.amazonaws.services.cloudwatch.model.PutMetricDataResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -182,7 +183,7 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 			PutMetricDataRequest putMetricDataRequest = new PutMetricDataRequest()
 					.withNamespace(BufferingCloudWatchMetricSender.this.namespace)
 					.withMetricData(metricData);
-			BufferingCloudWatchMetricSender.this.amazonCloudWatchAsync.putMetricDataAsync(putMetricDataRequest, new AsyncHandler<PutMetricDataRequest, Void>() {
+			BufferingCloudWatchMetricSender.this.amazonCloudWatchAsync.putMetricDataAsync(putMetricDataRequest, new AsyncHandler<PutMetricDataRequest, PutMetricDataResult>() {
 
 				@Override
 				public void onError(Exception exception) {
@@ -190,7 +191,7 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 				}
 
 				@Override
-				public void onSuccess(PutMetricDataRequest request, Void result) {
+				public void onSuccess(PutMetricDataRequest request, PutMetricDataResult result) {
 					LOGGER.debug("Published metric with namespace:{}", request.getNamespace());
 				}
 			});

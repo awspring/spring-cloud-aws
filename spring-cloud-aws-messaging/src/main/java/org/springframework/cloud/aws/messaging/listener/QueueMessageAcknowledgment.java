@@ -38,7 +38,7 @@ public class QueueMessageAcknowledgment implements Acknowledgment {
 	}
 
 	@Override
-	public Future<Void> acknowledge() {
+	public Future<?> acknowledge() {
 		return this.amazonSqsAsync.deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, this.receiptHandle));
 	}
 }
