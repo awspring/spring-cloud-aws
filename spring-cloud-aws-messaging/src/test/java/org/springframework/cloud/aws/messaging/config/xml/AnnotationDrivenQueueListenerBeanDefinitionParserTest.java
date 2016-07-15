@@ -286,16 +286,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		assertEquals(5000L, container.getBackOffTime());
 	}
 
-	@Test
-	public void parseInternal_definedQueueStopTimeout_shouldBeSetOnContainer() throws Exception {
-		// Arrange & Act
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-queue-stop-timeout.xml", getClass());
-
-		// Assert
-		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
-		assertEquals(2000L, container.getQueueStopTimeout());
-	}
-
 	private static class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
 		@Override
