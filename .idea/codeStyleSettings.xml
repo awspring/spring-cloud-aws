@@ -43,6 +43,9 @@
           <option name="FILTER_DD_SUFFIX" value="Filter" />
           <option name="LISTENER_CLASS_SUFFIX" value="Listener" />
         </JavaeeCodeStyleSettings>
+        <MarkdownNavigatorCodeStyleSettings>
+          <option name="RIGHT_MARGIN" value="72" />
+        </MarkdownNavigatorCodeStyleSettings>
         <XML>
           <option name="XML_ATTRIBUTE_WRAP" value="0" />
           <option name="XML_TEXT_WRAP" value="0" />
