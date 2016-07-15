@@ -17,7 +17,10 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<!--suppress UnparsedCustomBeanInspection -->
   <context:context-region auto-detect="true" region="sa-east-1" />

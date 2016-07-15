@@ -18,7 +18,12 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns:task="http://www.springframework.org/schema/task" xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
+	   					   http://www.springframework.org/schema/task
+	   					   http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<aws-context:context-credentials>
 		<aws-context:simple-credentials access-key="first" secret-key="first" />

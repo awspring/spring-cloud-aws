@@ -28,7 +28,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
 				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
-				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd" />
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd" />
 
 	<xsd:element name="annotation-driven-queue-listener">
 		<xsd:annotation>
