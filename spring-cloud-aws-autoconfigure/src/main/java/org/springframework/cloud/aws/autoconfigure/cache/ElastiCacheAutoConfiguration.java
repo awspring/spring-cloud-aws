@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.cache;
 
-import net.spy.memcached.MemcachedClient;
+import com.amazonaws.services.elasticache.AmazonElastiCache;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
@@ -29,6 +29,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableElastiCache
-@ConditionalOnClass(MemcachedClient.class)
+@ConditionalOnClass(AmazonElastiCache.class)
 public class ElastiCacheAutoConfiguration {
 }

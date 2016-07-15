@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -31,7 +32,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 @Import(ContextResourceLoaderAutoConfiguration.Registrar.class)
-@ConditionalOnClass(name = "com.amazonaws.services.s3.AmazonS3Client")
+@ConditionalOnClass(AmazonS3Client.class)
 public class ContextResourceLoaderAutoConfiguration {
 
 	public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {

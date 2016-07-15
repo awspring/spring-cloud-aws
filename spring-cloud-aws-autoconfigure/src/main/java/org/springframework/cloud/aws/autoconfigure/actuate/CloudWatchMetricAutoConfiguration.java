@@ -21,6 +21,7 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.ExportMetricWriter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Import;
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableConfigurationProperties(CloudWatchMetricProperties.class)
 @ConditionalOnProperty(prefix = "cloud.aws.cloudwatch", name = "namespace")
+@ConditionalOnClass(AmazonCloudWatchAsync.class)
 public class CloudWatchMetricAutoConfiguration {
 
     @Autowired(required = false)
