@@ -25,7 +25,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/messaging
-	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd
 	   					   http://www.springframework.org/schema/task
 	   					   http://www.springframework.org/schema/task/spring-task.xsd">
 
