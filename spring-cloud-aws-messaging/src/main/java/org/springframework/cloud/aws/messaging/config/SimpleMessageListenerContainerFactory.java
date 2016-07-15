@@ -52,6 +52,8 @@ public class SimpleMessageListenerContainerFactory {
 
 	private Long backOffTime;
 
+	private Long queueStopTimeout;
+
 	/**
 	 * Configures the {@link TaskExecutor} which is used to poll messages and execute them
 	 * by calling the handler methods.
@@ -196,6 +198,25 @@ public class SimpleMessageListenerContainerFactory {
 		this.backOffTime = backOffTime;
 	}
 
+	/**
+	 * @return The number of milliseconds the {@link SimpleMessageListenerContainer#stop(String)} method waits for a queue
+	 * to stop before interrupting the current thread. Default value is 10000 milliseconds (10 seconds).
+	 */
+	public Long getQueueStopTimeout() {
+		return this.queueStopTimeout;
+	}
+
+	/**
+	 * The number of milliseconds the {@link SimpleMessageListenerContainer#stop(String)} method waits for a queue
+	 * to stop before interrupting the current thread. Default value is 10000 milliseconds (10 seconds).
+	 *
+	 * @param queueStopTimeout
+	 * 		in milliseconds
+	 */
+	public void setQueueStopTimeout(Long queueStopTimeout) {
+		this.queueStopTimeout = queueStopTimeout;
+	}
+
 	public SimpleMessageListenerContainer createSimpleMessageListenerContainer() {
 		Assert.notNull(this.amazonSqs, "amazonSqs must not be null");
 
@@ -223,6 +244,9 @@ public class SimpleMessageListenerContainerFactory {
 		}
 		if (this.backOffTime != null) {
 			simpleMessageListenerContainer.setBackOffTime(this.backOffTime);
+		}
+		if (this.queueStopTimeout != null) {
+			simpleMessageListenerContainer.setQueueStopTimeout(this.queueStopTimeout);
 		}
 
 		return simpleMessageListenerContainer;

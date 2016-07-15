@@ -127,6 +127,7 @@ public class SqsConfigurationTest {
 		assertEquals(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT, ReflectionTestUtils.getField(container, "waitTimeOut"));
 		assertTrue(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils.getField(container, "destinationResolver"));
 		assertEquals(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME, container.getBackOffTime());
+		assertEquals(ConfigurationWithCustomContainerFactory.QUEUE_STOP_TIMEOUT, container.getQueueStopTimeout());
 	}
 
 	@Test
@@ -239,6 +240,7 @@ public class SqsConfigurationTest {
 		public static final int WAIT_TIME_OUT = 12;
 		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQS.class));
 		public static final long BACK_OFF_TIME = 5000;
+		public static final long QUEUE_STOP_TIMEOUT = 2000;
 
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -259,6 +261,7 @@ public class SqsConfigurationTest {
 			factory.setWaitTimeOut(WAIT_TIME_OUT);
 			factory.setDestinationResolver(DESTINATION_RESOLVER);
 			factory.setBackOffTime(BACK_OFF_TIME);
+			factory.setQueueStopTimeout(QUEUE_STOP_TIMEOUT);
 
 			return factory;
 		}
