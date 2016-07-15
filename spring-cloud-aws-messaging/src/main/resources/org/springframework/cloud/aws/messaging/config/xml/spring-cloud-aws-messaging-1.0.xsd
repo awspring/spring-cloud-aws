@@ -188,6 +188,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="queue-stop-timeout" type="xsd:integer" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The number of milliseconds to wait before interupting the polling thread when a queue is stopped.
+						Default value is 10000 milliseconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
