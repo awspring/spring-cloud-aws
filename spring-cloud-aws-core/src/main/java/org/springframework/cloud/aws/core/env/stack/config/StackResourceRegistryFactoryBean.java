@@ -20,6 +20,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -48,14 +49,6 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.stackNameProvider = stackNameProvider;
-	}
-
-	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient, String stackName) {
-		this(amazonCloudFormationClient, new StaticStackNameProvider(stackName));
-	}
-
-	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient) {
-		this(amazonCloudFormationClient, new AutoDetectingStackNameProvider(amazonCloudFormationClient));
 	}
 
 	@Override
