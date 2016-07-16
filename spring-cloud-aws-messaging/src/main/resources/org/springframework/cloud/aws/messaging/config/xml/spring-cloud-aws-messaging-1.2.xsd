@@ -168,17 +168,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="delete-message-on-exception" type="xsd:boolean" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						Defines if a message must be deleted or not if the handler method throws an exception and the exception handler
-						method is called. By default this value is set to true which means that the message is deleted to avoid
-						poison messages. If this value is set to false it is the responsibility of the exception handler method to delete
-						the message. The exception handler method can inject the message headers with org.springframework.messaging.handler.annotation.Headers
-						in order to get the receipt handle.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="back-off-time" type="xsd:long" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
