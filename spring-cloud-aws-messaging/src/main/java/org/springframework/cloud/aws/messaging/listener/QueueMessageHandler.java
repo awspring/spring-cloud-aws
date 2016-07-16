@@ -161,8 +161,8 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		}
 	}
 
-	private static String[] wrapInStringArray(Object result) {
-		return new String[]{result.toString()};
+	private static String[] wrapInStringArray(Object valueToWrap) {
+		return new String[]{valueToWrap.toString()};
 	}
 
 
