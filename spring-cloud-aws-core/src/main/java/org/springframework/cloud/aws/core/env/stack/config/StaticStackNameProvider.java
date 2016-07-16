@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.env.stack.config;
 
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import org.springframework.util.Assert;
 
 /**
  * Represents a provider for a statically configured stack name.
@@ -29,6 +30,7 @@ public class StaticStackNameProvider implements StackNameProvider {
 	private final String stackName;
 
 	public StaticStackNameProvider(String stackName) {
+		Assert.notNull(stackName, "Stack name must not be null");
 		this.stackName = stackName;
 	}
 
