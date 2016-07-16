@@ -21,7 +21,7 @@ package org.springframework.cloud.aws.core.env.stack.config;
  *
  * @author Christian Stettler
  */
-interface StackNameProvider {
+public interface StackNameProvider {
 
 	/**
 	 * Returns the name of the current stack.

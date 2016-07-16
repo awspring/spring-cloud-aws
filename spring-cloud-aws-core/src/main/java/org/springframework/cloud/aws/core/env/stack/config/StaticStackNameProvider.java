@@ -24,11 +24,11 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
  * @author Christian Stettler
  */
 @RuntimeUse
-class StaticStackNameProvider implements StackNameProvider {
+public class StaticStackNameProvider implements StackNameProvider {
 
 	private final String stackName;
 
-	StaticStackNameProvider(String stackName) {
+	public StaticStackNameProvider(String stackName) {
 		this.stackName = stackName;
 	}
 
