@@ -20,6 +20,7 @@ import com.amazonaws.services.elasticache.AmazonElastiCache;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
+import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -30,5 +31,6 @@ import org.springframework.context.annotation.Import;
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableElastiCache
 @ConditionalOnClass(AmazonElastiCache.class)
+@ConditionalOnAwsCloudEnvironment
 public class ElastiCacheAutoConfiguration {
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,16 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
+import org.springframework.cloud.aws.autoconfigure.context.MetaDataServer;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -41,10 +45,23 @@ import static org.junit.Assert.assertTrue;
 public class ElastiCacheAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
+	private HttpServer httpServer;
+	private HttpContext instanceIdHttpContext;
+
+	@Before
+	public void setUpMetaDataServer() throws Exception {
+		this.httpServer = MetaDataServer.setupHttpServer();
+		this.instanceIdHttpContext = this.httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+	}
 
 	@After
 	public void tearDown() throws Exception {
 		this.context.close();
+	}
+
+	@After
+	public void shutdownServer() throws Exception {
+		this.httpServer.removeContext(this.instanceIdHttpContext);
 	}
 
 	@Test
