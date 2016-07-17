@@ -295,28 +295,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 			return null;
 		}
 
-		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(destinationUrl).
-				withAttributeNames(RECEIVING_ATTRIBUTES).
-				withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
-		if (getMaxNumberOfMessages() != null) {
-			receiveMessageRequest.withMaxNumberOfMessages(getMaxNumberOfMessages());
-		} else {
-			receiveMessageRequest.withMaxNumberOfMessages(DEFAULT_MAX_NUMBER_OF_MESSAGES);
-		}
-
-		if (getVisibilityTimeout() != null) {
-			receiveMessageRequest.withVisibilityTimeout(getVisibilityTimeout());
-		}
-
-		if (getWaitTimeOut() != null) {
-			receiveMessageRequest.setWaitTimeSeconds(getWaitTimeOut());
-		}
-
 		GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
 				.withAttributeNames(QueueAttributeName.RedrivePolicy));
 		boolean hasRedrivePolicy = queueAttributes.getAttributes().containsKey(QueueAttributeName.RedrivePolicy.toString());
 
-		return new QueueAttributes(receiveMessageRequest, hasRedrivePolicy, deletionPolicy);
+		return new QueueAttributes(hasRedrivePolicy, deletionPolicy, destinationUrl, getMaxNumberOfMessages(), getVisibilityTimeout(), getWaitTimeOut());
 	}
 
 	@Override
@@ -355,14 +338,21 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
 	protected static class QueueAttributes {
 
-		private final ReceiveMessageRequest receiveMessageRequest;
 		private final boolean hasRedrivePolicy;
 		private final SqsMessageDeletionPolicy deletionPolicy;
+		private final String destinationUrl;
+		private final Integer maxNumberOfMessages;
+		private final Integer visibilityTimeout;
+		private final Integer waitTimeOut;
 
-		public QueueAttributes(ReceiveMessageRequest receiveMessageRequest, boolean hasRedrivePolicy, SqsMessageDeletionPolicy deletionPolicy) {
-			this.receiveMessageRequest = receiveMessageRequest;
+		public QueueAttributes(boolean hasRedrivePolicy, SqsMessageDeletionPolicy deletionPolicy, String destinationUrl,
+							   Integer maxNumberOfMessages, Integer visibilityTimeout, Integer waitTimeOut) {
 			this.hasRedrivePolicy = hasRedrivePolicy;
 			this.deletionPolicy = deletionPolicy;
+			this.destinationUrl = destinationUrl;
+			this.maxNumberOfMessages = maxNumberOfMessages;
+			this.visibilityTimeout = visibilityTimeout;
+			this.waitTimeOut = waitTimeOut;
 		}
 
 		public boolean hasRedrivePolicy() {
@@ -370,7 +360,25 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		}
 
 		public ReceiveMessageRequest getReceiveMessageRequest() {
-			return this.receiveMessageRequest;
+			ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(this.destinationUrl).
+					withAttributeNames(RECEIVING_ATTRIBUTES).
+					withMessageAttributeNames(RECEIVING_MESSAGE_ATTRIBUTES);
+
+			if (this.maxNumberOfMessages != null) {
+				receiveMessageRequest.withMaxNumberOfMessages(this.maxNumberOfMessages);
+			} else {
+				receiveMessageRequest.withMaxNumberOfMessages(DEFAULT_MAX_NUMBER_OF_MESSAGES);
+			}
+
+			if (this.visibilityTimeout != null) {
+				receiveMessageRequest.withVisibilityTimeout(this.visibilityTimeout);
+			}
+
+			if (this.waitTimeOut != null) {
+				receiveMessageRequest.setWaitTimeSeconds(this.waitTimeOut);
+			}
+
+			return receiveMessageRequest;
 		}
 
 		public SqsMessageDeletionPolicy getDeletionPolicy() {
