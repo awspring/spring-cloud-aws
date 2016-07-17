@@ -25,7 +25,6 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.cache.CacheManager;
@@ -45,28 +44,23 @@ import static org.junit.Assert.assertTrue;
 public class ElastiCacheAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
-	private HttpServer httpServer;
-	private HttpContext instanceIdHttpContext;
-
-	@Before
-	public void setUpMetaDataServer() throws Exception {
-		this.httpServer = MetaDataServer.setupHttpServer();
-		this.instanceIdHttpContext = this.httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
-	}
 
 	@After
 	public void tearDown() throws Exception {
 		this.context.close();
 	}
 
-	@After
-	public void shutdownServer() throws Exception {
-		this.httpServer.removeContext(this.instanceIdHttpContext);
+	@AfterClass
+	public static void shutDownHttpServer() {
+		MetaDataServer.shutdownHttpServer();
 	}
 
 	@Test
 	public void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager() throws Exception {
 		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(MockCacheConfigurationWithStackCaches.class);
 		this.context.register(ElastiCacheAutoConfiguration.class);
@@ -79,11 +73,16 @@ public class ElastiCacheAutoConfigurationTest {
 		assertTrue(cacheManager.getCacheNames().contains("sampleCacheOneLogical"));
 		assertTrue(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"));
 		assertEquals(2, cacheManager.getCacheNames().size());
+
+		httpServer.removeContext(instanceIdHttpContext);
 	}
 
 	@Test
 	public void cacheManager_configuredNoCachesWithNoStack_configuresNoCacheManager() throws Exception {
 		//Arrange
+		HttpServer httpServer = MetaDataServer.setupHttpServer();
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ElastiCacheAutoConfiguration.class);
 
@@ -93,6 +92,8 @@ public class ElastiCacheAutoConfigurationTest {
 		//Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertEquals(0, cacheManager.getCacheNames().size());
+
+		httpServer.removeContext(instanceIdHttpContext);
 	}
 
 	@AfterClass
