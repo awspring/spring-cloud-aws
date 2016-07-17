@@ -999,6 +999,41 @@ public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFacto
 }
 ----
 
+==== Consuming AWS Event messages with Amazon SQS
+It is also possible to receive AWS generated event messages with the SQS message listeners. Because
+AWS messages does not contain the mime-type header, the Jackson message converter has to be configured
+with the `strictContentTypeMatch` property false to also parse message without the proper mime type.
+
+The next code shows the configuration of the message converter using the `QueueMessageHandlerFactory`
+and re-configuring the `MappingJackson2MessageConverter`
+
+[source,java,indent=0]
+----
+@Bean
+public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+	QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+	MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+
+	//set strict content type match to false
+	messageConverter.setStrictContentTypeMatch(false);
+	factory.setArgumentResolvers(Collections.<HandlerMethodArgumentResolver>singletonList(new PayloadArgumentResolver(messageConverter)));
+	return factory;
+}
+----
+
+With the configuration above, it is possible to receive event notification for S3 buckets (and also other
+ event notifications like elastic transcoder messages) inside `@SqsListener` annotated methods s shown below.
+
+[source,java,indent=0]
+----
+@SqsListener("testQueue")
+public void receive(S3EventNotification s3EventNotificationRecord) {
+	S3EventNotification.S3Entity s3Entity = s3EventNotificationRecord.getRecords().get(0).getS3();
+}
+----
+
+
+
 === SNS support
 Amazon SNS is a publish-subscribe messaging system that allows clients to publish notification to a particular topic. Other
 interested clients may subscribe using different protocols like HTTP/HTTPS, e-mail or an Amazon SQS queue to receive the messages.
