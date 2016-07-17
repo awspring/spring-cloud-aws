@@ -49,6 +49,7 @@ import org.springframework.validation.Validator;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -131,15 +132,15 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		Set<String> result = new HashSet<>(destinationNames.length);
 
 		for (String destinationName : destinationNames) {
-			result.add(resolveName(destinationName));
+			result.addAll(Arrays.asList(resolveName(destinationName)));
 		}
 
 		return result;
 	}
 
-	private String resolveName(String name) {
+	private String[] resolveName(String name) {
 		if (!(getApplicationContext() instanceof ConfigurableApplicationContext)) {
-			return name;
+			return wrapInStringArray(name);
 		}
 
 		ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) getApplicationContext();
@@ -148,10 +149,20 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
 		BeanExpressionResolver exprResolver = configurableBeanFactory.getBeanExpressionResolver();
 		if (exprResolver == null) {
-			return name;
+			return wrapInStringArray(name);
 		}
 		Object result = exprResolver.evaluate(placeholdersResolved, new BeanExpressionContext(configurableBeanFactory, null));
-		return result != null ? result.toString() : name;
+		if (result instanceof String[]) {
+			return (String[]) result;
+		} else if (result != null) {
+			return wrapInStringArray(result);
+		} else {
+			return wrapInStringArray(name);
+		}
+	}
+
+	private static String[] wrapInStringArray(Object valueToWrap) {
+		return new String[]{valueToWrap.toString()};
 	}
 
 

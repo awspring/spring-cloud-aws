@@ -129,12 +129,8 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 
 	@Override
 	public URL getURL() throws IOException {
-		if (this.amazonS3 instanceof AmazonS3Client) {
-			Region region = ((AmazonS3Client) this.amazonS3).getRegion().toAWSRegion();
-			return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME), "/" + this.bucketName + "/" + this.objectName);
-		} else {
-			return super.getURL();
-		}
+		Region region = this.amazonS3.getRegion().toAWSRegion();
+		return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME), "/" + this.bucketName + "/" + this.objectName);
 	}
 
 	@Override

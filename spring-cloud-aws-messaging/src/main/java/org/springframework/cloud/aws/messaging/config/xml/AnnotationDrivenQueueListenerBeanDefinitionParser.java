@@ -52,7 +52,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	private static final String AUTO_STARTUP_ATTRIBUTE = "auto-startup";
 	private static final String DESTINATION_RESOLVER_ATTRIBUTE = "destination-resolver";
 	private static final String BACK_OFF_TIME = "back-off-time";
-	private static final String QUEUE_STOP_TIMEOUT = "queue-stop-timeout";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -84,10 +83,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 
 		if (StringUtils.hasText(element.getAttribute(BACK_OFF_TIME))) {
 			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(BACK_OFF_TIME), element.getAttribute(BACK_OFF_TIME));
-		}
-
-		if (StringUtils.hasText(element.getAttribute(QUEUE_STOP_TIMEOUT))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(QUEUE_STOP_TIMEOUT), element.getAttribute(QUEUE_STOP_TIMEOUT));
 		}
 
 		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);

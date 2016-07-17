@@ -19,9 +19,12 @@ package org.springframework.cloud.aws.context.config.annotation;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.ec2.AmazonEC2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
+import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +50,9 @@ public class ContextStackConfiguration implements ImportAware {
 	@Autowired(required = false)
 	private AWSCredentialsProvider credentialsProvider;
 
+	@Autowired(required = false)
+	private AmazonEC2 amazonEc2;
+
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes.fromMap(
@@ -58,9 +64,9 @@ public class ContextStackConfiguration implements ImportAware {
 	@Bean
 	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
 		if (StringUtils.hasText(this.annotationAttributes.getString("stackName"))) {
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation, this.annotationAttributes.getString("stackName"));
-		}else{
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation);
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.annotationAttributes.getString("stackName")));
+		} else {
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEc2));
 		}
 	}
 

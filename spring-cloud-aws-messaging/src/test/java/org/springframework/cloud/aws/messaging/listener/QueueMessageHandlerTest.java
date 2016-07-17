@@ -58,6 +58,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodReturnValue
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -414,6 +415,25 @@ public class QueueMessageHandlerTest {
 		assertTrue(loggingEvent.getRenderedMessage().contains("org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListenerDeletionPolicyNeverNoAcknowledgment"));
 	}
 
+	@Test
+	public void getMappingForMethod_methodWithExpressionProducingMultipleQueueNames_shouldMapMethodForEveryQueueNameReturnedByExpression() throws Exception {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		Method receiveMethod = SqsListenerWithExpressionProducingMultipleQueueNames.class.getMethod("receive", String.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
+
+		// Act
+		QueueMessageHandler.MappingInformation mappingInformation = queueMessageHandler.getMappingForMethod(receiveMethod, null);
+
+		// Assert
+
+		assertEquals(2, mappingInformation.getLogicalResourceIds().size());
+		assertTrue(mappingInformation.getLogicalResourceIds().containsAll(Arrays.asList("queueOne", "queueTwo")));
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
@@ -619,6 +639,15 @@ public class QueueMessageHandlerTest {
 
 		@RuntimeUse
 		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		public void receive(String message) {
+		}
+
+	}
+
+	private static class SqsListenerWithExpressionProducingMultipleQueueNames {
+
+		@RuntimeUse
+		@SqsListener("#{'queueOne,queueTwo'.split(',')}")
 		public void receive(String message) {
 		}
 

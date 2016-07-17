@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +35,7 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  */
 @Configuration
 @Import({ContextDefaultConfigurationRegistrar.class, ContextCredentialsAutoConfiguration.Registrar.class})
+@ConditionalOnClass(AWSCredentialsProvider.class)
 public class ContextCredentialsAutoConfiguration {
 
 	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
