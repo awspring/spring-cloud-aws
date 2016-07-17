@@ -63,13 +63,7 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	@Override
 	protected boolean sendInternal(Message<?> message, long timeout) {
 		try {
-			SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload()));
-			Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
-			if (!messageAttributes.isEmpty()) {
-				sendMessageRequest.withMessageAttributes(messageAttributes);
-			}
-
-			sendMessageAndWaitForResult(sendMessageRequest, timeout);
+			sendMessageAndWaitForResult(prepareSendMessageRequest(message), timeout);
 		} catch (AmazonServiceException e) {
 			throw new MessageDeliveryException(message, e.getMessage(), e);
 		} catch (ExecutionException e) {
@@ -79,6 +73,21 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		}
 
 		return true;
+	}
+
+	private SendMessageRequest prepareSendMessageRequest(Message<?> message) {
+		SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload()));
+
+		if (message.getHeaders().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER)) {
+			sendMessageRequest.setDelaySeconds(message.getHeaders().get(SqsMessageHeaders.SQS_DELAY_HEADER, Integer.class));
+		}
+
+		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
+		if (!messageAttributes.isEmpty()) {
+			sendMessageRequest.withMessageAttributes(messageAttributes);
+		}
+
+		return sendMessageRequest;
 	}
 
 	private void sendMessageAndWaitForResult(SendMessageRequest sendMessageRequest, long timeout) throws ExecutionException, TimeoutException {
@@ -101,6 +110,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 			String messageHeaderName = messageHeader.getKey();
 			Object messageHeaderValue = messageHeader.getValue();
 
+			if (isSkipHeader(messageHeaderName)) {
+				continue;
+			}
+
 			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
 			} else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
@@ -119,6 +132,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		}
 
 		return messageAttributes;
+	}
+
+	private static boolean isSkipHeader(String headerName) {
+		return SqsMessageHeaders.SQS_DELAY_HEADER.equals(headerName);
 	}
 
 	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {

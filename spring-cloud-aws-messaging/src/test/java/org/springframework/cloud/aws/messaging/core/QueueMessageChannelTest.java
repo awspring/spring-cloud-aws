@@ -593,4 +593,43 @@ public class QueueMessageChannelTest {
 
 	}
 
+	@Test
+	public void sendMessage_withDelayHeader_shouldSetDelayOnSendMessageRequestAndNotSetItAsHeaderAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(SqsMessageHeaders.SQS_DELAY_HEADER, 15).build();
+
+		// Act
+		queueMessageChannel.send(message);
+
+		// Assert
+		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+		assertEquals(new Integer(15), sendMessageRequest.getDelaySeconds());
+		assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
+	}
+
+	@Test
+	public void sendMessage_withoutDelayHeader_shouldNotSetDelayOnSendMessageRequestAndNotSetHeaderAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").build();
+
+		// Act
+		queueMessageChannel.send(message);
+
+		// Assert
+		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+		assertNull(sendMessageRequest.getDelaySeconds());
+		assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
+	}
 }

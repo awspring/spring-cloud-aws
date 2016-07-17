@@ -29,6 +29,8 @@ import java.util.Map;
  */
 public class SqsMessageHeaders extends MessageHeaders {
 
+	public static final String SQS_DELAY_HEADER = "delay";
+
 	public SqsMessageHeaders(Map<String, Object> headers) {
 		super(headers);
 
