@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
@@ -41,7 +42,7 @@ public class QueueMessageHandlerFactory {
 
 	private DestinationResolvingMessageSendingOperations<?> sendToMessagingTemplate;
 
-	private AmazonSQS amazonSqs;
+	private AmazonSQSAsync amazonSqs;
 
 	private ResourceIdResolver resourceIdResolver;
 
@@ -82,7 +83,7 @@ public class QueueMessageHandlerFactory {
 	 * 		{@link SendToHandlerMethodReturnValueHandler} to send
 	 * 		messages.
 	 */
-	public void setAmazonSqs(AmazonSQS amazonSqs) {
+	public void setAmazonSqs(AmazonSQSAsync amazonSqs) {
 		this.amazonSqs = amazonSqs;
 	}
 
@@ -138,7 +139,7 @@ public class QueueMessageHandlerFactory {
 		return queueMessageHandler;
 	}
 
-	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 		return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 	}
 }

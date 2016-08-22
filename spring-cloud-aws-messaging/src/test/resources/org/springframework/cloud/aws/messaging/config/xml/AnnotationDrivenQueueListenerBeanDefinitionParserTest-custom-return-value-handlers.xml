@@ -19,9 +19,12 @@
 	   xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.springframework.org/schema/cloud/aws/messaging http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd
-	   http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/messaging
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 
 	<aws-messaging:annotation-driven-queue-listener>

@@ -42,6 +42,11 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		  <repository>
+			  <id>maven2-central</id>
+			  <name>Maven2 Mirror</name>
+			  <url>	http://repo1.maven.org/maven2</url>
+		  </repository>
 	  </repositories>
 	  <pluginRepositories>
 		<pluginRepository>

@@ -104,7 +104,7 @@ use of the modules. A typical XML configuration to use Spring Cloud AWS is outli
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/cloud/aws/context
-        http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+        http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
            <aws-context:context-region region="..."/>
 </beans>
@@ -617,7 +617,7 @@ the database.
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/context
-	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
   <aws-context:context-credentials>
   	...
@@ -827,9 +827,9 @@ With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/cloud/aws/context
-		http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd
+		http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
 		http://www.springframework.org/schema/cloud/aws/messaging
-	   	http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd">
+	   	http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging">
 
 	<aws-context:context-credentials>
 		<aws-context:instance-profile-credentials />
@@ -1243,7 +1243,7 @@ configuration to enable declarative, annotation-based caching.
 	   xmlns:cache="http://www.springframework.org/schema/cache"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/cache
-	   	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd
+	   	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd
 	   	http://www.springframework.org/schema/cache
 	   	http://www.springframework.org/schema/cache/spring-cache.xsd">
 
@@ -1439,7 +1439,7 @@ to configure the data source with the minimum attributes as shown in the example
 	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/jdbc
-	   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd">
 
  <aws-context:context-credentials>
   ...
@@ -1809,7 +1809,7 @@ attachments as simple mail messages. A configuration with the necessary elements
 ----
 <beans xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
    xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/mail
-      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd">
+      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 	<aws-context:context-credentials>
 	  ..
@@ -1953,7 +1953,7 @@ The configuration consists of one element for the whole application context that
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/context
-	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<aws-context:context-credentials>
     		...

@@ -51,7 +51,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 	private static final String WAIT_TIME_OUT_ATTRIBUTE = "wait-time-out";
 	private static final String AUTO_STARTUP_ATTRIBUTE = "auto-startup";
 	private static final String DESTINATION_RESOLVER_ATTRIBUTE = "destination-resolver";
-	private static final String DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE = "delete-message-on-exception";
 	private static final String BACK_OFF_TIME = "back-off-time";
 
 	@Override
@@ -80,10 +79,6 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
 
 		if (StringUtils.hasText(element.getAttribute(DESTINATION_RESOLVER_ATTRIBUTE))) {
 			containerBuilder.addPropertyReference(Conventions.attributeNameToPropertyName(DESTINATION_RESOLVER_ATTRIBUTE), element.getAttribute(DESTINATION_RESOLVER_ATTRIBUTE));
-		}
-
-		if (StringUtils.hasText(element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE))) {
-			containerBuilder.addPropertyValue(Conventions.attributeNameToPropertyName(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE), element.getAttribute(DELETE_MESSAGE_ON_EXCEPTION_ATTRIBUTE));
 		}
 
 		if (StringUtils.hasText(element.getAttribute(BACK_OFF_TIME))) {

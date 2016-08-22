@@ -17,12 +17,13 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
@@ -35,6 +36,10 @@ import org.springframework.util.NumberUtils;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.createMessage;
 
@@ -46,11 +51,11 @@ import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.cre
 public class QueueMessageChannel extends AbstractMessageChannel implements PollableChannel {
 
 	static final String ATTRIBUTE_NAMES = "All";
-	public static final String MESSAGE_ATTRIBUTE_NAMES = "All";
-	private final AmazonSQS amazonSqs;
+	private static final String MESSAGE_ATTRIBUTE_NAMES = "All";
+	private final AmazonSQSAsync amazonSqs;
 	private final String queueUrl;
 
-	public QueueMessageChannel(AmazonSQS amazonSqs, String queueUrl) {
+	public QueueMessageChannel(AmazonSQSAsync amazonSqs, String queueUrl) {
 		this.amazonSqs = amazonSqs;
 		this.queueUrl = queueUrl;
 	}
@@ -58,17 +63,45 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 	@Override
 	protected boolean sendInternal(Message<?> message, long timeout) {
 		try {
-			SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload())).withDelaySeconds(getDelaySeconds(timeout));
-			Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
-			if (!messageAttributes.isEmpty()) {
-				sendMessageRequest.withMessageAttributes(messageAttributes);
-			}
-			this.amazonSqs.sendMessage(sendMessageRequest);
+			sendMessageAndWaitForResult(prepareSendMessageRequest(message), timeout);
 		} catch (AmazonServiceException e) {
 			throw new MessageDeliveryException(message, e.getMessage(), e);
+		} catch (ExecutionException e) {
+			throw new MessageDeliveryException(message, e.getMessage(), e.getCause());
+		} catch (TimeoutException e) {
+			return false;
 		}
 
 		return true;
+	}
+
+	private SendMessageRequest prepareSendMessageRequest(Message<?> message) {
+		SendMessageRequest sendMessageRequest = new SendMessageRequest(this.queueUrl, String.valueOf(message.getPayload()));
+
+		if (message.getHeaders().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER)) {
+			sendMessageRequest.setDelaySeconds(message.getHeaders().get(SqsMessageHeaders.SQS_DELAY_HEADER, Integer.class));
+		}
+
+		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
+		if (!messageAttributes.isEmpty()) {
+			sendMessageRequest.withMessageAttributes(messageAttributes);
+		}
+
+		return sendMessageRequest;
+	}
+
+	private void sendMessageAndWaitForResult(SendMessageRequest sendMessageRequest, long timeout) throws ExecutionException, TimeoutException {
+		if (timeout > 0) {
+			Future<SendMessageResult> sendMessageFuture = this.amazonSqs.sendMessageAsync(sendMessageRequest);
+
+			try {
+				sendMessageFuture.get(timeout, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		} else {
+			this.amazonSqs.sendMessage(sendMessageRequest);
+		}
 	}
 
 	private Map<String, MessageAttributeValue> getMessageAttributes(Message<?> message) {
@@ -76,6 +109,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		for (Map.Entry<String, Object> messageHeader : message.getHeaders().entrySet()) {
 			String messageHeaderName = messageHeader.getKey();
 			Object messageHeaderValue = messageHeader.getValue();
+
+			if (isSkipHeader(messageHeaderName)) {
+				continue;
+			}
 
 			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
@@ -95,6 +132,10 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		}
 
 		return messageAttributes;
+	}
+
+	private static boolean isSkipHeader(String headerName) {
+		return SqsMessageHeaders.SQS_DELAY_HEADER.equals(headerName);
 	}
 
 	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
@@ -142,8 +183,4 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 		return message;
 	}
 
-	// returns 0 if there is a negative value for the delay seconds
-	private static int getDelaySeconds(long timeout) {
-		return Math.max(Long.valueOf(timeout).intValue(), 0);
-	}
 }

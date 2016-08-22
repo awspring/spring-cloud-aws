@@ -209,7 +209,7 @@ public class SqsConfigurationTest {
 
 		public static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(HandlerMethodReturnValueHandler.class);
 		public static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(HandlerMethodArgumentResolver.class);
-		public static final AmazonSQS CUSTOM_AMAZON_SQS = mock(AmazonSQS.class);
+		public static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class);
 		public static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
 		@Bean

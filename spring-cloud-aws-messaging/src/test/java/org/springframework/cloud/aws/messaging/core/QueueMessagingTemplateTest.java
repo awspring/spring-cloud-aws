@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -42,7 +42,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void send_withoutDefaultDestination_throwAnException() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
@@ -51,7 +51,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void send_withDefaultDestination_usesDefaultDestination() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
@@ -65,7 +65,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void send_withDestination_usesDestination() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
@@ -78,7 +78,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void receive_withoutDefaultDestination_throwsAnException() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		queueMessagingTemplate.receive();
@@ -86,7 +86,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void receive_withDefaultDestination_useDefaultDestination() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
@@ -99,7 +99,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void receive_withDestination_usesDestination() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		queueMessagingTemplate.receive("my-queue");
@@ -111,7 +111,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void receiveAndConvert_withoutDefaultDestination_throwsAnException() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		queueMessagingTemplate.receiveAndConvert(String.class);
@@ -119,7 +119,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void receiveAndConvert_withDefaultDestination_usesDefaultDestinationAndConvertsMessage() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 		queueMessagingTemplate.setDefaultDestinationName("my-queue");
 
@@ -130,7 +130,7 @@ public class QueueMessagingTemplateTest {
 
 	@Test
 	public void receiveAndConvert_withDestination_usesDestinationAndConvertsMessage() throws Exception {
-		AmazonSQS amazonSqs = createAmazonSqs();
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
 
 		String message = queueMessagingTemplate.receiveAndConvert("my-queue", String.class);
@@ -151,8 +151,8 @@ public class QueueMessagingTemplateTest {
 		assertEquals(simpleMessageConverter, ((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter()).getConverters().get(1));
 	}
 
-	private AmazonSQS createAmazonSqs() {
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+	private AmazonSQSAsync createAmazonSqs() {
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 
 		GetQueueUrlResult queueUrl = new GetQueueUrlResult();
 		queueUrl.setQueueUrl("http://queue-url.com");

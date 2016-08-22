@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
@@ -46,16 +47,16 @@ import java.util.List;
  */
 public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel> implements DestinationResolvingMessageReceivingOperations<QueueMessageChannel> {
 
-	private final AmazonSQS amazonSqs;
+	private final AmazonSQSAsync amazonSqs;
 
 	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplate.class.getClassLoader());
 
-	public QueueMessagingTemplate(AmazonSQS amazonSqs) {
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs) {
 		this(amazonSqs, null, null);
 	}
 
-	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 		this(amazonSqs, resourceIdResolver, null);
 	}
 
@@ -70,17 +71,17 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	 * @param messageConverter
 	 * 		A {@link MessageConverter} that is going to be added to the composite converter.
 	 */
-	public QueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
 		super(new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver));
 		this.amazonSqs = amazonSqs;
 		initMessageConverter(messageConverter);
 	}
 
 	private void initMessageConverter(MessageConverter messageConverter) {
-		List<MessageConverter> messageConverters = new ArrayList<>();
-
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
+
+		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(stringMessageConverter);
 
 		if (messageConverter != null) {

@@ -17,10 +17,15 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc" xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:jdbc="http://www.springframework.org/schema/cloud/aws/jdbc"
+	   xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.springframework.org/schema/cloud/aws/jdbc http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc-1.0.xsd http://www.springframework.org/schema/cloud/aws/context http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/jdbc
+	   					   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<context:context-credentials>
 		<context:simple-credentials access-key="foo" secret-key="bar" />

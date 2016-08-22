@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
+<?xml version="1.0" encoding="UTF-8" ?><!--
   ~ Copyright 2013-2014 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -169,22 +168,19 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="delete-message-on-exception" type="xsd:boolean" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						Defines if a message must be deleted or not if the handler method throws an exception and the exception handler
-						method is called. By default this value is set to true which means that the message is deleted to avoid
-						poison messages. If this value is set to false it is the responsibility of the exception handler method to delete
-						the message. The exception handler method can inject the message headers with org.springframework.messaging.handler.annotation.Headers
-						in order to get the receipt handle.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="back-off-time" type="xsd:long" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
 						The number of milliseconds the polling thread must wait before trying to recover when an error occurs
 						(e.g. connection timeout). Default value is 10000 milliseconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue-stop-timeout" type="xsd:integer" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The number of milliseconds to wait before interupting the polling thread when a queue is stopped.
+						Default value is 10000 milliseconds.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

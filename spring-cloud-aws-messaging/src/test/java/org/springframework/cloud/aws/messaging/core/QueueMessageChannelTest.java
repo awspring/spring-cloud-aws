@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
@@ -29,6 +29,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -43,9 +44,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -69,7 +75,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_validTextMessage_returnsTrue() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
 		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
 
@@ -82,14 +88,13 @@ public class QueueMessageChannelTest {
 		// Assert
 		verify(amazonSqs, only()).sendMessage(any(SendMessageRequest.class));
 		assertEquals("message content", sendMessageRequestArgumentCaptor.getValue().getMessageBody());
-		assertEquals(0, sendMessageRequestArgumentCaptor.getValue().getDelaySeconds().intValue());
 		assertTrue(sent);
 	}
 
 	@Test
 	public void sendMessage_serviceThrowsError_throwsMessagingException() throws Exception {
 		//Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
 		MessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
@@ -108,7 +113,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withMimeTypeAsStringHeader_shouldPassItAsMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		String mimeTypeAsString = new MimeType("test", "plain", Charset.forName("UTF-8")).toString();
 		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MessageHeaders.CONTENT_TYPE, mimeTypeAsString).build();
@@ -127,7 +132,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withMimeTypeHeader_shouldPassItAsMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		MimeType mimeType = new MimeType("test", "plain", Charset.forName("UTF-8"));
 		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MessageHeaders.CONTENT_TYPE, mimeType).build();
@@ -146,7 +151,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withoutTimeout_returnsTextMessage() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
@@ -168,7 +173,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withSpecifiedTimeout_returnsTextMessage() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
@@ -190,7 +195,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withSpecifiedTimeout_returnsNull() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(2).
 				withMaxNumberOfMessages(1).
@@ -211,7 +216,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withoutDefaultTimeout_returnsNull() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
 				withMaxNumberOfMessages(1).
@@ -232,7 +237,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withMimeTypeMessageAttribute_shouldCopyToHeaders() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		MimeType mimeType = new MimeType("test", "plain", Charset.forName("UTF-8"));
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
@@ -255,7 +260,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withStringMessageHeader_shouldBeSentAsQueueMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		String headerValue = "Header value";
 		String headerName = "MyHeader";
@@ -276,7 +281,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withStringMessageHeader_shouldBeReceivedAsQueueMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		String headerValue = "Header value";
 		String headerName = "MyHeader";
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
@@ -300,7 +305,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withNumericMessageHeaders_shouldBeSentAsQueueMessageAttributes() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		double doubleValue = 1234.56;
 		long longValue = 1234L;
@@ -352,7 +357,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withNumericMessageHeaders_shouldBeReceivedAsQueueMessageAttributes() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
 		double doubleValue = 1234.56;
@@ -399,7 +404,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withIncompatibleNumericMessageHeader_shouldThrowAnException() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("Cannot convert String [17] to target class [java.util.concurrent.atomic.AtomicInteger]");
 
@@ -424,7 +429,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withMissingNumericMessageHeaderTargetClass_shouldThrowAnException() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		this.expectedException.expect(MessagingException.class);
 		this.expectedException.expectMessage("Message attribute with value '12' and data type 'Number.class.not.Found' could not be converted" +
 				" into a Number because target class was not found.");
@@ -449,7 +454,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withBinaryMessageHeader_shouldBeSentAsBinaryMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		ByteBuffer headerValue = ByteBuffer.wrap("My binary data!".getBytes());
 		String headerName = "MyHeader";
@@ -470,7 +475,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withBinaryMessageHeader_shouldBeReceivedAsByteBufferMessageAttribute() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		ByteBuffer headerValue = ByteBuffer.wrap("My binary data!".getBytes());
 		String headerName = "MyHeader";
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
@@ -494,7 +499,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void sendMessage_withUuidAsId_shouldConvertUuidToString() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		QueueMessageChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 		Message<String> message = MessageBuilder.withPayload("Hello").build();
 		UUID uuid = (UUID) message.getHeaders().get(MessageHeaders.ID);
@@ -513,7 +518,7 @@ public class QueueMessageChannelTest {
 	@Test
 	public void receiveMessage_withIdOfTypeString_IdShouldBeConvertedToUuid() throws Exception {
 		// Arrange
-		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 		UUID uuid = UUID.randomUUID();
 		when(amazonSqs.receiveMessage(new ReceiveMessageRequest("http://testQueue").
 				withWaitTimeSeconds(0).
@@ -533,5 +538,98 @@ public class QueueMessageChannelTest {
 		Object idMessageHeader = receivedMessage.getHeaders().get(MessageHeaders.ID);
 		assertTrue(UUID.class.isInstance(idMessageHeader));
 		assertEquals(uuid, idMessageHeader);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void sendMessage_withTimeout_sendsMessageAsyncAndReturnsTrueOnceFutureCompleted() throws Exception {
+		// Arrange
+		Future<SendMessageResult> future = mock(Future.class);
+		when(future.get(1000, TimeUnit.MILLISECONDS)).thenReturn(new SendMessageResult());
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+		when(amazonSqs.sendMessageAsync(any(SendMessageRequest.class))).thenReturn(future);
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Act
+		boolean result = queueMessageChannel.send(MessageBuilder.withPayload("Hello").build(), 1000);
+
+		// Assert
+		assertTrue(result);
+		verify(amazonSqs, only()).sendMessageAsync(any(SendMessageRequest.class));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void sendMessage_withSendMessageAsyncTakingMoreTimeThanSpecifiedTimeout_returnsFalse() throws Exception {
+		// Arrange
+		Future<SendMessageResult> future = mock(Future.class);
+		when(future.get(1000, TimeUnit.MILLISECONDS)).thenThrow(new TimeoutException());
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+		when(amazonSqs.sendMessageAsync(any(SendMessageRequest.class))).thenReturn(future);
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Act
+		boolean result = queueMessageChannel.send(MessageBuilder.withPayload("Hello").build(), 1000);
+
+		// Assert
+		assertFalse(result);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void sendMessage_withExecutionExceptionWhileSendingAsyncMessage_throwMessageDeliveryException() throws Exception {
+		// Arrange
+		Future<SendMessageResult> future = mock(Future.class);
+		when(future.get(1000, TimeUnit.MILLISECONDS)).thenThrow(new ExecutionException(new Exception()));
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+		when(amazonSqs.sendMessageAsync(any(SendMessageRequest.class))).thenReturn(future);
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+
+		// Assert
+		this.expectedException.expect(MessageDeliveryException.class);
+
+		// Act
+		queueMessageChannel.send(MessageBuilder.withPayload("Hello").build(), 1000);
+
+	}
+
+	@Test
+	public void sendMessage_withDelayHeader_shouldSetDelayOnSendMessageRequestAndNotSetItAsHeaderAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(SqsMessageHeaders.SQS_DELAY_HEADER, 15).build();
+
+		// Act
+		queueMessageChannel.send(message);
+
+		// Assert
+		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+		assertEquals(new Integer(15), sendMessageRequest.getDelaySeconds());
+		assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
+	}
+
+	@Test
+	public void sendMessage_withoutDelayHeader_shouldNotSetDelayOnSendMessageRequestAndNotSetHeaderAsMessageAttribute() throws Exception {
+		// Arrange
+		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+		QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+		Message<String> message = MessageBuilder.withPayload("Hello").build();
+
+		// Act
+		queueMessageChannel.send(message);
+
+		// Assert
+		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+		assertNull(sendMessageRequest.getDelaySeconds());
+		assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
 	}
 }
