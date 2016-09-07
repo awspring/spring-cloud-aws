@@ -8,6 +8,7 @@ Agim Emruli; Alain Sahli
 :source-highlighter: prettify
 :numbered:
 :icons: font
+:nofooter:
 
 include::intro.adoc[]
 
