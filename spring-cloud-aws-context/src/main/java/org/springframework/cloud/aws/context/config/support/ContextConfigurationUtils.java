@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context.config.support;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
@@ -66,6 +67,12 @@ public final class ContextConfigurationUtils {
 
 		BeanDefinitionReaderUtils.registerBeanDefinition(new BeanDefinitionHolder(beanDefinition, REGION_PROVIDER_BEAN_NAME), registry);
 		AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry, REGION_PROVIDER_BEAN_NAME);
+	}
+
+	public static void registerDefaultAWSCredentialsProvider(BeanDefinitionRegistry registry) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(DefaultAWSCredentialsProviderChain.class);
+		registry.registerBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+		AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 	}
 
 	public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey, boolean instanceProfile, String profileName, String profilePath) {

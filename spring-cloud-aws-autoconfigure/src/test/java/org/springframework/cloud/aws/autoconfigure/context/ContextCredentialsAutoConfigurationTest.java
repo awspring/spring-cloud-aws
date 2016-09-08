@@ -18,15 +18,18 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.boot.test.EnvironmentTestUtils;
+import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -69,6 +72,22 @@ public class ContextCredentialsAutoConfigurationTest {
 		assertEquals(2, credentialsProviders.size());
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
+	}
+
+
+	@Test
+	public void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextCredentialsAutoConfiguration.class);
+		EnvironmentTestUtils.addEnvironment(this.context,
+				"cloud.aws.credentials.useDefaultAwsCredentialsChain:true"
+				);
+		this.context.refresh();
+
+		AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+		assertNotNull(awsCredentialsProvider);
+
+		assertTrue(awsCredentialsProvider.getClass().isAssignableFrom(DefaultAWSCredentialsProviderChain.class));
 	}
 
 	@Test
@@ -150,4 +169,6 @@ public class ContextCredentialsAutoConfigurationTest {
 		assertEquals("testAccessKey", provider.getCredentials().getAWSAccessKeyId());
 		assertEquals("testSecretKey", provider.getCredentials().getAWSSecretKey());
 	}
+
+
 }
