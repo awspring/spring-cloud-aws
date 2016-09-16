@@ -24,7 +24,6 @@
 		<version>1.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<name>spring-cloud-starter-aws-messaging</name>
 	<description>Spring Cloud Starter AWS Messaging</description>
 	<url>https://projects.spring.io/spring-cloud</url>

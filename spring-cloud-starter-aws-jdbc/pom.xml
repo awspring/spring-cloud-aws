@@ -24,7 +24,6 @@
 		<version>1.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
-	<version>1.2.0.BUILD-SNAPSHOT</version>
 	<name>spring-cloud-starter-aws-jdbc</name>
 	<description>Spring Cloud Starter AWS JDBC</description>
 	<url>https://projects.spring.io/spring-cloud</url>
