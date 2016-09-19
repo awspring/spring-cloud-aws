@@ -42,6 +42,12 @@
 				<version>${aws-java-sdk.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>com.github.tomakehurst</groupId>
+						<artifactId>wiremock</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>com.amazonaws</groupId>
