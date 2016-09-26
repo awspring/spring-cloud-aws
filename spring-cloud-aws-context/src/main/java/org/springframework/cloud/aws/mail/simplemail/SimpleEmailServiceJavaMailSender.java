@@ -81,7 +81,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 				RawMessage rm = createRawMessage(mimeMessage);
 				SendRawEmailResult sendRawEmailResult = getEmailService().sendRawEmail(new SendRawEmailRequest(rm));
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {0} successfully send", sendRawEmailResult.getMessageId());
+					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.getMessageId());
 				}
 			} catch (Exception e) {
 				//Ignore Exception because we are collecting and throwing all if any
