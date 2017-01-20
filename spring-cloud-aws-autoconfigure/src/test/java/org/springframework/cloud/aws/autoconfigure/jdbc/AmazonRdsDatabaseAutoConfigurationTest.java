@@ -25,7 +25,7 @@ import com.amazonaws.services.rds.model.Endpoint;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.EnvironmentTestUtils;
+import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

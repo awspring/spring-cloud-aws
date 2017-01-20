@@ -78,6 +78,7 @@ public class RdbmsRetryOperationsInterceptorTest {
 
 
 		RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
+		interceptor.setLabel("mylabel"); //Avoids NPE in RetryOperationsInterceptor.invoke
 		interceptor.invoke(methodInvocation);
 
 		verify(methodInvocation, times(1)).invocableClone();

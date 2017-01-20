@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.EnvironmentTestUtils;
+import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
