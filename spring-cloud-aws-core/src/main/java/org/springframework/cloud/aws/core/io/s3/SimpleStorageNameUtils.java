@@ -114,4 +114,5 @@ final class SimpleStorageNameUtils {
 		}
 		return location.substring(S3_PROTOCOL_PREFIX.length());
 	}
+
 }
