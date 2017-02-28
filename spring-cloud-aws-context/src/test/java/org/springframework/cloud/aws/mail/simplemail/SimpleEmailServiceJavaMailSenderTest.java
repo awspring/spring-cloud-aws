@@ -30,6 +30,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
+import javax.activation.FileTypeMap;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -58,10 +59,76 @@ import static org.mockito.Mockito.when;
 public class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
-	public void testCreateMimeMessage() throws Exception {
+	public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() throws Exception {
+		// Arrange
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+
+		// Act
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+		// Assert
 		assertNotNull(mimeMessage);
+		assertEquals(0, mimeMessage.getSession().getProperties().size());
+	}
+
+	@Test
+	public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() throws Exception {
+		// Arrange
+		Properties mailProperties = new Properties();
+		mailProperties.setProperty("mail.from", "agim.emruli@maildomain.com");
+
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+		mailSender.setJavaMailProperties(mailProperties);
+
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+		// Assert
+		assertNotNull(mimeMessage);
+		assertEquals("agim.emruli@maildomain.com", mimeMessage.getSession().getProperty("mail.from"));
+	}
+
+	@Test
+	public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() throws Exception {
+		// Arrange
+		Session customSession = Session.getInstance(new Properties());
+
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+		mailSender.setSession(customSession);
+
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+		// Assert
+		assertSame(customSession, mimeMessage.getSession());
+	}
+
+	@Test
+	public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() throws Exception {
+		// Arrange
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+		mailSender.setDefaultEncoding("ISO-8859-1");
+
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+
+		// Assert
+		assertEquals("ISO-8859-1", mimeMessageHelper.getEncoding());
+	}
+
+	@Test
+	public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() throws Exception {
+		// Arrange
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+		mailSender.setDefaultFileTypeMap(FileTypeMap.getDefaultFileTypeMap());
+
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+
+		// Assert
+		assertNotNull("ISO-8859-1", mimeMessageHelper.getFileTypeMap());
 	}
 
 	@Test
