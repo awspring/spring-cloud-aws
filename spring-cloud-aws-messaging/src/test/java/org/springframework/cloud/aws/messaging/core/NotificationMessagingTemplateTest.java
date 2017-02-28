@@ -16,20 +16,23 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.junit.Test;
-import org.springframework.messaging.support.MessageBuilder;
-
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
+import org.junit.Test;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Locale;
+
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Alain Sahli
@@ -50,6 +53,26 @@ public class NotificationMessagingTemplateTest {
 
 		// Assert
 		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
+				"Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+	}
+
+	@Test
+	public void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, new DestinationResolver<String>() {
+
+			@Override
+			public String resolveDestination(String name) throws DestinationResolutionException {
+				return name.toUpperCase(Locale.ENGLISH);
+			}
+		}, null);
+
+		// Act
+		notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
+
+		// Assert
+		verify(amazonSns).publish(new PublishRequest("TEST",
 				"Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
 	}
 

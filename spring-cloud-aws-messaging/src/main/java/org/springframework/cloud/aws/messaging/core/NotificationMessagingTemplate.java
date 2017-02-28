@@ -24,6 +24,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.ClassUtils;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 			"com.fasterxml.jackson.databind.ObjectMapper", NotificationMessagingTemplate.class.getClassLoader());
 
 	public NotificationMessagingTemplate(AmazonSNS amazonSns) {
-		this(amazonSns, null, null);
+		this(amazonSns, (ResourceIdResolver) null, null);
 	}
 
 	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
@@ -55,11 +56,18 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
 		initMessageConverter(messageConverter);
 	}
 
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, DestinationResolver<String> destinationResolver, MessageConverter messageConverter) {
+		super(destinationResolver);
+		this.amazonSns = amazonSns;
+		initMessageConverter(messageConverter);
+	}
+
 	private void initMessageConverter(MessageConverter messageConverter) {
-		List<MessageConverter> messageConverters = new ArrayList<>();
 
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
+
+		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(stringMessageConverter);
 
 		if (messageConverter != null) {

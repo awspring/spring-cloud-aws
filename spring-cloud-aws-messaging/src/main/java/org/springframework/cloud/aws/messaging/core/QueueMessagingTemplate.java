@@ -27,6 +27,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageReceivingOperations;
 import org.springframework.util.ClassUtils;
 
@@ -53,7 +54,7 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplate.class.getClassLoader());
 
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs) {
-		this(amazonSqs, null, null);
+		this(amazonSqs, (ResourceIdResolver) null, null);
 	}
 
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
@@ -62,7 +63,8 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 
 	/**
 	 * Initializes the messaging template by configuring the destination resolver as well as the message
-	 * converter.
+	 * converter. Uses the {@link DynamicQueueUrlDestinationResolver} with the default configuration to
+	 * resolve destination names.
 	 *
 	 * @param amazonSqs
 	 * 		The {@link AmazonSQS} client, cannot be {@code null}.
@@ -72,7 +74,23 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	 * 		A {@link MessageConverter} that is going to be added to the composite converter.
 	 */
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
-		super(new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver));
+		this(amazonSqs, new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver), messageConverter);
+	}
+
+	/**
+	 * Inititalizes
+	 *
+	 * @param amazonSqs
+	 * 		The {@link AmazonSQS} client, cannot be {@code null}.
+	 * @param destinationResolver
+	 * 		A destination resolver implementation to resolve queue names into queue urls. The
+	 * 		destination resolver will be wrapped into a {@link org.springframework.messaging.core.CachingDestinationResolverProxy}
+	 * 		to avoid duplicate queue url resolutions.
+	 * @param messageConverter
+	 * 		A {@link MessageConverter} that is going to be added to the composite converter.
+	 */
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, DestinationResolver<String> destinationResolver, MessageConverter messageConverter) {
+		super(destinationResolver);
 		this.amazonSqs = amazonSqs;
 		initMessageConverter(messageConverter);
 	}

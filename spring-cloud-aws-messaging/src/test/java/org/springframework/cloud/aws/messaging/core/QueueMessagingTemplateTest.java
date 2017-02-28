@@ -24,10 +24,15 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -74,6 +79,26 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
 		assertEquals("http://queue-url.com", sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+	}
+
+
+	@Test
+	public void send_withCustomDestinationResolveAndDestination_usesDestination() throws Exception {
+		AmazonSQSAsync amazonSqs = createAmazonSqs();
+		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, new DestinationResolver<String>() {
+
+			@Override
+			public String resolveDestination(String name) throws DestinationResolutionException {
+				return name.toUpperCase(Locale.ENGLISH);
+			}
+		}, null);
+
+		Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
+		queueMessagingTemplate.send("myqueue", stringMessage);
+
+		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
+		assertEquals("MYQUEUE", sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -144,7 +169,7 @@ public class QueueMessagingTemplateTest {
 		SimpleMessageConverter simpleMessageConverter = new SimpleMessageConverter();
 
 		// Act
-		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(createAmazonSqs(), null, simpleMessageConverter);
+		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(createAmazonSqs(), (ResourceIdResolver) null, simpleMessageConverter);
 
 		// Assert
 		assertEquals(2, ((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter()).getConverters().size());
