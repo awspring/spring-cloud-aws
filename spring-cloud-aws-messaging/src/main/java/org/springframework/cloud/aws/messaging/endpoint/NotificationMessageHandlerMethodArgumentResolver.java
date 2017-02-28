@@ -110,8 +110,8 @@ public class NotificationMessageHandlerMethodArgumentResolver extends AbstractNo
 		}
 
 		private Charset getCharset() {
-			return this.mediaType.getCharSet() != null ?
-					this.mediaType.getCharSet() :
+			return this.mediaType.getCharset() != null ?
+					this.mediaType.getCharset() :
 					Charset.forName(WebUtils.DEFAULT_CHARACTER_ENCODING);
 		}
 
