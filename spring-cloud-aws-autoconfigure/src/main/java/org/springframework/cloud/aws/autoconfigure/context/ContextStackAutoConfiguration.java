@@ -38,7 +38,7 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 @Import({ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class})
-@ConditionalOnClass(AmazonCloudFormation.class)
+@ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
 public class ContextStackAutoConfiguration {
 
 	@Configuration
