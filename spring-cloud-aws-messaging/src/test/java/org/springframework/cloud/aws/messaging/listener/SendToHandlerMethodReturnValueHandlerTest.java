@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -106,6 +107,20 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 
 		// Act
 		sendToHandlerMethodReturnValueHandler.handleReturnValue("Return me!", methodParameter, MessageBuilder.withPayload("Nothing").build());
+	}
+
+	@Test
+	public void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled() throws Exception {
+		// Arrange
+		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
+		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+
+		// Act
+		sendToHandlerMethodReturnValueHandler.handleReturnValue(null, methodParameter, MessageBuilder.withPayload("Nothing").build());
+
+		// Assert
+		verify(this.messageTemplate, times(0)).convertAndSend(anyString(), anyString());
 	}
 
 	@Test
