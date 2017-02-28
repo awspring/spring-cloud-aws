@@ -22,9 +22,7 @@ import org.springframework.cloud.aws.cache.AbstractCacheFactory;
 import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.ClassUtils;
 
@@ -34,8 +32,6 @@ import org.springframework.util.ClassUtils;
 public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFactory> {
 
 	private static final boolean JEDIS_AVAILABLE = ClassUtils.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
-	private static final boolean JREDIS_AVAILABLE = ClassUtils.isPresent("org.jredis.JRedis", ClassUtils.getDefaultClassLoader());
-	private static final boolean SRP_AVAILABLE = ClassUtils.isPresent("redis.client.RedisClient", ClassUtils.getDefaultClassLoader());
 	private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("com.lambdaworks.redis.RedisClient", ClassUtils.getDefaultClassLoader());
 
 	@Override
@@ -59,16 +55,6 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 	protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
 		if (JEDIS_AVAILABLE) {
 			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-			connectionFactory.setHostName(hostName);
-			connectionFactory.setPort(port);
-			return connectionFactory;
-		} else if (JREDIS_AVAILABLE) {
-			JredisConnectionFactory connectionFactory = new JredisConnectionFactory();
-			connectionFactory.setHostName(hostName);
-			connectionFactory.setPort(port);
-			return connectionFactory;
-		} else if (SRP_AVAILABLE) {
-			SrpConnectionFactory connectionFactory = new SrpConnectionFactory();
 			connectionFactory.setHostName(hostName);
 			connectionFactory.setPort(port);
 			return connectionFactory;
