@@ -18,8 +18,7 @@ package org.springframework.cloud.aws.messaging;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.context.annotation.Bean;
@@ -29,8 +28,7 @@ import org.springframework.context.annotation.PropertySource;
 /**
  * @author Alain Sahli
  */
-@SpringApplicationConfiguration(classes = BootNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
-@IntegrationTest
+@SpringBootTest(classes = BootNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
 public class BootNotificationMessagingTemplateIntegrationTest extends NotificationMessagingTemplateIntegrationTest {
 
 	@Configuration

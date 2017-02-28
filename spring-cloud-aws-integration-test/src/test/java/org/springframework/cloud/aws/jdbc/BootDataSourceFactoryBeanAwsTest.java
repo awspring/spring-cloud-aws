@@ -17,15 +17,13 @@
 package org.springframework.cloud.aws.jdbc;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
-@IntegrationTest
+@SpringBootTest(classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
 public class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 	@SpringBootApplication

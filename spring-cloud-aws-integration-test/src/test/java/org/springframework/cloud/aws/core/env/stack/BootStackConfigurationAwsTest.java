@@ -17,15 +17,13 @@
 package org.springframework.cloud.aws.core.env.stack;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootStackConfigurationAwsTest.BootStackConfigurationAwsTestConfig.class)
-@IntegrationTest
+@SpringBootTest(classes = BootStackConfigurationAwsTest.BootStackConfigurationAwsTestConfig.class)
 public class BootStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
 	@SpringBootApplication

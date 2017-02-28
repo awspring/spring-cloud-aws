@@ -17,15 +17,13 @@
 package org.springframework.cloud.aws.cache;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootElastiCacheAwsTest.BootElastiCacheAwsTestConfig.class)
-@IntegrationTest
+@SpringBootTest(classes = BootElastiCacheAwsTest.BootElastiCacheAwsTestConfig.class)
 public class BootElastiCacheAwsTest extends ElastiCacheAwsTest {
 
 	@SpringBootApplication

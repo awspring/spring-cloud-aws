@@ -19,8 +19,7 @@ package org.springframework.cloud.aws.mail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
@@ -28,8 +27,7 @@ import org.springframework.core.io.Resource;
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
-@IntegrationTest
+@SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
 public class BootMailSenderAwsTest extends MailSenderAwsTest {
 
 	@SpringBootApplication

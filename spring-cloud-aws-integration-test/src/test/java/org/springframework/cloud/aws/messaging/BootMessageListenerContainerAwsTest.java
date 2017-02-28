@@ -17,8 +17,7 @@
 package org.springframework.cloud.aws.messaging;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * @author Alain Sahli
  */
-@SpringApplicationConfiguration(classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
-@IntegrationTest
+@SpringBootTest(classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 public class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
 	@Configuration

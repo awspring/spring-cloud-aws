@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.messaging;
 
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
@@ -39,7 +39,7 @@ public class JavaQueueMessagingTemplateIntegrationTest extends QueueMessagingTem
 	protected static class QueueMessagingTemplateIntegrationTestConfiguration {
 
 		@Bean
-		public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 			queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
 
@@ -47,7 +47,7 @@ public class JavaQueueMessagingTemplateIntegrationTest extends QueueMessagingTem
 		}
 
 		@Bean
-		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
+		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 			queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
 			queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());

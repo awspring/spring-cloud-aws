@@ -17,8 +17,7 @@
 package org.springframework.cloud.aws.context.support.io;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
@@ -26,8 +25,7 @@ import org.springframework.context.annotation.PropertySource;
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
-@IntegrationTest
+@SpringBootTest(classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
 public class BootPathMatchingResourceLoaderAwsTest extends PathMatchingResourceLoaderAwsTest {
 
 	@SpringBootApplication

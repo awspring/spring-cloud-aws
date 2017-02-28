@@ -30,8 +30,7 @@ import org.springframework.boot.actuate.metrics.writer.DefaultCounterService;
 import org.springframework.boot.actuate.metrics.writer.DefaultGaugeService;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.actuate.metrics.BufferingCloudWatchMetricSender;
 import org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -42,8 +41,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = MetricExporterTest.BootMetricExporterConfig.class)
-@IntegrationTest({"cloud.aws.cloudwatch.namespace=test", "cloud.aws.cloudwatch.nextRunDelayMillis=10"})
+@SpringBootTest(classes = MetricExporterTest.BootMetricExporterConfig.class,
+		properties = {"cloud.aws.cloudwatch.namespace=test", "cloud.aws.cloudwatch.nextRunDelayMillis=10"})
 public class MetricExporterTest {
 
 	@Autowired

@@ -17,8 +17,7 @@
 package org.springframework.cloud.aws.context.support.io;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
@@ -26,8 +25,8 @@ import org.springframework.context.annotation.PropertySource;
 /**
  * @author Agim Emruli
  */
-@SpringApplicationConfiguration(classes = BootResourceLoaderAwsTest.BootResourceLoaderAwsTestConfig.class)
-@IntegrationTest({"cloud.aws.loader.corePoolSize=10", "cloud.aws.loader.queueCapacity=0"})
+@SpringBootTest(classes = BootResourceLoaderAwsTest.BootResourceLoaderAwsTestConfig.class,
+		properties = {"cloud.aws.loader.corePoolSize=10", "cloud.aws.loader.queueCapacity=0"})
 public class BootResourceLoaderAwsTest extends ResourceLoaderAwsTest {
 
 	@SpringBootApplication
