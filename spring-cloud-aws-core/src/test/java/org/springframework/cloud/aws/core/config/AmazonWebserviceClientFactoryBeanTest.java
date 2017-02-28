@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.core.config;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
@@ -32,7 +32,7 @@ public class AmazonWebserviceClientFactoryBeanTest {
 
 		//Arrange
 		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonTestWebserviceClient.class,
-				new StaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
 		factoryBean.setCustomRegion("eu-west-1");
 
 
@@ -50,7 +50,7 @@ public class AmazonWebserviceClientFactoryBeanTest {
 
 		//Arrange
 		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonTestWebserviceClient.class,
-				new StaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
 		factoryBean.setRegionProvider(new StaticRegionProvider("eu-west-1"));
 
 

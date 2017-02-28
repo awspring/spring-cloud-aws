@@ -42,7 +42,7 @@ import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientCo
  */
 class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.internal.StaticCredentialsProvider";
+	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.AWSStaticCredentialsProvider";
 	private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
 	private static final String PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.profile.ProfileCredentialsProvider";
 

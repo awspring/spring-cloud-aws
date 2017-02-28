@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.aws.context.config.support;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -78,7 +78,7 @@ public final class ContextConfigurationUtils {
 			credentials.addConstructorArgValue(accessKey);
 			credentials.addConstructorArgValue(secretKey);
 
-			BeanDefinitionBuilder provider = BeanDefinitionBuilder.rootBeanDefinition(StaticCredentialsProvider.class);
+			BeanDefinitionBuilder provider = BeanDefinitionBuilder.rootBeanDefinition(AWSStaticCredentialsProvider.class);
 			provider.addConstructorArgValue(credentials.getBeanDefinition());
 
 			awsCredentialsProviders.add(provider.getBeanDefinition());

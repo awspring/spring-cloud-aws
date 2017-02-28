@@ -17,10 +17,10 @@
 package org.springframework.cloud.aws.context.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(1, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 
 		assertEquals("accessTest", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("testSecret", awsCredentialsProvider.getCredentials().getAWSSecretKey());
@@ -104,7 +104,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(1, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 
 		assertEquals("accessTest", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("testSecret", awsCredentialsProvider.getCredentials().getAWSSecretKey());
@@ -135,7 +135,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(1, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 
 		assertEquals("accessTest", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("testSecret", awsCredentialsProvider.getCredentials().getAWSSecretKey());
@@ -155,7 +155,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 	}
 
@@ -243,7 +243,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(3, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(2)));
 	}

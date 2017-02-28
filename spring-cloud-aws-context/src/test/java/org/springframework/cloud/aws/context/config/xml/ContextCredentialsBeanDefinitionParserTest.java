@@ -19,9 +19,9 @@ package org.springframework.cloud.aws.context.config.xml;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,9 +74,9 @@ public class ContextCredentialsBeanDefinitionParserTest {
 		assertEquals(2, providerChain.size());
 
 		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(providerChain.get(0)));
-		assertTrue(StaticCredentialsProvider.class.isInstance(providerChain.get(1)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(providerChain.get(1)));
 
-		StaticCredentialsProvider staticCredentialsProvider = (StaticCredentialsProvider) providerChain.get(1);
+		AWSStaticCredentialsProvider staticCredentialsProvider = (AWSStaticCredentialsProvider) providerChain.get(1);
 		assertEquals("staticAccessKey", staticCredentialsProvider.getCredentials().getAWSAccessKeyId());
 		assertEquals("staticSecretKey", staticCredentialsProvider.getCredentials().getAWSSecretKey());
 

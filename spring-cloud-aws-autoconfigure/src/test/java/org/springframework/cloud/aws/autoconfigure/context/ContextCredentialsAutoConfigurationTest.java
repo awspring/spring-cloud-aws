@@ -18,9 +18,9 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
 import org.junit.Test;
@@ -85,7 +85,7 @@ public class ContextCredentialsAutoConfigurationTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(StaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 
 		assertEquals("foo", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
