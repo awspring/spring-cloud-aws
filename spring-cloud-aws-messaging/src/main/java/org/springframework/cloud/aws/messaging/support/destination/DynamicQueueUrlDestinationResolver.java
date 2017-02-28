@@ -57,16 +57,14 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
 	@Override
 	public String resolveDestination(String name) throws DestinationResolutionException {
-		if (isValidQueueUrl(name)) {
-			return name;
-		}
+		String queueName = name;
 
 		if (this.resourceIdResolver != null) {
-			String physicalResourceId = this.resourceIdResolver.resolveToPhysicalResourceId(name);
-			if (!name.equals(physicalResourceId)) {
-				// name was resolved otherwise it would be equal
-				return physicalResourceId;
-			}
+			queueName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
+		}
+
+		if (isValidQueueUrl(queueName)) {
+			return queueName;
 		}
 
 		if (this.autoCreate) {

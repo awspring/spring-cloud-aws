@@ -61,6 +61,10 @@ public class DynamicTopicDestinationResolver implements DestinationResolver<Stri
 				physicalTopicName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
 			}
 
+			if (physicalTopicName != null && AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
+				return physicalTopicName;
+			}
+
 			String topicArn = getTopicResourceName(null, physicalTopicName);
 			if (topicArn == null) {
 				throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use " +
@@ -73,15 +77,9 @@ public class DynamicTopicDestinationResolver implements DestinationResolver<Stri
 	private String getTopicResourceName(String marker, String topicName) {
 		ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
 		for (Topic topic : listTopicsResult.getTopics()) {
-			if (AmazonResourceName.isValidAmazonResourceName(topicName)) {
-				if (topic.getTopicArn().equals(topicName)) {
-					return topic.getTopicArn();
-				}
-			} else {
-				AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-				if (resourceName.getResourceType().equals(topicName)) {
-					return topic.getTopicArn();
-				}
+			AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
+			if (resourceName.getResourceType().equals(topicName)) {
+				return topic.getTopicArn();
 			}
 		}
 

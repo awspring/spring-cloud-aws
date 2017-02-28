@@ -22,10 +22,10 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Topic;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -41,88 +41,123 @@ public class DynamicTopicDestinationResolverTest {
 	public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
-	public void testTopicDoesNotExist() throws Exception {
+	public void resolveDestination_withNonExistentTopicAndWithoutMarkerReturnedOnListTopics_shouldThrowIllegalArgumentException() throws Exception {
+		// Arrange
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
-		AmazonSNS sns = mock(AmazonSNS.class);
 
+		AmazonSNS sns = mock(AmazonSNS.class);
 		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult());
 
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+
+		// Act
 		resolver.resolveDestination("test");
 	}
 
 	@Test
-	public void testTopicDoesNotExistWithMarker() throws Exception {
+	public void resolveDestination_withNonExistentTopicAndWithMarkerReturnedOnListTopics_shouldCallListMultipleTimeWithMarkerAndThrowIllegalArgumentException() throws Exception {
+		// Arrange
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
-		AmazonSNS sns = mock(AmazonSNS.class);
 
+		AmazonSNS sns = mock(AmazonSNS.class);
 		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("foo"));
 		when(sns.listTopics(new ListTopicsRequest("foo"))).thenReturn(new ListTopicsResult());
 
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
+
+		// Act
 		resolver.resolveDestination("test");
 	}
 
 	@Test
-	public void testTopicNameFoundInFirstRun() throws Exception {
-		AmazonSNS sns = mock(AmazonSNS.class);
-
+	public void resolveDestination_withExistentTopic_returnsTopicArnFoundWhileListingTopic() throws Exception {
+		// Arrange
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
+
+		AmazonSNS sns = mock(AmazonSNS.class);
 		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
-		assertEquals(topicArn, resolver.resolveDestination("test"));
+
+		// Act
+		String resolvedDestinationName = resolver.resolveDestination("test");
+
+		// Assert
+		assertEquals(topicArn, resolvedDestinationName);
 	}
 
 	@Test
-	public void testTopicNameFoundInSecondRun() throws Exception {
-		AmazonSNS sns = mock(AmazonSNS.class);
+	public void resolveDestination_withExistentTopicAndMarker_returnsTopicArnFoundWhileListingTopic() throws Exception {
+		// Arrange
 
+		AmazonSNS sns = mock(AmazonSNS.class);
 		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withNextToken("mark"));
 
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
 		when(sns.listTopics(new ListTopicsRequest("mark"))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
-		assertEquals(topicArn, resolver.resolveDestination(topicArn));
+
+		// Act
+		String resolvedDestinationName = resolver.resolveDestination("test");
+
+		// Assert
+		assertEquals(topicArn, resolvedDestinationName);
 	}
 
 	@Test
-	public void testWithAlreadyExistingArn() throws Exception {
-		AmazonSNS sns = mock(AmazonSNS.class);
-
+	public void resolveDestination_withAlreadyExistingArn_returnsArnWithoutValidatingIt() throws Exception {
+		// Arrange
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
+
+		AmazonSNS sns = mock(AmazonSNS.class);
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
-		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(topicArn)));
 
-		assertEquals(topicArn, resolver.resolveDestination(topicArn));
+		// Act
+		String resolvedDestinationName = resolver.resolveDestination(topicArn);
+
+		// Assert
+		assertEquals(topicArn, resolvedDestinationName);
 	}
 
 	@Test
-	public void testWithAutoCreate() throws Exception {
-		AmazonSNS sns = mock(AmazonSNS.class);
-
+	public void resolveDestination_withAutoCreateEnabled_shouldCreateTopicDirectly() throws Exception {
+		// Arrange
 		String topicArn = "arn:aws:sns:eu-west:123456789012:test";
+
+		AmazonSNS sns = mock(AmazonSNS.class);
 		when(sns.createTopic(new CreateTopicRequest("test"))).thenReturn(new CreateTopicResult().withTopicArn(topicArn));
 
 		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns);
 		resolver.setAutoCreate(true);
-		assertEquals(topicArn, resolver.resolveDestination("test"));
+
+		// Act
+		String resolvedDestinationName = resolver.resolveDestination("test");
+
+		// Assert
+		assertEquals(topicArn, resolvedDestinationName);
 	}
 
 	@Test
 	public void resolveDestination_withResourceIdResolver_shouldCallIt() throws Exception {
-		AmazonSNS sns = mock(AmazonSNS.class);
-		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
-
-		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns, resourceIdResolver);
-		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		// Arrange
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:myTopic";
 		String logicalTopicName = "myTopic";
+
+		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
 		when(resourceIdResolver.resolveToPhysicalResourceId(logicalTopicName)).thenReturn(physicalTopicName);
 
-		assertEquals(physicalTopicName, resolver.resolveDestination(logicalTopicName));
+		AmazonSNS sns = mock(AmazonSNS.class);
+		when(sns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+
+		DynamicTopicDestinationResolver resolver = new DynamicTopicDestinationResolver(sns, resourceIdResolver);
+
+		// Assert
+		String resolvedDestinationName = resolver.resolveDestination(logicalTopicName);
+
+		// Assert
+		assertEquals(physicalTopicName, resolvedDestinationName);
 	}
 }
