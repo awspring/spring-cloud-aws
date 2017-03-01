@@ -52,10 +52,12 @@ public class SendToHandlerMethodReturnValueHandler implements HandlerMethodRetur
 	public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
 		Assert.state(this.messageTemplate != null, "A messageTemplate must be set to handle the return value.");
 
-		if (returnValue != null && getDestinationName(returnType) != null) {
-			this.messageTemplate.convertAndSend(getDestinationName(returnType), returnValue);
-		} else {
-			this.messageTemplate.convertAndSend(returnValue);
+		if (returnValue != null) {
+			if (getDestinationName(returnType) != null) {
+				this.messageTemplate.convertAndSend(getDestinationName(returnType), returnValue);
+			} else {
+				this.messageTemplate.convertAndSend(returnValue);
+			}
 		}
 	}
 
