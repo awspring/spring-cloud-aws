@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -83,7 +84,7 @@ public class AmazonS3ProxyFactoryTest {
 		assertThat(proxy1.getClass(), typeCompatibleWith(AmazonS3.class));
 		assertThat(proxy1.getClass(), not(typeCompatibleWith(AmazonS3Client.class)));
 
-		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard().build();
+		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(amazonS3Client);
 
 		assertThat(proxy2.getClass(), typeCompatibleWith(AmazonS3.class));

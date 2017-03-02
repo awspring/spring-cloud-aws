@@ -55,8 +55,8 @@ public class AmazonResourceName {
 	private final String actualResourceTypeDelimiter;
 
 	private AmazonResourceName(String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
-		Assert.notNull("service must not be null");
-		Assert.notNull("resourceType must not be null");
+		Assert.notNull(service, "service must not be null");
+		Assert.notNull(resourceType, "resourceType must not be null");
 		this.service = service;
 		this.region = region;
 		this.account = account;

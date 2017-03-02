@@ -71,7 +71,7 @@ public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, 
 	private ThreadPoolTaskScheduler taskScheduler;
 
 	public BufferingCloudWatchMetricSender(String namespace, int maxBuffer, long fixedDelayBetweenRuns, AmazonCloudWatchAsync amazonCloudWatchAsync) {
-		Assert.hasText(namespace);
+		Assert.hasText(namespace, "Namespace must not be null");
 		this.namespace = namespace.trim();
 		this.maxBuffer = maxBuffer;
 		this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;

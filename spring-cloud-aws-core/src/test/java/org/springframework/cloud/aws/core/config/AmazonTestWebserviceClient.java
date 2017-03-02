@@ -33,7 +33,7 @@ public class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
 		super(new ClientConfiguration());
-		notNull(awsCredentialsProvider);
+		notNull(awsCredentialsProvider, "Credentialsprovider must not be null");
 	}
 
 	public Region getRegion() {
