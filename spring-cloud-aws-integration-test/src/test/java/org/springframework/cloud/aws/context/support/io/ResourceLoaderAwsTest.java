@@ -176,7 +176,7 @@ public abstract class ResourceLoaderAwsTest {
 
 	@Test
 	public void exists_withNonExistingBucket_shouldReturnFalse() throws Exception {
-		assertFalse(this.resourceLoader.getResource(S3_PREFIX + "dummy-bucket/dummy-file.txt").exists());
+		assertFalse(this.resourceLoader.getResource(S3_PREFIX + "dummy-bucket-does-not-really-exist/dummy-file.txt").exists());
 	}
 
 	//Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will not be deleted after the test run.
