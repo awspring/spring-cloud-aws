@@ -18,11 +18,11 @@ package org.springframework.cloud.aws.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,18 +44,11 @@ public class SqsClientConfiguration {
 
 	@Lazy
 	@Bean(destroyMethod = "shutdown")
-	public AmazonSQSAsync amazonSQS() {
-		AmazonSQSAsyncClientBuilder amazonSQSAsyncClientBuilder = AmazonSQSAsyncClientBuilder.standard();
-
-		if (this.awsCredentialsProvider != null) {
-			amazonSQSAsyncClientBuilder.withCredentials(this.awsCredentialsProvider);
-		}
-
-		if (this.regionProvider != null) {
-			amazonSQSAsyncClientBuilder.withRegion(this.regionProvider.getRegion().getName());
-		}
-
-		return new AmazonSQSBufferedAsyncClient(amazonSQSAsyncClientBuilder.build());
+	public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
+		AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonSQSAsyncClient.class,
+				this.awsCredentialsProvider,
+				this.regionProvider);
+		clientFactoryBean.afterPropertiesSet();
+		return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
 	}
-
 }
