@@ -20,7 +20,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
@@ -52,6 +51,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * @author Alain Sahli
@@ -189,7 +189,7 @@ public class SqsConfigurationTest {
 	@Configuration
 	public static class ConfigurationWithCustomAmazonClient {
 
-		public static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class);
+		public static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
 		@Bean
 		public AWSCredentialsProvider awsCredentials() {
@@ -209,7 +209,7 @@ public class SqsConfigurationTest {
 
 		public static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(HandlerMethodReturnValueHandler.class);
 		public static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(HandlerMethodArgumentResolver.class);
-		public static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class);
+		public static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		public static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
 		@Bean
@@ -229,7 +229,7 @@ public class SqsConfigurationTest {
 	@Configuration
 	public static class ConfigurationWithCustomContainerFactory {
 
-		public static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class);
+		public static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		public static final boolean AUTO_STARTUP = true;
 		public static final int MAX_NUMBER_OF_MESSAGES = 1456;
 		public static final QueueMessageHandler MESSAGE_HANDLER;
@@ -237,7 +237,7 @@ public class SqsConfigurationTest {
 		public static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 		public static final int VISIBILITY_TIMEOUT = 1789;
 		public static final int WAIT_TIME_OUT = 12;
-		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQS.class));
+		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 		public static final long BACK_OFF_TIME = 5000;
 
 		static {
