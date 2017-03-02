@@ -83,7 +83,7 @@ public class AmazonS3ProxyFactoryTest {
 		assertThat(proxy1.getClass(), typeCompatibleWith(AmazonS3.class));
 		assertThat(proxy1.getClass(), not(typeCompatibleWith(AmazonS3Client.class)));
 
-		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.defaultClient();
+		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard().build();
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(amazonS3Client);
 
 		assertThat(proxy2.getClass(), typeCompatibleWith(AmazonS3.class));
