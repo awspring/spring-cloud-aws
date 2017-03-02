@@ -25,4 +25,6 @@ env:
   - VERSION=$(mvn validate | grep Building | head -1 | sed -e 's/.* //')
   - MILESTONE=$(echo ${VERSION} | egrep 'M|RC' && echo true || echo false)
   - MVN_PROFILE=$([ "${MILESTONE}" == "true" ] && echo -P milestone)
+  - MAVEN_SKIP_RC=true
+  - MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=256M"
   - secure: "RlAkhuBBoUbd0QEp69la+sd0QfOZhg7cxs/BYiw5Z0Bvl0DCtDJCtXoezQXpeQkIkLzIWa8WjJSkM9aL9aP37bg/GzY3O4B2nuF5rw7otw0zua223ioent3MNbrqk+v2whBlOwCV4/LY3Qod3XvFnLRAQmNWnzSenwcJ4qUxP1Q="
