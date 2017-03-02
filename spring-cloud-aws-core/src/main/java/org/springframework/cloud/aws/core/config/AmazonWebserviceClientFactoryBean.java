@@ -23,6 +23,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.client.builder.ExecutorFactory;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
+import com.amazonaws.regions.Regions;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.util.Assert;
@@ -95,6 +96,8 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			builder.withRegion(this.customRegion.getName());
 		} else if (this.regionProvider != null) {
 			builder.withRegion(this.regionProvider.getRegion().getName());
+		} else {
+			builder.withRegion(Regions.DEFAULT_REGION);
 		}
 		return builder.build();
 	}
