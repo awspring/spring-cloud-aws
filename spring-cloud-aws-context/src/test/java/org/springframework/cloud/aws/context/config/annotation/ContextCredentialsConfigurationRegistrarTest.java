@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.context.config.annotation;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
@@ -156,7 +156,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
 		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(1)));
 	}
 
 	@Test
@@ -173,7 +173,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(1, credentialsProviders.size());
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
 	}
 
 	@Test
@@ -244,7 +244,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(3, credentialsProviders.size());
 		assertTrue(AWSStaticCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(1)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(2)));
 	}
 

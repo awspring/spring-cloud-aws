@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.context.config.support;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -85,7 +85,7 @@ public final class ContextConfigurationUtils {
 		}
 
 		if (instanceProfile) {
-			awsCredentialsProviders.add(BeanDefinitionBuilder.rootBeanDefinition(InstanceProfileCredentialsProvider.class).getBeanDefinition());
+			awsCredentialsProviders.add(BeanDefinitionBuilder.rootBeanDefinition(EC2ContainerCredentialsProviderWrapper.class).getBeanDefinition());
 		}
 
 		if (StringUtils.hasText(profileName)) {
