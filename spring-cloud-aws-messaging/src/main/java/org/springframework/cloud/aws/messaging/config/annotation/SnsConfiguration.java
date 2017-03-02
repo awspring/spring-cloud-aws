@@ -21,6 +21,7 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,18 +42,8 @@ public class SnsConfiguration {
 
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
-	public AmazonSNS amazonSNS() {
-		AmazonSNSClient amazonSNSClient;
-		if (this.awsCredentialsProvider != null) {
-			amazonSNSClient = new AmazonSNSClient(this.awsCredentialsProvider);
-		} else {
-			amazonSNSClient = new AmazonSNSClient();
-		}
-
-		if (this.regionProvider != null) {
-			amazonSNSClient.setRegion(this.regionProvider.getRegion());
-		}
-
-		return amazonSNSClient;
+	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
+		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
+				this.awsCredentialsProvider, this.regionProvider);
 	}
 }

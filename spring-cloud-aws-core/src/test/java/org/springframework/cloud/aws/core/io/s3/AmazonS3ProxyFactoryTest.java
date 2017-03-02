@@ -1,24 +1,42 @@
+/*
+ * Copyright 2013-2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.aws.core.io.s3;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.object.IsCompatibleType.*;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.object.IsCompatibleType.typeCompatibleWith;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Greg Turnquist
@@ -65,7 +83,7 @@ public class AmazonS3ProxyFactoryTest {
 		assertThat(proxy1.getClass(), typeCompatibleWith(AmazonS3.class));
 		assertThat(proxy1.getClass(), not(typeCompatibleWith(AmazonS3Client.class)));
 
-		AmazonS3Client amazonS3Client = new AmazonS3Client();
+		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.defaultClient();
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(amazonS3Client);
 
 		assertThat(proxy2.getClass(), typeCompatibleWith(AmazonS3.class));

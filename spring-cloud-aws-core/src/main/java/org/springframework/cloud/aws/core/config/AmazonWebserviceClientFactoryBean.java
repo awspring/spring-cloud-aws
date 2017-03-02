@@ -18,15 +18,18 @@ package org.springframework.cloud.aws.core.config;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.client.builder.AwsAsyncClientBuilder;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.client.builder.ExecutorFactory;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -51,6 +54,11 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 		this.credentialsProvider = credentialsProvider;
 	}
 
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
+		this(clientClass, credentialsProvider);
+		setRegionProvider(regionProvider);
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.clientClass;
@@ -60,30 +68,35 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 	@Override
 	protected T createInstance() throws Exception {
 
-		T webServiceClient;
+		String builderName = this.clientClass.getName() + "Builder";
+		Class<?> className = ClassUtils.resolveClassName(builderName, ClassUtils.getDefaultClassLoader());
+
+		Method method = ClassUtils.getStaticMethod(className, "standard");
+		Assert.notNull(method, "Could not find standard() method in class:'" + className.getName() + "'");
+
+		AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils.invokeMethod(method, null);
 
 		if (this.executor != null) {
-			Constructor<? extends AmazonWebServiceClient> constructor = ClassUtils.
-					getConstructorIfAvailable(this.clientClass, AWSCredentialsProvider.class, ExecutorService.class);
-			Assert.notNull(constructor);
+			AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
+			asyncBuilder.withExecutorFactory(new ExecutorFactory() {
 
-			webServiceClient =
-					(T) BeanUtils.instantiateClass(constructor, this.credentialsProvider, this.executor);
-		} else {
-			Constructor<? extends AmazonWebServiceClient> constructor = ClassUtils.
-					getConstructorIfAvailable(this.clientClass, AWSCredentialsProvider.class);
-			Assert.notNull(constructor);
+				@Override
+				public ExecutorService newExecutor() {
+					return AmazonWebserviceClientFactoryBean.this.executor;
+				}
+			});
+		}
 
-			webServiceClient =
-					(T) BeanUtils.instantiateClass(constructor, this.credentialsProvider);
+		if (this.credentialsProvider != null) {
+			builder.withCredentials(this.credentialsProvider);
 		}
 
 		if (this.customRegion != null) {
-			webServiceClient.setRegion(this.customRegion);
+			builder.withRegion(this.customRegion.getName());
 		} else if (this.regionProvider != null) {
-			webServiceClient.setRegion(this.regionProvider.getRegion());
+			builder.withRegion(this.regionProvider.getRegion().getName());
 		}
-		return webServiceClient;
+		return builder.build();
 	}
 
 	public void setRegionProvider(RegionProvider regionProvider) {

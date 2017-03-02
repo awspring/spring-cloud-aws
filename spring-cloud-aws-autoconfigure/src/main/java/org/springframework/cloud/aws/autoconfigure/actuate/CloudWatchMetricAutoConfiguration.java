@@ -30,6 +30,7 @@ import org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricSender;
 import org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricWriter;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,13 +59,9 @@ public class CloudWatchMetricAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
-    public AmazonCloudWatchAsync amazonCloudWatchAsync(AWSCredentialsProvider credentialsProvider) {
-        AmazonCloudWatchAsyncClient serviceClient = new AmazonCloudWatchAsyncClient(credentialsProvider);
-        if (this.regionProvider != null) {
-            serviceClient.setRegion(this.regionProvider.getRegion());
-        }
-        return serviceClient;
-    }
+	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(AWSCredentialsProvider credentialsProvider) {
+		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class, credentialsProvider, this.regionProvider);
+	}
 
     @Bean
     @ExportMetricWriter

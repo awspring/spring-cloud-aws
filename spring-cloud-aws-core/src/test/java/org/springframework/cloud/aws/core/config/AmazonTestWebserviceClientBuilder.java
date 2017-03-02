@@ -16,33 +16,25 @@
 
 package org.springframework.cloud.aws.core.config;
 
-import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
-
-import static org.springframework.util.Assert.notNull;
+import com.amazonaws.ClientConfigurationFactory;
+import com.amazonaws.client.AwsSyncClientParams;
+import com.amazonaws.client.builder.AwsSyncClientBuilder;
 
 /**
  * @author Agim Emruli
- *         Test stub used by {@link AmazonWebserviceClientConfigurationUtilsTest}
  */
-public class AmazonTestWebserviceClient extends AmazonWebServiceClient {
+public class AmazonTestWebserviceClientBuilder extends AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
 
-	private Region region;
-
-	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
-		super(new ClientConfiguration());
-		notNull(awsCredentialsProvider);
+	private AmazonTestWebserviceClientBuilder() {
+		super(new ClientConfigurationFactory());
 	}
 
-	public Region getRegion() {
-		return this.region;
+	public static AmazonTestWebserviceClientBuilder standard() {
+		return new AmazonTestWebserviceClientBuilder();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void setRegion(Region region) {
-		this.region = region;
+	protected AmazonTestWebserviceClient build(AwsSyncClientParams clientParams) {
+		return new AmazonTestWebserviceClient(getCredentials());
 	}
 }

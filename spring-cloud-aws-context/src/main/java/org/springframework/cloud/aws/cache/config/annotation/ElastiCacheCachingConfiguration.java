@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.cache.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticache.AmazonElastiCache;
-import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
+import com.amazonaws.services.elasticache.AmazonElastiCacheClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.cache.CacheFactory;
@@ -77,17 +77,16 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonElastiCache.class)
 	public AmazonElastiCache amazonElastiCache() {
-		AmazonElastiCacheClient elastiCacheClient;
+		AmazonElastiCacheClientBuilder elastiCacheClientBuilder = AmazonElastiCacheClientBuilder.standard();
+
 		if (this.credentialsProvider != null) {
-			elastiCacheClient = new AmazonElastiCacheClient(this.credentialsProvider);
-		} else {
-			elastiCacheClient = new AmazonElastiCacheClient();
+			elastiCacheClientBuilder.withCredentials(this.credentialsProvider);
 		}
 
 		if (this.regionProvider != null) {
-			elastiCacheClient.setRegion(this.regionProvider.getRegion());
+			elastiCacheClientBuilder.withRegion(this.regionProvider.getRegion().getName());
 		}
-		return elastiCacheClient;
+		return elastiCacheClientBuilder.build();
 	}
 
 	@Bean

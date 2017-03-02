@@ -22,6 +22,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
@@ -72,18 +73,7 @@ public class ContextStackConfiguration implements ImportAware {
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
-	public AmazonCloudFormation amazonCloudFormation() {
-
-		AmazonCloudFormationClient formationClient;
-		if (this.credentialsProvider != null) {
-			formationClient = new AmazonCloudFormationClient(this.credentialsProvider);
-		} else {
-			formationClient = new AmazonCloudFormationClient();
-		}
-
-		if (this.regionProvider != null) {
-			formationClient.setRegion(this.regionProvider.getRegion());
-		}
-		return formationClient;
+	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
+		return new AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient>(AmazonCloudFormationClient.class, this.credentialsProvider, this.regionProvider);
 	}
 }
