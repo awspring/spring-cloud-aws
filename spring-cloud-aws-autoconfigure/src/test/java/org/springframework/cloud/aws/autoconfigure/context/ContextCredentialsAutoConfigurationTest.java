@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.After;
@@ -67,7 +67,7 @@ public class ContextCredentialsAutoConfigurationTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 	}
 
@@ -106,7 +106,7 @@ public class ContextCredentialsAutoConfigurationTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 	}
 
@@ -123,7 +123,7 @@ public class ContextCredentialsAutoConfigurationTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 
 		assertEquals("test", ReflectionTestUtils.getField(credentialsProviders.get(1), "profileName"));
@@ -143,7 +143,7 @@ public class ContextCredentialsAutoConfigurationTest {
 		@SuppressWarnings("unchecked") List<CredentialsProvider> credentialsProviders =
 				(List<CredentialsProvider>) ReflectionTestUtils.getField(awsCredentialsProvider, "credentialsProviders");
 		assertEquals(2, credentialsProviders.size());
-		assertTrue(InstanceProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0)));
+		assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
 		assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
 
 		ProfileCredentialsProvider provider = (ProfileCredentialsProvider) credentialsProviders.get(1);
