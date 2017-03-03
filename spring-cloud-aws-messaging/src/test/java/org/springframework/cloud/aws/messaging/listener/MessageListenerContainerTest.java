@@ -48,6 +48,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * @author Agim Emruli
@@ -64,7 +65,7 @@ public class MessageListenerContainerTest {
 	public void testAfterPropertiesSetIsSettingActiveFlag() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
@@ -89,7 +90,7 @@ public class MessageListenerContainerTest {
 
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 
 		container.afterPropertiesSet();
 	}
@@ -98,7 +99,7 @@ public class MessageListenerContainerTest {
 	public void testDestinationResolverIsCreatedIfNull() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
 
@@ -111,7 +112,7 @@ public class MessageListenerContainerTest {
 	public void testDisposableBeanResetActiveFlag() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
@@ -132,7 +133,7 @@ public class MessageListenerContainerTest {
 	public void testCustomDestinationResolverSet() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		container.setAmazonSqs(mock(AmazonSQSAsync.class));
+		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
 		DestinationResolver<String> destinationResolver = mock(DynamicQueueUrlDestinationResolver.class);
@@ -187,7 +188,7 @@ public class MessageListenerContainerTest {
 	public void testIsActive() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
@@ -210,7 +211,7 @@ public class MessageListenerContainerTest {
 	public void receiveMessageRequests_withOneElement_created() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		QueueMessageHandler messageHandler = new QueueMessageHandler();
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
@@ -242,7 +243,7 @@ public class MessageListenerContainerTest {
 	public void receiveMessageRequests_withMultipleElements_created() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		QueueMessageHandler messageHandler = new QueueMessageHandler();
@@ -293,7 +294,7 @@ public class MessageListenerContainerTest {
 		};
 
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
@@ -328,7 +329,7 @@ public class MessageListenerContainerTest {
 		};
 
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
@@ -364,7 +365,7 @@ public class MessageListenerContainerTest {
 		};
 
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.afterPropertiesSet();
@@ -405,7 +406,7 @@ public class MessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		Logger loggerMock = container.getLogger();
 
-		AmazonSQSAsync mock = mock(AmazonSQSAsync.class);
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		QueueMessageHandler messageHandler = new QueueMessageHandler();
