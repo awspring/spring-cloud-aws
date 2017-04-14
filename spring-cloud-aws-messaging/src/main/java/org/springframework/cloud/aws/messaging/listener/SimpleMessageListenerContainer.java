@@ -103,11 +103,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	@Override
 	protected void initialize() {
+		super.initialize();
+
 		if (this.taskExecutor == null) {
 			this.defaultTaskExecutor = true;
 			this.taskExecutor = createDefaultTaskExecutor();
 		}
-		super.initialize();
+
 		initializeRunningStateByQueue();
 		this.scheduledFutureByQueue = new ConcurrentHashMap<>(getRegisteredQueues().size());
 	}
@@ -160,7 +162,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			threadPoolTaskExecutor.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
 
 			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null ? getMaxNumberOfMessages() : DEFAULT_WORKER_THREADS;
-			threadPoolTaskExecutor.setMaxPoolSize(spinningThreads * maxNumberOfMessagePerBatch);
+			threadPoolTaskExecutor.setMaxPoolSize(spinningThreads * (maxNumberOfMessagePerBatch + 1));
 		}
 
 		// No use of a thread pool executor queue to avoid retaining message to long in memory
