@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.listener;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
@@ -639,6 +640,50 @@ public class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
+	public void receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility() throws Exception {
+		// Arrange
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
+
+			@Override
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
+				countDownLatch.countDown();
+				super.executeMessage(stringMessage);
+			}
+		};
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
+		container.setAmazonSqs(sqs);
+
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		container.setMessageHandler(messageHandler);
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testListener", TestMessageListenerWithVisibilityProlong.class);
+
+		mockGetQueueUrl(sqs, "testQueue", "http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+
+		messageHandler.setApplicationContext(applicationContext);
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+
+		mockReceiveMessage(sqs, "http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com", "messageContent", "ReceiptHandle");
+
+		// Act
+		container.start();
+
+		// Assert
+		countDownLatch.await(1L, TimeUnit.SECONDS);
+		verify(sqs, never()).changeMessageVisibilityAsync(any(ChangeMessageVisibilityRequest.class));
+		TestMessageListenerWithVisibilityProlong testMessageListenerWithVisibilityProlong = applicationContext.getBean(TestMessageListenerWithVisibilityProlong.class);
+		testMessageListenerWithVisibilityProlong.getCountDownLatch().await(1L, TimeUnit.SECONDS);
+		testMessageListenerWithVisibilityProlong.extend(5);
+		verify(sqs, times(1)).changeMessageVisibilityAsync(eq(new ChangeMessageVisibilityRequest("http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com", "ReceiptHandle", 5)));
+		container.stop();
+	}
+
+	@Test
 	public void executeMessage_withDifferentDeletionPolicies_shouldActAccordingly() throws Exception {
 		// Arrange
 		Level previous = disableLogging();
@@ -1075,6 +1120,26 @@ public class SimpleMessageListenerContainerTest {
 			return mockAmazonSQS;
 		}
 
+	}
+
+	private static class TestMessageListenerWithVisibilityProlong {
+		private Visibility visibility;
+		private final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		@RuntimeUse
+		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		private void manualSuccess(String message, Visibility visibility) {
+			this.visibility = visibility;
+			this.countDownLatch.countDown();
+		}
+
+		public void extend(int seconds) {
+			this.visibility.extend(seconds);
+		}
+
+		public CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
+		}
 	}
 
 	private static class TestMessageListenerWithManualDeletionPolicy {

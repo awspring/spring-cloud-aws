@@ -347,6 +347,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				QueueMessageAcknowledgment acknowledgment = new QueueMessageAcknowledgment(SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, receiptHandle);
 				additionalHeaders.put(QueueMessageHandler.ACKNOWLEDGMENT, acknowledgment);
 			}
+			additionalHeaders.put(QueueMessageHandler.VISIBILITY, new QueueMessageVisibility(SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, this.message.getReceiptHandle()));
 
 			return createMessage(this.message, additionalHeaders);
 		}

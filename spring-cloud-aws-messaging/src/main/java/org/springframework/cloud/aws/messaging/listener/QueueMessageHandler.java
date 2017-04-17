@@ -21,6 +21,7 @@ import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
+import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMetodArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
@@ -65,6 +66,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	static final String LOGICAL_RESOURCE_ID = "LogicalResourceId";
 	static final String ACKNOWLEDGMENT = "Acknowledgment";
+	static final String VISIBILITY = "Visibility";
 	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
 
@@ -78,6 +80,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 		resolvers.add(new NotificationSubjectArgumentResolver());
 		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
+		resolvers.add(new VisibilityHandlerMetodArgumentResolver(VISIBILITY));
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
 		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter));
