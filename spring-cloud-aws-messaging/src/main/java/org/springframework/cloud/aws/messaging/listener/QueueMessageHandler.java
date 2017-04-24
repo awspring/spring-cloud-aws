@@ -21,7 +21,7 @@ import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMetodArgumentResolver;
+import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
@@ -80,7 +80,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 		resolvers.add(new NotificationSubjectArgumentResolver());
 		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
-		resolvers.add(new VisibilityHandlerMetodArgumentResolver(VISIBILITY));
+		resolvers.add(new VisibilityHandlerMethodArgumentResolver(VISIBILITY));
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
 		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter));

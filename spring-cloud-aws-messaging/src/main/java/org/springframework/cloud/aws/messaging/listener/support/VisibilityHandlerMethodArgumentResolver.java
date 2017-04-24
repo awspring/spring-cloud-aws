@@ -26,10 +26,10 @@ import org.springframework.util.ClassUtils;
  * @author Szymon Dembek
  * @since 1.3
  */
-public class VisibilityHandlerMetodArgumentResolver implements HandlerMethodArgumentResolver {
+public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 	private final String visibilityHeaderName;
 
-	public VisibilityHandlerMetodArgumentResolver(String visibilityHeaderName) {
+	public VisibilityHandlerMethodArgumentResolver(String visibilityHeaderName) {
 		this.visibilityHeaderName = visibilityHeaderName;
 	}
 
