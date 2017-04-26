@@ -119,7 +119,7 @@ after executing the tests (either successful or failed) to ensure that
 there are no unnecessary costs.
 
 = Costs of integration tests
-The costs for one integration test run should not be more then 0.40 $
+The costs for one integration test run should not be more than 0.40 $
 per hour (excl. VAT).
 
 
