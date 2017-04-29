@@ -178,6 +178,11 @@ Resources:
         ToPort: '11211'
         SourceSecurityGroupId:
           'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
+      - IpProtocol: tcp
+        FromPort: '6379'
+        ToPort: '6379'
+        SourceSecurityGroupId:
+          'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
   CacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties:
