@@ -128,5 +128,10 @@
 			<artifactId>aws-java-sdk-elasticache</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>elasticache-java-cluster-client</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
