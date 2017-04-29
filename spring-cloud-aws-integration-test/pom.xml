@@ -123,5 +123,10 @@
 			<artifactId>jedis</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-elasticache</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

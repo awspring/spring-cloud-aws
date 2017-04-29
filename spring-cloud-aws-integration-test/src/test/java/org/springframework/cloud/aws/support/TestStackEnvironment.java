@@ -49,7 +49,7 @@ public class TestStackEnvironment implements InitializingBean, DisposableBean, I
     public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
 
     private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
-    private static final String TEMPLATE_PATH = "IntegrationTest.template";
+    private static final String TEMPLATE_PATH = "IntegrationTestStack.yaml";
 
     @Value("${rdsPassword}")
     private String rdsPassword;
