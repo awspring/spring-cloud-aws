@@ -23,6 +23,8 @@ import org.junit.rules.ExpectedException;
 import org.springframework.cache.Cache;
 import org.springframework.scheduling.annotation.AsyncResult;
 
+import java.util.concurrent.Callable;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -234,6 +236,51 @@ public class SimpleSpringMemcachedTest {
     }
 
     @Test
+    public void get_witValueLoaderAndNonExistingValue_createsValueFromValueLoaderAndStoresItInCache() throws Exception {
+
+        //Arrange
+        MemcachedClientIF client = mock(MemcachedClientIF.class);
+        SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+        cache.setExpiration(42);
+
+        when(client.set("myKey", 42, "createdValue")).thenReturn(new AsyncResult<>(true));
+
+        //Act
+        String value = cache.get("myKey", new Callable<String>() {
+
+            @Override
+            public String call() throws Exception {
+                return "createdValue";
+            }
+        });
+
+        //Assert
+        assertEquals("createdValue", value);
+    }
+
+    @Test
+    public void get_witValueLoaderAndExistingValue_doesNotCallValueLoader() throws Exception {
+
+        //Arrange
+        MemcachedClientIF client = mock(MemcachedClientIF.class);
+        SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
+
+        when(client.get("myKey")).thenReturn("existingValue");
+
+        //Act
+        String value = cache.get("myKey", new Callable<String>() {
+
+            @Override
+            public String call() throws Exception {
+                throw new UnsupportedOperationException("Should not be called");
+            }
+        });
+
+        //Assert
+        assertEquals("existingValue", value);
+    }
+
+    @Test
     public void put_nullCacheKey_reportsIllegalArgumentException() throws Exception {
 
         //Arrange
@@ -271,13 +318,13 @@ public class SimpleSpringMemcachedTest {
         //Arrange
         MemcachedClientIF client = mock(MemcachedClientIF.class);
         SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
-        when(client.add("test", 0, null)).thenReturn(new AsyncResult<>(true));
+        when(client.set("test", 0, null)).thenReturn(new AsyncResult<>(true));
 
         //Act
         cache.put("test", null);
 
         //Assert
-        verify(client, times(1)).add("test", 0, null);
+        verify(client, times(1)).set("test", 0, null);
     }
 
     @Test
@@ -286,13 +333,13 @@ public class SimpleSpringMemcachedTest {
         //Arrange
         MemcachedClientIF client = mock(MemcachedClientIF.class);
         SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
-        when(client.add("test", 0, "cachedElement")).thenReturn(new AsyncResult<>(true));
+        when(client.set("test", 0, "cachedElement")).thenReturn(new AsyncResult<>(true));
 
         //Act
         cache.put("test", "cachedElement");
 
         //Assert
-        verify(client, times(1)).add("test", 0, "cachedElement");
+        verify(client, times(1)).set("test", 0, "cachedElement");
     }
 
     @Test
@@ -302,13 +349,13 @@ public class SimpleSpringMemcachedTest {
         MemcachedClientIF client = mock(MemcachedClientIF.class);
         SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
         cache.setExpiration(42);
-        when(client.add("test", 42, "cachedElement")).thenReturn(new AsyncResult<>(true));
+        when(client.set("test", 42, "cachedElement")).thenReturn(new AsyncResult<>(true));
 
         //Act
         cache.put("test", "cachedElement");
 
         //Assert
-        verify(client, times(1)).add("test", 42, "cachedElement");
+        verify(client, times(1)).set("test", 42, "cachedElement");
     }
 
     @Test

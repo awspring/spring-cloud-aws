@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,10 +70,22 @@ public class SimpleSpringMemcached implements Cache {
         return type.cast(result);
     }
 
-    // Spring Framework 4.3 new API
-    //@Override
+    @SuppressWarnings("unchecked")
+    @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ValueWrapper valueWrapper = get(key);
+        if (valueWrapper != null) {
+            return (T) valueWrapper.get();
+        } else {
+            T newValue;
+            try {
+                newValue = valueLoader.call();
+            } catch (Throwable ex) {
+                throw new ValueRetrievalException(key, valueLoader, ex);
+            }
+            put(key, newValue);
+            return newValue;
+        }
     }
 
     @Override
@@ -81,7 +93,7 @@ public class SimpleSpringMemcached implements Cache {
         Assert.notNull(key, "key parameter is mandatory");
         Assert.isAssignable(String.class, key.getClass());
         try {
-            this.memcachedClientIF.add((String) key, this.expiration, value).get();
+            this.memcachedClientIF.set((String) key, this.expiration, value).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
@@ -95,9 +107,18 @@ public class SimpleSpringMemcached implements Cache {
      */
     @Override
     public ValueWrapper putIfAbsent(Object key, Object value) {
+        Assert.notNull(key, "key parameter is mandatory");
+        Assert.isAssignable(String.class, key.getClass());
+
         ValueWrapper valueWrapper = get(key);
         if (valueWrapper == null) {
-            put(key, value);
+            try {
+                this.memcachedClientIF.add((String) key, this.expiration, value).get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                throw new IllegalArgumentException("Error writing key" + key, e);
+            }
             return null;
         } else {
             return valueWrapper;
