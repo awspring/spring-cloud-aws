@@ -40,82 +40,82 @@ import java.nio.charset.Charset;
  */
 public class ObjectMessageConverter extends AbstractMessageConverter {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ObjectMessageConverter.class);
-	private static final String DEFAULT_ENCODING = "UTF-8";
-	private final Charset encoding;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectMessageConverter.class);
+    private static final String DEFAULT_ENCODING = "UTF-8";
+    private final Charset encoding;
 
-	public ObjectMessageConverter(String encoding) {
-		super(new MimeType("application", "x-java-serialized-object", Charset.forName(encoding)));
-		this.encoding = Charset.forName(encoding);
-	}
+    public ObjectMessageConverter(String encoding) {
+        super(new MimeType("application", "x-java-serialized-object", Charset.forName(encoding)));
+        this.encoding = Charset.forName(encoding);
+    }
 
-	public ObjectMessageConverter() {
-		this(DEFAULT_ENCODING);
-	}
+    public ObjectMessageConverter() {
+        this(DEFAULT_ENCODING);
+    }
 
-	@Override
-	protected boolean supports(Class<?> clazz) {
-		return true;
-	}
+    @Override
+    protected boolean supports(Class<?> clazz) {
+        return true;
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
-		String messagePayload = message.getPayload().toString();
-		byte[] rawContent = messagePayload.getBytes(this.encoding);
-		if (!(Base64.isBase64(rawContent))) {
-			throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!", null);
-		}
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
-		Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
-		Serializable result = null;
-		ObjectInputStream objectInputStream = null;
-		try {
-			objectInputStream = new ObjectInputStream(base64InputStream);
-			result = (Serializable) objectInputStream.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new MessageConversionException("Error loading class from message payload, make sure class is in classpath!", e);
-		} catch (IOException e) {
-			throw new MessageConversionException("Error reading payload from binary representation", e);
-		} finally {
-			if (objectInputStream != null) {
-				try {
-					objectInputStream.close();
-				} catch (IOException e) {
-					LOGGER.warn("Error closing object output stream while reading message payload", e);
-				}
-			}
-		}
+    @SuppressWarnings("deprecation")
+    @Override
+    public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+        String messagePayload = message.getPayload().toString();
+        byte[] rawContent = messagePayload.getBytes(this.encoding);
+        if (!(Base64.isBase64(rawContent))) {
+            throw new MessageConversionException("Error converting payload '" + messagePayload + "' because it is not a valid base64 encoded stream!", null);
+        }
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
+        Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
+        Serializable result = null;
+        ObjectInputStream objectInputStream = null;
+        try {
+            objectInputStream = new ObjectInputStream(base64InputStream);
+            result = (Serializable) objectInputStream.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new MessageConversionException("Error loading class from message payload, make sure class is in classpath!", e);
+        } catch (IOException e) {
+            throw new MessageConversionException("Error reading payload from binary representation", e);
+        } finally {
+            if (objectInputStream != null) {
+                try {
+                    objectInputStream.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Error closing object output stream while reading message payload", e);
+                }
+            }
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public Object convertToInternal(Object payload, MessageHeaders headers) {
-		if (!(payload instanceof Serializable)) {
-			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
-		}
+    @SuppressWarnings("deprecation")
+    @Override
+    public Object convertToInternal(Object payload, MessageHeaders headers) {
+        if (!(payload instanceof Serializable)) {
+            throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
+        }
 
-		ByteArrayOutputStream content = new ByteArrayOutputStream();
-		Base64OutputStream base64OutputStream = new Base64OutputStream(content, true, 0, null);
-		ObjectOutputStream objectOutputStream = null;
-		try {
-			objectOutputStream = new ObjectOutputStream(base64OutputStream);
-			objectOutputStream.writeObject(payload);
-			objectOutputStream.flush();
-		} catch (IOException e) {
-			throw new MessageConversionException("Error converting payload into binary representation", e);
-		} finally {
-			if (objectOutputStream != null) {
-				try {
-					objectOutputStream.close();
-				} catch (IOException e) {
-					LOGGER.warn("Error closing object output stream while writing message payload", e);
-				}
-			}
-		}
+        ByteArrayOutputStream content = new ByteArrayOutputStream();
+        Base64OutputStream base64OutputStream = new Base64OutputStream(content, true, 0, null);
+        ObjectOutputStream objectOutputStream = null;
+        try {
+            objectOutputStream = new ObjectOutputStream(base64OutputStream);
+            objectOutputStream.writeObject(payload);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            throw new MessageConversionException("Error converting payload into binary representation", e);
+        } finally {
+            if (objectOutputStream != null) {
+                try {
+                    objectOutputStream.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Error closing object output stream while writing message payload", e);
+                }
+            }
+        }
 
-		return new String(content.toByteArray(), 0, content.size(), this.encoding);
-	}
+        return new String(content.toByteArray(), 0, content.size(), this.encoding);
+    }
 }

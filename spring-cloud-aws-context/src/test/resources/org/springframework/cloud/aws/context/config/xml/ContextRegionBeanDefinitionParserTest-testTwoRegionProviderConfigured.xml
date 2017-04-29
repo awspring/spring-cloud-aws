@@ -22,8 +22,8 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
-  <context:context-region region="sa-east-1" />
+	<context:context-region region="sa-east-1" />
 
-  <context:context-region region="sa-east-1" />
+	<context:context-region region="sa-east-1" />
 
 </beans>

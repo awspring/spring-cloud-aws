@@ -46,96 +46,96 @@ import java.util.Collection;
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class AmazonRdsInstanceConfiguration {
 
-	@Bean
-	public static RdsInstanceConfigurerBeanPostProcessor rdsInstanceConfigurerBeanPostProcessor() {
-		return new RdsInstanceConfigurerBeanPostProcessor();
-	}
+    @Bean
+    public static RdsInstanceConfigurerBeanPostProcessor rdsInstanceConfigurerBeanPostProcessor() {
+        return new RdsInstanceConfigurerBeanPostProcessor();
+    }
 
-	public static class RdsInstanceConfigurerBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
+    public static class RdsInstanceConfigurerBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
-		private RdsInstanceConfigurer rdsInstanceConfigurer;
+        private RdsInstanceConfigurer rdsInstanceConfigurer;
 
 
-		@Override
-		public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-			if (bean instanceof AmazonRdsDataSourceFactoryBean && this.rdsInstanceConfigurer != null) {
-				((AmazonRdsDataSourceFactoryBean) bean).setDataSourceFactory(this.rdsInstanceConfigurer.getDataSourceFactory());
-			}
-			return bean;
-		}
+        @Override
+        public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+            if (bean instanceof AmazonRdsDataSourceFactoryBean && this.rdsInstanceConfigurer != null) {
+                ((AmazonRdsDataSourceFactoryBean) bean).setDataSourceFactory(this.rdsInstanceConfigurer.getDataSourceFactory());
+            }
+            return bean;
+        }
 
-		@Override
-		public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-			return bean;
-		}
+        @Override
+        public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+            return bean;
+        }
 
-		@Override
-		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-			if (beanFactory instanceof ListableBeanFactory) {
-				Collection<RdsInstanceConfigurer> configurer =
-						((ListableBeanFactory) beanFactory).getBeansOfType(RdsInstanceConfigurer.class).values();
+        @Override
+        public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+            if (beanFactory instanceof ListableBeanFactory) {
+                Collection<RdsInstanceConfigurer> configurer =
+                        ((ListableBeanFactory) beanFactory).getBeansOfType(RdsInstanceConfigurer.class).values();
 
-				if (configurer.isEmpty()) {
-					return;
-				}
+                if (configurer.isEmpty()) {
+                    return;
+                }
 
-				if (configurer.size() > 1) {
-					throw new IllegalStateException("Only one RdsInstanceConfigurer may exist");
-				}
+                if (configurer.size() > 1) {
+                    throw new IllegalStateException("Only one RdsInstanceConfigurer may exist");
+                }
 
-				this.rdsInstanceConfigurer = configurer.iterator().next();
-			}
-		}
-	}
+                this.rdsInstanceConfigurer = configurer.iterator().next();
+            }
+        }
+    }
 
-	public abstract static class AbstractRegistrar implements ImportBeanDefinitionRegistrar {
+    public abstract static class AbstractRegistrar implements ImportBeanDefinitionRegistrar {
 
-		protected void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName, String dbInstanceIdentifier,
-										  String password, boolean readReplica, String userName, String databaseName) {
-			BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
+        protected void registerDataSource(BeanDefinitionRegistry beanDefinitionRegistry, String amazonRdsClientBeanName, String dbInstanceIdentifier,
+                                          String password, boolean readReplica, String userName, String databaseName) {
+            BeanDefinitionBuilder datasourceBuilder = getBeanDefinitionBuilderForDataSource(readReplica);
 
-			//Constructor (mandatory) args
-			datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
-			datasourceBuilder.addConstructorArgValue(dbInstanceIdentifier);
-			datasourceBuilder.addConstructorArgValue(password);
+            //Constructor (mandatory) args
+            datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
+            datasourceBuilder.addConstructorArgValue(dbInstanceIdentifier);
+            datasourceBuilder.addConstructorArgValue(password);
 
-			//optional args
-			datasourceBuilder.addPropertyValue("username", userName);
-			datasourceBuilder.addPropertyValue("databaseName", databaseName);
+            //optional args
+            datasourceBuilder.addPropertyValue("username", userName);
+            datasourceBuilder.addPropertyValue("databaseName", databaseName);
 
-			String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry);
-			datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
+            String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(beanDefinitionRegistry);
+            datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
 
-			datasourceBuilder.addPropertyValue("dataSourceFactory", BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class).getBeanDefinition());
+            datasourceBuilder.addPropertyValue("dataSourceFactory", BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class).getBeanDefinition());
 
-			beanDefinitionRegistry.registerBeanDefinition(dbInstanceIdentifier, datasourceBuilder.getBeanDefinition());
-		}
+            beanDefinitionRegistry.registerBeanDefinition(dbInstanceIdentifier, datasourceBuilder.getBeanDefinition());
+        }
 
-		private BeanDefinitionBuilder getBeanDefinitionBuilderForDataSource(boolean readReplicaEnabled) {
-			BeanDefinitionBuilder datasourceBuilder;
-			if (readReplicaEnabled) {
-				datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
-			} else {
-				datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
-			}
-			return datasourceBuilder;
-		}
-	}
+        private BeanDefinitionBuilder getBeanDefinitionBuilderForDataSource(boolean readReplicaEnabled) {
+            BeanDefinitionBuilder datasourceBuilder;
+            if (readReplicaEnabled) {
+                datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class);
+            } else {
+                datasourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(AmazonRdsDataSourceFactoryBean.class);
+            }
+            return datasourceBuilder;
+        }
+    }
 
-	public static class Registrar extends AbstractRegistrar {
+    public static class Registrar extends AbstractRegistrar {
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
-					importingClassMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
-			Assert.notNull(annotationAttributes,
-					"@EnableRdsInstance is not present on importing class " + importingClassMetadata.getClassName());
-			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
-			registerDataSource(registry, amazonRdsClientBeanName, annotationAttributes.getString("dbInstanceIdentifier"),
-					annotationAttributes.getString("password"), annotationAttributes.getBoolean("readReplicaSupport"),
-					annotationAttributes.getString("username"), annotationAttributes.getString("databaseName"));
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
+                    importingClassMetadata.getAnnotationAttributes(EnableRdsInstance.class.getName(), false));
+            Assert.notNull(annotationAttributes,
+                    "@EnableRdsInstance is not present on importing class " + importingClassMetadata.getClassName());
+            String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
+                    registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
+            registerDataSource(registry, amazonRdsClientBeanName, annotationAttributes.getString("dbInstanceIdentifier"),
+                    annotationAttributes.getString("password"), annotationAttributes.getBoolean("readReplicaSupport"),
+                    annotationAttributes.getString("username"), annotationAttributes.getString("databaseName"));
 
-		}
-	}
+        }
+    }
 }

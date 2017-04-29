@@ -38,31 +38,31 @@ package org.springframework.cloud.aws.messaging.listener;
  */
 public enum SqsMessageDeletionPolicy {
 
-	/**
-	 * Always deletes message in case of success (no exception thrown) or failure (exception thrown) during message
-	 * processing by the listener method.
-	 */
-	ALWAYS,
+    /**
+     * Always deletes message in case of success (no exception thrown) or failure (exception thrown) during message
+     * processing by the listener method.
+     */
+    ALWAYS,
 
-	/**
-	 * Never deletes message automatically. The receiving listener method must acknowledge each message manually by using
-	 * the acknowledgment parameter.
-	 * <p><b>IMPORTANT</b>: When using this policy the listener method must take care of the deletion of the messages.
-	 * If not, it will lead to an endless loop of messages (poison messages).</p>
-	 *
-	 * @see Acknowledgment
-	 */
-	NEVER,
+    /**
+     * Never deletes message automatically. The receiving listener method must acknowledge each message manually by using
+     * the acknowledgment parameter.
+     * <p><b>IMPORTANT</b>: When using this policy the listener method must take care of the deletion of the messages.
+     * If not, it will lead to an endless loop of messages (poison messages).</p>
+     *
+     * @see Acknowledgment
+     */
+    NEVER,
 
-	/**
-	 * Deletes message if no redrive policy is defined.
-	 */
-	NO_REDRIVE,
+    /**
+     * Deletes message if no redrive policy is defined.
+     */
+    NO_REDRIVE,
 
-	/**
-	 * Deletes message when successfully executed by the listener method. If an exception is thrown by the
-	 * listener method, the message will not be deleted.
-	 */
-	ON_SUCCESS
+    /**
+     * Deletes message when successfully executed by the listener method. If an exception is thrown by the
+     * listener method, the message will not be deleted.
+     */
+    ON_SUCCESS
 
 }

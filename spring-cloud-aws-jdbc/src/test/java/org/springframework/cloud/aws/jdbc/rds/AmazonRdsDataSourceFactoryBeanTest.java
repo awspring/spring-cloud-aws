@@ -46,165 +46,165 @@ import static org.mockito.Mockito.when;
  */
 public class AmazonRdsDataSourceFactoryBeanTest {
 
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
 
-	@Test
-	public void afterPropertiesSet_noInstanceFound_reportsIllegalStateException() throws Exception {
-		//Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("No database instance with id:'test'");
+    @Test
+    public void afterPropertiesSet_noInstanceFound_reportsIllegalStateException() throws Exception {
+        //Arrange
+        this.expectedException.expect(IllegalStateException.class);
+        this.expectedException.expectMessage("No database instance with id:'test'");
 
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenThrow(new DBInstanceNotFoundException("foo"));
+        AmazonRDS amazonRDS = mock(AmazonRDS.class);
+        when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenThrow(new DBInstanceNotFoundException("foo"));
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "foo");
+        AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "foo");
 
-		//Act
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+        //Act
+        amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
-		//Assert
-	}
+        //Assert
+    }
 
-	@Test
-	public void newInstance_withResourceIdResolver_createsInstanceWithResolvedName() throws Exception {
-		//Arrange
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
-		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
-		DataSource dataSource = mock(DataSource.class);
+    @Test
+    public void newInstance_withResourceIdResolver_createsInstanceWithResolvedName() throws Exception {
+        //Arrange
+        AmazonRDS amazonRDS = mock(AmazonRDS.class);
+        DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+        ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+        DataSource dataSource = mock(DataSource.class);
 
-		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("bar");
+        when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("bar");
 
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("bar"))).thenReturn(
-				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().
-										withDBInstanceStatus("available").
-										withDBName("test").
-										withDBInstanceIdentifier("bar").
-										withEngine("mysql").
-										withMasterUsername("admin").
-										withEndpoint(new Endpoint().
-														withAddress("localhost").
-														withPort(3306)
-										)
-						)
-		);
+        when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("bar"))).thenReturn(
+                new DescribeDBInstancesResult().
+                        withDBInstances(new DBInstance().
+                                withDBInstanceStatus("available").
+                                withDBName("test").
+                                withDBInstanceIdentifier("bar").
+                                withEngine("mysql").
+                                withMasterUsername("admin").
+                                withEndpoint(new Endpoint().
+                                        withAddress("localhost").
+                                        withPort(3306)
+                                )
+                        )
+        );
 
-		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+        when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
+        AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
+        amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+        amazonRdsDataSourceFactoryBean.setResourceIdResolver(resourceIdResolver);
 
-		//Act
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+        //Act
+        amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
-		//Assert
-		assertNotNull(amazonRdsDataSourceFactoryBean.getObject());
+        //Assert
+        assertNotNull(amazonRdsDataSourceFactoryBean.getObject());
 
-		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
-	}
+        verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
+    }
 
-	@Test
-	public void afterPropertiesSet_noUserNameSet_createsInstanceWithUserNameFromMetaData() throws Exception {
-		//Arrange
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
-		DataSource dataSource = mock(DataSource.class);
+    @Test
+    public void afterPropertiesSet_noUserNameSet_createsInstanceWithUserNameFromMetaData() throws Exception {
+        //Arrange
+        AmazonRDS amazonRDS = mock(AmazonRDS.class);
+        DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+        DataSource dataSource = mock(DataSource.class);
 
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().
-										withDBInstanceStatus("available").
-										withDBName("test").
-										withDBInstanceIdentifier("test").
-										withEngine("mysql").
-										withMasterUsername("admin").
-										withEndpoint(new Endpoint().
-														withAddress("localhost").
-														withPort(3306)
-										)
-						)
-		);
+        when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                new DescribeDBInstancesResult().
+                        withDBInstances(new DBInstance().
+                                withDBInstanceStatus("available").
+                                withDBName("test").
+                                withDBInstanceIdentifier("test").
+                                withEngine("mysql").
+                                withMasterUsername("admin").
+                                withEndpoint(new Endpoint().
+                                        withAddress("localhost").
+                                        withPort(3306)
+                                )
+                        )
+        );
 
-		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+        when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+        AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
+        amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
 
-		//Act
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+        //Act
+        amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
-		//Assert
-		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		assertNotNull(datasource);
+        //Assert
+        DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
+        assertNotNull(datasource);
 
-		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
-	}
+        verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
+    }
 
-	@Test
-	public void destroyInstance_shutdownInitiated_destroysDynamicDataSource() throws Exception {
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
-		DataSource dataSource = mock(DataSource.class);
+    @Test
+    public void destroyInstance_shutdownInitiated_destroysDynamicDataSource() throws Exception {
+        AmazonRDS amazonRDS = mock(AmazonRDS.class);
+        DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+        DataSource dataSource = mock(DataSource.class);
 
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().
-										withDBInstanceStatus("available").
-										withDBName("test").
-										withDBInstanceIdentifier("test").
-										withEngine("mysql").
-										withMasterUsername("admin").
-										withEndpoint(new Endpoint().
-														withAddress("localhost").
-														withPort(3306)
-										)
-						)
-		);
+        when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                new DescribeDBInstancesResult().
+                        withDBInstances(new DBInstance().
+                                withDBInstanceStatus("available").
+                                withDBName("test").
+                                withDBInstanceIdentifier("test").
+                                withEngine("mysql").
+                                withMasterUsername("admin").
+                                withEndpoint(new Endpoint().
+                                        withAddress("localhost").
+                                        withPort(3306)
+                                )
+                        )
+        );
 
-		when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
+        when(dataSourceFactory.createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"))).thenReturn(dataSource);
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+        AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
+        amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+        amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
-		amazonRdsDataSourceFactoryBean.getObject();
+        amazonRdsDataSourceFactoryBean.getObject();
 
-		amazonRdsDataSourceFactoryBean.destroy();
+        amazonRdsDataSourceFactoryBean.destroy();
 
-		verify(dataSourceFactory, times(1)).closeDataSource(dataSource);
-	}
+        verify(dataSourceFactory, times(1)).closeDataSource(dataSource);
+    }
 
-	@Test
-	public void afterPropertiesSet_customUserNameSet_createsInstanceWithCustomUserNameAndIgnoresMetaDataUserName() throws Exception {
-		AmazonRDS amazonRDS = mock(AmazonRDS.class);
-		DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
+    @Test
+    public void afterPropertiesSet_customUserNameSet_createsInstanceWithCustomUserNameAndIgnoresMetaDataUserName() throws Exception {
+        AmazonRDS amazonRDS = mock(AmazonRDS.class);
+        DataSourceFactory dataSourceFactory = mock(DataSourceFactory.class);
 
-		when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-				new DescribeDBInstancesResult().
-						withDBInstances(new DBInstance().
-										withDBInstanceStatus("available").
-										withDBName("test").
-										withDBInstanceIdentifier("test").
-										withEngine("mysql").
-										withMasterUsername("admin").
-										withEndpoint(new Endpoint().
-														withAddress("localhost").
-														withPort(3306)
-										)
-						)
-		);
+        when(amazonRDS.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                new DescribeDBInstancesResult().
+                        withDBInstances(new DBInstance().
+                                withDBInstanceStatus("available").
+                                withDBName("test").
+                                withDBInstanceIdentifier("test").
+                                withEngine("mysql").
+                                withMasterUsername("admin").
+                                withEndpoint(new Endpoint().
+                                        withAddress("localhost").
+                                        withPort(3306)
+                                )
+                        )
+        );
 
-		AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setUsername("superAdmin");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
-		amazonRdsDataSourceFactoryBean.getObject();
+        AmazonRdsDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsDataSourceFactoryBean(amazonRDS, "test", "secret");
+        amazonRdsDataSourceFactoryBean.setUsername("superAdmin");
+        amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+        amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+        amazonRdsDataSourceFactoryBean.getObject();
 
 
-		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
-	}
+        verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306, "test", "superAdmin", "secret"));
+    }
 }

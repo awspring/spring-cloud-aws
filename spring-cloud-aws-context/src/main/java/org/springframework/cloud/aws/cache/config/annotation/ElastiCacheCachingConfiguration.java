@@ -53,90 +53,90 @@ import java.util.Map;
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class ElastiCacheCachingConfiguration implements ImportAware {
 
-	private static final String CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME = AnnotationUtils.VALUE;
-	private static final String DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME = "defaultExpiration";
+    private static final String CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME = AnnotationUtils.VALUE;
+    private static final String DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME = "defaultExpiration";
 
-	private AnnotationAttributes annotationAttributes;
+    private AnnotationAttributes annotationAttributes;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+    @Autowired(required = false)
+    private RegionProvider regionProvider;
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider credentialsProvider;
+    @Autowired(required = false)
+    private AWSCredentialsProvider credentialsProvider;
 
-	@Autowired(required = false)
-	private ListableStackResourceFactory stackResourceFactory;
+    @Autowired(required = false)
+    private ListableStackResourceFactory stackResourceFactory;
 
-	@Override
-	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		this.annotationAttributes = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableElastiCache.class.getName(), false));
-		Assert.notNull(this.annotationAttributes,
-				"@EnableElasticache is not present on importing class " + importMetadata.getClassName());
-	}
+    @Override
+    public void setImportMetadata(AnnotationMetadata importMetadata) {
+        this.annotationAttributes = AnnotationAttributes.fromMap(
+                importMetadata.getAnnotationAttributes(EnableElastiCache.class.getName(), false));
+        Assert.notNull(this.annotationAttributes,
+                "@EnableElasticache is not present on importing class " + importMetadata.getClassName());
+    }
 
-	@Bean
-	@ConditionalOnMissingAmazonClient(AmazonElastiCache.class)
-	public AmazonWebserviceClientFactoryBean<AmazonElastiCacheClient> amazonElastiCache() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonElastiCacheClient.class, this.credentialsProvider, this.regionProvider);
-	}
+    @Bean
+    @ConditionalOnMissingAmazonClient(AmazonElastiCache.class)
+    public AmazonWebserviceClientFactoryBean<AmazonElastiCacheClient> amazonElastiCache() {
+        return new AmazonWebserviceClientFactoryBean<>(AmazonElastiCacheClient.class, this.credentialsProvider, this.regionProvider);
+    }
 
-	@Bean
-	public CachingConfigurer cachingConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver,
-											   List<CacheFactory> cacheFactories) {
-		if (this.annotationAttributes != null && this.annotationAttributes.getAnnotationArray("value").length > 0) {
-			return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
-					getCacheNamesFromCacheClusterConfigs(this.annotationAttributes.getAnnotationArray("value")), cacheFactories);
-		} else {
-			return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
-					getConfiguredCachesInStack(), cacheFactories);
-		}
-	}
+    @Bean
+    public CachingConfigurer cachingConfigurer(AmazonElastiCache amazonElastiCache, ResourceIdResolver resourceIdResolver,
+                                               List<CacheFactory> cacheFactories) {
+        if (this.annotationAttributes != null && this.annotationAttributes.getAnnotationArray("value").length > 0) {
+            return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
+                    getCacheNamesFromCacheClusterConfigs(this.annotationAttributes.getAnnotationArray("value")), cacheFactories);
+        } else {
+            return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
+                    getConfiguredCachesInStack(), cacheFactories);
+        }
+    }
 
-	@Bean
-	@ConditionalOnClass("org.springframework.data.redis.connection.RedisConnectionFactory")
-	public RedisCacheFactory redisCacheFactory() {
-		RedisCacheFactory redisCacheFactory = new RedisCacheFactory();
-		redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
-				this.annotationAttributes.getAnnotationArray(CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME)));
-		redisCacheFactory.setExpiryTime(this.annotationAttributes.<Integer>getNumber(DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME));
-		return redisCacheFactory;
-	}
+    @Bean
+    @ConditionalOnClass("org.springframework.data.redis.connection.RedisConnectionFactory")
+    public RedisCacheFactory redisCacheFactory() {
+        RedisCacheFactory redisCacheFactory = new RedisCacheFactory();
+        redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
+                this.annotationAttributes.getAnnotationArray(CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME)));
+        redisCacheFactory.setExpiryTime(this.annotationAttributes.<Integer>getNumber(DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME));
+        return redisCacheFactory;
+    }
 
-	@Bean
-	@ConditionalOnClass("net.spy.memcached.MemcachedClient")
-	public MemcachedCacheFactory memcachedCacheFactory() {
-		MemcachedCacheFactory redisCacheFactory = new MemcachedCacheFactory();
-		redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
-				this.annotationAttributes.getAnnotationArray(CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME)));
-		redisCacheFactory.setExpiryTime(this.annotationAttributes.<Integer>getNumber(DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME));
-		return redisCacheFactory;
-	}
+    @Bean
+    @ConditionalOnClass("net.spy.memcached.MemcachedClient")
+    public MemcachedCacheFactory memcachedCacheFactory() {
+        MemcachedCacheFactory redisCacheFactory = new MemcachedCacheFactory();
+        redisCacheFactory.setExpiryTimePerCache(getExpiryTimePerCacheFromAnnotationConfig(
+                this.annotationAttributes.getAnnotationArray(CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME)));
+        redisCacheFactory.setExpiryTime(this.annotationAttributes.<Integer>getNumber(DEFAULT_EXPIRY_TIME_ATTRIBUTE_NAME));
+        return redisCacheFactory;
+    }
 
-	private List<String> getCacheNamesFromCacheClusterConfigs(AnnotationAttributes[] annotationAttributes) {
-		List<String> cacheNames = new ArrayList<>(annotationAttributes.length);
-		for (AnnotationAttributes annotationAttribute : annotationAttributes) {
-			cacheNames.add(annotationAttribute.getString("name"));
-		}
-		return cacheNames;
-	}
+    private List<String> getCacheNamesFromCacheClusterConfigs(AnnotationAttributes[] annotationAttributes) {
+        List<String> cacheNames = new ArrayList<>(annotationAttributes.length);
+        for (AnnotationAttributes annotationAttribute : annotationAttributes) {
+            cacheNames.add(annotationAttribute.getString("name"));
+        }
+        return cacheNames;
+    }
 
-	private Map<String, Integer> getExpiryTimePerCacheFromAnnotationConfig(AnnotationAttributes[] annotationAttributes) {
-		Map<String, Integer> expiryTimePerCache = new HashMap<>(annotationAttributes.length);
-		for (AnnotationAttributes annotationAttribute : annotationAttributes) {
-			expiryTimePerCache.put(annotationAttribute.getString("name"), annotationAttribute.<Integer>getNumber("expiration"));
-		}
-		return expiryTimePerCache;
-	}
+    private Map<String, Integer> getExpiryTimePerCacheFromAnnotationConfig(AnnotationAttributes[] annotationAttributes) {
+        Map<String, Integer> expiryTimePerCache = new HashMap<>(annotationAttributes.length);
+        for (AnnotationAttributes annotationAttribute : annotationAttributes) {
+            expiryTimePerCache.put(annotationAttribute.getString("name"), annotationAttribute.<Integer>getNumber("expiration"));
+        }
+        return expiryTimePerCache;
+    }
 
-	private List<String> getConfiguredCachesInStack() {
-		List<String> cacheNames = new ArrayList<>();
-		if (this.stackResourceFactory != null) {
-			for (StackResource stackResource : this.stackResourceFactory.
-					resourcesByType("AWS::ElastiCache::CacheCluster")) {
-				cacheNames.add(stackResource.getLogicalId());
-			}
-		}
-		return cacheNames;
-	}
+    private List<String> getConfiguredCachesInStack() {
+        List<String> cacheNames = new ArrayList<>();
+        if (this.stackResourceFactory != null) {
+            for (StackResource stackResource : this.stackResourceFactory.
+                    resourcesByType("AWS::ElastiCache::CacheCluster")) {
+                cacheNames.add(stackResource.getLogicalId());
+            }
+        }
+        return cacheNames;
+    }
 }

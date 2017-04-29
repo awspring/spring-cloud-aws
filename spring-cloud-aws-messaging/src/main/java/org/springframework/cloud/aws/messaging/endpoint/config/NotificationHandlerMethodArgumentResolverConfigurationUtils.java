@@ -29,12 +29,12 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolverCompo
  */
 public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 
-	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
-		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
-		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
-		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
-		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
-		return composite;
-	}
+    public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
+        HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
+        composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
+        composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
+        composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
+        return composite;
+    }
 
 }

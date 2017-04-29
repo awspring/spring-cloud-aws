@@ -21,6 +21,6 @@ package org.springframework.cloud.aws.messaging.endpoint;
  */
 public interface NotificationStatus {
 
-	void confirmSubscription();
+    void confirmSubscription();
 
 }

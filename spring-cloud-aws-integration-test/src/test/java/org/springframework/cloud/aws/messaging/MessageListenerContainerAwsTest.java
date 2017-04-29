@@ -41,79 +41,79 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 
-	private static final int BATCH_MESSAGE_SIZE = 10;
+    private static final int BATCH_MESSAGE_SIZE = 10;
 
-	private static final int TOTAL_BATCHES = 100;
+    private static final int TOTAL_BATCHES = 100;
 
-	private static final int TOTAL_MESSAGES = BATCH_MESSAGE_SIZE * TOTAL_BATCHES;
+    private static final int TOTAL_MESSAGES = BATCH_MESSAGE_SIZE * TOTAL_BATCHES;
 
-	@SuppressWarnings("SpringJavaAutowiringInspection")
-	@Autowired
-	private AmazonSQSAsync amazonSqsClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private AmazonSQSAsync amazonSqsClient;
 
-	@Autowired
-	private TaskExecutor taskExecutor;
+    @Autowired
+    private TaskExecutor taskExecutor;
 
-	@Autowired
-	private MessageReceiver messageReceiver;
+    @Autowired
+    private MessageReceiver messageReceiver;
 
-	@Autowired
-	private StackResourceRegistry stackResourceRegistry;
+    @Autowired
+    private StackResourceRegistry stackResourceRegistry;
 
-	@Before
-	public void insertTotalNumberOfMessagesIntoTheLoadTestQueue() throws InterruptedException {
-		CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
+    @Before
+    public void insertTotalNumberOfMessagesIntoTheLoadTestQueue() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
 
-		for (int batch = 0; batch < TOTAL_BATCHES; batch++) {
-			this.taskExecutor.execute(new QueueMessageSender(this.stackResourceRegistry.lookupPhysicalResourceId("LoadTestQueue"), this.amazonSqsClient, countDownLatch));
-		}
+        for (int batch = 0; batch < TOTAL_BATCHES; batch++) {
+            this.taskExecutor.execute(new QueueMessageSender(this.stackResourceRegistry.lookupPhysicalResourceId("LoadTestQueue"), this.amazonSqsClient, countDownLatch));
+        }
 
-		countDownLatch.await();
-	}
+        countDownLatch.await();
+    }
 
-	@Test
-	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
-		assertTrue(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES));
-	}
+    @Test
+    public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
+        assertTrue(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES));
+    }
 
-	static class MessageReceiver {
+    static class MessageReceiver {
 
-		@RuntimeUse
-		@SqsListener("LoadTestQueue")
-		public void onMessage(String message) {
-			assertNotNull(message);
-			this.getCountDownLatch().countDown();
-		}
+        @RuntimeUse
+        @SqsListener("LoadTestQueue")
+        public void onMessage(String message) {
+            assertNotNull(message);
+            this.getCountDownLatch().countDown();
+        }
 
-		CountDownLatch getCountDownLatch() {
-			return this.countDownLatch;
-		}
+        CountDownLatch getCountDownLatch() {
+            return this.countDownLatch;
+        }
 
-		private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
+        private final CountDownLatch countDownLatch = new CountDownLatch(TOTAL_MESSAGES);
 
 
-	}
+    }
 
-	private static class QueueMessageSender implements Runnable {
+    private static class QueueMessageSender implements Runnable {
 
-		private final String queueUrl;
-		private final AmazonSQS amazonSqs;
-		private final CountDownLatch countDownLatch;
+        private final String queueUrl;
+        private final AmazonSQS amazonSqs;
+        private final CountDownLatch countDownLatch;
 
-		private QueueMessageSender(String queueUrl, AmazonSQS amazonSqs, CountDownLatch countDownLatch) {
-			this.queueUrl = queueUrl;
-			this.amazonSqs = amazonSqs;
-			this.countDownLatch = countDownLatch;
-		}
+        private QueueMessageSender(String queueUrl, AmazonSQS amazonSqs, CountDownLatch countDownLatch) {
+            this.queueUrl = queueUrl;
+            this.amazonSqs = amazonSqs;
+            this.countDownLatch = countDownLatch;
+        }
 
-		@Override
-		public void run() {
-			List<SendMessageBatchRequestEntry> messages = new ArrayList<>();
-			for (int i = 0; i < BATCH_MESSAGE_SIZE; i++) {
-				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(i).toString()));
-			}
-			this.amazonSqs.sendMessageBatch(new SendMessageBatchRequest(this.queueUrl, messages));
-			this.countDownLatch.countDown();
-		}
-	}
+        @Override
+        public void run() {
+            List<SendMessageBatchRequestEntry> messages = new ArrayList<>();
+            for (int i = 0; i < BATCH_MESSAGE_SIZE; i++) {
+                messages.add(new SendMessageBatchRequestEntry(Integer.toString(i), new StringBuilder().append("message_").append(i).toString()));
+            }
+            this.amazonSqs.sendMessageBatch(new SendMessageBatchRequest(this.queueUrl, messages));
+            this.countDownLatch.countDown();
+        }
+    }
 }

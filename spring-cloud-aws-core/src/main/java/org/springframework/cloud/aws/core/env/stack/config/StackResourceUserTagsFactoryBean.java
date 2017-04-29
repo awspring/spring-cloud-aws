@@ -31,28 +31,28 @@ import java.util.Map;
  */
 public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
-	private final AmazonCloudFormation amazonCloudFormation;
-	private final StackNameProvider stackNameProvider;
+    private final AmazonCloudFormation amazonCloudFormation;
+    private final StackNameProvider stackNameProvider;
 
-	public StackResourceUserTagsFactoryBean(AmazonCloudFormation amazonCloudFormation, StackNameProvider stackNameProvider) {
-		this.amazonCloudFormation = amazonCloudFormation;
-		this.stackNameProvider = stackNameProvider;
-	}
+    public StackResourceUserTagsFactoryBean(AmazonCloudFormation amazonCloudFormation, StackNameProvider stackNameProvider) {
+        this.amazonCloudFormation = amazonCloudFormation;
+        this.stackNameProvider = stackNameProvider;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return Map.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return Map.class;
+    }
 
-	@Override
-	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
-		DescribeStacksResult stacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
-		for (Stack stack : stacksResult.getStacks()) {
-			for (Tag tag : stack.getTags()) {
-				userTags.put(tag.getKey(), tag.getValue());
-			}
-		}
-		return userTags;
-	}
+    @Override
+    protected Map<String, String> createInstance() throws Exception {
+        LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
+        DescribeStacksResult stacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
+        for (Stack stack : stacksResult.getStacks()) {
+            for (Tag tag : stack.getTags()) {
+                userTags.put(tag.getKey(), tag.getValue());
+            }
+        }
+        return userTags;
+    }
 }

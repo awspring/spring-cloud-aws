@@ -21,35 +21,35 @@ package org.springframework.cloud.aws.core.env.stack;
  */
 public class StackResource {
 
-	private final String logicalId;
-	private final String physicalId;
-	private final String type;
+    private final String logicalId;
+    private final String physicalId;
+    private final String type;
 
-	public StackResource(String logicalId, String physicalId, String type) {
-		this.logicalId = logicalId;
-		this.physicalId = physicalId;
-		this.type = type;
-	}
+    public StackResource(String logicalId, String physicalId, String type) {
+        this.logicalId = logicalId;
+        this.physicalId = physicalId;
+        this.type = type;
+    }
 
-	public String getLogicalId() {
-		return this.logicalId;
-	}
+    public String getLogicalId() {
+        return this.logicalId;
+    }
 
-	public String getPhysicalId() {
-		return this.physicalId;
-	}
+    public String getPhysicalId() {
+        return this.physicalId;
+    }
 
-	public String getType() {
-		return this.type;
-	}
+    public String getType() {
+        return this.type;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("StackResource{");
-		sb.append("logicalId='").append(this.logicalId).append("\'");
-		sb.append(", physicalId='").append(this.physicalId).append("\'");
-		sb.append(", type='").append(this.type).append("\'");
-		sb.append("}");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("StackResource{");
+        sb.append("logicalId='").append(this.logicalId).append("\'");
+        sb.append(", physicalId='").append(this.physicalId).append("\'");
+        sb.append(", type='").append(this.type).append("\'");
+        sb.append("}");
+        return sb.toString();
+    }
 }

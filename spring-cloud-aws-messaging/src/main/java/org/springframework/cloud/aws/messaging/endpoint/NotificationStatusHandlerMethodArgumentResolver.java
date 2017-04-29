@@ -26,41 +26,41 @@ import org.springframework.http.HttpInputMessage;
  */
 public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
-	private final AmazonSNS amazonSns;
+    private final AmazonSNS amazonSns;
 
-	public NotificationStatusHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
-		this.amazonSns = amazonSns;
-	}
+    public NotificationStatusHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
+        this.amazonSns = amazonSns;
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return NotificationStatus.class.isAssignableFrom(parameter.getParameterType());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return NotificationStatus.class.isAssignableFrom(parameter.getParameterType());
+    }
 
-	@Override
-	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
-		if (!"SubscriptionConfirmation".equals(content.get("Type").asText()) && !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
-			throw new IllegalArgumentException("NotificationStatus is only available for subscription and unsubscription requests");
-		}
-		return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn").asText(), content.get("Token").asText());
-	}
+    @Override
+    protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
+        if (!"SubscriptionConfirmation".equals(content.get("Type").asText()) && !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
+            throw new IllegalArgumentException("NotificationStatus is only available for subscription and unsubscription requests");
+        }
+        return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn").asText(), content.get("Token").asText());
+    }
 
-	private static class AmazonSnsNotificationStatus implements NotificationStatus {
+    private static class AmazonSnsNotificationStatus implements NotificationStatus {
 
-		private final AmazonSNS amazonSns;
-		private final String topicArn;
-		private final String confirmationToken;
+        private final AmazonSNS amazonSns;
+        private final String topicArn;
+        private final String confirmationToken;
 
-		private AmazonSnsNotificationStatus(AmazonSNS amazonSns, String topicArn, String confirmationToken) {
-			this.amazonSns = amazonSns;
-			this.topicArn = topicArn;
-			this.confirmationToken = confirmationToken;
-		}
+        private AmazonSnsNotificationStatus(AmazonSNS amazonSns, String topicArn, String confirmationToken) {
+            this.amazonSns = amazonSns;
+            this.topicArn = topicArn;
+            this.confirmationToken = confirmationToken;
+        }
 
-		@Override
-		public void confirmSubscription() {
-			this.amazonSns.confirmSubscription(this.topicArn, this.confirmationToken);
-		}
+        @Override
+        public void confirmSubscription() {
+            this.amazonSns.confirmSubscription(this.topicArn, this.confirmationToken);
+        }
 
-	}
+    }
 }

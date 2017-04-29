@@ -33,19 +33,19 @@ import java.util.List;
  */
 public class ShutdownSuppressingExecutorServiceAdapter extends ExecutorServiceAdapter {
 
-	/**
-	 * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
-	 *
-	 * @param taskExecutor
-	 * 		the target executor to delegate to, typically an externally managed one
-	 */
-	public ShutdownSuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
-		super(taskExecutor);
-	}
+    /**
+     * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
+     *
+     * @param taskExecutor
+     *         the target executor to delegate to, typically an externally managed one
+     */
+    public ShutdownSuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
+        super(taskExecutor);
+    }
 
-	@SuppressWarnings("NullableProblems")
-	@Override
-	public List<Runnable> shutdownNow() {
-		return Collections.emptyList();
-	}
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public List<Runnable> shutdownNow() {
+        return Collections.emptyList();
+    }
 }

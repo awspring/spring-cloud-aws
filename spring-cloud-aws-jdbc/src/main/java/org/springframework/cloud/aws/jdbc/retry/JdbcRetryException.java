@@ -29,7 +29,7 @@ import org.springframework.retry.RetryException;
 @SuppressWarnings("WeakerAccess")
 public class JdbcRetryException extends RetryException {
 
-	JdbcRetryException(String msg) {
-		super(msg);
-	}
+    JdbcRetryException(String msg) {
+        super(msg);
+    }
 }

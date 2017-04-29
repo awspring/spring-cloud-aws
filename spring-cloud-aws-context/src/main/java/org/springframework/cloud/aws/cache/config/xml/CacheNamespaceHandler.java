@@ -23,8 +23,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 public class CacheNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("cache-manager", new CacheBeanDefinitionParser());
-	}
+    @Override
+    public void init() {
+        registerBeanDefinitionParser("cache-manager", new CacheBeanDefinitionParser());
+    }
 }

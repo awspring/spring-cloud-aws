@@ -26,9 +26,9 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootTest(classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
 public class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
-	@SpringBootApplication
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	static class BootDataSourceFactoryBeanAwsTestConfig {
+    @SpringBootApplication
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    static class BootDataSourceFactoryBeanAwsTestConfig {
 
-	}
+    }
 }

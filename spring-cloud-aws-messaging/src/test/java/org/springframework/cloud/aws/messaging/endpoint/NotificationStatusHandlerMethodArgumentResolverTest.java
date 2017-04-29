@@ -34,49 +34,49 @@ import static org.mockito.Mockito.verify;
 
 public class NotificationStatusHandlerMethodArgumentResolverTest {
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
-		//Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("NotificationStatus is only available");
+    @Test
+    public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
+        //Arrange
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException.expectMessage("NotificationStatus is only available");
 
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(amazonSns);
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(amazonSns);
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-		servletRequest.setContent(subscriptionRequestJsonContent);
+        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.setContent(subscriptionRequestJsonContent);
 
-		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
 
-		//Act
-		resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+        //Act
+        resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
-		//Assert
-	}
+        //Assert
+    }
 
-	@Test
-	public void resolveArgument_subscriptionRequest_createsValidSubscriptionStatus() throws Exception {
-		//Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(amazonSns);
+    @Test
+    public void resolveArgument_subscriptionRequest_createsValidSubscriptionStatus() throws Exception {
+        //Arrange
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(amazonSns);
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
+        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-		servletRequest.setContent(subscriptionRequestJsonContent);
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.setContent(subscriptionRequestJsonContent);
 
-		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
 
-		//Act
-		Object resolvedArgument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+        //Act
+        Object resolvedArgument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
-		//Assert
-		assertTrue(resolvedArgument instanceof NotificationStatus);
-		((NotificationStatus) resolvedArgument).confirmSubscription();
-		verify(amazonSns, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
-	}
+        //Assert
+        assertTrue(resolvedArgument instanceof NotificationStatus);
+        ((NotificationStatus) resolvedArgument).confirmSubscription();
+        verify(amazonSns, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+    }
 }

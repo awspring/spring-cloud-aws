@@ -34,43 +34,43 @@ import static org.junit.Assert.assertTrue;
  */
 public class CloudWatchMetricWriterAutoConfigurationTest {
 
-	private MockEnvironment env;
+    private MockEnvironment env;
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@Before
-	public void before() {
-		this.env = new MockEnvironment();
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.setEnvironment(this.env);
-	}
+    @Before
+    public void before() {
+        this.env = new MockEnvironment();
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.setEnvironment(this.env);
+    }
 
-	@Test
-	public void testWithoutSettingAnyConfigProperties() {
-		this.context.register(CloudWatchMetricAutoConfiguration.class);
-		this.context.refresh();
-		assertTrue(this.context.getBeansOfType(CloudWatchMetricWriter.class).isEmpty());
-	}
+    @Test
+    public void testWithoutSettingAnyConfigProperties() {
+        this.context.register(CloudWatchMetricAutoConfiguration.class);
+        this.context.refresh();
+        assertTrue(this.context.getBeansOfType(CloudWatchMetricWriter.class).isEmpty());
+    }
 
-	@Test
-	public void testConfiguration() throws Exception {
-		this.env.setProperty("cloud.aws.cloudwatch.namespace", "test");
+    @Test
+    public void testConfiguration() throws Exception {
+        this.env.setProperty("cloud.aws.cloudwatch.namespace", "test");
 
-		this.context.register(CloudWatchMetricAutoConfiguration.class);
-		this.context.refresh();
+        this.context.register(CloudWatchMetricAutoConfiguration.class);
+        this.context.refresh();
 
-		CloudWatchMetricWriter cloudWatchMetricWriter = this.context.getBean(CloudWatchMetricWriter.class);
-		assertNotNull(cloudWatchMetricWriter);
+        CloudWatchMetricWriter cloudWatchMetricWriter = this.context.getBean(CloudWatchMetricWriter.class);
+        assertNotNull(cloudWatchMetricWriter);
 
-		BufferingCloudWatchMetricSender cloudWatchMetricSender = this.context.getBean(BufferingCloudWatchMetricSender.class);
-		assertNotNull(cloudWatchMetricSender);
+        BufferingCloudWatchMetricSender cloudWatchMetricSender = this.context.getBean(BufferingCloudWatchMetricSender.class);
+        assertNotNull(cloudWatchMetricSender);
 
-		CloudWatchMetricProperties cloudWatchMetricProperties = this.context.getBean(CloudWatchMetricProperties.class);
-		assertNotNull(cloudWatchMetricProperties);
+        CloudWatchMetricProperties cloudWatchMetricProperties = this.context.getBean(CloudWatchMetricProperties.class);
+        assertNotNull(cloudWatchMetricProperties);
 
-		assertEquals(cloudWatchMetricSender.getNamespace(), cloudWatchMetricProperties.getNamespace());
-		assertEquals(cloudWatchMetricSender.getMaxBuffer(), cloudWatchMetricProperties.getMaxBuffer());
-		assertEquals(cloudWatchMetricSender.getFixedDelayBetweenRuns(), cloudWatchMetricProperties.getFixedDelayBetweenRuns());
-	}
+        assertEquals(cloudWatchMetricSender.getNamespace(), cloudWatchMetricProperties.getNamespace());
+        assertEquals(cloudWatchMetricSender.getMaxBuffer(), cloudWatchMetricProperties.getMaxBuffer());
+        assertEquals(cloudWatchMetricSender.getFixedDelayBetweenRuns(), cloudWatchMetricProperties.getFixedDelayBetweenRuns());
+    }
 
 }

@@ -26,14 +26,14 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringBootTest(classes = BootResourceLoaderAwsTest.BootResourceLoaderAwsTestConfig.class,
-		properties = {"cloud.aws.loader.corePoolSize=10", "cloud.aws.loader.queueCapacity=0"})
+        properties = {"cloud.aws.loader.corePoolSize=10", "cloud.aws.loader.queueCapacity=0"})
 public class BootResourceLoaderAwsTest extends ResourceLoaderAwsTest {
 
-	@SpringBootApplication
-	@Import(IntegrationTestConfig.class)
-	@PropertySource({"classpath:Integration-test-config.properties",
-			"file://${els.config.dir}/access.properties"})
-	static class BootResourceLoaderAwsTestConfig {
+    @SpringBootApplication
+    @Import(IntegrationTestConfig.class)
+    @PropertySource({"classpath:Integration-test-config.properties",
+            "file://${els.config.dir}/access.properties"})
+    static class BootResourceLoaderAwsTestConfig {
 
-	}
+    }
 }

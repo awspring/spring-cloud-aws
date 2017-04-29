@@ -37,107 +37,107 @@ import static org.junit.Assert.assertNotNull;
  */
 public class AmazonWebserviceClientConfigurationUtilsTest {
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void registerAmazonWebserviceClient_withMinimalConfiguration_returnsDefaultBeanDefinition() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
-
-
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, null);
-
-		//Act
-		beanFactory.preInstantiateSingletons();
-		AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
-
-		//Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.DEFAULT_REGION), client.getRegion());
-	}
-
-	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionProviderConfiguration_returnsBeanDefinitionWithRegionConfiguredThatIsReturnedByTheRegionProvider() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.registerSingleton(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
-		beanFactory.registerSingleton("myRegionProvider", new StaticRegionProvider(Regions.AP_SOUTHEAST_2.getName()));
-
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "myRegionProvider", null);
-
-		//Act
-		beanFactory.preInstantiateSingletons();
-		AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
-
-		//Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.AP_SOUTHEAST_2), client.getRegion());
-	}
-
-	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionConfiguration_returnsBeanDefinitionWithRegionConfigured() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
+    @Test
+    public void registerAmazonWebserviceClient_withMinimalConfiguration_returnsDefaultBeanDefinition() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
 
 
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, Regions.EU_WEST_1.getName());
+        BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+                registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, null);
 
-		//Act
-		beanFactory.preInstantiateSingletons();
-		AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
+        //Act
+        beanFactory.preInstantiateSingletons();
+        AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
-		//Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.EU_WEST_1), client.getRegion());
-	}
+        //Assert
+        assertNotNull(client);
+        assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
+        assertEquals(Region.getRegion(Regions.DEFAULT_REGION), client.getRegion());
+    }
 
-	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionAndRegionProviderConfigured_reportsError() throws Exception {
-		//Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("Only region or regionProvider can be configured, but not both");
+    @Test
+    public void registerAmazonWebserviceClient_withCustomRegionProviderConfiguration_returnsBeanDefinitionWithRegionConfiguredThatIsReturnedByTheRegionProvider() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
+        beanFactory.registerSingleton("myRegionProvider", new StaticRegionProvider(Regions.AP_SOUTHEAST_2.getName()));
 
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
+        BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+                registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "myRegionProvider", null);
 
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
-				registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", Regions.EU_WEST_1.getName());
+        //Act
+        beanFactory.preInstantiateSingletons();
+        AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
-		//Act
-		beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
+        //Assert
+        assertNotNull(client);
+        assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
+        assertEquals(Region.getRegion(Regions.AP_SOUTHEAST_2), client.getRegion());
+    }
 
-		//Assert
-	}
+    @Test
+    public void registerAmazonWebserviceClient_withCustomRegionConfiguration_returnsBeanDefinitionWithRegionConfigured() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
 
-	@Test
-	public void generateBeanName_withInterfaceAndCapitalLetterInSequence_producesDeCapitalizedBeanName() throws Exception {
-		//Arrange
 
-		//Act
-		String beanName = AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.rds.AmazonRDS");
+        BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+                registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), null, Regions.EU_WEST_1.getName());
 
-		//Assert
-		assertEquals("amazonRDS",beanName);
-	}
+        //Act
+        beanFactory.preInstantiateSingletons();
+        AmazonTestWebserviceClient client = beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
-	private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {
+        //Assert
+        assertNotNull(client);
+        assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
+        assertEquals(Region.getRegion(Regions.EU_WEST_1), client.getRegion());
+    }
 
-		@Override
-		public AWSCredentials getCredentials() {
-			return new BasicAWSCredentials("test", "secret");
-		}
+    @Test
+    public void registerAmazonWebserviceClient_withCustomRegionAndRegionProviderConfigured_reportsError() throws Exception {
+        //Arrange
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException.expectMessage("Only region or regionProvider can be configured, but not both");
 
-		@Override
-		public void refresh() {
-		}
-	}
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, new StaticAwsCredentialsProvider());
+
+        BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils.
+                registerAmazonWebserviceClient(new Object(), beanFactory, AmazonTestWebserviceClient.class.getName(), "someProvider", Regions.EU_WEST_1.getName());
+
+        //Act
+        beanFactory.getBean(beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
+
+        //Assert
+    }
+
+    @Test
+    public void generateBeanName_withInterfaceAndCapitalLetterInSequence_producesDeCapitalizedBeanName() throws Exception {
+        //Arrange
+
+        //Act
+        String beanName = AmazonWebserviceClientConfigurationUtils.getBeanName("com.amazonaws.services.rds.AmazonRDS");
+
+        //Assert
+        assertEquals("amazonRDS", beanName);
+    }
+
+    private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {
+
+        @Override
+        public AWSCredentials getCredentials() {
+            return new BasicAWSCredentials("test", "secret");
+        }
+
+        @Override
+        public void refresh() {
+        }
+    }
 }

@@ -26,7 +26,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
-  <aws-context:context-region region="ap-southeast-1" />
+	<aws-context:context-region region="ap-southeast-1" />
 
 	<aws-messaging:annotation-driven-queue-listener />
 

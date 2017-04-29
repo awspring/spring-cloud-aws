@@ -57,175 +57,175 @@ import java.util.Properties;
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
-	private static final String SMART_MIME_MESSAGE_CLASS_NAME = "org.springframework.mail.javamail.SmartMimeMessage";
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
+    private static final String SMART_MIME_MESSAGE_CLASS_NAME = "org.springframework.mail.javamail.SmartMimeMessage";
 
-	private Properties javaMailProperties = new Properties();
-	private volatile Session session;
-	private String defaultEncoding;
-	private FileTypeMap defaultFileTypeMap;
+    private Properties javaMailProperties = new Properties();
+    private volatile Session session;
+    private String defaultEncoding;
+    private FileTypeMap defaultFileTypeMap;
 
-	public SimpleEmailServiceJavaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-		super(amazonSimpleEmailService);
-	}
+    public SimpleEmailServiceJavaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
+        super(amazonSimpleEmailService);
+    }
 
-	/**
-	 * Set JavaMail properties for the {@code Session}.
-	 * <p>A new {@code Session} will be created with those properties.
-	 * <p>Non-default properties in this instance will override given
-	 * JavaMail properties.
-	 */
-	public void setJavaMailProperties(Properties javaMailProperties) {
-		this.javaMailProperties = javaMailProperties;
-		this.session = null;
-	}
+    /**
+     * Set JavaMail properties for the {@code Session}.
+     * <p>A new {@code Session} will be created with those properties.
+     * <p>Non-default properties in this instance will override given
+     * JavaMail properties.
+     */
+    public void setJavaMailProperties(Properties javaMailProperties) {
+        this.javaMailProperties = javaMailProperties;
+        this.session = null;
+    }
 
-	/**
-	 * Allow Map access to the JavaMail properties of this sender,
-	 * with the option to add or override specific entries.
-	 * <p>Useful for specifying entries directly, for example via
-	 * "javaMailProperties[mail.from]".
-	 */
-	protected Properties getJavaMailProperties() {
-		return this.javaMailProperties;
-	}
+    /**
+     * Allow Map access to the JavaMail properties of this sender,
+     * with the option to add or override specific entries.
+     * <p>Useful for specifying entries directly, for example via
+     * "javaMailProperties[mail.from]".
+     */
+    protected Properties getJavaMailProperties() {
+        return this.javaMailProperties;
+    }
 
-	/**
-	 * Set the JavaMail {@code Session}, possibly pulled from JNDI.
-	 * <p>Default is a new {@code Session} without defaults, that is
-	 * completely configured via this instance's properties.
-	 * <p>If using a pre-configured {@code Session}, non-default properties
-	 * in this instance will override the settings in the {@code Session}.
-	 *
-	 * @see #setJavaMailProperties
-	 */
-	public void setSession(Session session) {
-		Assert.notNull(session, "Session must not be null");
-		this.session = session;
-	}
+    /**
+     * Set the JavaMail {@code Session}, possibly pulled from JNDI.
+     * <p>Default is a new {@code Session} without defaults, that is
+     * completely configured via this instance's properties.
+     * <p>If using a pre-configured {@code Session}, non-default properties
+     * in this instance will override the settings in the {@code Session}.
+     *
+     * @see #setJavaMailProperties
+     */
+    public void setSession(Session session) {
+        Assert.notNull(session, "Session must not be null");
+        this.session = session;
+    }
 
-	/**
-	 * Return the JavaMail {@code Session},
-	 * lazily initializing it if hasn't been specified explicitly.
-	 */
-	protected Session getSession() {
-		if (this.session == null) {
-			this.session = Session.getInstance(getJavaMailProperties());
-		}
-		return this.session;
-	}
+    /**
+     * Return the JavaMail {@code Session},
+     * lazily initializing it if hasn't been specified explicitly.
+     */
+    protected Session getSession() {
+        if (this.session == null) {
+            this.session = Session.getInstance(getJavaMailProperties());
+        }
+        return this.session;
+    }
 
-	/**
-	 * Set the default encoding to use for {@link MimeMessage MimeMessages}
-	 * created by this instance.
-	 * <p>Such an encoding will be auto-detected by {@link MimeMessageHelper}.
-	 */
-	public void setDefaultEncoding(String defaultEncoding) {
-		this.defaultEncoding = defaultEncoding;
-	}
+    /**
+     * Set the default encoding to use for {@link MimeMessage MimeMessages}
+     * created by this instance.
+     * <p>Such an encoding will be auto-detected by {@link MimeMessageHelper}.
+     */
+    public void setDefaultEncoding(String defaultEncoding) {
+        this.defaultEncoding = defaultEncoding;
+    }
 
-	/**
-	 * Set the default Java Activation {@link FileTypeMap} to use for
-	 * {@link MimeMessage MimeMessages} created by this instance.
-	 * <p>A {@code FileTypeMap} specified here will be autodetected by
-	 * {@link MimeMessageHelper}, avoiding the need to specify the
-	 * {@code FileTypeMap} for each {@code MimeMessageHelper} instance.
-	 * <p>For example, you can specify a custom instance of Spring's
-	 * {@link ConfigurableMimeFileTypeMap} here. If not explicitly specified,
-	 * a default {@code ConfigurableMimeFileTypeMap} will be used, containing
-	 * an extended set of MIME type mappings (as defined by the
-	 * {@code mime.types} file contained in the Spring jar).
-	 *
-	 * @see MimeMessageHelper#setFileTypeMap
-	 */
-	public void setDefaultFileTypeMap(FileTypeMap defaultFileTypeMap) {
-		this.defaultFileTypeMap = defaultFileTypeMap;
-	}
+    /**
+     * Set the default Java Activation {@link FileTypeMap} to use for
+     * {@link MimeMessage MimeMessages} created by this instance.
+     * <p>A {@code FileTypeMap} specified here will be autodetected by
+     * {@link MimeMessageHelper}, avoiding the need to specify the
+     * {@code FileTypeMap} for each {@code MimeMessageHelper} instance.
+     * <p>For example, you can specify a custom instance of Spring's
+     * {@link ConfigurableMimeFileTypeMap} here. If not explicitly specified,
+     * a default {@code ConfigurableMimeFileTypeMap} will be used, containing
+     * an extended set of MIME type mappings (as defined by the
+     * {@code mime.types} file contained in the Spring jar).
+     *
+     * @see MimeMessageHelper#setFileTypeMap
+     */
+    public void setDefaultFileTypeMap(FileTypeMap defaultFileTypeMap) {
+        this.defaultFileTypeMap = defaultFileTypeMap;
+    }
 
-	@Override
-	public MimeMessage createMimeMessage() {
+    @Override
+    public MimeMessage createMimeMessage() {
 
-		// We have to use reflection as SmartMimeMessage is not package-private
-		if (ClassUtils.isPresent(SMART_MIME_MESSAGE_CLASS_NAME, ClassUtils.getDefaultClassLoader())) {
-			Class<?> smartMimeMessage = ClassUtils.resolveClassName(SMART_MIME_MESSAGE_CLASS_NAME, ClassUtils.getDefaultClassLoader());
-			Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(smartMimeMessage, Session.class, String.class, FileTypeMap.class);
-			if (constructor != null) {
-				Object mimeMessage = BeanUtils.instantiateClass(constructor, getSession(), this.defaultEncoding, this.defaultFileTypeMap);
-				return (MimeMessage) mimeMessage;
-			}
-		}
+        // We have to use reflection as SmartMimeMessage is not package-private
+        if (ClassUtils.isPresent(SMART_MIME_MESSAGE_CLASS_NAME, ClassUtils.getDefaultClassLoader())) {
+            Class<?> smartMimeMessage = ClassUtils.resolveClassName(SMART_MIME_MESSAGE_CLASS_NAME, ClassUtils.getDefaultClassLoader());
+            Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(smartMimeMessage, Session.class, String.class, FileTypeMap.class);
+            if (constructor != null) {
+                Object mimeMessage = BeanUtils.instantiateClass(constructor, getSession(), this.defaultEncoding, this.defaultFileTypeMap);
+                return (MimeMessage) mimeMessage;
+            }
+        }
 
-		return new MimeMessage(getSession());
-	}
+        return new MimeMessage(getSession());
+    }
 
-	@Override
-	public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
-		try {
-			return new MimeMessage(getSession(), contentStream);
-		} catch (MessagingException e) {
-			throw new MailParseException("Could not parse raw MIME content", e);
-		}
-	}
+    @Override
+    public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
+        try {
+            return new MimeMessage(getSession(), contentStream);
+        } catch (MessagingException e) {
+            throw new MailParseException("Could not parse raw MIME content", e);
+        }
+    }
 
-	@Override
-	public void send(MimeMessage mimeMessage) throws MailException {
-		this.send(new MimeMessage[]{mimeMessage});
-	}
+    @Override
+    public void send(MimeMessage mimeMessage) throws MailException {
+        this.send(new MimeMessage[]{mimeMessage});
+    }
 
 
-	@SuppressWarnings("OverloadedVarargsMethod")
-	@Override
-	public void send(MimeMessage... mimeMessages) throws MailException {
-		Map<Object, Exception> failedMessages = new HashMap<>();
+    @SuppressWarnings("OverloadedVarargsMethod")
+    @Override
+    public void send(MimeMessage... mimeMessages) throws MailException {
+        Map<Object, Exception> failedMessages = new HashMap<>();
 
-		for (MimeMessage mimeMessage : mimeMessages) {
-			try {
-				RawMessage rm = createRawMessage(mimeMessage);
-				SendRawEmailResult sendRawEmailResult = getEmailService().sendRawEmail(new SendRawEmailRequest(rm));
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.getMessageId());
-				}
-			} catch (Exception e) {
-				//Ignore Exception because we are collecting and throwing all if any
-				//noinspection ThrowableResultOfMethodCallIgnored
-				failedMessages.put(mimeMessage, e);
-			}
-		}
+        for (MimeMessage mimeMessage : mimeMessages) {
+            try {
+                RawMessage rm = createRawMessage(mimeMessage);
+                SendRawEmailResult sendRawEmailResult = getEmailService().sendRawEmail(new SendRawEmailRequest(rm));
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.getMessageId());
+                }
+            } catch (Exception e) {
+                //Ignore Exception because we are collecting and throwing all if any
+                //noinspection ThrowableResultOfMethodCallIgnored
+                failedMessages.put(mimeMessage, e);
+            }
+        }
 
-		if (!failedMessages.isEmpty()) {
-			throw new MailSendException(failedMessages);
-		}
-	}
+        if (!failedMessages.isEmpty()) {
+            throw new MailSendException(failedMessages);
+        }
+    }
 
-	@Override
-	public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
-		send(new MimeMessagePreparator[]{mimeMessagePreparator});
-	}
+    @Override
+    public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
+        send(new MimeMessagePreparator[]{mimeMessagePreparator});
+    }
 
-	@SuppressWarnings("OverloadedVarargsMethod")
-	@Override
-	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
-		MimeMessage mimeMessage = createMimeMessage();
-		for (MimeMessagePreparator mimeMessagePreparator : mimeMessagePreparators) {
-			try {
-				mimeMessagePreparator.prepare(mimeMessage);
-			} catch (Exception e) {
-				throw new MailPreparationException(e);
-			}
-		}
-		send(mimeMessage);
-	}
+    @SuppressWarnings("OverloadedVarargsMethod")
+    @Override
+    public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
+        MimeMessage mimeMessage = createMimeMessage();
+        for (MimeMessagePreparator mimeMessagePreparator : mimeMessagePreparators) {
+            try {
+                mimeMessagePreparator.prepare(mimeMessage);
+            } catch (Exception e) {
+                throw new MailPreparationException(e);
+            }
+        }
+        send(mimeMessage);
+    }
 
-	private RawMessage createRawMessage(MimeMessage mimeMessage) {
-		ByteArrayOutputStream out;
-		try {
-			out = new ByteArrayOutputStream();
-			mimeMessage.writeTo(out);
-		} catch (IOException e) {
-			throw new MailPreparationException(e);
-		} catch (MessagingException e) {
-			throw new MailParseException(e);
-		}
-		return new RawMessage(ByteBuffer.wrap(out.toByteArray()));
-	}
+    private RawMessage createRawMessage(MimeMessage mimeMessage) {
+        ByteArrayOutputStream out;
+        try {
+            out = new ByteArrayOutputStream();
+            mimeMessage.writeTo(out);
+        } catch (IOException e) {
+            throw new MailPreparationException(e);
+        } catch (MessagingException e) {
+            throw new MailParseException(e);
+        }
+        return new RawMessage(ByteBuffer.wrap(out.toByteArray()));
+    }
 }

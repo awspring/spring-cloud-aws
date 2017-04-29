@@ -50,272 +50,272 @@ import static org.mockito.Mockito.when;
  */
 public class CacheBeanDefinitionParserTest {
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void parseInternal_cacheConfigWithExpiration_returnsConfiguredCacheThatRespectExpiration() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+    @Test
+    public void parseInternal_cacheConfigWithExpiration_returnsConfiguredCacheThatRespectExpiration() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		//Register a mock object which will be used to replay service calls
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		beanDefinitionBuilder.setFactoryMethod("mock");
-		beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
-		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
+        //Register a mock object which will be used to replay service calls
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        beanDefinitionBuilder.setFactoryMethod("mock");
+        beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
+        beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
 
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-cacheConfigWithExpiration.xml", getClass()));
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+        reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-cacheConfigWithExpiration.xml", getClass()));
 
-		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
+        AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
-		//Replay invocation that will be called
-		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
-		memcached.setShowCacheNodeInfo(true);
+        //Replay invocation that will be called
+        DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+        memcached.setShowCacheNodeInfo(true);
 
-		when(client.describeCacheClusters(memcached)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withCacheClusterId("memcached").
-								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available").withEngine("memcached")
-				)
-		);
+        when(client.describeCacheClusters(memcached)).thenReturn(
+                new DescribeCacheClustersResult().withCacheClusters(
+                        new CacheCluster().withCacheClusterId("memcached").
+                                withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+                                withCacheClusterStatus("available").withEngine("memcached")
+                )
+        );
 
-		//Act
-		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
-		Cache cache = cacheManager.getCache("memcached");
-		cache.put("foo", "bar");
-		Thread.sleep(2000);
+        //Act
+        CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+        Cache cache = cacheManager.getCache("memcached");
+        cache.put("foo", "bar");
+        Thread.sleep(2000);
 
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-		assertNull(cache.get("foo"));
-	}
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(cache);
+        assertNull(cache.get("foo"));
+    }
 
-	@Test
-	public void parseInternal_customCache_returnsCacheManagerWithCustomCache() throws Exception {
-		//Arrange
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customCache.xml", getClass());
+    @Test
+    public void parseInternal_customCache_returnsCacheManagerWithCustomCache() throws Exception {
+        //Arrange
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customCache.xml", getClass());
 
-		//Act
-		CacheManager cacheManager = applicationContext.getBean(CacheManager.class);
-		Cache cache = cacheManager.getCache("memc");
-		cache.put("foo", "bar");
-		cache.evict("foo");
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-	}
+        //Act
+        CacheManager cacheManager = applicationContext.getBean(CacheManager.class);
+        Cache cache = cacheManager.getCache("memc");
+        cache.put("foo", "bar");
+        cache.evict("foo");
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(cache);
+    }
 
-	@Test
-	public void parseInternal_mixedCacheConfig_returnsBothCaches() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+    @Test
+    public void parseInternal_mixedCacheConfig_returnsBothCaches() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		//Register a mock object which will be used to replay service calls
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		beanDefinitionBuilder.setFactoryMethod("mock");
-		beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
-		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
+        //Register a mock object which will be used to replay service calls
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        beanDefinitionBuilder.setFactoryMethod("mock");
+        beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
+        beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
 
-		BeanDefinitionBuilder cacheBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		cacheBuilder.setFactoryMethod("mock");
-		cacheBuilder.addConstructorArgValue(AmazonElastiCache.class);
-		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), cacheBuilder.getBeanDefinition());
+        BeanDefinitionBuilder cacheBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        cacheBuilder.setFactoryMethod("mock");
+        cacheBuilder.addConstructorArgValue(AmazonElastiCache.class);
+        beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), cacheBuilder.getBeanDefinition());
 
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-mixedCacheConfig.xml", getClass()));
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+        reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-mixedCacheConfig.xml", getClass()));
 
-		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
+        AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
-		//Replay invocation that will be called
+        //Replay invocation that will be called
 
-		DescribeCacheClustersRequest memcached1 = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
-		memcached1.setShowCacheNodeInfo(true);
+        DescribeCacheClustersRequest memcached1 = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+        memcached1.setShowCacheNodeInfo(true);
 
-		when(client.describeCacheClusters(memcached1)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withCacheClusterId("memcached").
-								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available").withEngine("memcached")
-				)
-		);
+        when(client.describeCacheClusters(memcached1)).thenReturn(
+                new DescribeCacheClustersResult().withCacheClusters(
+                        new CacheCluster().withCacheClusterId("memcached").
+                                withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+                                withCacheClusterStatus("available").withEngine("memcached")
+                )
+        );
 
-		Cache cache = beanFactory.getBean("memc", Cache.class);
-		when(cache.getName()).thenReturn("memc");
-
-
-		//Act
-		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
-		Cache memc = cacheManager.getCache("memc");
-		Cache memcached = cacheManager.getCache("memcached");
-
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(memcached);
-
-		memc.put("foo", "bar");
-		memc.evict("foo");
-
-		memcached.put("foo", "bar");
-		memcached.evict("foo");
-	}
-
-	@Test
-	public void parseInternal_clusterCacheConfiguration_returnsConfiguredClusterCache() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-
-		//Register a mock object which will be used to replay service calls
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		beanDefinitionBuilder.setFactoryMethod("mock");
-		beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
-		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
-
-		//Load xml file
-		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
-		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfig.xml", getClass()));
+        Cache cache = beanFactory.getBean("memc", Cache.class);
+        when(cache.getName()).thenReturn("memc");
 
 
-		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
+        //Act
+        CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+        Cache memc = cacheManager.getCache("memc");
+        Cache memcached = cacheManager.getCache("memcached");
 
-		//Replay invocation that will be called
-		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
-		memcached.setShowCacheNodeInfo(true);
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(memcached);
 
-		when(client.describeCacheClusters(memcached)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withCacheClusterId("memcached").
-								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available").withEngine("memcached")
-				)
-		);
+        memc.put("foo", "bar");
+        memc.evict("foo");
 
-		//Act
-		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
-		Cache cache = cacheManager.getCache("memcached");
-		cache.put("foo", "bar");
-		cache.evict("foo");
+        memcached.put("foo", "bar");
+        memcached.evict("foo");
+    }
 
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-	}
+    @Test
+    public void parseInternal_clusterCacheConfiguration_returnsConfiguredClusterCache() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-	@Test
-	public void parseInternal_clusterCacheConfigurationWithLogicalName_returnsConfiguredClusterCacheWithPhysicalName() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        //Register a mock object which will be used to replay service calls
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        beanDefinitionBuilder.setFactoryMethod("mock");
+        beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
+        beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
 
-		//Register a mock object which will be used to replay service calls
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		beanDefinitionBuilder.setFactoryMethod("mock");
-		beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
-		beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
-
-		BeanDefinitionBuilder resourceIdBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
-		resourceIdBuilder.setFactoryMethod("mock");
-		resourceIdBuilder.addConstructorArgValue(ResourceIdResolver.class);
-		beanFactory.registerBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, resourceIdBuilder.getBeanDefinition());
-
-		//Load xml file
-		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
-		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigStackConfigured.xml", getClass()));
+        //Load xml file
+        XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+        xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfig.xml", getClass()));
 
 
-		AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
+        AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
-		ResourceIdResolver resourceIdResolver = beanFactory.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ResourceIdResolver.class);
+        //Replay invocation that will be called
+        DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+        memcached.setShowCacheNodeInfo(true);
 
-		when(resourceIdResolver.resolveToPhysicalResourceId("testMemcached")).thenReturn("memcached");
+        when(client.describeCacheClusters(memcached)).thenReturn(
+                new DescribeCacheClustersResult().withCacheClusters(
+                        new CacheCluster().withCacheClusterId("memcached").
+                                withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+                                withCacheClusterStatus("available").withEngine("memcached")
+                )
+        );
 
-		//Replay invocation that will be called
-		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
-		memcached.setShowCacheNodeInfo(true);
+        //Act
+        CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+        Cache cache = cacheManager.getCache("memcached");
+        cache.put("foo", "bar");
+        cache.evict("foo");
 
-		when(client.describeCacheClusters(memcached)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withCacheClusterId("memcached").
-								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available").withEngine("memcached")
-				)
-		);
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(cache);
+    }
 
-		//Act
-		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
-		Cache cache = cacheManager.getCache("testMemcached");
-		cache.put("foo", "bar");
-		cache.evict("foo");
+    @Test
+    public void parseInternal_clusterCacheConfigurationWithLogicalName_returnsConfiguredClusterCacheWithPhysicalName() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-	}
+        //Register a mock object which will be used to replay service calls
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        beanDefinitionBuilder.setFactoryMethod("mock");
+        beanDefinitionBuilder.addConstructorArgValue(AmazonElastiCache.class);
+        beanFactory.registerBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), beanDefinitionBuilder.getBeanDefinition());
 
-	@Test
-	public void parseInternal_clusterCacheConfigurationWithRegion_returnsConfiguredClusterCacheWithRegion() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        BeanDefinitionBuilder resourceIdBuilder = BeanDefinitionBuilder.rootBeanDefinition(Mockito.class);
+        resourceIdBuilder.setFactoryMethod("mock");
+        resourceIdBuilder.addConstructorArgValue(ResourceIdResolver.class);
+        beanFactory.registerBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, resourceIdBuilder.getBeanDefinition());
 
-		//Load xml file
-		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
-		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigRegionConfigured.xml", getClass()));
+        //Load xml file
+        XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+        xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigStackConfigured.xml", getClass()));
 
 
-		//Act
-		BeanDefinition beanDefinition = beanFactory.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()));
+        AmazonElastiCache client = beanFactory.getBean(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()), AmazonElastiCache.class);
 
-		//Assert
-		assertNotNull(beanDefinition);
-		assertNotNull(beanDefinition.getPropertyValues().get("customRegion"));
-	}
+        ResourceIdResolver resourceIdResolver = beanFactory.getBean(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, ResourceIdResolver.class);
 
-	@Test
-	public void parseInternal_clusterCacheConfigurationWithCustomElastiCacheClient_returnsConfigurationWithCustomClient() throws Exception {
-		//Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        when(resourceIdResolver.resolveToPhysicalResourceId("testMemcached")).thenReturn("memcached");
 
-		//Load xml file
-		XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
-		xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigWithCustomElastiCacheClient.xml", getClass()));
+        //Replay invocation that will be called
+        DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+        memcached.setShowCacheNodeInfo(true);
 
-		AmazonElastiCache amazonElastiCacheMock = beanFactory.getBean("customClient", AmazonElastiCache.class);
+        when(client.describeCacheClusters(memcached)).thenReturn(
+                new DescribeCacheClustersResult().withCacheClusters(
+                        new CacheCluster().withCacheClusterId("memcached").
+                                withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+                                withCacheClusterStatus("available").withEngine("memcached")
+                )
+        );
 
-		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
-		memcached.setShowCacheNodeInfo(true);
+        //Act
+        CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+        Cache cache = cacheManager.getCache("testMemcached");
+        cache.put("foo", "bar");
+        cache.evict("foo");
 
-		when(amazonElastiCacheMock.describeCacheClusters(memcached)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withCacheClusterId("memcached").
-								withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
-								withCacheClusterStatus("available").withEngine("memcached")
-				)
-		);
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(cache);
+    }
 
-		//Act
-		CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
-		Cache cache = cacheManager.getCache("memcached");
-		cache.put("foo", "bar");
-		cache.evict("foo");
+    @Test
+    public void parseInternal_clusterCacheConfigurationWithRegion_returnsConfiguredClusterCacheWithRegion() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		//Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-	}
+        //Load xml file
+        XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+        xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigRegionConfigured.xml", getClass()));
 
-	@BeforeClass
-	public static void setupMemcachedServerAndClient() throws Exception {
-		// Get next free port for the test server
-		int availableTcpPort = TestMemcacheServer.startServer();
 
-		// Set the port as system property to easily fetch it in the Spring config
-		System.setProperty("memcachedPort", String.valueOf(availableTcpPort));
-	}
+        //Act
+        BeanDefinition beanDefinition = beanFactory.getBeanDefinition(AmazonWebserviceClientConfigurationUtils.getBeanName(AmazonElastiCacheClient.class.getName()));
 
-	@AfterClass
-	public static void tearDownMemcachedServerAndClient() throws Exception {
-		TestMemcacheServer.stopServer();
-		System.clearProperty("memcachedPort");
-	}
+        //Assert
+        assertNotNull(beanDefinition);
+        assertNotNull(beanDefinition.getPropertyValues().get("customRegion"));
+    }
+
+    @Test
+    public void parseInternal_clusterCacheConfigurationWithCustomElastiCacheClient_returnsConfigurationWithCustomClient() throws Exception {
+        //Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+
+        //Load xml file
+        XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+        xmlBeanDefinitionReader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + "-elastiCacheConfigWithCustomElastiCacheClient.xml", getClass()));
+
+        AmazonElastiCache amazonElastiCacheMock = beanFactory.getBean("customClient", AmazonElastiCache.class);
+
+        DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
+        memcached.setShowCacheNodeInfo(true);
+
+        when(amazonElastiCacheMock.describeCacheClusters(memcached)).thenReturn(
+                new DescribeCacheClustersResult().withCacheClusters(
+                        new CacheCluster().withCacheClusterId("memcached").
+                                withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(Integer.parseInt(System.getProperty("memcachedPort")))).
+                                withCacheClusterStatus("available").withEngine("memcached")
+                )
+        );
+
+        //Act
+        CacheManager cacheManager = beanFactory.getBean(CacheManager.class);
+        Cache cache = cacheManager.getCache("memcached");
+        cache.put("foo", "bar");
+        cache.evict("foo");
+
+        //Assert
+        assertNotNull(cacheManager);
+        assertNotNull(cache);
+    }
+
+    @BeforeClass
+    public static void setupMemcachedServerAndClient() throws Exception {
+        // Get next free port for the test server
+        int availableTcpPort = TestMemcacheServer.startServer();
+
+        // Set the port as system property to easily fetch it in the Spring config
+        System.setProperty("memcachedPort", String.valueOf(availableTcpPort));
+    }
+
+    @AfterClass
+    public static void tearDownMemcachedServerAndClient() throws Exception {
+        TestMemcacheServer.stopServer();
+        System.clearProperty("memcachedPort");
+    }
 }

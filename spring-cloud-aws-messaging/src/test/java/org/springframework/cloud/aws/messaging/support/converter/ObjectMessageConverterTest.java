@@ -40,70 +40,70 @@ import static org.junit.Assert.assertTrue;
  */
 public class ObjectMessageConverterTest {
 
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void testToMessageAndFromMessage() throws Exception {
-		String content = "stringwithspecialcharsöäü€a8";
-		MySerializableClass sourceMessage = new MySerializableClass(content);
-		MessageConverter messageConverter = new ObjectMessageConverter();
-		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("UTF-8"));
-		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
-		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
-		assertEquals(content, result.getContent());
-	}
+    @Test
+    public void testToMessageAndFromMessage() throws Exception {
+        String content = "stringwithspecialcharsöäü€a8";
+        MySerializableClass sourceMessage = new MySerializableClass(content);
+        MessageConverter messageConverter = new ObjectMessageConverter();
+        Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("UTF-8"));
+        assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
+        MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
+        assertEquals(content, result.getContent());
+    }
 
-	@Test
-	public void testToMessageAndFromMessageWithCustomEncoding() throws Exception {
-		String content = "stringwithspecialcharsöäü€a8";
-		MySerializableClass sourceMessage = new MySerializableClass(content);
-		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
-		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("ISO-8859-1"));
-		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
-		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
-		assertEquals(content, result.getContent());
-	}
+    @Test
+    public void testToMessageAndFromMessageWithCustomEncoding() throws Exception {
+        String content = "stringwithspecialcharsöäü€a8";
+        MySerializableClass sourceMessage = new MySerializableClass(content);
+        MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
+        Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("ISO-8859-1"));
+        assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
+        MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message, MySerializableClass.class);
+        assertEquals(content, result.getContent());
+    }
 
-	@Test(expected = UnsupportedCharsetException.class)
-	public void testWithWrongCharset() throws Exception {
-		//noinspection ResultOfObjectAllocationIgnored
-		new ObjectMessageConverter("someUnsupportedEncoding");
-	}
+    @Test(expected = UnsupportedCharsetException.class)
+    public void testWithWrongCharset() throws Exception {
+        //noinspection ResultOfObjectAllocationIgnored
+        new ObjectMessageConverter("someUnsupportedEncoding");
+    }
 
-	@Test
-	public void testPayloadIsNotAValidBase64Payload() throws Exception {
-		this.expectedException.expect(MessageConversionException.class);
-		this.expectedException.expectMessage("not a valid base64 encoded stream");
+    @Test
+    public void testPayloadIsNotAValidBase64Payload() throws Exception {
+        this.expectedException.expect(MessageConversionException.class);
+        this.expectedException.expectMessage("not a valid base64 encoded stream");
 
-		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		messageConverter.fromMessage(MessageBuilder.withPayload("test€").build(), null);
-	}
+        ObjectMessageConverter messageConverter = new ObjectMessageConverter();
+        messageConverter.fromMessage(MessageBuilder.withPayload("test€").build(), null);
+    }
 
-	@Test
-	public void testPayloadIsNotAValidObjectStream() throws Exception {
-		this.expectedException.expect(MessageConversionException.class);
-		this.expectedException.expectMessage("Error reading payload");
+    @Test
+    public void testPayloadIsNotAValidObjectStream() throws Exception {
+        this.expectedException.expect(MessageConversionException.class);
+        this.expectedException.expectMessage("Error reading payload");
 
-		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(), null);
-	}
+        ObjectMessageConverter messageConverter = new ObjectMessageConverter();
+        messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(), null);
+    }
 
-	private static MessageHeaders getMessageHeaders(String charsetName) {
-		return new MessageHeaders(Collections.<String, Object>singletonMap(MessageHeaders.CONTENT_TYPE,
-				new MimeType("application", "x-java-serialized-object", Charset.forName(charsetName))));
-	}
+    private static MessageHeaders getMessageHeaders(String charsetName) {
+        return new MessageHeaders(Collections.<String, Object>singletonMap(MessageHeaders.CONTENT_TYPE,
+                new MimeType("application", "x-java-serialized-object", Charset.forName(charsetName))));
+    }
 
-	private static class MySerializableClass implements Serializable {
+    private static class MySerializableClass implements Serializable {
 
-		private final String content;
+        private final String content;
 
-		private MySerializableClass(String content) {
-			this.content = content;
-		}
+        private MySerializableClass(String content) {
+            this.content = content;
+        }
 
-		public String getContent() {
-			return this.content;
-		}
-	}
+        public String getContent() {
+            return this.content;
+        }
+    }
 }

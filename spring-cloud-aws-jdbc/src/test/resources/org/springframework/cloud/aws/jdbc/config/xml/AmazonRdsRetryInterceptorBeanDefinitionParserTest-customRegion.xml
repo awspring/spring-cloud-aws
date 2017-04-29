@@ -31,5 +31,5 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-  <jdbc:retry-interceptor db-instance-identifier="test" id="interceptor" region="eu-west-1" />
+	<jdbc:retry-interceptor db-instance-identifier="test" id="interceptor" region="eu-west-1" />
 </beans>

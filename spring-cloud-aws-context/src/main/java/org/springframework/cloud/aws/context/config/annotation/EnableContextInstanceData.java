@@ -37,19 +37,19 @@ import java.lang.annotation.Target;
 @Import(ContextInstanceDataConfiguration.class)
 public @interface EnableContextInstanceData {
 
-	/**
-	 * Allows to configure the value separator for the user data configured attributes. These is by default
-	 * the ':' character following the Spring general place holder support {@link PlaceholderConfigurerSupport}
-	 *
-	 * @return the custom configured value separator
-	 */
-	String valueSeparator() default PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+    /**
+     * Allows to configure the value separator for the user data configured attributes. These is by default
+     * the ':' character following the Spring general place holder support {@link PlaceholderConfigurerSupport}
+     *
+     * @return the custom configured value separator
+     */
+    String valueSeparator() default PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
-	/**
-	 * Allows to configure the attribute separator to separate multiple attributes in one global user data string.
-	 *
-	 * @return the custom configured attribute separator or ';' as the default
-	 */
-	String attributeSeparator() default ";";
+    /**
+     * Allows to configure the attribute separator to separate multiple attributes in one global user data string.
+     *
+     * @return the custom configured attribute separator or ';' as the default
+     */
+    String attributeSeparator() default ";";
 
 }

@@ -44,183 +44,183 @@ import java.util.List;
  */
 public class TestStackInstanceIdService {
 
-	private static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
-	private static final int INSTANCE_ID_SERVICE_PORT = 12345;
+    private static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
+    private static final int INSTANCE_ID_SERVICE_PORT = 12345;
 
-	private final InstanceIdSource instanceIdSource;
+    private final InstanceIdSource instanceIdSource;
 
-	private HttpServer httpServer;
+    private HttpServer httpServer;
 
-	private TestStackInstanceIdService(InstanceIdSource instanceIdSource) {
-		this.instanceIdSource = instanceIdSource;
-	}
+    private TestStackInstanceIdService(InstanceIdSource instanceIdSource) {
+        this.instanceIdSource = instanceIdSource;
+    }
 
-	public void enable() {
-		startMetadataHttpServer(this.instanceIdSource.getInstanceId());
-		overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":" + INSTANCE_ID_SERVICE_PORT);
-	}
+    public void enable() {
+        startMetadataHttpServer(this.instanceIdSource.getInstanceId());
+        overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":" + INSTANCE_ID_SERVICE_PORT);
+    }
 
-	public void disable() {
-		resetMetadataEndpointUrlOverwrite();
-		clearMetadataCache();
-		stopMetadataHttpServer();
-	}
+    public void disable() {
+        resetMetadataEndpointUrlOverwrite();
+        clearMetadataCache();
+        stopMetadataHttpServer();
+    }
 
-	private void startMetadataHttpServer(String instanceId) {
-		try {
-			this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
-			this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
-			this.httpServer.start();
-		} catch (IOException e) {
-			throw new IllegalStateException("Unable to start metadata http server", e);
-		}
-	}
+    private void startMetadataHttpServer(String instanceId) {
+        try {
+            this.httpServer = HttpServer.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
+            this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
+            this.httpServer.start();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to start metadata http server", e);
+        }
+    }
 
-	private void stopMetadataHttpServer() {
-		if (this.httpServer != null) {
-			this.httpServer.stop(0);
-		}
-	}
+    private void stopMetadataHttpServer() {
+        if (this.httpServer != null) {
+            this.httpServer.stop(0);
+        }
+    }
 
-	public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
-		return new TestStackInstanceIdService(new AmazonStackOutputBasedInstanceIdSource(stackName, outputKey, amazonCloudFormationClient));
-	}
+    public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
+        return new TestStackInstanceIdService(new AmazonStackOutputBasedInstanceIdSource(stackName, outputKey, amazonCloudFormationClient));
+    }
 
-	public static TestStackInstanceIdService fromInstanceId(String instanceId) {
-		return new TestStackInstanceIdService(new StaticInstanceIdSource(instanceId));
-	}
+    public static TestStackInstanceIdService fromInstanceId(String instanceId) {
+        return new TestStackInstanceIdService(new StaticInstanceIdSource(instanceId));
+    }
 
-	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
-		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
-	}
+    private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+        System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
+    }
 
-	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
+    private static void resetMetadataEndpointUrlOverwrite() {
+        System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+    }
 
-	private static void clearMetadataCache() {
-		try {
-			Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
-			metadataCacheField.setAccessible(true);
-			metadataCacheField.set(null, new HashMap<String, String>());
-		} catch (Exception e) {
-			throw new IllegalStateException("Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
-		}
-	}
-
-
-	/**
-	 * Utility interface for abstracting source for instance id.
-	 */
-	private interface InstanceIdSource {
-
-		String getInstanceId();
-
-	}
-
-	/**
-	 * Handler for responding with specified instance id
-	 */
-	private static class InstanceIdHttpHandler implements HttpHandler {
-
-		private final String instanceId;
-
-		private InstanceIdHttpHandler(String instanceId) {
-			this.instanceId = instanceId;
-		}
-
-		@Override
-		public void handle(HttpExchange httpExchange) throws IOException {
-			httpExchange.sendResponseHeaders(200, this.instanceId.getBytes().length);
-
-			OutputStream responseBody = httpExchange.getResponseBody();
-			responseBody.write(this.instanceId.getBytes());
-			responseBody.flush();
-			responseBody.close();
-		}
-
-	}
-
-	/**
-	 * Source for statically configured instance id.
-	 * <p>
-	 * Useful for unit testing.
-	 * </p>
-	 */
-	private static class StaticInstanceIdSource implements InstanceIdSource {
-
-		private final String instanceId;
-
-		private StaticInstanceIdSource(String instanceId) {
-			this.instanceId = instanceId;
-		}
-
-		@Override
-		public String getInstanceId() {
-			return this.instanceId;
-		}
-
-	}
+    private static void clearMetadataCache() {
+        try {
+            Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
+            metadataCacheField.setAccessible(true);
+            metadataCacheField.set(null, new HashMap<String, String>());
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
+        }
+    }
 
 
-	/**
-	 * Source for retrieving instance id from specified output key of specified stack. Requires specified stack to be
-	 * available.
-	 * <p>
-	 * Useful for integration testing.
-	 * </p>
-	 */
-	private static class AmazonStackOutputBasedInstanceIdSource implements InstanceIdSource {
+    /**
+     * Utility interface for abstracting source for instance id.
+     */
+    private interface InstanceIdSource {
 
-		private final String stackName;
-		private final String outputKey;
-		private final AmazonCloudFormation amazonCloudFormationClient;
+        String getInstanceId();
 
-		private AmazonStackOutputBasedInstanceIdSource(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
-			this.stackName = stackName;
-			this.outputKey = outputKey;
-			this.amazonCloudFormationClient = amazonCloudFormationClient;
-		}
+    }
 
-		private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
-			for (Stack stack : describeStacksResult.getStacks()) {
-				if (stack.getStackName().equals(stackName)) {
-					return stack;
-				}
-			}
+    /**
+     * Handler for responding with specified instance id
+     */
+    private static class InstanceIdHttpHandler implements HttpHandler {
 
-			throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: " + allStackNames(describeStacksResult) + ")");
-		}
+        private final String instanceId;
 
-		@Override
-		public String getInstanceId() {
-			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
-			Stack stack = getStack(describeStacksResult, this.stackName);
+        private InstanceIdHttpHandler(String instanceId) {
+            this.instanceId = instanceId;
+        }
 
-			return getOutputValue(stack, this.outputKey);
-		}
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            httpExchange.sendResponseHeaders(200, this.instanceId.getBytes().length);
 
-		private static String getOutputValue(Stack stack, String outputKey) {
-			for (Output output : stack.getOutputs()) {
-				if (output.getOutputKey().equals(outputKey)) {
-					return output.getOutputValue();
-				}
-			}
+            OutputStream responseBody = httpExchange.getResponseBody();
+            responseBody.write(this.instanceId.getBytes());
+            responseBody.flush();
+            responseBody.close();
+        }
 
-			throw new IllegalStateException("No output '" + outputKey + "' defined in stack '" + stack.getStackName() + "'");
-		}
+    }
 
-		private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
-			List<String> allStackNames = new ArrayList<>();
+    /**
+     * Source for statically configured instance id.
+     * <p>
+     * Useful for unit testing.
+     * </p>
+     */
+    private static class StaticInstanceIdSource implements InstanceIdSource {
 
-			for (Stack stack : describeStacksResult.getStacks()) {
-				allStackNames.add(stack.getStackName());
-			}
+        private final String instanceId;
 
-			return allStackNames;
-		}
+        private StaticInstanceIdSource(String instanceId) {
+            this.instanceId = instanceId;
+        }
+
+        @Override
+        public String getInstanceId() {
+            return this.instanceId;
+        }
+
+    }
 
 
-	}
+    /**
+     * Source for retrieving instance id from specified output key of specified stack. Requires specified stack to be
+     * available.
+     * <p>
+     * Useful for integration testing.
+     * </p>
+     */
+    private static class AmazonStackOutputBasedInstanceIdSource implements InstanceIdSource {
+
+        private final String stackName;
+        private final String outputKey;
+        private final AmazonCloudFormation amazonCloudFormationClient;
+
+        private AmazonStackOutputBasedInstanceIdSource(String stackName, String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
+            this.stackName = stackName;
+            this.outputKey = outputKey;
+            this.amazonCloudFormationClient = amazonCloudFormationClient;
+        }
+
+        private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
+            for (Stack stack : describeStacksResult.getStacks()) {
+                if (stack.getStackName().equals(stackName)) {
+                    return stack;
+                }
+            }
+
+            throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: " + allStackNames(describeStacksResult) + ")");
+        }
+
+        @Override
+        public String getInstanceId() {
+            DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest());
+            Stack stack = getStack(describeStacksResult, this.stackName);
+
+            return getOutputValue(stack, this.outputKey);
+        }
+
+        private static String getOutputValue(Stack stack, String outputKey) {
+            for (Output output : stack.getOutputs()) {
+                if (output.getOutputKey().equals(outputKey)) {
+                    return output.getOutputValue();
+                }
+            }
+
+            throw new IllegalStateException("No output '" + outputKey + "' defined in stack '" + stack.getStackName() + "'");
+        }
+
+        private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
+            List<String> allStackNames = new ArrayList<>();
+
+            for (Stack stack : describeStacksResult.getStacks()) {
+                allStackNames.add(stack.getStackName());
+            }
+
+            return allStackNames;
+        }
+
+
+    }
 
 }

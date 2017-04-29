@@ -49,4 +49,5 @@ import java.lang.annotation.RetentionPolicy;
 @RequestMapping(headers = "x-amz-sns-message-type=SubscriptionConfirmation", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationSubscriptionMapping {
+
 }

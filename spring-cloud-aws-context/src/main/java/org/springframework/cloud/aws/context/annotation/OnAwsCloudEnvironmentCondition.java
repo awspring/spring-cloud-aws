@@ -25,15 +25,15 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Agim Emruli
  * @author Gleb Schukin
  */
-public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition{
+public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition {
 
-	@Override
-	public ConfigurationPhase getConfigurationPhase() {
-		return ConfigurationPhase.PARSE_CONFIGURATION;
-	}
+    @Override
+    public ConfigurationPhase getConfigurationPhase() {
+        return ConfigurationPhase.PARSE_CONFIGURATION;
+    }
 
-	@Override
-	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
-	}
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
+    }
 }

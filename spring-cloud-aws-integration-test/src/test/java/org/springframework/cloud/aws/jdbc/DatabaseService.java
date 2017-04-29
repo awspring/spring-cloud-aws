@@ -23,8 +23,8 @@ import java.util.Date;
  */
 interface DatabaseService {
 
-	Date getLastUpdate(Date lastAccessDatabase);
+    Date getLastUpdate(Date lastAccessDatabase);
 
-	Date updateLastAccessDatabase();
+    Date updateLastAccessDatabase();
 
 }

@@ -27,30 +27,30 @@ import static org.junit.Assert.assertNotNull;
 
 public class RedisCacheFactoryTest {
 
-	@Test
-	public void createCache_withMockedRedisConnectionFactory_createsAndDestroysConnectionFactory() throws Exception {
-		//Arrange
-		final RedisConnectionFactory connectionFactory = Mockito.mock(RedisConnectionFactory.class, Mockito.withSettings().extraInterfaces(DisposableBean.class));
-		RedisCacheFactory redisCacheFactory = new RedisCacheFactory() {
+    @Test
+    public void createCache_withMockedRedisConnectionFactory_createsAndDestroysConnectionFactory() throws Exception {
+        //Arrange
+        final RedisConnectionFactory connectionFactory = Mockito.mock(RedisConnectionFactory.class, Mockito.withSettings().extraInterfaces(DisposableBean.class));
+        RedisCacheFactory redisCacheFactory = new RedisCacheFactory() {
 
-			@Override
-			protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
-				assertEquals("someHost", hostName);
-				assertEquals(4711, port);
-				return connectionFactory;
-			}
-		};
+            @Override
+            protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
+                assertEquals("someHost", hostName);
+                assertEquals(4711, port);
+                return connectionFactory;
+            }
+        };
 
-		//Act
-		Cache cache = redisCacheFactory.createCache("test", "someHost", 4711);
-		redisCacheFactory.destroy();
+        //Act
+        Cache cache = redisCacheFactory.createCache("test", "someHost", 4711);
+        redisCacheFactory.destroy();
 
-		//Assert
-		assertNotNull(cache);
-		assertEquals("test", cache.getName());
-		assertNotNull(cache.getNativeCache());
+        //Assert
+        assertNotNull(cache);
+        assertEquals("test", cache.getName());
+        assertNotNull(cache.getNativeCache());
 
-		DisposableBean disposableBean = (DisposableBean) connectionFactory;
-		Mockito.verify(disposableBean, Mockito.times(1)).destroy();
-	}
+        DisposableBean disposableBean = (DisposableBean) connectionFactory;
+        Mockito.verify(disposableBean, Mockito.times(1)).destroy();
+    }
 }

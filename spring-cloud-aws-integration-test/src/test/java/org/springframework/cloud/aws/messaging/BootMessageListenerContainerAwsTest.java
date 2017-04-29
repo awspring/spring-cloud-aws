@@ -33,35 +33,35 @@ import java.util.concurrent.ThreadPoolExecutor;
 @SpringBootTest(classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 public class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
-	@Configuration
-	@EnableAutoConfiguration
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	protected static class MessageListenerContainerAwsTestConfiguration {
+    @Configuration
+    @EnableAutoConfiguration
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    protected static class MessageListenerContainerAwsTestConfiguration {
 
-		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
-			simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
+        @Bean
+        public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+            SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+            simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
 
-			return simpleMessageListenerContainerFactory;
-		}
+            return simpleMessageListenerContainerFactory;
+        }
 
-		@Bean
-		public AsyncTaskExecutor taskExecutor() {
-			ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-			threadPoolTaskExecutor.setCorePoolSize(10);
-			threadPoolTaskExecutor.setMaxPoolSize(200);
-			threadPoolTaskExecutor.setQueueCapacity(0);
-			threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        @Bean
+        public AsyncTaskExecutor taskExecutor() {
+            ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+            threadPoolTaskExecutor.setCorePoolSize(10);
+            threadPoolTaskExecutor.setMaxPoolSize(200);
+            threadPoolTaskExecutor.setQueueCapacity(0);
+            threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
-			return threadPoolTaskExecutor;
-		}
+            return threadPoolTaskExecutor;
+        }
 
-		@Bean
-		public MessageReceiver messageReceiver() {
-			return new MessageReceiver();
-		}
+        @Bean
+        public MessageReceiver messageReceiver() {
+            return new MessageReceiver();
+        }
 
-	}
+    }
 
 }

@@ -25,16 +25,16 @@ import com.amazonaws.client.builder.AwsSyncClientBuilder;
  */
 public class AmazonTestWebserviceClientBuilder extends AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
 
-	private AmazonTestWebserviceClientBuilder() {
-		super(new ClientConfigurationFactory());
-	}
+    private AmazonTestWebserviceClientBuilder() {
+        super(new ClientConfigurationFactory());
+    }
 
-	public static AmazonTestWebserviceClientBuilder standard() {
-		return new AmazonTestWebserviceClientBuilder();
-	}
+    public static AmazonTestWebserviceClientBuilder standard() {
+        return new AmazonTestWebserviceClientBuilder();
+    }
 
-	@Override
-	protected AmazonTestWebserviceClient build(AwsSyncClientParams clientParams) {
-		return new AmazonTestWebserviceClient(getCredentials());
-	}
+    @Override
+    protected AmazonTestWebserviceClient build(AwsSyncClientParams clientParams) {
+        return new AmazonTestWebserviceClient(getCredentials());
+    }
 }

@@ -23,8 +23,8 @@ import java.util.Collection;
  */
 public interface ListableStackResourceFactory extends StackResourceRegistry {
 
-	Collection<StackResource> getAllResources();
+    Collection<StackResource> getAllResources();
 
-	Collection<StackResource> resourcesByType(String type);
+    Collection<StackResource> resourcesByType(String type);
 
 }

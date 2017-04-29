@@ -26,9 +26,9 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootTest(classes = BootElastiCacheAwsTest.BootElastiCacheAwsTestConfig.class)
 public class BootElastiCacheAwsTest extends ElastiCacheAwsTest {
 
-	@SpringBootApplication
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	static class BootElastiCacheAwsTestConfig {
+    @SpringBootApplication
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    static class BootElastiCacheAwsTestConfig {
 
-	}
+    }
 }

@@ -34,47 +34,47 @@ import org.springframework.util.StringUtils;
  */
 public class AmazonEc2InstanceDataPropertySourcePostProcessor implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor {
 
-	static final String INSTANCE_DATA_PROPERTY_SOURCE_NAME = "InstanceData";
-	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
+    static final String INSTANCE_DATA_PROPERTY_SOURCE_NAME = "InstanceData";
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
 
-	private Environment environment;
-	private String valueSeparator;
-	private String attributeSeparator;
+    private Environment environment;
+    private String valueSeparator;
+    private String attributeSeparator;
 
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
-	}
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
 
-	public void setValueSeparator(String valueSeparator) {
-		this.valueSeparator = valueSeparator;
-	}
+    public void setValueSeparator(String valueSeparator) {
+        this.valueSeparator = valueSeparator;
+    }
 
-	public void setAttributeSeparator(String attributeSeparator) {
-		this.attributeSeparator = attributeSeparator;
-	}
+    public void setAttributeSeparator(String attributeSeparator) {
+        this.attributeSeparator = attributeSeparator;
+    }
 
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (this.environment instanceof ConfigurableEnvironment) {
-			AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME);
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        if (this.environment instanceof ConfigurableEnvironment) {
+            AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME);
 
-			if (StringUtils.hasText(this.valueSeparator)) {
-				propertySource.setUserDataValueSeparator(this.valueSeparator);
-			}
+            if (StringUtils.hasText(this.valueSeparator)) {
+                propertySource.setUserDataValueSeparator(this.valueSeparator);
+            }
 
-			if (StringUtils.hasText(this.attributeSeparator)) {
-				propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
-			}
+            if (StringUtils.hasText(this.attributeSeparator)) {
+                propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
+            }
 
-			((ConfigurableEnvironment) this.environment).getPropertySources().addLast(propertySource);
-		} else {
-			LOGGER.warn("Environment is not of type '{}' property source with instance data is not available", ConfigurableEnvironment.class.getName());
-		}
-	}
+            ((ConfigurableEnvironment) this.environment).getPropertySources().addLast(propertySource);
+        } else {
+            LOGGER.warn("Environment is not of type '{}' property source with instance data is not available", ConfigurableEnvironment.class.getName());
+        }
+    }
 }

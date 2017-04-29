@@ -43,72 +43,72 @@ import java.util.Map;
  */
 public class SimpleEmailServiceMailSender implements MailSender, DisposableBean {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
-	private final AmazonSimpleEmailService emailService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
+    private final AmazonSimpleEmailService emailService;
 
-	public SimpleEmailServiceMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-		this.emailService = amazonSimpleEmailService;
-	}
+    public SimpleEmailServiceMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
+        this.emailService = amazonSimpleEmailService;
+    }
 
-	@Override
-	public void send(SimpleMailMessage simpleMailMessage) throws MailException {
-		send(new SimpleMailMessage[]{simpleMailMessage});
-	}
+    @Override
+    public void send(SimpleMailMessage simpleMailMessage) throws MailException {
+        send(new SimpleMailMessage[]{simpleMailMessage});
+    }
 
-	@SuppressWarnings("OverloadedVarargsMethod")
-	@Override
-	public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
+    @SuppressWarnings("OverloadedVarargsMethod")
+    @Override
+    public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
 
-		Map<Object, Exception> failedMessages = new HashMap<>();
+        Map<Object, Exception> failedMessages = new HashMap<>();
 
-		for (SimpleMailMessage simpleMessage : simpleMailMessages) {
-			try {
-				SendEmailResult sendEmailResult = getEmailService().sendEmail(prepareMessage(simpleMessage));
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendEmailResult.getMessageId());
-				}
-			} catch (AmazonClientException e) {
-				//Ignore Exception because we are collecting and throwing all if any
-				//noinspection ThrowableResultOfMethodCallIgnored
-				failedMessages.put(simpleMessage, e);
-			}
-		}
+        for (SimpleMailMessage simpleMessage : simpleMailMessages) {
+            try {
+                SendEmailResult sendEmailResult = getEmailService().sendEmail(prepareMessage(simpleMessage));
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Message with id: {} successfully send", sendEmailResult.getMessageId());
+                }
+            } catch (AmazonClientException e) {
+                //Ignore Exception because we are collecting and throwing all if any
+                //noinspection ThrowableResultOfMethodCallIgnored
+                failedMessages.put(simpleMessage, e);
+            }
+        }
 
-		if (!failedMessages.isEmpty()) {
-			throw new MailSendException(failedMessages);
-		}
-	}
+        if (!failedMessages.isEmpty()) {
+            throw new MailSendException(failedMessages);
+        }
+    }
 
-	@Override
-	public final void destroy() throws Exception {
-		getEmailService().shutdown();
-	}
+    @Override
+    public final void destroy() throws Exception {
+        getEmailService().shutdown();
+    }
 
-	protected AmazonSimpleEmailService getEmailService() {
-		return this.emailService;
-	}
+    protected AmazonSimpleEmailService getEmailService() {
+        return this.emailService;
+    }
 
-	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
-		Destination destination = new Destination();
-		destination.withToAddresses(simpleMailMessage.getTo());
+    private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
+        Destination destination = new Destination();
+        destination.withToAddresses(simpleMailMessage.getTo());
 
-		if (simpleMailMessage.getCc() != null) {
-			destination.withCcAddresses(simpleMailMessage.getCc());
-		}
+        if (simpleMailMessage.getCc() != null) {
+            destination.withCcAddresses(simpleMailMessage.getCc());
+        }
 
-		if (simpleMailMessage.getBcc() != null) {
-			destination.withBccAddresses(simpleMailMessage.getBcc());
-		}
+        if (simpleMailMessage.getBcc() != null) {
+            destination.withBccAddresses(simpleMailMessage.getBcc());
+        }
 
-		Content subject = new Content(simpleMailMessage.getSubject());
-		Body body = new Body(new Content(simpleMailMessage.getText()));
+        Content subject = new Content(simpleMailMessage.getSubject());
+        Body body = new Body(new Content(simpleMailMessage.getText()));
 
-		SendEmailRequest emailRequest = new SendEmailRequest(simpleMailMessage.getFrom(), destination, new Message(subject, body));
+        SendEmailRequest emailRequest = new SendEmailRequest(simpleMailMessage.getFrom(), destination, new Message(subject, body));
 
-		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
-			emailRequest.withReplyToAddresses(simpleMailMessage.getReplyTo());
-		}
+        if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
+            emailRequest.withReplyToAddresses(simpleMailMessage.getReplyTo());
+        }
 
-		return emailRequest;
-	}
+        return emailRequest;
+    }
 }

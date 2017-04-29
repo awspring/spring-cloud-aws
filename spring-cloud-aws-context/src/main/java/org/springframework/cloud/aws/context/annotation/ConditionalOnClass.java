@@ -38,6 +38,6 @@ import java.lang.annotation.Target;
 @Conditional(OnClassCondition.class)
 public @interface ConditionalOnClass {
 
-	String value();
+    String value();
 
 }

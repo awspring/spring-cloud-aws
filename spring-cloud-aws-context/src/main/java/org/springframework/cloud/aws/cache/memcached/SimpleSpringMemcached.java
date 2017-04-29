@@ -29,100 +29,100 @@ import java.util.concurrent.ExecutionException;
  */
 public class SimpleSpringMemcached implements Cache {
 
-	private final MemcachedClientIF memcachedClientIF;
-	private final String cacheName;
-	private int expiration;
+    private final MemcachedClientIF memcachedClientIF;
+    private final String cacheName;
+    private int expiration;
 
-	public SimpleSpringMemcached(MemcachedClientIF memcachedClientIF, String cacheName) {
-		Assert.notNull(memcachedClientIF, "memcachedClient is mandatory");
-		Assert.notNull(cacheName, "cacheName is mandatory");
-		this.memcachedClientIF = memcachedClientIF;
-		this.cacheName = cacheName;
-	}
+    public SimpleSpringMemcached(MemcachedClientIF memcachedClientIF, String cacheName) {
+        Assert.notNull(memcachedClientIF, "memcachedClient is mandatory");
+        Assert.notNull(cacheName, "cacheName is mandatory");
+        this.memcachedClientIF = memcachedClientIF;
+        this.cacheName = cacheName;
+    }
 
-	@Override
-	public String getName() {
-		return this.cacheName;
-	}
+    @Override
+    public String getName() {
+        return this.cacheName;
+    }
 
-	@Override
-	public Object getNativeCache() {
-		return this.memcachedClientIF;
-	}
+    @Override
+    public Object getNativeCache() {
+        return this.memcachedClientIF;
+    }
 
-	@Override
-	public ValueWrapper get(Object key) {
-		Assert.notNull(key, "key parameter is mandatory");
-		Assert.isAssignable(String.class, key.getClass());
-		Object result = this.memcachedClientIF.get((String) key);
-		return result != null ? new SimpleValueWrapper(result) : null;
-	}
+    @Override
+    public ValueWrapper get(Object key) {
+        Assert.notNull(key, "key parameter is mandatory");
+        Assert.isAssignable(String.class, key.getClass());
+        Object result = this.memcachedClientIF.get((String) key);
+        return result != null ? new SimpleValueWrapper(result) : null;
+    }
 
-	@Override
-	public <T> T get(Object key, Class<T> type) {
-		Assert.notNull(key, "key parameter is mandatory");
-		Assert.isAssignable(String.class, key.getClass());
-		Object result = this.memcachedClientIF.get((String) key);
-		if (result == null) {
-			return null;
-		}
-		Assert.isAssignable(type, result.getClass());
-		return type.cast(result);
-	}
+    @Override
+    public <T> T get(Object key, Class<T> type) {
+        Assert.notNull(key, "key parameter is mandatory");
+        Assert.isAssignable(String.class, key.getClass());
+        Object result = this.memcachedClientIF.get((String) key);
+        if (result == null) {
+            return null;
+        }
+        Assert.isAssignable(type, result.getClass());
+        return type.cast(result);
+    }
 
-	// Spring Framework 4.3 new API
-	//@Override
-	public <T> T get(Object key, Callable<T> valueLoader) {
-		throw new UnsupportedOperationException("Not implemented yet");
-	}
+    // Spring Framework 4.3 new API
+    //@Override
+    public <T> T get(Object key, Callable<T> valueLoader) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
-	@Override
-	public void put(Object key, Object value) {
-		Assert.notNull(key, "key parameter is mandatory");
-		Assert.isAssignable(String.class, key.getClass());
-		try {
-			this.memcachedClientIF.add((String) key, this.expiration, value).get();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		} catch (ExecutionException e) {
-			throw new IllegalArgumentException("Error writing key" + key, e);
-		}
-	}
+    @Override
+    public void put(Object key, Object value) {
+        Assert.notNull(key, "key parameter is mandatory");
+        Assert.isAssignable(String.class, key.getClass());
+        try {
+            this.memcachedClientIF.add((String) key, this.expiration, value).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            throw new IllegalArgumentException("Error writing key" + key, e);
+        }
+    }
 
-	/**
-	 * <b>IMPORTANT:</b> This operation is not atomic as the underlying implementation (memcached) does not provide a
-	 * way to do it.
-	 */
-	@Override
-	public ValueWrapper putIfAbsent(Object key, Object value) {
-		ValueWrapper valueWrapper = get(key);
-		if (valueWrapper == null) {
-			put(key, value);
-			return null;
-		} else {
-			return valueWrapper;
-		}
-	}
+    /**
+     * <b>IMPORTANT:</b> This operation is not atomic as the underlying implementation (memcached) does not provide a
+     * way to do it.
+     */
+    @Override
+    public ValueWrapper putIfAbsent(Object key, Object value) {
+        ValueWrapper valueWrapper = get(key);
+        if (valueWrapper == null) {
+            put(key, value);
+            return null;
+        } else {
+            return valueWrapper;
+        }
+    }
 
-	@Override
-	public void evict(Object key) {
-		Assert.notNull(key, "key parameter is mandatory");
-		Assert.isAssignable(String.class, key.getClass());
-		try {
-			this.memcachedClientIF.delete((String) key).get();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		} catch (ExecutionException e) {
-			throw new IllegalArgumentException("Error evicting items" + key);
-		}
-	}
+    @Override
+    public void evict(Object key) {
+        Assert.notNull(key, "key parameter is mandatory");
+        Assert.isAssignable(String.class, key.getClass());
+        try {
+            this.memcachedClientIF.delete((String) key).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            throw new IllegalArgumentException("Error evicting items" + key);
+        }
+    }
 
-	@Override
-	public void clear() {
-		this.memcachedClientIF.flush();
-	}
+    @Override
+    public void clear() {
+        this.memcachedClientIF.flush();
+    }
 
-	public void setExpiration(int expiration) {
-		this.expiration = expiration;
-	}
+    public void setExpiration(int expiration) {
+        this.expiration = expiration;
+    }
 }

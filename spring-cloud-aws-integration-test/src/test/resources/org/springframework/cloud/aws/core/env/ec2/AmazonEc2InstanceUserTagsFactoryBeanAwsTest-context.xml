@@ -26,6 +26,6 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-  <aws-context:context-instance-data instance-id-provider="testStackEnvironment"
-											  user-tags-map="instanceData" />
+	<aws-context:context-instance-data instance-id-provider="testStackEnvironment"
+									   user-tags-map="instanceData" />
 </beans>

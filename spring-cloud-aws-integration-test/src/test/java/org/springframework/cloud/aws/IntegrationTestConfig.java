@@ -37,19 +37,19 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @EnableContextRegion(region = "eu-west-1")
 public class IntegrationTestConfig {
 
-	@Bean
-	public TestStackEnvironment testStackEnvironment(AmazonCloudFormation amazonCloudFormation) {
-		return new TestStackEnvironment(amazonCloudFormation);
-	}
+    @Bean
+    public TestStackEnvironment testStackEnvironment(AmazonCloudFormation amazonCloudFormation) {
+        return new TestStackEnvironment(amazonCloudFormation);
+    }
 
-	@Bean
-	public TestStackInstanceIdService testStackInstanceIdService(AmazonCloudFormation amazonCloudFormation) {
-		return TestStackInstanceIdService.fromStackOutputKey(TestStackEnvironment.DEFAULT_STACK_NAME,
-				TestStackEnvironment.INSTANCE_ID_STACK_OUTPUT_KEY, amazonCloudFormation);
-	}
+    @Bean
+    public TestStackInstanceIdService testStackInstanceIdService(AmazonCloudFormation amazonCloudFormation) {
+        return TestStackInstanceIdService.fromStackOutputKey(TestStackEnvironment.DEFAULT_STACK_NAME,
+                TestStackEnvironment.INSTANCE_ID_STACK_OUTPUT_KEY, amazonCloudFormation);
+    }
 
-	@Bean
-	public static PropertySourcesPlaceholderConfigurer configurer() {
-		return new PropertySourcesPlaceholderConfigurer();
-	}
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer configurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
 }

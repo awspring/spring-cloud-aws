@@ -34,16 +34,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SnsConfiguration {
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider awsCredentialsProvider;
+    @Autowired(required = false)
+    private AWSCredentialsProvider awsCredentialsProvider;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+    @Autowired(required = false)
+    private RegionProvider regionProvider;
 
-	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
-	@Bean
-	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
-				this.awsCredentialsProvider, this.regionProvider);
-	}
+    @ConditionalOnMissingAmazonClient(AmazonSNS.class)
+    @Bean
+    public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
+        return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
+                this.awsCredentialsProvider, this.regionProvider);
+    }
 }

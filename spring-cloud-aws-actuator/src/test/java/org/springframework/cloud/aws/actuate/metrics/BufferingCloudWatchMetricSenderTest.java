@@ -42,63 +42,63 @@ import static org.mockito.Mockito.verify;
  */
 public class BufferingCloudWatchMetricSenderTest {
 
-	@Captor
-	private ArgumentCaptor<PutMetricDataRequest> putRequestCaptor;
+    @Captor
+    private ArgumentCaptor<PutMetricDataRequest> putRequestCaptor;
 
-	@Mock
-	private AmazonCloudWatchAsyncClient amazonCloudWatchAsyncClient;
+    @Mock
+    private AmazonCloudWatchAsyncClient amazonCloudWatchAsyncClient;
 
-	@Before
-	public void init() {
-		MockitoAnnotations.initMocks(this);
-	}
+    @Before
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
-	@After
-	public void resetMocks() {
-		Mockito.reset(this.amazonCloudWatchAsyncClient);
-	}
+    @After
+    public void resetMocks() {
+        Mockito.reset(this.amazonCloudWatchAsyncClient);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void send_withMetricData_sendsDataToCloudFormation() throws Exception {
-		BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", 10, 1, this.amazonCloudWatchAsyncClient);
-		MetricDatum metric = new MetricDatum().withMetricName("test");
-		sender.afterPropertiesSet();
-		sender.start();
+    @Test
+    @SuppressWarnings("unchecked")
+    public void send_withMetricData_sendsDataToCloudFormation() throws Exception {
+        BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", 10, 1, this.amazonCloudWatchAsyncClient);
+        MetricDatum metric = new MetricDatum().withMetricName("test");
+        sender.afterPropertiesSet();
+        sender.start();
 
-		sender.send(metric);
+        sender.send(metric);
 
-		// Wait
-		sender.stop();
+        // Wait
+        sender.stop();
 
-		verify(this.amazonCloudWatchAsyncClient, times(1)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
-		assertEquals(metric.getMetricName(), this.putRequestCaptor.getValue().getMetricData().get(0).getMetricName());
+        verify(this.amazonCloudWatchAsyncClient, times(1)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
+        assertEquals(metric.getMetricName(), this.putRequestCaptor.getValue().getMetricData().get(0).getMetricName());
 
-		sender.destroy();
-	}
+        sender.destroy();
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void testBufferLimit() throws Exception {
-		int maxBuffer = 40;
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testBufferLimit() throws Exception {
+        int maxBuffer = 40;
 
-		BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", maxBuffer, 4, this.amazonCloudWatchAsyncClient);
-		sender.afterPropertiesSet();
-		sender.start();
+        BufferingCloudWatchMetricSender sender = new BufferingCloudWatchMetricSender("test", maxBuffer, 4, this.amazonCloudWatchAsyncClient);
+        sender.afterPropertiesSet();
+        sender.start();
 
-		// Add
-		int metrics = 50;
-		for (int i = 0; i < metrics; i++) {
-			sender.send(new MetricDatum().withMetricName("test"));
-		}
+        // Add
+        int metrics = 50;
+        for (int i = 0; i < metrics; i++) {
+            sender.send(new MetricDatum().withMetricName("test"));
+        }
 
-		sender.stop();
+        sender.stop();
 
-		verify(this.amazonCloudWatchAsyncClient, times(3)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
-		assertEquals("There should be three requests", 3, this.putRequestCaptor.getAllValues().size());
-		assertEquals("50 metrics should be placed in three requests", maxBuffer, this.putRequestCaptor.getAllValues().get(0).getMetricData().size() + this.putRequestCaptor.getAllValues().get(1).getMetricData().size());
+        verify(this.amazonCloudWatchAsyncClient, times(3)).putMetricDataAsync(this.putRequestCaptor.capture(), (AsyncHandler) any());
+        assertEquals("There should be three requests", 3, this.putRequestCaptor.getAllValues().size());
+        assertEquals("50 metrics should be placed in three requests", maxBuffer, this.putRequestCaptor.getAllValues().get(0).getMetricData().size() + this.putRequestCaptor.getAllValues().get(1).getMetricData().size());
 
-		sender.destroy();
-	}
+        sender.destroy();
+    }
 
 }

@@ -28,19 +28,19 @@ import org.springframework.messaging.support.MessageBuilder;
  */
 public class AcknowledgmentHandlerMethodArgumentResolverTest {
 
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException() throws Exception {
-		// Arrange
-		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver("Acknowledgment");
-		Message<String> message = MessageBuilder.withPayload("no content").build();
+    @Test
+    public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException() throws Exception {
+        // Arrange
+        AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver("Acknowledgment");
+        Message<String> message = MessageBuilder.withPayload("no content").build();
 
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("Acknowledgment");
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException.expectMessage("Acknowledgment");
 
-		// Act
-		acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message);
-	}
+        // Act
+        acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message);
+    }
 }

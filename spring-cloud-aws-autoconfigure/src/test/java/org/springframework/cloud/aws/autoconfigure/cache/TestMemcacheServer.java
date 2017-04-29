@@ -34,36 +34,36 @@ import java.net.InetSocketAddress;
 @SuppressWarnings({"UtilityClassWithoutPrivateConstructor", "NonFinalUtilityClass"})
 public class TestMemcacheServer {
 
-	@SuppressWarnings("StaticNonFinalField")
-	private static MemCacheDaemon<LocalCacheElement> daemon;
+    @SuppressWarnings("StaticNonFinalField")
+    private static MemCacheDaemon<LocalCacheElement> daemon;
 
-	@SuppressWarnings("StaticNonFinalField")
-	private static int portForInstance;
+    @SuppressWarnings("StaticNonFinalField")
+    private static int portForInstance;
 
-	public static int startServer() {
-		if (daemon == null) {
-			System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
+    public static int startServer() {
+        if (daemon == null) {
+            System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
 
-			// Get next free port for the test server
-			portForInstance = SocketUtils.findAvailableTcpPort();
+            // Get next free port for the test server
+            portForInstance = SocketUtils.findAvailableTcpPort();
 
-			//noinspection NonThreadSafeLazyInitialization
-			daemon = new MemCacheDaemon<>();
-			CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024, 1024 * 1024 * 1024);
-			daemon.setCache(new CacheImpl(storage));
-			daemon.setAddr(new InetSocketAddress(portForInstance));
-			daemon.setVerbose(true);
-			daemon.start();
-		}
-		return portForInstance;
-	}
+            //noinspection NonThreadSafeLazyInitialization
+            daemon = new MemCacheDaemon<>();
+            CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024, 1024 * 1024 * 1024);
+            daemon.setCache(new CacheImpl(storage));
+            daemon.setAddr(new InetSocketAddress(portForInstance));
+            daemon.setVerbose(true);
+            daemon.start();
+        }
+        return portForInstance;
+    }
 
-	public static void stopServer() {
-		try {
-			daemon.stop();
-			daemon = null;
-		} finally {
-			System.clearProperty("net.spy.log.LoggerImpl");
-		}
-	}
+    public static void stopServer() {
+        try {
+            daemon.stop();
+            daemon = null;
+        } finally {
+            System.clearProperty("net.spy.log.LoggerImpl");
+        }
+    }
 }

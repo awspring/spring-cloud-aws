@@ -35,74 +35,74 @@ import java.util.List;
  */
 public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheFactoryBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheFactoryBean.class);
 
-	private final AmazonElastiCache amazonElastiCache;
-	private final String cacheClusterId;
-	private final ResourceIdResolver resourceIdResolver;
-	private final List<? extends CacheFactory> cacheFactories;
+    private final AmazonElastiCache amazonElastiCache;
+    private final String cacheClusterId;
+    private final ResourceIdResolver resourceIdResolver;
+    private final List<? extends CacheFactory> cacheFactories;
 
-	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId,
-								  ResourceIdResolver resourceIdResolver, List<? extends CacheFactory> cacheFactories) {
-		this.amazonElastiCache = amazonElastiCache;
-		this.resourceIdResolver = resourceIdResolver;
-		this.cacheClusterId = cacheClusterId;
-		this.cacheFactories = cacheFactories;
-	}
+    public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId,
+                                  ResourceIdResolver resourceIdResolver, List<? extends CacheFactory> cacheFactories) {
+        this.amazonElastiCache = amazonElastiCache;
+        this.resourceIdResolver = resourceIdResolver;
+        this.cacheClusterId = cacheClusterId;
+        this.cacheFactories = cacheFactories;
+    }
 
-	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, List<CacheFactory> cacheFactories) {
-		this(amazonElastiCache, cacheClusterId, null, cacheFactories);
-	}
+    public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId, List<CacheFactory> cacheFactories) {
+        this(amazonElastiCache, cacheClusterId, null, cacheFactories);
+    }
 
-	@Override
-	public Class<Cache> getObjectType() {
-		return Cache.class;
-	}
+    @Override
+    public Class<Cache> getObjectType() {
+        return Cache.class;
+    }
 
-	@Override
-	protected Cache createInstance() throws Exception {
-		DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName());
-		describeCacheClustersRequest.setShowCacheNodeInfo(true);
+    @Override
+    protected Cache createInstance() throws Exception {
+        DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest().withCacheClusterId(getCacheClusterName());
+        describeCacheClustersRequest.setShowCacheNodeInfo(true);
 
-		DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(describeCacheClustersRequest);
+        DescribeCacheClustersResult describeCacheClustersResult = this.amazonElastiCache.describeCacheClusters(describeCacheClustersRequest);
 
-		CacheCluster cacheCluster = describeCacheClustersResult.getCacheClusters().get(0);
-		if (!"available".equals(cacheCluster.getCacheClusterStatus())) {
-			LOGGER.warn("Cache cluster is not available now. Connection may fail during cache access. Current status is {}", cacheCluster.getCacheClusterStatus());
-		}
+        CacheCluster cacheCluster = describeCacheClustersResult.getCacheClusters().get(0);
+        if (!"available".equals(cacheCluster.getCacheClusterStatus())) {
+            LOGGER.warn("Cache cluster is not available now. Connection may fail during cache access. Current status is {}", cacheCluster.getCacheClusterStatus());
+        }
 
-		Endpoint configurationEndpoint = getEndpointForCache(cacheCluster);
+        Endpoint configurationEndpoint = getEndpointForCache(cacheCluster);
 
-		for (CacheFactory cacheFactory : this.cacheFactories) {
-			if (cacheFactory.isSupportingCacheArchitecture(cacheCluster.getEngine())) {
-				return cacheFactory.createCache(this.cacheClusterId, configurationEndpoint.getAddress(), configurationEndpoint.getPort());
-			}
-		}
+        for (CacheFactory cacheFactory : this.cacheFactories) {
+            if (cacheFactory.isSupportingCacheArchitecture(cacheCluster.getEngine())) {
+                return cacheFactory.createCache(this.cacheClusterId, configurationEndpoint.getAddress(), configurationEndpoint.getPort());
+            }
+        }
 
-		throw new IllegalArgumentException("No CacheFactory configured for engine: " + cacheCluster.getEngine());
-	}
+        throw new IllegalArgumentException("No CacheFactory configured for engine: " + cacheCluster.getEngine());
+    }
 
-	@Override
-	protected void destroyInstance(Cache instance) throws Exception {
-		if (instance instanceof DisposableBean) {
-			((DisposableBean) instance).destroy();
-		}
-	}
+    @Override
+    protected void destroyInstance(Cache instance) throws Exception {
+        if (instance instanceof DisposableBean) {
+            ((DisposableBean) instance).destroy();
+        }
+    }
 
-	private String getCacheClusterName() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId) : this.cacheClusterId;
-	}
+    private String getCacheClusterName() {
+        return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId) : this.cacheClusterId;
+    }
 
-	private static Endpoint getEndpointForCache(CacheCluster cacheCluster) {
-		if (cacheCluster.getConfigurationEndpoint() != null) {
-			return cacheCluster.getConfigurationEndpoint();
-		}
+    private static Endpoint getEndpointForCache(CacheCluster cacheCluster) {
+        if (cacheCluster.getConfigurationEndpoint() != null) {
+            return cacheCluster.getConfigurationEndpoint();
+        }
 
-		if (!cacheCluster.getCacheNodes().isEmpty()) {
-			return cacheCluster.getCacheNodes().get(0).getEndpoint();
-		}
+        if (!cacheCluster.getCacheNodes().isEmpty()) {
+            return cacheCluster.getCacheNodes().get(0).getEndpoint();
+        }
 
-		throw new IllegalArgumentException("No Configuration Endpoint or Cache Node available to " +
-				"receive address information for cluster:'" + cacheCluster.getCacheClusterId() + "'");
-	}
+        throw new IllegalArgumentException("No Configuration Endpoint or Cache Node available to " +
+                "receive address information for cluster:'" + cacheCluster.getCacheClusterId() + "'");
+    }
 }

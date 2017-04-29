@@ -32,7 +32,6 @@ import java.lang.annotation.RetentionPolicy;
  * the unsubscribe message without any further action or re-subscribe using the
  * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus#confirmSubscription()} method.
  *
- *
  * A notification controller will be mapped to a particular url inside the application context. The mapped url
  * must be configured inside the Amazon Web Service platform as a subscription. Before receiving any notification
  * itself a controller must confirm the subscription.

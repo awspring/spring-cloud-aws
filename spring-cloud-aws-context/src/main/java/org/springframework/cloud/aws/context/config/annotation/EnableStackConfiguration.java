@@ -33,10 +33,11 @@ import java.lang.annotation.Target;
 @Import(ContextStackConfiguration.class)
 public @interface EnableStackConfiguration {
 
-	/**
-	 * The stack name to be used to retrieve the stack configuration. The stack is auto detected
-	 * if this attribute is not specified
-	 * @return the configured stack name if used
-	 */
-	String stackName() default "";
+    /**
+     * The stack name to be used to retrieve the stack configuration. The stack is auto detected
+     * if this attribute is not specified
+     *
+     * @return the configured stack name if used
+     */
+    String stackName() default "";
 }

@@ -43,79 +43,79 @@ import java.util.concurrent.ExecutorService;
  */
 public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient> extends AbstractFactoryBean<T> {
 
-	private final Class<? extends AmazonWebServiceClient> clientClass;
-	private final AWSCredentialsProvider credentialsProvider;
-	private RegionProvider regionProvider;
-	private Region customRegion;
-	private ExecutorService executor;
+    private final Class<? extends AmazonWebServiceClient> clientClass;
+    private final AWSCredentialsProvider credentialsProvider;
+    private RegionProvider regionProvider;
+    private Region customRegion;
+    private ExecutorService executor;
 
-	public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
-											 AWSCredentialsProvider credentialsProvider) {
-		this.clientClass = clientClass;
-		this.credentialsProvider = credentialsProvider;
-	}
+    public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
+                                             AWSCredentialsProvider credentialsProvider) {
+        this.clientClass = clientClass;
+        this.credentialsProvider = credentialsProvider;
+    }
 
-	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
-		this(clientClass, credentialsProvider);
-		setRegionProvider(regionProvider);
-	}
+    public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
+        this(clientClass, credentialsProvider);
+        setRegionProvider(regionProvider);
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return this.clientClass;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return this.clientClass;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected T createInstance() throws Exception {
+    @SuppressWarnings("unchecked")
+    @Override
+    protected T createInstance() throws Exception {
 
-		String builderName = this.clientClass.getName() + "Builder";
-		Class<?> className = ClassUtils.resolveClassName(builderName, ClassUtils.getDefaultClassLoader());
+        String builderName = this.clientClass.getName() + "Builder";
+        Class<?> className = ClassUtils.resolveClassName(builderName, ClassUtils.getDefaultClassLoader());
 
-		Method method = ClassUtils.getStaticMethod(className, "standard");
-		Assert.notNull(method, "Could not find standard() method in class:'" + className.getName() + "'");
+        Method method = ClassUtils.getStaticMethod(className, "standard");
+        Assert.notNull(method, "Could not find standard() method in class:'" + className.getName() + "'");
 
-		AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils.invokeMethod(method, null);
+        AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils.invokeMethod(method, null);
 
-		if (this.executor != null) {
-			AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
-			asyncBuilder.withExecutorFactory(new ExecutorFactory() {
+        if (this.executor != null) {
+            AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
+            asyncBuilder.withExecutorFactory(new ExecutorFactory() {
 
-				@Override
-				public ExecutorService newExecutor() {
-					return AmazonWebserviceClientFactoryBean.this.executor;
-				}
-			});
-		}
+                @Override
+                public ExecutorService newExecutor() {
+                    return AmazonWebserviceClientFactoryBean.this.executor;
+                }
+            });
+        }
 
-		if (this.credentialsProvider != null) {
-			builder.withCredentials(this.credentialsProvider);
-		}
+        if (this.credentialsProvider != null) {
+            builder.withCredentials(this.credentialsProvider);
+        }
 
-		if (this.customRegion != null) {
-			builder.withRegion(this.customRegion.getName());
-		} else if (this.regionProvider != null) {
-			builder.withRegion(this.regionProvider.getRegion().getName());
-		} else {
-			builder.withRegion(Regions.DEFAULT_REGION);
-		}
-		return builder.build();
-	}
+        if (this.customRegion != null) {
+            builder.withRegion(this.customRegion.getName());
+        } else if (this.regionProvider != null) {
+            builder.withRegion(this.regionProvider.getRegion().getName());
+        } else {
+            builder.withRegion(Regions.DEFAULT_REGION);
+        }
+        return builder.build();
+    }
 
-	public void setRegionProvider(RegionProvider regionProvider) {
-		this.regionProvider = regionProvider;
-	}
+    public void setRegionProvider(RegionProvider regionProvider) {
+        this.regionProvider = regionProvider;
+    }
 
-	public void setCustomRegion(String customRegionName) {
-		this.customRegion = RegionUtils.getRegion(customRegionName);
-	}
+    public void setCustomRegion(String customRegionName) {
+        this.customRegion = RegionUtils.getRegion(customRegionName);
+    }
 
-	public void setExecutor(ExecutorService executor) {
-		this.executor = executor;
-	}
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
+    }
 
-	@Override
-	protected void destroyInstance(T instance) throws Exception {
-		instance.shutdown();
-	}
+    @Override
+    protected void destroyInstance(T instance) throws Exception {
+        instance.shutdown();
+    }
 }

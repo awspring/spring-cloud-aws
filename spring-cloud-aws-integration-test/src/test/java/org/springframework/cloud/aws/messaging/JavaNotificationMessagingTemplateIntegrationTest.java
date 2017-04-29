@@ -33,24 +33,24 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = JavaNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
 public class JavaNotificationMessagingTemplateIntegrationTest extends NotificationMessagingTemplateIntegrationTest {
 
-	@Configuration
-	@EnableSqs
-	@EnableSns
-	@Import(IntegrationTestConfig.class)
-	protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
+    @Configuration
+    @EnableSqs
+    @EnableSns
+    @Import(IntegrationTestConfig.class)
+    protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
 
-		@Bean
-		public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, resourceIdResolver);
-			notificationMessagingTemplate.setDefaultDestinationName("SqsReceivingSnsTopic");
-			return notificationMessagingTemplate;
-		}
+        @Bean
+        public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
+            NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, resourceIdResolver);
+            notificationMessagingTemplate.setDefaultDestinationName("SqsReceivingSnsTopic");
+            return notificationMessagingTemplate;
+        }
 
-		@Bean
-		public NotificationReceiver notificationReceiver() {
-			return new NotificationReceiver();
-		}
+        @Bean
+        public NotificationReceiver notificationReceiver() {
+            return new NotificationReceiver();
+        }
 
-	}
+    }
 
 }

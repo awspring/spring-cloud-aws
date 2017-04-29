@@ -31,48 +31,48 @@ import static org.junit.Assert.assertEquals;
 @ProfileValueSourceConfiguration(AmazonWebserviceProfileValueSource.class)
 public abstract class ElastiCacheAwsTest {
 
-	@SuppressWarnings("SpringJavaAutowiringInspection")
-	@Autowired
-	private CachingService cachingService;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private CachingService cachingService;
 
-	@Before
-	public void resetInvocationCount() throws Exception {
-		this.cachingService.resetInvocationCount();
-	}
+    @Before
+    public void resetInvocationCount() throws Exception {
+        this.cachingService.resetInvocationCount();
+    }
 
-	@Test
-	@IfAmazonWebserviceEnvironment
-	public void expensiveServiceWithCacheManager() throws Exception {
-		this.cachingService.deleteCacheKey("foo");
-		this.cachingService.deleteCacheKey("bar");
+    @Test
+    @IfAmazonWebserviceEnvironment
+    public void expensiveServiceWithCacheManager() throws Exception {
+        this.cachingService.deleteCacheKey("foo");
+        this.cachingService.deleteCacheKey("bar");
 
-		assertEquals(0, this.cachingService.getInvocationCount().get());
+        assertEquals(0, this.cachingService.getInvocationCount().get());
 
-		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+        assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
+        assertEquals(1, this.cachingService.getInvocationCount().get());
 
-		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+        assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
+        assertEquals(1, this.cachingService.getInvocationCount().get());
 
-		assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
-		assertEquals(2, this.cachingService.getInvocationCount().get());
-	}
+        assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
+        assertEquals(2, this.cachingService.getInvocationCount().get());
+    }
 
-	@Test
-	@IfAmazonWebserviceEnvironment
-	public void expensiveServiceWithRedisCacheManager() throws Exception {
-		this.cachingService.deleteRedisCacheKey("foo");
-		this.cachingService.deleteRedisCacheKey("bar");
+    @Test
+    @IfAmazonWebserviceEnvironment
+    public void expensiveServiceWithRedisCacheManager() throws Exception {
+        this.cachingService.deleteRedisCacheKey("foo");
+        this.cachingService.deleteRedisCacheKey("bar");
 
-		assertEquals(0, this.cachingService.getInvocationCount().get());
+        assertEquals(0, this.cachingService.getInvocationCount().get());
 
-		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+        assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
+        assertEquals(1, this.cachingService.getInvocationCount().get());
 
-		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+        assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
+        assertEquals(1, this.cachingService.getInvocationCount().get());
 
-		assertEquals("BAR", this.cachingService.expensiveRedisMethod("bar"));
-		assertEquals(2, this.cachingService.getInvocationCount().get());
-	}
+        assertEquals("BAR", this.cachingService.expensiveRedisMethod("bar"));
+        assertEquals(2, this.cachingService.getInvocationCount().get());
+    }
 }

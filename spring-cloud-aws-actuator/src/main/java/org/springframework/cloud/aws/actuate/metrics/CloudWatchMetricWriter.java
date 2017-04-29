@@ -37,18 +37,18 @@ public class CloudWatchMetricWriter implements MetricWriter {
 
     @Override
     public void increment(Delta<?> delta) {
-		this.sender.send(createMetricDatumForCounterValue(delta));
-	}
+        this.sender.send(createMetricDatumForCounterValue(delta));
+    }
 
     @Override
     public void set(Metric<?> value) {
-		this.sender.send(createMetricDatumForUnknownValue(value));
-	}
+        this.sender.send(createMetricDatumForUnknownValue(value));
+    }
 
     @Override
     public void reset(String metricName) {
-		this.sender.send(createEmptyMetricDatum(metricName));
-	}
+        this.sender.send(createEmptyMetricDatum(metricName));
+    }
 
     protected static MetricDatum createEmptyMetricDatum(String metricName) {
         return new MetricDatum().withMetricName(metricName).withValue(0.0);
@@ -56,29 +56,28 @@ public class CloudWatchMetricWriter implements MetricWriter {
 
     protected static MetricDatum createMetricDatumForCounterValue(Delta<?> delta) {
         return new MetricDatum()
-            .withMetricName(delta.getName())
-            .withTimestamp(delta.getTimestamp())
-            .withValue(delta.getValue().doubleValue())
-            .withUnit(StandardUnit.Count);
+                .withMetricName(delta.getName())
+                .withTimestamp(delta.getTimestamp())
+                .withValue(delta.getValue().doubleValue())
+                .withUnit(StandardUnit.Count);
     }
 
     protected static MetricDatum createMetricDatumForUnknownValue(Metric<?> value) {
         String name = value.getName();
         MetricDatum metricDatum = new MetricDatum()
-            .withMetricName(name)
-            .withTimestamp(value.getTimestamp());
+                .withMetricName(name)
+                .withTimestamp(value.getTimestamp());
 
         if (name.contains("timer.") && !name.contains("gauge.") && !name.contains("counter.")) {
             // Duration
             metricDatum
-                .withValue(value.getValue().doubleValue())
-                .withUnit(StandardUnit.Milliseconds);
-        }
-        else {
+                    .withValue(value.getValue().doubleValue())
+                    .withUnit(StandardUnit.Milliseconds);
+        } else {
             // Simple value
             metricDatum
-                .withValue(value.getValue().doubleValue())
-                .withUnit(StandardUnit.Count);
+                    .withValue(value.getValue().doubleValue())
+                    .withUnit(StandardUnit.Count);
         }
 
         return metricDatum;

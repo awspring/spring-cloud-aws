@@ -28,11 +28,11 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration
 public class XmlDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
-	@Value("#{dbTags['aws:cloudformation:logical-id']}")
-	private String dbLogicalName;
+    @Value("#{dbTags['aws:cloudformation:logical-id']}")
+    private String dbLogicalName;
 
-	@Test
-	public void testDatabaseInstanceUserProperties() throws Exception {
-		assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
-	}
+    @Test
+    public void testDatabaseInstanceUserProperties() throws Exception {
+        assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
+    }
 }

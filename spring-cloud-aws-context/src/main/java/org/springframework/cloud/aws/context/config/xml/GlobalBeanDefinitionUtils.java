@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 
 /**
  * Provides utility methods for registering globally used bean definitions.
@@ -31,39 +31,39 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  */
 public final class GlobalBeanDefinitionUtils {
 
-	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
+    public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
 
-	private GlobalBeanDefinitionUtils() {
-		// Avoid instantiation
-	}
+    private GlobalBeanDefinitionUtils() {
+        // Avoid instantiation
+    }
 
-	/**
-	 * Returns the name of the resource id resolver bean. This method is provided as utility method for bean definition
-	 * parsers that create bean definitions with a dependency to the global resource id resolver bean. If the resource
-	 * id resolver bean of type {@link ResourceIdResolver} has not yet been registered with the provided bean definition
-	 * registry, it is automatically registered.
-	 *
-	 * @param registry
-	 * 		the bean definition registry to check for an existing resource id resolver bean definition, and to register the
-	 * 		resource id resolver bean definition with, if needed
-	 * @return the bean name of the resource id resolver bean
-	 */
-	@SuppressWarnings("SameReturnValue")
-	public static String retrieveResourceIdResolverBeanName(BeanDefinitionRegistry registry) {
-		registerResourceIdResolverBeanIfNeeded(registry);
+    /**
+     * Returns the name of the resource id resolver bean. This method is provided as utility method for bean definition
+     * parsers that create bean definitions with a dependency to the global resource id resolver bean. If the resource
+     * id resolver bean of type {@link ResourceIdResolver} has not yet been registered with the provided bean definition
+     * registry, it is automatically registered.
+     *
+     * @param registry
+     *         the bean definition registry to check for an existing resource id resolver bean definition, and to register the
+     *         resource id resolver bean definition with, if needed
+     * @return the bean name of the resource id resolver bean
+     */
+    @SuppressWarnings("SameReturnValue")
+    public static String retrieveResourceIdResolverBeanName(BeanDefinitionRegistry registry) {
+        registerResourceIdResolverBeanIfNeeded(registry);
 
-		return RESOURCE_ID_RESOLVER_BEAN_NAME;
-	}
+        return RESOURCE_ID_RESOLVER_BEAN_NAME;
+    }
 
-	static void registerResourceIdResolverBeanIfNeeded(BeanDefinitionRegistry registry) {
-		if (!(registry.containsBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME))) {
-			registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME, buildResourceIdResolverBeanDefinition());
-		}
-	}
+    static void registerResourceIdResolverBeanIfNeeded(BeanDefinitionRegistry registry) {
+        if (!(registry.containsBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME))) {
+            registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME, buildResourceIdResolverBeanDefinition());
+        }
+    }
 
-	private static BeanDefinition buildResourceIdResolverBeanDefinition() {
-		return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class).getBeanDefinition();
-	}
+    private static BeanDefinition buildResourceIdResolverBeanDefinition() {
+        return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class).getBeanDefinition();
+    }
 
 
 }

@@ -35,32 +35,32 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 
-	@Autowired
-	private TestStackInstanceIdService testStackInstanceIdService;
+    @Autowired
+    private TestStackInstanceIdService testStackInstanceIdService;
 
-	@Autowired
-	private ConfigurableApplicationContext context;
+    @Autowired
+    private ConfigurableApplicationContext context;
 
-	@Before
-	public void enableInstanceIdMetadataService() {
-		this.testStackInstanceIdService.enable();
-	}
+    @Before
+    public void enableInstanceIdMetadataService() {
+        this.testStackInstanceIdService.enable();
+    }
 
-	@After
-	public void disableInstanceIdMetadataService() {
-		this.testStackInstanceIdService.disable();
-	}
+    @After
+    public void disableInstanceIdMetadataService() {
+        this.testStackInstanceIdService.disable();
+    }
 
-	@Test
-	public void testGetUserProperties() throws Exception {
+    @Test
+    public void testGetUserProperties() throws Exception {
 
-		Assert.assertEquals("tagv1", this.context.getBeanFactory().getBeanExpressionResolver().
-				evaluate("#{instanceData['tag1']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-		Assert.assertEquals("tagv2", this.context.getBeanFactory().getBeanExpressionResolver().
-				evaluate("#{instanceData['tag2']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-		Assert.assertEquals("tagv3", this.context.getBeanFactory().getBeanExpressionResolver().
-				evaluate("#{instanceData['tag3']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-		Assert.assertEquals("tagv4", this.context.getBeanFactory().getBeanExpressionResolver().
-				evaluate("#{instanceData['tag4']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-	}
+        Assert.assertEquals("tagv1", this.context.getBeanFactory().getBeanExpressionResolver().
+                evaluate("#{instanceData['tag1']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+        Assert.assertEquals("tagv2", this.context.getBeanFactory().getBeanExpressionResolver().
+                evaluate("#{instanceData['tag2']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+        Assert.assertEquals("tagv3", this.context.getBeanFactory().getBeanExpressionResolver().
+                evaluate("#{instanceData['tag3']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+        Assert.assertEquals("tagv4", this.context.getBeanFactory().getBeanExpressionResolver().
+                evaluate("#{instanceData['tag4']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
+    }
 }

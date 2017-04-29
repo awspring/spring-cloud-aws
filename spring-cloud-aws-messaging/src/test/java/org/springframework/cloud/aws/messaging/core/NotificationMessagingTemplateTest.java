@@ -39,72 +39,72 @@ import static org.mockito.Mockito.when;
  */
 public class NotificationMessagingTemplateTest {
 
-	@Test
-	public void send_validTextMessage_usesTopicChannel() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
-		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
+    @Test
+    public void send_validTextMessage_usesTopicChannel() throws Exception {
+        // Arrange
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+        String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+        when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+        notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
 
-		// Act
-		notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
+        // Act
+        notificationMessagingTemplate.send(MessageBuilder.withPayload("Message content").build());
 
-		// Assert
-		verify(amazonSns).publish(new PublishRequest(physicalTopicName,
-				"Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
-	}
+        // Assert
+        verify(amazonSns).publish(new PublishRequest(physicalTopicName,
+                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+    }
 
-	@Test
-	public void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, new DestinationResolver<String>() {
+    @Test
+    public void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel() throws Exception {
+        // Arrange
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, new DestinationResolver<String>() {
 
-			@Override
-			public String resolveDestination(String name) throws DestinationResolutionException {
-				return name.toUpperCase(Locale.ENGLISH);
-			}
-		}, null);
+            @Override
+            public String resolveDestination(String name) throws DestinationResolutionException {
+                return name.toUpperCase(Locale.ENGLISH);
+            }
+        }, null);
 
-		// Act
-		notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
+        // Act
+        notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
 
-		// Assert
-		verify(amazonSns).publish(new PublishRequest("TEST",
-				"Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
-	}
+        // Assert
+        verify(amazonSns).publish(new PublishRequest("TEST",
+                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+    }
 
-	@Test
-	public void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+    @Test
+    public void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject() throws Exception {
+        // Arrange
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+        String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+        when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
 
-		// Act
-		notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
+        // Act
+        notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
 
-		// Assert
-		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
-	}
+        // Assert
+        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+    }
 
-	@Test
-	public void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
-		// Arrange
-		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
-		when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
-		notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
+    @Test
+    public void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
+        // Arrange
+        AmazonSNS amazonSns = mock(AmazonSNS.class);
+        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+        String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+        when(amazonSns.listTopics(new ListTopicsRequest(null))).thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+        notificationMessagingTemplate.setDefaultDestinationName(physicalTopicName);
 
-		// Act
-		notificationMessagingTemplate.sendNotification("My message", "My subject");
+        // Act
+        notificationMessagingTemplate.sendNotification("My message", "My subject");
 
-		// Assert
-		verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
-	}
+        // Assert
+        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+    }
 
 }

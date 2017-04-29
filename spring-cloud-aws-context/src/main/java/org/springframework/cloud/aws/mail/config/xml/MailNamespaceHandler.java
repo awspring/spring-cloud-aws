@@ -23,8 +23,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 public class MailNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("mail-sender", new SimpleEmailServiceBeanDefinitionParser());
-	}
+    @Override
+    public void init() {
+        registerBeanDefinitionParser("mail-sender", new SimpleEmailServiceBeanDefinitionParser());
+    }
 }

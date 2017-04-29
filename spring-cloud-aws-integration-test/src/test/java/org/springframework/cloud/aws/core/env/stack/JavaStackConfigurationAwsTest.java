@@ -29,11 +29,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = JavaStackConfigurationAwsTest.JavaStackConfigurationAwsTestConfig.class)
 public class JavaStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
-	@Configuration
-	@EnableStackConfiguration(stackName = TestStackEnvironment.DEFAULT_STACK_NAME)
-	@Import(IntegrationTestConfig.class)
-	static class JavaStackConfigurationAwsTestConfig {
+    @Configuration
+    @EnableStackConfiguration(stackName = TestStackEnvironment.DEFAULT_STACK_NAME)
+    @Import(IntegrationTestConfig.class)
+    static class JavaStackConfigurationAwsTestConfig {
 
-	}
+    }
 
 }

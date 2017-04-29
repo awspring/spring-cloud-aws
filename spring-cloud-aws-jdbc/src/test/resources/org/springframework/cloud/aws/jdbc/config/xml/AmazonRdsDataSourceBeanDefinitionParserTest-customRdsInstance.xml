@@ -32,7 +32,7 @@
 	</context:context-credentials>
 
 	<jdbc:data-source db-instance-identifier="test" password="password" user-tags-map="dsTags"
-					 amazon-rds="amazonRds" amazon-identity-management="myIdentityService" />
+					  amazon-rds="amazonRds" amazon-identity-management="myIdentityService" />
 
 	<bean id="amazonRds" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="com.amazonaws.services.rds.AmazonRDS" />

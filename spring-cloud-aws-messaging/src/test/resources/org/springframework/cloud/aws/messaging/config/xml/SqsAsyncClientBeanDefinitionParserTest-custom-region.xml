@@ -31,5 +31,5 @@
 		<aws-context:instance-profile-credentials />
 	</aws-context:context-credentials>
 
-  <aws-messaging:sqs-async-client id="customClient" region="eu-west-1" />
+	<aws-messaging:sqs-async-client id="customClient" region="eu-west-1" />
 </beans>

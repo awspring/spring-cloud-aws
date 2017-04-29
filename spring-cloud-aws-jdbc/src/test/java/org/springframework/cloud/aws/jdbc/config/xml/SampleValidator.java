@@ -9,8 +9,8 @@ import java.sql.Connection;
  */
 public class SampleValidator implements Validator {
 
-	@Override
-	public boolean validate(Connection connection, int i) {
-		return true;
-	}
+    @Override
+    public boolean validate(Connection connection, int i) {
+        return true;
+    }
 }

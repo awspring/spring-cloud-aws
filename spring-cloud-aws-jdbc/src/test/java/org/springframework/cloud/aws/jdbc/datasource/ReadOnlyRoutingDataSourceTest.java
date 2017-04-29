@@ -40,154 +40,154 @@ import static org.mockito.Mockito.when;
  */
 public class ReadOnlyRoutingDataSourceTest {
 
-	@Test
-	public void getConnection_NoReadReplicaAvailableNoTransactionActive_returnsDefaultDataSource() throws Exception {
+    @Test
+    public void getConnection_NoReadReplicaAvailableNoTransactionActive_returnsDefaultDataSource() throws Exception {
 
-		//Arrange
-		DataSource defaultDataSource = mock(DataSource.class);
-		Connection connection = mock(Connection.class);
+        //Arrange
+        DataSource defaultDataSource = mock(DataSource.class);
+        Connection connection = mock(Connection.class);
 
-		when(defaultDataSource.getConnection()).thenReturn(connection);
+        when(defaultDataSource.getConnection()).thenReturn(connection);
 
-		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
-		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
-		readOnlyRoutingDataSource.afterPropertiesSet();
+        ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
+        readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
+        readOnlyRoutingDataSource.afterPropertiesSet();
 
-		LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
-
-
-		//Act
-		Connection connectionReturned = dataSource.getConnection();
-
-		//Assert
-		assertSame(connection, ((ConnectionProxy) connectionReturned).getTargetConnection());
-	}
-
-	@Test
-	public void getConnection_NoReadReplicaAvailableReadOnlyTransactionActive_returnsDefaultDataSource() throws Exception {
-
-		//Arrange
-		DataSource defaultDataSource = mock(DataSource.class);
-		Connection connection = mock(Connection.class);
-
-		when(defaultDataSource.getConnection()).thenReturn(connection);
-
-		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
-		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
-		readOnlyRoutingDataSource.afterPropertiesSet();
-
-		final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
-
-		DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
-		transactionDefinition.setReadOnly(true);
-
-		TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
-
-		//Act
-		Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
-
-			@Override
-			public Connection doInTransaction(TransactionStatus status) {
-				try {
-					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-				} catch (SQLException e) {
-					fail(e.getMessage());
-				}
-				return null;
-			}
-		});
-
-		//Assert
-		assertSame(connection, connectionReturned);
-	}
-
-	@Test
-	public void getConnection_ReadReplicaAvailableReadOnlyTransactionActive_returnsReadReplicaDataSource() throws Exception {
-
-		//Arrange
-		DataSource defaultDataSource = mock(DataSource.class);
-		Connection connection = mock(Connection.class);
-
-		DataSource readOnlyDataSource = mock(DataSource.class);
-		Connection readOnlyConnection = mock(Connection.class);
+        LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
 
-		when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
-		when(defaultDataSource.getConnection()).thenReturn(connection);
+        //Act
+        Connection connectionReturned = dataSource.getConnection();
 
-		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
-		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
-		readOnlyRoutingDataSource.afterPropertiesSet();
+        //Assert
+        assertSame(connection, ((ConnectionProxy) connectionReturned).getTargetConnection());
+    }
 
-		final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+    @Test
+    public void getConnection_NoReadReplicaAvailableReadOnlyTransactionActive_returnsDefaultDataSource() throws Exception {
 
-		DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
-		transactionDefinition.setReadOnly(true);
+        //Arrange
+        DataSource defaultDataSource = mock(DataSource.class);
+        Connection connection = mock(Connection.class);
 
-		TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
+        when(defaultDataSource.getConnection()).thenReturn(connection);
 
-		//Act
-		Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
+        ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.emptyMap());
+        readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
+        readOnlyRoutingDataSource.afterPropertiesSet();
 
-			@Override
-			public Connection doInTransaction(TransactionStatus status) {
-				try {
-					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-				} catch (SQLException e) {
-					fail(e.getMessage());
-				}
-				return null;
-			}
-		});
+        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
-		//Assert
-		assertSame(readOnlyConnection, connectionReturned);
-	}
+        DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+        transactionDefinition.setReadOnly(true);
 
-	@Test
-	public void getConnection_ReadReplicaAvailableWriteTransactionActive_returnsDefaultDataSource() throws Exception {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
 
-		//Arrange
-		DataSource defaultDataSource = mock(DataSource.class);
-		Connection connection = mock(Connection.class);
+        //Act
+        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
 
-		DataSource readOnlyDataSource = mock(DataSource.class);
-		Connection readOnlyConnection = mock(Connection.class);
+            @Override
+            public Connection doInTransaction(TransactionStatus status) {
+                try {
+                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+                } catch (SQLException e) {
+                    fail(e.getMessage());
+                }
+                return null;
+            }
+        });
+
+        //Assert
+        assertSame(connection, connectionReturned);
+    }
+
+    @Test
+    public void getConnection_ReadReplicaAvailableReadOnlyTransactionActive_returnsReadReplicaDataSource() throws Exception {
+
+        //Arrange
+        DataSource defaultDataSource = mock(DataSource.class);
+        Connection connection = mock(Connection.class);
+
+        DataSource readOnlyDataSource = mock(DataSource.class);
+        Connection readOnlyConnection = mock(Connection.class);
 
 
-		when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
-		when(defaultDataSource.getConnection()).thenReturn(connection);
+        when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
+        when(defaultDataSource.getConnection()).thenReturn(connection);
 
-		ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-		readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
-		readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
-		readOnlyRoutingDataSource.afterPropertiesSet();
+        ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
+        readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
+        readOnlyRoutingDataSource.afterPropertiesSet();
 
-		final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
-		DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
-		transactionDefinition.setReadOnly(false);
+        DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+        transactionDefinition.setReadOnly(true);
 
-		TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
+        TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
 
-		//Act
-		Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
+        //Act
+        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
 
-			@Override
-			public Connection doInTransaction(TransactionStatus status) {
-				try {
-					return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-				} catch (SQLException e) {
-					fail(e.getMessage());
-				}
-				return null;
-			}
-		});
+            @Override
+            public Connection doInTransaction(TransactionStatus status) {
+                try {
+                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+                } catch (SQLException e) {
+                    fail(e.getMessage());
+                }
+                return null;
+            }
+        });
 
-		//Assert
-		assertSame(connection, connectionReturned);
-	}
+        //Assert
+        assertSame(readOnlyConnection, connectionReturned);
+    }
+
+    @Test
+    public void getConnection_ReadReplicaAvailableWriteTransactionActive_returnsDefaultDataSource() throws Exception {
+
+        //Arrange
+        DataSource defaultDataSource = mock(DataSource.class);
+        Connection connection = mock(Connection.class);
+
+        DataSource readOnlyDataSource = mock(DataSource.class);
+        Connection readOnlyConnection = mock(Connection.class);
+
+
+        when(readOnlyDataSource.getConnection()).thenReturn(readOnlyConnection);
+        when(defaultDataSource.getConnection()).thenReturn(connection);
+
+        ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
+        readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
+        readOnlyRoutingDataSource.afterPropertiesSet();
+
+        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+
+        DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+        transactionDefinition.setReadOnly(false);
+
+        TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
+
+        //Act
+        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
+
+            @Override
+            public Connection doInTransaction(TransactionStatus status) {
+                try {
+                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+                } catch (SQLException e) {
+                    fail(e.getMessage());
+                }
+                return null;
+            }
+        });
+
+        //Assert
+        assertSame(connection, connectionReturned);
+    }
 }

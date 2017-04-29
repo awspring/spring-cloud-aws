@@ -27,7 +27,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<bean id="provider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-      <constructor-arg value="ap-southeast-2" />
+		<constructor-arg value="ap-southeast-2" />
 	</bean>
 
 	<aws-messaging:annotation-driven-queue-listener region-provider="provider" />

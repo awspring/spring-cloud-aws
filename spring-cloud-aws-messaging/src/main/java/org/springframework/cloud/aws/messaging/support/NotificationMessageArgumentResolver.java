@@ -28,21 +28,21 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  */
 public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final MessageConverter converter;
+    private final MessageConverter converter;
 
-	public NotificationMessageArgumentResolver(MessageConverter converter) {
-		this.converter = new NotificationRequestConverter(converter);
-	}
+    public NotificationMessageArgumentResolver(MessageConverter converter) {
+        this.converter = new NotificationRequestConverter(converter);
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return parameter.hasParameterAnnotation(NotificationMessage.class);
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return parameter.hasParameterAnnotation(NotificationMessage.class);
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		NotificationRequestConverter.NotificationRequest notificationRequest = (NotificationRequestConverter.NotificationRequest)
-				this.converter.fromMessage(message, parameter.getParameterType());
-		return notificationRequest.getMessage();
-	}
+    @Override
+    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+        NotificationRequestConverter.NotificationRequest notificationRequest = (NotificationRequestConverter.NotificationRequest)
+                this.converter.fromMessage(message, parameter.getParameterType());
+        return notificationRequest.getMessage();
+    }
 }
