@@ -24,11 +24,11 @@ import org.springframework.test.annotation.ProfileValueSource;
  */
 public class AmazonWebserviceProfileValueSource implements ProfileValueSource {
 
-	@Override
-	public String get(String key) {
-		if ("amazon-webservice-region-available".equals(key)) {
-			return Boolean.toString(EC2MetadataUtils.getAvailabilityZone() != null);
-		}
-		return null;
-	}
+    @Override
+    public String get(String key) {
+        if ("amazon-webservice-region-available".equals(key)) {
+            return Boolean.toString(EC2MetadataUtils.getAvailabilityZone() != null);
+        }
+        return null;
+    }
 }

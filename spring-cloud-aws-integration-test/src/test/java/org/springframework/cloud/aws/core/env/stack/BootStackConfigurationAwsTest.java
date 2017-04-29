@@ -26,10 +26,10 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootTest(classes = BootStackConfigurationAwsTest.BootStackConfigurationAwsTestConfig.class)
 public class BootStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
-	@SpringBootApplication
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	static class BootStackConfigurationAwsTestConfig {
+    @SpringBootApplication
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    static class BootStackConfigurationAwsTestConfig {
 
-	}
+    }
 
 }

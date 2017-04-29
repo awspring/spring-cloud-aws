@@ -37,27 +37,27 @@ import javax.sql.DataSource;
  */
 public interface DataSourceFactory {
 
-	/**
-	 * Creates a datasource with the passed in information. The datasource itself should be fully constructed and
-	 * initialized to be used in a multi threaded environment.
-	 *
-	 * @param dataSourceInformation
-	 * 		- the {@link DataSourceInformation} parameter object which holds all dynamic information for the datasource
-	 * 		creation.
-	 * @return - a fully initialized datasource instance which can be used by the application to actually interact with a
-	 * database platform
-	 */
-	DataSource createDataSource(DataSourceInformation dataSourceInformation);
+    /**
+     * Creates a datasource with the passed in information. The datasource itself should be fully constructed and
+     * initialized to be used in a multi threaded environment.
+     *
+     * @param dataSourceInformation
+     *         - the {@link DataSourceInformation} parameter object which holds all dynamic information for the datasource
+     *         creation.
+     * @return - a fully initialized datasource instance which can be used by the application to actually interact with a
+     * database platform
+     */
+    DataSource createDataSource(DataSourceInformation dataSourceInformation);
 
-	/**
-	 * Will be called if the datasource is not used anymore to allow the factory to release any resource that are used by
-	 * the created object. Implementation should check if the passed in datasource is a "known" datasource and if so
-	 * interact with the to shutdown the datasource. On well known datasource like Apache Commons DBCP and Apache
-	 * Tomcat JDBC this method will call the close() method to release any connection which are held in the pool.
-	 *
-	 * @param dataSource
-	 * 		- The datasource that is not used anymore and can be destroyed by the factory
-	 */
-	void closeDataSource(DataSource dataSource);
+    /**
+     * Will be called if the datasource is not used anymore to allow the factory to release any resource that are used by
+     * the created object. Implementation should check if the passed in datasource is a "known" datasource and if so
+     * interact with the to shutdown the datasource. On well known datasource like Apache Commons DBCP and Apache
+     * Tomcat JDBC this method will call the close() method to release any connection which are held in the pool.
+     *
+     * @param dataSource
+     *         - The datasource that is not used anymore and can be destroyed by the factory
+     */
+    void closeDataSource(DataSource dataSource);
 
 }

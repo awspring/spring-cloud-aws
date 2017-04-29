@@ -33,55 +33,55 @@ import java.io.IOException;
 @RequestMapping("/myComplexTopic")
 public class ComplexNotificationTestController {
 
-	private String subject;
-	private Person message;
+    private String subject;
+    private Person message;
 
-	String getSubject() {
-		return this.subject;
-	}
+    String getSubject() {
+        return this.subject;
+    }
 
-	Person getMessage() {
-		return this.message;
-	}
+    Person getMessage() {
+        return this.message;
+    }
 
-	@NotificationSubscriptionMapping
-	public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
-		//We subscribe to start receive the message
-		status.confirmSubscription();
-	}
+    @NotificationSubscriptionMapping
+    public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
+        //We subscribe to start receive the message
+        status.confirmSubscription();
+    }
 
-	@NotificationMessageMapping
-	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage Person message) {
-		this.subject = subject;
-		this.message = message;
-	}
+    @NotificationMessageMapping
+    public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage Person message) {
+        this.subject = subject;
+        this.message = message;
+    }
 
-	@NotificationUnsubscribeConfirmationMapping
-	public void handleUnsubscribeMessage(NotificationStatus status) {
-		//e.g. the client has been unsubscribed and we want to "re-subscribe"
-		status.confirmSubscription();
-	}
+    @NotificationUnsubscribeConfirmationMapping
+    public void handleUnsubscribeMessage(NotificationStatus status) {
+        //e.g. the client has been unsubscribed and we want to "re-subscribe"
+        status.confirmSubscription();
+    }
 
 
-	public static class Person {
+    public static class Person {
 
-		private String firstName;
-		private String lastName;
+        private String firstName;
+        private String lastName;
 
-		public void setFirstName(String firstName) {
-			this.firstName = firstName;
-		}
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
 
-		public void setLastName(String lastName) {
-			this.lastName = lastName;
-		}
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
 
-		public String getFirstName() {
-			return this.firstName;
-		}
+        public String getFirstName() {
+            return this.firstName;
+        }
 
-		public String getLastName() {
-			return this.lastName;
-		}
-	}
+        public String getLastName() {
+            return this.lastName;
+        }
+    }
 }

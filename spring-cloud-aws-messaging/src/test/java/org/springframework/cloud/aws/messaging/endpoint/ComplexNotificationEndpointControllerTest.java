@@ -44,57 +44,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration
 public class ComplexNotificationEndpointControllerTest {
 
-	@Autowired
-	private WebApplicationContext context;
+    @Autowired
+    private WebApplicationContext context;
 
-	@Autowired
-	private AmazonSNS amazonSnsMock;
+    @Autowired
+    private AmazonSNS amazonSnsMock;
 
-	@Autowired
-	private ComplexNotificationTestController notificationTestController;
+    @Autowired
+    private ComplexNotificationTestController notificationTestController;
 
-	private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-	@Before
-	public void setUp() throws Exception {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
-	}
+    @Before
+    public void setUp() throws Exception {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
+    }
 
-	@Test
-	public void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus() throws Exception {
-		//Arrange
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
+    @Test
+    public void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus() throws Exception {
+        //Arrange
+        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 
-		//Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation").content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
+        //Act
+        this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation").content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
 
-		//Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
-	}
+        //Assert
+        verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+    }
 
-	@Test
-	public void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod() throws Exception {
-		//Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage-complexObject.json", getClass()).getInputStream());
+    @Test
+    public void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod() throws Exception {
+        //Arrange
+        byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage-complexObject.json", getClass()).getInputStream());
 
-		//Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification").content(notificationJsonContent)).andExpect(status().isNoContent());
+        //Act
+        this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification").content(notificationJsonContent)).andExpect(status().isNoContent());
 
-		//Assert
-		assertEquals("Agim", this.notificationTestController.getMessage().getFirstName());
-		assertEquals("Emruli", this.notificationTestController.getMessage().getLastName());
-		assertEquals("Notification Subject", this.notificationTestController.getSubject());
-	}
+        //Assert
+        assertEquals("Agim", this.notificationTestController.getMessage().getFirstName());
+        assertEquals("Emruli", this.notificationTestController.getMessage().getLastName());
+        assertEquals("Notification Subject", this.notificationTestController.getSubject());
+    }
 
-	@Test
-	public void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
-		//Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("unsubscribeConfirmation.json", getClass()).getInputStream());
+    @Test
+    public void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
+        //Arrange
+        byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("unsubscribeConfirmation.json", getClass()).getInputStream());
 
-		//Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation").content(notificationJsonContent)).andExpect(status().isNoContent());
+        //Act
+        this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation").content(notificationJsonContent)).andExpect(status().isNoContent());
 
-		//Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45");
-	}
+        //Assert
+        verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic", "2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45");
+    }
 }

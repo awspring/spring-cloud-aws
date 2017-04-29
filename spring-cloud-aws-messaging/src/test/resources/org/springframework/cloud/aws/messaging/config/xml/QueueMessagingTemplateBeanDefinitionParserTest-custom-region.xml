@@ -30,6 +30,6 @@
 		<aws-context:instance-profile-credentials />
 	</aws-context:context-credentials>
 
-  <aws-messaging:queue-messaging-template id="queueMessagingTemplate" region="sa-east-1" />
+	<aws-messaging:queue-messaging-template id="queueMessagingTemplate" region="sa-east-1" />
 
 </beans>

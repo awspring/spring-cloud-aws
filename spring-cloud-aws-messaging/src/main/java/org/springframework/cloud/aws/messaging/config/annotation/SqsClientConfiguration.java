@@ -36,19 +36,19 @@ import org.springframework.context.annotation.Lazy;
 @ConditionalOnMissingAmazonClient(AmazonSQS.class)
 public class SqsClientConfiguration {
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider awsCredentialsProvider;
+    @Autowired(required = false)
+    private AWSCredentialsProvider awsCredentialsProvider;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+    @Autowired(required = false)
+    private RegionProvider regionProvider;
 
-	@Lazy
-	@Bean(destroyMethod = "shutdown")
-	public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
-		AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonSQSAsyncClient.class,
-				this.awsCredentialsProvider,
-				this.regionProvider);
-		clientFactoryBean.afterPropertiesSet();
-		return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
-	}
+    @Lazy
+    @Bean(destroyMethod = "shutdown")
+    public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
+        AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonSQSAsyncClient.class,
+                this.awsCredentialsProvider,
+                this.regionProvider);
+        clientFactoryBean.afterPropertiesSet();
+        return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
+    }
 }

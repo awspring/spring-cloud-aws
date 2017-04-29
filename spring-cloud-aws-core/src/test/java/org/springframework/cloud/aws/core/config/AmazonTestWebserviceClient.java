@@ -29,20 +29,20 @@ import static org.springframework.util.Assert.notNull;
  */
 public class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
-	private Region region;
+    private Region region;
 
-	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
-		super(new ClientConfiguration());
-		notNull(awsCredentialsProvider, "Credentialsprovider must not be null");
-	}
+    public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
+        super(new ClientConfiguration());
+        notNull(awsCredentialsProvider, "Credentialsprovider must not be null");
+    }
 
-	public Region getRegion() {
-		return this.region;
-	}
+    public Region getRegion() {
+        return this.region;
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public void setRegion(Region region) {
-		this.region = region;
-	}
+    @SuppressWarnings("deprecation")
+    @Override
+    public void setRegion(Region region) {
+        this.region = region;
+    }
 }

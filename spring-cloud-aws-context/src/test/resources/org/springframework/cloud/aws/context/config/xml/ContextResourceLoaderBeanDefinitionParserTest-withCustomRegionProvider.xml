@@ -30,7 +30,7 @@
 	<aws-context:context-resource-loader region-provider="customRegionProvider" />
 
 	<bean id="customRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-      <constructor-arg value="us-west-2" />
+		<constructor-arg value="us-west-2" />
 	</bean>
 
 	<bean class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean" />

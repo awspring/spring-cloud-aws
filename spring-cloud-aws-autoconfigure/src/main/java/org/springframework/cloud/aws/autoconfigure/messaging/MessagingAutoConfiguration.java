@@ -30,17 +30,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MessagingAutoConfiguration {
 
-	@ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
-	@EnableSqs
-	@Configuration
-	public static class SqsAutoConfiguration {
+    @ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+    @EnableSqs
+    @Configuration
+    public static class SqsAutoConfiguration {
 
-	}
+    }
 
-	@ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
-	@EnableSns
-	@Configuration
-	public static class SnsAutoConfiguration {
+    @ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
+    @EnableSns
+    @Configuration
+    public static class SnsAutoConfiguration {
 
-	}
+    }
 }

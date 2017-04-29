@@ -42,72 +42,72 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = MetricExporterTest.BootMetricExporterConfig.class,
-		properties = {"cloud.aws.cloudwatch.namespace=test", "cloud.aws.cloudwatch.nextRunDelayMillis=10"})
+        properties = {"cloud.aws.cloudwatch.namespace=test", "cloud.aws.cloudwatch.nextRunDelayMillis=10"})
 public class MetricExporterTest {
 
-	@Autowired
-	private AmazonCloudWatch amazonCloudWatch;
+    @Autowired
+    private AmazonCloudWatch amazonCloudWatch;
 
-	@Autowired
-	private CounterService counterService;
+    @Autowired
+    private CounterService counterService;
 
-	@Autowired
-	private GaugeService gaugeService;
+    @Autowired
+    private GaugeService gaugeService;
 
-	@Autowired
-	private BufferingCloudWatchMetricSender bufferingCloudWatchMetricSender;
+    @Autowired
+    private BufferingCloudWatchMetricSender bufferingCloudWatchMetricSender;
 
-	@Before
-	public void startMetriCSenderIfNecessary() throws Exception {
-		if (!this.bufferingCloudWatchMetricSender.isRunning()) {
-			this.bufferingCloudWatchMetricSender.start();
-		}
-	}
+    @Before
+    public void startMetriCSenderIfNecessary() throws Exception {
+        if (!this.bufferingCloudWatchMetricSender.isRunning()) {
+            this.bufferingCloudWatchMetricSender.start();
+        }
+    }
 
-	@Test
-	public void resetIncrementDecrementMetrics() throws Exception {
-		this.counterService.reset("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
-		this.counterService.decrement("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
-		this.counterService.increment("metricExporterTest");
+    @Test
+    public void resetIncrementDecrementMetrics() throws Exception {
+        this.counterService.reset("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
+        this.counterService.decrement("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
+        this.counterService.increment("metricExporterTest");
 
-		Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
-		this.bufferingCloudWatchMetricSender.stop();
+        Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
+        this.bufferingCloudWatchMetricSender.stop();
 
-		ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("counter.metricExporterTest"));
-		Assert.assertEquals(1, listMetricsResult.getMetrics().size());
-	}
+        ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("counter.metricExporterTest"));
+        Assert.assertEquals(1, listMetricsResult.getMetrics().size());
+    }
 
-	@Test
-	public void submitMetricsToGaugeService() throws Exception {
-		this.gaugeService.submit("gaugeService", 23);
-		this.gaugeService.submit("gaugeService", 24);
-		this.gaugeService.submit("gaugeService", 22);
-		this.gaugeService.submit("gaugeService", 19);
+    @Test
+    public void submitMetricsToGaugeService() throws Exception {
+        this.gaugeService.submit("gaugeService", 23);
+        this.gaugeService.submit("gaugeService", 24);
+        this.gaugeService.submit("gaugeService", 22);
+        this.gaugeService.submit("gaugeService", 19);
 
-		Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
-		this.bufferingCloudWatchMetricSender.stop();
+        Thread.sleep(this.bufferingCloudWatchMetricSender.getFixedDelayBetweenRuns());
+        this.bufferingCloudWatchMetricSender.stop();
 
-		ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("gaugeService"));
-		Assert.assertEquals(1, listMetricsResult.getMetrics().size());
-	}
+        ListMetricsResult listMetricsResult = this.amazonCloudWatch.listMetrics(new ListMetricsRequest().withNamespace("test").withMetricName("gaugeService"));
+        Assert.assertEquals(1, listMetricsResult.getMetrics().size());
+    }
 
-	@SpringBootApplication(exclude = ElastiCacheAutoConfiguration.class)
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	static class BootMetricExporterConfig {
+    @SpringBootApplication(exclude = ElastiCacheAutoConfiguration.class)
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    static class BootMetricExporterConfig {
 
-		@Bean
-		public CounterService counterService(MetricWriter metricWriter) {
-			return new DefaultCounterService(metricWriter);
-		}
+        @Bean
+        public CounterService counterService(MetricWriter metricWriter) {
+            return new DefaultCounterService(metricWriter);
+        }
 
-		@Bean
-		public GaugeService gaugeService(MetricWriter metricWriter) {
-			return new DefaultGaugeService(metricWriter);
-		}
-	}
+        @Bean
+        public GaugeService gaugeService(MetricWriter metricWriter) {
+            return new DefaultGaugeService(metricWriter);
+        }
+    }
 }

@@ -37,99 +37,98 @@ import java.util.Properties;
  */
 public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySource.class);
-	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
-	private static final String DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR = ";";
-	private static final String DEFAULT_KNOWN_PROPERTIES_PATH = AmazonEc2InstanceDataPropertySource.class.getSimpleName() + ".properties";
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySource.class);
+    private static final String EC2_METADATA_ROOT = "/latest/meta-data";
+    private static final String DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR = ";";
+    private static final String DEFAULT_KNOWN_PROPERTIES_PATH = AmazonEc2InstanceDataPropertySource.class.getSimpleName() + ".properties";
 
-	private static final Properties KNOWN_PROPERTY_NAMES;
+    private static final Properties KNOWN_PROPERTY_NAMES;
 
-	private String userDataAttributeSeparator = DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR;
-	private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+    private String userDataAttributeSeparator = DEFAULT_USER_DATA_ATTRIBUTE_SEPARATOR;
+    private String userDataValueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
 
+    static {
+        // Load all known properties from the classpath. This is not meant
+        // to be changed by external developers.
+        try {
+            ClassPathResource resource = new ClassPathResource(DEFAULT_KNOWN_PROPERTIES_PATH, AmazonEc2InstanceDataPropertySource.class);
+            KNOWN_PROPERTY_NAMES = PropertiesLoaderUtils.loadProperties(resource);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not load '" + DEFAULT_KNOWN_PROPERTIES_PATH + "': " + ex.getMessage());
+        }
+    }
 
-	static {
-		// Load all known properties from the classpath. This is not meant
-		// to be changed by external developers.
-		try {
-			ClassPathResource resource = new ClassPathResource(DEFAULT_KNOWN_PROPERTIES_PATH, AmazonEc2InstanceDataPropertySource.class);
-			KNOWN_PROPERTY_NAMES = PropertiesLoaderUtils.loadProperties(resource);
-		} catch (IOException ex) {
-			throw new IllegalStateException("Could not load '"+ DEFAULT_KNOWN_PROPERTIES_PATH + "': " + ex.getMessage());
-		}
-	}
+    private volatile Map<String, String> cachedUserData;
 
-	private volatile Map<String, String> cachedUserData;
+    public AmazonEc2InstanceDataPropertySource(String name) {
+        super(name, new Object());
+    }
 
-	public AmazonEc2InstanceDataPropertySource(String name) {
-		super(name, new Object());
-	}
+    public void setUserDataAttributeSeparator(String userDataAttributeSeparator) {
+        this.userDataAttributeSeparator = userDataAttributeSeparator;
+    }
 
-	public void setUserDataAttributeSeparator(String userDataAttributeSeparator) {
-		this.userDataAttributeSeparator = userDataAttributeSeparator;
-	}
+    public void setUserDataValueSeparator(String userDataValueSeparator) {
+        this.userDataValueSeparator = userDataValueSeparator;
+    }
 
-	public void setUserDataValueSeparator(String userDataValueSeparator) {
-		this.userDataValueSeparator = userDataValueSeparator;
-	}
+    @Override
+    public Object getProperty(String name) {
+        Map<String, String> userData = getUserData();
+        if (userData.containsKey(name)) {
+            return userData.get(name);
+        }
 
-	@Override
-	public Object getProperty(String name) {
-		Map<String, String> userData = getUserData();
-		if (userData.containsKey(name)) {
-			return userData.get(name);
-		}
+        if (!KNOWN_PROPERTY_NAMES.containsKey(getRootPropertyName(name))) {
+            return null;
+        }
 
-		if (!KNOWN_PROPERTY_NAMES.containsKey(getRootPropertyName(name))) {
-			return null;
-		}
+        try {
+            return EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/" + name);
+        } catch (AmazonClientException e) {
+            //Suppress exception if we are not able to contact the service,
+            //because that is quite often the case if we run in unit tests outside the environment.
+            LOGGER.warn("Error getting instance meta-data with name '{}' error message is '{}'", name, e.getMessage());
+            return null;
+        }
+    }
 
-		try {
-			return EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/" + name);
-		} catch (AmazonClientException e) {
-			//Suppress exception if we are not able to contact the service,
-			//because that is quite often the case if we run in unit tests outside the environment.
-			LOGGER.warn("Error getting instance meta-data with name '{}' error message is '{}'", name, e.getMessage());
-			return null;
-		}
-	}
+    private static String getRootPropertyName(String propertyName) {
+        String[] propertyTokens = StringUtils.split(propertyName, "/");
+        return propertyTokens != null ? propertyTokens[0] : propertyName;
+    }
 
-	private static String getRootPropertyName(String propertyName){
-		String[] propertyTokens = StringUtils.split(propertyName,"/");
-		return propertyTokens != null ? propertyTokens[0] : propertyName;
-	}
+    private Map<String, String> getUserData() {
+        if (this.cachedUserData == null) {
+            Map<String, String> userDataMap = new LinkedHashMap<>();
+            String userData = null;
+            try {
+                userData = EC2MetadataUtils.getUserData();
+            } catch (AmazonClientException e) {
+                //Suppress exception if we are not able to contact the service,
+                //because that is quite often the case if we run in unit tests outside the environment.
+                LOGGER.warn("Error getting instance user-data error message is '{}'", e.getMessage());
+            }
+            if (StringUtils.hasText(userData)) {
+                String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
+                for (String userDataAttribute : userDataAttributes) {
+                    String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.userDataValueSeparator);
+                    if (userDataAttributesParts != null && userDataAttributesParts.length > 0) {
+                        String key = userDataAttributesParts[0];
 
-	private Map<String, String> getUserData() {
-		if (this.cachedUserData == null) {
-			Map<String, String> userDataMap = new LinkedHashMap<>();
-			String userData = null;
-			try {
-				userData = EC2MetadataUtils.getUserData();
-			} catch (AmazonClientException e) {
-				//Suppress exception if we are not able to contact the service,
-				//because that is quite often the case if we run in unit tests outside the environment.
-				LOGGER.warn("Error getting instance user-data error message is '{}'", e.getMessage());
-			}
-			if (StringUtils.hasText(userData)) {
-				String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
-				for (String userDataAttribute : userDataAttributes) {
-					String[] userDataAttributesParts = StringUtils.split(userDataAttribute, this.userDataValueSeparator);
-					if (userDataAttributesParts != null && userDataAttributesParts.length > 0) {
-						String key = userDataAttributesParts[0];
+                        String value = null;
+                        if (userDataAttributesParts.length > 1) {
+                            value = userDataAttributesParts[1];
+                        }
 
-						String value = null;
-						if (userDataAttributesParts.length > 1) {
-							value = userDataAttributesParts[1];
-						}
+                        userDataMap.put(key, value);
+                    }
+                }
+            }
+            this.cachedUserData = Collections.unmodifiableMap(userDataMap);
+        }
 
-						userDataMap.put(key, value);
-					}
-				}
-			}
-			this.cachedUserData = Collections.unmodifiableMap(userDataMap);
-		}
-
-		return this.cachedUserData;
-	}
+        return this.cachedUserData;
+    }
 }

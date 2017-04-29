@@ -37,48 +37,48 @@ import org.springframework.context.annotation.Import;
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class SqsConfiguration {
 
-	@Autowired
-	public BeanFactory beanFactory;
+    @Autowired
+    public BeanFactory beanFactory;
 
-	@Autowired(required = false)
-	private ResourceIdResolver resourceIdResolver;
+    @Autowired(required = false)
+    private ResourceIdResolver resourceIdResolver;
 
-	@Autowired(required = false)
-	private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+    @Autowired(required = false)
+    private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
 
-	@Autowired(required = false)
-	private final QueueMessageHandlerFactory queueMessageHandlerFactory = new QueueMessageHandlerFactory();
+    @Autowired(required = false)
+    private final QueueMessageHandlerFactory queueMessageHandlerFactory = new QueueMessageHandlerFactory();
 
-	@Bean
-	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
-		if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
-			this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
-		}
-		if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null) {
-			this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
-		}
+    @Bean
+    public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
+        if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
+            this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
+        }
+        if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null) {
+            this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
+        }
 
-		SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory.createSimpleMessageListenerContainer();
-		simpleMessageListenerContainer.setMessageHandler(queueMessageHandler(amazonSqs));
-		return simpleMessageListenerContainer;
-	}
+        SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory.createSimpleMessageListenerContainer();
+        simpleMessageListenerContainer.setMessageHandler(queueMessageHandler(amazonSqs));
+        return simpleMessageListenerContainer;
+    }
 
-	@Bean
-	public QueueMessageHandler queueMessageHandler(AmazonSQSAsync amazonSqs) {
-		if (this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
-			return this.simpleMessageListenerContainerFactory.getQueueMessageHandler();
-		} else {
-			return getMessageHandler(amazonSqs);
-		}
-	}
+    @Bean
+    public QueueMessageHandler queueMessageHandler(AmazonSQSAsync amazonSqs) {
+        if (this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
+            return this.simpleMessageListenerContainerFactory.getQueueMessageHandler();
+        } else {
+            return getMessageHandler(amazonSqs);
+        }
+    }
 
-	private QueueMessageHandler getMessageHandler(AmazonSQSAsync amazonSqs) {
-		if (this.queueMessageHandlerFactory.getAmazonSqs() == null) {
-			this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
-		}
+    private QueueMessageHandler getMessageHandler(AmazonSQSAsync amazonSqs) {
+        if (this.queueMessageHandlerFactory.getAmazonSqs() == null) {
+            this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
+        }
 
-		this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
+        this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
 
-		return this.queueMessageHandlerFactory.createQueueMessageHandler();
-	}
+        return this.queueMessageHandlerFactory.createQueueMessageHandler();
+    }
 }

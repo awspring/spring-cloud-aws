@@ -33,20 +33,20 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 @Import(ContextRegionProviderAutoConfiguration.Registrar.class)
 public class ContextRegionProviderAutoConfiguration {
 
-	static class Registrar implements EnvironmentAware, ImportBeanDefinitionRegistrar {
+    static class Registrar implements EnvironmentAware, ImportBeanDefinitionRegistrar {
 
-		private Environment environment;
+        private Environment environment;
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-				registerRegionProvider(registry, this.environment.getProperty("cloud.aws.region.auto", Boolean.class, true) &&
-								!(this.environment.containsProperty("cloud.aws.region.static")),
-						this.environment.getProperty("cloud.aws.region.static"));
-		}
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            registerRegionProvider(registry, this.environment.getProperty("cloud.aws.region.auto", Boolean.class, true) &&
+                            !(this.environment.containsProperty("cloud.aws.region.static")),
+                    this.environment.getProperty("cloud.aws.region.static"));
+        }
 
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
-		}
-	}
+        @Override
+        public void setEnvironment(Environment environment) {
+            this.environment = environment;
+        }
+    }
 }

@@ -35,26 +35,28 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface EnableContextCredentials {
 
-	/**
-	 * Configures the access key that will be used by the credentials provider.
-	 *
-	 * @return accessKey that should be used for all web service requests
-	 */
-	String accessKey() default "";
+    /**
+     * Configures the access key that will be used by the credentials provider.
+     *
+     * @return accessKey that should be used for all web service requests
+     */
+    String accessKey() default "";
 
-	/**
-	 * Configures the secret key that will be used by the credentials provider
-	 * @return secretKey that should be used for all web service requests
-	 */
-	String secretKey() default "";
+    /**
+     * Configures the secret key that will be used by the credentials provider
+     *
+     * @return secretKey that should be used for all web service requests
+     */
+    String secretKey() default "";
 
-	/**
-	 * Enables a instance profile specific credentials provider
-	 * @return true if the instance profile credentials provider should be configured
-	 */
-	boolean instanceProfile() default false;
+    /**
+     * Enables a instance profile specific credentials provider
+     *
+     * @return true if the instance profile credentials provider should be configured
+     */
+    boolean instanceProfile() default false;
 
-	String profileName() default "";
+    String profileName() default "";
 
-	String profilePath() default "";
+    String profilePath() default "";
 }

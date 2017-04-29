@@ -38,125 +38,125 @@ import static org.junit.Assert.assertTrue;
  */
 public class ContextInstanceDataAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@Before
-	public void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
-		assertNotNull(field);
-		ReflectionUtils.makeAccessible(field);
-		field.set(null, null);
-	}
+    @Before
+    public void restContextInstanceDataCondition() throws IllegalAccessException {
+        Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+        assertNotNull(field);
+        ReflectionUtils.makeAccessible(field);
+        field.set(null, null);
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+    @After
+    public void tearDown() throws Exception {
+        if (this.context != null) {
+            this.context.close();
+        }
+    }
 
-	@Test
-	public void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+    @Test
+    public void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment() throws Exception {
+        // Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextInstanceDataAutoConfiguration.class);
 
-		// Act
-		this.context.refresh();
+        // Act
+        this.context.refresh();
 
-		// Assert
-		assertTrue(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+        // Assert
+        assertTrue(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
 
-		httpServer.removeContext(instanceIdHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+    }
 
-	@Test
-	public void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler(null));
+    @Test
+    public void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment() throws Exception {
+        // Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler(null));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextInstanceDataAutoConfiguration.class);
 
-		// Act
-		this.context.refresh();
+        // Act
+        this.context.refresh();
 
-		// Assert
-		assertFalse(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+        // Assert
+        assertFalse(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
 
-		httpServer.removeContext(instanceIdHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+    }
 
-	@Test
-	public void placeHolder_noExplicitConfiguration_createInstanceDataResolverThatResolvesWithDefaultAttributes() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
-		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b;c:d"));
+    @Test
+    public void placeHolder_noExplicitConfiguration_createInstanceDataResolverThatResolvesWithDefaultAttributes() throws Exception {
+        // Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+        HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b;c:d"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextInstanceDataAutoConfiguration.class);
 
-		// Act
-		this.context.refresh();
+        // Act
+        this.context.refresh();
 
-		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+        // Assert
+        assertEquals("b", this.context.getEnvironment().getProperty("a"));
+        assertEquals("d", this.context.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(instanceIdHttpContext);
-		httpServer.removeContext(userDataHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+        httpServer.removeContext(userDataHttpContext);
+    }
 
-	@Test
-	public void placeHolder_customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
-		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
+    @Test
+    public void placeHolder_customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator() throws Exception {
+        // Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+        HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
-		this.context = new AnnotationConfigApplicationContext();
+        this.context = new AnnotationConfigApplicationContext();
 
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.valueSeparator:=");
+        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.valueSeparator:=");
 
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
+        this.context.register(ContextInstanceDataAutoConfiguration.class);
 
-		// Act
-		this.context.refresh();
+        // Act
+        this.context.refresh();
 
-		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+        // Assert
+        assertEquals("b", this.context.getEnvironment().getProperty("a"));
+        assertEquals("d", this.context.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(instanceIdHttpContext);
-		httpServer.removeContext(userDataHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+        httpServer.removeContext(userDataHttpContext);
+    }
 
-	@Test
-	public void placeHolder_customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
-		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
+    @Test
+    public void placeHolder_customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute() throws Exception {
+        // Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+        HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
 
-		this.context = new AnnotationConfigApplicationContext();
+        this.context = new AnnotationConfigApplicationContext();
 
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.attributeSeparator:/");
+        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.attributeSeparator:/");
 
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
+        this.context.register(ContextInstanceDataAutoConfiguration.class);
 
-		// Act
-		this.context.refresh();
+        // Act
+        this.context.refresh();
 
-		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+        // Assert
+        assertEquals("b", this.context.getEnvironment().getProperty("a"));
+        assertEquals("d", this.context.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(instanceIdHttpContext);
-		httpServer.removeContext(userDataHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+        httpServer.removeContext(userDataHttpContext);
+    }
 }

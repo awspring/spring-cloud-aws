@@ -27,18 +27,18 @@ import org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationS
  */
 class NotificationMethods {
 
-	@NotificationSubscriptionMapping
-	void subscriptionMethod(NotificationStatus notificationStatus) {
+    @NotificationSubscriptionMapping
+    void subscriptionMethod(NotificationStatus notificationStatus) {
 
-	}
+    }
 
-	@NotificationMessageMapping
-	void handleMethod(@NotificationSubject String subject, @NotificationMessage String message) {
+    @NotificationMessageMapping
+    void handleMethod(@NotificationSubject String subject, @NotificationMessage String message) {
 
-	}
+    }
 
-	@SuppressWarnings("EmptyMethod")
-	@RuntimeUse
-	void methodWithIntegerParameterType(@NotificationMessage Integer message) {
-	}
+    @SuppressWarnings("EmptyMethod")
+    @RuntimeUse
+    void methodWithIntegerParameterType(@NotificationMessage Integer message) {
+    }
 }

@@ -35,19 +35,19 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 @Import(ContextInstanceDataAutoConfiguration.Registrar.class)
 public class ContextInstanceDataAutoConfiguration {
 
-	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+    public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
-		private Environment environment;
+        private Environment environment;
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			registerInstanceDataPropertySource(registry, this.environment.getProperty("cloud.aws.instance.data.valueSeparator"),
-					this.environment.getProperty("cloud.aws.instance.data.attributeSeparator"));
-		}
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            registerInstanceDataPropertySource(registry, this.environment.getProperty("cloud.aws.instance.data.valueSeparator"),
+                    this.environment.getProperty("cloud.aws.instance.data.attributeSeparator"));
+        }
 
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
-		}
-	}
+        @Override
+        public void setEnvironment(Environment environment) {
+            this.environment = environment;
+        }
+    }
 }

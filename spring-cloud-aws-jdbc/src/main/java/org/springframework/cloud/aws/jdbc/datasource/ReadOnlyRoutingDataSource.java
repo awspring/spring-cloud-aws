@@ -39,37 +39,37 @@ import java.util.Map;
  */
 public class ReadOnlyRoutingDataSource extends AbstractRoutingDataSource {
 
-	private final List<Object> dataSources = new ArrayList<>();
-	private List<Object> dataSourceKeys;
+    private final List<Object> dataSources = new ArrayList<>();
+    private List<Object> dataSourceKeys;
 
-	@Override
-	public void setTargetDataSources(Map<Object, Object> targetDataSources) {
-		super.setTargetDataSources(targetDataSources);
-		this.dataSourceKeys = new ArrayList<>(targetDataSources.keySet());
-		this.dataSources.addAll(targetDataSources.values());
-	}
+    @Override
+    public void setTargetDataSources(Map<Object, Object> targetDataSources) {
+        super.setTargetDataSources(targetDataSources);
+        this.dataSourceKeys = new ArrayList<>(targetDataSources.keySet());
+        this.dataSources.addAll(targetDataSources.values());
+    }
 
-	@Override
-	public void setDefaultTargetDataSource(Object defaultTargetDataSource) {
-		super.setDefaultTargetDataSource(defaultTargetDataSource);
-		this.dataSources.add(defaultTargetDataSource);
-	}
+    @Override
+    public void setDefaultTargetDataSource(Object defaultTargetDataSource) {
+        super.setDefaultTargetDataSource(defaultTargetDataSource);
+        this.dataSources.add(defaultTargetDataSource);
+    }
 
-	@Override
-	protected Object determineCurrentLookupKey() {
-		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly() && !this.dataSourceKeys.isEmpty()) {
-			return this.dataSourceKeys.get(getRandom(this.dataSourceKeys.size()));
-		}
+    @Override
+    protected Object determineCurrentLookupKey() {
+        if (TransactionSynchronizationManager.isCurrentTransactionReadOnly() && !this.dataSourceKeys.isEmpty()) {
+            return this.dataSourceKeys.get(getRandom(this.dataSourceKeys.size()));
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public List<Object> getDataSources() {
-		return this.dataSources;
-	}
+    public List<Object> getDataSources() {
+        return this.dataSources;
+    }
 
-	private static int getRandom(int high) {
-		//noinspection UnsecureRandomNumberGeneration
-		return (int) (Math.random() * high);
-	}
+    private static int getRandom(int high) {
+        //noinspection UnsecureRandomNumberGeneration
+        return (int) (Math.random() * high);
+    }
 }

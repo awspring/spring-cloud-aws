@@ -39,58 +39,58 @@ import java.util.Collections;
  */
 public class AutoDetectingStackNameProvider implements StackNameProvider, InitializingBean {
 
-	private final AmazonCloudFormation amazonCloudFormationClient;
-	private final AmazonEC2 amazonEc2Client;
-	private final InstanceIdProvider instanceIdProvider;
+    private final AmazonCloudFormation amazonCloudFormationClient;
+    private final AmazonEC2 amazonEc2Client;
+    private final InstanceIdProvider instanceIdProvider;
 
-	private String stackName;
+    private String stackName;
 
-	private AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, AmazonEC2 amazonEc2Client, InstanceIdProvider instanceIdProvider) {
-		this.amazonCloudFormationClient = amazonCloudFormationClient;
-		this.amazonEc2Client = amazonEc2Client;
-		this.instanceIdProvider = instanceIdProvider;
-		afterPropertiesSet();
-	}
+    private AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, AmazonEC2 amazonEc2Client, InstanceIdProvider instanceIdProvider) {
+        this.amazonCloudFormationClient = amazonCloudFormationClient;
+        this.amazonEc2Client = amazonEc2Client;
+        this.instanceIdProvider = instanceIdProvider;
+        afterPropertiesSet();
+    }
 
-	public AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, AmazonEC2 amazonEc2Client) {
-		this(amazonCloudFormationClient, amazonEc2Client, new AmazonEc2InstanceIdProvider());
-	}
+    public AutoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormationClient, AmazonEC2 amazonEc2Client) {
+        this(amazonCloudFormationClient, amazonEc2Client, new AmazonEc2InstanceIdProvider());
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		String instanceId = this.instanceIdProvider.getCurrentInstanceId();
-		this.stackName = autoDetectStackName(instanceId);
-		if (this.stackName == null) {
-			throw new IllegalStateException("No stack resources found in stack for EC2 instance '" + instanceId + "'");
-		}
-	}
+    @Override
+    public void afterPropertiesSet() {
+        String instanceId = this.instanceIdProvider.getCurrentInstanceId();
+        this.stackName = autoDetectStackName(instanceId);
+        if (this.stackName == null) {
+            throw new IllegalStateException("No stack resources found in stack for EC2 instance '" + instanceId + "'");
+        }
+    }
 
-	@Override
-	public String getStackName() {
-		return this.stackName;
-	}
+    @Override
+    public String getStackName() {
+        return this.stackName;
+    }
 
-	private String autoDetectStackName(String instanceId) {
+    private String autoDetectStackName(String instanceId) {
 
-		Assert.notNull(instanceId, "No valid instance id defined");
-		DescribeStackResourcesResult describeStackResourcesResult = this.amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId(instanceId));
+        Assert.notNull(instanceId, "No valid instance id defined");
+        DescribeStackResourcesResult describeStackResourcesResult = this.amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId(instanceId));
 
-		if (describeStackResourcesResult != null && describeStackResourcesResult.getStackResources() != null &&
-				!describeStackResourcesResult.getStackResources().isEmpty()) {
-			return describeStackResourcesResult.getStackResources().get(0).getStackName();
-		}
+        if (describeStackResourcesResult != null && describeStackResourcesResult.getStackResources() != null &&
+                !describeStackResourcesResult.getStackResources().isEmpty()) {
+            return describeStackResourcesResult.getStackResources().get(0).getStackName();
+        }
 
-		if (this.amazonEc2Client != null) {
-			DescribeTagsResult describeTagsResult = this.amazonEc2Client.describeTags(new DescribeTagsRequest().withFilters(
-					new Filter("resource-id", Collections.singletonList(instanceId)),
-					new Filter("resource-type", Collections.singletonList("instance")),
-					new Filter("key",  Collections.singletonList("aws:cloudformation:stack-name"))));
+        if (this.amazonEc2Client != null) {
+            DescribeTagsResult describeTagsResult = this.amazonEc2Client.describeTags(new DescribeTagsRequest().withFilters(
+                    new Filter("resource-id", Collections.singletonList(instanceId)),
+                    new Filter("resource-type", Collections.singletonList("instance")),
+                    new Filter("key", Collections.singletonList("aws:cloudformation:stack-name"))));
 
-			if (describeTagsResult != null && describeTagsResult.getTags() != null && !describeTagsResult.getTags().isEmpty()) {
-				return describeTagsResult.getTags().get(0).getValue();
-			}
-		}
+            if (describeTagsResult != null && describeTagsResult.getTags() != null && !describeTagsResult.getTags().isEmpty()) {
+                return describeTagsResult.getTags().get(0).getValue();
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 }

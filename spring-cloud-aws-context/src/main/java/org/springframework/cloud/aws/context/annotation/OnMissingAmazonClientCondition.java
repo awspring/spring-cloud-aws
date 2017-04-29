@@ -28,22 +28,22 @@ import org.springframework.util.MultiValueMap;
  */
 public class OnMissingAmazonClientCondition implements Condition {
 
-	@Override
-	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnMissingAmazonClient.class.getName(), true);
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnMissingAmazonClient.class.getName(), true);
 
-		for (Object amazonClientClass : attributes.get("value")) {
-			if (isAmazonClientMissing(context, (String) amazonClientClass)) {
-				return true;
-			}
-		}
+        for (Object amazonClientClass : attributes.get("value")) {
+            if (isAmazonClientMissing(context, (String) amazonClientClass)) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	private boolean isAmazonClientMissing(ConditionContext context, String amazonClientClass) {
-		String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils.getBeanName(amazonClientClass);
-		return !context.getBeanFactory().containsBean(amazonClientBeanName) && !context.getRegistry().containsBeanDefinition(amazonClientBeanName);
-	}
+    private boolean isAmazonClientMissing(ConditionContext context, String amazonClientClass) {
+        String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils.getBeanName(amazonClientClass);
+        return !context.getBeanFactory().containsBean(amazonClientBeanName) && !context.getRegistry().containsBeanDefinition(amazonClientBeanName);
+    }
 
 }

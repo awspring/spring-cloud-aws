@@ -34,34 +34,34 @@ import java.util.List;
  */
 public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCredentialsProvider> {
 
-	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "credentialsProvider";
+    public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "credentialsProvider";
 
-	private final List<AWSCredentialsProvider> delegates;
+    private final List<AWSCredentialsProvider> delegates;
 
-	public CredentialsProviderFactoryBean() {
-		this(Collections.<AWSCredentialsProvider>emptyList());
-	}
+    public CredentialsProviderFactoryBean() {
+        this(Collections.<AWSCredentialsProvider>emptyList());
+    }
 
-	public CredentialsProviderFactoryBean(List<AWSCredentialsProvider> delegates) {
-		Assert.notNull(delegates, "Delegates must not be null");
-		this.delegates = delegates;
-	}
+    public CredentialsProviderFactoryBean(List<AWSCredentialsProvider> delegates) {
+        Assert.notNull(delegates, "Delegates must not be null");
+        this.delegates = delegates;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return AWSCredentialsProvider.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return AWSCredentialsProvider.class;
+    }
 
-	@Override
-	protected AWSCredentialsProvider createInstance() throws Exception {
-		AWSCredentialsProviderChain awsCredentialsProviderChain;
-		if (this.delegates.isEmpty()) {
-			awsCredentialsProviderChain = new DefaultAWSCredentialsProviderChain();
-		}else{
-			awsCredentialsProviderChain = new AWSCredentialsProviderChain(this.delegates.toArray(new AWSCredentialsProvider[this.delegates.size()]));
-		}
+    @Override
+    protected AWSCredentialsProvider createInstance() throws Exception {
+        AWSCredentialsProviderChain awsCredentialsProviderChain;
+        if (this.delegates.isEmpty()) {
+            awsCredentialsProviderChain = new DefaultAWSCredentialsProviderChain();
+        } else {
+            awsCredentialsProviderChain = new AWSCredentialsProviderChain(this.delegates.toArray(new AWSCredentialsProvider[this.delegates.size()]));
+        }
 
-		awsCredentialsProviderChain.setReuseLastProvider(false);
-		return awsCredentialsProviderChain;
-	}
+        awsCredentialsProviderChain.setReuseLastProvider(false);
+        return awsCredentialsProviderChain;
+    }
 }

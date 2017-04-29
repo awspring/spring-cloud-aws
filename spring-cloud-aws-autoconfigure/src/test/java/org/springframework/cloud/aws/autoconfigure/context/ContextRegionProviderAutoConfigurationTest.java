@@ -33,42 +33,42 @@ import static org.junit.Assert.assertNotNull;
  */
 public class ContextRegionProviderAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
+    @After
+    public void tearDown() throws Exception {
+        if (this.context != null) {
+            this.context.close();
+        }
 
-	}
+    }
 
-	@Test
-	public void regionProvider_autoDetectionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextRegionProviderAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.auto");
+    @Test
+    public void regionProvider_autoDetectionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextRegionProviderAutoConfiguration.class);
+        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.auto");
 
-		//Act
-		this.context.refresh();
+        //Act
+        this.context.refresh();
 
-		//Assert
-		assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
-	}
+        //Assert
+        assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+    }
 
-	@Test
-	public void regionProvider_staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextRegionProviderAutoConfiguration.class);
-		EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:eu-west-1");
+    @Test
+    public void regionProvider_staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextRegionProviderAutoConfiguration.class);
+        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:eu-west-1");
 
-		//Act
-		this.context.refresh();
-		StaticRegionProvider regionProvider = this.context.getBean(StaticRegionProvider.class);
+        //Act
+        this.context.refresh();
+        StaticRegionProvider regionProvider = this.context.getBean(StaticRegionProvider.class);
 
-		//Assert
-		assertEquals(Region.getRegion(Regions.EU_WEST_1), regionProvider.getRegion());
-	}
+        //Assert
+        assertEquals(Region.getRegion(Regions.EU_WEST_1), regionProvider.getRegion());
+    }
 }

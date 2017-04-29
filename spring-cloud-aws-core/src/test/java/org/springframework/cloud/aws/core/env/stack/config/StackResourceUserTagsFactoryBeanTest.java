@@ -34,28 +34,28 @@ import static org.mockito.Mockito.when;
  */
 public class StackResourceUserTagsFactoryBeanTest {
 
-	@Test
-	public void getObject_stackWithTagsDefined_createTagsMap() throws Exception {
-		//Arrange
-		AmazonCloudFormation cloudFormation = mock(AmazonCloudFormation.class);
-		StackNameProvider stackNameProvider = mock(StackNameProvider.class);
+    @Test
+    public void getObject_stackWithTagsDefined_createTagsMap() throws Exception {
+        //Arrange
+        AmazonCloudFormation cloudFormation = mock(AmazonCloudFormation.class);
+        StackNameProvider stackNameProvider = mock(StackNameProvider.class);
 
-		when(stackNameProvider.getStackName()).thenReturn("testStack");
-		when(cloudFormation.describeStacks(new DescribeStacksRequest().withStackName("testStack"))).
-				thenReturn(new DescribeStacksResult().withStacks(new Stack().withTags(
-						new Tag().withKey("key1").withValue("value1"),
-						new Tag().withKey("key2").withValue("value2")
-				)));
+        when(stackNameProvider.getStackName()).thenReturn("testStack");
+        when(cloudFormation.describeStacks(new DescribeStacksRequest().withStackName("testStack"))).
+                thenReturn(new DescribeStacksResult().withStacks(new Stack().withTags(
+                        new Tag().withKey("key1").withValue("value1"),
+                        new Tag().withKey("key2").withValue("value2")
+                )));
 
 
-		StackResourceUserTagsFactoryBean factoryBean = new StackResourceUserTagsFactoryBean(cloudFormation, stackNameProvider);
+        StackResourceUserTagsFactoryBean factoryBean = new StackResourceUserTagsFactoryBean(cloudFormation, stackNameProvider);
 
-		//Act
-		factoryBean.afterPropertiesSet();
-		Map<String, String> factoryBeanObject = factoryBean.getObject();
+        //Act
+        factoryBean.afterPropertiesSet();
+        Map<String, String> factoryBeanObject = factoryBean.getObject();
 
-		//Assert
-		assertEquals("value1", factoryBeanObject.get("key1"));
-		assertEquals("value2", factoryBeanObject.get("key2"));
-	}
+        //Assert
+        assertEquals("value1", factoryBeanObject.get("key1"));
+        assertEquals("value2", factoryBeanObject.get("key2"));
+    }
 }

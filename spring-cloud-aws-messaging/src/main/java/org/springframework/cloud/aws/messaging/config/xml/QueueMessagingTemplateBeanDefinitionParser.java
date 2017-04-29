@@ -31,28 +31,28 @@ import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClie
  */
 public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
-	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
+    private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
+    private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return QueueMessagingTemplate.class;
-	}
+    @Override
+    protected Class<?> getBeanClass(Element element) {
+        return QueueMessagingTemplate.class;
+    }
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
+    @Override
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
 
-		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
-			builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
-		}
+        if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
+            builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
+        }
 
-		builder.addConstructorArgReference(amazonSqsClientBeanName);
-		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+        builder.addConstructorArgReference(amazonSqsClientBeanName);
+        builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
 
-		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			builder.addConstructorArgReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-		}
-	}
+        if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
+            builder.addConstructorArgReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
+        }
+    }
 
 }

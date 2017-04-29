@@ -27,16 +27,16 @@ import org.springframework.util.Assert;
 @RuntimeUse
 public class StaticStackNameProvider implements StackNameProvider {
 
-	private final String stackName;
+    private final String stackName;
 
-	public StaticStackNameProvider(String stackName) {
-		Assert.notNull(stackName, "Stack name must not be null");
-		this.stackName = stackName;
-	}
+    public StaticStackNameProvider(String stackName) {
+        Assert.notNull(stackName, "Stack name must not be null");
+        this.stackName = stackName;
+    }
 
-	@Override
-	public String getStackName() {
-		return this.stackName;
-	}
+    @Override
+    public String getStackName() {
+        return this.stackName;
+    }
 
 }

@@ -28,10 +28,10 @@ import org.springframework.util.MultiValueMap;
  */
 public class OnClassCondition implements Condition {
 
-	@Override
-	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnClass.class.getName(), true);
-		String className = String.valueOf(attributes.get(AnnotationUtils.VALUE).get(0));
-		return ClassUtils.isPresent(className, context.getClassLoader());
-	}
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnClass.class.getName(), true);
+        String className = String.valueOf(attributes.get(AnnotationUtils.VALUE).get(0));
+        return ClassUtils.isPresent(className, context.getClassLoader());
+    }
 }

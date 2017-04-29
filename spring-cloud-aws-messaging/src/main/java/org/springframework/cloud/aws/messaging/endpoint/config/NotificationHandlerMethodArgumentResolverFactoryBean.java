@@ -29,20 +29,20 @@ import static org.springframework.cloud.aws.messaging.endpoint.config.Notificati
  */
 public class NotificationHandlerMethodArgumentResolverFactoryBean extends AbstractFactoryBean<HandlerMethodArgumentResolver> {
 
-	private final AmazonSNS amazonSns;
+    private final AmazonSNS amazonSns;
 
-	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
-		Assert.notNull(amazonSns, "AmazonSns must not be null");
-		this.amazonSns = amazonSns;
-	}
+    public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
+        Assert.notNull(amazonSns, "AmazonSns must not be null");
+        this.amazonSns = amazonSns;
+    }
 
-	@Override
-	public Class<HandlerMethodArgumentResolver> getObjectType() {
-		return HandlerMethodArgumentResolver.class;
-	}
+    @Override
+    public Class<HandlerMethodArgumentResolver> getObjectType() {
+        return HandlerMethodArgumentResolver.class;
+    }
 
-	@Override
-	protected HandlerMethodArgumentResolver createInstance() throws Exception {
-		return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
-	}
+    @Override
+    protected HandlerMethodArgumentResolver createInstance() throws Exception {
+        return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
+    }
 }

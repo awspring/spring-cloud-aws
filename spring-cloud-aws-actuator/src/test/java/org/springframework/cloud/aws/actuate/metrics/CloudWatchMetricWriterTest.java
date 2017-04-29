@@ -35,8 +35,8 @@ public class CloudWatchMetricWriterTest {
 
     @Test
     public void testMetricDatumCreation() {
-		Metric<Number> simpleMetric = new Metric<Number>("test.x", 1);
-		MetricDatum simpleMetricDatum = CloudWatchMetricWriter.createMetricDatumForUnknownValue(simpleMetric);
+        Metric<Number> simpleMetric = new Metric<Number>("test.x", 1);
+        MetricDatum simpleMetricDatum = CloudWatchMetricWriter.createMetricDatumForUnknownValue(simpleMetric);
         assertEquals(simpleMetric.getName(), simpleMetricDatum.getMetricName());
         assertEquals(simpleMetric.getTimestamp(), simpleMetricDatum.getTimestamp());
         assertEquals(Double.valueOf(simpleMetric.getValue().doubleValue()), simpleMetricDatum.getValue());
@@ -45,8 +45,8 @@ public class CloudWatchMetricWriterTest {
 
     @Test
     public void testTimerMetricDatumCreation() {
-		Metric<Number> timerMetric = new Metric<Number>("timer.x", 1);
-		MetricDatum simpleMetricDatum = CloudWatchMetricWriter.createMetricDatumForUnknownValue(timerMetric);
+        Metric<Number> timerMetric = new Metric<Number>("timer.x", 1);
+        MetricDatum simpleMetricDatum = CloudWatchMetricWriter.createMetricDatumForUnknownValue(timerMetric);
         assertEquals(timerMetric.getName(), simpleMetricDatum.getMetricName());
         assertEquals(timerMetric.getTimestamp(), simpleMetricDatum.getTimestamp());
         assertEquals(Double.valueOf(timerMetric.getValue().doubleValue()), simpleMetricDatum.getValue());
@@ -69,19 +69,19 @@ public class CloudWatchMetricWriterTest {
         CloudWatchMetricWriter writer = new CloudWatchMetricWriter(sender);
 
         // Simple metric
-		Metric<Number> simpleMetric = new Metric<Number>("test.x", 1);
-		writer.set(simpleMetric);
-		verify(sender).send(CloudWatchMetricWriter.createMetricDatumForUnknownValue(simpleMetric));
+        Metric<Number> simpleMetric = new Metric<Number>("test.x", 1);
+        writer.set(simpleMetric);
+        verify(sender).send(CloudWatchMetricWriter.createMetricDatumForUnknownValue(simpleMetric));
 
         // Timer metric
-		Metric<Number> timerMetric = new Metric<Number>("timer.x", 1);
-		writer.set(timerMetric);
-		verify(sender).send(CloudWatchMetricWriter.createMetricDatumForUnknownValue(timerMetric));
+        Metric<Number> timerMetric = new Metric<Number>("timer.x", 1);
+        writer.set(timerMetric);
+        verify(sender).send(CloudWatchMetricWriter.createMetricDatumForUnknownValue(timerMetric));
 
         // Counter metric
         Delta<Integer> counterMetric = new Delta<>("test.c", 1);
         writer.increment(counterMetric);
-		verify(sender).send(CloudWatchMetricWriter.createMetricDatumForCounterValue(counterMetric));
-	}
+        verify(sender).send(CloudWatchMetricWriter.createMetricDatumForCounterValue(counterMetric));
+    }
 
 }

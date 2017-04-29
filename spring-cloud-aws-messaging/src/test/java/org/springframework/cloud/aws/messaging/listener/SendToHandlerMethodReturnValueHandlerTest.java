@@ -48,189 +48,189 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class SendToHandlerMethodReturnValueHandlerTest {
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
-	@Mock
-	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+    @Mock
+    private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
-	@Test
-	public void supportsReturnType_methodAnnotatedWithSendTo_trueIsReturned() throws Exception {
-		// Arrange
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
-		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+    @Test
+    public void supportsReturnType_methodAnnotatedWithSendTo_trueIsReturned() throws Exception {
+        // Arrange
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
+        Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
 
-		// Act
-		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
+        // Act
+        boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
-		// Assert
-		assertTrue(supports);
-	}
+        // Assert
+        assertTrue(supports);
+    }
 
-	@Test
-	public void supportsReturnType_methodWithoutSendToAnnotation_falseIsReturned() throws Exception {
-		// Arrange
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
-		Method invalidSendToMethod = this.getClass().getDeclaredMethod("invalidSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(invalidSendToMethod, 0);
+    @Test
+    public void supportsReturnType_methodWithoutSendToAnnotation_falseIsReturned() throws Exception {
+        // Arrange
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
+        Method invalidSendToMethod = this.getClass().getDeclaredMethod("invalidSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(invalidSendToMethod, 0);
 
-		// Act
-		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
+        // Act
+        boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
-		// Assert
-		assertFalse(supports);
-	}
+        // Assert
+        assertFalse(supports);
+    }
 
-	@Test
-	public void supportsReturnType_methodWithSendToAnnotationWithoutValue_trueIsReturned() throws Exception {
-		// Arrange
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
-		Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+    @Test
+    public void supportsReturnType_methodWithSendToAnnotationWithoutValue_trueIsReturned() throws Exception {
+        // Arrange
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
+        Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
 
-		// Act
-		boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
+        // Act
+        boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
 
-		// Assert
-		assertTrue(supports);
-	}
+        // Assert
+        assertTrue(supports);
+    }
 
-	@Test
-	public void handleReturnValue_withNullMessageTemplate_exceptionIsThrown() throws Exception {
-		// Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("A messageTemplate must be set to handle the return value.");
+    @Test
+    public void handleReturnValue_withNullMessageTemplate_exceptionIsThrown() throws Exception {
+        // Arrange
+        this.expectedException.expect(IllegalStateException.class);
+        this.expectedException.expectMessage("A messageTemplate must be set to handle the return value.");
 
-		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
+        Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("Return me!", methodParameter, MessageBuilder.withPayload("Nothing").build());
-	}
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue("Return me!", methodParameter, MessageBuilder.withPayload("Nothing").build());
+    }
 
-	@Test
-	public void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled() throws Exception {
-		// Arrange
-		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+    @Test
+    public void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled() throws Exception {
+        // Arrange
+        Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue(null, methodParameter, MessageBuilder.withPayload("Nothing").build());
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue(null, methodParameter, MessageBuilder.withPayload("Nothing").build());
 
-		// Assert
-		verify(this.messageTemplate, times(0)).convertAndSend(anyString(), anyString());
-	}
+        // Assert
+        verify(this.messageTemplate, times(0)).convertAndSend(anyString(), anyString());
+    }
 
-	@Test
-	public void handleReturnValue_withAMessageTemplateAndAValidMethodWithDestination_templateIsCalled() throws Exception {
-		// Arrange
-		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+    @Test
+    public void handleReturnValue_withAMessageTemplateAndAValidMethodWithDestination_templateIsCalled() throws Exception {
+        // Arrange
+        Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue("Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
-		// Assert
-		verify(this.messageTemplate, times(1)).convertAndSend(eq("testQueue"), eq("Elastic Hello!"));
-	}
+        // Assert
+        verify(this.messageTemplate, times(1)).convertAndSend(eq("testQueue"), eq("Elastic Hello!"));
+    }
 
-	@Test
-	public void handleReturnValue_withExpressionInSendToName_templateIsCalled() throws Exception {
-		// Arrange
-		Method validSendToMethod = this.getClass().getDeclaredMethod("expressionMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+    @Test
+    public void handleReturnValue_withExpressionInSendToName_templateIsCalled() throws Exception {
+        // Arrange
+        Method validSendToMethod = this.getClass().getDeclaredMethod("expressionMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
 
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("queueName", "myTestQueue");
+        GenericApplicationContext applicationContext = new GenericApplicationContext();
+        MockPropertySource propertySource = new MockPropertySource();
+        propertySource.setProperty("queueName", "myTestQueue");
 
-		applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
-		applicationContext.refresh();
+        applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
+        applicationContext.refresh();
 
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
-		sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+        sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("expression method", methodParameter, MessageBuilder.withPayload("Nothing").build());
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue("expression method", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
-		// Assert
-		verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("expression method"));
-	}
+        // Assert
+        verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("expression method"));
+    }
 
-	@Test
-	public void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled() throws Exception {
-		// Arrange
-		Method validSendToMethod = this.getClass().getDeclaredMethod("placeHolderMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+    @Test
+    public void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled() throws Exception {
+        // Arrange
+        Method validSendToMethod = this.getClass().getDeclaredMethod("placeHolderMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
 
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("placeholderQueueName", "myTestQueue");
+        GenericApplicationContext applicationContext = new GenericApplicationContext();
+        MockPropertySource propertySource = new MockPropertySource();
+        propertySource.setProperty("placeholderQueueName", "myTestQueue");
 
-		applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
-		applicationContext.registerBeanDefinition("resolver", BeanDefinitionBuilder.genericBeanDefinition(PropertySourcesPlaceholderConfigurer.class).getBeanDefinition());
+        applicationContext.getEnvironment().getPropertySources().addLast(propertySource);
+        applicationContext.registerBeanDefinition("resolver", BeanDefinitionBuilder.genericBeanDefinition(PropertySourcesPlaceholderConfigurer.class).getBeanDefinition());
 
-		applicationContext.refresh();
+        applicationContext.refresh();
 
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
-		sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+        sendToHandlerMethodReturnValueHandler.setBeanFactory(applicationContext.getAutowireCapableBeanFactory());
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("placeholder method", methodParameter, MessageBuilder.withPayload("Nothing").build());
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue("placeholder method", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
-		// Assert
-		verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("placeholder method"));
-	}
+        // Assert
+        verify(this.messageTemplate, times(1)).convertAndSend(eq("myTestQueue"), eq("placeholder method"));
+    }
 
-	@Test
-	public void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled() throws Exception {
-		// Arrange
-		Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
-		MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
-		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
+    @Test
+    public void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled() throws Exception {
+        // Arrange
+        Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("Another Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
+        // Act
+        sendToHandlerMethodReturnValueHandler.handleReturnValue("Another Elastic Hello!", methodParameter, MessageBuilder.withPayload("Nothing").build());
 
-		// Assert
-		verify(this.messageTemplate, times(1)).convertAndSend(eq("Another Elastic Hello!"));
-	}
+        // Assert
+        verify(this.messageTemplate, times(1)).convertAndSend(eq("Another Elastic Hello!"));
+    }
 
 
-	@SuppressWarnings("SameReturnValue")
-	@RuntimeUse
-	@SendTo("testQueue")
-	private String validSendToMethod() {
-		return "Elastic Hello!";
-	}
+    @SuppressWarnings("SameReturnValue")
+    @RuntimeUse
+    @SendTo("testQueue")
+    private String validSendToMethod() {
+        return "Elastic Hello!";
+    }
 
-	@SuppressWarnings("SameReturnValue")
-	@RuntimeUse
-	@SendTo
-	private String anotherValidSendToMethod() {
-		return "Another Elastic Hello!";
-	}
+    @SuppressWarnings("SameReturnValue")
+    @RuntimeUse
+    @SendTo
+    private String anotherValidSendToMethod() {
+        return "Another Elastic Hello!";
+    }
 
-	@SuppressWarnings("SameReturnValue")
-	@RuntimeUse
-	private String invalidSendToMethod() {
-		return "Just Hello!";
-	}
+    @SuppressWarnings("SameReturnValue")
+    @RuntimeUse
+    private String invalidSendToMethod() {
+        return "Just Hello!";
+    }
 
-	@SuppressWarnings("SameReturnValue")
-	@RuntimeUse
-	@SendTo("#{environment.queueName}")
-	private String expressionMethod() {
-		return "expression method";
-	}
+    @SuppressWarnings("SameReturnValue")
+    @RuntimeUse
+    @SendTo("#{environment.queueName}")
+    private String expressionMethod() {
+        return "expression method";
+    }
 
-	@SuppressWarnings("SameReturnValue")
-	@RuntimeUse
-	@SendTo("${placeholderQueueName}")
-	private String placeHolderMethod() {
-		return "placeholder method";
-	}
+    @SuppressWarnings("SameReturnValue")
+    @RuntimeUse
+    @SendTo("${placeholderQueueName}")
+    private String placeHolderMethod() {
+        return "placeholder method";
+    }
 }

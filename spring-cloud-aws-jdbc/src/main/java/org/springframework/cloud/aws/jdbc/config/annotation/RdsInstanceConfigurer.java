@@ -23,6 +23,6 @@ import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
  */
 public interface RdsInstanceConfigurer {
 
-	DataSourceFactory getDataSourceFactory();
+    DataSourceFactory getDataSourceFactory();
 
 }

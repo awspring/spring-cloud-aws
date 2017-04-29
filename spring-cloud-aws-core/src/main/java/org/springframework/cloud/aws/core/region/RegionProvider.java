@@ -29,11 +29,11 @@ import com.amazonaws.regions.Region;
  */
 public interface RegionProvider {
 
-	/**
-	 * Returns the region which should be used to access the services. The possible return values are already defined in
-	 * the {@link Region} enumeration.
-	 *
-	 * @return the region which might be statically configured or dynamically fetched
-	 */
-	Region getRegion();
+    /**
+     * Returns the region which should be used to access the services. The possible return values are already defined in
+     * the {@link Region} enumeration.
+     *
+     * @return the region which might be statically configured or dynamically fetched
+     */
+    Region getRegion();
 }

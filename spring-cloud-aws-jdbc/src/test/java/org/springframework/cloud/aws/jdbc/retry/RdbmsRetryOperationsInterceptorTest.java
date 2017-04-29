@@ -41,61 +41,61 @@ import static org.mockito.Mockito.when;
  */
 public class RdbmsRetryOperationsInterceptorTest {
 
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void testRetryContextIsAvailable() throws Throwable {
-		RetryContext retryContext = mock(RetryContext.class);
-		RetrySynchronizationManager.register(retryContext);
+    @Test
+    public void testRetryContextIsAvailable() throws Throwable {
+        RetryContext retryContext = mock(RetryContext.class);
+        RetrySynchronizationManager.register(retryContext);
 
-		MethodInvocation methodInvocation = mock(MethodInvocation.class);
+        MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
-		try {
-			RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
-			interceptor.invoke(methodInvocation);
-		} finally {
-			RetrySynchronizationManager.clear();
-		}
+        try {
+            RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
+            interceptor.invoke(methodInvocation);
+        } finally {
+            RetrySynchronizationManager.clear();
+        }
 
-		verify(methodInvocation, times(1)).proceed();
-	}
+        verify(methodInvocation, times(1)).proceed();
+    }
 
-	@Test
-	public void testRetryContextIsNotAvailable() throws Throwable {
+    @Test
+    public void testRetryContextIsNotAvailable() throws Throwable {
 
-		ProxyMethodInvocation methodInvocation = mock(ProxyMethodInvocation.class);
+        ProxyMethodInvocation methodInvocation = mock(ProxyMethodInvocation.class);
 
-		when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
-		when(methodInvocation.proceed()).then(new Answer<Object>() {
+        when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
+        when(methodInvocation.proceed()).then(new Answer<Object>() {
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Assert.assertNotNull(RetrySynchronizationManager.getContext());
-				return "foo";
-			}
-		});
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                Assert.assertNotNull(RetrySynchronizationManager.getContext());
+                return "foo";
+            }
+        });
 
 
-		RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
-		interceptor.setLabel("mylabel"); //Avoids NPE in RetryOperationsInterceptor.invoke
-		interceptor.invoke(methodInvocation);
+        RdbmsRetryOperationsInterceptor interceptor = new RdbmsRetryOperationsInterceptor();
+        interceptor.setLabel("mylabel"); //Avoids NPE in RetryOperationsInterceptor.invoke
+        interceptor.invoke(methodInvocation);
 
-		verify(methodInvocation, times(1)).invocableClone();
-	}
+        verify(methodInvocation, times(1)).invocableClone();
+    }
 
-	@Test
-	public void testRetryContextWithoutTransaction() throws Throwable {
-		this.expectedException.expect(RetryException.class);
-		this.expectedException.expectMessage("An active transaction was found");
+    @Test
+    public void testRetryContextWithoutTransaction() throws Throwable {
+        this.expectedException.expect(RetryException.class);
+        this.expectedException.expectMessage("An active transaction was found");
 
-		TransactionSynchronizationManager.setActualTransactionActive(true);
-		try {
-			RdbmsRetryOperationsInterceptor operationsInterceptor = new RdbmsRetryOperationsInterceptor();
-			MethodInvocation methodInvocation = mock(MethodInvocation.class);
-			operationsInterceptor.invoke(methodInvocation);
-		} finally {
-			TransactionSynchronizationManager.setActualTransactionActive(false);
-		}
-	}
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            RdbmsRetryOperationsInterceptor operationsInterceptor = new RdbmsRetryOperationsInterceptor();
+            MethodInvocation methodInvocation = mock(MethodInvocation.class);
+            operationsInterceptor.invoke(methodInvocation);
+        } finally {
+            TransactionSynchronizationManager.setActualTransactionActive(false);
+        }
+    }
 }

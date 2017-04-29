@@ -28,23 +28,23 @@ import org.springframework.util.ClassUtils;
  */
 public class AcknowledgmentHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final String acknowledgmentHeaderName;
+    private final String acknowledgmentHeaderName;
 
-	public AcknowledgmentHandlerMethodArgumentResolver(String acknowledgmentHeaderName) {
-		this.acknowledgmentHeaderName = acknowledgmentHeaderName;
-	}
+    public AcknowledgmentHandlerMethodArgumentResolver(String acknowledgmentHeaderName) {
+        this.acknowledgmentHeaderName = acknowledgmentHeaderName;
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return ClassUtils.isAssignable(Acknowledgment.class, parameter.getParameterType());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return ClassUtils.isAssignable(Acknowledgment.class, parameter.getParameterType());
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		if (!message.getHeaders().containsKey(this.acknowledgmentHeaderName) ||
-				message.getHeaders().get(this.acknowledgmentHeaderName) == null) {
-			throw new IllegalArgumentException("No acknowledgment object found for message header: '" + this.acknowledgmentHeaderName + "'");
-		}
-		return message.getHeaders().get(this.acknowledgmentHeaderName);
-	}
+    @Override
+    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+        if (!message.getHeaders().containsKey(this.acknowledgmentHeaderName) ||
+                message.getHeaders().get(this.acknowledgmentHeaderName) == null) {
+            throw new IllegalArgumentException("No acknowledgment object found for message header: '" + this.acknowledgmentHeaderName + "'");
+        }
+        return message.getHeaders().get(this.acknowledgmentHeaderName);
+    }
 }

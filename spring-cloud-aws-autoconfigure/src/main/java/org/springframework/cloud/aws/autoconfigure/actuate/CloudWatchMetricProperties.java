@@ -41,33 +41,33 @@ public class CloudWatchMetricProperties {
     private int maxBuffer = Integer.MAX_VALUE;
 
     /**
-	 * The delay of the background task which sends metrics to
-	 * CloudWatch. A higher delay leads to more buffering and less but larger requests.
+     * The delay of the background task which sends metrics to
+     * CloudWatch. A higher delay leads to more buffering and less but larger requests.
      * A lower delay leads to a smaller buffer but more requests with less payload.
      */
-	private long fixedDelayBetweenRuns = 1000;
+    private long fixedDelayBetweenRuns = 1000;
 
     public String getNamespace() {
-		return this.namespace;
-	}
+        return this.namespace;
+    }
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
     public int getMaxBuffer() {
-		return this.maxBuffer;
-	}
+        return this.maxBuffer;
+    }
 
     public void setMaxBuffer(int maxBuffer) {
         this.maxBuffer = maxBuffer;
     }
 
-	public long getFixedDelayBetweenRuns() {
-		return this.fixedDelayBetweenRuns;
-	}
+    public long getFixedDelayBetweenRuns() {
+        return this.fixedDelayBetweenRuns;
+    }
 
-	public void setFixedDelayBetweenRuns(long fixedDelayBetweenRuns) {
-		this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
-	}
+    public void setFixedDelayBetweenRuns(long fixedDelayBetweenRuns) {
+        this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
+    }
 }

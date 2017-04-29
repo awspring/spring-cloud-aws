@@ -32,4 +32,5 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnClass(name = "com.amazonaws.services.elasticache.AmazonElastiCache")
 @ConditionalOnAwsCloudEnvironment
 public class ElastiCacheAutoConfiguration {
+
 }

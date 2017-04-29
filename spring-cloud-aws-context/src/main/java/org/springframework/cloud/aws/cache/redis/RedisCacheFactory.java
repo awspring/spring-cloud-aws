@@ -31,48 +31,48 @@ import org.springframework.util.ClassUtils;
  */
 public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFactory> {
 
-	private static final boolean JEDIS_AVAILABLE = ClassUtils.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
-	private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("com.lambdaworks.redis.RedisClient", ClassUtils.getDefaultClassLoader());
+    private static final boolean JEDIS_AVAILABLE = ClassUtils.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
+    private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("com.lambdaworks.redis.RedisClient", ClassUtils.getDefaultClassLoader());
 
-	@Override
-	public boolean isSupportingCacheArchitecture(String architecture) {
-		return "redis".equalsIgnoreCase(architecture);
-	}
+    @Override
+    public boolean isSupportingCacheArchitecture(String architecture) {
+        return "redis".equalsIgnoreCase(architecture);
+    }
 
-	@Override
-	public Cache createCache(String cacheName, String host, int port) throws Exception {
-		return new RedisCache(cacheName, null, getRedisTemplate(getConnectionFactory(host, port)), getExpiryTime(cacheName));
-	}
+    @Override
+    public Cache createCache(String cacheName, String host, int port) throws Exception {
+        return new RedisCache(cacheName, null, getRedisTemplate(getConnectionFactory(host, port)), getExpiryTime(cacheName));
+    }
 
-	@Override
-	protected void destroyConnectionClient(RedisConnectionFactory connectionClient) throws Exception {
-		if (connectionClient instanceof DisposableBean) {
-			((DisposableBean) connectionClient).destroy();
-		}
-	}
+    @Override
+    protected void destroyConnectionClient(RedisConnectionFactory connectionClient) throws Exception {
+        if (connectionClient instanceof DisposableBean) {
+            ((DisposableBean) connectionClient).destroy();
+        }
+    }
 
-	@Override
-	protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
-		if (JEDIS_AVAILABLE) {
-			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-			connectionFactory.setHostName(hostName);
-			connectionFactory.setPort(port);
-			return connectionFactory;
-		} else if (LETTUCE_AVAILABLE) {
-			LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-			lettuceConnectionFactory.setHostName(hostName);
-			lettuceConnectionFactory.setPort(port);
-			return lettuceConnectionFactory;
-		} else {
-			throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
-					"Please add one of the implementation to your classpath");
-		}
-	}
+    @Override
+    protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
+        if (JEDIS_AVAILABLE) {
+            JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+            connectionFactory.setHostName(hostName);
+            connectionFactory.setPort(port);
+            return connectionFactory;
+        } else if (LETTUCE_AVAILABLE) {
+            LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+            lettuceConnectionFactory.setHostName(hostName);
+            lettuceConnectionFactory.setPort(port);
+            return lettuceConnectionFactory;
+        } else {
+            throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
+                    "Please add one of the implementation to your classpath");
+        }
+    }
 
-	protected RedisTemplate<?, ?> getRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-		RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setConnectionFactory(redisConnectionFactory);
-		redisTemplate.afterPropertiesSet();
-		return redisTemplate;
-	}
+    protected RedisTemplate<?, ?> getRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }
 }

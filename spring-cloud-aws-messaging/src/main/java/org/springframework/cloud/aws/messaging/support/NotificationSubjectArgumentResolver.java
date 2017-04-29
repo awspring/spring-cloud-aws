@@ -30,20 +30,20 @@ import org.springframework.util.ClassUtils;
  */
 public class NotificationSubjectArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final MessageConverter converter;
+    private final MessageConverter converter;
 
-	public NotificationSubjectArgumentResolver() {
-		this.converter = new NotificationRequestConverter(new StringMessageConverter());
-	}
+    public NotificationSubjectArgumentResolver() {
+        this.converter = new NotificationRequestConverter(new StringMessageConverter());
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
-				ClassUtils.isAssignable(String.class, parameter.getParameterType()));
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
+                ClassUtils.isAssignable(String.class, parameter.getParameterType()));
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, String.class)).getSubject();
-	}
+    @Override
+    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+        return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, String.class)).getSubject();
+    }
 }

@@ -31,22 +31,22 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  */
 public class NotificationMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
-	private static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
+    private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
+    private static final String SNS_CLIENT_CLASS_NAME = "com.amazonaws.services.sns.AmazonSNSClient";
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return NotificationMessagingTemplate.class;
-	}
+    @Override
+    protected Class<?> getBeanClass(Element element) {
+        return NotificationMessagingTemplate.class;
+    }
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
-			builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
-		}
+    @Override
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
+            builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
+        }
 
-		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
-		builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
-	}
+        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sns", SNS_CLIENT_CLASS_NAME));
+        builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+    }
 
 }

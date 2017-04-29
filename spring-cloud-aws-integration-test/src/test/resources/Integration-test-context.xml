@@ -39,7 +39,7 @@
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation" />
 	</bean>
 
-	<aws-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags"/>
+	<aws-context:stack-configuration stack-name="IntegrationTestStack" user-tags-map="stackTags" />
 
 	<bean id="testStackInstanceIdService" class="org.springframework.cloud.aws.support.TestStackInstanceIdService"
 		  factory-method="fromStackOutputKey">

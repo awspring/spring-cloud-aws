@@ -25,26 +25,26 @@ package org.springframework.cloud.aws.cache.config.annotation;
  */
 public @interface CacheClusterConfig {
 
-	/**
-	 * Defines the name for the cache cluster. The name might be the physical name of the cache cluster itself or a
-	 * logical name of a cache cluster inside a stack. The caching infrastructure will automatically retrieve the
-	 * cache engine (redis or memcached) and configured the appropriate cache driver with the cache implementation.
-	 * Caches can be used inside the application code with the {@link org.springframework.cache.annotation.Cacheable}
-	 * annotation or others referring to this name attribute inside the
-	 * {@link org.springframework.cache.annotation.Cacheable#value()} attribute.
-	 *
-	 * @return - the name of the cache cluster
-	 */
-	String name();
+    /**
+     * Defines the name for the cache cluster. The name might be the physical name of the cache cluster itself or a
+     * logical name of a cache cluster inside a stack. The caching infrastructure will automatically retrieve the
+     * cache engine (redis or memcached) and configured the appropriate cache driver with the cache implementation.
+     * Caches can be used inside the application code with the {@link org.springframework.cache.annotation.Cacheable}
+     * annotation or others referring to this name attribute inside the
+     * {@link org.springframework.cache.annotation.Cacheable#value()} attribute.
+     *
+     * @return - the name of the cache cluster
+     */
+    String name();
 
-	/**
-	 * Configures the expiration time of the particular cache cluster in seconds. The expiration time is based on the cache level
-	 * and is implementation specific. Typically this expiration time will configure the expiration of one item at the
-	 * time the item is inserted into the cache regardless of the last access.
-	 *
-	 * @return the expiration with a default of 0. If this value is not explicitly configured then the value of
-	 * {@link EnableElastiCache#defaultExpiration()} will be used.
-	 */
-	int expiration() default 0;
+    /**
+     * Configures the expiration time of the particular cache cluster in seconds. The expiration time is based on the cache level
+     * and is implementation specific. Typically this expiration time will configure the expiration of one item at the
+     * time the item is inserted into the cache regardless of the last access.
+     *
+     * @return the expiration with a default of 0. If this value is not explicitly configured then the value of
+     * {@link EnableElastiCache#defaultExpiration()} will be used.
+     */
+    int expiration() default 0;
 
 }

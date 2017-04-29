@@ -34,59 +34,59 @@ import org.springframework.util.StringUtils;
  */
 public class DynamicTopicDestinationResolver implements DestinationResolver<String> {
 
-	private final AmazonSNS amazonSns;
-	private final ResourceIdResolver resourceIdResolver;
-	private boolean autoCreate;
+    private final AmazonSNS amazonSns;
+    private final ResourceIdResolver resourceIdResolver;
+    private boolean autoCreate;
 
-	public DynamicTopicDestinationResolver(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-		this.amazonSns = amazonSns;
-		this.resourceIdResolver = resourceIdResolver;
-	}
+    public DynamicTopicDestinationResolver(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
+        this.amazonSns = amazonSns;
+        this.resourceIdResolver = resourceIdResolver;
+    }
 
-	public DynamicTopicDestinationResolver(AmazonSNS amazonSns) {
-		this(amazonSns, null);
-	}
+    public DynamicTopicDestinationResolver(AmazonSNS amazonSns) {
+        this(amazonSns, null);
+    }
 
-	public void setAutoCreate(boolean autoCreate) {
-		this.autoCreate = autoCreate;
-	}
+    public void setAutoCreate(boolean autoCreate) {
+        this.autoCreate = autoCreate;
+    }
 
-	@Override
-	public String resolveDestination(String name) throws DestinationResolutionException {
-		if (this.autoCreate) {
-			return this.amazonSns.createTopic(new CreateTopicRequest(name)).getTopicArn();
-		} else {
-			String physicalTopicName = name;
-			if (this.resourceIdResolver != null) {
-				physicalTopicName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
-			}
+    @Override
+    public String resolveDestination(String name) throws DestinationResolutionException {
+        if (this.autoCreate) {
+            return this.amazonSns.createTopic(new CreateTopicRequest(name)).getTopicArn();
+        } else {
+            String physicalTopicName = name;
+            if (this.resourceIdResolver != null) {
+                physicalTopicName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
+            }
 
-			if (physicalTopicName != null && AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
-				return physicalTopicName;
-			}
+            if (physicalTopicName != null && AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
+                return physicalTopicName;
+            }
 
-			String topicArn = getTopicResourceName(null, physicalTopicName);
-			if (topicArn == null) {
-				throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use " +
-						"the right topic name or enable auto creation of topics for this DestinationResolver");
-			}
-			return topicArn;
-		}
-	}
+            String topicArn = getTopicResourceName(null, physicalTopicName);
+            if (topicArn == null) {
+                throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use " +
+                        "the right topic name or enable auto creation of topics for this DestinationResolver");
+            }
+            return topicArn;
+        }
+    }
 
-	private String getTopicResourceName(String marker, String topicName) {
-		ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
-		for (Topic topic : listTopicsResult.getTopics()) {
-			AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-			if (resourceName.getResourceType().equals(topicName)) {
-				return topic.getTopicArn();
-			}
-		}
+    private String getTopicResourceName(String marker, String topicName) {
+        ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
+        for (Topic topic : listTopicsResult.getTopics()) {
+            AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
+            if (resourceName.getResourceType().equals(topicName)) {
+                return topic.getTopicArn();
+            }
+        }
 
-		if (StringUtils.hasText(listTopicsResult.getNextToken())) {
-			return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
-		} else {
-			throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
-		}
-	}
+        if (StringUtils.hasText(listTopicsResult.getNextToken())) {
+            return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
+        } else {
+            throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
+        }
+    }
 }

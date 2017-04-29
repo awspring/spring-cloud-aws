@@ -27,17 +27,17 @@ import org.springframework.util.ClassUtils;
  */
 public class NotificationSubjectHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
-				ClassUtils.isAssignable(String.class, parameter.getParameterType()));
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
+                ClassUtils.isAssignable(String.class, parameter.getParameterType()));
+    }
 
-	@Override
-	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
-		if (!"Notification".equals(content.get("Type").asText())) {
-			throw new IllegalArgumentException("@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
-		}
-		return content.findPath("Subject").asText();
-	}
+    @Override
+    protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
+        if (!"Notification".equals(content.get("Type").asText())) {
+            throw new IllegalArgumentException("@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
+        }
+        return content.findPath("Subject").asText();
+    }
 }

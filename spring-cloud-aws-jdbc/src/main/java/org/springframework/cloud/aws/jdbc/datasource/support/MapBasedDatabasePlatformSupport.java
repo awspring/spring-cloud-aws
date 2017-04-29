@@ -31,69 +31,69 @@ import java.util.Map;
  */
 public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatformSupport {
 
-	/**
-	 * Returns the driver class for the database platform.
-	 *
-	 * @param databaseType
-	 * 		- The database type used to lookup the driver class name. Must not be null
-	 * @return - The driver class name, is never null
-	 * @throws IllegalArgumentException
-	 * 		if there is not driver class name available for the DatabaseType
-	 */
-	@Override
-	public String getDriverClassNameForDatabase(DatabaseType databaseType) {
-		Assert.notNull(databaseType, "databaseType must not be null");
-		String candidate = this.getDriverClassNameMappings().get(databaseType);
-		Assert.notNull(candidate, String.format("No driver class name found for database :'%s'", databaseType.name()));
-		return candidate;
-	}
+    /**
+     * Returns the driver class for the database platform.
+     *
+     * @param databaseType
+     *         - The database type used to lookup the driver class name. Must not be null
+     * @return - The driver class name, is never null
+     * @throws IllegalArgumentException
+     *         if there is not driver class name available for the DatabaseType
+     */
+    @Override
+    public String getDriverClassNameForDatabase(DatabaseType databaseType) {
+        Assert.notNull(databaseType, "databaseType must not be null");
+        String candidate = this.getDriverClassNameMappings().get(databaseType);
+        Assert.notNull(candidate, String.format("No driver class name found for database :'%s'", databaseType.name()));
+        return candidate;
+    }
 
-	/**
-	 * Constructs the URL for the database by using a {@link URI} to construct the URL
-	 *
-	 * @param databaseType
-	 * 		- The databaseType for which the URL should be constructed.
-	 * @param hostname
-	 * 		- The hostname without any port information used to connect to.
-	 * @param port
-	 * 		- The port used to connect to the database
-	 * @param databaseName
-	 * 		- The database name used to connect to. The usage is implementation specific (e.g. for Oracle this is the SID)
-	 * @return - the database specific URL
-	 * @throws IllegalArgumentException
-	 * 		if there is no scheme available for the database type or if the information is not valid to construct a URL.
-	 */
-	@Override
-	public String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName) {
-		String scheme = this.getSchemeNames().get(databaseType);
-		String authenticationInfo = this.getAuthenticationInfo().get(databaseType);
-		Assert.notNull(databaseType, String.format("No scheme name found for database :'%s'", databaseType.name()));
-		try {
-			return new URI(scheme, authenticationInfo, hostname, port, databaseName != null ? "/" + databaseName : null, null, null).toString();
-		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException("Error constructing URI from Host:'" + hostname + "' and port:'" +
-					port + "' and database name:'" + databaseName + "'!");
-		}
-	}
+    /**
+     * Constructs the URL for the database by using a {@link URI} to construct the URL
+     *
+     * @param databaseType
+     *         - The databaseType for which the URL should be constructed.
+     * @param hostname
+     *         - The hostname without any port information used to connect to.
+     * @param port
+     *         - The port used to connect to the database
+     * @param databaseName
+     *         - The database name used to connect to. The usage is implementation specific (e.g. for Oracle this is the SID)
+     * @return - the database specific URL
+     * @throws IllegalArgumentException
+     *         if there is no scheme available for the database type or if the information is not valid to construct a URL.
+     */
+    @Override
+    public String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName) {
+        String scheme = this.getSchemeNames().get(databaseType);
+        String authenticationInfo = this.getAuthenticationInfo().get(databaseType);
+        Assert.notNull(databaseType, String.format("No scheme name found for database :'%s'", databaseType.name()));
+        try {
+            return new URI(scheme, authenticationInfo, hostname, port, databaseName != null ? "/" + databaseName : null, null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Error constructing URI from Host:'" + hostname + "' and port:'" +
+                    port + "' and database name:'" + databaseName + "'!");
+        }
+    }
 
-	/**
-	 * Template method that must be implemented in order to retrieve all driver class names for every supported database
-	 * platform.
-	 *
-	 * @return Map containing the driver class name for every database platform
-	 */
-	protected abstract Map<DatabaseType, String> getDriverClassNameMappings();
-
-
-	/**
-	 * Template method that mus be implemented to get all scheme names for every supported database platform. Scheme
-	 * names are unfortunately only standardized in the root scheme (jdbc:) but not in the sub-scheme which is database
-	 * platform specific.
-	 *
-	 * @return Map containing the schema (and sub-scheme) names for every support database platform
-	 */
-	protected abstract Map<DatabaseType, String> getSchemeNames();
+    /**
+     * Template method that must be implemented in order to retrieve all driver class names for every supported database
+     * platform.
+     *
+     * @return Map containing the driver class name for every database platform
+     */
+    protected abstract Map<DatabaseType, String> getDriverClassNameMappings();
 
 
-	protected abstract Map<DatabaseType, String> getAuthenticationInfo();
+    /**
+     * Template method that mus be implemented to get all scheme names for every supported database platform. Scheme
+     * names are unfortunately only standardized in the root scheme (jdbc:) but not in the sub-scheme which is database
+     * platform specific.
+     *
+     * @return Map containing the schema (and sub-scheme) names for every support database platform
+     */
+    protected abstract Map<DatabaseType, String> getSchemeNames();
+
+
+    protected abstract Map<DatabaseType, String> getAuthenticationInfo();
 }

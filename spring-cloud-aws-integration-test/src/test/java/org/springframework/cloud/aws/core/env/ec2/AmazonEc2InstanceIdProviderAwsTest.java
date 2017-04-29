@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
-import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
 import java.io.IOException;
 
@@ -28,29 +28,29 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AmazonEc2InstanceIdProviderAwsTest {
 
-	private TestStackInstanceIdService testStackInstanceIdService;
+    private TestStackInstanceIdService testStackInstanceIdService;
 
-	@Before
-	public void enableInstanceIdMetadataService() {
-		this.testStackInstanceIdService = TestStackInstanceIdService.fromInstanceId("i-abcdefg");
-		this.testStackInstanceIdService.enable();
-	}
+    @Before
+    public void enableInstanceIdMetadataService() {
+        this.testStackInstanceIdService = TestStackInstanceIdService.fromInstanceId("i-abcdefg");
+        this.testStackInstanceIdService.enable();
+    }
 
-	@After
-	public void disableInstanceIdMetadataService() {
-		this.testStackInstanceIdService.disable();
-	}
+    @After
+    public void disableInstanceIdMetadataService() {
+        this.testStackInstanceIdService.disable();
+    }
 
-	@Test
-	public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService() throws IOException {
-		// Arrange
-		AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();
+    @Test
+    public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService() throws IOException {
+        // Arrange
+        AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();
 
-		// Act
-		String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
+        // Act
+        String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
 
-		// Assert
-		assertThat(currentInstanceId, is("i-abcdefg"));
-	}
+        // Assert
+        assertThat(currentInstanceId, is("i-abcdefg"));
+    }
 
 }

@@ -33,32 +33,32 @@ import java.io.IOException;
 @RequestMapping("/mySampleTopic")
 public class NotificationTestController {
 
-	private String subject;
-	private String message;
+    private String subject;
+    private String message;
 
-	String getSubject() {
-		return this.subject;
-	}
+    String getSubject() {
+        return this.subject;
+    }
 
-	String getMessage() {
-		return this.message;
-	}
+    String getMessage() {
+        return this.message;
+    }
 
-	@NotificationSubscriptionMapping
-	public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
-		//We subscribe to start receive the message
-		status.confirmSubscription();
-	}
+    @NotificationSubscriptionMapping
+    public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
+        //We subscribe to start receive the message
+        status.confirmSubscription();
+    }
 
-	@NotificationMessageMapping
-	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-		this.subject = subject;
-		this.message = message;
-	}
+    @NotificationMessageMapping
+    public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
+        this.subject = subject;
+        this.message = message;
+    }
 
-	@NotificationUnsubscribeConfirmationMapping
-	public void handleUnsubscribeMessage(NotificationStatus status) {
-		//e.g. the client has been unsubscribed and we want to "re-subscribe"
-		status.confirmSubscription();
-	}
+    @NotificationUnsubscribeConfirmationMapping
+    public void handleUnsubscribeMessage(NotificationStatus status) {
+        //e.g. the client has been unsubscribed and we want to "re-subscribe"
+        status.confirmSubscription();
+    }
 }

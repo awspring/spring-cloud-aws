@@ -34,35 +34,35 @@ import java.util.concurrent.ThreadPoolExecutor;
 @ContextConfiguration(classes = JavaMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 public class JavaMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
-	@Configuration
-	@EnableSqs
-	@Import(IntegrationTestConfig.class)
-	protected static class MessageListenerContainerAwsTestConfiguration {
+    @Configuration
+    @EnableSqs
+    @Import(IntegrationTestConfig.class)
+    protected static class MessageListenerContainerAwsTestConfiguration {
 
-		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-			SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
-			simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
+        @Bean
+        public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+            SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+            simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
 
-			return simpleMessageListenerContainerFactory;
-		}
+            return simpleMessageListenerContainerFactory;
+        }
 
-		@Bean
-		public AsyncTaskExecutor taskExecutor() {
-			ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-			threadPoolTaskExecutor.setCorePoolSize(10);
-			threadPoolTaskExecutor.setMaxPoolSize(200);
-			threadPoolTaskExecutor.setQueueCapacity(0);
-			threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        @Bean
+        public AsyncTaskExecutor taskExecutor() {
+            ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+            threadPoolTaskExecutor.setCorePoolSize(10);
+            threadPoolTaskExecutor.setMaxPoolSize(200);
+            threadPoolTaskExecutor.setQueueCapacity(0);
+            threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
-			return threadPoolTaskExecutor;
-		}
+            return threadPoolTaskExecutor;
+        }
 
-		@Bean
-		public MessageReceiver messageReceiver() {
-			return new MessageReceiver();
-		}
+        @Bean
+        public MessageReceiver messageReceiver() {
+            return new MessageReceiver();
+        }
 
-	}
+    }
 
 }

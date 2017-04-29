@@ -26,61 +26,61 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
 import java.net.URI;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 
 public class NotificationArgumentResolverBeanDefinitionParserTest {
 
-	@Test
-	public void parseInternal_minimalConfiguration_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfigured() throws Exception {
-		//Arrange
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-minimal.xml", getClass());
+    @Test
+    public void parseInternal_minimalConfiguration_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfigured() throws Exception {
+        //Arrange
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-minimal.xml", getClass());
 
-		//Act
-		HandlerMethodArgumentResolver argumentResolver = context.getBean(HandlerMethodArgumentResolver.class);
+        //Act
+        HandlerMethodArgumentResolver argumentResolver = context.getBean(HandlerMethodArgumentResolver.class);
 
-		//Assert
-		assertNotNull(argumentResolver);
-		assertTrue(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
-	}
+        //Assert
+        assertNotNull(argumentResolver);
+        assertTrue(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
+    }
 
-	@Test
-	public void parseInternal_customRegion_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet() throws Exception {
-		//Arrange
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegion.xml", getClass());
+    @Test
+    public void parseInternal_customRegion_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet() throws Exception {
+        //Arrange
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegion.xml", getClass());
 
-		//Act
-		AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
+        //Act
+        AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
 
-		//Assert
-		assertEquals(new URI("https", Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"), null, null), ReflectionTestUtils.getField(snsClient, "endpoint"));
-	}
+        //Assert
+        assertEquals(new URI("https", Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"), null, null), ReflectionTestUtils.getField(snsClient, "endpoint"));
+    }
 
-	@Test
-	public void parseInternal_customRegionProvider_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet() throws Exception {
-		//Arrange
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegionProvider.xml", getClass());
+    @Test
+    public void parseInternal_customRegionProvider_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet() throws Exception {
+        //Arrange
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customRegionProvider.xml", getClass());
 
-		//Act
-		AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
+        //Act
+        AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
 
-		//Assert
-		assertEquals(new URI("https", Region.getRegion(Regions.US_WEST_2).getServiceEndpoint("sns"), null, null), ReflectionTestUtils.getField(snsClient, "endpoint"));
-	}
+        //Assert
+        assertEquals(new URI("https", Region.getRegion(Regions.US_WEST_2).getServiceEndpoint("sns"), null, null), ReflectionTestUtils.getField(snsClient, "endpoint"));
+    }
 
-	@Test
-	public void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient() throws Exception {
-		//Arrange
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customSnsClient.xml", getClass());
+    @Test
+    public void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient() throws Exception {
+        //Arrange
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-customSnsClient.xml", getClass());
 
-		//Act
-		AmazonSNSClient snsClient = context.getBean("customSnsClient", AmazonSNSClient.class);
+        //Act
+        AmazonSNSClient snsClient = context.getBean("customSnsClient", AmazonSNSClient.class);
 
-		//Assert
-		assertNotNull(snsClient);
-		assertFalse(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
-	}
+        //Assert
+        assertNotNull(snsClient);
+        assertFalse(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
+    }
 }

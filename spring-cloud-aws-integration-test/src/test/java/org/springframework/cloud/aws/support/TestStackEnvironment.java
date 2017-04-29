@@ -29,11 +29,11 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.Tag;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
@@ -45,94 +45,94 @@ import java.io.InputStreamReader;
  */
 public class TestStackEnvironment implements InitializingBean, DisposableBean, InstanceIdProvider {
 
-	public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
-	public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
+    public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
+    public static final String INSTANCE_ID_STACK_OUTPUT_KEY = "InstanceId";
 
-	private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
-	private static final String TEMPLATE_PATH = "IntegrationTest.template";
+    private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
+    private static final String TEMPLATE_PATH = "IntegrationTest.template";
 
-	@Value("${rdsPassword}")
-	private String rdsPassword;
+    @Value("${rdsPassword}")
+    private String rdsPassword;
 
-	private final AmazonCloudFormation amazonCloudFormationClient;
-	private DescribeStackResourcesResult stackResources;
-	private boolean stackCreatedByThisInstance;
+    private final AmazonCloudFormation amazonCloudFormationClient;
+    private DescribeStackResourcesResult stackResources;
+    private boolean stackCreatedByThisInstance;
 
-	@Autowired
-	public TestStackEnvironment(AmazonCloudFormation amazonCloudFormationClient) {
-		this.amazonCloudFormationClient = amazonCloudFormationClient;
-	}
+    @Autowired
+    public TestStackEnvironment(AmazonCloudFormation amazonCloudFormationClient) {
+        this.amazonCloudFormationClient = amazonCloudFormationClient;
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		this.stackResources = getStackResources(DEFAULT_STACK_NAME);
-	}
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.stackResources = getStackResources(DEFAULT_STACK_NAME);
+    }
 
-	@Override
-	public String getCurrentInstanceId() {
-		return getByLogicalId(EC2_INSTANCE_NAME);
-	}
+    @Override
+    public String getCurrentInstanceId() {
+        return getByLogicalId(EC2_INSTANCE_NAME);
+    }
 
-	private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
-		try {
-			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest().withStackName(stackName));
-			for (Stack stack : describeStacksResult.getStacks()) {
-				if (isAvailable(stack)) {
-					return this.amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withStackName(stack.getStackName()));
-				}
-				if (isError(stack)) {
-					if (this.stackCreatedByThisInstance) {
-						throw new IllegalArgumentException("Could not create stack");
-					}
-					this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
-					return getStackResources(stackName);
-				}
-				if (isInProgress(stack)) {
-					//noinspection BusyWait
-					Thread.sleep(5000L);
-					return getStackResources(stackName);
-				}
-			}
-		} catch (AmazonClientException e) {
-			String templateBody = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
-			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DELETE).
-					withStackName(stackName).withTags(new Tag().withKey("tag1").withValue("value1")).
-					withParameters(new Parameter().withParameterKey("RdsPassword").withParameterValue(this.rdsPassword)));
-			this.stackCreatedByThisInstance = true;
-		}
+    private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
+        try {
+            DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient.describeStacks(new DescribeStacksRequest().withStackName(stackName));
+            for (Stack stack : describeStacksResult.getStacks()) {
+                if (isAvailable(stack)) {
+                    return this.amazonCloudFormationClient.describeStackResources(new DescribeStackResourcesRequest().withStackName(stack.getStackName()));
+                }
+                if (isError(stack)) {
+                    if (this.stackCreatedByThisInstance) {
+                        throw new IllegalArgumentException("Could not create stack");
+                    }
+                    this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
+                    return getStackResources(stackName);
+                }
+                if (isInProgress(stack)) {
+                    //noinspection BusyWait
+                    Thread.sleep(5000L);
+                    return getStackResources(stackName);
+                }
+            }
+        } catch (AmazonClientException e) {
+            String templateBody = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
+            this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody).withOnFailure(OnFailure.DELETE).
+                    withStackName(stackName).withTags(new Tag().withKey("tag1").withValue("value1")).
+                    withParameters(new Parameter().withParameterKey("RdsPassword").withParameterValue(this.rdsPassword)));
+            this.stackCreatedByThisInstance = true;
+        }
 
-		return getStackResources(stackName);
-	}
+        return getStackResources(stackName);
+    }
 
-	protected String getByLogicalId(String id) {
-		for (StackResource stackResource : this.stackResources.getStackResources()) {
-			if (stackResource.getLogicalResourceId().equals(id)) {
-				return stackResource.getPhysicalResourceId();
-			}
-		}
-		return null;
-	}
+    protected String getByLogicalId(String id) {
+        for (StackResource stackResource : this.stackResources.getStackResources()) {
+            if (stackResource.getLogicalResourceId().equals(id)) {
+                return stackResource.getPhysicalResourceId();
+            }
+        }
+        return null;
+    }
 
-	private boolean isAvailable(Stack stack) {
-		return stack.getStackStatus().endsWith("_COMPLETE") && !"DELETE_COMPLETE".equals(stack.getStackStatus());
-	}
+    private boolean isAvailable(Stack stack) {
+        return stack.getStackStatus().endsWith("_COMPLETE") && !"DELETE_COMPLETE".equals(stack.getStackStatus());
+    }
 
-	private boolean isError(Stack stack) {
-		return stack.getStackStatus().endsWith("_FAILED");
-	}
+    private boolean isError(Stack stack) {
+        return stack.getStackStatus().endsWith("_FAILED");
+    }
 
-	@Override
-	public void destroy() throws Exception {
-		if (this.stackCreatedByThisInstance) {
-			this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
-		}
-	}
+    @Override
+    public void destroy() throws Exception {
+        if (this.stackCreatedByThisInstance) {
+            this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
+        }
+    }
 
-	public boolean isStackCreatedAutomatically() {
-		return this.stackCreatedByThisInstance;
-	}
+    public boolean isStackCreatedAutomatically() {
+        return this.stackCreatedByThisInstance;
+    }
 
-	private static boolean isInProgress(Stack stack) {
-		return stack.getStackStatus().endsWith("_PROGRESS");
-	}
+    private static boolean isInProgress(Stack stack) {
+        return stack.getStackStatus().endsWith("_PROGRESS");
+    }
 }

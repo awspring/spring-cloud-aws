@@ -33,21 +33,21 @@ import org.springframework.util.Assert;
  */
 public class Ec2MetadataRegionProvider implements RegionProvider {
 
-	@Override
-	public Region getRegion() {
-		Region currentRegion = getCurrentRegion();
-		Assert.state(currentRegion != null, "There is not EC2 meta data available, because the application is not running " +
-				"in the EC2 environment. Region detection is only possible if the application is running on a EC2 instance");
-		return currentRegion;
-	}
+    @Override
+    public Region getRegion() {
+        Region currentRegion = getCurrentRegion();
+        Assert.state(currentRegion != null, "There is not EC2 meta data available, because the application is not running " +
+                "in the EC2 environment. Region detection is only possible if the application is running on a EC2 instance");
+        return currentRegion;
+    }
 
-	protected Region getCurrentRegion() {
-		try {
-			InstanceInfo instanceInfo = EC2MetadataUtils.getInstanceInfo();
-			return instanceInfo != null && instanceInfo.getRegion() != null ? RegionUtils.getRegion(instanceInfo.getRegion()) : null;
-		} catch (AmazonClientException e) {
-			return null;
-		}
+    protected Region getCurrentRegion() {
+        try {
+            InstanceInfo instanceInfo = EC2MetadataUtils.getInstanceInfo();
+            return instanceInfo != null && instanceInfo.getRegion() != null ? RegionUtils.getRegion(instanceInfo.getRegion()) : null;
+        } catch (AmazonClientException e) {
+            return null;
+        }
 
-	}
+    }
 }

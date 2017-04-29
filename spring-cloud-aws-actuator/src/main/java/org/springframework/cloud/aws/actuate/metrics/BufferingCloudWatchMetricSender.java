@@ -48,153 +48,153 @@ import java.util.concurrent.TimeoutException;
  */
 public class BufferingCloudWatchMetricSender implements CloudWatchMetricSender, InitializingBean, DisposableBean, SmartLifecycle {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CloudWatchMetricWriter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CloudWatchMetricWriter.class);
 
-	/**
-	 * Maximum number of {@link MetricDatum} values per request
-	 * limit of CloudWatch.
-	 */
-	private static final int MAX_METRIC_DATA_PER_REQUEST = 20;
-	private static final int FLUSH_TIMEOUT = 1000;
+    /**
+     * Maximum number of {@link MetricDatum} values per request
+     * limit of CloudWatch.
+     */
+    private static final int MAX_METRIC_DATA_PER_REQUEST = 20;
+    private static final int FLUSH_TIMEOUT = 1000;
 
-	private final String namespace;
+    private final String namespace;
 
-	private final int maxBuffer;
+    private final int maxBuffer;
 
-	private final long fixedDelayBetweenRuns;
+    private final long fixedDelayBetweenRuns;
 
-	private final AmazonCloudWatchAsync amazonCloudWatchAsync;
+    private final AmazonCloudWatchAsync amazonCloudWatchAsync;
 
-	private final LinkedBlockingQueue<MetricDatum> metricDataBuffer;
-	private ScheduledFuture<?> scheduledFuture;
+    private final LinkedBlockingQueue<MetricDatum> metricDataBuffer;
+    private ScheduledFuture<?> scheduledFuture;
 
-	private ThreadPoolTaskScheduler taskScheduler;
+    private ThreadPoolTaskScheduler taskScheduler;
 
-	public BufferingCloudWatchMetricSender(String namespace, int maxBuffer, long fixedDelayBetweenRuns, AmazonCloudWatchAsync amazonCloudWatchAsync) {
-		Assert.hasText(namespace, "Namespace must not be null");
-		this.namespace = namespace.trim();
-		this.maxBuffer = maxBuffer;
-		this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
-		this.amazonCloudWatchAsync = amazonCloudWatchAsync;
-		this.metricDataBuffer = new LinkedBlockingQueue<>(this.maxBuffer);
-	}
+    public BufferingCloudWatchMetricSender(String namespace, int maxBuffer, long fixedDelayBetweenRuns, AmazonCloudWatchAsync amazonCloudWatchAsync) {
+        Assert.hasText(namespace, "Namespace must not be null");
+        this.namespace = namespace.trim();
+        this.maxBuffer = maxBuffer;
+        this.fixedDelayBetweenRuns = fixedDelayBetweenRuns;
+        this.amazonCloudWatchAsync = amazonCloudWatchAsync;
+        this.metricDataBuffer = new LinkedBlockingQueue<>(this.maxBuffer);
+    }
 
-	@Override
-	public void send(MetricDatum metricDatum) {
-		try {
-			this.metricDataBuffer.put(metricDatum);
-		} catch (InterruptedException e) {
-			LOGGER.error("Error adding metric to queue", e);
-			Thread.currentThread().interrupt();
-		}
-	}
+    @Override
+    public void send(MetricDatum metricDatum) {
+        try {
+            this.metricDataBuffer.put(metricDatum);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error adding metric to queue", e);
+            Thread.currentThread().interrupt();
+        }
+    }
 
-	public String getNamespace() {
-		return this.namespace;
-	}
+    public String getNamespace() {
+        return this.namespace;
+    }
 
-	public int getMaxBuffer() {
-		return this.maxBuffer;
-	}
+    public int getMaxBuffer() {
+        return this.maxBuffer;
+    }
 
-	public long getFixedDelayBetweenRuns() {
-		return this.fixedDelayBetweenRuns;
-	}
+    public long getFixedDelayBetweenRuns() {
+        return this.fixedDelayBetweenRuns;
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
-		taskScheduler.afterPropertiesSet();
-		this.taskScheduler = taskScheduler;
-	}
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
+        taskScheduler.afterPropertiesSet();
+        this.taskScheduler = taskScheduler;
+    }
 
-	@Override
-	public void destroy() throws Exception {
-		this.taskScheduler.destroy();
-	}
+    @Override
+    public void destroy() throws Exception {
+        this.taskScheduler.destroy();
+    }
 
-	@Override
-	public boolean isAutoStartup() {
-		return true;
-	}
+    @Override
+    public boolean isAutoStartup() {
+        return true;
+    }
 
-	@Override
-	public void stop(Runnable callback) {
-		this.stop();
-		callback.run();
-	}
+    @Override
+    public void stop(Runnable callback) {
+        this.stop();
+        callback.run();
+    }
 
-	@Override
-	public void start() {
-		this.scheduledFuture = this.taskScheduler.scheduleWithFixedDelay(new CloudWatchMetricSenderRunnable(), this.fixedDelayBetweenRuns);
-	}
+    @Override
+    public void start() {
+        this.scheduledFuture = this.taskScheduler.scheduleWithFixedDelay(new CloudWatchMetricSenderRunnable(), this.fixedDelayBetweenRuns);
+    }
 
-	@Override
-	public void stop() {
-		if (!this.scheduledFuture.isCancelled()) {
-			this.scheduledFuture.cancel(false);
-		}
-		flushMetrics();
-	}
+    @Override
+    public void stop() {
+        if (!this.scheduledFuture.isCancelled()) {
+            this.scheduledFuture.cancel(false);
+        }
+        flushMetrics();
+    }
 
-	private void flushMetrics() {
-		Future<?> future = this.taskScheduler.submit(new CloudWatchMetricSenderRunnable());
-		try {
-			future.get(FLUSH_TIMEOUT, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			LOGGER.error("Error flushing metrics", e);
-		}
-	}
+    private void flushMetrics() {
+        Future<?> future = this.taskScheduler.submit(new CloudWatchMetricSenderRunnable());
+        try {
+            future.get(FLUSH_TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOGGER.error("Error flushing metrics", e);
+        }
+    }
 
-	@Override
-	public boolean isRunning() {
-		return this.scheduledFuture != null && !this.scheduledFuture.isCancelled() && !this.scheduledFuture.isDone();
-	}
+    @Override
+    public boolean isRunning() {
+        return this.scheduledFuture != null && !this.scheduledFuture.isCancelled() && !this.scheduledFuture.isDone();
+    }
 
-	@Override
-	public int getPhase() {
-		return Integer.MAX_VALUE;
-	}
+    @Override
+    public int getPhase() {
+        return Integer.MAX_VALUE;
+    }
 
-	private class CloudWatchMetricSenderRunnable implements Runnable {
+    private class CloudWatchMetricSenderRunnable implements Runnable {
 
-		@Override
-		public void run() {
-			try {
-				while (!BufferingCloudWatchMetricSender.this.metricDataBuffer.isEmpty()) {
-					Collection<MetricDatum> metricData = collectNextMetricData();
-					if (!metricData.isEmpty()) {
-						sendToCloudWatch(metricData);
-					}
-				}
-			} catch (Exception e) {
-				LOGGER.error("Error executing metric collection run.", e);
-			}
-		}
+        @Override
+        public void run() {
+            try {
+                while (!BufferingCloudWatchMetricSender.this.metricDataBuffer.isEmpty()) {
+                    Collection<MetricDatum> metricData = collectNextMetricData();
+                    if (!metricData.isEmpty()) {
+                        sendToCloudWatch(metricData);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error executing metric collection run.", e);
+            }
+        }
 
-		private Collection<MetricDatum> collectNextMetricData() {
-			Collection<MetricDatum> metricData = new ArrayList<>(MAX_METRIC_DATA_PER_REQUEST);
-			BufferingCloudWatchMetricSender.this.metricDataBuffer.drainTo(metricData, MAX_METRIC_DATA_PER_REQUEST);
-			return metricData;
-		}
+        private Collection<MetricDatum> collectNextMetricData() {
+            Collection<MetricDatum> metricData = new ArrayList<>(MAX_METRIC_DATA_PER_REQUEST);
+            BufferingCloudWatchMetricSender.this.metricDataBuffer.drainTo(metricData, MAX_METRIC_DATA_PER_REQUEST);
+            return metricData;
+        }
 
-		private void sendToCloudWatch(Collection<MetricDatum> metricData) {
-			PutMetricDataRequest putMetricDataRequest = new PutMetricDataRequest()
-					.withNamespace(BufferingCloudWatchMetricSender.this.namespace)
-					.withMetricData(metricData);
-			BufferingCloudWatchMetricSender.this.amazonCloudWatchAsync.putMetricDataAsync(putMetricDataRequest, new AsyncHandler<PutMetricDataRequest, PutMetricDataResult>() {
+        private void sendToCloudWatch(Collection<MetricDatum> metricData) {
+            PutMetricDataRequest putMetricDataRequest = new PutMetricDataRequest()
+                    .withNamespace(BufferingCloudWatchMetricSender.this.namespace)
+                    .withMetricData(metricData);
+            BufferingCloudWatchMetricSender.this.amazonCloudWatchAsync.putMetricDataAsync(putMetricDataRequest, new AsyncHandler<PutMetricDataRequest, PutMetricDataResult>() {
 
-				@Override
-				public void onError(Exception exception) {
-					LOGGER.error("Error sending metric data.", exception);
-				}
+                @Override
+                public void onError(Exception exception) {
+                    LOGGER.error("Error sending metric data.", exception);
+                }
 
-				@Override
-				public void onSuccess(PutMetricDataRequest request, PutMetricDataResult result) {
-					LOGGER.debug("Published metric with namespace:{}", request.getNamespace());
-				}
-			});
-		}
-	}
+                @Override
+                public void onSuccess(PutMetricDataRequest request, PutMetricDataResult result) {
+                    LOGGER.debug("Published metric with namespace:{}", request.getNamespace());
+                }
+            });
+        }
+    }
 }

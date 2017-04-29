@@ -31,13 +31,13 @@ import java.lang.annotation.Target;
 @Import({AmazonRdsInstanceConfiguration.Registrar.class, AmazonRdsInstanceConfiguration.class})
 public @interface EnableRdsInstance {
 
-	String dbInstanceIdentifier();
+    String dbInstanceIdentifier();
 
-	String username() default "";
+    String username() default "";
 
-	String databaseName() default "";
+    String databaseName() default "";
 
-	String password();
+    String password();
 
-	boolean readReplicaSupport() default false;
+    boolean readReplicaSupport() default false;
 }

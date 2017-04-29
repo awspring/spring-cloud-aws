@@ -24,27 +24,27 @@ import org.springframework.util.Assert;
  * underlying AWS cloud implementation.
  */
 public enum DatabaseType {
-	@RuntimeUse
-	MYSQL,
-	@RuntimeUse
-	ORACLE,
-	@RuntimeUse
-	SQLSERVER,
-	@RuntimeUse
-	POSTGRES,
-	@RuntimeUse
-	MARIA,
-	@RuntimeUse
-	AURORA;
+    @RuntimeUse
+    MYSQL,
+    @RuntimeUse
+    ORACLE,
+    @RuntimeUse
+    SQLSERVER,
+    @RuntimeUse
+    POSTGRES,
+    @RuntimeUse
+    MARIA,
+    @RuntimeUse
+    AURORA;
 
 
-	public static DatabaseType fromEngine(String engineName){
-		Assert.notNull(engineName, "Engine must not be null");
-		for (DatabaseType databaseType : values()) {
-			if (engineName.toUpperCase().startsWith(databaseType.toString())) {
-				return databaseType;
-			}
-		}
-		throw new IllegalStateException("No database type found for engine:'" + engineName + "'");
-	}
+    public static DatabaseType fromEngine(String engineName) {
+        Assert.notNull(engineName, "Engine must not be null");
+        for (DatabaseType databaseType : values()) {
+            if (engineName.toUpperCase().startsWith(databaseType.toString())) {
+                return databaseType;
+            }
+        }
+        throw new IllegalStateException("No database type found for engine:'" + engineName + "'");
+    }
 }

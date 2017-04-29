@@ -45,71 +45,71 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 
-	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
+    private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
 
-	@Autowired
-	private SimpleConfigurationBean simpleConfigurationBean;
+    @Autowired
+    private SimpleConfigurationBean simpleConfigurationBean;
 
-	@SuppressWarnings("StaticNonFinalField")
-	private static HttpServer httpServer;
+    @SuppressWarnings("StaticNonFinalField")
+    private static HttpServer httpServer;
 
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
-		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
-		httpServer = HttpServer.create(address, -1);
-		httpServer.createContext("/latest/user-data", new StringWritingHttpHandler("key1:value1;key2:value2;key3:value3".getBytes()));
-		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i123456".getBytes()));
-		httpServer.start();
-		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
-		restContextInstanceDataCondition();
-	}
+    @BeforeClass
+    public static void setupHttpServer() throws Exception {
+        InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
+        httpServer = HttpServer.create(address, -1);
+        httpServer.createContext("/latest/user-data", new StringWritingHttpHandler("key1:value1;key2:value2;key3:value3".getBytes()));
+        httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i123456".getBytes()));
+        httpServer.start();
+        overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
+        restContextInstanceDataCondition();
+    }
 
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
-		if (httpServer != null) {
-			httpServer.stop(10);
-		}
-		resetMetadataEndpointUrlOverwrite();
-	}
+    @AfterClass
+    public static void shutdownHttpServer() throws Exception {
+        if (httpServer != null) {
+            httpServer.stop(10);
+        }
+        resetMetadataEndpointUrlOverwrite();
+    }
 
-	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
-		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
-	}
+    private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+        System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
+    }
 
-	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
+    private static void resetMetadataEndpointUrlOverwrite() {
+        System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+    }
 
-	@Test
-	public void testInstanceDataResolution() throws Exception {
-		Assert.assertEquals("value1", this.simpleConfigurationBean.getValue1());
-		Assert.assertEquals("value2", this.simpleConfigurationBean.getValue2());
-		Assert.assertEquals("value3", this.simpleConfigurationBean.getValue3());
-		Assert.assertEquals("i123456", this.simpleConfigurationBean.getValue4());
-	}
+    @Test
+    public void testInstanceDataResolution() throws Exception {
+        Assert.assertEquals("value1", this.simpleConfigurationBean.getValue1());
+        Assert.assertEquals("value2", this.simpleConfigurationBean.getValue2());
+        Assert.assertEquals("value3", this.simpleConfigurationBean.getValue3());
+        Assert.assertEquals("i123456", this.simpleConfigurationBean.getValue4());
+    }
 
-	private static class StringWritingHttpHandler implements HttpHandler {
+    private static class StringWritingHttpHandler implements HttpHandler {
 
-		private final byte[] content;
+        private final byte[] content;
 
-		private StringWritingHttpHandler(byte[] content) {
-			this.content = content;
-		}
+        private StringWritingHttpHandler(byte[] content) {
+            this.content = content;
+        }
 
-		@Override
-		public void handle(HttpExchange httpExchange) throws IOException {
-			httpExchange.sendResponseHeaders(200, this.content.length);
-			OutputStream responseBody = httpExchange.getResponseBody();
-			responseBody.write(this.content);
-			responseBody.flush();
-			responseBody.close();
-		}
-	}
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            httpExchange.sendResponseHeaders(200, this.content.length);
+            OutputStream responseBody = httpExchange.getResponseBody();
+            responseBody.write(this.content);
+            responseBody.flush();
+            responseBody.close();
+        }
+    }
 
-	private static void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
-		assertNotNull(field);
-		ReflectionUtils.makeAccessible(field);
-		field.set(null, null);
-	}
+    private static void restContextInstanceDataCondition() throws IllegalAccessException {
+        Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+        assertNotNull(field);
+        ReflectionUtils.makeAccessible(field);
+        field.set(null, null);
+    }
 }
