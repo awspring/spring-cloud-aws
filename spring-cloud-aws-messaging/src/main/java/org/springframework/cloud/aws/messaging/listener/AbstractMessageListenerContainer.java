@@ -265,14 +265,15 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
                 }
             }
 
-			for (QueueMessageHandler.MappingInformation mappingInformation : this.messageHandler.getHandlerMethods().keySet()) {
-				for (String queue : mappingInformation.getLogicalResourceIds()) {
-					QueueAttributes queueAttributes = queueAttributes(queue, mappingInformation.getDeletionPolicy());
+            for (QueueMessageHandler.MappingInformation mappingInformation : this.messageHandler.getHandlerMethods().keySet()) {
+                for (String queue : mappingInformation.getLogicalResourceIds()) {
+                    QueueAttributes queueAttributes = queueAttributes(queue, mappingInformation.getDeletionPolicy());
 
-					if (queueAttributes != null) {this.registeredQueues.put(queue, queueAttributes);
-					}
-				}
-			}
+                    if (queueAttributes != null) {
+                        this.registeredQueues.put(queue, queueAttributes);
+                    }
+                }
+            }
 
             this.active = true;
             this.getLifecycleMonitor().notifyAll();
@@ -289,17 +290,18 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
         doStart();
     }
 
-	private QueueAttributes queueAttributes(String queue, SqsMessageDeletionPolicy deletionPolicy) {
-		String destinationUrl;
-		try {
-			destinationUrl = getDestinationResolver().resolveDestination(queue);
-		} catch (DestinationResolutionException e) {
-			if (getLogger().isDebugEnabled()) {
-				getLogger().debug("Ignoring queue with name '" + queue + "' as it does not exist.",  e);} else {
-				getLogger().warn("Ignoring queue with name '" + queue + "' as it does not exist.");
-			}
-			return null;
-		}
+    private QueueAttributes queueAttributes(String queue, SqsMessageDeletionPolicy deletionPolicy) {
+        String destinationUrl;
+        try {
+            destinationUrl = getDestinationResolver().resolveDestination(queue);
+        } catch (DestinationResolutionException e) {
+            if (getLogger().isDebugEnabled()) {
+                getLogger().debug("Ignoring queue with name '" + queue + "' as it does not exist.", e);
+            } else {
+                getLogger().warn("Ignoring queue with name '" + queue + "' as it does not exist.");
+            }
+            return null;
+        }
 
         GetQueueAttributesResult queueAttributes = getAmazonSqs().getQueueAttributes(new GetQueueAttributesRequest(destinationUrl)
                 .withAttributeNames(QueueAttributeName.RedrivePolicy));

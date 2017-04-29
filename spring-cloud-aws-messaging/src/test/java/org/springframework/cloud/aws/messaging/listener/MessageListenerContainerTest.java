@@ -427,14 +427,14 @@ public class MessageListenerContainerTest {
         // Act
         container.start();
 
-		// Assert
-		ArgumentCaptor<String> logMsgArgCaptor = ArgumentCaptor.forClass(String.class);
-		verify(loggerMock).warn(logMsgArgCaptor.capture());
-		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
-		assertFalse(registeredQueues.containsKey("testQueue"));
-		assertEquals("Ignoring queue with name 'testQueue' as itdoes not exist.", logMsgArgCaptor.getValue());
-		assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
-	}
+        // Assert
+        ArgumentCaptor<String> logMsgArgCaptor = ArgumentCaptor.forClass(String.class);
+        verify(loggerMock).warn(logMsgArgCaptor.capture());
+        Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
+        assertFalse(registeredQueues.containsKey("testQueue"));
+        assertEquals("Ignoring queue with name 'testQueue' as itdoes not exist.", logMsgArgCaptor.getValue());
+        assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
+    }
 
     private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
 
