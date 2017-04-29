@@ -17,7 +17,6 @@
 package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
@@ -36,9 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -114,41 +111,6 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
         patternResolver.getResources("s3://foo/bar");
 
         verify(pathMatcher, times(1)).isPattern("foo/bar");
-    }
-
-    @Test
-    public void testWithRedirectError() throws Exception {
-        AmazonS3 amazonS3 = prepareMocksForRedirectError();
-
-        ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
-        Resource[] resources = resourceLoader.getResources("s3://spring.io/*.txt");
-        assertThat(resources.length, is(1));
-        assertThat(resources[0].contentLength(), is(5L));
-    }
-
-    private AmazonS3 prepareMocksForRedirectError() {
-        AmazonS3 amazonS3 = mock(AmazonS3.class);
-
-        AmazonS3Exception exception = new AmazonS3Exception("Mock error", "<Error><EndPoint>new.path.com</EndPoint></Error>");
-        exception.setStatusCode(301);
-
-        S3ObjectSummary s3ObjectSummary = new S3ObjectSummary();
-        s3ObjectSummary.setKey("stub_key.txt");
-        s3ObjectSummary.setBucketName("spring.io");
-
-        ObjectListing objectListing = new ObjectListing();
-        objectListing.setBucketName("spring.io");
-        objectListing.getObjectSummaries().add(s3ObjectSummary);
-
-        when(amazonS3.listObjects(any(ListObjectsRequest.class)))
-                .thenThrow(exception).thenReturn(objectListing);
-
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(5);
-
-        when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(objectMetadata);
-
-        return amazonS3;
     }
 
     private AmazonS3 prepareMockForTestTruncatedListings() {

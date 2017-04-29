@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -129,7 +129,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
         } else {
             LOGGER.debug("No wildcard in bucket name {} using single bucket name", bucketPattern);
-            resources = findPathMatchingKeys(keyPattern, Arrays.asList(bucketPattern));
+            resources = findPathMatchingKeys(keyPattern, Collections.singletonList(bucketPattern));
         }
 
         return resources.toArray(new Resource[resources.size()]);
@@ -154,7 +154,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
     private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
         String remainingPatternPart = getRemainingPatternPart(keyPattern, prefix);
-        if (remainingPatternPart.startsWith("**")) {
+        if (remainingPatternPart != null && remainingPatternPart.startsWith("**")) {
             findAllResourcesThatMatches(bucketName, resources, prefix, keyPattern);
         } else {
             findProgressivelyWithPartialMatch(bucketName, resources, prefix, keyPattern);

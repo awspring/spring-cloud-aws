@@ -56,7 +56,7 @@ public class AmazonS3ProxyFactoryTest {
         Advised advised = (Advised) proxy;
         assertThat(advised.getAdvisors().length, is(1));
         assertThat(advised.getAdvisors()[0].getAdvice(),
-                instanceOf(AmazonS3ProxyFactory.AmazonRedirectInterceptor.class));
+                instanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
         assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget()), is(false));
     }
 
@@ -71,7 +71,7 @@ public class AmazonS3ProxyFactoryTest {
         Advised advised = (Advised) proxy;
         assertThat(advised.getAdvisors().length, is(1));
         assertThat(advised.getAdvisors()[0].getAdvice(),
-                instanceOf(AmazonS3ProxyFactory.AmazonRedirectInterceptor.class));
+                instanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
         assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget()), is(false));
     }
 
@@ -112,7 +112,7 @@ public class AmazonS3ProxyFactoryTest {
         for (Advisor advisor : advised.getAdvisors()) {
             advisorClasses.add(((MethodInterceptor) advisor.getAdvice()).getClass());
         }
-        assertThat(advisorClasses, hasItems(TestAdvice.class, AmazonS3ProxyFactory.AmazonRedirectInterceptor.class));
+        assertThat(advisorClasses, hasItems(TestAdvice.class, AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
 
     }
 
