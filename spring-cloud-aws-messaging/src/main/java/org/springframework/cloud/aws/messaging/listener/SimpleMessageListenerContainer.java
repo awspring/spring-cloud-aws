@@ -128,9 +128,31 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
     @Override
     protected void doStop() {
+        notifyRunningQueuesToStop();
+        waitForRunningQueuesToStop();
+    }
+
+    private void notifyRunningQueuesToStop() {
         for (Map.Entry<String, Boolean> runningStateByQueue : this.runningStateByQueue.entrySet()) {
             if (runningStateByQueue.getValue()) {
-                stop(runningStateByQueue.getKey());
+                stopQueue(runningStateByQueue.getKey());
+            }
+        }
+    }
+
+    private void waitForRunningQueuesToStop() {
+        for (Map.Entry<String, Boolean> queueRunningState : this.runningStateByQueue.entrySet()) {
+            String logicalQueueName = queueRunningState.getKey();
+            Future<?> queueSpinningThread = this.scheduledFutureByQueue.get(logicalQueueName);
+
+            if (queueSpinningThread != null) {
+                try {
+                    queueSpinningThread.get(getQueueStopTimeout(), TimeUnit.SECONDS);
+                } catch (ExecutionException | TimeoutException e) {
+                    getLogger().warn("An exception occurred while stopping queue '" + logicalQueueName + "'", e);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }
@@ -278,6 +300,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
                     }
                 }
             }
+
+            SimpleMessageListenerContainer.this.scheduledFutureByQueue.remove(this.logicalQueueName);
         }
 
         private boolean isQueueRunning() {
