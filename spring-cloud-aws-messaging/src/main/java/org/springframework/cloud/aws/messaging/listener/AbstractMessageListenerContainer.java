@@ -267,7 +267,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 
             for (QueueMessageHandler.MappingInformation mappingInformation : this.messageHandler.getHandlerMethods().keySet()) {
                 for (String queue : mappingInformation.getLogicalResourceIds()) {
-                    this.registeredQueues.put(queue, queueAttributes(queue, mappingInformation.getDeletionPolicy()));
+                    QueueAttributes queueAttributes = queueAttributes(queue, mappingInformation.getDeletionPolicy());
+
+                    if (queueAttributes != null) {
+                        this.registeredQueues.put(queue, queueAttributes);
+                    }
                 }
             }
 
@@ -291,7 +295,11 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
         try {
             destinationUrl = getDestinationResolver().resolveDestination(queue);
         } catch (DestinationResolutionException e) {
-            getLogger().warn(String.format("The queue with name '%s' does not exist.", queue), e);
+            if (getLogger().isDebugEnabled()) {
+                getLogger().debug("Ignoring queue with name '" + queue + "' as it does not exist.", e);
+            } else {
+                getLogger().warn("Ignoring queue with name '" + queue + "' as it does not exist.");
+            }
             return null;
         }
 

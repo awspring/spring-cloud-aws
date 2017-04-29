@@ -429,10 +429,10 @@ public class MessageListenerContainerTest {
 
         // Assert
         ArgumentCaptor<String> logMsgArgCaptor = ArgumentCaptor.forClass(String.class);
-        verify(loggerMock).warn(logMsgArgCaptor.capture(), any(DestinationResolutionException.class));
+        verify(loggerMock).warn(logMsgArgCaptor.capture());
         Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
-        assertNull(registeredQueues.get("testQueue"));
-        assertEquals("The queue with name 'testQueue' does not exist.", logMsgArgCaptor.getValue());
+        assertFalse(registeredQueues.containsKey("testQueue"));
+        assertEquals("Ignoring queue with name 'testQueue' as it does not exist.", logMsgArgCaptor.getValue());
         assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
     }
 
