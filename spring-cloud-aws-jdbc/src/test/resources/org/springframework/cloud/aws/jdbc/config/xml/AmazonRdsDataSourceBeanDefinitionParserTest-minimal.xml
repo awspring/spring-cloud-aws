@@ -31,6 +31,6 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-  <jdbc:data-source db-instance-identifier="test" password="password" />
+	<jdbc:data-source db-instance-identifier="test" password="password" />
 
 </beans>

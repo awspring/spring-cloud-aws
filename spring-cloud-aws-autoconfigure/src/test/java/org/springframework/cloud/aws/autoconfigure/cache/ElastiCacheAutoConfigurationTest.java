@@ -48,104 +48,104 @@ import static org.junit.Assert.assertTrue;
 
 public class ElastiCacheAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@Before
-	public void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
-		assertNotNull(field);
-		ReflectionUtils.makeAccessible(field);
-		field.set(null, null);
-	}
+    @Before
+    public void restContextInstanceDataCondition() throws IllegalAccessException {
+        Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+        assertNotNull(field);
+        ReflectionUtils.makeAccessible(field);
+        field.set(null, null);
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		this.context.close();
-	}
+    @After
+    public void tearDown() throws Exception {
+        this.context.close();
+    }
 
-	@AfterClass
-	public static void shutDownHttpServer() {
-		MetaDataServer.shutdownHttpServer();
-	}
+    @AfterClass
+    public static void shutDownHttpServer() {
+        MetaDataServer.shutdownHttpServer();
+    }
 
-	@Test
-	public void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+    @Test
+    public void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager() throws Exception {
+        //Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(MockCacheConfigurationWithStackCaches.class);
-		this.context.register(ElastiCacheAutoConfiguration.class);
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(MockCacheConfigurationWithStackCaches.class);
+        this.context.register(ElastiCacheAutoConfiguration.class);
 
-		//Act
-		this.context.refresh();
+        //Act
+        this.context.refresh();
 
-		//Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
-		assertTrue(cacheManager.getCacheNames().contains("sampleCacheOneLogical"));
-		assertTrue(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"));
-		assertEquals(2, cacheManager.getCacheNames().size());
+        //Assert
+        CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+        assertTrue(cacheManager.getCacheNames().contains("sampleCacheOneLogical"));
+        assertTrue(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"));
+        assertEquals(2, cacheManager.getCacheNames().size());
 
-		httpServer.removeContext(instanceIdHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+    }
 
-	@Test
-	public void cacheManager_configuredNoCachesWithNoStack_configuresNoCacheManager() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+    @Test
+    public void cacheManager_configuredNoCachesWithNoStack_configuresNoCacheManager() throws Exception {
+        //Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ElastiCacheAutoConfiguration.class);
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ElastiCacheAutoConfiguration.class);
 
-		//Act
-		this.context.refresh();
+        //Act
+        this.context.refresh();
 
-		//Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
-		assertEquals(0, cacheManager.getCacheNames().size());
+        //Assert
+        CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
+        assertEquals(0, cacheManager.getCacheNames().size());
 
-		httpServer.removeContext(instanceIdHttpContext);
-	}
+        httpServer.removeContext(instanceIdHttpContext);
+    }
 
-	@AfterClass
-	public static void shutdownCacheServer() throws Exception {
-		TestMemcacheServer.stopServer();
-	}
+    @AfterClass
+    public static void shutdownCacheServer() throws Exception {
+        TestMemcacheServer.stopServer();
+    }
 
-	@Configuration
-	public static class MockCacheConfigurationWithStackCaches {
+    @Configuration
+    public static class MockCacheConfigurationWithStackCaches {
 
-		@Bean
-		public AmazonElastiCache amazonElastiCache() {
-			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
-			int port = TestMemcacheServer.startServer();
-			DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical");
-			sampleCacheOneLogical.setShowCacheNodeInfo(true);
+        @Bean
+        public AmazonElastiCache amazonElastiCache() {
+            AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
+            int port = TestMemcacheServer.startServer();
+            DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheOneLogical");
+            sampleCacheOneLogical.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical)).
-					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
-							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
-							withEngine("memcached")));
+            Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical)).
+                    thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
+                            withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
+                            withEngine("memcached")));
 
-			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical");
-			sampleCacheTwoLogical.setShowCacheNodeInfo(true);
+            DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest().withCacheClusterId("sampleCacheTwoLogical");
+            sampleCacheTwoLogical.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical)).
-					thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
-							withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
-							withEngine("memcached")));
-			return amazonElastiCache;
-		}
+            Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical)).
+                    thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().
+                            withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port)).
+                            withEngine("memcached")));
+            return amazonElastiCache;
+        }
 
-		@Bean
-		public ListableStackResourceFactory stackResourceFactory() {
-			ListableStackResourceFactory resourceFactory = Mockito.mock(ListableStackResourceFactory.class);
-			Mockito.when(resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster")).thenReturn(Arrays.asList(
-					new StackResource("sampleCacheOneLogical", "sampleCacheOne", "AWS::ElastiCache::CacheCluster"),
-					new StackResource("sampleCacheTwoLogical", "sampleCacheTwo", "AWS::ElastiCache::CacheCluster")));
-			return resourceFactory;
-		}
-	}
+        @Bean
+        public ListableStackResourceFactory stackResourceFactory() {
+            ListableStackResourceFactory resourceFactory = Mockito.mock(ListableStackResourceFactory.class);
+            Mockito.when(resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster")).thenReturn(Arrays.asList(
+                    new StackResource("sampleCacheOneLogical", "sampleCacheOne", "AWS::ElastiCache::CacheCluster"),
+                    new StackResource("sampleCacheTwoLogical", "sampleCacheTwo", "AWS::ElastiCache::CacheCluster")));
+            return resourceFactory;
+        }
+    }
 }

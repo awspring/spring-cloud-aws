@@ -26,18 +26,18 @@ import static org.junit.Assert.assertSame;
 
 public class MailSenderAutoConfigurationTest {
 
-	@Test
-	public void mailSender_MailSenderWithJava_configuresJavaMailSender() throws Exception {
-		//Arrange
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.register(MailSenderAutoConfiguration.class);
+    @Test
+    public void mailSender_MailSenderWithJava_configuresJavaMailSender() throws Exception {
+        //Arrange
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(MailSenderAutoConfiguration.class);
 
-		//Act
-		context.refresh();
+        //Act
+        context.refresh();
 
-		//Assert
-		assertNotNull(context.getBean(MailSender.class));
-		assertNotNull(context.getBean(JavaMailSender.class));
-		assertSame(context.getBean(MailSender.class), context.getBean(JavaMailSender.class));
-	}
+        //Assert
+        assertNotNull(context.getBean(MailSender.class));
+        assertNotNull(context.getBean(JavaMailSender.class));
+        assertSame(context.getBean(MailSender.class), context.getBean(JavaMailSender.class));
+    }
 }

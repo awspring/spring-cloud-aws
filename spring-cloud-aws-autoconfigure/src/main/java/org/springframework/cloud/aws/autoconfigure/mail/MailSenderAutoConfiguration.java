@@ -46,25 +46,25 @@ import org.springframework.mail.javamail.JavaMailSender;
 @Import(ContextCredentialsAutoConfiguration.class)
 public class MailSenderAutoConfiguration {
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+    @Autowired(required = false)
+    private RegionProvider regionProvider;
 
-	@Bean
-	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
-	public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService(AWSCredentialsProvider credentialsProvider) {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonSimpleEmailServiceClient.class,
-				credentialsProvider, this.regionProvider);
-	}
+    @Bean
+    @ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
+    public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService(AWSCredentialsProvider credentialsProvider) {
+        return new AmazonWebserviceClientFactoryBean<>(AmazonSimpleEmailServiceClient.class,
+                credentialsProvider, this.regionProvider);
+    }
 
-	@Bean
-	@ConditionalOnMissingClass("org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
-	public MailSender simpleMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-		return new SimpleEmailServiceMailSender(amazonSimpleEmailService);
-	}
+    @Bean
+    @ConditionalOnMissingClass("org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender")
+    public MailSender simpleMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
+        return new SimpleEmailServiceMailSender(amazonSimpleEmailService);
+    }
 
-	@Bean
-	@ConditionalOnClass(name = "javax.mail.Session")
-	public JavaMailSender javaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-		return new SimpleEmailServiceJavaMailSender(amazonSimpleEmailService);
-	}
+    @Bean
+    @ConditionalOnClass(name = "javax.mail.Session")
+    public JavaMailSender javaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
+        return new SimpleEmailServiceJavaMailSender(amazonSimpleEmailService);
+    }
 }

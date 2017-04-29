@@ -42,105 +42,105 @@ import java.util.UUID;
  */
 public class NotificationRequestConverter implements MessageConverter {
 
-	private final ObjectMapper jsonMapper = new ObjectMapper();
-	private final MessageConverter payloadConverter;
+    private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final MessageConverter payloadConverter;
 
 
-	public NotificationRequestConverter(MessageConverter payloadConverter) {
-		this.payloadConverter = payloadConverter;
-	}
+    public NotificationRequestConverter(MessageConverter payloadConverter) {
+        this.payloadConverter = payloadConverter;
+    }
 
-	@Override
-	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		Assert.notNull(message, "message must not be null");
-		Assert.notNull(targetClass, "target class must not be null");
+    @Override
+    public Object fromMessage(Message<?> message, Class<?> targetClass) {
+        Assert.notNull(message, "message must not be null");
+        Assert.notNull(targetClass, "target class must not be null");
 
-		JsonNode jsonNode;
-		try {
-			jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
-		} catch (Exception e) {
-			throw new MessageConversionException("Could not read JSON", e);
-		}
-		if (!jsonNode.has("Type")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
-		}
+        JsonNode jsonNode;
+        try {
+            jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
+        } catch (Exception e) {
+            throw new MessageConversionException("Could not read JSON", e);
+        }
+        if (!jsonNode.has("Type")) {
+            throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
+        }
 
-		if (!"Notification".equals(jsonNode.findValue("Type").asText())) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification", null);
-		}
+        if (!"Notification".equals(jsonNode.findValue("Type").asText())) {
+            throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification", null);
+        }
 
-		if (!jsonNode.has("Message")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message", null);
-		}
+        if (!jsonNode.has("Message")) {
+            throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message", null);
+        }
 
-		String messagePayload = jsonNode.findPath("Message").asText();
-		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload,
-				getMessageAttributesAsMessageHeaders(jsonNode.findPath("MessageAttributes")));
-		return new NotificationRequest(jsonNode.findPath("Subject").asText(),
-				this.payloadConverter.fromMessage(genericMessage, targetClass));
-	}
+        String messagePayload = jsonNode.findPath("Message").asText();
+        GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload,
+                getMessageAttributesAsMessageHeaders(jsonNode.findPath("MessageAttributes")));
+        return new NotificationRequest(jsonNode.findPath("Subject").asText(),
+                this.payloadConverter.fromMessage(genericMessage, targetClass));
+    }
 
-	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
-		throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
-	}
+    @Override
+    public Message<?> toMessage(Object payload, MessageHeaders headers) {
+        throw new UnsupportedOperationException("This converter only supports reading a SNS notification and not writing them");
+    }
 
-	public static class NotificationRequest {
+    public static class NotificationRequest {
 
-		private final String subject;
-		private final Object message;
+        private final String subject;
+        private final Object message;
 
-		public NotificationRequest(String subject, Object message) {
-			this.subject = subject;
-			this.message = message;
-		}
+        public NotificationRequest(String subject, Object message) {
+            this.subject = subject;
+            this.message = message;
+        }
 
-		public String getSubject() {
-			return this.subject;
-		}
+        public String getSubject() {
+            return this.subject;
+        }
 
-		public Object getMessage() {
-			return this.message;
-		}
-	}
+        public Object getMessage() {
+            return this.message;
+        }
+    }
 
 
-	private static Map<String, Object> getMessageAttributesAsMessageHeaders(JsonNode message) {
-		Map<String, Object> messageHeaders = new HashMap<>();
-		Iterator<String> fieldNames = message.fieldNames();
-		while (fieldNames.hasNext()) {
-			String attributeName = fieldNames.next();
-			String attributeValue = message.get(attributeName).get("Value").asText();
-			String attributeType = message.get(attributeName).get("Type").asText();
-			if (MessageHeaders.CONTENT_TYPE.equals(attributeName)) {
-				messageHeaders.put(MessageHeaders.CONTENT_TYPE, MimeType.valueOf(attributeValue));
-			} else if (MessageHeaders.ID.equals(attributeName)) {
-				messageHeaders.put(MessageHeaders.ID, UUID.fromString(attributeValue));
-			} else {
-				if (MessageAttributeDataTypes.STRING.equals(attributeType)) {
-					messageHeaders.put(attributeName, attributeValue);
-				} else if (attributeType.startsWith(MessageAttributeDataTypes.NUMBER)) {
-					Object numberValue = getNumberValue(attributeType, attributeValue);
-					if (numberValue != null) {
-						messageHeaders.put(attributeName, numberValue);
-					}
-				} else if (MessageAttributeDataTypes.BINARY.equals(attributeName)) {
-					messageHeaders.put(attributeName, ByteBuffer.wrap(attributeType.getBytes()));
-				}
-			}
-		}
+    private static Map<String, Object> getMessageAttributesAsMessageHeaders(JsonNode message) {
+        Map<String, Object> messageHeaders = new HashMap<>();
+        Iterator<String> fieldNames = message.fieldNames();
+        while (fieldNames.hasNext()) {
+            String attributeName = fieldNames.next();
+            String attributeValue = message.get(attributeName).get("Value").asText();
+            String attributeType = message.get(attributeName).get("Type").asText();
+            if (MessageHeaders.CONTENT_TYPE.equals(attributeName)) {
+                messageHeaders.put(MessageHeaders.CONTENT_TYPE, MimeType.valueOf(attributeValue));
+            } else if (MessageHeaders.ID.equals(attributeName)) {
+                messageHeaders.put(MessageHeaders.ID, UUID.fromString(attributeValue));
+            } else {
+                if (MessageAttributeDataTypes.STRING.equals(attributeType)) {
+                    messageHeaders.put(attributeName, attributeValue);
+                } else if (attributeType.startsWith(MessageAttributeDataTypes.NUMBER)) {
+                    Object numberValue = getNumberValue(attributeType, attributeValue);
+                    if (numberValue != null) {
+                        messageHeaders.put(attributeName, numberValue);
+                    }
+                } else if (MessageAttributeDataTypes.BINARY.equals(attributeName)) {
+                    messageHeaders.put(attributeName, ByteBuffer.wrap(attributeType.getBytes()));
+                }
+            }
+        }
 
-		return messageHeaders;
-	}
+        return messageHeaders;
+    }
 
-	private static Object getNumberValue(String attributeType, String attributeValue) {
-		String numberType = attributeType.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
-		try {
-			Class<? extends Number> numberTypeClass = Class.forName(numberType).asSubclass(Number.class);
-			return NumberUtils.parseNumber(attributeValue, numberTypeClass);
-		} catch (ClassNotFoundException e) {
-			throw new MessagingException(String.format("Message attribute with value '%s' and data type '%s' could not be converted " +
-					"into a Number because target class was not found.", attributeValue, attributeType), e);
-		}
-	}
+    private static Object getNumberValue(String attributeType, String attributeValue) {
+        String numberType = attributeType.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
+        try {
+            Class<? extends Number> numberTypeClass = Class.forName(numberType).asSubclass(Number.class);
+            return NumberUtils.parseNumber(attributeValue, numberTypeClass);
+        } catch (ClassNotFoundException e) {
+            throw new MessagingException(String.format("Message attribute with value '%s' and data type '%s' could not be converted " +
+                    "into a Number because target class was not found.", attributeValue, attributeType), e);
+        }
+    }
 }

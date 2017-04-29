@@ -44,65 +44,65 @@ import java.util.Map;
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
 @ConditionalOnClass(name = {"com.amazonaws.services.rds.AmazonRDSClient",
-		"org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration"})
+        "org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration"})
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
 public class AmazonRdsDatabaseAutoConfiguration {
 
-	public static class Registrar extends AmazonRdsInstanceConfiguration.AbstractRegistrar implements EnvironmentAware {
+    public static class Registrar extends AmazonRdsInstanceConfiguration.AbstractRegistrar implements EnvironmentAware {
 
-		private static final String PREFIX = "cloud.aws.rds";
+        private static final String PREFIX = "cloud.aws.rds";
 
-		private ConfigurableEnvironment environment;
+        private ConfigurableEnvironment environment;
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
-					registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
-			Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
-			for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
-				registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
-						Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
-						dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
-			}
-		}
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
+                    registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
+            Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
+            for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
+                registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
+                        Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
+                        dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
+            }
+        }
 
-		@Override
-		public void setEnvironment(Environment environment) {
-			Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "Amazon RDS auto configuration requires a configurable environment");
-			this.environment = (ConfigurableEnvironment) environment;
-		}
+        @Override
+        public void setEnvironment(Environment environment) {
+            Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "Amazon RDS auto configuration requires a configurable environment");
+            this.environment = (ConfigurableEnvironment) environment;
+        }
 
-		private Map<String, Map<String, String>> getDbInstanceConfigurations() {
-			Map<String, Object> subProperties = PropertySourceUtils.getSubProperties(this.environment.getPropertySources(), PREFIX);
-			Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
-			for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
-				String instanceName = extractConfigurationSubPropertyGroup(subProperty.getKey());
-				if (!dbConfigurationMap.containsKey(instanceName)) {
-					dbConfigurationMap.put(instanceName, new HashMap<String, String>());
-				}
+        private Map<String, Map<String, String>> getDbInstanceConfigurations() {
+            Map<String, Object> subProperties = PropertySourceUtils.getSubProperties(this.environment.getPropertySources(), PREFIX);
+            Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
+            for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
+                String instanceName = extractConfigurationSubPropertyGroup(subProperty.getKey());
+                if (!dbConfigurationMap.containsKey(instanceName)) {
+                    dbConfigurationMap.put(instanceName, new HashMap<String, String>());
+                }
 
-				String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
-				if (StringUtils.hasText(subPropertyName)) {
-					dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
-				}
-			}
-			return dbConfigurationMap;
-		}
+                String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
+                if (StringUtils.hasText(subPropertyName)) {
+                    dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
+                }
+            }
+            return dbConfigurationMap;
+        }
 
-		private static String extractConfigurationSubPropertyGroup(String propertyName) {
-			if (propertyName.lastIndexOf(".") > 1) {
-				return propertyName.substring(1, propertyName.lastIndexOf("."));
-			} else {
-				return propertyName.substring(1);
-			}
+        private static String extractConfigurationSubPropertyGroup(String propertyName) {
+            if (propertyName.lastIndexOf(".") > 1) {
+                return propertyName.substring(1, propertyName.lastIndexOf("."));
+            } else {
+                return propertyName.substring(1);
+            }
 
-		}
+        }
 
-		private static String extractConfigurationSubPropertyName(String propertyName) {
-			if (!propertyName.contains(".")) {
-				return propertyName;
-			}
-			return propertyName.substring(propertyName.lastIndexOf(".") + 1);
-		}
-	}
+        private static String extractConfigurationSubPropertyName(String propertyName) {
+            if (!propertyName.contains(".")) {
+                return propertyName;
+            }
+            return propertyName.substring(propertyName.lastIndexOf(".") + 1);
+        }
+    }
 }

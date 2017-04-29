@@ -40,108 +40,108 @@ import static org.mockito.Mockito.when;
 public class SimpleStorageResourceLoaderTest {
 
 
-	@Test
-	public void testGetResourceWithExistingResource() throws Exception {
+    @Test
+    public void testGetResourceWithExistingResource() throws Exception {
 
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
-		ObjectMetadata metadata = new ObjectMetadata();
-		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
+        ObjectMetadata metadata = new ObjectMetadata();
+        when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
-		String resourceName = "s3://bucket/object/";
-		Resource resource = resourceLoader.getResource(resourceName);
-		assertNotNull(resource);
-	}
+        String resourceName = "s3://bucket/object/";
+        Resource resource = resourceLoader.getResource(resourceName);
+        assertNotNull(resource);
+    }
 
-	@Test
-	public void testGetResourceWithNonExistingResource() throws Exception {
+    @Test
+    public void testGetResourceWithNonExistingResource() throws Exception {
 
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
-		String resourceName = "s3://bucket/object/";
-		Resource resource = resourceLoader.getResource(resourceName);
-		assertNotNull(resource);
-	}
-	
-	@Test
-	public void testGetResourceWithVersionId() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
+        String resourceName = "s3://bucket/object/";
+        Resource resource = resourceLoader.getResource(resourceName);
+        assertNotNull(resource);
+    }
 
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+    @Test
+    public void testGetResourceWithVersionId() throws Exception {
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		ObjectMetadata metadata = new ObjectMetadata();
-		
-		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
-		String resourceName = "s3://bucket/object^versionIdValue";
-		Resource resource = resourceLoader.getResource(resourceName);
-		assertNotNull(resource);
-	}
+        ObjectMetadata metadata = new ObjectMetadata();
 
-	@Test
-	public void testGetResourceWithDifferentPatterns() throws Exception {
+        when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
+        String resourceName = "s3://bucket/object^versionIdValue";
+        Resource resource = resourceLoader.getResource(resourceName);
+        assertNotNull(resource);
+    }
 
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+    @Test
+    public void testGetResourceWithDifferentPatterns() throws Exception {
 
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		assertNotNull(resourceLoader.getResource("s3://bucket/object/"));
-
-		assertNotNull(resourceLoader.getResource("s3://bucket/object"));
-
-		assertNotNull(resourceLoader.getResource("s3://prefix.bucket/object.suffix"));
-
-		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
-	}
-
-	@Test
-	public void testGetResourceWithMalFormedUrl() throws Exception {
-
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
-
-		try {
-			assertNotNull(resourceLoader.getResource("s3://bucketsAndObject"));
-			fail("expected exception due to missing object");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("valid bucket name"));
-		}
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
 
 
-		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
-	}
+        assertNotNull(resourceLoader.getResource("s3://bucket/object/"));
 
-	@Test
-	public void testWithCustomClassLoader() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		ClassLoader classLoader = mock(ClassLoader.class);
-		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3, classLoader);
-		assertSame(classLoader, simpleStorageResourceLoader.getClassLoader());
-	}
+        assertNotNull(resourceLoader.getResource("s3://bucket/object"));
 
-	@Test
-	public void testWithDefaultClassLoader() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3);
-		assertSame(SimpleStorageResourceLoader.class.getClassLoader(), simpleStorageResourceLoader.getClassLoader());
-	}
+        assertNotNull(resourceLoader.getResource("s3://prefix.bucket/object.suffix"));
 
-	@Test
-	public void testValidS3Pattern() throws Exception {
-		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+        verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
+    }
 
-		// None of the patterns below should throw an exception
-		resourceLoader.getResource("s3://bucket/key");
-		resourceLoader.getResource("S3://BuCket/key");
-		resourceLoader.getResource("s3://bucket/folder1/folder2/key");
-		resourceLoader.getResource("s3://bucket/folder1/folder2/key^versionIdValue");
-	}
+    @Test
+    public void testGetResourceWithMalFormedUrl() throws Exception {
+
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
+
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+        try {
+            assertNotNull(resourceLoader.getResource("s3://bucketsAndObject"));
+            fail("expected exception due to missing object");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("valid bucket name"));
+        }
+
+
+        verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
+    }
+
+    @Test
+    public void testWithCustomClassLoader() throws Exception {
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
+        ClassLoader classLoader = mock(ClassLoader.class);
+        SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3, classLoader);
+        assertSame(classLoader, simpleStorageResourceLoader.getClassLoader());
+    }
+
+    @Test
+    public void testWithDefaultClassLoader() throws Exception {
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
+        SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(amazonS3);
+        assertSame(SimpleStorageResourceLoader.class.getClassLoader(), simpleStorageResourceLoader.getClassLoader());
+    }
+
+    @Test
+    public void testValidS3Pattern() throws Exception {
+        AmazonS3 amazonS3 = mock(AmazonS3.class);
+        SimpleStorageResourceLoader resourceLoader = new SimpleStorageResourceLoader(amazonS3);
+
+        // None of the patterns below should throw an exception
+        resourceLoader.getResource("s3://bucket/key");
+        resourceLoader.getResource("S3://BuCket/key");
+        resourceLoader.getResource("s3://bucket/folder1/folder2/key");
+        resourceLoader.getResource("s3://bucket/folder1/folder2/key^versionIdValue");
+    }
 
 }

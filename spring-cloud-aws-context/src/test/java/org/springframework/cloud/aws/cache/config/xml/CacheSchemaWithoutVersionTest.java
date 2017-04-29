@@ -26,14 +26,14 @@ import org.springframework.core.io.ClassPathResource;
  */
 public class CacheSchemaWithoutVersionTest {
 
-	@Test
-	public void cacheXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
-		// Arrange
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+    @Test
+    public void cacheXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
+        // Arrange
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
-		// Act & Assert
-		reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + ".xml", getClass()));
-	}
+        // Act & Assert
+        reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + ".xml", getClass()));
+    }
 
 }

@@ -26,8 +26,8 @@
 
 	<import resource="classpath:Integration-test-context.xml" />
 
-  <aws-context:context-instance-data />
+	<aws-context:context-instance-data />
 
-  <bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean" />
+	<bean class="org.springframework.cloud.aws.core.env.ec2.SimpleConfigurationBean" />
 
 </beans>

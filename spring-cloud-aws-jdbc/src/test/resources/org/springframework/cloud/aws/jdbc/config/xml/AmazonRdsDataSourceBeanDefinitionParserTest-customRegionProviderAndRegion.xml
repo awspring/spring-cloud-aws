@@ -31,10 +31,10 @@
 		<context:simple-credentials access-key="foo" secret-key="bar" />
 	</context:context-credentials>
 
-  <jdbc:data-source db-instance-identifier="test" password="password"
-                    region-provider="myRegionProvider" region="eu-west-1" />
+	<jdbc:data-source db-instance-identifier="test" password="password"
+					  region-provider="myRegionProvider" region="eu-west-1" />
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-      <constructor-arg value="eu-west-1" />
+		<constructor-arg value="eu-west-1" />
 	</bean>
 </beans>

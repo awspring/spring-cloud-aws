@@ -32,28 +32,28 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootTest(classes = BootQueueMessagingTemplateIntegrationTest.QueueMessagingTemplateIntegrationTestConfiguration.class)
 public class BootQueueMessagingTemplateIntegrationTest extends QueueMessagingTemplateIntegrationTest {
 
-	@Configuration
-	@EnableAutoConfiguration
-	@PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-	protected static class QueueMessagingTemplateIntegrationTestConfiguration {
+    @Configuration
+    @EnableAutoConfiguration
+    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
+    protected static class QueueMessagingTemplateIntegrationTestConfiguration {
 
-		@Bean
-		public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-			queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
+        @Bean
+        public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
+            QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+            queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
 
-			return queueMessagingTemplate;
-		}
+            return queueMessagingTemplate;
+        }
 
-		@Bean
-		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-			queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
-			queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());
+        @Bean
+        public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
+            QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+            queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
+            queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());
 
-			return queueMessagingTemplate;
-		}
+            return queueMessagingTemplate;
+        }
 
-	}
+    }
 
 }

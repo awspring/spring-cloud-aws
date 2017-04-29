@@ -23,11 +23,11 @@ package org.springframework.cloud.aws.core.env.stack.config;
  */
 public interface StackNameProvider {
 
-	/**
-	 * Returns the name of the current stack.
-	 *
-	 * @return the name of the current stack.
-	 */
-	String getStackName();
+    /**
+     * Returns the name of the current stack.
+     *
+     * @return the name of the current stack.
+     */
+    String getStackName();
 
 }

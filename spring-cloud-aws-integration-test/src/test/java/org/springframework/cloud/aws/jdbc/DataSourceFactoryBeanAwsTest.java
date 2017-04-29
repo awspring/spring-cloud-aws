@@ -34,15 +34,15 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class DataSourceFactoryBeanAwsTest {
 
-	@Autowired
-	private DatabaseService databaseService;
+    @Autowired
+    private DatabaseService databaseService;
 
-	@Test
-	public void testWriteAndReadWithReadReplicaEnabled() throws Exception {
-		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
-		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
-		assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
-	}
+    @Test
+    public void testWriteAndReadWithReadReplicaEnabled() throws Exception {
+        Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
+        Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
+        assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
+    }
 
 
 }

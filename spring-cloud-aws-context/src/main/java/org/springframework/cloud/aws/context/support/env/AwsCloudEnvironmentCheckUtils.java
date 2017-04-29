@@ -24,20 +24,21 @@ import com.amazonaws.util.EC2MetadataUtils;
  */
 public final class AwsCloudEnvironmentCheckUtils {
 
-	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
+    private static final String EC2_METADATA_ROOT = "/latest/meta-data";
 
-	private AwsCloudEnvironmentCheckUtils() { }
+    private AwsCloudEnvironmentCheckUtils() {
+    }
 
-	private static Boolean isCloudEnvironment;
+    private static Boolean isCloudEnvironment;
 
-	public static boolean isRunningOnCloudEnvironment() {
-		if (isCloudEnvironment == null) {
-			try {
-				isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
-			} catch (AmazonClientException e) {
-				isCloudEnvironment = false;
-			}
-		}
-		return isCloudEnvironment;
-	}
+    public static boolean isRunningOnCloudEnvironment() {
+        if (isCloudEnvironment == null) {
+            try {
+                isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
+            } catch (AmazonClientException e) {
+                isCloudEnvironment = false;
+            }
+        }
+        return isCloudEnvironment;
+    }
 }

@@ -44,289 +44,289 @@ import static org.mockito.Mockito.when;
 
 public class AmazonRdsInstanceConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+    @After
+    public void tearDown() throws Exception {
+        if (this.context != null) {
+            this.context.close();
+        }
+    }
 
-	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica() throws Exception {
-		//Arrange
+    @Test
+    public void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica() throws Exception {
+        //Arrange
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplica.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplica.class);
 
-		//Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
-	}
+        //Assert
+        assertNotNull(this.context.getBean(DataSource.class));
+        assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+    }
 
-	@Test
-	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDatabaseName() throws Exception {
-		//Arrange
+    @Test
+    public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDatabaseName() throws Exception {
+        //Arrange
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDbName.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDbName.class);
 
-		//Assert
-		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertNotNull(dataSource);
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+        //Assert
+        DataSource dataSource = this.context.getBean(DataSource.class);
+        assertNotNull(dataSource);
+        assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
 
-		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
-		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl().endsWith("fooDb"));
-	}
+        assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
+        assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl().endsWith("fooDb"));
+    }
 
-	@Test
-	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDataSourceFactory() throws Exception {
-		//Arrange
+    @Test
+    public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDataSourceFactory() throws Exception {
+        //Arrange
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory.class);
 
-		//Assert
-		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertNotNull(dataSource);
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+        //Assert
+        DataSource dataSource = this.context.getBean(DataSource.class);
+        assertNotNull(dataSource);
+        assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
 
-		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
-		assertEquals("SELECT 1 FROM TEST", ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getValidationQuery());
-		assertEquals(0, ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize());
-	}
+        assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
+        assertEquals("SELECT 1 FROM TEST", ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getValidationQuery());
+        assertEquals(0, ((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize());
+    }
 
-	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		HashMap<String, Object> propertySourceProperties = new HashMap<>();
-		propertySourceProperties.put("dbInstanceIdentifier", "test");
-		propertySourceProperties.put("password", "secret");
-		propertySourceProperties.put("username", "admin");
+    @Test
+    public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        HashMap<String, Object> propertySourceProperties = new HashMap<>();
+        propertySourceProperties.put("dbInstanceIdentifier", "test");
+        propertySourceProperties.put("password", "secret");
+        propertySourceProperties.put("username", "admin");
 
-		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
+        this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
 
-		//Act
-		this.context.register(ApplicationConfigurationWithoutReadReplicaAndExpressions.class);
-		this.context.refresh();
+        //Act
+        this.context.register(ApplicationConfigurationWithoutReadReplicaAndExpressions.class);
+        this.context.refresh();
 
-		//Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
-	}
+        //Assert
+        assertNotNull(this.context.getBean(DataSource.class));
+        assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+    }
 
-	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		HashMap<String, Object> propertySourceProperties = new HashMap<>();
-		propertySourceProperties.put("dbInstanceIdentifier", "test");
-		propertySourceProperties.put("password", "secret");
-		propertySourceProperties.put("username", "admin");
+    @Test
+    public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        HashMap<String, Object> propertySourceProperties = new HashMap<>();
+        propertySourceProperties.put("dbInstanceIdentifier", "test");
+        propertySourceProperties.put("password", "secret");
+        propertySourceProperties.put("username", "admin");
 
-		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
+        this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", propertySourceProperties));
 
-		//Act
-		this.context.register(ApplicationConfigurationWithoutReadReplicaAndPlaceHolder.class);
-		this.context.refresh();
+        //Act
+        this.context.register(ApplicationConfigurationWithoutReadReplicaAndPlaceHolder.class);
+        this.context.refresh();
 
-		//Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
-	}
+        //Assert
+        assertNotNull(this.context.getBean(DataSource.class));
+        assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+    }
 
-	@Test
-	public void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled() throws Exception {
-		//Arrange
+    @Test
+    public void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled() throws Exception {
+        //Arrange
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithReadReplica.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithReadReplica.class);
 
-		//Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
-	}
+        //Assert
+        assertNotNull(this.context.getBean(DataSource.class));
+        assertNotNull(this.context.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret")
-	public static class ApplicationConfigurationWithoutReadReplica {
+    @EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
+    public static class ApplicationConfigurationWithoutReadReplica {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			return client;
-		}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            return client;
+        }
 
-	}
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", databaseName = "fooDb")
-	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
+    @EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", databaseName = "fooDb")
+    public static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			return client;
-		}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            return client;
+        }
 
-	}
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
-	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory {
+    @EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
+    public static class ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			return client;
-		}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            return client;
+        }
 
-		@Bean
-		public RdsInstanceConfigurer instanceConfigurer() {
-			return new RdsInstanceConfigurer() {
+        @Bean
+        public RdsInstanceConfigurer instanceConfigurer() {
+            return new RdsInstanceConfigurer() {
 
-				@Override
-				public DataSourceFactory getDataSourceFactory() {
-					TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
-					dataSourceFactory.setInitialSize(0);
-					dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
-					return dataSourceFactory;
-				}
-			};
-		}
-	}
+                @Override
+                public DataSourceFactory getDataSourceFactory() {
+                    TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+                    dataSourceFactory.setInitialSize(0);
+                    dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
+                    return dataSourceFactory;
+                }
+            };
+        }
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
-	public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
+    @EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
+    public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			return client;
-		}
-	}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            return client;
+        }
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}", password = "${password}", username = "${username}")
-	public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
+    @EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}", password = "${password}", username = "${username}")
+    public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			return client;
-		}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            return client;
+        }
 
-		@Bean
-		static PropertySourcesPlaceholderConfigurer configurer() {
-			return new PropertySourcesPlaceholderConfigurer();
-		}
+        @Bean
+        static PropertySourcesPlaceholderConfigurer configurer() {
+            return new PropertySourcesPlaceholderConfigurer();
+        }
 
-	}
+    }
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test",password = "secret",readReplicaSupport = true)
-	public static class ApplicationConfigurationWithReadReplica {
+    @EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", readReplicaSupport = true)
+    public static class ApplicationConfigurationWithReadReplica {
 
-		@Bean
-		public AmazonRDS amazonRDS() {
-			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("test").
-											withDBInstanceIdentifier("test").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											).withReadReplicaDBInstanceIdentifiers("read1")
-							)
-			);
-			when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read1"))).thenReturn(
-					new DescribeDBInstancesResult().
-							withDBInstances(new DBInstance().
-											withDBInstanceStatus("available").
-											withDBName("read1").
-											withDBInstanceIdentifier("read1").
-											withEngine("mysql").
-											withMasterUsername("admin").
-											withEndpoint(new Endpoint().
-															withAddress("localhost").
-															withPort(3306)
-											)
-							)
-			);
-			return client;
-		}
-	}
+        @Bean
+        public AmazonRDS amazonRDS() {
+            AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("test"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("test").
+                                    withDBInstanceIdentifier("test").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    ).withReadReplicaDBInstanceIdentifiers("read1")
+                            )
+            );
+            when(client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier("read1"))).thenReturn(
+                    new DescribeDBInstancesResult().
+                            withDBInstances(new DBInstance().
+                                    withDBInstanceStatus("available").
+                                    withDBName("read1").
+                                    withDBInstanceIdentifier("read1").
+                                    withEngine("mysql").
+                                    withMasterUsername("admin").
+                                    withEndpoint(new Endpoint().
+                                            withAddress("localhost").
+                                            withPort(3306)
+                                    )
+                            )
+            );
+            return client;
+        }
+    }
 }

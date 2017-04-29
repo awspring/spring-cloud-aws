@@ -30,8 +30,8 @@ import org.springframework.core.type.AnnotationMetadata;
 @Configuration
 public class ContextDefaultConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
-	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
-	}
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+    }
 }

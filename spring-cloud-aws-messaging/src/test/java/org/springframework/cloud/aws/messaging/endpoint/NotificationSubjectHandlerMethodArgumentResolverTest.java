@@ -36,63 +36,63 @@ import static org.junit.Assert.assertFalse;
 public class NotificationSubjectHandlerMethodArgumentResolverTest {
 
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
-		//Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("@NotificationMessage annotated parameters are only allowed");
+    @Test
+    public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
+        //Arrange
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException.expectMessage("@NotificationMessage annotated parameters are only allowed");
 
-		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
+        NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-		servletRequest.setContent(subscriptionRequestJsonContent);
+        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.setContent(subscriptionRequestJsonContent);
 
-		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
 
-		//Act
-		resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+        //Act
+        resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
-		//Assert
-	}
+        //Assert
+    }
 
-	@Test
-	public void resolveArgument_notificationMessageTypeWithSubject_reportsErrors() throws Exception {
-		//Arrange
-		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
+    @Test
+    public void resolveArgument_notificationMessageTypeWithSubject_reportsErrors() throws Exception {
+        //Arrange
+        NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-		servletRequest.setContent(subscriptionRequestJsonContent);
+        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.setContent(subscriptionRequestJsonContent);
 
-		MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
 
-		//Act
-		Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+        //Act
+        Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
-		//Assert
-		assertEquals("asdasd", argument);
-	}
+        //Assert
+        assertEquals("asdasd", argument);
+    }
 
-	@Test
-	public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
-		// Arrange
-		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
-		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Integer.class);
-		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
+    @Test
+    public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
+        // Arrange
+        NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
+        Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Integer.class);
+        MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
 
-		// Act
-		boolean supportsParameter = resolver.supportsParameter(methodParameter);
+        // Act
+        boolean supportsParameter = resolver.supportsParameter(methodParameter);
 
-		// Assert
-		assertFalse(supportsParameter);
-	}
+        // Assert
+        assertFalse(supportsParameter);
+    }
 
-	@SuppressWarnings("EmptyMethod")
-	@RuntimeUse
-	private void methodWithWrongParameterType(@NotificationSubject Integer message) {
-	}
+    @SuppressWarnings("EmptyMethod")
+    @RuntimeUse
+    private void methodWithWrongParameterType(@NotificationSubject Integer message) {
+    }
 }

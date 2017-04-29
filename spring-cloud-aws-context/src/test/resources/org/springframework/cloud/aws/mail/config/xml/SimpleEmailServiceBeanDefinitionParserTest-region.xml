@@ -26,7 +26,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/mail
 	   					   http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
-  <aws-mail:mail-sender id="test" region="eu-west-1" />
+	<aws-mail:mail-sender id="test" region="eu-west-1" />
 
 	<aws-context:context-credentials>
 		<aws-context:simple-credentials access-key="test" secret-key="abc" />

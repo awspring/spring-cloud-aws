@@ -35,98 +35,98 @@ import static org.junit.Assert.assertTrue;
 
 public class ContextInstanceDataConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
-		MetaDataServer.shutdownHttpServer();
-	}
+    @After
+    public void tearDown() throws Exception {
+        if (this.context != null) {
+            this.context.close();
+        }
+        MetaDataServer.shutdownHttpServer();
+    }
 
-	@Test
-	public void propertySource_nonCloudEnvironment_noBeanConfigured() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ApplicationConfiguration.class);
+    @Test
+    public void propertySource_nonCloudEnvironment_noBeanConfigured() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ApplicationConfiguration.class);
 
-		//Act
-		this.context.refresh();
+        //Act
+        this.context.refresh();
 
-		//Assert
-		assertTrue(this.context.getBeanFactoryPostProcessors().isEmpty());
-	}
+        //Assert
+        assertTrue(this.context.getBeanFactoryPostProcessors().isEmpty());
+    }
 
-	@Test
-	public void propertySource_enableInstanceData_propertySourceConfigured() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
+    @Test
+    public void propertySource_enableInstanceData_propertySourceConfigured() throws Exception {
+        //Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id", new MetaDataServer.HttpResponseWriterHandler("test"));
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
 
-		//Assert
-		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
-		httpServer.removeContext(httpContext);
-	}
+        //Assert
+        assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+        httpServer.removeContext(httpContext);
+    }
 
-	@Test
-	public void propertySource_enableInstanceDataWithCustomAttributeSeparator_propertySourceConfiguredAndUsesCustomAttributeSeparator() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
+    @Test
+    public void propertySource_enableInstanceDataWithCustomAttributeSeparator_propertySourceConfiguredAndUsesCustomAttributeSeparator() throws Exception {
+        //Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomAttributeSeparator.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomAttributeSeparator.class);
 
-		//Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+        //Assert
+        assertEquals("b", this.context.getEnvironment().getProperty("a"));
+        assertEquals("d", this.context.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(httpContext);
-	}
+        httpServer.removeContext(httpContext);
+    }
 
-	@Test
-	public void propertySource_enableInstanceDataWithCustomValueSeparator_propertySourceConfiguredAndUsesCustomValueSeparator() throws Exception {
-		//Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
+    @Test
+    public void propertySource_enableInstanceDataWithCustomValueSeparator_propertySourceConfiguredAndUsesCustomValueSeparator() throws Exception {
+        //Arrange
+        HttpServer httpServer = MetaDataServer.setupHttpServer();
+        HttpContext httpContext = httpServer.createContext("/latest/user-data", new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
-		//Act
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomValueSeparator.class);
+        //Act
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomValueSeparator.class);
 
-		//Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+        //Assert
+        assertEquals("b", this.context.getEnvironment().getProperty("a"));
+        assertEquals("d", this.context.getEnvironment().getProperty("c"));
 
-		httpServer.removeContext(httpContext);
-	}
+        httpServer.removeContext(httpContext);
+    }
 
-	@Configuration
-	@EnableContextInstanceData
-	public static class ApplicationConfiguration {
+    @Configuration
+    @EnableContextInstanceData
+    public static class ApplicationConfiguration {
 
-	}
+    }
 
-	@Configuration
-	@EnableContextInstanceData(attributeSeparator = "/")
-	public static class ApplicationConfigurationWithCustomAttributeSeparator {
+    @Configuration
+    @EnableContextInstanceData(attributeSeparator = "/")
+    public static class ApplicationConfigurationWithCustomAttributeSeparator {
 
-	}
+    }
 
-	@Configuration
-	@EnableContextInstanceData(valueSeparator = "=")
-	public static class ApplicationConfigurationWithCustomValueSeparator {
+    @Configuration
+    @EnableContextInstanceData(valueSeparator = "=")
+    public static class ApplicationConfigurationWithCustomValueSeparator {
 
-	}
+    }
 
-	@Before
-	public void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
-		assertNotNull(field);
-		ReflectionUtils.makeAccessible(field);
-		field.set(null, null);
-	}
+    @Before
+    public void restContextInstanceDataCondition() throws IllegalAccessException {
+        Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
+        assertNotNull(field);
+        ReflectionUtils.makeAccessible(field);
+        field.set(null, null);
+    }
 }

@@ -34,7 +34,7 @@
 	<jdbc:retry-interceptor db-instance-identifier="test" id="interceptor" region-provider="myRegionProvider" />
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-      <constructor-arg value="eu-west-1" />
+		<constructor-arg value="eu-west-1" />
 	</bean>
 
 </beans>

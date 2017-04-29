@@ -23,9 +23,9 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.naming.AmazonResourceName;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,70 +35,70 @@ import java.util.Map;
  */
 public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
-	private final AmazonRDS amazonRds;
-	private final String dbInstanceIdentifier;
-	private final AmazonIdentityManagement identityManagement;
+    private final AmazonRDS amazonRds;
+    private final String dbInstanceIdentifier;
+    private final AmazonIdentityManagement identityManagement;
 
-	private ResourceIdResolver resourceIdResolver;
-	private Region region;
+    private ResourceIdResolver resourceIdResolver;
+    private Region region;
 
-	public AmazonRdsDataSourceUserTagsFactoryBean(AmazonRDS amazonRds, String dbInstanceIdentifier, AmazonIdentityManagement identityManagement) {
-		this.amazonRds = amazonRds;
-		this.dbInstanceIdentifier = dbInstanceIdentifier;
-		this.identityManagement = identityManagement;
-	}
+    public AmazonRdsDataSourceUserTagsFactoryBean(AmazonRDS amazonRds, String dbInstanceIdentifier, AmazonIdentityManagement identityManagement) {
+        this.amazonRds = amazonRds;
+        this.dbInstanceIdentifier = dbInstanceIdentifier;
+        this.identityManagement = identityManagement;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return Map.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return Map.class;
+    }
 
-	@Override
-	protected Map<String, String> createInstance() throws Exception {
-		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
-		ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
-		for (Tag tag : tagsForResource.getTagList()) {
-			userTags.put(tag.getKey(), tag.getValue());
-		}
-		return userTags;
-	}
+    @Override
+    protected Map<String, String> createInstance() throws Exception {
+        LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
+        ListTagsForResourceResult tagsForResource = this.amazonRds.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
+        for (Tag tag : tagsForResource.getTagList()) {
+            userTags.put(tag.getKey(), tag.getValue());
+        }
+        return userTags;
+    }
 
-	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
-		this.resourceIdResolver = resourceIdResolver;
-	}
+    public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {
+        this.resourceIdResolver = resourceIdResolver;
+    }
 
-	private String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) : this.dbInstanceIdentifier;
-	}
+    private String getDbInstanceIdentifier() {
+        return this.resourceIdResolver != null ? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier) : this.dbInstanceIdentifier;
+    }
 
-	private Region getRegion() {
-		if (this.region != null) {
-			return this.region;
-		}
-		return Region.getRegion(Regions.DEFAULT_REGION);
-	}
+    private Region getRegion() {
+        if (this.region != null) {
+            return this.region;
+        }
+        return Region.getRegion(Regions.DEFAULT_REGION);
+    }
 
-	public void setRegion(Region region) {
-		this.region = region;
-	}
+    public void setRegion(Region region) {
+        this.region = region;
+    }
 
-	/**
-	 * Unfortunately Amazon AWS mandates to use ARN notation to get the tags. Therefore we first need to get the account
-	 * number through the IAM service and then construct the ARN out of the account no and region
-	 *
-	 * @return the arn string used to query the tags
-	 */
-	private String getDbInstanceResourceName() {
-		String userArn = this.identityManagement.getUser().getUser().getArn();
-		AmazonResourceName userResourceName = AmazonResourceName.fromString(userArn);
-		AmazonResourceName dbResourceArn = new AmazonResourceName.Builder().
-				withService("rds").
-				withRegion(getRegion()).
-				withAccount(userResourceName.getAccount()).
-				withResourceType("db").
-				withResourceName(getDbInstanceIdentifier()).
-				withResourceTypeDelimiter(":").
-				build();
-		return dbResourceArn.toString();
-	}
+    /**
+     * Unfortunately Amazon AWS mandates to use ARN notation to get the tags. Therefore we first need to get the account
+     * number through the IAM service and then construct the ARN out of the account no and region
+     *
+     * @return the arn string used to query the tags
+     */
+    private String getDbInstanceResourceName() {
+        String userArn = this.identityManagement.getUser().getUser().getArn();
+        AmazonResourceName userResourceName = AmazonResourceName.fromString(userArn);
+        AmazonResourceName dbResourceArn = new AmazonResourceName.Builder().
+                withService("rds").
+                withRegion(getRegion()).
+                withAccount(userResourceName.getAccount()).
+                withResourceType("db").
+                withResourceName(getDbInstanceIdentifier()).
+                withResourceTypeDelimiter(":").
+                build();
+        return dbResourceArn.toString();
+    }
 }

@@ -29,24 +29,24 @@ import org.w3c.dom.Element;
  */
 public final class BufferedSqsClientBeanDefinitionUtils {
 
-	public static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
-	static final String BUFFERED_SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
+    public static final String SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.AmazonSQSAsyncClient";
+    static final String BUFFERED_SQS_CLIENT_CLASS_NAME = "com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient";
 
-	private BufferedSqsClientBeanDefinitionUtils() {
-		// Avoid instantiation
-	}
+    private BufferedSqsClientBeanDefinitionUtils() {
+        // Avoid instantiation
+    }
 
-	static String getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(Element element, ParserContext parserContext) {
-		String amazonSqsClientBeanName = XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sqs", SQS_CLIENT_CLASS_NAME);
-		if (!StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
-			BeanDefinition clientBeanDefinition = parserContext.getRegistry().getBeanDefinition(amazonSqsClientBeanName);
-			if (!clientBeanDefinition.getBeanClassName().equals(BUFFERED_SQS_CLIENT_CLASS_NAME)) {
-				BeanDefinitionBuilder bufferedClientBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(BUFFERED_SQS_CLIENT_CLASS_NAME);
-				bufferedClientBeanDefinitionBuilder.addConstructorArgValue(clientBeanDefinition);
-				parserContext.getRegistry().removeBeanDefinition(amazonSqsClientBeanName);
-				parserContext.getRegistry().registerBeanDefinition(amazonSqsClientBeanName, bufferedClientBeanDefinitionBuilder.getBeanDefinition());
-			}
-		}
-		return amazonSqsClientBeanName;
-	}
+    static String getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(Element element, ParserContext parserContext) {
+        String amazonSqsClientBeanName = XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-sqs", SQS_CLIENT_CLASS_NAME);
+        if (!StringUtils.hasText(element.getAttribute("amazon-sqs"))) {
+            BeanDefinition clientBeanDefinition = parserContext.getRegistry().getBeanDefinition(amazonSqsClientBeanName);
+            if (!clientBeanDefinition.getBeanClassName().equals(BUFFERED_SQS_CLIENT_CLASS_NAME)) {
+                BeanDefinitionBuilder bufferedClientBeanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(BUFFERED_SQS_CLIENT_CLASS_NAME);
+                bufferedClientBeanDefinitionBuilder.addConstructorArgValue(clientBeanDefinition);
+                parserContext.getRegistry().removeBeanDefinition(amazonSqsClientBeanName);
+                parserContext.getRegistry().registerBeanDefinition(amazonSqsClientBeanName, bufferedClientBeanDefinitionBuilder.getBeanDefinition());
+            }
+        }
+        return amazonSqsClientBeanName;
+    }
 }

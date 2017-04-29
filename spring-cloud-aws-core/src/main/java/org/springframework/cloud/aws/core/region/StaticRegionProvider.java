@@ -29,30 +29,30 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
  */
 public class StaticRegionProvider implements RegionProvider {
 
-	private final Region configuredRegion;
+    private final Region configuredRegion;
 
-	/**
-	 * Constructs and configures the static region for this RegionProvider implementation.
-	 *
-	 * @param configuredRegion
-	 * 		- the region that will be statically returned in {@link #getRegion()}
-	 */
-	@RuntimeUse
-	public StaticRegionProvider(String configuredRegion) {
-		try {
-			this.configuredRegion = Region.getRegion(Regions.fromName(configuredRegion));
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("The region '" + configuredRegion + "' is not a valid region!", e);
-		}
-	}
+    /**
+     * Constructs and configures the static region for this RegionProvider implementation.
+     *
+     * @param configuredRegion
+     *         - the region that will be statically returned in {@link #getRegion()}
+     */
+    @RuntimeUse
+    public StaticRegionProvider(String configuredRegion) {
+        try {
+            this.configuredRegion = Region.getRegion(Regions.fromName(configuredRegion));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("The region '" + configuredRegion + "' is not a valid region!", e);
+        }
+    }
 
-	/**
-	 * Return the configured Region configured at construction time.
-	 *
-	 * @return the configured region, for every call the same
-	 */
-	@Override
-	public Region getRegion() {
-		return this.configuredRegion;
-	}
+    /**
+     * Return the configured Region configured at construction time.
+     *
+     * @return the configured region, for every call the same
+     */
+    @Override
+    public Region getRegion() {
+        return this.configuredRegion;
+    }
 }

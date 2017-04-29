@@ -30,46 +30,46 @@ import static org.junit.Assert.assertTrue;
 
 public class ContextResourceLoaderConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+    private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+    @After
+    public void tearDown() throws Exception {
+        if (this.context != null) {
+            this.context.close();
+        }
+    }
 
-	@Test
-	public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() throws Exception {
-		//Arrange
-		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
+    @Test
+    public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
 
-		//Act
-		ApplicationBean bean =
-				this.context.getBean(ApplicationBean.class);
+        //Act
+        ApplicationBean bean =
+                this.context.getBean(ApplicationBean.class);
 
-		//Assert
-		assertNotNull(bean.getResourceLoader());
-		assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(bean.getResourceLoader()));
-	}
+        //Assert
+        assertNotNull(bean.getResourceLoader());
+        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(bean.getResourceLoader()));
+    }
 
-	@EnableContextResourceLoader
-	static class ApplicationConfigurationWithResourceLoader {
+    @EnableContextResourceLoader
+    static class ApplicationConfigurationWithResourceLoader {
 
-		@Bean
-		public ApplicationBean appBean() {
-			return new ApplicationBean();
-		}
+        @Bean
+        public ApplicationBean appBean() {
+            return new ApplicationBean();
+        }
 
-	}
+    }
 
-	static class ApplicationBean {
+    static class ApplicationBean {
 
-		@Autowired
-		private ResourceLoader resourceLoader;
+        @Autowired
+        private ResourceLoader resourceLoader;
 
-		private ResourceLoader getResourceLoader() {
-			return this.resourceLoader;
-		}
-	}
+        private ResourceLoader getResourceLoader() {
+            return this.resourceLoader;
+        }
+    }
 }

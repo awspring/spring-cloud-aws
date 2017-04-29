@@ -30,11 +30,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = JavaElastiCacheAwsTest.JavaElastiCacheAwsTestConfig.class)
 public class JavaElastiCacheAwsTest extends ElastiCacheAwsTest {
 
-	@Configuration
-	@EnableElastiCache(@CacheClusterConfig(name = "CacheCluster"))
-	@Import(IntegrationTestConfig.class)
-	@ComponentScan
-	static class JavaElastiCacheAwsTestConfig {
+    @Configuration
+    @EnableElastiCache(@CacheClusterConfig(name = "CacheCluster"))
+    @Import(IntegrationTestConfig.class)
+    @ComponentScan
+    static class JavaElastiCacheAwsTestConfig {
 
-	}
+    }
 }

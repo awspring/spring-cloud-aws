@@ -27,7 +27,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 	<bean id="myRegionProvider" class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-      <constructor-arg name="configuredRegion" value="ap-southeast-2" />
+		<constructor-arg name="configuredRegion" value="ap-southeast-2" />
 	</bean>
 
 	<aws-mail:mail-sender id="test" region-provider="myRegionProvider" />

@@ -30,11 +30,11 @@ import org.springframework.test.context.ContextConfiguration;
 public class JavaDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 
-	@Configuration
-	@EnableRdsInstance(dbInstanceIdentifier = "RdsSingleMicroInstance", password = "${rdsPassword}")
-	@Import(IntegrationTestConfig.class)
-	@ComponentScan
-	static class JavaDataSourceFactoryBeanAwsTestConfig {
+    @Configuration
+    @EnableRdsInstance(dbInstanceIdentifier = "RdsSingleMicroInstance", password = "${rdsPassword}")
+    @Import(IntegrationTestConfig.class)
+    @ComponentScan
+    static class JavaDataSourceFactoryBeanAwsTestConfig {
 
-	}
+    }
 }

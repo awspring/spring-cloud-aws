@@ -28,14 +28,14 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  */
 class NotificationArgumentResolverBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
-	}
+    @Override
+    protected String getBeanClassName(Element element) {
+        return "org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
+    }
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
-				"amazon-sns", "com.amazonaws.services.sns.AmazonSNSClient"));
-	}
+    @Override
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
+                "amazon-sns", "com.amazonaws.services.sns.AmazonSNSClient"));
+    }
 }

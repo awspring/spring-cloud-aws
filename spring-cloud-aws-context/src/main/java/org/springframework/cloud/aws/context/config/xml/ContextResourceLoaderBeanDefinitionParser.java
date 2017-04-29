@@ -38,26 +38,26 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
 public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
-	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor";
+    private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
+    private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor";
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
+    @Override
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 
-		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-			builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
-					element.getAttribute("task-executor"));
-		}
-	}
+        if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+            builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
+                    element.getAttribute("task-executor"));
+        }
+    }
 
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		return BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), false);
-	}
+    @Override
+    protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+        return BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), false);
+    }
 
-	@Override
-	protected String getBeanClassName(Element element) {
-		return RESOURCE_LOADER_BEAN_POST_PROCESSOR;
-	}
+    @Override
+    protected String getBeanClassName(Element element) {
+        return RESOURCE_LOADER_BEAN_POST_PROCESSOR;
+    }
 }

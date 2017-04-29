@@ -65,14 +65,14 @@ import java.lang.annotation.Target;
 @MessageMapping
 public @interface SqsListener {
 
-	/**
-	 * List of queues. Queues can be defined by their logical/physical name or URL.
-	 */
-	String[] value() default {};
+    /**
+     * List of queues. Queues can be defined by their logical/physical name or URL.
+     */
+    String[] value() default {};
 
-	/**
-	 * Defines the deletion policy that must be applied once the listener method was called.
-	 */
-	SqsMessageDeletionPolicy deletionPolicy() default SqsMessageDeletionPolicy.NO_REDRIVE;
+    /**
+     * Defines the deletion policy that must be applied once the listener method was called.
+     */
+    SqsMessageDeletionPolicy deletionPolicy() default SqsMessageDeletionPolicy.NO_REDRIVE;
 
 }

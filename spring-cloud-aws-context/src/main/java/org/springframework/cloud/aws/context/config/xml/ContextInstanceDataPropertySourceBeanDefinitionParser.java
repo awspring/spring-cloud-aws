@@ -34,31 +34,31 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  */
 class ContextInstanceDataPropertySourceBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
-	private static final String USER_TAGS_BEAN_CLASS_NAME = "org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceUserTagsFactoryBean";
-	private static final String EC2_CLIENT_CLASS_NAME = "com.amazonaws.services.ec2.AmazonEC2Client";
+    private static final String USER_TAGS_BEAN_CLASS_NAME = "org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceUserTagsFactoryBean";
+    private static final String EC2_CLIENT_CLASS_NAME = "com.amazonaws.services.ec2.AmazonEC2Client";
 
-	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+    @Override
+    protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
-		if (StringUtils.hasText(element.getAttribute("user-tags-map"))) {
-			BeanDefinitionBuilder userTagsBuilder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAGS_BEAN_CLASS_NAME);
+        if (StringUtils.hasText(element.getAttribute("user-tags-map"))) {
+            BeanDefinitionBuilder userTagsBuilder = BeanDefinitionBuilder.genericBeanDefinition(USER_TAGS_BEAN_CLASS_NAME);
 
-			userTagsBuilder.addConstructorArgReference(
-					getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-ec2", EC2_CLIENT_CLASS_NAME));
+            userTagsBuilder.addConstructorArgReference(
+                    getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-ec2", EC2_CLIENT_CLASS_NAME));
 
-			if (StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
-				userTagsBuilder.addConstructorArgReference(element.getAttribute("instance-id-provider"));
-			}
-			BeanDefinitionReaderUtils.registerBeanDefinition(
-					new BeanDefinitionHolder(userTagsBuilder.getBeanDefinition(), element.getAttribute("user-tags-map")),
-					parserContext.getRegistry());
-		}
+            if (StringUtils.hasText(element.getAttribute("instance-id-provider"))) {
+                userTagsBuilder.addConstructorArgReference(element.getAttribute("instance-id-provider"));
+            }
+            BeanDefinitionReaderUtils.registerBeanDefinition(
+                    new BeanDefinitionHolder(userTagsBuilder.getBeanDefinition(), element.getAttribute("user-tags-map")),
+                    parserContext.getRegistry());
+        }
 
-		if (isRunningOnCloudEnvironment()) {
-			ContextConfigurationUtils.registerInstanceDataPropertySource(parserContext.getRegistry(),
-					element.getAttribute("value-separator"), element.getAttribute("attribute-separator"));
-		}
+        if (isRunningOnCloudEnvironment()) {
+            ContextConfigurationUtils.registerInstanceDataPropertySource(parserContext.getRegistry(),
+                    element.getAttribute("value-separator"), element.getAttribute("attribute-separator"));
+        }
 
-		return null;
-	}
+        return null;
+    }
 }

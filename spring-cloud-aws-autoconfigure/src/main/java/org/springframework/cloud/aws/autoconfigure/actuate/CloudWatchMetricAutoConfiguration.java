@@ -48,35 +48,35 @@ import org.springframework.context.annotation.Import;
 @EnableConfigurationProperties(CloudWatchMetricProperties.class)
 @ConditionalOnProperty(prefix = "cloud.aws.cloudwatch", name = "namespace")
 @ConditionalOnClass(name = {"com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync",
-		"org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricWriter"})
+        "org.springframework.cloud.aws.actuate.metrics.CloudWatchMetricWriter"})
 public class CloudWatchMetricAutoConfiguration {
 
     @Autowired(required = false)
     private RegionProvider regionProvider;
 
     @Autowired
-	private CloudWatchMetricProperties cloudWatchMetricProperties;
+    private CloudWatchMetricProperties cloudWatchMetricProperties;
 
     @Bean
     @ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
-	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(AWSCredentialsProvider credentialsProvider) {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class, credentialsProvider, this.regionProvider);
-	}
+    public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(AWSCredentialsProvider credentialsProvider) {
+        return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class, credentialsProvider, this.regionProvider);
+    }
 
     @Bean
     @ExportMetricWriter
-	CloudWatchMetricWriter cloudWatchMetricWriter(CloudWatchMetricSender cloudWatchMetricSender) {
-		return new CloudWatchMetricWriter(cloudWatchMetricSender);
-	}
+    CloudWatchMetricWriter cloudWatchMetricWriter(CloudWatchMetricSender cloudWatchMetricSender) {
+        return new CloudWatchMetricWriter(cloudWatchMetricSender);
+    }
 
     @Bean
     @ConditionalOnMissingBean(CloudWatchMetricSender.class)
     CloudWatchMetricSender cloudWatchMetricWriterSender(AmazonCloudWatchAsync amazonCloudWatchAsync) {
         return new BufferingCloudWatchMetricSender(
-				this.cloudWatchMetricProperties.getNamespace(),
-				this.cloudWatchMetricProperties.getMaxBuffer(),
-				this.cloudWatchMetricProperties.getFixedDelayBetweenRuns(),
-				amazonCloudWatchAsync
+                this.cloudWatchMetricProperties.getNamespace(),
+                this.cloudWatchMetricProperties.getMaxBuffer(),
+                this.cloudWatchMetricProperties.getFixedDelayBetweenRuns(),
+                amazonCloudWatchAsync
         );
     }
 }

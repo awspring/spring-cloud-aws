@@ -36,28 +36,28 @@ import java.io.IOException;
  */
 public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
-	private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+    private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
+    private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
 
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-								  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-		Assert.notNull(parameter, "Parameter must not be null");
-		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
-			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(JsonNode.class,
-					createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
-		}
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        Assert.notNull(parameter, "Parameter must not be null");
+        if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
+            webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(JsonNode.class,
+                    createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
+        }
 
-		JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
-		return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest), parameter.getParameterType());
-	}
+        JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
+        return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest), parameter.getParameterType());
+    }
 
-	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType);
+    protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType);
 
-	private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
-		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
-		return new ServletServerHttpRequest(servletRequest);
-	}
+    private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
+        HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+        return new ServletServerHttpRequest(servletRequest);
+    }
 }

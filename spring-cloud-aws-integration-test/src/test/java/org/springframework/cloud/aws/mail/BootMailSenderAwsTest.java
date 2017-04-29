@@ -30,20 +30,20 @@ import org.springframework.core.io.Resource;
 @SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
 public class BootMailSenderAwsTest extends MailSenderAwsTest {
 
-	@SpringBootApplication
-	@PropertySource({"classpath:Integration-test-config.properties",
-			"file://${els.config.dir}/access.properties",
-			"file://${els.config.dir}/mail.properties"})
-	static class BootMailSenderAwsTestConfig {
+    @SpringBootApplication
+    @PropertySource({"classpath:Integration-test-config.properties",
+            "file://${els.config.dir}/access.properties",
+            "file://${els.config.dir}/mail.properties"})
+    static class BootMailSenderAwsTestConfig {
 
-		@Value("file://${els.config.dir}/mail.properties")
-		private Resource mailConfigResource;
+        @Value("file://${els.config.dir}/mail.properties")
+        private Resource mailConfigResource;
 
-		@Bean(name = "mail")
-		public PropertiesFactoryBean mail() {
-			PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
-			factoryBean.setLocation(this.mailConfigResource);
-			return factoryBean;
-		}
-	}
+        @Bean(name = "mail")
+        public PropertiesFactoryBean mail() {
+            PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
+            factoryBean.setLocation(this.mailConfigResource);
+            return factoryBean;
+        }
+    }
 }

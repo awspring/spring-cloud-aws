@@ -28,11 +28,11 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootTest(classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
 public class BootPathMatchingResourceLoaderAwsTest extends PathMatchingResourceLoaderAwsTest {
 
-	@SpringBootApplication
-	@Import(IntegrationTestConfig.class)
-	@PropertySource({"classpath:Integration-test-config.properties",
-			"file://${els.config.dir}/access.properties"})
-	static class BootPathMatchingResourceLoaderAwsTestConfig {
+    @SpringBootApplication
+    @Import(IntegrationTestConfig.class)
+    @PropertySource({"classpath:Integration-test-config.properties",
+            "file://${els.config.dir}/access.properties"})
+    static class BootPathMatchingResourceLoaderAwsTestConfig {
 
-	}
+    }
 }

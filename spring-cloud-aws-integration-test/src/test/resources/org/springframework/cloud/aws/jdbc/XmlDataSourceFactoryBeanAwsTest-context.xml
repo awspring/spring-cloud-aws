@@ -33,8 +33,8 @@
 	<import resource="classpath:Integration-test-context.xml" />
 
 	<jdbc:data-source
-					 db-instance-identifier="RdsSingleMicroInstance"
-					 password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
+			db-instance-identifier="RdsSingleMicroInstance"
+			password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
 		<jdbc:pool-attributes initialSize="1"
 							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
 							  testOnBorrow="true" validationQuery="SELECT 1" />

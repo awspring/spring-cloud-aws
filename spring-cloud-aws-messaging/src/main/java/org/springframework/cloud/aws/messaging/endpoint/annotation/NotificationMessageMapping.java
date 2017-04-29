@@ -50,4 +50,5 @@ import java.lang.annotation.RetentionPolicy;
 @RequestMapping(headers = "x-amz-sns-message-type=Notification", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationMessageMapping {
+
 }

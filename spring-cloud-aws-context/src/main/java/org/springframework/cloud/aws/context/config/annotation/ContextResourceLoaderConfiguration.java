@@ -36,25 +36,25 @@ import org.springframework.core.type.AnnotationMetadata;
 @Import(ContextResourceLoaderConfiguration.Registrar.class)
 public class ContextResourceLoaderConfiguration {
 
-	public static class Registrar implements ImportBeanDefinitionRegistrar {
+    public static class Registrar implements ImportBeanDefinitionRegistrar {
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
 
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-			beanDefinitionBuilder.addConstructorArgReference(client.getBeanName());
+            BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
+            beanDefinitionBuilder.addConstructorArgReference(client.getBeanName());
 
-			BeanDefinition taskExecutor = getTaskExecutorDefinition();
-			if (taskExecutor != null) {
-				beanDefinitionBuilder.addPropertyValue("taskExecutor", taskExecutor);
-			}
+            BeanDefinition taskExecutor = getTaskExecutorDefinition();
+            if (taskExecutor != null) {
+                beanDefinitionBuilder.addPropertyValue("taskExecutor", taskExecutor);
+            }
 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
-		}
+            BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
+        }
 
-		protected BeanDefinition getTaskExecutorDefinition() {
-			return null;
-		}
-	}
+        protected BeanDefinition getTaskExecutorDefinition() {
+            return null;
+        }
+    }
 }

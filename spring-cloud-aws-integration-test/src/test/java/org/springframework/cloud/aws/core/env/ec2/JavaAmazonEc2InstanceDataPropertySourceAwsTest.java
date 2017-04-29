@@ -29,21 +29,21 @@ import org.springframework.test.context.ContextConfiguration;
 public class JavaAmazonEc2InstanceDataPropertySourceAwsTest extends AmazonEc2InstanceDataPropertySourceAwsTest {
 
 
-	@Configuration
-	@EnableContextInstanceData
-	static class JavaAmazonEc2InstanceDataPropertySourceAwsTestConfig {
+    @Configuration
+    @EnableContextInstanceData
+    static class JavaAmazonEc2InstanceDataPropertySourceAwsTestConfig {
 
-		@Bean
-		public SimpleConfigurationBean configurationBean() {
-			return new SimpleConfigurationBean();
-		}
+        @Bean
+        public SimpleConfigurationBean configurationBean() {
+            return new SimpleConfigurationBean();
+        }
 
-		@Bean
-		static PropertySourcesPlaceholderConfigurer configurer() {
-			return new PropertySourcesPlaceholderConfigurer();
-		}
+        @Bean
+        static PropertySourcesPlaceholderConfigurer configurer() {
+            return new PropertySourcesPlaceholderConfigurer();
+        }
 
-	}
+    }
 
 
 }

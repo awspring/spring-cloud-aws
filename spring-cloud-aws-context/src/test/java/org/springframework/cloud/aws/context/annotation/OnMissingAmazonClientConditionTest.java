@@ -31,44 +31,44 @@ import static org.mockito.Mockito.mock;
  */
 public class OnMissingAmazonClientConditionTest {
 
-	@Test
-	public void condition_withMatchingCase_shouldCreateBeanFoo() throws Exception {
-		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigWithMissingAmazonClientCondition.class);
+    @Test
+    public void condition_withMatchingCase_shouldCreateBeanFoo() throws Exception {
+        // Arrange & Act
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigWithMissingAmazonClientCondition.class);
 
-		// Assert
-		assertTrue(applicationContext.containsBean("foo"));
-	}
+        // Assert
+        assertTrue(applicationContext.containsBean("foo"));
+    }
 
-	@Test
-	public void condition_withNonMatchingCase_shouldNotCreateBeanFoo() throws Exception {
-		// Arrange & Act
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigWithDummyS3Client.class,
-				ConfigWithMissingAmazonClientCondition.class);
+    @Test
+    public void condition_withNonMatchingCase_shouldNotCreateBeanFoo() throws Exception {
+        // Arrange & Act
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigWithDummyS3Client.class,
+                ConfigWithMissingAmazonClientCondition.class);
 
-		// Assert
-		assertFalse(applicationContext.containsBean("foo"));
-	}
+        // Assert
+        assertFalse(applicationContext.containsBean("foo"));
+    }
 
-	@Configuration
-	protected static class ConfigWithDummyS3Client {
+    @Configuration
+    protected static class ConfigWithDummyS3Client {
 
-		@Bean
-		public AmazonS3 amazonS3() {
-			return mock(AmazonS3.class);
-		}
+        @Bean
+        public AmazonS3 amazonS3() {
+            return mock(AmazonS3.class);
+        }
 
-	}
+    }
 
-	@Configuration
-	protected static class ConfigWithMissingAmazonClientCondition {
+    @Configuration
+    protected static class ConfigWithMissingAmazonClientCondition {
 
-		@Bean
-		@ConditionalOnMissingAmazonClient(AmazonS3.class)
-		public String foo() {
-			return "foo";
-		}
+        @Bean
+        @ConditionalOnMissingAmazonClient(AmazonS3.class)
+        public String foo() {
+            return "foo";
+        }
 
-	}
+    }
 
 }

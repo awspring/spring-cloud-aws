@@ -31,27 +31,27 @@ import java.util.Date;
 @Service
 public class SimpleDatabaseService implements DatabaseService {
 
-	private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-	@SuppressWarnings("SpringJavaAutowiredMembersInspection")
-	@Autowired
-	public SimpleDatabaseService(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
+    @Autowired
+    public SimpleDatabaseService(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
-	@Override
-	@Transactional(readOnly = true)
-	public Date getLastUpdate(Date lastAccessDatabase) {
-		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Timestamp.class, lastAccessDatabase);
-	}
+    @Override
+    @Transactional(readOnly = true)
+    public Date getLastUpdate(Date lastAccessDatabase) {
+        return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Timestamp.class, lastAccessDatabase);
+    }
 
-	@Transactional
-	@Override
-	public Date updateLastAccessDatabase() {
-		this.jdbcTemplate.update("DROP TABLE IF EXISTS INTEGRATION_TEST");
-		this.jdbcTemplate.update("CREATE TABLE IF NOT EXISTS INTEGRATION_TEST(lastTest timestamp(3))");
-		Date date = new Date();
-		this.jdbcTemplate.update("INSERT INTO INTEGRATION_TEST(lastTest) VALUES(?)", date);
-		return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Date.class, date);
-	}
+    @Transactional
+    @Override
+    public Date updateLastAccessDatabase() {
+        this.jdbcTemplate.update("DROP TABLE IF EXISTS INTEGRATION_TEST");
+        this.jdbcTemplate.update("CREATE TABLE IF NOT EXISTS INTEGRATION_TEST(lastTest timestamp(3))");
+        Date date = new Date();
+        this.jdbcTemplate.update("INSERT INTO INTEGRATION_TEST(lastTest) VALUES(?)", date);
+        return this.jdbcTemplate.queryForObject("SELECT lastTest FROM INTEGRATION_TEST WHERE lastTest = ?", Date.class, date);
+    }
 }

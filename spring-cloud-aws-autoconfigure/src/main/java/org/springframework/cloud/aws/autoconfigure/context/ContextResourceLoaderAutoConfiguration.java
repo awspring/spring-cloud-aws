@@ -34,48 +34,48 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ConditionalOnClass(name = "com.amazonaws.services.s3.AmazonS3Client")
 public class ContextResourceLoaderAutoConfiguration {
 
-	public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {
+    public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {
 
-		private static final String PROPERTY_PREFIX = "cloud.aws.loader";
-		private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
-		private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
-		private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
-		private Environment environment;
+        private static final String PROPERTY_PREFIX = "cloud.aws.loader";
+        private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
+        private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
+        private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
+        private Environment environment;
 
 
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
-		}
+        @Override
+        public void setEnvironment(Environment environment) {
+            this.environment = environment;
+        }
 
-		@Override
-		protected BeanDefinition getTaskExecutorDefinition() {
-			if (containsProperty(CORE_POOL_SIZE_PROPERTY_NAME) ||
-					containsProperty(MAX_POOL_SIZE_PROPERTY_NAME) ||
-					containsProperty(QUEUE_CAPACITY_PROPERTY_NAME)) {
-				BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ThreadPoolTaskExecutor.class);
+        @Override
+        protected BeanDefinition getTaskExecutorDefinition() {
+            if (containsProperty(CORE_POOL_SIZE_PROPERTY_NAME) ||
+                    containsProperty(MAX_POOL_SIZE_PROPERTY_NAME) ||
+                    containsProperty(QUEUE_CAPACITY_PROPERTY_NAME)) {
+                BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ThreadPoolTaskExecutor.class);
 
-				setPropertyIfConfigured(builder, CORE_POOL_SIZE_PROPERTY_NAME);
-				setPropertyIfConfigured(builder, MAX_POOL_SIZE_PROPERTY_NAME);
-				setPropertyIfConfigured(builder, QUEUE_CAPACITY_PROPERTY_NAME);
+                setPropertyIfConfigured(builder, CORE_POOL_SIZE_PROPERTY_NAME);
+                setPropertyIfConfigured(builder, MAX_POOL_SIZE_PROPERTY_NAME);
+                setPropertyIfConfigured(builder, QUEUE_CAPACITY_PROPERTY_NAME);
 
-				return builder.getBeanDefinition();
-			}
-			return super.getTaskExecutorDefinition();
-		}
+                return builder.getBeanDefinition();
+            }
+            return super.getTaskExecutorDefinition();
+        }
 
-		private boolean containsProperty(String name) {
-			return this.environment.containsProperty(PROPERTY_PREFIX + "." + name);
-		}
+        private boolean containsProperty(String name) {
+            return this.environment.containsProperty(PROPERTY_PREFIX + "." + name);
+        }
 
-		private String getProperty(String name) {
-			return this.environment.getProperty(PROPERTY_PREFIX + "." + name);
-		}
+        private String getProperty(String name) {
+            return this.environment.getProperty(PROPERTY_PREFIX + "." + name);
+        }
 
-		private void setPropertyIfConfigured(BeanDefinitionBuilder builder, String name) {
-			if (containsProperty(name)) {
-				builder.addPropertyValue(name, getProperty(name));
-			}
-		}
-	}
+        private void setPropertyIfConfigured(BeanDefinitionBuilder builder, String name) {
+            if (containsProperty(name)) {
+                builder.addPropertyValue(name, getProperty(name));
+            }
+        }
+    }
 }

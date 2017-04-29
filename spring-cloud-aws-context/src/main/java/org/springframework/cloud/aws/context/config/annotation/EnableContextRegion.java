@@ -38,20 +38,20 @@ import java.lang.annotation.Target;
 @Import(ContextRegionConfigurationRegistrar.class)
 public @interface EnableContextRegion {
 
-	/**
-	 * Configures the region as a String value. The value must match to an enum defined in
-	 * {@link com.amazonaws.regions.Regions}. This attribute is a String value allowing expressions and placeholders to
-	 * be used for the region configuration.
-	 *
-	 * @return - the region a constant definition, SpEL expression or placeholder definition
-	 */
-	String region() default "";
+    /**
+     * Configures the region as a String value. The value must match to an enum defined in
+     * {@link com.amazonaws.regions.Regions}. This attribute is a String value allowing expressions and placeholders to
+     * be used for the region configuration.
+     *
+     * @return - the region a constant definition, SpEL expression or placeholder definition
+     */
+    String region() default "";
 
-	/**
-	 * Configures the auto-detection of a region that should be fetched from the EC2 meta-data. Disabled by default.
-	 *
-	 * @return - configures if the region should be fetched by the EC2 meta-data. Must be false if a region is configured
-	 * in the {@link EnableContextRegion#region()} attribute.
-	 */
-	boolean autoDetect() default false;
+    /**
+     * Configures the auto-detection of a region that should be fetched from the EC2 meta-data. Disabled by default.
+     *
+     * @return - configures if the region should be fetched by the EC2 meta-data. Must be false if a region is configured
+     * in the {@link EnableContextRegion#region()} attribute.
+     */
+    boolean autoDetect() default false;
 }

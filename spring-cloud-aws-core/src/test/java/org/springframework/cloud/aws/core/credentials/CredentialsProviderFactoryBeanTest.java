@@ -38,50 +38,50 @@ import static org.mockito.Mockito.when;
  */
 public class CredentialsProviderFactoryBeanTest {
 
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
-	@Test
-	public void testCreateWithNullCredentialsProvider() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("not be null");
-		//noinspection ResultOfObjectAllocationIgnored
-		new CredentialsProviderFactoryBean(null);
-	}
-
-
-	@Test
-	public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
-		//Arrange
-		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
-		credentialsProviderFactoryBean.afterPropertiesSet();
-
-		//Act
-		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
-
-		//Assert
-		assertNotNull(credentialsProvider);
-		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
-	}
+    @Test
+    public void testCreateWithNullCredentialsProvider() throws Exception {
+        this.expectedException.expect(IllegalArgumentException.class);
+        this.expectedException.expectMessage("not be null");
+        //noinspection ResultOfObjectAllocationIgnored
+        new CredentialsProviderFactoryBean(null);
+    }
 
 
-	@Test
-	public void testCreateWithMultiple() throws Exception {
-		AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
-		AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
+    @Test
+    public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
+        //Arrange
+        CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
+        credentialsProviderFactoryBean.afterPropertiesSet();
 
-		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Arrays.asList(first, second));
-		credentialsProviderFactoryBean.afterPropertiesSet();
+        //Act
+        AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
 
-		AWSCredentialsProvider provider = credentialsProviderFactoryBean.getObject();
+        //Assert
+        assertNotNull(credentialsProvider);
+        assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
+    }
 
-		BasicAWSCredentials foo = new BasicAWSCredentials("foo", "foo");
-		BasicAWSCredentials bar = new BasicAWSCredentials("bar", "bar");
 
-		when(first.getCredentials()).thenReturn(null, foo);
-		when(second.getCredentials()).thenReturn(bar);
+    @Test
+    public void testCreateWithMultiple() throws Exception {
+        AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
+        AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
 
-		assertEquals(bar, provider.getCredentials());
-		assertEquals(foo, provider.getCredentials());
-	}
+        CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Arrays.asList(first, second));
+        credentialsProviderFactoryBean.afterPropertiesSet();
+
+        AWSCredentialsProvider provider = credentialsProviderFactoryBean.getObject();
+
+        BasicAWSCredentials foo = new BasicAWSCredentials("foo", "foo");
+        BasicAWSCredentials bar = new BasicAWSCredentials("bar", "bar");
+
+        when(first.getCredentials()).thenReturn(null, foo);
+        when(second.getCredentials()).thenReturn(bar);
+
+        assertEquals(bar, provider.getCredentials());
+        assertEquals(foo, provider.getCredentials());
+    }
 }

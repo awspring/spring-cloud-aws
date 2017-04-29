@@ -27,18 +27,18 @@ import java.util.concurrent.Future;
  */
 public class QueueMessageAcknowledgment implements Acknowledgment {
 
-	private final AmazonSQSAsync amazonSqsAsync;
-	private final String queueUrl;
-	private final String receiptHandle;
+    private final AmazonSQSAsync amazonSqsAsync;
+    private final String queueUrl;
+    private final String receiptHandle;
 
-	public QueueMessageAcknowledgment(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
-		this.amazonSqsAsync = amazonSqsAsync;
-		this.queueUrl = queueUrl;
-		this.receiptHandle = receiptHandle;
-	}
+    public QueueMessageAcknowledgment(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
+        this.amazonSqsAsync = amazonSqsAsync;
+        this.queueUrl = queueUrl;
+        this.receiptHandle = receiptHandle;
+    }
 
-	@Override
-	public Future<?> acknowledge() {
-		return this.amazonSqsAsync.deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, this.receiptHandle));
-	}
+    @Override
+    public Future<?> acknowledge() {
+        return this.amazonSqsAsync.deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, this.receiptHandle));
+    }
 }

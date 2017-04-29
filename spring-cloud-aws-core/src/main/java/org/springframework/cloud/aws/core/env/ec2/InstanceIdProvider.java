@@ -24,6 +24,6 @@ package org.springframework.cloud.aws.core.env.ec2;
  */
 public interface InstanceIdProvider {
 
-	String getCurrentInstanceId();
+    String getCurrentInstanceId();
 
 }

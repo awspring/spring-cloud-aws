@@ -36,102 +36,102 @@ import java.beans.Introspector;
  */
 public final class AmazonWebserviceClientConfigurationUtils {
 
-	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
-	public static final String REGION_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME";
-	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.BEAN_NAME";
+    private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";
+    public static final String REGION_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME";
+    public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.BEAN_NAME";
 
-	private AmazonWebserviceClientConfigurationUtils() {
-		// Avoid instantiation
-	}
+    private AmazonWebserviceClientConfigurationUtils() {
+        // Avoid instantiation
+    }
 
-	public static BeanDefinitionHolder registerAmazonWebserviceClient(
-			Object source, BeanDefinitionRegistry registry, String serviceNameClassName,
-			String customRegionProvider, String customRegion) {
+    public static BeanDefinitionHolder registerAmazonWebserviceClient(
+            Object source, BeanDefinitionRegistry registry, String serviceNameClassName,
+            String customRegionProvider, String customRegion) {
 
-		String beanName = getBeanName(serviceNameClassName);
+        String beanName = getBeanName(serviceNameClassName);
 
-		if (registry.containsBeanDefinition(beanName)) {
-			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
-		}
+        if (registry.containsBeanDefinition(beanName)) {
+            return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
+        }
 
-		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName, customRegionProvider, customRegion, registry);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+        BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName, customRegionProvider, customRegion, registry);
+        BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
+        BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
-		return holder;
-	}
+        return holder;
+    }
 
-	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
-			Object source, String serviceNameClassName,
-			String customRegionProvider, String customRegion, BeanDefinitionRegistry beanDefinitionRegistry) {
+    public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
+            Object source, String serviceNameClassName,
+            String customRegionProvider, String customRegion, BeanDefinitionRegistry beanDefinitionRegistry) {
 
-		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
-			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
-		}
+        if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
+            throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
+        }
 
-		registerCredentialsProviderIfNeeded(beanDefinitionRegistry);
+        registerCredentialsProviderIfNeeded(beanDefinitionRegistry);
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonWebserviceClientFactoryBean.class);
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AmazonWebserviceClientFactoryBean.class);
 
-		//Configure constructor parameters
-		builder.addConstructorArgValue(serviceNameClassName);
-		builder.addConstructorArgReference(CREDENTIALS_PROVIDER_BEAN_NAME);
+        //Configure constructor parameters
+        builder.addConstructorArgValue(serviceNameClassName);
+        builder.addConstructorArgReference(CREDENTIALS_PROVIDER_BEAN_NAME);
 
-		//Configure source of the bean definition
-		builder.getRawBeanDefinition().setSource(source);
+        //Configure source of the bean definition
+        builder.getRawBeanDefinition().setSource(source);
 
-		//Configure region properties (either custom region provider or custom region)
-		if (StringUtils.hasText(customRegionProvider)) {
-			builder.addPropertyReference("regionProvider", customRegionProvider);
-		} else if (StringUtils.hasText(customRegion)) {
-			builder.addPropertyValue("customRegion", customRegion);
-		} else {
-			registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
-			builder.addPropertyReference("regionProvider", REGION_PROVIDER_BEAN_NAME);
-		}
+        //Configure region properties (either custom region provider or custom region)
+        if (StringUtils.hasText(customRegionProvider)) {
+            builder.addPropertyReference("regionProvider", customRegionProvider);
+        } else if (StringUtils.hasText(customRegion)) {
+            builder.addPropertyValue("customRegion", customRegion);
+        } else {
+            registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
+            builder.addPropertyReference("regionProvider", REGION_PROVIDER_BEAN_NAME);
+        }
 
-		return builder.getBeanDefinition();
-	}
+        return builder.getBeanDefinition();
+    }
 
-	public static String getBeanName(String serviceClassName) {
-		String clientClassName = ClassUtils.getShortName(serviceClassName);
-		String shortenedClassName = StringUtils.delete(clientClassName, SERVICE_IMPLEMENTATION_SUFFIX);
-		return Introspector.decapitalize(shortenedClassName);
-	}
+    public static String getBeanName(String serviceClassName) {
+        String clientClassName = ClassUtils.getShortName(serviceClassName);
+        String shortenedClassName = StringUtils.delete(clientClassName, SERVICE_IMPLEMENTATION_SUFFIX);
+        return Introspector.decapitalize(shortenedClassName);
+    }
 
-	public static String getRegionProviderBeanName(BeanDefinitionRegistry beanDefinitionRegistry) {
-		registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
-		return REGION_PROVIDER_BEAN_NAME;
-	}
+    public static String getRegionProviderBeanName(BeanDefinitionRegistry beanDefinitionRegistry) {
+        registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
+        return REGION_PROVIDER_BEAN_NAME;
+    }
 
-	public static void replaceDefaultRegionProvider(BeanDefinitionRegistry registry, String customGlobalRegionProvider) {
-		if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-			registry.removeBeanDefinition(REGION_PROVIDER_BEAN_NAME);
-		}
-		registry.registerAlias(customGlobalRegionProvider, REGION_PROVIDER_BEAN_NAME);
-	}
+    public static void replaceDefaultRegionProvider(BeanDefinitionRegistry registry, String customGlobalRegionProvider) {
+        if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+            registry.removeBeanDefinition(REGION_PROVIDER_BEAN_NAME);
+        }
+        registry.registerAlias(customGlobalRegionProvider, REGION_PROVIDER_BEAN_NAME);
+    }
 
-	private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
-			builder.addConstructorArgValue(Regions.DEFAULT_REGION.getName());
-			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
-		}
-	}
+    private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
+        if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
+            builder.addConstructorArgValue(Regions.DEFAULT_REGION.getName());
+            builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+        }
+    }
 
-	private static void registerCredentialsProviderIfNeeded(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
-			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
-		}
-	}
+    private static void registerCredentialsProviderIfNeeded(BeanDefinitionRegistry registry) {
+        if (!registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
+            builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+        }
+    }
 
-	public static void replaceDefaultCredentialsProvider(BeanDefinitionRegistry registry, String customGlobalCredentialsProvider) {
-		if (registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
-			registry.removeBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME);
-		}
-		registry.registerAlias(customGlobalCredentialsProvider, CREDENTIALS_PROVIDER_BEAN_NAME);
-	}
+    public static void replaceDefaultCredentialsProvider(BeanDefinitionRegistry registry, String customGlobalCredentialsProvider) {
+        if (registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
+            registry.removeBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME);
+        }
+        registry.registerAlias(customGlobalCredentialsProvider, CREDENTIALS_PROVIDER_BEAN_NAME);
+    }
 }

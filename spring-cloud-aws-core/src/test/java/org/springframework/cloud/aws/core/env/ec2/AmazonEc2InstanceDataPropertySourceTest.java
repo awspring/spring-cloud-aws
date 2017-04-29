@@ -41,132 +41,132 @@ import static org.junit.Assert.assertNull;
  */
 public class AmazonEc2InstanceDataPropertySourceTest {
 
-	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
+    private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
 
-	@SuppressWarnings("StaticNonFinalField")
-	private static HttpServer httpServer;
+    @SuppressWarnings("StaticNonFinalField")
+    private static HttpServer httpServer;
 
-	@Test
-	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA:valueA;keyB:valueB".getBytes("UTF-8")));
+    @Test
+    public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
+        //Arrange
+        httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA:valueA;keyB:valueB".getBytes("UTF-8")));
 
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+        //Act
+        AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		//Assert
-		assertEquals("valueA", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		assertEquals("valueB", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+        //Assert
+        assertEquals("valueA", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
+        assertEquals("valueB", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
 
-		httpServer.removeContext("/latest/user-data/");
-	}
+        httpServer.removeContext("/latest/user-data/");
+    }
 
-	@Test
-	public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA=valueD,keyB=valueE".getBytes("UTF-8")));
+    @Test
+    public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
+        //Arrange
+        httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler("keyA=valueD,keyB=valueE".getBytes("UTF-8")));
 
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+        //Act
+        AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		amazonEc2InstanceDataPropertySource.setUserDataAttributeSeparator(",");
-		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
+        amazonEc2InstanceDataPropertySource.setUserDataAttributeSeparator(",");
+        amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
 
-		//Assert
-		assertEquals("valueD", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		assertEquals("valueE", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+        //Assert
+        assertEquals("valueD", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
+        assertEquals("valueE", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
 
-		httpServer.removeContext("/latest/user-data/");
-	}
+        httpServer.removeContext("/latest/user-data/");
+    }
 
-	@Test
-	public void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
+    @Test
+    public void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
+        //Arrange
+        httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
 
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+        //Act
+        AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		//Assert
-		assertEquals("i1234567", amazonEc2InstanceDataPropertySource.getProperty("instance-id"));
+        //Assert
+        assertEquals("i1234567", amazonEc2InstanceDataPropertySource.getProperty("instance-id"));
 
-		httpServer.removeContext("/latest/meta-data/instance-id");
-	}
+        httpServer.removeContext("/latest/meta-data/instance-id");
+    }
 
-	@Test
-	public void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/meta-data/services/domain", new StringWritingHttpHandler("amazonaws.com".getBytes("UTF-8")));
+    @Test
+    public void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue() throws Exception {
+        //Arrange
+        httpServer.createContext("/latest/meta-data/services/domain", new StringWritingHttpHandler("amazonaws.com".getBytes("UTF-8")));
 
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+        //Act
+        AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		//Assert
-		assertEquals("amazonaws.com", amazonEc2InstanceDataPropertySource.getProperty("services/domain"));
+        //Assert
+        assertEquals("amazonaws.com", amazonEc2InstanceDataPropertySource.getProperty("services/domain"));
 
-		httpServer.removeContext("/latest/meta-data/services/domain");
-	}
+        httpServer.removeContext("/latest/meta-data/services/domain");
+    }
 
-	@Test
-	public void getProperty_unknownAttribute_returnsNull() throws Exception {
-		//Arrange
-		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
+    @Test
+    public void getProperty_unknownAttribute_returnsNull() throws Exception {
+        //Arrange
+        httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
 
-		//Act
-		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
+        //Act
+        AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource("test");
 
-		//Assert
-		assertNull(amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"));
+        //Assert
+        assertNull(amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"));
 
-		httpServer.removeContext("/latest/meta-data/instance-id");
-	}
+        httpServer.removeContext("/latest/meta-data/instance-id");
+    }
 
-	@After
-	public void clearMetadataCache() throws Exception {
-		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
-		metadataCacheField.setAccessible(true);
-		metadataCacheField.set(null, new HashMap<String, String>());
-	}
+    @After
+    public void clearMetadataCache() throws Exception {
+        Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
+        metadataCacheField.setAccessible(true);
+        metadataCacheField.set(null, new HashMap<String, String>());
+    }
 
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
-		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
-		httpServer = HttpServer.create(address, -1);
-		httpServer.start();
-		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
-	}
+    @BeforeClass
+    public static void setupHttpServer() throws Exception {
+        InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
+        httpServer = HttpServer.create(address, -1);
+        httpServer.start();
+        overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
+    }
 
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
-		if (httpServer != null) {
-			httpServer.stop(10);
-		}
-		resetMetadataEndpointUrlOverwrite();
-	}
+    @AfterClass
+    public static void shutdownHttpServer() throws Exception {
+        if (httpServer != null) {
+            httpServer.stop(10);
+        }
+        resetMetadataEndpointUrlOverwrite();
+    }
 
-	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
-		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
-	}
+    private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+        System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY, localMetadataServiceEndpointUrl);
+    }
 
-	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
-	}
+    private static void resetMetadataEndpointUrlOverwrite() {
+        System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+    }
 
-	private static class StringWritingHttpHandler implements HttpHandler {
+    private static class StringWritingHttpHandler implements HttpHandler {
 
-		private final byte[] content;
+        private final byte[] content;
 
-		private StringWritingHttpHandler(byte[] content) {
-			this.content = content;
-		}
+        private StringWritingHttpHandler(byte[] content) {
+            this.content = content;
+        }
 
-		@Override
-		public void handle(HttpExchange httpExchange) throws IOException {
-			httpExchange.sendResponseHeaders(200, this.content.length);
-			OutputStream responseBody = httpExchange.getResponseBody();
-			responseBody.write(this.content);
-			responseBody.flush();
-			responseBody.close();
-		}
-	}
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            httpExchange.sendResponseHeaders(200, this.content.length);
+            OutputStream responseBody = httpExchange.getResponseBody();
+            responseBody.write(this.content);
+            responseBody.flush();
+            responseBody.close();
+        }
+    }
 }

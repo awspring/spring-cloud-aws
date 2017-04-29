@@ -41,58 +41,58 @@ import org.springframework.core.task.TaskExecutor;
  */
 public class ResourceLoaderBeanPostProcessor implements BeanPostProcessor, BeanFactoryPostProcessor, Ordered, ResourceLoaderAware {
 
-	private final AmazonS3 amazonS3;
-	private ResourceLoader resourceLoader;
-	private TaskExecutor executor;
+    private final AmazonS3 amazonS3;
+    private ResourceLoader resourceLoader;
+    private TaskExecutor executor;
 
-	public ResourceLoaderBeanPostProcessor(AmazonS3 amazonS3) {
-		this.amazonS3 = amazonS3;
-	}
+    public ResourceLoaderBeanPostProcessor(AmazonS3 amazonS3) {
+        this.amazonS3 = amazonS3;
+    }
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.executor = taskExecutor;
-	}
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        this.executor = taskExecutor;
+    }
 
-	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof ResourceLoaderAware) {
-			((ResourceLoaderAware) bean).setResourceLoader(this.resourceLoader);
-		}
-		return bean;
-	}
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof ResourceLoaderAware) {
+            ((ResourceLoaderAware) bean).setResourceLoader(this.resourceLoader);
+        }
+        return bean;
+    }
 
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
 
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(this.amazonS3, this.resourceLoader);
-		if (this.executor != null) {
-			simpleStorageResourceLoader.setTaskExecutor(this.executor);
-		}
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        SimpleStorageResourceLoader simpleStorageResourceLoader = new SimpleStorageResourceLoader(this.amazonS3, this.resourceLoader);
+        if (this.executor != null) {
+            simpleStorageResourceLoader.setTaskExecutor(this.executor);
+        }
 
-		try {
-			simpleStorageResourceLoader.afterPropertiesSet();
-		} catch (Exception e) {
-			throw new BeanInstantiationException(SimpleStorageResourceLoader.class, "Error instantiating class", e);
-		}
+        try {
+            simpleStorageResourceLoader.afterPropertiesSet();
+        } catch (Exception e) {
+            throw new BeanInstantiationException(SimpleStorageResourceLoader.class, "Error instantiating class", e);
+        }
 
-		this.resourceLoader = new PathMatchingSimpleStorageResourcePatternResolver(this.amazonS3,
-				simpleStorageResourceLoader, (ResourcePatternResolver) this.resourceLoader);
+        this.resourceLoader = new PathMatchingSimpleStorageResourcePatternResolver(this.amazonS3,
+                simpleStorageResourceLoader, (ResourcePatternResolver) this.resourceLoader);
 
 
-		beanFactory.registerResolvableDependency(ResourceLoader.class, this.resourceLoader);
-	}
+        beanFactory.registerResolvableDependency(ResourceLoader.class, this.resourceLoader);
+    }
 
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
-	}
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
 
-	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
+    @Override
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
 }

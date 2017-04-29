@@ -31,16 +31,16 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 @Configuration
 public class ContextRegionConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
-	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
-				importingClassMetadata.getAnnotationAttributes(EnableContextRegion.class.getName(), false));
-		Assert.notNull(annotationAttributes,
-				"@EnableRegionProvider is not present on importing class " + importingClassMetadata.getClassName());
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
+                importingClassMetadata.getAnnotationAttributes(EnableContextRegion.class.getName(), false));
+        Assert.notNull(annotationAttributes,
+                "@EnableRegionProvider is not present on importing class " + importingClassMetadata.getClassName());
 
-		boolean autoDetect = annotationAttributes.getBoolean("autoDetect");
-		String configuredRegion = annotationAttributes.getString("region");
+        boolean autoDetect = annotationAttributes.getBoolean("autoDetect");
+        String configuredRegion = annotationAttributes.getString("region");
 
-		registerRegionProvider(registry, autoDetect, configuredRegion);
-	}
+        registerRegionProvider(registry, autoDetect, configuredRegion);
+    }
 }

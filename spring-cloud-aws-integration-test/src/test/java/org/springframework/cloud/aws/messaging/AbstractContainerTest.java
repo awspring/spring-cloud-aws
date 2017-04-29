@@ -29,32 +29,32 @@ import java.util.concurrent.TimeUnit;
  */
 abstract class AbstractContainerTest {
 
-	@Autowired
-	protected SimpleMessageListenerContainer simpleMessageListenerContainer;
+    @Autowired
+    protected SimpleMessageListenerContainer simpleMessageListenerContainer;
 
-	@Before
-	public void setUp() throws Exception {
-		if (!this.simpleMessageListenerContainer.isRunning()) {
-			this.simpleMessageListenerContainer.start();
-		}
-	}
+    @Before
+    public void setUp() throws Exception {
+        if (!this.simpleMessageListenerContainer.isRunning()) {
+            this.simpleMessageListenerContainer.start();
+        }
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		if (this.simpleMessageListenerContainer.isRunning()) {
-			final CountDownLatch countDownLatch = new CountDownLatch(1);
-			this.simpleMessageListenerContainer.stop(new Runnable() {
+    @After
+    public void tearDown() throws Exception {
+        if (this.simpleMessageListenerContainer.isRunning()) {
+            final CountDownLatch countDownLatch = new CountDownLatch(1);
+            this.simpleMessageListenerContainer.stop(new Runnable() {
 
-				@Override
-				public void run() {
-					countDownLatch.countDown();
-				}
-			});
+                @Override
+                public void run() {
+                    countDownLatch.countDown();
+                }
+            });
 
-			if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
-				throw new Exception("Couldn't stop container withing 15 seconds");
-			}
-		}
-	}
+            if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
+                throw new Exception("Couldn't stop container withing 15 seconds");
+            }
+        }
+    }
 
 }

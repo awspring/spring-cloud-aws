@@ -28,25 +28,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class MemcachedCacheFactory extends AbstractCacheFactory<MemcachedClient> {
 
-	@Override
-	public boolean isSupportingCacheArchitecture(String architecture) {
-		return "memcached".equals(architecture);
-	}
+    @Override
+    public boolean isSupportingCacheArchitecture(String architecture) {
+        return "memcached".equals(architecture);
+    }
 
-	@Override
-	public SimpleSpringMemcached createCache(String cacheName, String host, int port) throws Exception {
-		SimpleSpringMemcached springMemcached = new SimpleSpringMemcached(getConnectionFactory(host, port), cacheName);
-		springMemcached.setExpiration(getExpiryTime(cacheName));
-		return springMemcached;
-	}
+    @Override
+    public SimpleSpringMemcached createCache(String cacheName, String host, int port) throws Exception {
+        SimpleSpringMemcached springMemcached = new SimpleSpringMemcached(getConnectionFactory(host, port), cacheName);
+        springMemcached.setExpiration(getExpiryTime(cacheName));
+        return springMemcached;
+    }
 
-	@Override
-	protected MemcachedClient createConnectionClient(String hostName, int port) throws IOException {
-		return new MemcachedClient(new InetSocketAddress(hostName, port));
-	}
+    @Override
+    protected MemcachedClient createConnectionClient(String hostName, int port) throws IOException {
+        return new MemcachedClient(new InetSocketAddress(hostName, port));
+    }
 
-	@Override
-	protected void destroyConnectionClient(MemcachedClient connectionClient) {
-		connectionClient.shutdown(10, TimeUnit.SECONDS);
-	}
+    @Override
+    protected void destroyConnectionClient(MemcachedClient connectionClient) {
+        connectionClient.shutdown(10, TimeUnit.SECONDS);
+    }
 }

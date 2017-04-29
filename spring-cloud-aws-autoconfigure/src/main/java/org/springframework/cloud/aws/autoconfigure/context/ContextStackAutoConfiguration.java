@@ -41,35 +41,35 @@ import org.springframework.core.env.Environment;
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
 public class ContextStackAutoConfiguration {
 
-	@Configuration
-	@ConditionalOnProperty(prefix = "cloud.aws", name = "stack.name")
-	public static class StackManualDetectConfiguration extends ContextStackConfiguration {
+    @Configuration
+    @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.name")
+    public static class StackManualDetectConfiguration extends ContextStackConfiguration {
 
-		@Autowired
-		private Environment environment;
+        @Autowired
+        private Environment environment;
 
-		@Override
-		@Bean
-		public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.environment.getProperty("cloud.aws.stack.name")));
-		}
-	}
+        @Override
+        @Bean
+        public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
+            return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.environment.getProperty("cloud.aws.stack.name")));
+        }
+    }
 
 
-	@Configuration
-	@ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
-	@ConditionalOnAwsCloudEnvironment
-	@ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
-	public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
+    @Configuration
+    @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnAwsCloudEnvironment
+    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
+    public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
-		@Autowired(required = false)
-		private AmazonEC2 amazonEC2;
+        @Autowired(required = false)
+        private AmazonEC2 amazonEC2;
 
-		@Override
-		@Bean
-		public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
-			return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEC2));
-		}
+        @Override
+        @Bean
+        public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
+            return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEC2));
+        }
 
-	}
+    }
 }
