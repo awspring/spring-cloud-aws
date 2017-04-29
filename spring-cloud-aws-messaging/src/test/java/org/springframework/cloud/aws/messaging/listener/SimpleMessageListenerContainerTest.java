@@ -26,6 +26,7 @@ import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import com.amazonaws.services.sqs.model.OverLimitException;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
@@ -933,6 +934,86 @@ public class SimpleMessageListenerContainerTest {
         assertTrue("stop must last at least the defined queue stop timeout (> 100ms)", stopWatch.getTotalTimeMillis() >= container.getQueueStopTimeout());
         assertTrue("stop must last less than the listener method (< 10000ms)", stopWatch.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME);
         container.stop();
+    }
+
+    @Test
+    public void stop_withContainerHavingMultipleQueuesRunning_shouldStopQueuesInParallel() throws Exception {
+        // Arrange
+        StaticApplicationContext applicationContext = new StaticApplicationContext();
+        applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+        applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
+
+        final CountDownLatch testQueueCountdownLatch = new CountDownLatch(1);
+        final CountDownLatch anotherTestQueueCountdownLatch = new CountDownLatch(1);
+        final CountDownLatch spinningThreadsStarted = new CountDownLatch(2);
+
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
+
+            @Override
+            public void stopQueue(String logicalQueueName) {
+                if ("testQueue".equals(logicalQueueName)) {
+                    testQueueCountdownLatch.countDown();
+                } else if ("anotherTestQueue".equals(logicalQueueName)) {
+                    anotherTestQueueCountdownLatch.countDown();
+                }
+
+                super.stopQueue(logicalQueueName);
+            }
+        };
+
+        AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+        container.setAmazonSqs(sqs);
+        container.setBackOffTime(100);
+        container.setQueueStopTimeout(5000);
+
+        QueueMessageHandler messageHandler = new QueueMessageHandler();
+        messageHandler.setApplicationContext(applicationContext);
+        container.setMessageHandler(messageHandler);
+
+        mockGetQueueUrl(sqs, "testQueue", "http://testQueue.amazonaws.com");
+        mockGetQueueUrl(sqs, "anotherTestQueue", "http://anotherTestQueue.amazonaws.com");
+        mockGetQueueAttributesWithEmptyResult(sqs, "http://testQueue.amazonaws.com");
+        mockGetQueueAttributesWithEmptyResult(sqs, "http://anotherTestQueue.amazonaws.com");
+
+        when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+                .withMessageAttributeNames("All")
+                .withMaxNumberOfMessages(10)))
+                .thenAnswer(new Answer<ReceiveMessageResult>() {
+
+                    @Override
+                    public ReceiveMessageResult answer(InvocationOnMock invocation) throws Throwable {
+                        spinningThreadsStarted.countDown();
+                        testQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+                        throw new OverLimitException("Boom");
+                    }
+                });
+
+        when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All")
+                .withMessageAttributeNames("All")
+                .withMaxNumberOfMessages(10)))
+                .thenAnswer(new Answer<ReceiveMessageResult>() {
+
+                    @Override
+                    public ReceiveMessageResult answer(InvocationOnMock invocation) throws Throwable {
+                        spinningThreadsStarted.countDown();
+                        anotherTestQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+                        throw new OverLimitException("Boom");
+                    }
+                });
+
+        messageHandler.afterPropertiesSet();
+        container.afterPropertiesSet();
+        container.start();
+        spinningThreadsStarted.await(1, TimeUnit.SECONDS);
+        StopWatch stopWatch = new StopWatch();
+
+        // Act
+        stopWatch.start();
+        container.stop();
+        stopWatch.stop();
+
+        // Assert
+        assertTrue("Stop time must be shorter than stopping one queue after the other", stopWatch.getTotalTimeMillis() < 200);
     }
 
     // This class is needed because it does not seem to work when using mockito to mock those requests
