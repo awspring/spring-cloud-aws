@@ -295,7 +295,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
 		try {
 			destinationUrl = getDestinationResolver().resolveDestination(queue);
 		} catch (DestinationResolutionException e) {
-			getLogger().warn(String.format("The queue with name '%s' does not exist.", queue), e);
+			if (getLogger().isDebugEnabled()) {
+				getLogger().debug("Ignoring queue with name '" + queue + "' as it does not exist.", e);
+			} else {
+				getLogger().warn("Ignoring queue with name '" + queue + "' as it does not exist.");
+			}
+
 			return null;
 		}
 
