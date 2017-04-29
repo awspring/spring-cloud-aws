@@ -432,7 +432,7 @@ public class MessageListenerContainerTest {
         verify(loggerMock).warn(logMsgArgCaptor.capture());
         Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
         assertFalse(registeredQueues.containsKey("testQueue"));
-        assertEquals("Ignoring queue with name 'testQueue' as itdoes not exist.", logMsgArgCaptor.getValue());
+        assertEquals("Ignoring queue with name 'testQueue' as it does not exist.", logMsgArgCaptor.getValue());
         assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
     }
 
