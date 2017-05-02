@@ -57,6 +57,8 @@ Resources:
       AllocatedStorage: '5'
       SourceDBInstanceIdentifier: !Ref 'RdsSingleMicroInstance'
       DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !Ref 'DatabaseSecurityGroup'
   RdsSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
