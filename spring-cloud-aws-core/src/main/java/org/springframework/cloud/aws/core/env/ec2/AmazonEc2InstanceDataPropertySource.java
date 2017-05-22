@@ -21,13 +21,14 @@ import com.amazonaws.util.EC2MetadataUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
-import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,7 +36,7 @@ import java.util.Properties;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> {
+public class AmazonEc2InstanceDataPropertySource extends EnumerablePropertySource<Object> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySource.class);
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
@@ -130,5 +131,16 @@ public class AmazonEc2InstanceDataPropertySource extends PropertySource<Object> 
         }
 
         return this.cachedUserData;
+    }
+
+    @Override
+    public String[] getPropertyNames() {
+        final int count = KNOWN_PROPERTY_NAMES.size();
+        final Enumeration<Object> keys = KNOWN_PROPERTY_NAMES.keys();
+        final String[] keysArr = new String[count];
+        for (int index = 0; keys.hasMoreElements() && index < count; index++) {
+            keysArr[index] = keys.nextElement().toString();
+        }
+        return keysArr;
     }
 }
