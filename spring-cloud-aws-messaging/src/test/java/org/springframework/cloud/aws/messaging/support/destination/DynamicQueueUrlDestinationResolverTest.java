@@ -92,6 +92,21 @@ public class DynamicQueueUrlDestinationResolverTest {
 
     }
 
+    @Test
+    public void resolveDestination_withResourceIdResolver_nonUrlId_shouldGetUrlByResolvedName() throws Exception {
+        String queueUrl = "http://queue.com";
+        String resolvedQueueName = "some-queue-name";
+        AmazonSQS amazonSqs = mock(AmazonSQS.class);
+        when(amazonSqs.getQueueUrl(new GetQueueUrlRequest(resolvedQueueName))).thenReturn(new GetQueueUrlResult().withQueueUrl(queueUrl));
+        ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
+        when(resourceIdResolver.resolveToPhysicalResourceId(anyString())).thenReturn(resolvedQueueName);
+        DynamicQueueUrlDestinationResolver dynamicQueueUrlDestinationResolver = new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver);
+
+        String physicalResourceId = dynamicQueueUrlDestinationResolver.resolveDestination("testQueue");
+
+        assertEquals("http://queue.com", physicalResourceId);
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void instantiation_withNullAmazonClient_shouldThrowAnError() throws Exception {
         new DynamicQueueUrlDestinationResolver(null, null);
