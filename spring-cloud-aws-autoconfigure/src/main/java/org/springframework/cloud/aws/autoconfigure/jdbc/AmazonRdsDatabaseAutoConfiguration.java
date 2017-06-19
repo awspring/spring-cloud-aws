@@ -21,7 +21,8 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.bind.PropertySourceUtils;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration;
 import org.springframework.context.EnvironmentAware;
@@ -33,6 +34,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,29 +75,30 @@ public class AmazonRdsDatabaseAutoConfiguration {
         }
 
         private Map<String, Map<String, String>> getDbInstanceConfigurations() {
-            Map<String, Object> subProperties = PropertySourceUtils.getSubProperties(this.environment.getPropertySources(), PREFIX);
+			Map<String, Object> subProperties = Binder.get(environment)
+					.bind(PREFIX, Bindable.mapOf(String.class, Object.class)).orElseGet(Collections::emptyMap);
             Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
             for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
-                String instanceName = extractConfigurationSubPropertyGroup(subProperty.getKey());
+                String instanceName = subProperty.getKey();
                 if (!dbConfigurationMap.containsKey(instanceName)) {
                     dbConfigurationMap.put(instanceName, new HashMap<String, String>());
                 }
 
-                String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
-                if (StringUtils.hasText(subPropertyName)) {
-                    dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
-                }
+				Object value = subProperty.getValue();
+
+                if (value instanceof Map) {
+                	Map<String, String> map = (Map) value;
+                	for (Map.Entry<String, String> entry : map.entrySet()) {
+                		dbConfigurationMap.get(instanceName).put(entry.getKey(), entry.getValue());
+					}
+				} else if (value instanceof String) {
+					String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
+					if (StringUtils.hasText(subPropertyName)) {
+						dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
+					}
+				}
             }
             return dbConfigurationMap;
-        }
-
-        private static String extractConfigurationSubPropertyGroup(String propertyName) {
-            if (propertyName.lastIndexOf(".") > 1) {
-                return propertyName.substring(1, propertyName.lastIndexOf("."));
-            } else {
-                return propertyName.substring(1);
-            }
-
         }
 
         private static String extractConfigurationSubPropertyName(String propertyName) {

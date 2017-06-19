@@ -16,10 +16,12 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.MessageAttributeValue;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.PublishResult;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
@@ -27,15 +29,14 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.UUID;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -59,7 +60,7 @@ public class TopicMessageChannelTest {
 
         // Assert
         verify(amazonSns, only()).publish(new PublishRequest("topicArn",
-                "Message content", "Subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+                "Message content", "Subject").withMessageAttributes(isNotNull()));
         assertTrue(sent);
     }
 
@@ -76,7 +77,7 @@ public class TopicMessageChannelTest {
 
         // Assert
         verify(amazonSns, only()).publish(new PublishRequest("topicArn",
-                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+                "Message content", null).withMessageAttributes(isNotNull()));
         assertTrue(sent);
     }
 
@@ -93,7 +94,7 @@ public class TopicMessageChannelTest {
 
         // Assert
         verify(amazonSns, only()).publish(new PublishRequest("topicArn",
-                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+                "Message content", null).withMessageAttributes(isNotNull()));
         assertTrue(sent);
     }
 

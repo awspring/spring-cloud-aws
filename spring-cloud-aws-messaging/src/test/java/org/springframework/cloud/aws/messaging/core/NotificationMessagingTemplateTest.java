@@ -16,20 +16,19 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.ListTopicsRequest;
-import com.amazonaws.services.sns.model.ListTopicsResult;
-import com.amazonaws.services.sns.model.MessageAttributeValue;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.Topic;
+import java.util.Locale;
+
 import org.junit.Test;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
-import java.util.Locale;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.Topic;
 
-import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,27 +52,22 @@ public class NotificationMessagingTemplateTest {
 
         // Assert
         verify(amazonSns).publish(new PublishRequest(physicalTopicName,
-                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+                "Message content", null).withMessageAttributes(isNotNull()));
     }
 
     @Test
     public void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel() throws Exception {
         // Arrange
         AmazonSNS amazonSns = mock(AmazonSNS.class);
-        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, new DestinationResolver<String>() {
-
-            @Override
-            public String resolveDestination(String name) throws DestinationResolutionException {
-                return name.toUpperCase(Locale.ENGLISH);
-            }
-        }, null);
+        NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns,
+				(DestinationResolver<String>) name -> name.toUpperCase(Locale.ENGLISH), null);
 
         // Act
         notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
 
         // Assert
         verify(amazonSns).publish(new PublishRequest("TEST",
-                "Message content", null).withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+                "Message content", null).withMessageAttributes(isNotNull()));
     }
 
     @Test
@@ -88,7 +82,7 @@ public class NotificationMessagingTemplateTest {
         notificationMessagingTemplate.sendNotification(physicalTopicName, "My message", "My subject");
 
         // Assert
-        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(isNotNull()));
     }
 
     @Test
@@ -104,7 +98,7 @@ public class NotificationMessagingTemplateTest {
         notificationMessagingTemplate.sendNotification("My message", "My subject");
 
         // Assert
-        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(anyMapOf(String.class, MessageAttributeValue.class)));
+        verify(amazonSns).publish(new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(isNotNull()));
     }
 
 }

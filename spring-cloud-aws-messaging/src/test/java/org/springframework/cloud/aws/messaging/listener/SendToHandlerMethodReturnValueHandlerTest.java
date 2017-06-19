@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.context.support.GenericApplicationContext;
@@ -58,7 +58,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
         // Arrange
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
         Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
 
         // Act
         boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
@@ -72,7 +72,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
         // Arrange
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
         Method invalidSendToMethod = this.getClass().getDeclaredMethod("invalidSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(invalidSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(invalidSendToMethod, -1);
 
         // Act
         boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
@@ -86,7 +86,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
         // Arrange
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
         Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
 
         // Act
         boolean supports = sendToHandlerMethodReturnValueHandler.supportsReturnType(methodParameter);
@@ -102,7 +102,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
         this.expectedException.expectMessage("A messageTemplate must be set to handle the return value.");
 
         Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(null);
 
         // Act
@@ -113,7 +113,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
     public void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled() throws Exception {
         // Arrange
         Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
         // Act
@@ -127,7 +127,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
     public void handleReturnValue_withAMessageTemplateAndAValidMethodWithDestination_templateIsCalled() throws Exception {
         // Arrange
         Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
         // Act
@@ -141,7 +141,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
     public void handleReturnValue_withExpressionInSendToName_templateIsCalled() throws Exception {
         // Arrange
         Method validSendToMethod = this.getClass().getDeclaredMethod("expressionMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
 
         GenericApplicationContext applicationContext = new GenericApplicationContext();
         MockPropertySource propertySource = new MockPropertySource();
@@ -164,7 +164,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
     public void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled() throws Exception {
         // Arrange
         Method validSendToMethod = this.getClass().getDeclaredMethod("placeHolderMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
 
         GenericApplicationContext applicationContext = new GenericApplicationContext();
         MockPropertySource propertySource = new MockPropertySource();
@@ -189,7 +189,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
     public void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled() throws Exception {
         // Arrange
         Method validSendToMethod = this.getClass().getDeclaredMethod("anotherValidSendToMethod");
-        MethodParameter methodParameter = new MethodParameter(validSendToMethod, 0);
+        MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
         SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(this.messageTemplate);
 
         // Act

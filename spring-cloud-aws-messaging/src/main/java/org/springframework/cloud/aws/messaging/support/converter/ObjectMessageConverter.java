@@ -60,7 +60,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 
     @SuppressWarnings("deprecation")
     @Override
-    public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+    public Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
         String messagePayload = message.getPayload().toString();
         byte[] rawContent = messagePayload.getBytes(this.encoding);
         if (!(Base64.isBase64(rawContent))) {
@@ -92,7 +92,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 
     @SuppressWarnings("deprecation")
     @Override
-    public Object convertToInternal(Object payload, MessageHeaders headers) {
+    public Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
         if (!(payload instanceof Serializable)) {
             throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
         }

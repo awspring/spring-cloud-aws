@@ -246,7 +246,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
                 new PathMatchingResourcePatternResolver());
     }
 
-    private static class ListObjectsRequestMatcher extends ArgumentMatcher<ListObjectsRequest> {
+    private static class ListObjectsRequestMatcher implements ArgumentMatcher<ListObjectsRequest> {
 
         private final String bucketName;
         private final String prefix;
@@ -259,35 +259,33 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
         }
 
         @Override
-        public boolean matches(Object argument) {
-            if (argument instanceof ListObjectsRequest) {
-                ListObjectsRequest listObjectsRequest = (ListObjectsRequest) argument;
-                boolean bucketNameIsEqual;
-                if (listObjectsRequest.getBucketName() != null) {
-                    bucketNameIsEqual = listObjectsRequest.getBucketName().equals(this.bucketName);
-                } else {
-                    bucketNameIsEqual = this.bucketName == null;
-                }
+        public boolean matches(ListObjectsRequest listObjectsRequest) {
+			if (listObjectsRequest == null) {
+				return false;
+			}
+			boolean bucketNameIsEqual;
+			if (listObjectsRequest.getBucketName() != null) {
+				bucketNameIsEqual = listObjectsRequest.getBucketName().equals(this.bucketName);
+			} else {
+				bucketNameIsEqual = this.bucketName == null;
+			}
 
-                boolean prefixIsEqual;
-                if (listObjectsRequest.getPrefix() != null) {
-                    prefixIsEqual = listObjectsRequest.getPrefix().equals(this.prefix);
-                } else {
-                    prefixIsEqual = this.prefix == null;
-                }
+			boolean prefixIsEqual;
+			if (listObjectsRequest.getPrefix() != null) {
+				prefixIsEqual = listObjectsRequest.getPrefix().equals(this.prefix);
+			} else {
+				prefixIsEqual = this.prefix == null;
+			}
 
-                boolean delimiterIsEqual;
-                if (listObjectsRequest.getDelimiter() != null) {
-                    delimiterIsEqual = listObjectsRequest.getDelimiter().equals(this.delimiter);
-                } else {
-                    delimiterIsEqual = this.delimiter == null;
-                }
+			boolean delimiterIsEqual;
+			if (listObjectsRequest.getDelimiter() != null) {
+				delimiterIsEqual = listObjectsRequest.getDelimiter().equals(this.delimiter);
+			} else {
+				delimiterIsEqual = this.delimiter == null;
+			}
 
 
-                return delimiterIsEqual && prefixIsEqual && bucketNameIsEqual;
-            } else {
-                return false;
-            }
+			return delimiterIsEqual && prefixIsEqual && bucketNameIsEqual;
         }
     }
 

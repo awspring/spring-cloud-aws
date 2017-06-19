@@ -16,21 +16,20 @@
 
 package org.springframework.cloud.aws.core.env.stack.config;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
-import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
-import com.amazonaws.services.cloudformation.model.StackResourceSummary;
-import org.hamcrest.CustomMatcher;
-import org.junit.Test;
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.Test;
+import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
+import org.springframework.cloud.aws.core.env.stack.StackResource;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
+
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
+import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -200,15 +199,8 @@ public class StackResourceRegistryFactoryBeanTest {
             ListStackResourcesResult listStackResourcesResult = mock(ListStackResourcesResult.class);
             when(listStackResourcesResult.getStackResourceSummaries()).thenReturn(entry.getValue());
 
-            when(amazonCloudFormationClient.listStackResources(argThat(new CustomMatcher<ListStackResourcesRequest>("describe stack '" + entry.getKey() + "'") {
-
-                @Override
-                public boolean matches(Object item) {
-                    return item != null && stackName.equals(((ListStackResourcesRequest) item).getStackName());
-                }
-
-
-            }))).thenReturn(listStackResourcesResult);
+            when(amazonCloudFormationClient.listStackResources(argThat(item ->
+					item != null && stackName.equals((item).getStackName())))).thenReturn(listStackResourcesResult);
         }
 
         return amazonCloudFormationClient;
