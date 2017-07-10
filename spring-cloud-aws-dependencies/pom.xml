@@ -27,7 +27,7 @@
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>spring-cloud-aws-dependencies</name>
+	<name>Spring Cloud AWS Dependencies</name>
 	<description>Spring Cloud AWS Dependencies</description>
 	<properties>
 		<aws-java-sdk.version>1.11.125</aws-java-sdk.version>

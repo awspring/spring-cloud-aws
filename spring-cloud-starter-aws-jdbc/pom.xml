@@ -24,8 +24,8 @@
 		<version>2.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
-	<name>spring-cloud-starter-aws-jdbc</name>
-	<description>Spring Cloud Starter AWS JDBC</description>
+	<name>Spring Cloud AWS JDBC Starter</name>
+	<description>Spring Cloud AWS JDBC Starter</description>
 	<url>https://projects.spring.io/spring-cloud</url>
 	<organization>
 		<name>Pivotal Software, Inc.</name>
