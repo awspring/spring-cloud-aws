@@ -632,4 +632,44 @@ public class QueueMessageChannelTest {
         assertNull(sendMessageRequest.getDelaySeconds());
         assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
     }
+    
+    @Test
+    public void sendMessage_withGroupIdHeader_shouldSetGroupIdOnSendMessageRequestAndNotSetItAsHeaderAsMessageAttribute() throws Exception {
+        // Arrange
+        AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+        ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+        when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+        QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+        Message<String> message = MessageBuilder.withPayload("Hello").setHeader(SqsMessageHeaders.SQS_GROUP_ID_HEADER, "id-5").build();
+
+        // Act
+        queueMessageChannel.send(message);
+
+        // Assert
+        SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+        assertEquals("id-5", sendMessageRequest.getMessageGroupId());
+        assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_GROUP_ID_HEADER));
+    }
+    
+    @Test
+    public void sendMessage_withDeduplicationIdHeader_shouldSetDeduplicationIdOnSendMessageRequestAndNotSetItAsHeaderAsMessageAttribute() throws Exception {
+        // Arrange
+        AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
+
+        ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor.forClass(SendMessageRequest.class);
+        when(amazonSqs.sendMessage(sendMessageRequestArgumentCaptor.capture())).thenReturn(new SendMessageResult());
+
+        QueueMessageChannel queueMessageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
+        Message<String> message = MessageBuilder.withPayload("Hello").setHeader(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER, "id-5").build();
+
+        // Act
+        queueMessageChannel.send(message);
+
+        // Assert
+        SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor.getValue();
+        assertEquals("id-5", sendMessageRequest.getMessageDeduplicationId());
+        assertFalse(sendMessageRequest.getMessageAttributes().containsKey(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER));
+    }
 }
