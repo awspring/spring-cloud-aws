@@ -82,7 +82,7 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
             sendMessageRequest.setMessageGroupId(message.getHeaders().get(SqsMessageHeaders.SQS_GROUP_ID_HEADER, String.class));
         }
 
-        if (message.getHeaders().containsKey(SqsMessageHeaders.SQS_GROUP_ID_HEADER)) {
+        if (message.getHeaders().containsKey(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER)) {
             sendMessageRequest.setMessageDeduplicationId(message.getHeaders().get(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER, String.class));
         }
 
@@ -143,7 +143,9 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
     }
 
     private static boolean isSkipHeader(String headerName) {
-        return SqsMessageHeaders.SQS_DELAY_HEADER.equals(headerName);
+        return SqsMessageHeaders.SQS_DELAY_HEADER.equals(headerName) ||
+        		SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER.equals(headerName) ||
+        		SqsMessageHeaders.SQS_GROUP_ID_HEADER.equals(headerName);
     }
 
     private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
