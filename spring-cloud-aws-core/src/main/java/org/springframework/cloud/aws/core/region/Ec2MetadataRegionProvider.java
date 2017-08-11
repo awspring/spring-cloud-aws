@@ -36,7 +36,7 @@ public class Ec2MetadataRegionProvider implements RegionProvider {
     @Override
     public Region getRegion() {
         Region currentRegion = getCurrentRegion();
-        Assert.state(currentRegion != null, "There is not EC2 meta data available, because the application is not running " +
+        Assert.state(currentRegion != null, "There is no EC2 meta data available, because the application is not running " +
                 "in the EC2 environment. Region detection is only possible if the application is running on a EC2 instance");
         return currentRegion;
     }
