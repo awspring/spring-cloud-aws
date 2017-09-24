@@ -38,7 +38,7 @@ public abstract class MapBasedDatabasePlatformSupport implements DatabasePlatfor
      *         - The database type used to lookup the driver class name. Must not be null
      * @return - The driver class name, is never null
      * @throws IllegalArgumentException
-     *         if there is not driver class name available for the DatabaseType
+     *         if there is no driver class name available for the DatabaseType
      */
     @Override
     public String getDriverClassNameForDatabase(DatabaseType databaseType) {
