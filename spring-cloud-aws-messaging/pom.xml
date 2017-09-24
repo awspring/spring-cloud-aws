@@ -25,8 +25,8 @@
 	</parent>
 
 	<artifactId>spring-cloud-aws-messaging</artifactId>
-	<name>Spring Cloud AWS Messaging Module</name>
-	<description>Spring Cloud AWS Messaging Module</description>
+	<name>Spring Cloud AWS Messaging</name>
+	<description>Spring Cloud AWS Messaging</description>
 
 	<dependencies>
 		<dependency>
