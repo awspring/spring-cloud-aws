@@ -65,7 +65,7 @@ public class NotificationRequestConverter implements MessageConverter {
             throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
         }
 
-        if (!"Notification".equals(jsonNode.findValue("Type").asText())) {
+        if (!"Notification".equals(jsonNode.get("Type").asText())) {
             throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification", null);
         }
 
@@ -73,10 +73,10 @@ public class NotificationRequestConverter implements MessageConverter {
             throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message", null);
         }
 
-        String messagePayload = jsonNode.findPath("Message").asText();
+        String messagePayload = jsonNode.get("Message").asText();
         GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload,
-                getMessageAttributesAsMessageHeaders(jsonNode.findPath("MessageAttributes")));
-        return new NotificationRequest(jsonNode.findPath("Subject").asText(),
+                getMessageAttributesAsMessageHeaders(jsonNode.path("MessageAttributes")));
+        return new NotificationRequest(jsonNode.path("Subject").asText(),
                 this.payloadConverter.fromMessage(genericMessage, targetClass));
     }
 
