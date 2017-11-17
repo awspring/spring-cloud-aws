@@ -19,11 +19,11 @@ package org.springframework.cloud.aws.cache.redis;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.cloud.aws.cache.AbstractCacheFactory;
-import org.springframework.data.redis.cache.RedisCache;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -41,7 +41,7 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 
     @Override
     public Cache createCache(String cacheName, String host, int port) throws Exception {
-        return new RedisCache(cacheName, null, getRedisTemplate(getConnectionFactory(host, port)), getExpiryTime(cacheName));
+        return RedisCacheManager.builder(getConnectionFactory(host, port)).build().getCache(cacheName);
     }
 
     @Override
@@ -53,15 +53,14 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 
     @Override
     protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(hostName);
+        configuration.setPort(port);
         if (JEDIS_AVAILABLE) {
-            JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-            connectionFactory.setHostName(hostName);
-            connectionFactory.setPort(port);
+            JedisConnectionFactory connectionFactory = new JedisConnectionFactory(configuration);
             return connectionFactory;
         } else if (LETTUCE_AVAILABLE) {
-            LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-            lettuceConnectionFactory.setHostName(hostName);
-            lettuceConnectionFactory.setPort(port);
+            LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(configuration);
             return lettuceConnectionFactory;
         } else {
             throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
@@ -69,10 +68,4 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
         }
     }
 
-    protected RedisTemplate<?, ?> getRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-        redisTemplate.afterPropertiesSet();
-        return redisTemplate;
-    }
 }
