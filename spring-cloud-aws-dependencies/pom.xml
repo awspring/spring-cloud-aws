@@ -25,7 +25,7 @@
 		<relativePath />
 	</parent>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
-	<version>1.2.2.BUILD-SNAPSHOT</version>
+	<version>1.2.3.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS Dependencies</name>
 	<description>Spring Cloud AWS Dependencies</description>
