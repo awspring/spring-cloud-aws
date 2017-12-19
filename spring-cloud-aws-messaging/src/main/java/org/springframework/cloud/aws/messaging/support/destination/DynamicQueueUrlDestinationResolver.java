@@ -69,11 +69,11 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
         if (this.autoCreate) {
             //Auto-create is fine to be called even if the queue exists.
-            CreateQueueResult createQueueResult = this.amazonSqs.createQueue(new CreateQueueRequest(name));
+            CreateQueueResult createQueueResult = this.amazonSqs.createQueue(new CreateQueueRequest(queueName));
             return createQueueResult.getQueueUrl();
         } else {
             try {
-                GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(name));
+                GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueName));
                 return getQueueUrlResult.getQueueUrl();
             } catch (QueueDoesNotExistException e) {
                 throw new DestinationResolutionException(e.getMessage(), e);
