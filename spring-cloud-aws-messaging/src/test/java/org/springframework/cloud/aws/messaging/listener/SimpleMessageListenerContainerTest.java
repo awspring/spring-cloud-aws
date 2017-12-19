@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
@@ -50,6 +51,9 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.HandlerMethod;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -58,6 +62,7 @@ import org.springframework.util.StopWatch;
 
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -123,11 +128,41 @@ public class SimpleMessageListenerContainerTest {
         assertEquals("testContainerName-", taskExecutor.getThreadNamePrefix());
     }
 
-    @Test
-    public void testCustomTaskExecutor() throws Exception {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        container.setTaskExecutor(taskExecutor);
+	@Test
+	public void testWithDefaultTaskExecutorAndOneHandler() throws Exception {
+		int testedMaxNumberOfMessages = 10;
+
+		Map<QueueMessageHandler.MappingInformation, HandlerMethod> messageHandlerMethods = Collections.singletonMap(
+				new QueueMessageHandler.MappingInformation(Collections.singleton("testQueue"),
+						SqsMessageDeletionPolicy.ALWAYS), (HandlerMethod) null);
+
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+
+		QueueMessageHandler mockedHandler = mock(QueueMessageHandler.class);
+		AmazonSQSAsync mockedSqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+
+		when(mockedSqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+		when(mockedSqs.getQueueUrl(any(GetQueueUrlRequest.class))).thenReturn(new GetQueueUrlResult().withQueueUrl("testQueueUrl"));
+		when(mockedHandler.getHandlerMethods()).thenReturn(messageHandlerMethods);
+
+		container.setMaxNumberOfMessages(testedMaxNumberOfMessages);
+		container.setAmazonSqs(mockedSqs);
+		container.setMessageHandler(mockedHandler);
+
+		container.afterPropertiesSet();
+
+		int expectedPoolMaxSize = messageHandlerMethods.size() * (testedMaxNumberOfMessages + 1);
+
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
+		assertNotNull(taskExecutor);
+		assertEquals(expectedPoolMaxSize, taskExecutor.getMaxPoolSize());
+	}
+
+	@Test
+	public void testCustomTaskExecutor() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+		container.setTaskExecutor(taskExecutor);
 
         container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
         container.setMessageHandler(mock(QueueMessageHandler.class));
