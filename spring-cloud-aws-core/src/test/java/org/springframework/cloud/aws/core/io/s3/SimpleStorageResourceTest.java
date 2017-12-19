@@ -205,7 +205,7 @@ public class SimpleStorageResourceTest {
         SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "object", new SyncTaskExecutor());
 
         //Assert
-        assertEquals(new URL("https://s3-eu-west-1.amazonaws.com/bucket/object"), simpleStorageResource.getURL());
+        assertEquals(new URL("https://s3.eu-west-1.amazonaws.com/bucket/object"), simpleStorageResource.getURL());
 
     }
 
