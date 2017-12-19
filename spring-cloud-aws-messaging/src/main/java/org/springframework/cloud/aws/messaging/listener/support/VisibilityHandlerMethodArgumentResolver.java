@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,23 +27,24 @@ import org.springframework.util.ClassUtils;
  * @since 1.3
  */
 public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-	private final String visibilityHeaderName;
 
-	public VisibilityHandlerMethodArgumentResolver(String visibilityHeaderName) {
-		this.visibilityHeaderName = visibilityHeaderName;
-	}
+    private final String visibilityHeaderName;
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return ClassUtils.isAssignable(Visibility.class, parameter.getParameterType());
-	}
+    public VisibilityHandlerMethodArgumentResolver(String visibilityHeaderName) {
+        this.visibilityHeaderName = visibilityHeaderName;
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		if (!message.getHeaders().containsKey(this.visibilityHeaderName) ||
-				message.getHeaders().get(this.visibilityHeaderName) == null) {
-			throw new IllegalArgumentException("No visibility object found for message header: '" + this.visibilityHeaderName + "'");
-		}
-		return message.getHeaders().get(this.visibilityHeaderName);
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return ClassUtils.isAssignable(Visibility.class, parameter.getParameterType());
+    }
+
+    @Override
+    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+        if (!message.getHeaders().containsKey(this.visibilityHeaderName) ||
+                message.getHeaders().get(this.visibilityHeaderName) == null) {
+            throw new IllegalArgumentException("No visibility object found for message header: '" + this.visibilityHeaderName + "'");
+        }
+        return message.getHeaders().get(this.visibilityHeaderName);
+    }
 }

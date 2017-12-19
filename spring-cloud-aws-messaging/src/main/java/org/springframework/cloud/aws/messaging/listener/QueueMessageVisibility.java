@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,21 +27,21 @@ import java.util.concurrent.Future;
  */
 public class QueueMessageVisibility implements Visibility {
 
-	private final AmazonSQSAsync amazonSqsAsync;
-	private final String queueUrl;
-	private final String receiptHandle;
+    private final AmazonSQSAsync amazonSqsAsync;
+    private final String queueUrl;
+    private final String receiptHandle;
 
-	public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
-		this.amazonSqsAsync = amazonSqsAsync;
-		this.queueUrl = queueUrl;
-		this.receiptHandle = receiptHandle;
-	}
+    public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
+        this.amazonSqsAsync = amazonSqsAsync;
+        this.queueUrl = queueUrl;
+        this.receiptHandle = receiptHandle;
+    }
 
-	@Override
-	public Future<?> extend(int seconds) {
-		return amazonSqsAsync.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
-				.withQueueUrl(queueUrl)
-				.withReceiptHandle(receiptHandle)
-				.withVisibilityTimeout(seconds));
-	}
+    @Override
+    public Future<?> extend(int seconds) {
+        return this.amazonSqsAsync.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
+                .withQueueUrl(this.queueUrl)
+                .withReceiptHandle(this.receiptHandle)
+                .withVisibilityTimeout(seconds));
+    }
 }

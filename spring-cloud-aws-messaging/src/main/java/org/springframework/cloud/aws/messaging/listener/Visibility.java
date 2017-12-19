@@ -27,14 +27,14 @@ import java.util.concurrent.Future;
  */
 public interface Visibility {
 
-	/**
-	 * Allows extending the visibility timeout of a message that was already fetched from the queue, in case when
-	 * the configured visibility timeout turns out to be to short
-	 *
-	 * @param seconds number of seconds to extend the visibility timeout by
-	 *
-	 * @return a {@link Future} as the extension can involve some asynchronous request (i.e. request to an AWS API).
-	 */
-	Future<?> extend(int seconds);
+    /**
+     * Allows extending the visibility timeout of a message that was already fetched from the queue, in case when
+     * the configured visibility timeout turns out to be to short
+     *
+     * @param seconds
+     *         number of seconds to extend the visibility timeout by
+     * @return a {@link Future} as the extension can involve some asynchronous request (i.e. request to an AWS API).
+     */
+    Future<?> extend(int seconds);
 
 }
