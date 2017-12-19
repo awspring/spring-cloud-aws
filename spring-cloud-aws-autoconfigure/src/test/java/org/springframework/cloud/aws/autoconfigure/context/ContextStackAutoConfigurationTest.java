@@ -22,14 +22,13 @@ import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
-import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
@@ -88,7 +87,7 @@ public class ContextStackAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
         this.context.register(ContextStackAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.name:manualStackName");
+        TestPropertyValues.of("cloud.aws.stack.name:manualStackName").applyTo(this.context);
 
         //Act
         this.context.refresh();
@@ -102,7 +101,7 @@ public class ContextStackAutoConfigurationTest {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextStackAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.stack.auto:false");
+        TestPropertyValues.of("cloud.aws.stack.auto:false").applyTo(this.context);
         //Act
         this.context.refresh();
 
@@ -120,7 +119,7 @@ public class ContextStackAutoConfigurationTest {
             Mockito.when(amazonCloudFormation.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId("test"))).
                     thenReturn(new DescribeStackResourcesResult().withStackResources(new StackResource().withStackName("testStack")));
             Mockito.when(amazonCloudFormation.listStackResources(new ListStackResourcesRequest().withStackName("testStack"))).
-                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.<StackResourceSummary>emptyList()));
+                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
             return amazonCloudFormation;
         }
     }
@@ -132,7 +131,7 @@ public class ContextStackAutoConfigurationTest {
         public AmazonCloudFormation amazonCloudFormation() {
             AmazonCloudFormation amazonCloudFormation = Mockito.mock(AmazonCloudFormation.class);
             Mockito.when(amazonCloudFormation.listStackResources(new ListStackResourcesRequest().withStackName("manualStackName"))).
-                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.<StackResourceSummary>emptyList()));
+                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
             return amazonCloudFormation;
         }
     }

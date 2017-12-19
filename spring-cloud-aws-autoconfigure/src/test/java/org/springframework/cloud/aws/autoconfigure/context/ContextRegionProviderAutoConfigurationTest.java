@@ -20,7 +20,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -48,7 +48,7 @@ public class ContextRegionProviderAutoConfigurationTest {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextRegionProviderAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.auto");
+        TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
 
         //Act
         this.context.refresh();
@@ -62,7 +62,7 @@ public class ContextRegionProviderAutoConfigurationTest {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextRegionProviderAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.region.static:eu-west-1");
+        TestPropertyValues.of("cloud.aws.region.static:eu-west-1").applyTo(this.context);
 
         //Act
         this.context.refresh();

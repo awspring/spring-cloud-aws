@@ -66,8 +66,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -144,7 +144,7 @@ public class SimpleMessageListenerContainerTest {
         AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
         container.setAmazonSqs(sqs);
 
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
             @Override
@@ -182,7 +182,7 @@ public class SimpleMessageListenerContainerTest {
 
     @Test
     public void testContainerDoesNotProcessMessageAfterBeingStopped() throws Exception {
-        final SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
         container.setTaskExecutor(taskExecutor);
 
@@ -218,7 +218,7 @@ public class SimpleMessageListenerContainerTest {
 
     @Test
     public void listener_withMultipleMessageHandlers_shouldBeCalled() throws Exception {
-        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        CountDownLatch countDownLatch = new CountDownLatch(2);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -268,7 +268,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -351,7 +351,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -413,7 +413,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void executeMessage_successfulExecution_shouldRemoveMessageFromQueue() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -453,7 +453,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -495,7 +495,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -560,7 +560,7 @@ public class SimpleMessageListenerContainerTest {
                         .withMessages(new Message().withBody("messageContent"),
                                 new Message().withBody("messageContent")));
 
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
             @Override
@@ -598,7 +598,7 @@ public class SimpleMessageListenerContainerTest {
     @Test
     public void receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion() throws Exception {
         // Arrange
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
             @Override
@@ -943,9 +943,9 @@ public class SimpleMessageListenerContainerTest {
         applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
         applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
-        final CountDownLatch testQueueCountdownLatch = new CountDownLatch(1);
-        final CountDownLatch anotherTestQueueCountdownLatch = new CountDownLatch(1);
-        final CountDownLatch spinningThreadsStarted = new CountDownLatch(2);
+        CountDownLatch testQueueCountdownLatch = new CountDownLatch(1);
+        CountDownLatch anotherTestQueueCountdownLatch = new CountDownLatch(1);
+        CountDownLatch spinningThreadsStarted = new CountDownLatch(2);
 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 

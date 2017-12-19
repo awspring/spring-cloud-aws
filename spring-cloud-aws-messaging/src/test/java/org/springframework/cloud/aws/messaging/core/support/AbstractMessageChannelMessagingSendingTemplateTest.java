@@ -19,10 +19,10 @@ package org.springframework.cloud.aws.messaging.core.support;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -61,7 +61,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
         when(this.destinationResolver.resolveDestination("destination")).thenReturn("resolvedDestination");
 
-        Map<String, Object> headers = Collections.<String, Object>singletonMap("headerKey", "headerValue");
+        Map<String, Object> headers = Collections.singletonMap("headerKey", "headerValue");
         String payload = "payload";
 
         // Act
@@ -95,7 +95,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
         when(this.destinationResolver.resolveDestination("destination")).thenReturn("resolvedDestination");
 
-        Map<String, Object> headers = Collections.<String, Object>singletonMap("headerKey", "headerValue");
+        Map<String, Object> headers = Collections.singletonMap("headerKey", "headerValue");
         String payload = "payload";
 
         // Act
@@ -113,7 +113,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
         when(this.destinationResolver.resolveDestination("destination")).thenReturn("resolvedDestination");
         MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
-        when(messagePostProcessor.postProcessMessage(Matchers.<Message<?>>any())).thenAnswer(new Answer<Message<?>>() {
+        when(messagePostProcessor.postProcessMessage(ArgumentMatchers.any())).thenAnswer(new Answer<Message<?>>() {
 
             @Override
             public Message<?> answer(InvocationOnMock invocation) throws Throwable {
@@ -138,15 +138,9 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
         when(this.destinationResolver.resolveDestination("destination")).thenReturn("resolvedDestination");
         MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
-        when(messagePostProcessor.postProcessMessage(Matchers.<Message<?>>any())).thenAnswer(new Answer<Message<?>>() {
+        when(messagePostProcessor.postProcessMessage(ArgumentMatchers.any())).thenAnswer((Answer<Message<?>>) invocation -> (Message<?>) invocation.getArguments()[0]);
 
-            @Override
-            public Message<?> answer(InvocationOnMock invocation) throws Throwable {
-                return (Message<?>) invocation.getArguments()[0];
-            }
-        });
-
-        Map<String, Object> headers = Collections.<String, Object>singletonMap("headerKey", "headerValue");
+        Map<String, Object> headers = Collections.singletonMap("headerKey", "headerValue");
         String payload = "payload";
 
         // Act
@@ -166,7 +160,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         when(this.destinationResolver.resolveDestination("defaultDestination")).thenReturn("resolvedDestination");
         messageSendingTemplate.setDefaultDestinationName("defaultDestination");
 
-        Map<String, Object> headers = Collections.<String, Object>singletonMap("headerKey", "headerValue");
+        Map<String, Object> headers = Collections.singletonMap("headerKey", "headerValue");
         String payload = "payload";
 
         // Act

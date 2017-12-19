@@ -21,7 +21,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.ReflectionUtils;
@@ -121,7 +121,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 
         this.context = new AnnotationConfigApplicationContext();
 
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.valueSeparator:=");
+        TestPropertyValues.of("cloud.aws.instance.data.valueSeparator:=").applyTo(this.context);
 
         this.context.register(ContextInstanceDataAutoConfiguration.class);
 
@@ -145,7 +145,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 
         this.context = new AnnotationConfigApplicationContext();
 
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.instance.data.attributeSeparator:/");
+        TestPropertyValues.of("cloud.aws.instance.data.attributeSeparator:/").applyTo(this.context);
 
         this.context.register(ContextInstanceDataAutoConfiguration.class);
 

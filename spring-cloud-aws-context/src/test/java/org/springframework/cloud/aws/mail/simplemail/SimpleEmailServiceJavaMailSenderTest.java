@@ -22,7 +22,7 @@ import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.MailSendException;
@@ -165,9 +165,9 @@ public class SimpleEmailServiceJavaMailSenderTest {
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 
-        when(emailService.sendRawEmail(Matchers.isA(SendRawEmailRequest.class))).thenReturn(new SendRawEmailResult().withMessageId("123"));
+        when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class))).thenReturn(new SendRawEmailResult().withMessageId("123"));
         mailSender.send(createMimeMessage(), createMimeMessage());
-        verify(emailService, times(2)).sendRawEmail(Matchers.isA(SendRawEmailRequest.class));
+        verify(emailService, times(2)).sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class));
     }
 
     @Test
@@ -254,7 +254,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
         IOException ioException = new IOException("error");
-        when(inputStream.read(Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt())).thenThrow(ioException);
+        when(inputStream.read(ArgumentMatchers.any(byte[].class), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenThrow(ioException);
 
         try {
             mailSender.createMimeMessage(inputStream);
@@ -272,7 +272,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
         MimeMessage failureMail = createMimeMessage();
-        when(emailService.sendRawEmail(Matchers.isA(SendRawEmailRequest.class))).
+        when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class))).
                 thenReturn(new SendRawEmailResult()).
                 thenThrow(new AmazonClientException("error")).
                 thenReturn(new SendRawEmailResult());

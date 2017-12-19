@@ -22,7 +22,7 @@ import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -93,8 +93,8 @@ public class SimpleEmailServiceMailSenderTest {
         ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
         when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
 
-        mailSender.send(new SimpleMailMessage[]{createSimpleMailMessage(), createSimpleMailMessage()});
-        verify(emailService, times(2)).sendEmail(Matchers.any(SendEmailRequest.class));
+        mailSender.send(createSimpleMailMessage(), createSimpleMailMessage());
+        verify(emailService, times(2)).sendEmail(ArgumentMatchers.any(SendEmailRequest.class));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class SimpleEmailServiceMailSenderTest {
         firstMessage.setBcc("bcc@domain.com");
 
         SimpleMailMessage failureMail = createSimpleMailMessage();
-        when(emailService.sendEmail(Matchers.isA(SendEmailRequest.class))).
+        when(emailService.sendEmail(ArgumentMatchers.isA(SendEmailRequest.class))).
                 thenReturn(new SendEmailResult()).
                 thenThrow(new AmazonClientException("error")).
                 thenReturn(new SendEmailResult());
@@ -114,7 +114,7 @@ public class SimpleEmailServiceMailSenderTest {
         SimpleMailMessage thirdMessage = createSimpleMailMessage();
 
         try {
-            mailSender.send(new SimpleMailMessage[]{firstMessage, failureMail, thirdMessage});
+            mailSender.send(firstMessage, failureMail, thirdMessage);
             fail("Exception expected due to error while sending mail");
         } catch (MailSendException e) {
             assertEquals(1, e.getFailedMessages().size());

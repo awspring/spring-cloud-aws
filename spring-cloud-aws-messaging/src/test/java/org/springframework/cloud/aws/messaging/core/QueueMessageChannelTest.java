@@ -16,6 +16,26 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -30,34 +50,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.MimeType;
-
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
-import com.amazonaws.services.sqs.model.SendMessageResult;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -203,7 +202,7 @@ public class QueueMessageChannelTest {
                 withAttributeNames(QueueMessageChannel.ATTRIBUTE_NAMES).
                 withMessageAttributeNames("All"))).
                 thenReturn(new ReceiveMessageResult().withMessages(
-                        Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
+                        Collections.emptyList()));
 
         PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 
@@ -224,7 +223,7 @@ public class QueueMessageChannelTest {
                 withAttributeNames(QueueMessageChannel.ATTRIBUTE_NAMES).
                 withMessageAttributeNames("All"))).
                 thenReturn(new ReceiveMessageResult().withMessages(
-                        Collections.<com.amazonaws.services.sqs.model.Message>emptyList()));
+                        Collections.emptyList()));
 
         PollableChannel messageChannel = new QueueMessageChannel(amazonSqs, "http://testQueue");
 

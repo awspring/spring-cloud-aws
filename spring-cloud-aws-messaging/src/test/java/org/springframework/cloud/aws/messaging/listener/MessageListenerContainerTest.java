@@ -44,7 +44,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -279,7 +279,7 @@ public class MessageListenerContainerTest {
 
     @Test
     public void testStartCallsDoStartMethod() throws Exception {
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
             @Override
@@ -314,7 +314,7 @@ public class MessageListenerContainerTest {
 
     @Test
     public void testStopCallsDoStopMethod() throws Exception {
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
             @Override
@@ -350,7 +350,7 @@ public class MessageListenerContainerTest {
 
     @Test
     public void testStopCallsDoStopMethodWithRunnable() throws Exception {
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
             @Override

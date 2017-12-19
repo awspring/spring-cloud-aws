@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -49,9 +49,9 @@ public class ContextResourceLoaderAutoConfigurationTest {
         this.context.register(ContextResourceLoaderAutoConfiguration.class);
         this.context.register(ApplicationBean.class);
 
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.loader.corePoolSize:10",
+        TestPropertyValues.of("cloud.aws.loader.corePoolSize:10",
                 "cloud.aws.loader.maxPoolSize:20",
-                "cloud.aws.loader.queueCapacity:0");
+                "cloud.aws.loader.queueCapacity:0").applyTo(this.context);
 
         //Act
         this.context.refresh();

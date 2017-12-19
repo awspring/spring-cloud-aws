@@ -25,7 +25,7 @@ import com.amazonaws.services.rds.model.Endpoint;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -54,7 +54,7 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ApplicationConfigurationWithoutReadReplica.class);
         this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret");
+        TestPropertyValues.of("cloud.aws.rds.test.password:secret").applyTo(this.context);
 
         //Act
         this.context.refresh();
@@ -70,8 +70,8 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ApplicationConfigurationWithoutReadReplica.class);
         this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
-                "cloud.aws.rds.test.databaseName:fooDb");
+        TestPropertyValues.of("cloud.aws.rds.test.password:secret",
+                "cloud.aws.rds.test.databaseName:fooDb").applyTo(this.context);
 
         //Act
         this.context.refresh();
@@ -91,7 +91,7 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ApplicationConfigurationWithMultipleDatabases.class);
         this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret", "cloud.aws.rds.anotherOne.password:verySecret");
+        TestPropertyValues.of("cloud.aws.rds.test.password:secret", "cloud.aws.rds.anotherOne.password:verySecret").applyTo(this.context);
 
         //Act
         this.context.refresh();
@@ -110,8 +110,8 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ApplicationConfigurationWithReadReplica.class);
         this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-        EnvironmentTestUtils.addEnvironment(this.context, "cloud.aws.rds.test.password:secret",
-                "cloud.aws.rds.test.readReplicaSupport:true");
+        TestPropertyValues.of("cloud.aws.rds.test.password:secret",
+                "cloud.aws.rds.test.readReplicaSupport:true").applyTo(this.context);
 
         //Act
         this.context.refresh();

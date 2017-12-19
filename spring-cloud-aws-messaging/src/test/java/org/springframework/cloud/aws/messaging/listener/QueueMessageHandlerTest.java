@@ -61,14 +61,15 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -117,7 +118,7 @@ public class QueueMessageHandlerTest {
         MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
         DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
         MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
-        Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.<String, Object>singletonMap(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")));
+        Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.singletonMap(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")));
         messageHandler.handleMessage(message);
 
         IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
@@ -158,7 +159,7 @@ public class QueueMessageHandlerTest {
         applicationContext.refresh();
 
         MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-        doThrow(new RuntimeException()).when(this.messageTemplate).convertAndSend(anyString(), (Object)any());
+        doThrow(new RuntimeException()).when(this.messageTemplate).convertAndSend(anyString(), Optional.ofNullable(any()));
         IncomingMessageHandler messageListener = applicationContext.getBean(IncomingMessageHandler.class);
         messageListener.setExceptionHandlerCalled(false);
 
@@ -194,7 +195,7 @@ public class QueueMessageHandlerTest {
     public void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() throws Exception {
         //Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
-        applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("myQueue", "resolvedQueue")));
+        applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.singletonMap("myQueue", "resolvedQueue")));
         applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithExpressionName.class);
         applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
         applicationContext.refresh();
@@ -213,7 +214,7 @@ public class QueueMessageHandlerTest {
     public void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() throws Exception {
         //Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
-        applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.<String, Object>singletonMap("custom.queueName", "resolvedQueue")));
+        applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.singletonMap("custom.queueName", "resolvedQueue")));
 
         applicationContext.registerSingleton("ppc", PropertySourcesPlaceholderConfigurer.class);
         applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithPlaceholderName.class);

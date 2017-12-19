@@ -42,8 +42,8 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -245,7 +245,7 @@ public class SimpleStorageResourceTest {
         //Arrange
         AmazonS3 amazonS3 = mock(AmazonS3.class);
         SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucketName", "objectName", new SyncTaskExecutor());
-        final String messageContext = "myFileContent";
+        String messageContext = "myFileContent";
         when(amazonS3.putObject(eq("bucketName"), eq("objectName"), any(InputStream.class), any(ObjectMetadata.class))).thenAnswer(new Answer<PutObjectResult>() {
 
             @Override
