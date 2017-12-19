@@ -139,7 +139,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
         Set<Resource> resources = new HashSet<>();
         if (this.pathMatcher.isPattern(keyPattern)) {
             for (String bucketName : matchingBuckets) {
-                findPathMatchingKeyInBucket(bucketName, resources, null, keyPattern);
+                findPathMatchingKeyInBucket(bucketName, resources, getValidPrefix(keyPattern), keyPattern);
             }
         } else {
             for (String matchingBucket : matchingBuckets) {
@@ -150,6 +150,17 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
             }
         }
         return resources;
+    }
+
+    private String getValidPrefix(String keyPattern) {
+        int starIndex = keyPattern.indexOf("*");
+        int markIndex = keyPattern.indexOf("?");
+        int index = Math.min(
+                starIndex == -1 ? keyPattern.length() : starIndex,
+                markIndex == -1 ? keyPattern.length() : markIndex
+        );
+        String beforeIndex = keyPattern.substring(0, index);
+        return beforeIndex.contains("/") ? beforeIndex.substring(0, beforeIndex.lastIndexOf('/') + 1) : null;
     }
 
     private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources, String prefix, String keyPattern) {
