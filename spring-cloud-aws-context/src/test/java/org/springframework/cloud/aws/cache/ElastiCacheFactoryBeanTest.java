@@ -53,7 +53,7 @@ public class ElastiCacheFactoryBeanTest {
                 thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster().withConfigurationEndpoint(
                         new Endpoint().withAddress("localhost").withPort(45678)).withCacheClusterStatus("available").withEngine("memcached")));
         ElastiCacheFactoryBean elasticCacheFactoryBean = new ElastiCacheFactoryBean(amazonElastiCache, "testCache",
-                Collections.<CacheFactory>singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
+                Collections.singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
 
         // Act
         elasticCacheFactoryBean.afterPropertiesSet();
@@ -103,7 +103,7 @@ public class ElastiCacheFactoryBeanTest {
                         withEndpoint(new Endpoint().withAddress("localhost").withPort(45678)))));
 
         ElastiCacheFactoryBean elastiCacheFactoryBean = new ElastiCacheFactoryBean(amazonElastiCache, "memcached",
-                Collections.<CacheFactory>singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
+                Collections.singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
 
         // Act
         elastiCacheFactoryBean.afterPropertiesSet();

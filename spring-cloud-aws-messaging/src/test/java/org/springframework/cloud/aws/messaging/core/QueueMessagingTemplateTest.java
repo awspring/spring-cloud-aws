@@ -28,7 +28,6 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -85,13 +84,7 @@ public class QueueMessagingTemplateTest {
     @Test
     public void send_withCustomDestinationResolveAndDestination_usesDestination() throws Exception {
         AmazonSQSAsync amazonSqs = createAmazonSqs();
-        QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, new DestinationResolver<String>() {
-
-            @Override
-            public String resolveDestination(String name) throws DestinationResolutionException {
-                return name.toUpperCase(Locale.ENGLISH);
-            }
-        }, null);
+        QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, (DestinationResolver<String>) name -> name.toUpperCase(Locale.ENGLISH), null);
 
         Message<String> stringMessage = MessageBuilder.withPayload("message content").build();
         queueMessagingTemplate.send("myqueue", stringMessage);

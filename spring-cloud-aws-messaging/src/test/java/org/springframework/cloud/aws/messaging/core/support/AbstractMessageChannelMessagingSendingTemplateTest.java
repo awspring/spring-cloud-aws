@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.messaging.Message;
@@ -113,13 +112,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
         MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(this.destinationResolver);
         when(this.destinationResolver.resolveDestination("destination")).thenReturn("resolvedDestination");
         MessagePostProcessor messagePostProcessor = mock(MessagePostProcessor.class);
-        when(messagePostProcessor.postProcessMessage(ArgumentMatchers.any())).thenAnswer(new Answer<Message<?>>() {
-
-            @Override
-            public Message<?> answer(InvocationOnMock invocation) throws Throwable {
-                return (Message<?>) invocation.getArguments()[0];
-            }
-        });
+        when(messagePostProcessor.postProcessMessage(ArgumentMatchers.any())).thenAnswer((Answer<Message<?>>) invocation -> (Message<?>) invocation.getArguments()[0]);
 
         String payload = "payload";
 

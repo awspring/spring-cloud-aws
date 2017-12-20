@@ -57,11 +57,9 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
         configuration.setHostName(hostName);
         configuration.setPort(port);
         if (JEDIS_AVAILABLE) {
-            JedisConnectionFactory connectionFactory = new JedisConnectionFactory(configuration);
-            return connectionFactory;
+            return new JedisConnectionFactory(configuration);
         } else if (LETTUCE_AVAILABLE) {
-            LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(configuration);
-            return lettuceConnectionFactory;
+            return new LettuceConnectionFactory(configuration);
         } else {
             throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
                     "Please add one of the implementation to your classpath");

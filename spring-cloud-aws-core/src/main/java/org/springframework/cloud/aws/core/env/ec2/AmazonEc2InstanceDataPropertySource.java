@@ -135,9 +135,9 @@ public class AmazonEc2InstanceDataPropertySource extends EnumerablePropertySourc
 
     @Override
     public String[] getPropertyNames() {
-        final int count = KNOWN_PROPERTY_NAMES.size();
-        final Enumeration<Object> keys = KNOWN_PROPERTY_NAMES.keys();
-        final String[] keysArr = new String[count];
+        int count = KNOWN_PROPERTY_NAMES.size();
+        Enumeration<Object> keys = KNOWN_PROPERTY_NAMES.keys();
+        String[] keysArr = new String[count];
         for (int index = 0; keys.hasMoreElements() && index < count; index++) {
             keysArr[index] = keys.nextElement().toString();
         }

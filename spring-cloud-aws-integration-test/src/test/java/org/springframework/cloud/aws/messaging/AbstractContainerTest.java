@@ -42,14 +42,8 @@ abstract class AbstractContainerTest {
     @After
     public void tearDown() throws Exception {
         if (this.simpleMessageListenerContainer.isRunning()) {
-            final CountDownLatch countDownLatch = new CountDownLatch(1);
-            this.simpleMessageListenerContainer.stop(new Runnable() {
-
-                @Override
-                public void run() {
-                    countDownLatch.countDown();
-                }
-            });
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            this.simpleMessageListenerContainer.stop(countDownLatch::countDown);
 
             if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
                 throw new Exception("Couldn't stop container withing 15 seconds");

@@ -176,15 +176,11 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-        MimeMessagePreparator preparator = new MimeMessagePreparator() {
-
-            @Override
-            public void prepare(MimeMessage mimeMessage) throws Exception {
-                MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-                mimeMessageHelper.setTo("to@domain.com");
-                mimeMessageHelper.setSubject("subject");
-                mimeMessageHelper.setText("body");
-            }
+        MimeMessagePreparator preparator = mimeMessage -> {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+            mimeMessageHelper.setTo("to@domain.com");
+            mimeMessageHelper.setSubject("subject");
+            mimeMessageHelper.setText("body");
         };
 
         ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
@@ -206,31 +202,19 @@ public class SimpleEmailServiceJavaMailSenderTest {
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
         MimeMessagePreparator[] preparators = new MimeMessagePreparator[3];
-        preparators[0] = new MimeMessagePreparator() {
-
-            @Override
-            public void prepare(MimeMessage mimeMessage) throws Exception {
-                MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-                mimeMessageHelper.setTo("to@domain.com");
-            }
+        preparators[0] = mimeMessage -> {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+            mimeMessageHelper.setTo("to@domain.com");
         };
 
-        preparators[1] = new MimeMessagePreparator() {
-
-            @Override
-            public void prepare(MimeMessage mimeMessage) throws Exception {
-                MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-                mimeMessageHelper.setSubject("subject");
-            }
+        preparators[1] = mimeMessage -> {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+            mimeMessageHelper.setSubject("subject");
         };
 
-        preparators[2] = new MimeMessagePreparator() {
-
-            @Override
-            public void prepare(MimeMessage mimeMessage) throws Exception {
-                MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-                mimeMessageHelper.setText("body");
-            }
+        preparators[2] = mimeMessage -> {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+            mimeMessageHelper.setText("body");
         };
 
         ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);

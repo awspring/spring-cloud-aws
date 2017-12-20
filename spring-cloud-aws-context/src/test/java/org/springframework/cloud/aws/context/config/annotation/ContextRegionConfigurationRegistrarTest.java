@@ -80,7 +80,7 @@ public class ContextRegionConfigurationRegistrarTest {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.getEnvironment().getPropertySources().addLast(
-                new MapPropertySource("test", Collections.<String, Object>singletonMap("region", Regions.EU_WEST_1.getName())));
+                new MapPropertySource("test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
         this.context.register(ApplicationConfigurationWithExpressionRegion.class);
 
         // Act
@@ -97,7 +97,7 @@ public class ContextRegionConfigurationRegistrarTest {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.getEnvironment().getPropertySources().addLast(
-                new MapPropertySource("test", Collections.<String, Object>singletonMap("region", Regions.EU_WEST_1.getName())));
+                new MapPropertySource("test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
         this.context.register(ApplicationConfigurationWithPlaceHolderRegion.class);
 
         // Act

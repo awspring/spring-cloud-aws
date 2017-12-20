@@ -22,7 +22,6 @@ import com.amazonaws.services.cloudformation.model.DescribeStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
-import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
@@ -97,7 +96,7 @@ public class ContextStackConfigurationTest {
             Mockito.when(amazonCloudFormation.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId("test"))).
                     thenReturn(new DescribeStackResourcesResult().withStackResources(new StackResource().withStackName("testStack")));
             Mockito.when(amazonCloudFormation.listStackResources(new ListStackResourcesRequest().withStackName("testStack"))).
-                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.<StackResourceSummary>emptyList()));
+                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
             return amazonCloudFormation;
         }
     }
@@ -110,7 +109,7 @@ public class ContextStackConfigurationTest {
         public AmazonCloudFormation amazonCloudFormation() {
             AmazonCloudFormation amazonCloudFormation = Mockito.mock(AmazonCloudFormation.class);
             Mockito.when(amazonCloudFormation.listStackResources(new ListStackResourcesRequest().withStackName("manualStackName"))).
-                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.<StackResourceSummary>emptyList()));
+                    thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
             return amazonCloudFormation;
         }
     }

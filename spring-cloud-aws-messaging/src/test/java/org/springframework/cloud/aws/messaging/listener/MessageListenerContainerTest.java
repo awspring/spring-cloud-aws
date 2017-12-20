@@ -375,15 +375,11 @@ public class MessageListenerContainerTest {
 
         container.start();
 
-        container.stop(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
-                } catch (InterruptedException e) {
-                    fail("Expected doStart() method to be called");
-                }
+        container.stop(() -> {
+            try {
+                assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+            } catch (InterruptedException e) {
+                fail("Expected doStart() method to be called");
             }
         });
     }

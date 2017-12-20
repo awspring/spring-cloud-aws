@@ -90,7 +90,7 @@ public class ObjectMessageConverterTest {
     }
 
     private static MessageHeaders getMessageHeaders(String charsetName) {
-        return new MessageHeaders(Collections.<String, Object>singletonMap(MessageHeaders.CONTENT_TYPE,
+        return new MessageHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
                 new MimeType("application", "x-java-serialized-object", Charset.forName(charsetName))));
     }
 

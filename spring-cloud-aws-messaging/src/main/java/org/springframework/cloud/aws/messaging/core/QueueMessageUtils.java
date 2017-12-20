@@ -43,7 +43,7 @@ public final class QueueMessageUtils {
     }
 
     public static Message<String> createMessage(com.amazonaws.services.sqs.model.Message message) {
-        return createMessage(message, Collections.<String, Object>emptyMap());
+        return createMessage(message, Collections.emptyMap());
     }
 
     public static Message<String> createMessage(com.amazonaws.services.sqs.model.Message message, Map<String, Object> additionalHeaders) {

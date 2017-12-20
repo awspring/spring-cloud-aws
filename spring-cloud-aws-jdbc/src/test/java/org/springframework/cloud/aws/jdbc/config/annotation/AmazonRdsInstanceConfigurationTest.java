@@ -25,7 +25,6 @@ import com.amazonaws.services.rds.model.Endpoint;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
@@ -225,15 +224,11 @@ public class AmazonRdsInstanceConfigurationTest {
 
         @Bean
         public RdsInstanceConfigurer instanceConfigurer() {
-            return new RdsInstanceConfigurer() {
-
-                @Override
-                public DataSourceFactory getDataSourceFactory() {
-                    TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
-                    dataSourceFactory.setInitialSize(0);
-                    dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
-                    return dataSourceFactory;
-                }
+            return () -> {
+                TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+                dataSourceFactory.setInitialSize(0);
+                dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
+                return dataSourceFactory;
             };
         }
     }

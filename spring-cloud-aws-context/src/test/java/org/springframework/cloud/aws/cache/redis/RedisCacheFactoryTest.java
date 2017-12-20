@@ -30,7 +30,7 @@ public class RedisCacheFactoryTest {
     @Test
     public void createCache_withMockedRedisConnectionFactory_createsAndDestroysConnectionFactory() throws Exception {
         //Arrange
-        final RedisConnectionFactory connectionFactory = Mockito.mock(RedisConnectionFactory.class, Mockito.withSettings().extraInterfaces(DisposableBean.class));
+        RedisConnectionFactory connectionFactory = Mockito.mock(RedisConnectionFactory.class, Mockito.withSettings().extraInterfaces(DisposableBean.class));
         RedisCacheFactory redisCacheFactory = new RedisCacheFactory() {
 
             @Override

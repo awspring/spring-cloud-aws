@@ -44,7 +44,7 @@ public class NotificationMessageHandlerMethodArgumentResolver extends AbstractNo
     private final List<HttpMessageConverter<?>> messageConverter;
 
     public NotificationMessageHandlerMethodArgumentResolver() {
-        this(Arrays.<HttpMessageConverter<?>>asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
+        this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
     }
 
     public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {

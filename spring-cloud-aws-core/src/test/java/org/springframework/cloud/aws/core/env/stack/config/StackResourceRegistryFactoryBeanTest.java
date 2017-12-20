@@ -167,7 +167,7 @@ public class StackResourceRegistryFactoryBeanTest {
 
     private static AmazonCloudFormation makeAmazonCloudFormationClient(Map<String, String> resourceIdMappings) {
         Map<String, List<StackResourceSummary>> stackResourceSummaries = new HashMap<>();
-        stackResourceSummaries.put(STACK_NAME, new ArrayList<StackResourceSummary>()); // allow stack with no resources
+        stackResourceSummaries.put(STACK_NAME, new ArrayList<>()); // allow stack with no resources
 
         for (Map.Entry<String, String> entry : resourceIdMappings.entrySet()) {
             String logicalResourceId = entry.getKey();
@@ -181,11 +181,7 @@ public class StackResourceRegistryFactoryBeanTest {
                 physicalStackName = STACK_NAME;
             }
 
-            List<StackResourceSummary> list = stackResourceSummaries.get(physicalStackName);
-            if (list == null) {
-                list = new ArrayList<>();
-                stackResourceSummaries.put(physicalStackName, list);
-            }
+            List<StackResourceSummary> list = stackResourceSummaries.computeIfAbsent(physicalStackName, k -> new ArrayList<>());
 
             list.add(makeStackResourceSummary(logicalResourceId, physicalResourceId));
         }

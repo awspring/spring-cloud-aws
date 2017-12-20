@@ -79,13 +79,7 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
         if (this.executor != null) {
             AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
-            asyncBuilder.withExecutorFactory(new ExecutorFactory() {
-
-                @Override
-                public ExecutorService newExecutor() {
-                    return AmazonWebserviceClientFactoryBean.this.executor;
-                }
-            });
+            asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
         }
 
         if (this.credentialsProvider != null) {

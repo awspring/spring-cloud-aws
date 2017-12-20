@@ -23,8 +23,6 @@ import org.junit.rules.ExpectedException;
 import org.springframework.cache.Cache;
 import org.springframework.scheduling.annotation.AsyncResult;
 
-import java.util.concurrent.Callable;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -246,13 +244,7 @@ public class SimpleSpringMemcachedTest {
         when(client.set("myKey", 42, "createdValue")).thenReturn(new AsyncResult<>(true));
 
         //Act
-        String value = cache.get("myKey", new Callable<String>() {
-
-            @Override
-            public String call() throws Exception {
-                return "createdValue";
-            }
-        });
+        String value = cache.get("myKey", () -> "createdValue");
 
         //Assert
         assertEquals("createdValue", value);
@@ -268,12 +260,8 @@ public class SimpleSpringMemcachedTest {
         when(client.get("myKey")).thenReturn("existingValue");
 
         //Act
-        String value = cache.get("myKey", new Callable<String>() {
-
-            @Override
-            public String call() throws Exception {
-                throw new UnsupportedOperationException("Should not be called");
-            }
+        String value = cache.get("myKey", () -> {
+            throw new UnsupportedOperationException("Should not be called");
         });
 
         //Assert

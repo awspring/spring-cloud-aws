@@ -74,6 +74,6 @@ public class ContextStackConfiguration implements ImportAware {
     @Bean
     @ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
     public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
-        return new AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient>(AmazonCloudFormationClient.class, this.credentialsProvider, this.regionProvider);
+        return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class, this.credentialsProvider, this.regionProvider);
     }
 }

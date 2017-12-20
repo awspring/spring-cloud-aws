@@ -20,9 +20,7 @@ import org.junit.Test;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
@@ -78,7 +76,7 @@ public class ReadOnlyRoutingDataSourceTest {
         readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
         readOnlyRoutingDataSource.afterPropertiesSet();
 
-        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+        LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
         DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
         transactionDefinition.setReadOnly(true);
@@ -86,17 +84,13 @@ public class ReadOnlyRoutingDataSourceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
 
         //Act
-        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
-
-            @Override
-            public Connection doInTransaction(TransactionStatus status) {
-                try {
-                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-                } catch (SQLException e) {
-                    fail(e.getMessage());
-                }
-                return null;
+        Connection connectionReturned = transactionTemplate.execute(status -> {
+            try {
+                return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+            } catch (SQLException e) {
+                fail(e.getMessage());
             }
+            return null;
         });
 
         //Assert
@@ -118,11 +112,11 @@ public class ReadOnlyRoutingDataSourceTest {
         when(defaultDataSource.getConnection()).thenReturn(connection);
 
         ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-        readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.singletonMap("read1", readOnlyDataSource));
         readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
         readOnlyRoutingDataSource.afterPropertiesSet();
 
-        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+        LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
         DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
         transactionDefinition.setReadOnly(true);
@@ -130,17 +124,13 @@ public class ReadOnlyRoutingDataSourceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
 
         //Act
-        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
-
-            @Override
-            public Connection doInTransaction(TransactionStatus status) {
-                try {
-                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-                } catch (SQLException e) {
-                    fail(e.getMessage());
-                }
-                return null;
+        Connection connectionReturned = transactionTemplate.execute(status -> {
+            try {
+                return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+            } catch (SQLException e) {
+                fail(e.getMessage());
             }
+            return null;
         });
 
         //Assert
@@ -162,11 +152,11 @@ public class ReadOnlyRoutingDataSourceTest {
         when(defaultDataSource.getConnection()).thenReturn(connection);
 
         ReadOnlyRoutingDataSource readOnlyRoutingDataSource = new ReadOnlyRoutingDataSource();
-        readOnlyRoutingDataSource.setTargetDataSources(Collections.<Object, Object>singletonMap("read1", readOnlyDataSource));
+        readOnlyRoutingDataSource.setTargetDataSources(Collections.singletonMap("read1", readOnlyDataSource));
         readOnlyRoutingDataSource.setDefaultTargetDataSource(defaultDataSource);
         readOnlyRoutingDataSource.afterPropertiesSet();
 
-        final LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
+        LazyConnectionDataSourceProxy dataSource = new LazyConnectionDataSourceProxy(readOnlyRoutingDataSource);
 
         DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
         transactionDefinition.setReadOnly(false);
@@ -174,17 +164,13 @@ public class ReadOnlyRoutingDataSourceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource), transactionDefinition);
 
         //Act
-        Connection connectionReturned = transactionTemplate.execute(new TransactionCallback<Connection>() {
-
-            @Override
-            public Connection doInTransaction(TransactionStatus status) {
-                try {
-                    return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
-                } catch (SQLException e) {
-                    fail(e.getMessage());
-                }
-                return null;
+        Connection connectionReturned = transactionTemplate.execute(status -> {
+            try {
+                return ((ConnectionProxy) dataSource.getConnection()).getTargetConnection();
+            } catch (SQLException e) {
+                fail(e.getMessage());
             }
+            return null;
         });
 
         //Assert

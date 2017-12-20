@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
@@ -237,13 +236,9 @@ public class SimpleMessageListenerContainerTest {
         container.afterPropertiesSet();
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://testContainerDoesNotProcessMessageAfterBeingStopped.amazonaws.com"))).
-                thenAnswer(new Answer<ReceiveMessageResult>() {
-
-                    @Override
-                    public ReceiveMessageResult answer(InvocationOnMock invocation) throws Throwable {
-                        container.stop();
-                        return new ReceiveMessageResult().withMessages(new Message().withBody("test"));
-                    }
+                thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
+                    container.stop();
+                    return new ReceiveMessageResult().withMessages(new Message().withBody("test"));
                 });
 
         container.start();
@@ -1055,27 +1050,19 @@ public class SimpleMessageListenerContainerTest {
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
                 .withMaxNumberOfMessages(10)))
-                .thenAnswer(new Answer<ReceiveMessageResult>() {
-
-                    @Override
-                    public ReceiveMessageResult answer(InvocationOnMock invocation) throws Throwable {
-                        spinningThreadsStarted.countDown();
-                        testQueueCountdownLatch.await(1, TimeUnit.SECONDS);
-                        throw new OverLimitException("Boom");
-                    }
+                .thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
+                    spinningThreadsStarted.countDown();
+                    testQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+                    throw new OverLimitException("Boom");
                 });
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://anotherTestQueue.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
                 .withMaxNumberOfMessages(10)))
-                .thenAnswer(new Answer<ReceiveMessageResult>() {
-
-                    @Override
-                    public ReceiveMessageResult answer(InvocationOnMock invocation) throws Throwable {
-                        spinningThreadsStarted.countDown();
-                        anotherTestQueueCountdownLatch.await(1, TimeUnit.SECONDS);
-                        throw new OverLimitException("Boom");
-                    }
+                .thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
+                    spinningThreadsStarted.countDown();
+                    anotherTestQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+                    throw new OverLimitException("Boom");
                 });
 
         messageHandler.afterPropertiesSet();

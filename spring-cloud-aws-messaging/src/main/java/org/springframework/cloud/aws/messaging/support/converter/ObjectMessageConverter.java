@@ -68,7 +68,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
         }
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
         Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
-        Serializable result = null;
+        Serializable result;
         ObjectInputStream objectInputStream = null;
         try {
             objectInputStream = new ObjectInputStream(base64InputStream);

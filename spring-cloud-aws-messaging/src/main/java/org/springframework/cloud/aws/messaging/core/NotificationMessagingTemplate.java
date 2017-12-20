@@ -98,7 +98,7 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
      *         The subject to send
      */
     public void sendNotification(String destinationName, Object message, String subject) {
-        this.convertAndSend(destinationName, message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+        this.convertAndSend(destinationName, message, Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
     }
 
     /**
@@ -112,6 +112,6 @@ public class NotificationMessagingTemplate extends AbstractMessageChannelMessagi
      *         The subject to send
      */
     public void sendNotification(Object message, String subject) {
-        this.convertAndSend(getRequiredDefaultDestination(), message, Collections.<String, Object>singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+        this.convertAndSend(getRequiredDefaultDestination(), message, Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
     }
 }

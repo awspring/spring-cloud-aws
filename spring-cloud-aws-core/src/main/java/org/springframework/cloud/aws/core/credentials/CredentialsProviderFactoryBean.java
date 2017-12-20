@@ -39,7 +39,7 @@ public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCrede
     private final List<AWSCredentialsProvider> delegates;
 
     public CredentialsProviderFactoryBean() {
-        this(Collections.<AWSCredentialsProvider>emptyList());
+        this(Collections.emptyList());
     }
 
     public CredentialsProviderFactoryBean(List<AWSCredentialsProvider> delegates) {

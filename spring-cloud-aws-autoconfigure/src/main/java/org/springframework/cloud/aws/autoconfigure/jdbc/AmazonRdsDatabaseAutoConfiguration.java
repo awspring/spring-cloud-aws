@@ -63,7 +63,7 @@ public class AmazonRdsDatabaseAutoConfiguration {
             Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
             for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
                 registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
-                        Boolean.valueOf(dbInstanceEntry.getValue().containsKey("readReplicaSupport") ? dbInstanceEntry.getValue().get("readReplicaSupport") : "false"),
+                        Boolean.valueOf(dbInstanceEntry.getValue().getOrDefault("readReplicaSupport", "false")),
                         dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
             }
         }

@@ -21,8 +21,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryException;
@@ -67,13 +65,9 @@ public class RdbmsRetryOperationsInterceptorTest {
         ProxyMethodInvocation methodInvocation = mock(ProxyMethodInvocation.class);
 
         when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
-        when(methodInvocation.proceed()).then(new Answer<Object>() {
-
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                Assert.assertNotNull(RetrySynchronizationManager.getContext());
-                return "foo";
-            }
+        when(methodInvocation.proceed()).then(invocation -> {
+            Assert.assertNotNull(RetrySynchronizationManager.getContext());
+            return "foo";
         });
 
 

@@ -25,10 +25,7 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import javax.mail.internet.MimeMessage;
 
 /**
  * Test that uses the Amazon Simple Mail service to send mail.
@@ -69,17 +66,13 @@ public abstract class MailSenderAwsTest {
 
     @Test
     public void send_sendMailWithAttachmentUsingTheJavaMailMimeMessageFormat_noExceptionThrownDuringMessaegConstructionAndSend() throws Exception {
-        this.javaMailSender.send(new MimeMessagePreparator() {
-
-            @Override
-            public void prepare(MimeMessage mimeMessage) throws Exception {
-                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-                helper.addTo(MailSenderAwsTest.this.recipientAddress);
-                helper.setFrom(MailSenderAwsTest.this.senderAddress);
-                helper.addAttachment("test.txt", new ByteArrayResource("attachment content".getBytes("UTF-8")));
-                helper.setSubject("test subject with attachment");
-                helper.setText("mime body", false);
-            }
+        this.javaMailSender.send(mimeMessage -> {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.addTo(this.recipientAddress);
+            helper.setFrom(this.senderAddress);
+            helper.addAttachment("test.txt", new ByteArrayResource("attachment content".getBytes("UTF-8")));
+            helper.setSubject("test subject with attachment");
+            helper.setText("mime body", false);
         });
     }
 }
