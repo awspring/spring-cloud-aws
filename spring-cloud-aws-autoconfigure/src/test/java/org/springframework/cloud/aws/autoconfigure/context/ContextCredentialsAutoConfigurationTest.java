@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
@@ -69,6 +70,22 @@ public class ContextCredentialsAutoConfigurationTest {
         assertEquals(2, credentialsProviders.size());
         assertTrue(EC2ContainerCredentialsProviderWrapper.class.isInstance(credentialsProviders.get(0)));
         assertTrue(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(1)));
+    }
+
+
+    @Test
+    public void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextCredentialsAutoConfiguration.class);
+        TestPropertyValues.of(
+                "cloud.aws.credentials.useDefaultAwsCredentialsChain:true"
+        ).applyTo(this.context);
+        this.context.refresh();
+
+        AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+        assertNotNull(awsCredentialsProvider);
+
+        assertTrue(awsCredentialsProvider.getClass().isAssignableFrom(DefaultAWSCredentialsProviderChain.class));
     }
 
     @Test

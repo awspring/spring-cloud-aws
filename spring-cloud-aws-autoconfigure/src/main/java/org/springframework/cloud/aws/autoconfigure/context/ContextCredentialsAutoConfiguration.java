@@ -28,6 +28,7 @@ import org.springframework.core.type.AnnotationMetadata;
 
 import static com.amazonaws.auth.profile.internal.AwsProfileNameLoader.DEFAULT_PROFILE_NAME;
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerCredentialsProvider;
+import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerDefaultAWSCredentialsProvider;
 
 /**
  * @author Agim Emruli
@@ -48,12 +49,17 @@ public class ContextCredentialsAutoConfiguration {
 
         @Override
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-            registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
-                    this.environment.getProperty("cloud.aws.credentials.secretKey"),
-                    this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
-                            !this.environment.containsProperty("cloud.aws.credentials.accessKey"),
-                    this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),
-                    this.environment.getProperty("cloud.aws.credentials.profilePath"));
+            Boolean useDefaultCredentialsChain = this.environment.getProperty("cloud.aws.credentials.useDefaultAwsCredentialsChain", Boolean.class, false);
+            if (useDefaultCredentialsChain) {
+                registerDefaultAWSCredentialsProvider(registry);
+            } else {
+                registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
+                        this.environment.getProperty("cloud.aws.credentials.secretKey"),
+                        this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
+                                !this.environment.containsProperty("cloud.aws.credentials.accessKey"),
+                        this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),
+                        this.environment.getProperty("cloud.aws.credentials.profilePath"));
+            }
         }
     }
 }

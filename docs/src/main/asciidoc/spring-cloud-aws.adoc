@@ -285,6 +285,10 @@ Spring Cloud AWS provides the following properties to configure the credentials 
 |cloud.aws.credentials.instanceProfile
 |true
 |Configures an instance profile credentials provider with no further configuration
+
+|cloud.aws.credentials.useDefaultAwsCredentialsChain
+|true
+|Use the DefaultAWSCredentials Chain instead of configuring a custom credentials chain
 |===
 
 ===== Configuring region
