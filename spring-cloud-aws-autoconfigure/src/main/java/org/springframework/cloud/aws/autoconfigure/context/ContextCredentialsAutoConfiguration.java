@@ -20,6 +20,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
@@ -46,20 +47,19 @@ public class ContextCredentialsAutoConfiguration {
             this.environment = environment;
         }
 
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-			Boolean useDefaultCredentialsChain = this.environment.getProperty("cloud.aws.credentials.useDefaultAwsCredentialsChain", Boolean.class, false);
-			if (useDefaultCredentialsChain) {
-				registerDefaultAWSCredentialsProvider(registry);
-			}
-			else {
-				registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
-						this.environment.getProperty("cloud.aws.credentials.secretKey"),
-						this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
-								!this.environment.containsProperty("cloud.aws.credentials.accessKey"),
-						this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),
-						this.environment.getProperty("cloud.aws.credentials.profilePath"));
-			}
-		}
-	}
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            Boolean useDefaultCredentialsChain = this.environment.getProperty("cloud.aws.credentials.useDefaultAwsCredentialsChain", Boolean.class, false);
+            if (useDefaultCredentialsChain) {
+                registerDefaultAWSCredentialsProvider(registry);
+            } else {
+                registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
+                        this.environment.getProperty("cloud.aws.credentials.secretKey"),
+                        this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
+                                !this.environment.containsProperty("cloud.aws.credentials.accessKey"),
+                        this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),
+                        this.environment.getProperty("cloud.aws.credentials.profilePath"));
+            }
+        }
+    }
 }

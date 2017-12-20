@@ -18,9 +18,8 @@ package org.springframework.cloud.aws.context.config.support;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -70,14 +69,14 @@ public final class ContextConfigurationUtils {
         AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry, REGION_PROVIDER_BEAN_NAME);
     }
 
-	public static void registerDefaultAWSCredentialsProvider(BeanDefinitionRegistry registry) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(DefaultAWSCredentialsProviderChain.class);
-		registry.registerBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
-		AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
-	}
+    public static void registerDefaultAWSCredentialsProvider(BeanDefinitionRegistry registry) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(DefaultAWSCredentialsProviderChain.class);
+        registry.registerBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
+        AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+    }
 
-	public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey, boolean instanceProfile, String profileName, String profilePath) {
-		BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
+    public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey, boolean instanceProfile, String profileName, String profilePath) {
+        BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(CredentialsProviderFactoryBean.class);
 
         ManagedList<BeanDefinition> awsCredentialsProviders = new ManagedList<>();
 

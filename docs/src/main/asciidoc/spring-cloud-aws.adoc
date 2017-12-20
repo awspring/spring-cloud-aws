@@ -291,9 +291,6 @@ Spring Cloud AWS provides the following properties to configure the credentials 
 |Use the DefaultAWSCredentials Chain instead of configuring a custom credentials chain
 |===
 
-
-
-
 ===== Configuring region
 Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
 Boot configuration files. The region can be automatically detected or explicitly configured (e.g. in case of local tests
