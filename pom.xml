@@ -42,7 +42,6 @@
 		<bintray.package>aws</bintray.package>
 		<tomcat.version>8.0.33</tomcat.version>
 		<javax-mail.version>1.5.5</javax-mail.version>
-		<log4j.version>1.2.17</log4j.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
 	</properties>
 
@@ -91,27 +90,6 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<!--<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<scope>test</scope>
-		</dependency>-->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

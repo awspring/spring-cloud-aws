@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
@@ -31,8 +34,6 @@ import com.amazonaws.services.sqs.model.OverLimitException;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,6 +41,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
@@ -93,7 +95,7 @@ public class SimpleMessageListenerContainerTest {
     private ArgumentCaptor<org.springframework.messaging.Message<String>> stringMessageCaptor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         initMocks(this);
     }
 
@@ -428,7 +430,7 @@ public class SimpleMessageListenerContainerTest {
     }
 
     @Test
-    public void queueMessageHandler_withJavaConfig_shouldScanTheListenerMethods() throws Exception {
+    public void queueMessageHandler_withJavaConfig_shouldScanTheListenerMethods() {
         // Arrange & Act
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(SqsTestConfig.class, TestMessageListener.class);
         SimpleMessageListenerContainer simpleMessageListenerContainer = applicationContext.getBean(SimpleMessageListenerContainer.class);
@@ -776,13 +778,16 @@ public class SimpleMessageListenerContainerTest {
     }
 
     private static Level disableLogging() {
-        Level previous = LogManager.getLogger(SimpleMessageListenerContainer.class).getLevel();
-        LogManager.getLogger(SimpleMessageListenerContainer.class).setLevel(Level.OFF);
+        LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Logger logger = logContext.getLogger(SimpleMessageListenerContainer.class);
+        Level previous = logger.getLevel();
+        logger.setLevel(Level.OFF);
         return previous;
     }
 
     private static void setLogLevel(Level level) {
-        LogManager.getLogger(SimpleMessageListenerContainer.class).setLevel(level);
+        LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        logContext.getLogger(SimpleMessageListenerContainer.class).setLevel(level);
     }
 
     @Test

@@ -62,6 +62,10 @@
 						<groupId>activation</groupId>
 						<artifactId>activation</artifactId>
 					</exclusion>
+					<exclusion>
+						<artifactId>commons-logging</artifactId>
+						<groupId>commons-logging</groupId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<dependency>

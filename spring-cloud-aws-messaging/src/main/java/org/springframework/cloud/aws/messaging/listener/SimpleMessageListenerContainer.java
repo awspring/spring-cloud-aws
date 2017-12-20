@@ -218,7 +218,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
         try {
             if (isRunning(logicalQueueName)) {
                 Future<?> future = this.scheduledFutureByQueue.remove(logicalQueueName);
-                future.get(this.queueStopTimeout, TimeUnit.MILLISECONDS);
+                if (future != null) {
+                    future.get(this.queueStopTimeout, TimeUnit.MILLISECONDS);
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -22,7 +22,7 @@ import com.thimbleware.jmemcached.LocalCacheElement;
 import com.thimbleware.jmemcached.MemCacheDaemon;
 import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
-import net.spy.memcached.compat.log.Log4JLogger;
+import net.spy.memcached.compat.log.SLF4JLogger;
 import org.springframework.util.SocketUtils;
 
 import java.net.InetSocketAddress;
@@ -42,7 +42,7 @@ public class TestMemcacheServer {
 
     public static int startServer() {
         if (daemon == null) {
-            System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
+            System.setProperty("net.spy.log.LoggerImpl", SLF4JLogger.class.getName());
 
             // Get next free port for the test server
             portForInstance = SocketUtils.findAvailableTcpPort();

@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
 <!--
   ~ Copyright 2013-2014 the original author or authors.
   ~
@@ -16,19 +14,15 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<configuration>
 
-<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-	<appender name="console" class="org.apache.log4j.ConsoleAppender">
-		<param name="Target" value="System.out" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c %x - %m%n" />
-		</layout>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
 	</appender>
 
-	<root>
-		<priority value="info" />
-		<appender-ref ref="console" />
+	<root level="error">
+		<appender-ref ref="STDOUT" />
 	</root>
-
-</log4j:configuration>
+</configuration>

@@ -16,19 +16,20 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -66,6 +67,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -89,13 +91,13 @@ public class QueueMessageHandlerTest {
     private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         //noinspection RedundantArrayCreation to avoid unchecked generic array creation for varargs parameter with Java 8.
         reset(new DestinationResolvingMessageSendingOperations<?>[]{this.messageTemplate});
     }
 
     @Test
-    public void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() throws Exception {
+    public void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() {
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
         applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
@@ -109,7 +111,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_methodWithCustomObjectAsParameter_parameterIsConverted() throws Exception {
+    public void receiveMessage_methodWithCustomObjectAsParameter_parameterIsConverted() {
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandlerWithCustomParameter.class);
         applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
@@ -128,7 +130,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() throws Exception {
+    public void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() {
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
         applicationContext.registerBeanDefinition("queueMessageHandler", getQueueMessageHandlerBeanDefinition());
@@ -151,7 +153,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveAndReplayMessage_withExceptionThrownInSendTo_shouldCallExceptionHandler() throws Exception {
+    public void receiveAndReplayMessage_withExceptionThrownInSendTo_shouldCallExceptionHandler() {
         // Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
@@ -175,7 +177,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_methodAnnotatedWithSqsListenerContainingMultipleQueueNames_methodInvokedForEachQueueName() throws Exception {
+    public void receiveMessage_methodAnnotatedWithSqsListenerContainingMultipleQueueNames_methodInvokedForEachQueueName() {
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames", IncomingMessageHandlerWithMultipleQueueNames.class);
         applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
@@ -192,7 +194,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() throws Exception {
+    public void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() {
         //Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.singletonMap("myQueue", "resolvedQueue")));
@@ -211,7 +213,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() throws Exception {
+    public void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() {
         //Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.getEnvironment().getPropertySources().addLast(new MapPropertySource("test", Collections.singletonMap("custom.queueName", "resolvedQueue")));
@@ -232,7 +234,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_withHeaderAnnotationAsArgument_shouldReceiveRequestedHeader() throws Exception {
+    public void receiveMessage_withHeaderAnnotationAsArgument_shouldReceiveRequestedHeader() {
         // Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation", MessageReceiverWithHeaderAnnotation.class);
@@ -252,7 +254,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_withWrongHeaderAnnotationValueAsArgument_shouldReceiveNullAsHeaderValue() throws Exception {
+    public void receiveMessage_withWrongHeaderAnnotationValueAsArgument_shouldReceiveNullAsHeaderValue() {
         // Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation", MessageReceiverWithHeaderAnnotation.class);
@@ -272,7 +274,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_withHeadersAsArgumentAnnotation_shouldReceiveAllHeaders() throws Exception {
+    public void receiveMessage_withHeadersAsArgumentAnnotation_shouldReceiveAllHeaders() {
         // Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("messageHandlerWithHeadersAnnotation", MessageReceiverWithHeadersAnnotation.class);
@@ -341,7 +343,7 @@ public class QueueMessageHandlerTest {
     }
 
     @Test
-    public void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() throws Exception {
+    public void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() {
         // Arrange
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("notificationMessageReceiver", NotificationMessageReceiver.class);
@@ -399,20 +401,24 @@ public class QueueMessageHandlerTest {
         QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
         Method receiveMethod = SqsListenerDeletionPolicyNeverNoAcknowledgment.class.getMethod("receive", String.class);
 
-        Appender mockAppender = mock(Appender.class);
-        LogManager.getRootLogger().addAppender(mockAppender);
-        LogManager.getRootLogger().setLevel(Level.WARN);
+        LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+
+        Logger log = logContext.getLogger(QueueMessageHandler.class);
+        log.setLevel(Level.WARN);
+        log.addAppender(appender);
+        appender.setContext(log.getLoggerContext());
 
         // Act
         queueMessageHandler.getMappingForMethod(receiveMethod, null);
 
         // Assert
-        ArgumentCaptor<LoggingEvent> loggingEventArgumentCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
-        verify(mockAppender).doAppend(loggingEventArgumentCaptor.capture());
-        LoggingEvent loggingEvent = loggingEventArgumentCaptor.getValue();
-        assertEquals(Level.WARN, loggingEvent.getLevel());
-        assertTrue(loggingEvent.getRenderedMessage().contains("receive"));
-        assertTrue(loggingEvent.getRenderedMessage().contains("org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListenerDeletionPolicyNeverNoAcknowledgment"));
+        ILoggingEvent loggingEvent = appender.list.get(0);
+
+        assertSame(Level.WARN, loggingEvent.getLevel());
+        assertTrue(loggingEvent.getMessage().contains("receive"));
+        assertTrue(loggingEvent.getMessage().contains("org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListenerDeletionPolicyNeverNoAcknowledgment"));
     }
 
     @Test
