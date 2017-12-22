@@ -76,7 +76,7 @@ public class AmazonS3ProxyFactory {
         }
 
         ProxyFactory factory = new ProxyFactory(amazonS3);
-        factory.setProxyTargetClass(true);
+        factory.setInterfaces(AmazonS3.class);
         factory.addAdvice(new SimpleStorageRedirectInterceptor(amazonS3));
 
         return (AmazonS3) factory.getProxy();
