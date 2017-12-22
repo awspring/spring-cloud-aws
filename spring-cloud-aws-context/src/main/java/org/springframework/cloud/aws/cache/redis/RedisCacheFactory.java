@@ -32,7 +32,7 @@ import org.springframework.util.ClassUtils;
 public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFactory> {
 
     private static final boolean JEDIS_AVAILABLE = ClassUtils.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
-    private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("com.lambdaworks.redis.RedisClient", ClassUtils.getDefaultClassLoader());
+    private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("io.lettuce.core.RedisClient", ClassUtils.getDefaultClassLoader());
 
     @Override
     public boolean isSupportingCacheArchitecture(String architecture) {
@@ -61,9 +61,8 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
         } else if (LETTUCE_AVAILABLE) {
             return new LettuceConnectionFactory(configuration);
         } else {
-            throw new IllegalArgumentException("No Jedis, Jredis, SRP or lettuce redis client on classpath. " +
+            throw new IllegalArgumentException("No Jedis or lettuce client on classpath. " +
                     "Please add one of the implementation to your classpath");
         }
     }
-
 }
