@@ -91,6 +91,20 @@ public class AmazonS3ClientFactoryTest {
     }
 
     @Test
+    public void createClientForEndpointUrl_withProxiedClient_createClientForCustomRegion() {
+        // Arrange
+        AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
+        AmazonS3 amazonS3 = AmazonS3ProxyFactory.createProxy(AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build());
+
+
+        // Act
+        AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, "https://myBucket.s3.eu-central-1.amazonaws.com");
+
+        // Prepare
+        Assert.assertEquals(Regions.EU_CENTRAL_1.getName(), newClient.getRegionName());
+    }
+
+    @Test
     public void createClientForEndpointUrl_withCustomRegionUrlAndCachedClient_returnsCachedClient() {
         // Arrange
         AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();

@@ -22,6 +22,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -81,11 +83,28 @@ public class AmazonS3ClientFactory {
 
     private AmazonS3ClientBuilder buildAmazonS3ForRegion(AmazonS3 prototype, String region) {
         AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
-        if (prototype instanceof AmazonS3Client) {
-            AWSCredentialsProvider awsCredentialsProvider = (AWSCredentialsProvider) ReflectionUtils.getField(this.credentialsProviderField, prototype);
+
+        AmazonS3Client target = getAmazonS3ClientFromProxy(prototype);
+        if (target != null) {
+            AWSCredentialsProvider awsCredentialsProvider = (AWSCredentialsProvider) ReflectionUtils.getField(this.credentialsProviderField, target);
             clientBuilder.withCredentials(awsCredentialsProvider);
         }
 
         return clientBuilder.withRegion(region);
+    }
+
+    private static AmazonS3Client getAmazonS3ClientFromProxy(AmazonS3 amazonS3) {
+        if (AopUtils.isAopProxy(amazonS3)) {
+            Advised advised = (Advised) amazonS3;
+            Object target = null;
+            try {
+                target = advised.getTargetSource().getTarget();
+            } catch (Exception e) {
+                return null;
+            }
+            return target instanceof AmazonS3Client ? (AmazonS3Client) target : null;
+        } else {
+            return amazonS3 instanceof AmazonS3Client ? (AmazonS3Client) amazonS3 : null;
+        }
     }
 }
