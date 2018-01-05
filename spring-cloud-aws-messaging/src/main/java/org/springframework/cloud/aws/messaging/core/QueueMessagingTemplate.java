@@ -24,15 +24,10 @@ import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueU
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageReceivingOperations;
-import org.springframework.util.ClassUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <b>IMPORTANT</b>: For the message conversion this class always tries to first use the {@link StringMessageConverter}
@@ -50,9 +45,6 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 
     private final AmazonSQSAsync amazonSqs;
 
-    private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
-            "com.fasterxml.jackson.databind.ObjectMapper", QueueMessagingTemplate.class.getClassLoader());
-
     public QueueMessagingTemplate(AmazonSQSAsync amazonSqs) {
         this(amazonSqs, (ResourceIdResolver) null, null);
     }
@@ -62,7 +54,7 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
     }
 
     /**
-     * Initializes the messaging template by configuring the destination resolver as well as the message
+     * Initializes the messaging template by configuring the resource Id resolver as well as the message
      * converter. Uses the {@link DynamicQueueUrlDestinationResolver} with the default configuration to
      * resolve destination names.
      *
@@ -78,7 +70,9 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
     }
 
     /**
-     * Inititalizes
+     * Initializes the messaging template by configuring the destination resolver as well as the message
+     * converter. Uses the {@link DynamicQueueUrlDestinationResolver} with the default configuration to
+     * resolve destination names.
      *
      * @param amazonSqs
      *         The {@link AmazonSQS} client, cannot be {@code null}.
@@ -93,24 +87,6 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
         super(destinationResolver);
         this.amazonSqs = amazonSqs;
         initMessageConverter(messageConverter);
-    }
-
-    private void initMessageConverter(MessageConverter messageConverter) {
-        StringMessageConverter stringMessageConverter = new StringMessageConverter();
-        stringMessageConverter.setSerializedPayloadClass(String.class);
-
-        List<MessageConverter> messageConverters = new ArrayList<>();
-        messageConverters.add(stringMessageConverter);
-
-        if (messageConverter != null) {
-            messageConverters.add(messageConverter);
-        } else if (JACKSON_2_PRESENT) {
-            MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
-            mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
-            messageConverters.add(mappingJackson2MessageConverter);
-        }
-
-        setMessageConverter(new CompositeMessageConverter(messageConverters));
     }
 
     @Override

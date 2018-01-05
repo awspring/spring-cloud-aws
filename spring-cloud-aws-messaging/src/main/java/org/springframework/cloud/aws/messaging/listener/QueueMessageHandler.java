@@ -27,6 +27,7 @@ import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgume
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
@@ -72,8 +73,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
     @Override
     protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-        List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-        resolvers.addAll(getCustomArgumentResolvers());
+        List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>(getCustomArgumentResolvers());
 
         resolvers.add(new HeaderMethodArgumentResolver(null, null));
         resolvers.add(new HeadersMethodArgumentResolver());
@@ -91,10 +91,8 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
     @Override
     protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
-        ArrayList<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-        handlers.addAll(this.getCustomReturnValueHandlers());
 
-        return handlers;
+        return new ArrayList<>(this.getCustomReturnValueHandlers());
     }
 
     @Override
@@ -214,6 +212,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
         if (JACKSON_2_PRESENT) {
             MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+            jacksonMessageConverter.setObjectMapper(Jackson2ObjectMapperBuilder.json().build());
             jacksonMessageConverter.setSerializedPayloadClass(String.class);
             jacksonMessageConverter.setStrictContentTypeMatch(true);
             payloadArgumentConverters.add(jacksonMessageConverter);
