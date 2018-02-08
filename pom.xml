@@ -52,6 +52,7 @@
 		<module>spring-cloud-aws-jdbc</module>
 		<module>spring-cloud-aws-messaging</module>
 		<module>spring-cloud-aws-autoconfigure</module>
+		<module>spring-cloud-aws-actuator</module>
 		<module>spring-cloud-starter-aws</module>
 		<module>spring-cloud-starter-aws-jdbc</module>
 		<module>spring-cloud-starter-aws-messaging</module>
