@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.metrics;
 
-import org.springframework.boot.actuate.autoconfigure.metrics.export.StepRegistryProperties;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.StepRegistryProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
