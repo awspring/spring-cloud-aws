@@ -1,0 +1,2 @@
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+org.springframework.cloud.aws.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration

@@ -38,6 +38,8 @@ and the http://aws.amazon.com/elasticache/[ElastiCache] caching service.
 which can be used with JDBC or any other support data access technology by Spring.
 * *Spring Cloud AWS Messaging* enables developers to receive and send messages with the http://aws.amazon.com/sqs/[Simple Queueing Service] for
 point-to-point communication. Publish-subscribe messaging is supported with the integration of the http://aws.amazon.com/sns/[Simple Notification Service].
+* *Spring Cloud AWS Parameter Store Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store]
+as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
 
 == Basic setup
 Before using the Spring Cloud AWS module developers have to pick the dependencies and configure the Spring Cloud AWS module.
@@ -114,8 +116,8 @@ use of the modules. A typical XML configuration to use Spring Cloud AWS is outli
 ==== SDK credentials configuration
 In order to make calls to the Amazon Web Service the credentials must be configured for the the Amazon SDK. Spring Cloud AWS
 provides support to configure an application context specific credentials that are used for _each_ service call for requests done
-by Spring Cloud AWS components. Therefore there must be *exactly one* configuration of the credentials for an entire application
-context.
+by Spring Cloud AWS components, with the exception of the Parameter Store Configuration.
+Therefore there must be *exactly one* configuration of the credentials for an entire application context.
 
 [TIP]
 ====
@@ -125,6 +127,7 @@ The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the c
 * use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 * use the system properties `aws.accessKeyId` and `aws.secretKey`
 * use the user specific profile credentials file
+* use ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
 * use the instance profile credentials (see below)
 ====
 
@@ -186,6 +189,15 @@ EC2 (e.g. on a test server) and locally for testing. The next snippet shows a co
 The access-key and secret-key are defined using a placeholder expressions along with a default value to avoid bootstrap
 errors if the properties are not configured at all.
 ====
+
+===== Parameter Store Configuration credentials and region configuration
+The Parameter Store Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
+client, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and `com.amazonaws.regions.DefaultAwsRegionProviderChain`.
+If you want to override this, then you need to
+http://cloud.spring.io/spring-cloud-static/Edgware.SR2/multi/multi__spring_cloud_context_application_context_services.html#_customizing_the_bootstrap_configuration[define your own Spring Cloud bootstrap configuration class]
+with a bean of type `AWSSimpleSystemsManagement` that's configured to use your chosen credentials and/or region provider.
+Because this context is created when your Spring Cloud Bootstrap context is created, you can't simply override the bean
+in a regular `@Configuration` class.
 
 ==== Region configuration
 Amazon Web services are available in different http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[regions]. Based
@@ -572,6 +584,86 @@ public class ApplicationService {
 	}
 }
 ----
+
+=== Integrating your Spring Cloud application with the AWS Parameter Store
+
+Spring Cloud provides support for centralized configuration, which can be read and made available as a regular Spring
+`PropertySource` when the application is started. The Parameter Store Configuration allows you to use this mechanism
+with the https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store].
+
+Simply add a dependency on the `spring-cloud-starter-aws-parameter-store-config` starter module to activate the support.
+The support is similar to the support provided for the Spring Cloud Config Server or Consul's key-value store:
+configuration parameters can be defined to be shared across all services or for a specific service and can be
+profile-specific. Encrypted values will be decrypted when retrieved.
+
+All configuration parameters are retrieved from a common path prefix, which defaults to `/config`. From there shared
+parameters are retrieved from a path that defaults to `application` and service-specific parameters use a path that
+defaults to the configured `spring.application.name`. You can use both dots and forward slashes to specify the names
+of configuration keys. Names of activated profiles will be appended to the path using a separator that defaults to an
+underscore.
+
+That means that for a service called `my-service` the module by default would find and use these parameters:
+[cols="3*", options="header"]
+|===
+|parameter key
+|Spring property
+|description
+
+|`/config/application/cloud.aws.stack.name`
+|`cloud.aws.stack.name`
+|Shared by all services that have the Configuration support enabled. Can be overridden with a service- or profile-specific property.
+
+|`/config/application_production/cloud.aws.stack.name`
+|`cloud.aws.stack.name`
+|Shared by all services that have the Configuration support enabled and have a `production` Spring profile activated.
+ Can be overridden with a service-specific property.
+
+|`/config/my-service/cloud/aws/stack/auto`
+|`cloud.aws.stack.auto`
+|Specific to the `my-service` service. Note that slashes in the key path are replaced with dots.
+
+|`/config/my-service_production/cloud/aws/stack/auto`
+|`cloud.aws.stack.auto`
+|Specific to the `my-service` service when a `production` Spring profile is activated.
+|===
+
+Note that this module does not support full configuration files to be used as parameter values like e.g. Spring Cloud Consul does:
+AWS parameter values are limited to 4096 characters, so we support individual Spring properties to be configured only.
+
+You can configure the following settings in a Spring Cloud `bootstrap.properties` or `bootstrap.yml` file
+(note that relaxed property binding is applied, so you don't have to use this exact syntax):
+[cols="3*", options="header"]
+|===
+|property
+|default
+|explanation
+
+|`aws.paramstore.prefix`
+|`/config`
+|Prefix indicating first level for every property loaded from the Parameter Store.
+ Value must start with a forward slash followed by one or more valid path segments or be empty.
+
+|`aws.paramstore.defaultContext`
+|`application`
+|Name of the context that defines properties shared across all services
+
+|`aws.paramstore.profileSeparator`
+|`_`
+|String that separates an appended profile from the context name. Note that an AWS parameter key can only contain
+ dots, dashes and underscores next to alphanumeric characters.
+
+|`aws.paramstore.failFast`
+|`true`
+|Indicates if an error while retrieving the parameters should fail starting the application.
+
+|`aws.paramstore.name`
+|the configured value for `spring.application.name`
+|Name to use when constructing the path for the properties to look up for this specific service.
+
+|`aws.paramstore.enabled`
+|`true`
+|Can be used to disable the Parameter Store Configuration support even though the auto-configuration is on the classpath.
+|===
 
 == Managing cloud environments
 Managing environments manually with the management console does not scale and can become error-prone with the increasing
