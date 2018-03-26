@@ -17,10 +17,9 @@
 package org.springframework.cloud.aws.core.naming;
 
 import com.amazonaws.regions.Region;
+import java.util.Arrays;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import java.util.Arrays;
 
 /**
  * Support class which is used to parse Amazon Webservice Resource Names. Resource names are unique identifiers for
@@ -47,6 +46,7 @@ public class AmazonResourceName {
      * This typically the case for service which can contain nested paths (e.g. S3 Buckets, IAM groups)
      */
     private static final String RESOURCE_TYPE_DELIMITER = "/";
+    private final String qualifier;
     private final String service;
     private final String region;
     private final String account;
@@ -54,9 +54,11 @@ public class AmazonResourceName {
     private final String resourceName;
     private final String actualResourceTypeDelimiter;
 
-    private AmazonResourceName(String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
+    private AmazonResourceName(String qualifier, String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
+        Assert.notNull(qualifier, "qualifier must not be null");
         Assert.notNull(service, "service must not be null");
         Assert.notNull(resourceType, "resourceType must not be null");
+        this.qualifier = qualifier;
         this.service = service;
         this.region = region;
         this.account = account;
@@ -123,7 +125,7 @@ public class AmazonResourceName {
         StringBuilder builder = new StringBuilder();
         builder.append("arn");
         builder.append(RESOURCE_NAME_DELIMITER);
-        builder.append("aws");
+        builder.append(this.qualifier);
         builder.append(RESOURCE_NAME_DELIMITER);
         builder.append(this.service);
         builder.append(RESOURCE_NAME_DELIMITER);
@@ -151,11 +153,11 @@ public class AmazonResourceName {
         }
 
         if (!"arn".equals(tokens[0])) {
-            throw new IllegalArgumentException("Resource name:'" + name + "' must have a arn qualifier at the beginning");
+            throw new IllegalArgumentException("Resource name:'" + name + "' must have an arn qualifier at the beginning");
         }
 
-        if (!"aws".equals(tokens[1])) {
-            throw new IllegalArgumentException("Resource name:'" + name + "' must have a aws qualifier");
+        if (!("aws".equals(tokens[1]) || "aws-us-gov".equals(tokens[1]))) {
+            throw new IllegalArgumentException("Resource name:'" + name + "' must have an aws qualifier");
         }
 
 
@@ -173,7 +175,7 @@ public class AmazonResourceName {
         }
 
 
-        return new AmazonResourceName(tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]), actualResourceTypeDelimiter);
+        return new AmazonResourceName(tokens[1], tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]), actualResourceTypeDelimiter);
     }
 
     public static boolean isValidAmazonResourceName(String name) {
@@ -193,12 +195,18 @@ public class AmazonResourceName {
     @SuppressWarnings("ClassNamingConvention")
     public static class Builder {
 
+        private String qualifier = "aws";
         private String service;
         private String region;
         private String account;
         private String resourceType;
         private String resourceName;
         private String actualResourceTypeDelimiter;
+
+        public Builder withQualifier(String qualifier) {
+            this.qualifier = qualifier;
+            return this;
+        }
 
         public Builder withService(String service) {
             this.service = service;
@@ -231,7 +239,7 @@ public class AmazonResourceName {
         }
 
         public AmazonResourceName build() {
-            return new AmazonResourceName(this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
+            return new AmazonResourceName(this.qualifier, this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
         }
     }
 }

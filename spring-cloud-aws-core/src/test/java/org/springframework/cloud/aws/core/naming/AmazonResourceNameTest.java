@@ -16,16 +16,16 @@
 
 package org.springframework.cloud.aws.core.naming;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.springframework.cloud.aws.core.naming.AmazonResourceName.Builder;
+import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromString;
+
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.Builder;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromString;
 
 /**
  * Test for {@link AmazonResourceName} class. The examples are taken from the aws documentation at
@@ -49,14 +49,14 @@ public class AmazonResourceNameTest {
     @Test
     public void testWithoutArnQualifier() throws Exception {
         this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("must have a arn qualifier at the beginning");
+        this.expectedException.expectMessage("must have an arn qualifier at the beginning");
         fromString("foo:aws:iam::123456789012:David");
     }
 
     @Test
     public void testWithoutAwsQualifier() throws Exception {
         this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("must have a aws qualifier");
+        this.expectedException.expectMessage("must have an aws qualifier");
         fromString("arn:axs:iam::123456789012:David");
     }
 
@@ -177,6 +177,18 @@ public class AmazonResourceNameTest {
         assertEquals("123456789012", resourceName.getAccount());
         assertEquals("queue1", resourceName.getResourceType());
         assertNull(resourceName.getResourceName());
+        assertEquals(arn, resourceName.toString());
+    }
+
+    @Test
+    public void testGovCloudAwsQualifier() {
+        String arn = "arn:aws-us-gov:sns:us-gov-east-1:123456789012:my_corporate_topic:02034b43-fefa-4e07-a5eb-3be56f8c54ce";
+        AmazonResourceName resourceName = fromString(arn);
+        assertEquals("sns", resourceName.getService());
+        assertEquals("us-gov-east-1", resourceName.getRegion());
+        assertEquals("123456789012", resourceName.getAccount());
+        assertEquals("my_corporate_topic", resourceName.getResourceType());
+        assertEquals("02034b43-fefa-4e07-a5eb-3be56f8c54ce", resourceName.getResourceName());
         assertEquals(arn, resourceName.toString());
     }
 }
