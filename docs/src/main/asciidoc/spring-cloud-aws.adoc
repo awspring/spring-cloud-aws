@@ -918,24 +918,6 @@ In addition to the payload, headers can be injected in the listener methods with
 annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
 containing all headers.
 
-[NOTE]
-====
-It is recommended to use the XML messaging namespace to create `QueueMessagingTemplate` as it will set a more
-sophisticated `MessageConverter` that converts objects into JSON when Jackson is on the classpath.
-====
-
-[source,xml,indent=0]
-----
-<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
-----
-
-[source,java,indent=0]
-----
-this.queueMessagingTemplate.convertAndSend("queueName", new Person("John, "Doe"));
-----
-
-In this example a `QueueMessagingTemplate` is created using the messaging namespace. The `convertAndSend` method
-converts the payload `Person` using the configured `MessageConverter` and sends the message.
 Only the link:http://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_Message.html[standard
 message attributes] sent with an SQS message are supported. Custom attributes are currently not supported.
 
