@@ -56,7 +56,7 @@ public class CloudWatchExportAutoConfigurationTest {
 
     @Test
     public void testConfiguration() throws Exception {
-        this.env.setProperty("spring.metrics.export.cloudwatch.namespace", "test");
+        this.env.setProperty("management.metrics.export.cloudwatch.namespace", "test");
 
         this.context.register(CloudWatchExportAutoConfiguration.class);
         this.context.refresh();

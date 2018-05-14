@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Dawid Kublik
  * @since 2.0.0
  */
-@ConfigurationProperties(prefix = "spring.metrics.export.cloudwatch")
+@ConfigurationProperties(prefix = "management.metrics.export.cloudwatch")
 public class CloudWatchProperties extends StepRegistryProperties {
 
 	/**
