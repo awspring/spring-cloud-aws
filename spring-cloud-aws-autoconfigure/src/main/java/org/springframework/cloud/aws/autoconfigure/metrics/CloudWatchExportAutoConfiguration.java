@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Import;
  *
  * @author Jon Schneider
  * @author Dawid Kublik
+ * @author Jan Sauer
  * @since 2.0.0
  */
 @Configuration
