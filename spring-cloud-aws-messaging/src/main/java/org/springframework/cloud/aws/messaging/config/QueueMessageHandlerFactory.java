@@ -23,6 +23,8 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
@@ -32,6 +34,7 @@ import java.util.List;
 
 /**
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 public class QueueMessageHandlerFactory {
@@ -47,6 +50,8 @@ public class QueueMessageHandlerFactory {
     private ResourceIdResolver resourceIdResolver;
 
     private BeanFactory beanFactory;
+
+    private MappingJackson2MessageConverter mappingJackson2MessageConverter;
 
     public void setArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         this.argumentResolvers = argumentResolvers;
@@ -115,8 +120,20 @@ public class QueueMessageHandlerFactory {
         this.beanFactory = beanFactory;
     }
 
+    /**
+     * Configures a {@link MappingJackson2MessageConverter} that should be used to deserialize incoming messages with
+     * payload content type {@code application/json}.
+     *
+     * @param mappingJackson2MessageConverter
+     *         - the converter used to deserialize messages with json payload
+     */
+    public void setMappingJackson2MessageConverter(MappingJackson2MessageConverter mappingJackson2MessageConverter) {
+        this.mappingJackson2MessageConverter = mappingJackson2MessageConverter;
+    }
+
     public QueueMessageHandler createQueueMessageHandler() {
-        QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+        QueueMessageHandler queueMessageHandler = new QueueMessageHandler(this.mappingJackson2MessageConverter != null
+                ? this.mappingJackson2MessageConverter : getDefaultMappingJackson2MessageConverter());
 
         if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
             queueMessageHandler.getCustomArgumentResolvers().addAll(this.argumentResolvers);
@@ -141,5 +158,13 @@ public class QueueMessageHandlerFactory {
 
     private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
         return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+    }
+
+    private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter() {
+        MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+        jacksonMessageConverter.setObjectMapper(Jackson2ObjectMapperBuilder.json().build());
+        jacksonMessageConverter.setSerializedPayloadClass(String.class);
+        jacksonMessageConverter.setStrictContentTypeMatch(true);
+        return jacksonMessageConverter;
     }
 }
