@@ -667,7 +667,7 @@ public class QueueMessageHandlerTest {
 
         @Bean
         QueueMessageHandler queueMessageHandler() {
-            return new QueueMessageHandler(mappingJackson2MessageConverter());
+            return new QueueMessageHandler(Arrays.asList(mappingJackson2MessageConverter()));
         }
 
         @Bean

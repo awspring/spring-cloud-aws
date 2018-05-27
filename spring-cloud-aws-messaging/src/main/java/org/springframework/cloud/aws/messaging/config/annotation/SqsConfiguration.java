@@ -29,6 +29,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Arrays;
 
 /**
  * @author Alain Sahli
@@ -82,8 +85,9 @@ public class SqsConfiguration {
             this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
         }
 
-        if (this.mappingJackson2MessageConverter != null) {
-            this.queueMessageHandlerFactory.setMappingJackson2MessageConverter(this.mappingJackson2MessageConverter);
+        if (CollectionUtils.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
+                && this.mappingJackson2MessageConverter != null) {
+            this.queueMessageHandlerFactory.setMessageConverters(Arrays.asList(this.mappingJackson2MessageConverter));
         }
 
         this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);

@@ -30,7 +30,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.handler.HandlerMethod;
@@ -69,14 +68,14 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
     static final String ACKNOWLEDGMENT = "Acknowledgment";
     static final String VISIBILITY = "Visibility";
 
-    private final MappingJackson2MessageConverter mappingJackson2MessageConverter;
+    private final List<MessageConverter> messageConverters;
 
-    public QueueMessageHandler(MappingJackson2MessageConverter mappingJackson2MessageConverter) {
-        this.mappingJackson2MessageConverter = mappingJackson2MessageConverter;
+    public QueueMessageHandler(List<MessageConverter> messageConverters) {
+        this.messageConverters = messageConverters;
     }
 
     public QueueMessageHandler() {
-        this.mappingJackson2MessageConverter = null;
+        this.messageConverters = Collections.emptyList();
     }
 
     @Override
@@ -216,11 +215,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
     }
 
     private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
-        List<MessageConverter> payloadArgumentConverters = new ArrayList<>();
-
-        if (this.mappingJackson2MessageConverter != null) {
-            payloadArgumentConverters.add(this.mappingJackson2MessageConverter);
-        }
+        List<MessageConverter> payloadArgumentConverters = new ArrayList<>(this.messageConverters);
 
         ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
         objectMessageConverter.setStrictContentTypeMatch(true);

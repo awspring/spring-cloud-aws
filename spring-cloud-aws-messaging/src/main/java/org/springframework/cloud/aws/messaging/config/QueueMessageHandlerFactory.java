@@ -23,13 +23,14 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class QueueMessageHandlerFactory {
 
     private BeanFactory beanFactory;
 
-    private MappingJackson2MessageConverter mappingJackson2MessageConverter;
+    private List<MessageConverter> messageConverters;
 
     public void setArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         this.argumentResolvers = argumentResolvers;
@@ -121,19 +122,23 @@ public class QueueMessageHandlerFactory {
     }
 
     /**
-     * Configures a {@link MappingJackson2MessageConverter} that should be used to deserialize incoming messages with
-     * payload content type {@code application/json}.
+     * Configures a {@link MessageConverter}s that should be used to deserialize incoming message payloads
+     * and serialize messages in {@link QueueMessagingTemplate}.
+     * If not set, default {@link MappingJackson2MessageConverter} is used.
      *
-     * @param mappingJackson2MessageConverter
-     *         - the converter used to deserialize messages with json payload
+     * @param messageConverters
+     *         - the converters used for message conversion
      */
-    public void setMappingJackson2MessageConverter(MappingJackson2MessageConverter mappingJackson2MessageConverter) {
-        this.mappingJackson2MessageConverter = mappingJackson2MessageConverter;
+    public void setMessageConverters(List<MessageConverter> messageConverters) {
+        this.messageConverters = messageConverters;
     }
 
     public QueueMessageHandler createQueueMessageHandler() {
-        QueueMessageHandler queueMessageHandler = new QueueMessageHandler(this.mappingJackson2MessageConverter != null
-                ? this.mappingJackson2MessageConverter : getDefaultMappingJackson2MessageConverter());
+        QueueMessageHandler queueMessageHandler = new QueueMessageHandler(
+                CollectionUtils.isEmpty(this.messageConverters)
+                        ? Arrays.asList(getDefaultMappingJackson2MessageConverter())
+                        : this.messageConverters
+        );
 
         if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
             queueMessageHandler.getCustomArgumentResolvers().addAll(this.argumentResolvers);
@@ -157,12 +162,15 @@ public class QueueMessageHandlerFactory {
     }
 
     private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-        return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+        return new QueueMessagingTemplate(amazonSqs, resourceIdResolver, getDefaultMappingJackson2MessageConverter());
+    }
+
+    public List<MessageConverter> getMessageConverters() {
+        return this.messageConverters;
     }
 
     private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter() {
         MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
-        jacksonMessageConverter.setObjectMapper(Jackson2ObjectMapperBuilder.json().build());
         jacksonMessageConverter.setSerializedPayloadClass(String.class);
         jacksonMessageConverter.setStrictContentTypeMatch(true);
         return jacksonMessageConverter;
