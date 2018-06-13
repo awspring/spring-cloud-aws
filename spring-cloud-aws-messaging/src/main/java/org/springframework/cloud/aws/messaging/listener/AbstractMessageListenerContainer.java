@@ -54,6 +54,7 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
     private static final String RECEIVING_ATTRIBUTES = "All";
     private static final String RECEIVING_MESSAGE_ATTRIBUTES = "All";
     private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
+    private static final int DEFAULT_WAIT_TIME_IN_SECONDS = 20;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lifecycleMonitor = new Object();
     @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
@@ -71,7 +72,12 @@ abstract class AbstractMessageListenerContainer implements InitializingBean, Dis
     private Integer visibilityTimeout;
     @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
     private ResourceIdResolver resourceIdResolver;
-    private Integer waitTimeOut;
+
+    /**
+     * By default sets the maximum value for long polling in SQS.
+     * For more information read the <a href="http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>
+     */
+    private Integer waitTimeOut = DEFAULT_WAIT_TIME_IN_SECONDS;
     //Optional settings with defaults
     private boolean autoStartup = true;
     private int phase = Integer.MAX_VALUE;
