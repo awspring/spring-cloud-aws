@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Agim Emruli
+ * @author Petromir Dzhunev
  */
 public class ContextRegionProviderAutoConfigurationTest {
 
@@ -49,6 +50,21 @@ public class ContextRegionProviderAutoConfigurationTest {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextRegionProviderAutoConfiguration.class);
         TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
+
+        //Act
+        this.context.refresh();
+
+        //Assert
+        assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+    }
+
+    @Test
+    public void regionProvider_autoDetectionConfigured_emptyStaticRegionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
+        //Arrange
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextRegionProviderAutoConfiguration.class);
+        TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
+        TestPropertyValues.of("cloud.aws.region.static:").applyTo(this.context);
 
         //Act
         this.context.refresh();
