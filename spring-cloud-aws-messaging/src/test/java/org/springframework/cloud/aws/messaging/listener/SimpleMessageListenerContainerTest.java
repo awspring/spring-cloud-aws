@@ -201,7 +201,8 @@ public class SimpleMessageListenerContainerTest {
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
                         new Message().withBody("messageContent")))
                 .thenReturn(new ReceiveMessageResult());
@@ -277,12 +278,14 @@ public class SimpleMessageListenerContainerTest {
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")))
                 .thenReturn(new ReceiveMessageResult());
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://listener_withMultipleMessageHandlers_shouldBeCalled.another.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("anotherMessageContent")))
                 .thenReturn(new ReceiveMessageResult());
         when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
@@ -326,7 +329,8 @@ public class SimpleMessageListenerContainerTest {
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withAttributes(Collections.singletonMap("SenderId", "ID"))))
                 .thenReturn(new ReceiveMessageResult());
         when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
@@ -410,7 +414,8 @@ public class SimpleMessageListenerContainerTest {
         MimeType mimeType = new MimeType("text", "plain", Charset.forName("UTF-8"));
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader.amazonaws.com").withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")
                         .withAttributes(Collections.singletonMap("SenderId", "ID"))
                         .withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, new MessageAttributeValue().withDataType("String")
@@ -509,8 +514,12 @@ public class SimpleMessageListenerContainerTest {
         messageHandler.afterPropertiesSet();
         container.afterPropertiesSet();
 
-        when(sqs.receiveMessage(new ReceiveMessageRequest("http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com").withAttributeNames("All").withMaxNumberOfMessages(10).withMessageAttributeNames("All"))).
-                thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+        when(sqs.receiveMessage(new ReceiveMessageRequest("http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com")
+                .withAttributeNames("All")
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)
+                .withMessageAttributeNames("All")))
+                .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
                         new ReceiveMessageResult());
 
         // Act
@@ -553,6 +562,7 @@ public class SimpleMessageListenerContainerTest {
 
         when(sqs.receiveMessage(new ReceiveMessageRequest("http://executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com").withAttributeNames("All")
                 .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)
                 .withMessageAttributeNames("All")))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
                         new ReceiveMessageResult());
@@ -1122,7 +1132,8 @@ public class SimpleMessageListenerContainerTest {
     private static void mockReceiveMessage(AmazonSQSAsync sqs, String queueUrl, String messageContent, String receiptHandle) {
         when(sqs.receiveMessage(new ReceiveMessageRequest(queueUrl).withAttributeNames("All")
                 .withMessageAttributeNames("All")
-                .withMaxNumberOfMessages(10)))
+                .withMaxNumberOfMessages(10)
+                .withWaitTimeSeconds(20)))
                 .thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody(messageContent).withReceiptHandle(receiptHandle)),
                         new ReceiveMessageResult());
     }

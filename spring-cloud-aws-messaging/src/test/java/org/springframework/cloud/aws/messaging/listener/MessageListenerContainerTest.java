@@ -163,7 +163,7 @@ public class MessageListenerContainerTest {
     @Test
     public void testWaitTimeout() throws Exception {
         AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-        assertNull(container.getWaitTimeOut());
+        assertEquals(new Integer(20), container.getWaitTimeOut());
         container.setWaitTimeOut(42);
         assertEquals(new Integer(42), container.getWaitTimeOut());
     }
