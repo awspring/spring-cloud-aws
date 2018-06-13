@@ -16,16 +16,16 @@
 
 package org.springframework.cloud.aws.core.naming;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.Builder;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromString;
-
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.springframework.cloud.aws.core.naming.AmazonResourceName.Builder;
+import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromString;
 
 /**
  * Test for {@link AmazonResourceName} class. The examples are taken from the aws documentation at
@@ -40,28 +40,34 @@ public class AmazonResourceNameTest {
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void testNameIsNull() throws Exception {
+    public void testNameIsNull() {
         this.expectedException.expect(IllegalArgumentException.class);
         this.expectedException.expectMessage("name must not be null");
         fromString(null);
     }
 
     @Test
-    public void testWithoutArnQualifier() throws Exception {
+    public void testWithoutArnQualifier() {
         this.expectedException.expect(IllegalArgumentException.class);
         this.expectedException.expectMessage("must have an arn qualifier at the beginning");
         fromString("foo:aws:iam::123456789012:David");
     }
 
     @Test
-    public void testWithoutAwsQualifier() throws Exception {
+    public void testWithoutAwsQualifier() {
         this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("must have an aws qualifier");
+        this.expectedException.expectMessage("must have a valid partition name");
         fromString("arn:axs:iam::123456789012:David");
     }
 
     @Test
-    public void testDynamoDb() throws Exception {
+    public void testWithCustomPartitionName() {
+        AmazonResourceName resourceName = fromString("arn:aws-cn:iam::123456789012:David");
+        assertEquals("aws-cn", resourceName.getPartition());
+    }
+
+    @Test
+    public void testDynamoDb() {
         String arn = "arn:aws:dynamodb:us-east-1:123456789012:table/books_table";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("dynamodb", resourceName.getService());
@@ -73,7 +79,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testDynamoDbBuilder() throws Exception {
+    public void testDynamoDbBuilder() {
         Builder builder = new Builder();
         builder.withService("dynamodb");
         builder.withRegion(Region.getRegion(Regions.US_EAST_1));
@@ -85,7 +91,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testElasticBeansTalkBuilder() throws Exception {
+    public void testElasticBeansTalkBuilder() {
         Builder builder = new Builder();
         builder.withService("elasticbeanstalk");
         builder.withRegion(Region.getRegion(Regions.US_EAST_1));
@@ -96,7 +102,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testElasticBeansTalk() throws Exception {
+    public void testElasticBeansTalk() {
         String arn = "arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("elasticbeanstalk", resourceName.getService());
@@ -109,7 +115,7 @@ public class AmazonResourceNameTest {
 
 
     @Test
-    public void testIamService() throws Exception {
+    public void testIamService() {
         String arn = "arn:aws:iam::123456789012:server-certificate/ProdServerCert";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("iam", resourceName.getService());
@@ -121,7 +127,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testRdsService() throws Exception {
+    public void testRdsService() {
         String arn = "arn:aws:rds:us-west-2:123456789012:db:mysql-db";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("rds", resourceName.getService());
@@ -133,7 +139,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testRoute53Service() throws Exception {
+    public void testRoute53Service() {
         String arn = "arn:aws:route53:::hostedzone/Z148QEXAMPLE8V";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("route53", resourceName.getService());
@@ -145,7 +151,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testS3Service() throws Exception {
+    public void testS3Service() {
         String arn = "arn:aws:s3:::my_corporate_bucket/Development/*";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("s3", resourceName.getService());
@@ -157,7 +163,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testSnsService() throws Exception {
+    public void testSnsService() {
         String arn = "arn:aws:sns:us-east-1:123456789012:my_corporate_topic:02034b43-fefa-4e07-a5eb-3be56f8c54ce";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("sns", resourceName.getService());
@@ -169,7 +175,7 @@ public class AmazonResourceNameTest {
     }
 
     @Test
-    public void testSqsService() throws Exception {
+    public void testSqsService() {
         String arn = "arn:aws:sqs:us-east-1:123456789012:queue1";
         AmazonResourceName resourceName = fromString(arn);
         assertEquals("sqs", resourceName.getService());

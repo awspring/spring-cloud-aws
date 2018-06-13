@@ -17,9 +17,10 @@
 package org.springframework.cloud.aws.core.naming;
 
 import com.amazonaws.regions.Region;
-import java.util.Arrays;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
 
 /**
  * Support class which is used to parse Amazon Webservice Resource Names. Resource names are unique identifiers for
@@ -46,7 +47,7 @@ public class AmazonResourceName {
      * This typically the case for service which can contain nested paths (e.g. S3 Buckets, IAM groups)
      */
     private static final String RESOURCE_TYPE_DELIMITER = "/";
-    private final String qualifier;
+    private final String partition;
     private final String service;
     private final String region;
     private final String account;
@@ -54,17 +55,26 @@ public class AmazonResourceName {
     private final String resourceName;
     private final String actualResourceTypeDelimiter;
 
-    private AmazonResourceName(String qualifier, String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
-        Assert.notNull(qualifier, "qualifier must not be null");
+    private AmazonResourceName(String partition, String service, String region, String account, String resourceType, String resourceName, String actualResourceTypeDelimiter) {
+        Assert.notNull(partition, "partition must not be null");
         Assert.notNull(service, "service must not be null");
         Assert.notNull(resourceType, "resourceType must not be null");
-        this.qualifier = qualifier;
+        this.partition = partition;
         this.service = service;
         this.region = region;
         this.account = account;
         this.resourceType = resourceType;
         this.resourceName = resourceName;
         this.actualResourceTypeDelimiter = actualResourceTypeDelimiter;
+    }
+
+    /**
+     * Returns the partition name of the service (currently aws, aws-cn, aws-us-gov).
+     *
+     * @return - the partition name - must start with aws
+     */
+    public String getPartition() {
+        return this.partition;
     }
 
     /**
@@ -125,7 +135,7 @@ public class AmazonResourceName {
         StringBuilder builder = new StringBuilder();
         builder.append("arn");
         builder.append(RESOURCE_NAME_DELIMITER);
-        builder.append(this.qualifier);
+        builder.append(this.partition);
         builder.append(RESOURCE_NAME_DELIMITER);
         builder.append(this.service);
         builder.append(RESOURCE_NAME_DELIMITER);
@@ -156,8 +166,8 @@ public class AmazonResourceName {
             throw new IllegalArgumentException("Resource name:'" + name + "' must have an arn qualifier at the beginning");
         }
 
-        if (!("aws".equals(tokens[1]) || "aws-us-gov".equals(tokens[1]))) {
-            throw new IllegalArgumentException("Resource name:'" + name + "' must have an aws qualifier");
+        if (!("aws".equals(tokens[1]) || tokens[1].startsWith("aws-"))) {
+            throw new IllegalArgumentException("Resource name:'" + name + "' must have a valid partition name");
         }
 
 
@@ -195,7 +205,7 @@ public class AmazonResourceName {
     @SuppressWarnings("ClassNamingConvention")
     public static class Builder {
 
-        private String qualifier = "aws";
+        private String partition = "aws";
         private String service;
         private String region;
         private String account;
@@ -203,8 +213,8 @@ public class AmazonResourceName {
         private String resourceName;
         private String actualResourceTypeDelimiter;
 
-        public Builder withQualifier(String qualifier) {
-            this.qualifier = qualifier;
+        public Builder withPartition(String qualifier) {
+            this.partition = qualifier;
             return this;
         }
 
@@ -239,7 +249,7 @@ public class AmazonResourceName {
         }
 
         public AmazonResourceName build() {
-            return new AmazonResourceName(this.qualifier, this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
+            return new AmazonResourceName(this.partition, this.service, this.region, this.account, this.resourceType, this.resourceName, this.actualResourceTypeDelimiter);
         }
     }
 }
