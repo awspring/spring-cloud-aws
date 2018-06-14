@@ -28,9 +28,14 @@ import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerCon
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Arrays;
 
 /**
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 @Configuration
@@ -48,6 +53,9 @@ public class SqsConfiguration {
 
     @Autowired(required = false)
     private final QueueMessageHandlerFactory queueMessageHandlerFactory = new QueueMessageHandlerFactory();
+
+    @Autowired(required = false)
+    private MappingJackson2MessageConverter mappingJackson2MessageConverter;
 
     @Bean
     public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
@@ -75,6 +83,11 @@ public class SqsConfiguration {
     private QueueMessageHandler getMessageHandler(AmazonSQSAsync amazonSqs) {
         if (this.queueMessageHandlerFactory.getAmazonSqs() == null) {
             this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
+        }
+
+        if (CollectionUtils.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
+                && this.mappingJackson2MessageConverter != null) {
+            this.queueMessageHandlerFactory.setMessageConverters(Arrays.asList(this.mappingJackson2MessageConverter));
         }
 
         this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);

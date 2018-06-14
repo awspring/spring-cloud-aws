@@ -35,10 +35,14 @@ import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.MethodParameter;
@@ -82,6 +86,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -112,15 +117,13 @@ public class QueueMessageHandlerTest {
 
     @Test
     public void receiveMessage_methodWithCustomObjectAsParameter_parameterIsConverted() {
-        StaticApplicationContext applicationContext = new StaticApplicationContext();
-        applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandlerWithCustomParameter.class);
-        applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
-        applicationContext.refresh();
+        ApplicationContext applicationContext = new AnnotationConfigApplicationContext(QueueMessageHandlerWithJacksonConfiguration.class);
+
+        DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
+        MappingJackson2MessageConverter jsonMapper = applicationContext.getBean(MappingJackson2MessageConverter.class);
+        Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.singletonMap(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")));
 
         MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-        DummyKeyValueHolder messagePayload = new DummyKeyValueHolder("myKey", "A value");
-        MappingJackson2MessageConverter jsonMapper = new MappingJackson2MessageConverter();
-        Message<?> message = jsonMapper.toMessage(messagePayload, new MessageHeaders(Collections.singletonMap(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")));
         messageHandler.handleMessage(message);
 
         IncomingMessageHandlerWithCustomParameter messageListener = applicationContext.getBean(IncomingMessageHandlerWithCustomParameter.class);
@@ -657,6 +660,25 @@ public class QueueMessageHandlerTest {
         public void receive(String message) {
         }
 
+    }
+
+    @TestConfiguration
+    static class QueueMessageHandlerWithJacksonConfiguration {
+
+        @Bean
+        QueueMessageHandler queueMessageHandler() {
+            return new QueueMessageHandler(Arrays.asList(mappingJackson2MessageConverter()));
+        }
+
+        @Bean
+        IncomingMessageHandlerWithCustomParameter incomingMessageHandlerWithCustomParameter() {
+            return new IncomingMessageHandlerWithCustomParameter();
+        }
+
+        @Bean
+        MappingJackson2MessageConverter mappingJackson2MessageConverter() {
+            return new MappingJackson2MessageConverter();
+        }
     }
 
 }
