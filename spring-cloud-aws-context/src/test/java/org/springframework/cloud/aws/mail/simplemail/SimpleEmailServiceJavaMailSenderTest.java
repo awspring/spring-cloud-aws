@@ -40,7 +40,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -59,7 +58,7 @@ import static org.mockito.Mockito.when;
 public class SimpleEmailServiceJavaMailSenderTest {
 
     @Test
-    public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() throws Exception {
+    public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() {
         // Arrange
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
@@ -72,7 +71,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
     }
 
     @Test
-    public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() throws Exception {
+    public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() {
         // Arrange
         Properties mailProperties = new Properties();
         mailProperties.setProperty("mail.from", "agim.emruli@maildomain.com");
@@ -89,7 +88,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
     }
 
     @Test
-    public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() throws Exception {
+    public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() {
         // Arrange
         Session customSession = Session.getInstance(new Properties());
 
@@ -104,7 +103,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
     }
 
     @Test
-    public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() throws Exception {
+    public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() {
         // Arrange
         SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
         mailSender.setDefaultEncoding("ISO-8859-1");
@@ -118,7 +117,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
     }
 
     @Test
-    public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() throws Exception {
+    public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() {
         // Arrange
         SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
         mailSender.setDefaultFileTypeMap(FileTypeMap.getDefaultFileTypeMap());
@@ -146,7 +145,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 
     @Test
-    public void testSendMimeMessage() throws MessagingException, IOException {
+    public void testSendMimeMessage() throws MessagingException {
         AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -154,8 +153,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
         when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
         MimeMessage mimeMessage = createMimeMessage();
         mailSender.send(mimeMessage);
-        SendRawEmailRequest rawEmailRequest = request.getValue();
-        assertTrue(Arrays.equals(getMimeMessageAsByteArray(mimeMessage), rawEmailRequest.getRawMessage().getData().array()));
+        assertEquals("123", mimeMessage.getMessageID());
     }
 
     @Test
@@ -271,7 +269,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
     }
 
     @Test
-    public void testSendMailsWithExceptionWhilePreparing() throws Exception {
+    public void testSendMailsWithExceptionWhilePreparing() {
         AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
         JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -293,7 +291,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
             failureMessage = new MimeMessage(Session.getInstance(new Properties())) {
 
                 @Override
-                public void writeTo(OutputStream os) throws IOException, MessagingException {
+                public void writeTo(OutputStream os) throws MessagingException {
                     throw new MessagingException("exception");
                 }
             };

@@ -185,6 +185,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.getMessageId());
                 }
+                mimeMessage.setHeader("Message-ID", sendRawEmailResult.getMessageId());
             } catch (Exception e) {
                 //Ignore Exception because we are collecting and throwing all if any
                 //noinspection ThrowableResultOfMethodCallIgnored
