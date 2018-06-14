@@ -56,19 +56,17 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
     }
 
     @Override
-    protected ListableStackResourceFactory createInstance() throws Exception {
+    protected ListableStackResourceFactory createInstance() {
         String stackName = this.stackNameProvider.getStackName();
         return new StaticStackResourceRegistry(stackName, getResourceMappings("", stackName));
     }
 
     private Map<String, StackResource> getResourceMappings(String prefix, String stackName) {
-        ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
-        List<StackResourceSummary> stackResourceSummaries = listStackResourcesResult.getStackResourceSummaries();
 
-        Map<String, StackResource> stackResourceMappings = new HashMap<>();
+        List<StackResourceSummary> stackResourceSummaries = getStackResourceSummaries(stackName);
 
         Map<String, StackResource> current = convertToStackResourceMappings(prefix, stackResourceSummaries);
-        stackResourceMappings.putAll(current);
+        Map<String, StackResource> stackResourceMappings = new HashMap<>(current);
 
         for (Map.Entry<String, StackResource> e : current.entrySet()) {
             StackResource resource = e.getValue();
@@ -79,6 +77,21 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
         }
 
         return stackResourceMappings;
+    }
+
+    private List<StackResourceSummary> getStackResourceSummaries(String stackName) {
+        ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
+        if (!StringUtils.hasText(listStackResourcesResult.getNextToken())) {
+            return listStackResourcesResult.getStackResourceSummaries();
+        } else {
+            List<StackResourceSummary> result = new ArrayList<>(listStackResourcesResult.getStackResourceSummaries());
+            while (StringUtils.hasText(listStackResourcesResult.getNextToken())) {
+                listStackResourcesResult = this.amazonCloudFormationClient.listStackResources(new ListStackResourcesRequest().
+                        withStackName(stackName).withNextToken(listStackResourcesResult.getNextToken()));
+                result.addAll(listStackResourcesResult.getStackResourceSummaries());
+            }
+            return result;
+        }
     }
 
     private Map<String, StackResource> convertToStackResourceMappings(String prefix, List<StackResourceSummary> stackResourceSummaries) {

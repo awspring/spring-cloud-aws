@@ -17,8 +17,10 @@
 package org.springframework.cloud.aws.core.env.stack.config;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -36,7 +38,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StackResourceRegistryFactoryBeanTest {
@@ -59,6 +64,27 @@ public class StackResourceRegistryFactoryBeanTest {
         assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdOne"), is("physicalResourceIdOne"));
         assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"), is("physicalResourceIdTwo"));
     }
+
+    @Test
+    public void createInstance_stackWithNextTag_returnsStackResourceRegistryBuildWithTwoPages() throws Exception {
+        // Arrange
+        AmazonCloudFormation cloudFormationClient = mock(AmazonCloudFormation.class);
+        StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = new StackResourceRegistryFactoryBean(
+                cloudFormationClient, new StaticStackNameProvider(STACK_NAME));
+
+        when(cloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(STACK_NAME))).thenReturn(new ListStackResourcesResult().withNextToken("2").
+                withStackResourceSummaries(new StackResourceSummary().withLogicalResourceId("log1")));
+        when(cloudFormationClient.listStackResources(new ListStackResourcesRequest().withStackName(STACK_NAME).withNextToken("2"))).thenReturn(new ListStackResourcesResult().
+                withStackResourceSummaries(new StackResourceSummary().withLogicalResourceId("log2")));
+
+        // Act
+        ListableStackResourceFactory stackResourceFactory = stackResourceRegistryFactoryBean.createInstance();
+
+        // Assert
+        verify(cloudFormationClient, times(2)).listStackResources(isA(ListStackResourcesRequest.class));
+        Assert.assertEquals(2, stackResourceFactory.getAllResources().size());
+    }
+
 
     @Test
     public void createInstance_stackWithTwoResources_listsBothResources() throws Exception {
