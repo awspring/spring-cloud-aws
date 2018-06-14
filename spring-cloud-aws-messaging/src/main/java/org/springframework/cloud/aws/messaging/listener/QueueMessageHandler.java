@@ -27,11 +27,9 @@ import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgume
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.handler.HandlerMethod;
@@ -61,6 +59,7 @@ import java.util.Set;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
@@ -68,8 +67,16 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
     static final String LOGICAL_RESOURCE_ID = "LogicalResourceId";
     static final String ACKNOWLEDGMENT = "Acknowledgment";
     static final String VISIBILITY = "Visibility";
-    private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
-            "com.fasterxml.jackson.databind.ObjectMapper", QueueMessageHandler.class.getClassLoader());
+
+    private final List<MessageConverter> messageConverters;
+
+    public QueueMessageHandler(List<MessageConverter> messageConverters) {
+        this.messageConverters = messageConverters;
+    }
+
+    public QueueMessageHandler() {
+        this.messageConverters = Collections.emptyList();
+    }
 
     @Override
     protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
@@ -208,15 +215,7 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
     }
 
     private CompositeMessageConverter createPayloadArgumentCompositeConverter() {
-        List<MessageConverter> payloadArgumentConverters = new ArrayList<>();
-
-        if (JACKSON_2_PRESENT) {
-            MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
-            jacksonMessageConverter.setObjectMapper(Jackson2ObjectMapperBuilder.json().build());
-            jacksonMessageConverter.setSerializedPayloadClass(String.class);
-            jacksonMessageConverter.setStrictContentTypeMatch(true);
-            payloadArgumentConverters.add(jacksonMessageConverter);
-        }
+        List<MessageConverter> payloadArgumentConverters = new ArrayList<>(this.messageConverters);
 
         ObjectMessageConverter objectMessageConverter = new ObjectMessageConverter();
         objectMessageConverter.setStrictContentTypeMatch(true);
