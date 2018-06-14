@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
+import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -47,12 +49,17 @@ public abstract class PathMatchingResourceLoaderAwsTest {
     private static final List<String> FILES_FOR_HIERARCHY = Arrays.asList("foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt",
             "foo1/test1.txt", "test1.txt", "foo2/bar2/test2.txt", "foo2/bar2/baz2/test2.txt");
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
-    @Autowired
+
     private ResourcePatternResolver resourceLoader;
     @Autowired
     private AmazonS3 amazonS3;
     @Autowired
     private StackResourceRegistry stackResourceRegistry;
+
+    @Autowired
+    public void setupResolver(ApplicationContext applicationContext, AmazonS3 amazonS3) {
+        this.resourceLoader = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, applicationContext);
+    }
 
     @Test
     public void testWildcardsInKey() throws Exception {
@@ -122,7 +129,7 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             this.amazonS3.putObject(this.bucketName, this.fileName, new ByteArrayInputStream(this.fileName.getBytes()), new ObjectMetadata());
             return this.fileName;
         }
@@ -141,7 +148,7 @@ public abstract class PathMatchingResourceLoaderAwsTest {
         }
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             this.amazonS3.deleteObject(this.bucketName, this.fileName);
             return this.fileName;
         }

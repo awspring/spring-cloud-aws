@@ -39,16 +39,20 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
     private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
-    private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor";
+    private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer";
 
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
+
+        BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition("org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver");
+        resolverBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 
         if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-            builder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
+            resolverBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
                     element.getAttribute("task-executor"));
         }
+
+        builder.addConstructorArgValue(resolverBuilder.getBeanDefinition());
     }
 
     @Override

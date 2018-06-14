@@ -18,12 +18,9 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,18 +33,17 @@ public class ContextResourceLoaderAutoConfigurationTest {
     private AnnotationConfigApplicationContext context;
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (this.context != null) {
             this.context.close();
         }
     }
 
     @Test
-    public void createResourceLoader_withCustomTaskExecutorSettings_executorConfigured() throws Exception {
+    public void createResourceLoader_withCustomTaskExecutorSettings_executorConfigured() {
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextResourceLoaderAutoConfiguration.class);
-        this.context.register(ApplicationBean.class);
 
         TestPropertyValues.of("cloud.aws.loader.corePoolSize:10",
                 "cloud.aws.loader.maxPoolSize:20",
@@ -57,11 +53,8 @@ public class ContextResourceLoaderAutoConfigurationTest {
         this.context.refresh();
 
         //Assert
-        PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(ApplicationBean.class).getResourceLoader();
-        assertNotNull(resourceLoader);
-
-        SimpleStorageResourceLoader simpleStorageResourceLoader = (SimpleStorageResourceLoader) ReflectionTestUtils.getField(resourceLoader, "simpleStorageResourceLoader");
-        ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(simpleStorageResourceLoader, "taskExecutor");
+        SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context.getProtocolResolvers().iterator().next();
+        ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver, "taskExecutor");
         assertNotNull(taskExecutor);
 
         assertEquals(10, taskExecutor.getCorePoolSize());
@@ -70,33 +63,18 @@ public class ContextResourceLoaderAutoConfigurationTest {
     }
 
     @Test
-    public void createResourceLoader_withoutExecutorSettings_executorConfigured() throws Exception {
+    public void createResourceLoader_withoutExecutorSettings_executorConfigured() {
 
         //Arrange
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextResourceLoaderAutoConfiguration.class);
-        this.context.register(ApplicationBean.class);
 
         //Act
         this.context.refresh();
 
         //Assert
-        PathMatchingSimpleStorageResourcePatternResolver resourceLoader = this.context.getBean(ApplicationBean.class).getResourceLoader();
-        assertNotNull(resourceLoader);
-
-        SimpleStorageResourceLoader simpleStorageResourceLoader = (SimpleStorageResourceLoader) ReflectionTestUtils.getField(resourceLoader, "simpleStorageResourceLoader");
-        SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageResourceLoader, "taskExecutor");
+        SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context.getProtocolResolvers().iterator().next();
+        SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver, "taskExecutor");
         assertNotNull(taskExecutor);
-    }
-
-
-    static class ApplicationBean {
-
-        @Autowired
-        private ResourceLoader resourceLoader;
-
-        public PathMatchingSimpleStorageResourcePatternResolver getResourceLoader() {
-            return (PathMatchingSimpleStorageResourcePatternResolver) this.resourceLoader;
-        }
     }
 }

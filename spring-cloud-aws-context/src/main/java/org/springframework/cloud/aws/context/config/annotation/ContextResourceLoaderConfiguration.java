@@ -22,8 +22,9 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.context.support.io.ResourceLoaderBeanPostProcessor;
+import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -42,15 +43,21 @@ public class ContextResourceLoaderConfiguration {
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
             BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
 
-            BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-            beanDefinitionBuilder.addConstructorArgReference(client.getBeanName());
+            BeanDefinitionBuilder configurer = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);
+            configurer.addConstructorArgValue(getProtocolResolver(client));
+
+            BeanDefinitionReaderUtils.registerWithGeneratedName(configurer.getBeanDefinition(), registry);
+        }
+
+        protected BeanDefinition getProtocolResolver(BeanDefinitionHolder client) {
+            BeanDefinitionBuilder resolver = BeanDefinitionBuilder.rootBeanDefinition(SimpleStorageProtocolResolver.class);
+            resolver.addConstructorArgReference(client.getBeanName());
 
             BeanDefinition taskExecutor = getTaskExecutorDefinition();
             if (taskExecutor != null) {
-                beanDefinitionBuilder.addPropertyValue("taskExecutor", taskExecutor);
+                resolver.addPropertyValue("taskExecutor", taskExecutor);
             }
-
-            BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
+            return resolver.getBeanDefinition();
         }
 
         protected BeanDefinition getTaskExecutorDefinition() {

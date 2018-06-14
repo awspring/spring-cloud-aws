@@ -2137,15 +2137,20 @@ public class SimpleResourceLoadingBean {
 
 === Searching resources
 The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
-offers the same support to resolve resources within a bucket and even throughout buckets. The next example shows the resource
-resolution by using different patterns.
+offers the same support to resolve resources within a bucket and even throughout buckets. The actual resource loader needs
+to be wrapped with the Spring Cloud AWS one in order to search for s3 buckets, in case of non s3 bucket the resource loader
+will fall back to the original one. The next example shows the resource resolution by using different patterns.
 
 [source,java,indent=0]
 ----
 public class SimpleResourceLoadingBean {
 
-	@Autowired
- 	private ResourcePatternResolver resourcePatternResolver;
+	private ResourcePatternResolver resourcePatternResolver;
+
+ 	@Autowired
+    public void setupResolver(ApplicationContext applicationContext, AmazonS3 amazonS3){
+        this.resourcePatternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, applicationContext);
+    }
 
  	public void resolveAndLoad() throws IOException {
  		Resource[] allTxtFilesInFolder =  this.resourcePatternResolver.getResources("s3://bucket/name/*.txt");

@@ -25,7 +25,6 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
@@ -57,28 +56,24 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PathMatchingSimpleStorageResourcePatternResolver.class);
     private final AmazonS3 amazonS3;
-    private final ResourceLoader simpleStorageResourceLoader;
     private final ResourcePatternResolver resourcePatternResolverDelegate;
     private PathMatcher pathMatcher = new AntPathMatcher();
 
 
     /**
      * Construct a new instance of the {@link PathMatchingSimpleStorageResourcePatternResolver} with a
-     * {@link SimpleStorageResourceLoader} to load AmazonS3 instances, and also a delegate {@link ResourcePatternResolver}
+     * {@link SimpleStorageProtocolResolver} to load AmazonS3 instances, and also a delegate {@link ResourcePatternResolver}
      * to resolve resource on default path (like file and classpath)
      *
      * @param amazonS3
      *         - used to retrieve the directory listings
-     * @param simpleStorageResourceLoader
-     *         - used to retrieve object from amazon s3
      * @param resourcePatternResolverDelegate
      *         - delegate resolver used to resolve common path (file, classpath, servlet etc.)
      */
-    public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3, ResourceLoader simpleStorageResourceLoader,
+    public PathMatchingSimpleStorageResourcePatternResolver(AmazonS3 amazonS3,
                                                             ResourcePatternResolver resourcePatternResolverDelegate) {
         Assert.notNull(amazonS3, "Amazon S3 must not be null");
         this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
-        this.simpleStorageResourceLoader = simpleStorageResourceLoader;
         this.resourcePatternResolverDelegate = resourcePatternResolverDelegate;
     }
 
@@ -102,7 +97,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
                 LOGGER.debug("Found wildcard pattern in location {}", locationPattern);
                 return findPathMatchingResources(locationPattern);
             } else {
-                return new Resource[]{this.simpleStorageResourceLoader.getResource(locationPattern)};
+                return new Resource[]{this.resourcePatternResolverDelegate.getResource(locationPattern)};
             }
         } else {
             return this.resourcePatternResolverDelegate.getResources(locationPattern);
@@ -143,7 +138,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
             }
         } else {
             for (String matchingBucket : matchingBuckets) {
-                Resource resource = this.simpleStorageResourceLoader.getResource(SimpleStorageNameUtils.getLocationForBucketAndObject(matchingBucket, keyPattern));
+                Resource resource = this.resourcePatternResolverDelegate.getResource(SimpleStorageNameUtils.getLocationForBucketAndObject(matchingBucket, keyPattern));
                 if (resource.exists()) {
                     resources.add(resource);
                 }
@@ -261,7 +256,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
         for (S3ObjectSummary objectSummary : objectSummaries) {
             String keyPath = SimpleStorageNameUtils.getLocationForBucketAndObject(bucketName, objectSummary.getKey());
             if (this.pathMatcher.match(keyPattern, objectSummary.getKey())) {
-                Resource resource = this.simpleStorageResourceLoader.getResource(keyPath);
+                Resource resource = this.resourcePatternResolverDelegate.getResource(keyPath);
                 if (resource.exists()) {
                     resources.add(resource);
                 }
@@ -285,11 +280,11 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
 
     @Override
     public Resource getResource(String location) {
-        return this.simpleStorageResourceLoader.getResource(location);
+        return this.resourcePatternResolverDelegate.getResource(location);
     }
 
     @Override
     public ClassLoader getClassLoader() {
-        return this.simpleStorageResourceLoader.getClassLoader();
+        return this.resourcePatternResolverDelegate.getClassLoader();
     }
 }

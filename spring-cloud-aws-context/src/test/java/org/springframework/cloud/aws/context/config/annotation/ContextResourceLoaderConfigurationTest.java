@@ -20,9 +20,10 @@ package org.springframework.cloud.aws.context.config.annotation;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 
 import static org.junit.Assert.assertNotNull;
@@ -33,14 +34,14 @@ public class ContextResourceLoaderConfigurationTest {
     private AnnotationConfigApplicationContext context;
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (this.context != null) {
             this.context.close();
         }
     }
 
     @Test
-    public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() throws Exception {
+    public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
         //Arrange
         this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
 
@@ -50,7 +51,10 @@ public class ContextResourceLoaderConfigurationTest {
 
         //Assert
         assertNotNull(bean.getResourceLoader());
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(bean.getResourceLoader()));
+        assertTrue(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean.getResourceLoader();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @EnableContextResourceLoader

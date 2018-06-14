@@ -25,10 +25,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageResourceLoader;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -49,7 +50,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void parseInternal_defaultConfiguration_createsAmazonS3ClientWithoutRegionConfigured() throws Exception {
+    public void parseInternal_defaultConfiguration_createsAmazonS3ClientWithoutRegionConfigured() {
         //Arrange
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
@@ -57,11 +58,15 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
         ResourceLoader resourceLoader = applicationContext.getBean(ResourceLoaderBean.class).getResourceLoader();
 
         //Assert
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
+        assertTrue(DefaultResourceLoader.class.isInstance(resourceLoader));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) resourceLoader;
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
+
     }
 
     @Test
-    public void parseInternal_configurationWithRegion_createsAmazonS3ClientWithRegionConfigured() throws Exception {
+    public void parseInternal_configurationWithRegion_createsAmazonS3ClientWithRegionConfigured() {
         //Arrange
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withRegionConfigured.xml", getClass());
 
@@ -70,12 +75,15 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
         AmazonS3Client webServiceClient = applicationContext.getBean(AmazonS3Client.class);
 
         //Assert
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
         assertEquals(Region.getRegion(Regions.EU_WEST_1), webServiceClient.getRegion().toAWSRegion());
+
+        assertTrue(DefaultResourceLoader.class.isInstance(resourceLoader));
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) resourceLoader;
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @Test
-    public void parseInternal_configurationWithCustomRegionProvider_createsAmazonS3ClientWithRegionConfigured() throws Exception {
+    public void parseInternal_configurationWithCustomRegionProvider_createsAmazonS3ClientWithRegionConfigured() {
         //Arrange
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomRegionProvider.xml", getClass());
 
@@ -84,22 +92,26 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
         AmazonS3Client webServiceClient = applicationContext.getBean(AmazonS3Client.class);
 
         //Assert
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoader));
         assertEquals(Region.getRegion(Regions.US_WEST_2), webServiceClient.getRegion().toAWSRegion());
+
+        assertTrue(DefaultResourceLoader.class.isInstance(resourceLoader));
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) resourceLoader;
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @Test
-    public void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() throws Exception {
+    public void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() {
         //Arrange
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomTaskExecutor.xml", getClass());
 
         //Act
-        PathMatchingSimpleStorageResourcePatternResolver patterMatchingLoader = (PathMatchingSimpleStorageResourcePatternResolver) applicationContext.getBean(ResourceLoaderBean.class).getResourceLoader();
 
         //Assert
-        SimpleStorageResourceLoader resourceLoader = SimpleStorageResourceLoader.class.cast(ReflectionTestUtils.getField(patterMatchingLoader, "simpleStorageResourceLoader"));
+        assertTrue(DefaultResourceLoader.class.isInstance(applicationContext));
+        ProtocolResolver protocolResolver = applicationContext.getProtocolResolvers().iterator().next();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(protocolResolver));
 
-        assertSame(applicationContext.getBean("taskExecutor"), ReflectionTestUtils.getField(resourceLoader, "taskExecutor"));
+        assertSame(applicationContext.getBean("taskExecutor"), ReflectionTestUtils.getField(protocolResolver, "taskExecutor"));
     }
 
     @Test
@@ -108,22 +120,14 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-withCustomS3Client.xml", getClass());
 
         //Act
-        PathMatchingSimpleStorageResourcePatternResolver patternMatchingLoader = (PathMatchingSimpleStorageResourcePatternResolver) applicationContext.getBean(ResourceLoaderBean.class).getResourceLoader();
+        assertTrue(DefaultResourceLoader.class.isInstance(applicationContext));
+        ProtocolResolver protocolResolver = applicationContext.getProtocolResolvers().iterator().next();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(protocolResolver));
 
         //Assert that the proxied AmazonS2 instances are the same as the customS3Client in the app context.
         AmazonS3 customS3Client = applicationContext.getBean(AmazonS3.class);
 
-        AmazonS3 amazonS3FromPatternMatchingLoader = (AmazonS3) ReflectionTestUtils.getField(patternMatchingLoader, "amazonS3");
-
-        assertThat(AopUtils.isAopProxy(amazonS3FromPatternMatchingLoader), is(true));
-
-        Advised advised = (Advised) amazonS3FromPatternMatchingLoader;
-        AmazonS3 amazonS3WrappedInsidePatternMatchingLoader = (AmazonS3) advised.getTargetSource().getTarget();
-
-        assertSame(customS3Client, amazonS3WrappedInsidePatternMatchingLoader);
-
-        SimpleStorageResourceLoader resourceLoader = (SimpleStorageResourceLoader)
-                ReflectionTestUtils.getField(patternMatchingLoader, "simpleStorageResourceLoader");
+        SimpleStorageProtocolResolver resourceLoader = (SimpleStorageProtocolResolver) protocolResolver;
         AmazonS3 amazonS3FromResourceLoader = (AmazonS3) ReflectionTestUtils.getField(resourceLoader, "amazonS3");
 
         assertThat(AopUtils.isAopProxy(amazonS3FromResourceLoader), is(true));

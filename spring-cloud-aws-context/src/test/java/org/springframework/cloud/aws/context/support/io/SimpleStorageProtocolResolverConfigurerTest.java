@@ -21,10 +21,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 
 import static org.junit.Assert.assertNotNull;
@@ -35,10 +36,10 @@ import static org.springframework.beans.factory.support.BeanDefinitionReaderUtil
 /**
  *
  */
-public class ResourceLoaderTestBeanPostProcessorTest {
+public class SimpleStorageProtocolResolverConfigurerTest {
 
     @Test
-    public void postProcessBeans_beanWithFieldInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+    public void postProcessBeans_beanWithFieldInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
         //Arrange
         StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -52,11 +53,14 @@ public class ResourceLoaderTestBeanPostProcessorTest {
 
         //Assert
         assertNotNull(fieldInjectionTarget.getResourceLoader());
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(fieldInjectionTarget.getResourceLoader()));
+        assertTrue(DefaultResourceLoader.class.isInstance(fieldInjectionTarget.getResourceLoader()));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) fieldInjectionTarget.getResourceLoader();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @Test
-    public void postProcessBeans_beanWithMethodInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+    public void postProcessBeans_beanWithMethodInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
         //Arrange
         StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -71,11 +75,16 @@ public class ResourceLoaderTestBeanPostProcessorTest {
 
         //Assert
         assertNotNull(methodInjectionTarget.getResourceLoader());
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(methodInjectionTarget.getResourceLoader()));
+        assertTrue(DefaultResourceLoader.class.isInstance(methodInjectionTarget.getResourceLoader()));
+
+        assertTrue(DefaultResourceLoader.class.isInstance(methodInjectionTarget.getResourceLoader()));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) methodInjectionTarget.getResourceLoader();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @Test
-    public void postProcessBeans_beanWithConstructorInjectedResourceLoader_receivesSimpleStorageResourceLoader() throws Exception {
+    public void postProcessBeans_beanWithConstructorInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
         //Arrange
         StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -89,11 +98,16 @@ public class ResourceLoaderTestBeanPostProcessorTest {
 
         //Assert
         assertNotNull(constructorInjectionTarget.getResourceLoader());
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(constructorInjectionTarget.getResourceLoader()));
+        assertTrue(DefaultResourceLoader.class.isInstance(constructorInjectionTarget.getResourceLoader()));
+
+        assertTrue(DefaultResourceLoader.class.isInstance(constructorInjectionTarget.getResourceLoader()));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) constructorInjectionTarget.getResourceLoader();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     @Test
-    public void postProcessBeans_beanWithResourceLoaderAwareInterface_receivesSimpleStorageResourceLoader() throws Exception {
+    public void postProcessBeans_beanWithResourceLoaderAwareInterface_receivesSimpleStorageResourceLoader() {
         StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
         configureApplicationContext(staticApplicationContext);
@@ -103,7 +117,12 @@ public class ResourceLoaderTestBeanPostProcessorTest {
 
         ResourceLoaderAwareBean resourceLoaderAwareBean = staticApplicationContext.getBean(ResourceLoaderAwareBean.class);
         assertNotNull(resourceLoaderAwareBean.getResourceLoader());
-        assertTrue(PathMatchingSimpleStorageResourcePatternResolver.class.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+        assertTrue(DefaultResourceLoader.class.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+
+        assertTrue(DefaultResourceLoader.class.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+
+        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) resourceLoaderAwareBean.getResourceLoader();
+        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
     }
 
     private static void configureApplicationContext(StaticApplicationContext staticApplicationContext) {
@@ -111,8 +130,11 @@ public class ResourceLoaderTestBeanPostProcessorTest {
 
         AnnotationConfigUtils.registerAnnotationConfigProcessors(staticApplicationContext);
 
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResourceLoaderBeanPostProcessor.class);
-        builder.addConstructorArgValue(amazonS3Mock);
+        BeanDefinitionBuilder loader = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageProtocolResolver.class);
+        loader.addConstructorArgValue(amazonS3Mock);
+
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);
+        builder.addConstructorArgValue(loader.getBeanDefinition());
         AbstractBeanDefinition definition = builder.getBeanDefinition();
 
         staticApplicationContext.registerBeanDefinition(generateBeanName(definition, staticApplicationContext), definition);

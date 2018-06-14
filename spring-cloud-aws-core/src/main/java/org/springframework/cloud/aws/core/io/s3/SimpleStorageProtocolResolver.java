@@ -19,22 +19,20 @@ package org.springframework.cloud.aws.core.io.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Agim Emruli
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageResourceLoader implements ResourceLoader, InitializingBean {
+public class SimpleStorageProtocolResolver implements ProtocolResolver, InitializingBean {
 
     private final AmazonS3 amazonS3;
-    private final ResourceLoader delegate;
 
     /**
      * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
@@ -42,18 +40,8 @@ public class SimpleStorageResourceLoader implements ResourceLoader, Initializing
      */
     private TaskExecutor taskExecutor;
 
-    public SimpleStorageResourceLoader(AmazonS3 amazonS3, ResourceLoader delegate) {
+    public SimpleStorageProtocolResolver(AmazonS3 amazonS3) {
         this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
-        this.delegate = delegate;
-    }
-
-    public SimpleStorageResourceLoader(AmazonS3 amazonS3, ClassLoader classLoader) {
-        this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
-        this.delegate = new DefaultResourceLoader(classLoader);
-    }
-
-    public SimpleStorageResourceLoader(AmazonS3 amazonS3) {
-        this(amazonS3, ClassUtils.getDefaultClassLoader());
     }
 
     @RuntimeUse
@@ -62,25 +50,25 @@ public class SimpleStorageResourceLoader implements ResourceLoader, Initializing
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if (this.taskExecutor == null) {
             this.taskExecutor = new SyncTaskExecutor();
         }
     }
 
+
     @Override
-    public Resource getResource(String location) {
+    public Resource resolve(String location, ResourceLoader resourceLoader) {
         if (SimpleStorageNameUtils.isSimpleStorageResource(location)) {
             return new SimpleStorageResource(this.amazonS3, SimpleStorageNameUtils.getBucketNameFromLocation(location),
                     SimpleStorageNameUtils.getObjectNameFromLocation(location), this.taskExecutor,
                     SimpleStorageNameUtils.getVersionIdFromLocation(location));
+        } else {
+            return null;
         }
-
-        return this.delegate.getResource(location);
     }
 
-    @Override
-    public ClassLoader getClassLoader() {
-        return this.delegate.getClassLoader();
+    public AmazonS3 getAmazonS3() {
+        return this.amazonS3;
     }
 }
