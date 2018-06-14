@@ -103,6 +103,15 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParser extends AbstractB
     private static String getMessageHandlerBeanName(Element element, ParserContext parserContext, String sqsClientBeanName) {
         BeanDefinitionBuilder queueMessageHandlerDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class);
 
+        if (parserContext.getRegistry().containsBeanDefinition("jacksonObjectMapper")) {
+            queueMessageHandlerDefinitionBuilder.addConstructorArgReference("jacksonObjectMapper");
+        } else {
+            BeanDefinitionBuilder mapper = BeanDefinitionBuilder.genericBeanDefinition("org.springframework.messaging.converter.MappingJackson2MessageConverter");
+            mapper.addPropertyValue("serializedPayloadClass", "java.lang.String");
+            mapper.addPropertyValue("strictContentTypeMatch", true);
+            queueMessageHandlerDefinitionBuilder.addConstructorArgValue(mapper.getBeanDefinition());
+        }
+
         ManagedList<?> argumentResolvers = getArgumentResolvers(element, parserContext);
         if (!argumentResolvers.isEmpty()) {
             queueMessageHandlerDefinitionBuilder.addPropertyValue("customArgumentResolvers", argumentResolvers);
