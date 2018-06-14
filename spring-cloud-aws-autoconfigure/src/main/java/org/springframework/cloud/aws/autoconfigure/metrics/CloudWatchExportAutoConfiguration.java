@@ -23,6 +23,11 @@ import io.micrometer.cloudwatch.CloudWatchConfig;
 import io.micrometer.cloudwatch.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,10 +45,14 @@ import org.springframework.context.annotation.Import;
  *
  * @author Jon Schneider
  * @author Dawid Kublik
+ * @author Jan Sauer
  * @since 2.0.0
  */
 @Configuration
 @Import(ContextCredentialsAutoConfiguration.class)
+@AutoConfigureBefore({ CompositeMeterRegistryAutoConfiguration.class,
+        SimpleMetricsExportAutoConfiguration.class })
+@AutoConfigureAfter(MetricsAutoConfiguration.class)
 @EnableConfigurationProperties(CloudWatchProperties.class)
 @ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch", name = "namespace")
 @ConditionalOnClass({CloudWatchMeterRegistry.class, RegionProvider.class})
