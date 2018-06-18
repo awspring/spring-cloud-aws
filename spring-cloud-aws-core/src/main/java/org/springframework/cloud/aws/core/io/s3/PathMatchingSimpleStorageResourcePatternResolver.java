@@ -257,9 +257,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver implements Resourc
             String keyPath = SimpleStorageNameUtils.getLocationForBucketAndObject(bucketName, objectSummary.getKey());
             if (this.pathMatcher.match(keyPattern, objectSummary.getKey())) {
                 Resource resource = this.resourcePatternResolverDelegate.getResource(keyPath);
-                if (resource.exists()) {
-                    resources.add(resource);
-                }
+                resources.add(resource);
             }
         }
 
