@@ -66,11 +66,16 @@ final class SimpleStorageNameUtils {
             return getObjectNameFromLocation(location.substring(0, location.indexOf(VERSION_DELIMITER)));
         }
 
+        int endIndex = location.length();
         if (location.endsWith(PATH_DELIMITER)) {
-            return location.substring(++bucketEndIndex, location.length() - 1);
+            endIndex--;
         }
 
-        return location.substring(++bucketEndIndex, location.length());
+        if (bucketEndIndex >= endIndex) {
+            return "";
+        }
+
+        return location.substring(++bucketEndIndex, endIndex);
     }
 
     static String getVersionIdFromLocation(String location) {

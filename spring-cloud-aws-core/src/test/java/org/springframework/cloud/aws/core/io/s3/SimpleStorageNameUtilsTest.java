@@ -104,6 +104,7 @@ public class SimpleStorageNameUtilsTest {
     public void testGetObjectNameFromLocation() throws Exception {
         assertEquals("bar", getObjectNameFromLocation("s3://foo/bar"));
         assertEquals("ba*", getObjectNameFromLocation("s3://foo/ba*"));
+        assertEquals("", getObjectNameFromLocation("s3://foo/"));
         assertEquals("bar", getObjectNameFromLocation("s3://foo/bar^versionIdValue"));
 
         assertEquals("bar/baz/boo", getObjectNameFromLocation("s3://foo/bar/baz/boo/"));

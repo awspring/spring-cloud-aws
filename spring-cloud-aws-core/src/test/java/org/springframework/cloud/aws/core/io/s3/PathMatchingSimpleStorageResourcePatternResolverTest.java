@@ -68,6 +68,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
         ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
         assertEquals("test the single '*' wildcard", 2, resourceLoader.getResources("s3://myBucket/foo*/bar*/test.txt").length);
+        assertEquals("test the bucket name only", 1, resourceLoader.getResources("s3://myBucket/").length);
         assertEquals("test the '?' wildcard", 2, resourceLoader.getResources("s3://myBucke?/fooOne/ba?One/test.txt").length);
         assertEquals("test the double '**' wildcard", 5, resourceLoader.getResources("s3://myBucket/**/test.txt").length);
         assertEquals("test all together", 5, resourceLoader.getResources("s3://myBucke?/**/*.txt").length);
@@ -94,6 +95,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 
         assertEquals("Test that all parts are returned when object summaries are truncated", 5, resourceLoader.getResources("s3://myBucket/**/test.txt").length);
         assertEquals("Test that all parts are return when common prefixes are truncated", 1, resourceLoader.getResources("s3://myBucket/fooOne/ba*/test.txt").length);
+        assertEquals("Test that all parts are returned when only bucket name is used", 1, resourceLoader.getResources("s3://myBucket/").length);
     }
 
     private AmazonS3 prepareMockForTestTruncatedListings() {
