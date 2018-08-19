@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.StringUtils;
 
 import static com.amazonaws.auth.profile.internal.AwsProfileNameLoader.DEFAULT_PROFILE_NAME;
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerCredentialsProvider;
@@ -50,11 +51,12 @@ public class ContextCredentialsAutoConfiguration {
         @Override
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
             Boolean useDefaultCredentialsChain = this.environment.getProperty("cloud.aws.credentials.useDefaultAwsCredentialsChain", Boolean.class, false);
-            if (useDefaultCredentialsChain) {
+            String accessKey = this.environment.getProperty("cloud.aws.credentials.accessKey");
+            String secretKey = this.environment.getProperty("cloud.aws.credentials.secretKey");
+            if (useDefaultCredentialsChain && (StringUtils.isEmpty(accessKey) || StringUtils.isEmpty(secretKey))) {
                 registerDefaultAWSCredentialsProvider(registry);
             } else {
-                registerCredentialsProvider(registry, this.environment.getProperty("cloud.aws.credentials.accessKey"),
-                        this.environment.getProperty("cloud.aws.credentials.secretKey"),
+                registerCredentialsProvider(registry, accessKey, secretKey,
                         this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
                                 !this.environment.containsProperty("cloud.aws.credentials.accessKey"),
                         this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),

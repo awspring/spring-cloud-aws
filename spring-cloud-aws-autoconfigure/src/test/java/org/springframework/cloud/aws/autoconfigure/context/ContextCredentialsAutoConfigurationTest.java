@@ -74,6 +74,23 @@ public class ContextCredentialsAutoConfigurationTest {
 
 
     @Test
+    public void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider_existAccessKeyAndSecretKey() {
+        this.context = new AnnotationConfigApplicationContext();
+        this.context.register(ContextCredentialsAutoConfiguration.class);
+        TestPropertyValues.of(
+                "cloud.aws.credentials.accessKey:testAccessKey",
+                "cloud.aws.credentials.secretKey:testSecretKey",
+                "cloud.aws.credentials.useDefaultAwsCredentialsChain:true").applyTo(this.context);
+        this.context.refresh();
+
+        AWSCredentialsProvider awsCredentialsProvider = this.context.getBean(AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME, AWSCredentialsProvider.class);
+        assertNotNull(awsCredentialsProvider);
+
+        assertEquals("testAccessKey", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
+        assertEquals("testSecretKey", awsCredentialsProvider.getCredentials().getAWSSecretKey());
+    }
+
+    @Test
     public void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
         this.context = new AnnotationConfigApplicationContext();
         this.context.register(ContextCredentialsAutoConfiguration.class);
