@@ -45,7 +45,7 @@ public class AwsParamStoreProperties {
     private String prefix = "/config";
     @NotEmpty
     private String defaultContext = "application";
-    @NotNull @Pattern(regexp = "[a-zA-Z0-9.\\-_]+")
+    @NotNull @Pattern(regexp = "[a-zA-Z0-9.\\-_/]+")
     private String profileSeparator = "_";
 
     /** Throw exceptions during config lookup if true, otherwise, log warnings. */
