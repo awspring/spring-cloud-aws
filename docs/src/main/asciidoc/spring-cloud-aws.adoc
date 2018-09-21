@@ -40,6 +40,9 @@ which can be used with JDBC or any other support data access technology by Sprin
 point-to-point communication. Publish-subscribe messaging is supported with the integration of the http://aws.amazon.com/sns/[Simple Notification Service].
 * *Spring Cloud AWS Parameter Store Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store]
 as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
+* *Spring Cloud AWS Secrets Manager Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html[AWS Secrets Manager]
+as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
+
 
 == Basic setup
 Before using the Spring Cloud AWS module developers have to pick the dependencies and configure the Spring Cloud AWS module.
@@ -116,7 +119,7 @@ use of the modules. A typical XML configuration to use Spring Cloud AWS is outli
 ==== SDK credentials configuration
 In order to make calls to the Amazon Web Service the credentials must be configured for the the Amazon SDK. Spring Cloud AWS
 provides support to configure an application context specific credentials that are used for _each_ service call for requests done
-by Spring Cloud AWS components, with the exception of the Parameter Store Configuration.
+by Spring Cloud AWS components, with the exception of the Parameter Store and Secrets Manager Configuration.
 Therefore there must be *exactly one* configuration of the credentials for an entire application context.
 
 [TIP]
@@ -190,8 +193,8 @@ The access-key and secret-key are defined using a placeholder expressions along 
 errors if the properties are not configured at all.
 ====
 
-===== Parameter Store Configuration credentials and region configuration
-The Parameter Store Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
+===== Parameter Store and Secrets Manager Configuration credentials and region configuration
+The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
 client, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and `com.amazonaws.regions.DefaultAwsRegionProviderChain`.
 If you want to override this, then you need to
 http://cloud.spring.io/spring-cloud-static/Edgware.SR2/multi/multi__spring_cloud_context_application_context_services.html#_customizing_the_bootstrap_configuration[define your own Spring Cloud bootstrap configuration class]
@@ -663,6 +666,77 @@ You can configure the following settings in a Spring Cloud `bootstrap.properties
 |`aws.paramstore.enabled`
 |`true`
 |Can be used to disable the Parameter Store Configuration support even though the auto-configuration is on the classpath.
+|===
+
+=== Integrating your Spring Cloud application with the AWS Secrets Manager
+
+Spring Cloud provides support for centralized configuration, which can be read and made available as a regular Spring
+`PropertySource` when the application is started. The Secrets Manager Configuration allows you to use this mechanism
+with the https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html[AWS Secrets Manager].
+
+Simply add a dependency on the `spring-cloud-starter-aws-secrets-manager-config` starter module to activate the support.
+The support is similar to the support provided for the Spring Cloud Config Server or Consul's key-value store:
+configuration parameters can be defined to be shared across all services or for a specific service and can be
+profile-specific.
+
+All configuration parameters are retrieved from a common path prefix, which defaults to `/secret`. From there shared
+parameters are retrieved from a path that defaults to `application` and service-specific parameters use a path that
+defaults to the configured `spring.application.name`. You can use both dots and forward slashes to specify the names
+of configuration keys. Names of activated profiles will be appended to the path using a separator that defaults to an
+underscore.
+
+That means that for a service called `my-service` the module by default would find and use these parameters:
+[cols="2*", options="header"]
+|===
+|parameter key
+|description
+
+|`/secret/application`
+|Shared by all services that have the Configuration support enabled. Can be overridden with a service- or profile-specific property.
+
+|`/secret/application_production`
+|Shared by all services that have the Configuration support enabled and have a `production` Spring profile activated.
+ Can be overridden with a service-specific property.
+
+|`/secret/my-service`
+|Specific to the `my-service` service..
+
+|`/secret/my-service_production`
+|Specific to the `my-service` service when a `production` Spring profile is activated.
+|===
+
+You can configure the following settings in a Spring Cloud `bootstrap.properties` or `bootstrap.yml` file
+(note that relaxed property binding is applied, so you don't have to use this exact syntax):
+[cols="3*", options="header"]
+|===
+|property
+|default
+|explanation
+
+|`aws.secretsmanager.prefix`
+|`/secret`
+|Prefix indicating first level for every property loaded from the Secrets Manager.
+ Value must start with a forward slash followed by one or more valid path segments or be empty.
+
+|`aws.secretsmanager.defaultContext`
+|`application`
+|Name of the context that defines properties shared across all services
+
+|`aws.secretsmanager.profileSeparator`
+|`_`
+|String that separates an appended profile from the context name.
+
+|`aws.secretsmanager.failFast`
+|`true`
+|Indicates if an error while retrieving the secrets should fail starting the application.
+
+|`aws.secretsmanager.name`
+|the configured value for `spring.application.name`
+|Name to use when constructing the path for the properties to look up for this specific service.
+
+|`aws.secretsmanager.enabled`
+|`true`
+|Can be used to disable the Secrets Manager Configuration support even though the auto-configuration is on the classpath.
 |===
 
 == Managing cloud environments

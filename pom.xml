@@ -54,10 +54,12 @@
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-aws-actuator</module>
 		<module>spring-cloud-aws-parameter-store-config</module>
+		<module>spring-cloud-aws-secrets-manager-config</module>
 		<module>spring-cloud-starter-aws</module>
 		<module>spring-cloud-starter-aws-jdbc</module>
 		<module>spring-cloud-starter-aws-messaging</module>
 		<module>spring-cloud-starter-aws-parameter-store-config</module>
+		<module>spring-cloud-starter-aws-secrets-manager-config</module>
 		<module>docs</module>
 	</modules>
 
