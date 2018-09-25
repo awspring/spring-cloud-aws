@@ -30,7 +30,7 @@
 	<name>Spring Cloud AWS Dependencies</name>
 	<description>Spring Cloud AWS Dependencies</description>
 	<properties>
-		<aws-java-sdk.version>1.11.336</aws-java-sdk.version>
+		<aws-java-sdk.version>1.11.402</aws-java-sdk.version>
 		<elasticache.version>1.1.1</elasticache.version>
 		<jmemcached.version>1.0.0</jmemcached.version>
 		<spring-cloud-context.version>1.3.2.RELEASE</spring-cloud-context.version>
