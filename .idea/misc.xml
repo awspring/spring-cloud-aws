@@ -1,43 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="EntryPointsManager">
-    <entry_points version="2.0" />
-    <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="org.springframework.cloud.aws.core.support.documentation.RuntimeUse" />
-      <item index="1" class="java.lang.String" itemvalue="org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationMessageMapping" />
-      <item index="2" class="java.lang.String" itemvalue="org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationSubscriptionMapping" />
-      <item index="3" class="java.lang.String" itemvalue="org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping" />
-      <item index="4" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
-    </list>
-  </component>
-  <component name="FrameworkDetectionExcludesConfiguration">
-    <file type="web" url="file://$PROJECT_DIR$" />
-  </component>
-  <component name="IdProvider" IDEtalkID="8FF1EBBC0AF379FA888F1F4BEFA823A0" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/spring-cloud-aws-context/pom.xml" />
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-cloud-aws-integration-test/pom.xml" />
-        <option value="$PROJECT_DIR$/docs/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-cloud-aws-core/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-cloud-aws-jdbc/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-cloud-aws-messaging/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
-    <OptionsSetting value="true" id="Add" />
-    <OptionsSetting value="true" id="Remove" />
-    <OptionsSetting value="true" id="Checkout" />
-    <OptionsSetting value="true" id="Update" />
-    <OptionsSetting value="true" id="Status" />
-    <OptionsSetting value="true" id="Edit" />
-    <ConfirmationsSetting value="0" id="Add" />
-    <ConfirmationsSetting value="0" id="Remove" />
-  </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/build/classes" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/classes" />
   </component>
 </project>
