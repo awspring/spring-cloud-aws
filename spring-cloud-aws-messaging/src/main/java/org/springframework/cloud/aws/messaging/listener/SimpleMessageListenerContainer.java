@@ -149,7 +149,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
             if (queueSpinningThread != null) {
                 try {
-                    queueSpinningThread.get(getQueueStopTimeout(), TimeUnit.SECONDS);
+                    queueSpinningThread.get(getQueueStopTimeout(), TimeUnit.MILLISECONDS);
                 } catch (ExecutionException | TimeoutException e) {
                     getLogger().warn("An exception occurred while stopping queue '" + logicalQueueName + "'", e);
                 } catch (InterruptedException e) {
