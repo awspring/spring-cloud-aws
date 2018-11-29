@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Agim Emruli
@@ -251,6 +252,12 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
         public int compareTo(MappingInformation o) {
             return 0;
         }
+
+        @Override
+        public String toString() {
+            return logicalResourceIds.stream().collect(Collectors.joining(", "));
+        }
+
     }
 
     private static final class NoOpValidator implements Validator {
