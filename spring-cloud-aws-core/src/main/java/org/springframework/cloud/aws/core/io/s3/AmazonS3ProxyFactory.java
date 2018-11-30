@@ -54,7 +54,7 @@ public class AmazonS3ProxyFactory {
      *         change the underlying implementation.
      * @return AOP-Proxy that intercepts all method calls using the {@link SimpleStorageRedirectInterceptor}
      */
-    static AmazonS3 createProxy(AmazonS3 amazonS3) {
+    public static AmazonS3 createProxy(AmazonS3 amazonS3) {
         Assert.notNull(amazonS3, "AmazonS3 client must not be null");
 
         if (AopUtils.isAopProxy(amazonS3)) {

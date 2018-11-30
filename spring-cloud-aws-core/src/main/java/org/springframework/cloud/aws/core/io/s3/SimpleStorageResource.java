@@ -62,7 +62,7 @@ import java.util.concurrent.Future;
  * @author Alain Sahli
  * @since 1.0
  */
-class SimpleStorageResource extends AbstractResource implements WritableResource {
+public class SimpleStorageResource extends AbstractResource implements WritableResource {
 
     private final String bucketName;
     private final String objectName;
@@ -72,11 +72,11 @@ class SimpleStorageResource extends AbstractResource implements WritableResource
 
     private volatile ObjectMetadata objectMetadata;
 
-    SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
+    public SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
         this(amazonS3, bucketName, objectName, taskExecutor, null);
     }
 
-    SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor, String versionId) {
+    public SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor, String versionId) {
         this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
         this.bucketName = bucketName;
         this.objectName = objectName;
