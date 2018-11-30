@@ -19,8 +19,11 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
 import org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
@@ -34,9 +37,25 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ConditionalOnClass(name = "com.amazonaws.services.s3.AmazonS3Client")
 public class ContextResourceLoaderAutoConfiguration {
 
+	/**
+	 * The prefix used for properties related to S3 resource loading via the
+	 * ResourceLoader.
+	 */
+	public static final String AWS_LOADER_PROPERTY_PREFIX = "cloud.aws.loader";
+
+	/**
+	 * Bind AWS resource loader related properties to a property instance.
+	 *
+	 * @return An {@link AwsS3ResourceLoaderProperties} instance
+	 */
+	@Bean
+	@ConfigurationProperties(prefix = AWS_LOADER_PROPERTY_PREFIX)
+	public AwsS3ResourceLoaderProperties awsS3ResourceLoaderProperties() {
+		return new AwsS3ResourceLoaderProperties();
+	}
+
     public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {
 
-        private static final String PROPERTY_PREFIX = "cloud.aws.loader";
         private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
         private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
         private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
@@ -65,11 +84,11 @@ public class ContextResourceLoaderAutoConfiguration {
         }
 
         private boolean containsProperty(String name) {
-            return this.environment.containsProperty(PROPERTY_PREFIX + "." + name);
+            return this.environment.containsProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
         }
 
         private String getProperty(String name) {
-            return this.environment.getProperty(PROPERTY_PREFIX + "." + name);
+            return this.environment.getProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
         }
 
         private void setPropertyIfConfigured(BeanDefinitionBuilder builder, String name) {

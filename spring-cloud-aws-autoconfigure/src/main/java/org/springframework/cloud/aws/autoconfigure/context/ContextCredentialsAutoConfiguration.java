@@ -16,20 +16,23 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import static com.amazonaws.auth.profile.internal.AwsProfileNameLoader.DEFAULT_PROFILE_NAME;
+import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerCredentialsProvider;
+import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerDefaultAWSCredentialsProvider;
+
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.autoconfigure.context.properties.AwsCredentialsProperties;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.StringUtils;
-
-import static com.amazonaws.auth.profile.internal.AwsProfileNameLoader.DEFAULT_PROFILE_NAME;
-import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerCredentialsProvider;
-import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerDefaultAWSCredentialsProvider;
 
 /**
  * @author Agim Emruli
@@ -38,6 +41,22 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 @Import({ContextDefaultConfigurationRegistrar.class, ContextCredentialsAutoConfiguration.Registrar.class})
 @ConditionalOnClass(name = "com.amazonaws.auth.AWSCredentialsProvider")
 public class ContextCredentialsAutoConfiguration {
+
+	/**
+	 * The prefix used for AWS credentials related properties.
+	 */
+	public static final String AWS_CREDENTIALS_PROPERTY_PREFIX = "cloud.aws.credentials";
+
+	/**
+	 * Bind AWS credentials related properties to a property instance.
+	 *
+	 * @return An {@link AwsCredentialsProperties} instance
+	 */
+	@Bean
+	@ConfigurationProperties(prefix = AWS_CREDENTIALS_PROPERTY_PREFIX)
+	public AwsCredentialsProperties awsCredentialsProperties() {
+		return new AwsCredentialsProperties();
+	}
 
     public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
@@ -50,17 +69,17 @@ public class ContextCredentialsAutoConfiguration {
 
         @Override
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-            Boolean useDefaultCredentialsChain = this.environment.getProperty("cloud.aws.credentials.useDefaultAwsCredentialsChain", Boolean.class, false);
-            String accessKey = this.environment.getProperty("cloud.aws.credentials.accessKey");
-            String secretKey = this.environment.getProperty("cloud.aws.credentials.secretKey");
+            Boolean useDefaultCredentialsChain = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".useDefaultAwsCredentialsChain", Boolean.class, false);
+            String accessKey = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".accessKey");
+            String secretKey = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".secretKey");
             if (useDefaultCredentialsChain && (StringUtils.isEmpty(accessKey) || StringUtils.isEmpty(secretKey))) {
                 registerDefaultAWSCredentialsProvider(registry);
             } else {
                 registerCredentialsProvider(registry, accessKey, secretKey,
-                        this.environment.getProperty("cloud.aws.credentials.instanceProfile", Boolean.class, true) &&
-                                !this.environment.containsProperty("cloud.aws.credentials.accessKey"),
-                        this.environment.getProperty("cloud.aws.credentials.profileName", DEFAULT_PROFILE_NAME),
-                        this.environment.getProperty("cloud.aws.credentials.profilePath"));
+                        this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".instanceProfile", Boolean.class, true) &&
+                                !this.environment.containsProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".accessKey"),
+                        this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".profileName", DEFAULT_PROFILE_NAME),
+                        this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".profilePath"));
             }
         }
     }
