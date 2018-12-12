@@ -35,13 +35,16 @@ public enum DatabaseType {
     @RuntimeUse
     MARIA,
     @RuntimeUse
+    AURORA_POSTGRESQL,
+    @RuntimeUse
     AURORA;
 
 
     public static DatabaseType fromEngine(String engineName) {
         Assert.notNull(engineName, "Engine must not be null");
+        String lookupName = engineName.toUpperCase().replace("-", "_");
         for (DatabaseType databaseType : values()) {
-            if (engineName.toUpperCase().startsWith(databaseType.toString())) {
+            if (lookupName.startsWith(databaseType.toString())) {
                 return databaseType;
             }
         }
