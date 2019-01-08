@@ -36,7 +36,7 @@
 			db-instance-identifier="RdsSingleMicroInstance"
 			password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
 		<jdbc:pool-attributes initialSize="1"
-							  connectionProperties="logger=com.mysql.jdbc.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
+							  connectionProperties="logger=com.mysql.cj.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
 							  testOnBorrow="true" validationQuery="SELECT 1" />
 	</jdbc:data-source>
 
