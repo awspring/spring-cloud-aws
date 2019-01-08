@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.ec2.AmazonEC2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,6 +40,7 @@ import org.springframework.core.env.Environment;
 @Configuration
 @Import({ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class})
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
+@ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
 public class ContextStackAutoConfiguration {
 
     @Configuration
@@ -50,7 +52,6 @@ public class ContextStackAutoConfiguration {
 
         @Override
         @Bean
-        @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
         public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
             return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.environment.getProperty("cloud.aws.stack.name")));
         }
@@ -67,10 +68,8 @@ public class ContextStackAutoConfiguration {
 
         @Override
         @Bean
-        @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
         public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
             return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEC2));
         }
-
     }
 }
