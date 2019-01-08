@@ -43,7 +43,6 @@ public class ContextStackAutoConfiguration {
 
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.name")
-    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
     public static class StackManualDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired
@@ -51,6 +50,7 @@ public class ContextStackAutoConfiguration {
 
         @Override
         @Bean
+        @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
         public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
             return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.environment.getProperty("cloud.aws.stack.name")));
         }
@@ -60,7 +60,6 @@ public class ContextStackAutoConfiguration {
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
     @ConditionalOnAwsCloudEnvironment
-    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
     public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired(required = false)
@@ -68,6 +67,7 @@ public class ContextStackAutoConfiguration {
 
         @Override
         @Bean
+        @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
         public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
             return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEC2));
         }
