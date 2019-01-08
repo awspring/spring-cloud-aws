@@ -42,7 +42,7 @@ public final class ContextConfigurationUtils {
     private static final String POST_PROCESSOR_CLASS_NAME = "org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor";
     private static final String POST_PROCESSOR_BEAN_NAME = "AmazonEc2InstanceDataPropertySourcePostProcessor";
 
-    private static final String REGION_PROVIDER_BEAN_NAME = "regionProvider";
+    public static final String REGION_PROVIDER_BEAN_NAME = "regionProvider";
 
     private ContextConfigurationUtils() {
     }

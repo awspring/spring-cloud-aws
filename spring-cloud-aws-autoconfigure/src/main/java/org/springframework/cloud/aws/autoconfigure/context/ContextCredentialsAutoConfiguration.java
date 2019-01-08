@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.aws.autoconfigure.context.properties.AwsCredentialsProperties;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,6 +70,11 @@ public class ContextCredentialsAutoConfiguration {
 
         @Override
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            //Do not register a credentials provider if a bean with the same name is already registered.
+            if (registry.containsBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)) {
+                return;
+            }
+
             Boolean useDefaultCredentialsChain = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".useDefaultAwsCredentialsChain", Boolean.class, false);
             String accessKey = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".accessKey");
             String secretKey = this.environment.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".secretKey");

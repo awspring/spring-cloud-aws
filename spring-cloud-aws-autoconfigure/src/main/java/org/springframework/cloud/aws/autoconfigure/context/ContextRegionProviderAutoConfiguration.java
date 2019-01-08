@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerRegionProvider;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -63,6 +64,11 @@ public class ContextRegionProviderAutoConfiguration {
 
         @Override
         public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            //Do not register region provider if already existing
+            if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+                return;
+            }
+
             registerRegionProvider(registry, this.environment.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".auto", Boolean.class, true) &&
                             !StringUtils.hasText(this.environment.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static")),
                     this.environment.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static"));
