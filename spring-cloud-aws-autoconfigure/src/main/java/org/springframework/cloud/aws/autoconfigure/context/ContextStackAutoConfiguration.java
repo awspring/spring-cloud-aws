@@ -20,12 +20,14 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.ec2.AmazonEC2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.context.config.annotation.ContextStackConfiguration;
+import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
 import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
@@ -40,11 +42,12 @@ import org.springframework.core.env.Environment;
 @Configuration
 @Import({ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class})
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
+@ConditionalOnMissingBean(StackResourceRegistry.class)
 public class ContextStackAutoConfiguration {
 
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.name")
-    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
+    @AutoConfigureBefore(StackAutoDetectConfiguration.class)
     public static class StackManualDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired
@@ -60,9 +63,8 @@ public class ContextStackAutoConfiguration {
 
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
-    @AutoConfigureAfter(StackManualDetectConfiguration.class)
     @ConditionalOnAwsCloudEnvironment
-    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
+    @AutoConfigureAfter(StackManualDetectConfiguration.class)
     public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired(required = false)
