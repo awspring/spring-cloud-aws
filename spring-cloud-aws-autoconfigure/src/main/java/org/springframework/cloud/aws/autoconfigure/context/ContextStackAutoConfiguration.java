@@ -40,11 +40,11 @@ import org.springframework.core.env.Environment;
 @Configuration
 @Import({ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class})
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
-@ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
 public class ContextStackAutoConfiguration {
 
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.name")
+    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
     public static class StackManualDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired
@@ -60,7 +60,9 @@ public class ContextStackAutoConfiguration {
 
     @Configuration
     @ConditionalOnProperty(prefix = "cloud.aws", name = "stack.auto", havingValue = "true", matchIfMissing = true)
+    @AutoConfigureAfter(StackManualDetectConfiguration.class)
     @ConditionalOnAwsCloudEnvironment
+    @ConditionalOnMissingBean(StackResourceRegistryFactoryBean.class)
     public static class StackAutoDetectConfiguration extends ContextStackConfiguration {
 
         @Autowired(required = false)
