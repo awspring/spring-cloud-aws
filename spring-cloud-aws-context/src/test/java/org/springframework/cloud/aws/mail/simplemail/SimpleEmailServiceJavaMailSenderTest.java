@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,19 @@
 
 package org.springframework.cloud.aws.mail.simplemail;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
+
+import javax.activation.FileTypeMap;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
@@ -23,24 +36,13 @@ import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-
-import javax.activation.FileTypeMap;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,268 +59,296 @@ import static org.mockito.Mockito.when;
  */
 public class SimpleEmailServiceJavaMailSenderTest {
 
-    @Test
-    public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() {
-        // Arrange
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+	@Test
+	public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() {
+		// Arrange
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
-        // Act
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-        // Assert
-        assertNotNull(mimeMessage);
-        assertEquals(0, mimeMessage.getSession().getProperties().size());
-    }
+		// Assert
+		assertNotNull(mimeMessage);
+		assertEquals(0, mimeMessage.getSession().getProperties().size());
+	}
 
-    @Test
-    public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() {
-        // Arrange
-        Properties mailProperties = new Properties();
-        mailProperties.setProperty("mail.from", "agim.emruli@maildomain.com");
+	@Test
+	public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() {
+		// Arrange
+		Properties mailProperties = new Properties();
+		mailProperties.setProperty("mail.from", "agim.emruli@maildomain.com");
 
-        SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
-        mailSender.setJavaMailProperties(mailProperties);
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
+				null);
+		mailSender.setJavaMailProperties(mailProperties);
 
-        // Act
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-        // Assert
-        assertNotNull(mimeMessage);
-        assertEquals("agim.emruli@maildomain.com", mimeMessage.getSession().getProperty("mail.from"));
-    }
+		// Assert
+		assertNotNull(mimeMessage);
+		assertEquals("agim.emruli@maildomain.com",
+				mimeMessage.getSession().getProperty("mail.from"));
+	}
 
-    @Test
-    public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() {
-        // Arrange
-        Session customSession = Session.getInstance(new Properties());
+	@Test
+	public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() {
+		// Arrange
+		Session customSession = Session.getInstance(new Properties());
 
-        SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
-        mailSender.setSession(customSession);
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
+				null);
+		mailSender.setSession(customSession);
 
-        // Act
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-        // Assert
-        assertSame(customSession, mimeMessage.getSession());
-    }
+		// Assert
+		assertSame(customSession, mimeMessage.getSession());
+	}
 
-    @Test
-    public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() {
-        // Arrange
-        SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
-        mailSender.setDefaultEncoding("ISO-8859-1");
+	@Test
+	public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() {
+		// Arrange
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
+				null);
+		mailSender.setDefaultEncoding("ISO-8859-1");
 
-        // Act
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 
-        // Assert
-        assertEquals("ISO-8859-1", mimeMessageHelper.getEncoding());
-    }
+		// Assert
+		assertEquals("ISO-8859-1", mimeMessageHelper.getEncoding());
+	}
 
-    @Test
-    public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() {
-        // Arrange
-        SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
-        mailSender.setDefaultFileTypeMap(FileTypeMap.getDefaultFileTypeMap());
+	@Test
+	public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() {
+		// Arrange
+		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
+				null);
+		mailSender.setDefaultFileTypeMap(FileTypeMap.getDefaultFileTypeMap());
 
-        // Act
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+		// Act
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 
-        // Assert
-        assertNotNull("ISO-8859-1", mimeMessageHelper.getFileTypeMap());
-    }
+		// Assert
+		assertNotNull("ISO-8859-1", mimeMessageHelper.getFileTypeMap());
+	}
 
-    @Test
-    public void testCreateMimeMessageFromPreDefinedMessage() throws Exception {
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
+	@Test
+	public void testCreateMimeMessageFromPreDefinedMessage() throws Exception {
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
-        MimeMessage original = createMimeMessage();
+		MimeMessage original = createMimeMessage();
 
-        MimeMessage mimeMessage = mailSender.createMimeMessage(new ByteArrayInputStream(getMimeMessageAsByteArray(original)));
-        assertNotNull(mimeMessage);
-        assertEquals(original.getSubject(), mimeMessage.getSubject());
-        assertEquals(original.getContent(), mimeMessage.getContent());
-        assertEquals(original.getRecipients(Message.RecipientType.TO)[0], mimeMessage.getRecipients(Message.RecipientType.TO)[0]);
-    }
+		MimeMessage mimeMessage = mailSender.createMimeMessage(
+				new ByteArrayInputStream(getMimeMessageAsByteArray(original)));
+		assertNotNull(mimeMessage);
+		assertEquals(original.getSubject(), mimeMessage.getSubject());
+		assertEquals(original.getContent(), mimeMessage.getContent());
+		assertEquals(original.getRecipients(Message.RecipientType.TO)[0],
+				mimeMessage.getRecipients(Message.RecipientType.TO)[0]);
+	}
 
+	@Test
+	public void testSendMimeMessage() throws MessagingException {
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-    @Test
-    public void testSendMimeMessage() throws MessagingException {
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor
+				.forClass(SendRawEmailRequest.class);
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(new SendRawEmailResult().withMessageId("123"));
+		MimeMessage mimeMessage = createMimeMessage();
+		mailSender.send(mimeMessage);
+		assertEquals("123", mimeMessage.getMessageID());
+	}
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
-        ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-        when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
-        MimeMessage mimeMessage = createMimeMessage();
-        mailSender.send(mimeMessage);
-        assertEquals("123", mimeMessage.getMessageID());
-    }
+	@Test
+	public void testSendMultipleMimeMessages() throws Exception {
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-    @Test
-    public void testSendMultipleMimeMessages() throws Exception {
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
+				.thenReturn(new SendRawEmailResult().withMessageId("123"));
+		mailSender.send(createMimeMessage(), createMimeMessage());
+		verify(emailService, times(2))
+				.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class));
+	}
 
+	@Test
+	public void testSendMailWithMimeMessagePreparator() throws Exception {
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-        when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class))).thenReturn(new SendRawEmailResult().withMessageId("123"));
-        mailSender.send(createMimeMessage(), createMimeMessage());
-        verify(emailService, times(2)).sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class));
-    }
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-    @Test
-    public void testSendMailWithMimeMessagePreparator() throws Exception {
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		MimeMessagePreparator preparator = mimeMessage -> {
+			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+			mimeMessageHelper.setTo("to@domain.com");
+			mimeMessageHelper.setSubject("subject");
+			mimeMessageHelper.setText("body");
+		};
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor
+				.forClass(SendRawEmailRequest.class);
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(new SendRawEmailResult().withMessageId("123"));
 
-        MimeMessagePreparator preparator = mimeMessage -> {
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-            mimeMessageHelper.setTo("to@domain.com");
-            mimeMessageHelper.setSubject("subject");
-            mimeMessageHelper.setText("body");
-        };
+		mailSender.send(preparator);
 
-        ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-        when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
+		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
+				new ByteArrayInputStream(
+						request.getValue().getRawMessage().getData().array()));
+		assertEquals("to@domain.com",
+				mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
+		assertEquals("subject", mimeMessage.getSubject());
+		assertEquals("body", mimeMessage.getContent());
+	}
 
-        mailSender.send(preparator);
+	@Test
+	public void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
 
-        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()), new ByteArrayInputStream(request.getValue().getRawMessage().getData().array()));
-        assertEquals("to@domain.com", mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
-        assertEquals("subject", mimeMessage.getSubject());
-        assertEquals("body", mimeMessage.getContent());
-    }
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-    @Test
-    public void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		MimeMessagePreparator[] preparators = new MimeMessagePreparator[3];
+		preparators[0] = mimeMessage -> {
+			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+			mimeMessageHelper.setTo("to@domain.com");
+		};
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		preparators[1] = mimeMessage -> {
+			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+			mimeMessageHelper.setSubject("subject");
+		};
 
-        MimeMessagePreparator[] preparators = new MimeMessagePreparator[3];
-        preparators[0] = mimeMessage -> {
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-            mimeMessageHelper.setTo("to@domain.com");
-        };
+		preparators[2] = mimeMessage -> {
+			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+			mimeMessageHelper.setText("body");
+		};
 
-        preparators[1] = mimeMessage -> {
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-            mimeMessageHelper.setSubject("subject");
-        };
+		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor
+				.forClass(SendRawEmailRequest.class);
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(new SendRawEmailResult().withMessageId("123"));
 
-        preparators[2] = mimeMessage -> {
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-            mimeMessageHelper.setText("body");
-        };
+		mailSender.send(preparators);
 
-        ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-        when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
+		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
+				new ByteArrayInputStream(
+						request.getValue().getRawMessage().getData().array()));
+		assertEquals("to@domain.com",
+				mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
+		assertEquals("subject", mimeMessage.getSubject());
+		assertEquals("body", mimeMessage.getContent());
 
-        mailSender.send(preparators);
+	}
 
-        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()), new ByteArrayInputStream(request.getValue().getRawMessage().getData().array()));
-        assertEquals("to@domain.com", mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
-        assertEquals("subject", mimeMessage.getSubject());
-        assertEquals("body", mimeMessage.getContent());
+	@Test
+	public void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
+		InputStream inputStream = mock(InputStream.class);
 
-    }
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-    @Test
-    public void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
-        InputStream inputStream = mock(InputStream.class);
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		IOException ioException = new IOException("error");
+		when(inputStream.read(ArgumentMatchers.any(byte[].class),
+				ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
+						.thenThrow(ioException);
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		try {
+			mailSender.createMimeMessage(inputStream);
+			fail("MailPreparationException expected due to error while creating mail");
+		}
+		catch (MailParseException e) {
+			assertTrue(e.getMessage().startsWith("Could not parse raw MIME content"));
+			assertSame(ioException, e.getCause().getCause());
+		}
+	}
 
-        IOException ioException = new IOException("error");
-        when(inputStream.read(ArgumentMatchers.any(byte[].class), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenThrow(ioException);
+	@Test
+	public void testSendMultipleMailsWithException() throws Exception {
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-        try {
-            mailSender.createMimeMessage(inputStream);
-            fail("MailPreparationException expected due to error while creating mail");
-        } catch (MailParseException e) {
-            assertTrue(e.getMessage().startsWith("Could not parse raw MIME content"));
-            assertSame(ioException, e.getCause().getCause());
-        }
-    }
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-    @Test
-    public void testSendMultipleMailsWithException() throws Exception {
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		MimeMessage failureMail = createMimeMessage();
+		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
+				.thenReturn(new SendRawEmailResult())
+				.thenThrow(new AmazonClientException("error"))
+				.thenReturn(new SendRawEmailResult());
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		try {
+			mailSender.send(createMimeMessage(), failureMail, createMimeMessage());
+			fail("Exception expected due to error while sending mail");
+		}
+		catch (MailSendException e) {
+			assertEquals(1, e.getFailedMessages().size());
+			assertTrue(e.getFailedMessages().containsKey(failureMail));
+		}
+	}
 
-        MimeMessage failureMail = createMimeMessage();
-        when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class))).
-                thenReturn(new SendRawEmailResult()).
-                thenThrow(new AmazonClientException("error")).
-                thenReturn(new SendRawEmailResult());
+	@Test
+	public void testSendMailsWithExceptionWhilePreparing() {
+		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
-        try {
-            mailSender.send(createMimeMessage(), failureMail, createMimeMessage());
-            fail("Exception expected due to error while sending mail");
-        } catch (MailSendException e) {
-            assertEquals(1, e.getFailedMessages().size());
-            assertTrue(e.getFailedMessages().containsKey(failureMail));
-        }
-    }
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-    @Test
-    public void testSendMailsWithExceptionWhilePreparing() {
-        AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		MimeMessage mimeMessage = null;
+		try {
+			mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+			mailSender.send(new MimeMessage[] { mimeMessage });
+			fail("Exception expected due to error while sending mail");
+		}
+		catch (MailSendException e) {
+			// expected due to empty mail message
+			assertEquals(1, e.getFailedMessages().size());
+			// noinspection ThrowableResultOfMethodCallIgnored
+			assertTrue(e.getFailedMessages()
+					.get(mimeMessage) instanceof MailPreparationException);
+		}
 
-        JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		MimeMessage failureMessage = null;
+		try {
+			failureMessage = new MimeMessage(Session.getInstance(new Properties())) {
 
-        MimeMessage mimeMessage = null;
-        try {
-            mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-            mailSender.send(new MimeMessage[]{mimeMessage});
-            fail("Exception expected due to error while sending mail");
-        } catch (MailSendException e) {
-            //expected due to empty mail message
-            assertEquals(1, e.getFailedMessages().size());
-            //noinspection ThrowableResultOfMethodCallIgnored
-            assertTrue(e.getFailedMessages().get(mimeMessage) instanceof MailPreparationException);
-        }
+				@Override
+				public void writeTo(OutputStream os) throws MessagingException {
+					throw new MessagingException("exception");
+				}
+			};
+			mailSender.send(new MimeMessage[] { failureMessage });
+			fail("Exception expected due to error while sending mail");
+		}
+		catch (MailSendException e) {
+			// expected due to exception writing message
+			assertEquals(1, e.getFailedMessages().size());
+			// noinspection ThrowableResultOfMethodCallIgnored
+			assertTrue(e.getFailedMessages()
+					.get(failureMessage) instanceof MailParseException);
+		}
+	}
 
-        MimeMessage failureMessage = null;
-        try {
-            failureMessage = new MimeMessage(Session.getInstance(new Properties())) {
+	private MimeMessage createMimeMessage() throws MessagingException {
+		MimeMessage message = new MimeMessage(Session.getInstance(new Properties()));
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
+		mimeMessageHelper.addTo("to@domain.com");
+		mimeMessageHelper.setText("body text");
+		mimeMessageHelper.setSubject("subject");
+		mimeMessageHelper.getMimeMessage().saveChanges();
+		return message;
+	}
 
-                @Override
-                public void writeTo(OutputStream os) throws MessagingException {
-                    throw new MessagingException("exception");
-                }
-            };
-            mailSender.send(new MimeMessage[]{failureMessage});
-            fail("Exception expected due to error while sending mail");
-        } catch (MailSendException e) {
-            //expected due to exception writing message
-            assertEquals(1, e.getFailedMessages().size());
-            //noinspection ThrowableResultOfMethodCallIgnored
-            assertTrue(e.getFailedMessages().get(failureMessage) instanceof MailParseException);
-        }
-    }
-
-    private MimeMessage createMimeMessage() throws MessagingException {
-        MimeMessage message = new MimeMessage(Session.getInstance(new Properties()));
-        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
-        mimeMessageHelper.addTo("to@domain.com");
-        mimeMessageHelper.setText("body text");
-        mimeMessageHelper.setSubject("subject");
-        mimeMessageHelper.getMimeMessage().saveChanges();
-        return message;
-    }
-
-    private byte[] getMimeMessageAsByteArray(MimeMessage mimeMessage) throws IOException, MessagingException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        mimeMessage.writeTo(os);
-        return os.toByteArray();
-    }
+	private byte[] getMimeMessageAsByteArray(MimeMessage mimeMessage)
+			throws IOException, MessagingException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		mimeMessage.writeTo(os);
+		return os.toByteArray();
+	}
 
 }

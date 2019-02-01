@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,51 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 import static org.springframework.cloud.aws.messaging.config.xml.BufferedSqsClientBeanDefinitionUtils.getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName;
 
 /**
  * @author Alain Sahli
  */
-public class QueueMessagingTemplateBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+public class QueueMessagingTemplateBeanDefinitionParser
+		extends AbstractSingleBeanDefinitionParser {
 
-    private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
-    private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
+	private static final String DEFAULT_DESTINATION_ATTRIBUTE = "default-destination";
 
-    @Override
-    protected Class<?> getBeanClass(Element element) {
-        return QueueMessagingTemplate.class;
-    }
+	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(element, parserContext);
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return QueueMessagingTemplate.class;
+	}
 
-        if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
-            builder.addPropertyValue("defaultDestinationName", element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
-        }
+	@Override
+	protected void doParse(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+		String amazonSqsClientBeanName = getCustomAmazonSqsClientOrDecoratedDefaultSqsClientBeanName(
+				element, parserContext);
 
-        builder.addConstructorArgReference(amazonSqsClientBeanName);
-        builder.addConstructorArgReference(GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+		if (StringUtils.hasText(element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE))) {
+			builder.addPropertyValue("defaultDestinationName",
+					element.getAttribute(DEFAULT_DESTINATION_ATTRIBUTE));
+		}
 
-        if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-            builder.addConstructorArgReference(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
-        }
-    }
+		builder.addConstructorArgReference(amazonSqsClientBeanName);
+		builder.addConstructorArgReference(GlobalBeanDefinitionUtils
+				.retrieveResourceIdResolverBeanName(parserContext.getRegistry()));
+
+		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
+			builder.addConstructorArgReference(
+					element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE));
+		}
+	}
 
 }

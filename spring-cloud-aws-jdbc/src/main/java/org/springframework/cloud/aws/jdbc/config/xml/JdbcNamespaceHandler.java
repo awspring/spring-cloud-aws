@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.cloud.aws.jdbc.config.xml;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
-
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the Spring Cloud AWS jdbc namespace.
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the
+ * Spring Cloud AWS jdbc namespace.
  *
  * @author Agim Emruli
  * @since 1.0
@@ -29,9 +29,12 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 @RuntimeUse
 public class JdbcNamespaceHandler extends NamespaceHandlerSupport {
 
-    @Override
-    public void init() {
-        registerBeanDefinitionParser("data-source", new AmazonRdsDataSourceBeanDefinitionParser());
-        registerBeanDefinitionParser("retry-interceptor", new AmazonRdsRetryInterceptorBeanDefinitionParser());
-    }
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("data-source",
+				new AmazonRdsDataSourceBeanDefinitionParser());
+		registerBeanDefinitionParser("retry-interceptor",
+				new AmazonRdsRetryInterceptorBeanDefinitionParser());
+	}
+
 }

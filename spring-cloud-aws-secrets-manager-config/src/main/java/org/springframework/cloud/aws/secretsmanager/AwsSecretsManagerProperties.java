@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package org.springframework.cloud.aws.secretsmanager;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
 /**
- * Configuration properties for the AWS Secrets Manager integration.
- * Mostly based on the Spring Cloud Consul Configuration equivalent.
+ * Configuration properties for the AWS Secrets Manager integration. Mostly based on the
+ * Spring Cloud Consul Configuration equivalent.
  *
  * @author Fabio Maia
  * @since 2.0.0
@@ -34,74 +34,84 @@ import javax.validation.constraints.Pattern;
 @Validated
 public class AwsSecretsManagerProperties {
 
-    public static final String CONFIG_PREFIX = "aws.secretsmanager";
+	/**
+	 * Configuration prefix.
+	 */
+	public static final String CONFIG_PREFIX = "aws.secretsmanager";
 
-    /**
-     * Prefix indicating first level for every property.
-     * Value must start with a forward slash followed by a valid path segment or be empty.
-     * Defaults to "/config".
-     */
-    @NotNull @Pattern(regexp = "(/[a-zA-Z0-9.\\-_]+)*")
-    private String prefix = "/secret";
-    @NotEmpty
-    private String defaultContext = "application";
-    @NotNull @Pattern(regexp = "[a-zA-Z0-9.\\-_]+")
-    private String profileSeparator = "_";
+	/**
+	 * Prefix indicating first level for every property. Value must start with a forward
+	 * slash followed by a valid path segment or be empty. Defaults to "/config".
+	 */
+	@NotNull
+	@Pattern(regexp = "(/[a-zA-Z0-9.\\-_]+)*")
+	private String prefix = "/secret";
 
-    /** Throw exceptions during config lookup if true, otherwise, log warnings. */
-    private boolean failFast = true;
+	@NotEmpty
+	private String defaultContext = "application";
 
-    /** Alternative to spring.application.name to use in looking up values in AWS Secrets Manager. */
-    private String name;
+	@NotNull
+	@Pattern(regexp = "[a-zA-Z0-9.\\-_]+")
+	private String profileSeparator = "_";
 
-    /** Is AWS Secrets Manager support enabled. */
-    private boolean enabled = true;
+	/** Throw exceptions during config lookup if true, otherwise, log warnings. */
+	private boolean failFast = true;
 
-    public String getPrefix() {
-        return prefix;
-    }
+	/**
+	 * Alternative to spring.application.name to use in looking up values in AWS Secrets
+	 * Manager.
+	 */
+	private String name;
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
+	/** Is AWS Secrets Manager support enabled. */
+	private boolean enabled = true;
 
-    public String getDefaultContext() {
-        return defaultContext;
-    }
+	public String getPrefix() {
+		return prefix;
+	}
 
-    public void setDefaultContext(String defaultContext) {
-        this.defaultContext = defaultContext;
-    }
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
 
-    public String getProfileSeparator() {
-        return profileSeparator;
-    }
+	public String getDefaultContext() {
+		return defaultContext;
+	}
 
-    public void setProfileSeparator(String profileSeparator) {
-        this.profileSeparator = profileSeparator;
-    }
+	public void setDefaultContext(String defaultContext) {
+		this.defaultContext = defaultContext;
+	}
 
-    public boolean isFailFast() {
-        return failFast;
-    }
+	public String getProfileSeparator() {
+		return profileSeparator;
+	}
 
-    public void setFailFast(boolean failFast) {
-        this.failFast = failFast;
-    }
+	public void setProfileSeparator(String profileSeparator) {
+		this.profileSeparator = profileSeparator;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public boolean isFailFast() {
+		return failFast;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setFailFast(boolean failFast) {
+		this.failFast = failFast;
+	}
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
 }

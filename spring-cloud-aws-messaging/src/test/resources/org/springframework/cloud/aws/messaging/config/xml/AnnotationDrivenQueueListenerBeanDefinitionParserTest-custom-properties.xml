@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
-	<aws-messaging:annotation-driven-queue-listener auto-startup="false" max-number-of-messages="9"
+	<aws-messaging:annotation-driven-queue-listener auto-startup="false"
+													max-number-of-messages="9"
 													visibility-timeout="6"
-													wait-time-out="3" />
+													wait-time-out="3"/>
 
 	<aws-context:context-credentials>
-		<aws-context:instance-profile-credentials />
+		<aws-context:instance-profile-credentials/>
 	</aws-context:context-credentials>
 
 </beans>

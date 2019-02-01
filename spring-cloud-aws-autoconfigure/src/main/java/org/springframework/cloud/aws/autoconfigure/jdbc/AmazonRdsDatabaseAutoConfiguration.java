@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  */
 
 package org.springframework.cloud.aws.autoconfigure.jdbc;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -34,10 +38,6 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author Agim Emruli
  * @author Alain Sahli
@@ -45,68 +45,89 @@ import java.util.Map;
 @Configuration
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
-@ConditionalOnClass(name = {"com.amazonaws.services.rds.AmazonRDSClient",
-        "org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration"})
+@ConditionalOnClass(name = { "com.amazonaws.services.rds.AmazonRDSClient",
+		"org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration" })
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
 public class AmazonRdsDatabaseAutoConfiguration {
 
-    public static class Registrar extends AmazonRdsInstanceConfiguration.AbstractRegistrar implements EnvironmentAware {
+	/**
+	 * Registrar for Amazon RDS.
+	 */
+	public static class Registrar extends AmazonRdsInstanceConfiguration.AbstractRegistrar
+			implements EnvironmentAware {
 
-        private static final String PREFIX = "cloud.aws.rds";
+		private static final String PREFIX = "cloud.aws.rds";
 
-        private ConfigurableEnvironment environment;
+		private ConfigurableEnvironment environment;
 
-        @Override
-        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-            String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.
-                    registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
-            Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
-            for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations.entrySet()) {
-                registerDataSource(registry, amazonRdsClientBeanName, dbInstanceEntry.getKey(), dbInstanceEntry.getValue().get("password"),
-                        Boolean.valueOf(dbInstanceEntry.getValue().getOrDefault("readReplicaSupport", "false")),
-                        dbInstanceEntry.getValue().get("username"), dbInstanceEntry.getValue().get("databaseName"));
-            }
-        }
+		private static String extractConfigurationSubPropertyName(String propertyName) {
+			if (!propertyName.contains(".")) {
+				return propertyName;
+			}
+			return propertyName.substring(propertyName.lastIndexOf(".") + 1);
+		}
 
-        @Override
-        public void setEnvironment(Environment environment) {
-            Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "Amazon RDS auto configuration requires a configurable environment");
-            this.environment = (ConfigurableEnvironment) environment;
-        }
+		@Override
+		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+				BeanDefinitionRegistry registry) {
+			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils
+					.registerAmazonWebserviceClient(this, registry,
+							"com.amazonaws.services.rds.AmazonRDSClient", null, null)
+					.getBeanName();
+			Map<String, Map<String, String>> dbInstanceConfigurations = getDbInstanceConfigurations();
+			for (Map.Entry<String, Map<String, String>> dbInstanceEntry : dbInstanceConfigurations
+					.entrySet()) {
+				registerDataSource(registry, amazonRdsClientBeanName,
+						dbInstanceEntry.getKey(),
+						dbInstanceEntry.getValue().get("password"),
+						Boolean.valueOf(dbInstanceEntry.getValue()
+								.getOrDefault("readReplicaSupport", "false")),
+						dbInstanceEntry.getValue().get("username"),
+						dbInstanceEntry.getValue().get("databaseName"));
+			}
+		}
 
-        @SuppressWarnings("unchecked")
-        private Map<String, Map<String, String>> getDbInstanceConfigurations() {
-            Map<String, Object> subProperties = Binder.get(this.environment)
-                    .bind(PREFIX, Bindable.mapOf(String.class, Object.class)).orElseGet(Collections::emptyMap);
-            Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(subProperties.keySet().size());
-            for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
-                String instanceName = subProperty.getKey();
-                if (!dbConfigurationMap.containsKey(instanceName)) {
-                    dbConfigurationMap.put(instanceName, new HashMap<>());
-                }
+		@Override
+		public void setEnvironment(Environment environment) {
+			Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
+					"Amazon RDS auto configuration requires a configurable environment");
+			this.environment = (ConfigurableEnvironment) environment;
+		}
 
-                Object value = subProperty.getValue();
+		@SuppressWarnings("unchecked")
+		private Map<String, Map<String, String>> getDbInstanceConfigurations() {
+			Map<String, Object> subProperties = Binder.get(this.environment)
+					.bind(PREFIX, Bindable.mapOf(String.class, Object.class))
+					.orElseGet(Collections::emptyMap);
+			Map<String, Map<String, String>> dbConfigurationMap = new HashMap<>(
+					subProperties.keySet().size());
+			for (Map.Entry<String, Object> subProperty : subProperties.entrySet()) {
+				String instanceName = subProperty.getKey();
+				if (!dbConfigurationMap.containsKey(instanceName)) {
+					dbConfigurationMap.put(instanceName, new HashMap<>());
+				}
 
-                if (value instanceof Map) {
-                    Map<String, String> map = (Map) value;
-                    for (Map.Entry<String, String> entry : map.entrySet()) {
-                        dbConfigurationMap.get(instanceName).put(entry.getKey(), entry.getValue());
-                    }
-                } else if (value instanceof String) {
-                    String subPropertyName = extractConfigurationSubPropertyName(subProperty.getKey());
-                    if (StringUtils.hasText(subPropertyName)) {
-                        dbConfigurationMap.get(instanceName).put(subPropertyName, (String) subProperty.getValue());
-                    }
-                }
-            }
-            return dbConfigurationMap;
-        }
+				Object value = subProperty.getValue();
 
-        private static String extractConfigurationSubPropertyName(String propertyName) {
-            if (!propertyName.contains(".")) {
-                return propertyName;
-            }
-            return propertyName.substring(propertyName.lastIndexOf(".") + 1);
-        }
-    }
+				if (value instanceof Map) {
+					Map<String, String> map = (Map) value;
+					for (Map.Entry<String, String> entry : map.entrySet()) {
+						dbConfigurationMap.get(instanceName).put(entry.getKey(),
+								entry.getValue());
+					}
+				}
+				else if (value instanceof String) {
+					String subPropertyName = extractConfigurationSubPropertyName(
+							subProperty.getKey());
+					if (StringUtils.hasText(subPropertyName)) {
+						dbConfigurationMap.get(instanceName).put(subPropertyName,
+								(String) subProperty.getValue());
+					}
+				}
+			}
+			return dbConfigurationMap;
+		}
+
+	}
+
 }

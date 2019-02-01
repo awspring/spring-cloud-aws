@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
-import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
-import org.springframework.context.annotation.Import;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
+import org.springframework.context.annotation.Import;
+
 /**
- * Enables a {@link org.springframework.core.env.PropertySource} that resolve instance meta-data through
- * the amazon meta data service that is available on EC instances.
+ * Enables a {@link org.springframework.core.env.PropertySource} that resolve instance
+ * meta-data through the amazon meta data service that is available on EC instances.
  *
  * <b>Note:</b>This annotation does not have any effect outside the EC2 environment.
  *
@@ -37,19 +37,19 @@ import java.lang.annotation.Target;
 @Import(ContextInstanceDataConfiguration.class)
 public @interface EnableContextInstanceData {
 
-    /**
-     * Allows to configure the value separator for the user data configured attributes. These is by default
-     * the ':' character following the Spring general place holder support {@link PlaceholderConfigurerSupport}
-     *
-     * @return the custom configured value separator
-     */
-    String valueSeparator() default PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+	/**
+	 * Allows to configure the value separator for the user data configured attributes.
+	 * These is by default the ':' character following the Spring general place holder
+	 * support {@link PlaceholderConfigurerSupport}
+	 * @return the custom configured value separator
+	 */
+	String valueSeparator() default PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
-    /**
-     * Allows to configure the attribute separator to separate multiple attributes in one global user data string.
-     *
-     * @return the custom configured attribute separator or ';' as the default
-     */
-    String attributeSeparator() default ";";
+	/**
+	 * Allows to configure the attribute separator to separate multiple attributes in one
+	 * global user data string.
+	 * @return the custom configured attribute separator or ';' as the default
+	 */
+	String attributeSeparator() default ";";
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,26 @@ import org.springframework.util.MultiValueMap;
  */
 public class OnMissingAmazonClientCondition implements Condition {
 
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnMissingAmazonClient.class.getName(), true);
+	@Override
+	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(
+				ConditionalOnMissingAmazonClient.class.getName(), true);
 
-        for (Object amazonClientClass : attributes.get("value")) {
-            if (isAmazonClientMissing(context, (String) amazonClientClass)) {
-                return true;
-            }
-        }
+		for (Object amazonClientClass : attributes.get("value")) {
+			if (isAmazonClientMissing(context, (String) amazonClientClass)) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    private boolean isAmazonClientMissing(ConditionContext context, String amazonClientClass) {
-        String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils.getBeanName(amazonClientClass);
-        return !context.getBeanFactory().containsBean(amazonClientBeanName) && !context.getRegistry().containsBeanDefinition(amazonClientBeanName);
-    }
+	private boolean isAmazonClientMissing(ConditionContext context,
+			String amazonClientClass) {
+		String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils
+				.getBeanName(amazonClientClass);
+		return !context.getBeanFactory().containsBean(amazonClientBeanName)
+				&& !context.getRegistry().containsBeanDefinition(amazonClientBeanName);
+	}
 
 }

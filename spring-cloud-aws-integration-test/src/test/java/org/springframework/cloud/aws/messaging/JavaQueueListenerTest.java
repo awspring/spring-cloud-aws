@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
@@ -34,52 +35,54 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = JavaQueueListenerTest.JavaQueueListenerTestConfiguration.class)
 public class JavaQueueListenerTest extends QueueListenerTest {
 
-    @Configuration
-    @EnableSqs
-    @Import(IntegrationTestConfig.class)
-    protected static class JavaQueueListenerTestConfiguration {
+	@Configuration
+	@EnableSqs
+	@Import(IntegrationTestConfig.class)
+	protected static class JavaQueueListenerTestConfiguration {
 
-        @Bean
-        public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-            SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
-            factory.setVisibilityTimeout(5);
+		@Bean
+		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+			factory.setVisibilityTimeout(5);
 
-            return factory;
-        }
+			return factory;
+		}
 
-        @Bean
-        public QueueMessageHandlerFactory queueMessageHandlerFactory(QueueMessagingTemplate queueMessagingTemplate) {
-            QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
-            factory.setSendToMessagingTemplate(queueMessagingTemplate);
+		@Bean
+		public QueueMessageHandlerFactory queueMessageHandlerFactory(
+				QueueMessagingTemplate queueMessagingTemplate) {
+			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+			factory.setSendToMessagingTemplate(queueMessagingTemplate);
 
-            return factory;
-        }
+			return factory;
+		}
 
-        @Bean
-        public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-            return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-        }
+		@Bean
+		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs,
+				ResourceIdResolver resourceIdResolver) {
+			return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+		}
 
-        @Bean
-        public MessageListener messageListener() {
-            return new MessageListener();
-        }
+		@Bean
+		public MessageListener messageListener() {
+			return new MessageListener();
+		}
 
-        @Bean
-        public MessageListenerWithSendTo messageListenerWithSendTo() {
-            return new MessageListenerWithSendTo();
-        }
+		@Bean
+		public MessageListenerWithSendTo messageListenerWithSendTo() {
+			return new MessageListenerWithSendTo();
+		}
 
-        @Bean
-        public RedrivePolicyTestListener redrivePolicyTestListener() {
-            return new RedrivePolicyTestListener();
-        }
+		@Bean
+		public RedrivePolicyTestListener redrivePolicyTestListener() {
+			return new RedrivePolicyTestListener();
+		}
 
-        @Bean
-        public ManualDeletionPolicyTestListener manualDeletionPolicyTestListener() {
-            return new ManualDeletionPolicyTestListener();
-        }
+		@Bean
+		public ManualDeletionPolicyTestListener manualDeletionPolicyTestListener() {
+			return new ManualDeletionPolicyTestListener();
+		}
 
-    }
+	}
 
 }

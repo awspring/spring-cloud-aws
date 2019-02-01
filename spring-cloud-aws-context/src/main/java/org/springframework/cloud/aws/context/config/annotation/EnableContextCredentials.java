@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
-import org.springframework.context.annotation.Import;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Import;
 
 /**
  * Enables a credentials provider configuration for the application context, that
@@ -35,28 +35,26 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface EnableContextCredentials {
 
-    /**
-     * Configures the access key that will be used by the credentials provider.
-     *
-     * @return accessKey that should be used for all web service requests
-     */
-    String accessKey() default "";
+	/**
+	 * Configures the access key that will be used by the credentials provider.
+	 * @return accessKey that should be used for all web service requests
+	 */
+	String accessKey() default "";
 
-    /**
-     * Configures the secret key that will be used by the credentials provider
-     *
-     * @return secretKey that should be used for all web service requests
-     */
-    String secretKey() default "";
+	/**
+	 * Configures the secret key that will be used by the credentials provider.
+	 * @return secretKey that should be used for all web service requests
+	 */
+	String secretKey() default "";
 
-    /**
-     * Enables a instance profile specific credentials provider
-     *
-     * @return true if the instance profile credentials provider should be configured
-     */
-    boolean instanceProfile() default false;
+	/**
+	 * Enables a instance profile specific credentials provider.
+	 * @return true if the instance profile credentials provider should be configured
+	 */
+	boolean instanceProfile() default false;
 
-    String profileName() default "";
+	String profileName() default "";
 
-    String profilePath() default "";
+	String profilePath() default "";
+
 }

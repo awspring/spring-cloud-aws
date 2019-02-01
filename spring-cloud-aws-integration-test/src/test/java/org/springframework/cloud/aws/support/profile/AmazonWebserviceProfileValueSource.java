@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.support.profile;
 
 import com.amazonaws.util.EC2MetadataUtils;
+
 import org.springframework.test.annotation.ProfileValueSource;
 
 /**
@@ -24,11 +25,12 @@ import org.springframework.test.annotation.ProfileValueSource;
  */
 public class AmazonWebserviceProfileValueSource implements ProfileValueSource {
 
-    @Override
-    public String get(String key) {
-        if ("amazon-webservice-region-available".equals(key)) {
-            return Boolean.toString(EC2MetadataUtils.getAvailabilityZone() != null);
-        }
-        return null;
-    }
+	@Override
+	public String get(String key) {
+		if ("amazon-webservice-region-available".equals(key)) {
+			return Boolean.toString(EC2MetadataUtils.getAvailabilityZone() != null);
+		}
+		return null;
+	}
+
 }

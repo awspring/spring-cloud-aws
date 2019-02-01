@@ -1,6 +1,6 @@
 dependencies:
- override:
-  - ./mvnw dependency:resolve
+  override:
+    - ./mvnw dependency:resolve
 test:
- override:
-  - ./mvnw test
+  override:
+    - ./mvnw test

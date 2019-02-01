@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
-	   xmlns:task="http://www.springframework.org/schema/task" xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
@@ -25,9 +26,10 @@
 	   					   http://www.springframework.org/schema/task
 	   					   http://www.springframework.org/schema/task/spring-task.xsd">
 
-	<import resource="classpath:Integration-test-context.xml" />
+	<import resource="classpath:Integration-test-context.xml"/>
 
-	<aws-context:context-resource-loader task-executor="executor" />
+	<aws-context:context-resource-loader task-executor="executor"/>
 
-	<task:executor id="executor" pool-size="2-10" queue-capacity="0" rejection-policy="CALLER_RUNS" />
+	<task:executor id="executor" pool-size="2-10" queue-capacity="0"
+				   rejection-policy="CALLER_RUNS"/>
 </beans>

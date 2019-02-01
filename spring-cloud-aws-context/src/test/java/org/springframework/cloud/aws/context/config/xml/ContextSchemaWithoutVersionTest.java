@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context.config.xml;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
@@ -26,14 +27,15 @@ import org.springframework.core.io.ClassPathResource;
  */
 public class ContextSchemaWithoutVersionTest {
 
-    @Test
-    public void contextXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
-        // Arrange
-        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+	@Test
+	public void contextXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
+		// Arrange
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 
-        // Act & Assert
-        reader.loadBeanDefinitions(new ClassPathResource(getClass().getSimpleName() + ".xml", getClass()));
-    }
+		// Act & Assert
+		reader.loadBeanDefinitions(
+				new ClassPathResource(getClass().getSimpleName() + ".xml", getClass()));
+	}
 
 }

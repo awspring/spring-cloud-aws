@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.messaging;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
@@ -25,43 +27,43 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * @author Alain Sahli
  */
 @SpringBootTest(classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 public class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
-    @Configuration
-    @EnableAutoConfiguration
-    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-    protected static class MessageListenerContainerAwsTestConfiguration {
+	@Configuration
+	@EnableAutoConfiguration
+	@PropertySource({ "classpath:Integration-test-config.properties",
+			"file://${els.config.dir}/access.properties" })
+	protected static class MessageListenerContainerAwsTestConfiguration {
 
-        @Bean
-        public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
-            SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
-            simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
+		@Bean
+		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+			SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+			simpleMessageListenerContainerFactory.setTaskExecutor(taskExecutor());
 
-            return simpleMessageListenerContainerFactory;
-        }
+			return simpleMessageListenerContainerFactory;
+		}
 
-        @Bean
-        public AsyncTaskExecutor taskExecutor() {
-            ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-            threadPoolTaskExecutor.setCorePoolSize(10);
-            threadPoolTaskExecutor.setMaxPoolSize(200);
-            threadPoolTaskExecutor.setQueueCapacity(0);
-            threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		@Bean
+		public AsyncTaskExecutor taskExecutor() {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+			threadPoolTaskExecutor.setCorePoolSize(10);
+			threadPoolTaskExecutor.setMaxPoolSize(200);
+			threadPoolTaskExecutor.setQueueCapacity(0);
+			threadPoolTaskExecutor.setRejectedExecutionHandler(
+					new ThreadPoolExecutor.CallerRunsPolicy());
 
-            return threadPoolTaskExecutor;
-        }
+			return threadPoolTaskExecutor;
+		}
 
-        @Bean
-        public MessageReceiver messageReceiver() {
-            return new MessageReceiver();
-        }
+		@Bean
+		public MessageReceiver messageReceiver() {
+			return new MessageReceiver();
+		}
 
-    }
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,14 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition {
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase() {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+	@Override
+	public ConfigurationPhase getConfigurationPhase() {
+		return ConfigurationPhase.PARSE_CONFIGURATION;
+	}
 
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
-    }
+	@Override
+	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
+	}
+
 }

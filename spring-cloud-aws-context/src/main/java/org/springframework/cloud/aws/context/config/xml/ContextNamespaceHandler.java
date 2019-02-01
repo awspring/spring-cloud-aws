@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the Spring Cloud AWS context
- * namespace.
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the
+ * Spring Cloud AWS context namespace.
  *
  * @author Agim Emruli
  * @since 1.0
@@ -29,12 +29,18 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 @RuntimeUse
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
-    @Override
-    public void init() {
-        registerBeanDefinitionParser("context-credentials", new ContextCredentialsBeanDefinitionParser());
-        registerBeanDefinitionParser("context-resource-loader", new ContextResourceLoaderBeanDefinitionParser());
-        registerBeanDefinitionParser("context-region", new ContextRegionBeanDefinitionParser());
-        registerBeanDefinitionParser("context-instance-data", new ContextInstanceDataPropertySourceBeanDefinitionParser());
-        registerBeanDefinitionParser("stack-configuration", new StackConfigurationBeanDefinitionParser());
-    }
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("context-credentials",
+				new ContextCredentialsBeanDefinitionParser());
+		registerBeanDefinitionParser("context-resource-loader",
+				new ContextResourceLoaderBeanDefinitionParser());
+		registerBeanDefinitionParser("context-region",
+				new ContextRegionBeanDefinitionParser());
+		registerBeanDefinitionParser("context-instance-data",
+				new ContextInstanceDataPropertySourceBeanDefinitionParser());
+		registerBeanDefinitionParser("stack-configuration",
+				new StackConfigurationBeanDefinitionParser());
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,18 @@ package org.springframework.cloud.aws.core.env;
  */
 public interface ResourceIdResolver {
 
-    /**
-     * Resolves the provided logical resource id to the corresponding physical resource id. If the implementation is
-     * unable to resolve the logical resource id to a physical one based on the specific resource information available,
-     * the logical resource id is returned as the physical one.
-     * <p>
-     * This resolving mechanism provides no guarantees on existence of the resource denoted by the resolved physical
-     * resource id.
-     * </p>
-     *
-     * @param logicalResourceId
-     *         the logical resource id to be resolved
-     * @return the physical resource id
-     */
-    String resolveToPhysicalResourceId(String logicalResourceId);
+	/**
+	 * Resolves the provided logical resource id to the corresponding physical resource
+	 * id. If the implementation is unable to resolve the logical resource id to a
+	 * physical one based on the specific resource information available, the logical
+	 * resource id is returned as the physical one.
+	 * <p>
+	 * This resolving mechanism provides no guarantees on existence of the resource
+	 * denoted by the resolved physical resource id.
+	 * </p>
+	 * @param logicalResourceId the logical resource id to be resolved
+	 * @return the physical resource id
+	 */
+	String resolveToPhysicalResourceId(String logicalResourceId);
 
 }

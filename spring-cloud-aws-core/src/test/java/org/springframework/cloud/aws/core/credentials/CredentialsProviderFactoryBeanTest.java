@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.aws.core.credentials;
 
+import java.util.Arrays;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,56 +32,60 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean}
+ * Unit tests for
+ * {@link org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean}
  *
  * @author Agim Emruli
  */
 public class CredentialsProviderFactoryBeanTest {
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
+	@Rule
+	public final ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void testCreateWithNullCredentialsProvider() throws Exception {
-        this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("not be null");
-        //noinspection ResultOfObjectAllocationIgnored
-        new CredentialsProviderFactoryBean(null);
-    }
+	@Test
+	public void testCreateWithNullCredentialsProvider() throws Exception {
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("not be null");
+		// noinspection ResultOfObjectAllocationIgnored
+		new CredentialsProviderFactoryBean(null);
+	}
 
+	@Test
+	public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain()
+			throws Exception {
+		// Arrange
+		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
+		credentialsProviderFactoryBean.afterPropertiesSet();
 
-    @Test
-    public void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
-        //Arrange
-        CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
-        credentialsProviderFactoryBean.afterPropertiesSet();
+		// Act
+		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean
+				.getObject();
 
-        //Act
-        AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
+		// Assert
+		assertNotNull(credentialsProvider);
+		assertTrue(
+				DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
+	}
 
-        //Assert
-        assertNotNull(credentialsProvider);
-        assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
-    }
+	@Test
+	public void testCreateWithMultiple() throws Exception {
+		AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
+		AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
 
+		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(
+				Arrays.asList(first, second));
+		credentialsProviderFactoryBean.afterPropertiesSet();
 
-    @Test
-    public void testCreateWithMultiple() throws Exception {
-        AWSCredentialsProvider first = mock(AWSCredentialsProvider.class);
-        AWSCredentialsProvider second = mock(AWSCredentialsProvider.class);
+		AWSCredentialsProvider provider = credentialsProviderFactoryBean.getObject();
 
-        CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean(Arrays.asList(first, second));
-        credentialsProviderFactoryBean.afterPropertiesSet();
+		BasicAWSCredentials foo = new BasicAWSCredentials("foo", "foo");
+		BasicAWSCredentials bar = new BasicAWSCredentials("bar", "bar");
 
-        AWSCredentialsProvider provider = credentialsProviderFactoryBean.getObject();
+		when(first.getCredentials()).thenReturn(null, foo);
+		when(second.getCredentials()).thenReturn(bar);
 
-        BasicAWSCredentials foo = new BasicAWSCredentials("foo", "foo");
-        BasicAWSCredentials bar = new BasicAWSCredentials("bar", "bar");
+		assertEquals(bar, provider.getCredentials());
+		assertEquals(foo, provider.getCredentials());
+	}
 
-        when(first.getCredentials()).thenReturn(null, foo);
-        when(second.getCredentials()).thenReturn(bar);
-
-        assertEquals(bar, provider.getCredentials());
-        assertEquals(foo, provider.getCredentials());
-    }
 }

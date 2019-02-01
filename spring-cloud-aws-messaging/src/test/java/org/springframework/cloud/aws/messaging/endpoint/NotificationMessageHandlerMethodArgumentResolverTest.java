@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.endpoint;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -31,59 +32,76 @@ import static org.junit.Assert.assertTrue;
 
 public class NotificationMessageHandlerMethodArgumentResolverTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+	@Rule
+	public ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
-        //Arrange
-        this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("@NotificationMessage annotated parameters are only allowed");
+	@Test
+	public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
+		// Arrange
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage(
+				"@NotificationMessage annotated parameters are only allowed");
 
+		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
 
-        NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
+		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
+				new ClassPathResource("subscriptionConfirmation.json", getClass())
+						.getInputStream());
+		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+		servletRequest.setContent(subscriptionRequestJsonContent);
 
-        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
-        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.setContent(subscriptionRequestJsonContent);
+		MethodParameter methodParameter = new MethodParameter(
+				ReflectionUtils.findMethod(NotificationMethods.class,
+						"subscriptionMethod", NotificationStatus.class),
+				0);
 
-        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class), 0);
+		// Act
+		resolver.resolveArgument(methodParameter, null,
+				new ServletWebRequest(servletRequest), null);
 
-        //Act
-        resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+		// Assert
+	}
 
-        //Assert
-    }
+	@Test
+	public void resolveArgument_notificationMessageTypeWithSubject_reportsErrors()
+			throws Exception {
+		// Arrange
+		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
 
-    @Test
-    public void resolveArgument_notificationMessageTypeWithSubject_reportsErrors() throws Exception {
-        //Arrange
-        NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
+		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
+				new ClassPathResource("notificationMessage.json", getClass())
+						.getInputStream());
+		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+		servletRequest.setContent(subscriptionRequestJsonContent);
 
-        byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
-        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.setContent(subscriptionRequestJsonContent);
+		MethodParameter methodParameter = new MethodParameter(
+				ReflectionUtils.findMethod(NotificationMethods.class, "handleMethod",
+						String.class, String.class),
+				0);
 
-        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "handleMethod", String.class, String.class), 0);
+		// Act
+		Object argument = resolver.resolveArgument(methodParameter, null,
+				new ServletWebRequest(servletRequest), null);
 
-        //Act
-        Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
+		// Assert
+		assertEquals("asdasd", argument);
+	}
 
-        //Assert
-        assertEquals("asdasd", argument);
-    }
+	@Test
+	public void supportsParameter_withIntegerParameterType_shouldReturnFalse()
+			throws Exception {
+		// Arrange
+		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
+		MethodParameter methodParameter = new MethodParameter(
+				ReflectionUtils.findMethod(NotificationMethods.class,
+						"methodWithIntegerParameterType", Integer.class),
+				0);
 
-    @Test
-    public void supportsParameter_withIntegerParameterType_shouldReturnFalse() throws Exception {
-        // Arrange
-        NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
-        MethodParameter methodParameter = new MethodParameter(ReflectionUtils.findMethod(NotificationMethods.class, "methodWithIntegerParameterType", Integer.class), 0);
+		// Act
+		boolean supportsParameter = resolver.supportsParameter(methodParameter);
 
-        // Act
-        boolean supportsParameter = resolver.supportsParameter(methodParameter);
-
-        // Assert
-        assertTrue(supportsParameter);
-    }
+		// Assert
+		assertTrue(supportsParameter);
+	}
 
 }

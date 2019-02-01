@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<context:context-credentials>
-		<context:simple-credentials access-key="foo" secret-key="bar" />
+		<context:simple-credentials access-key="foo" secret-key="bar"/>
 	</context:context-credentials>
 
 	<jdbc:data-source db-instance-identifier="test" password="password">
@@ -36,10 +36,13 @@
 							  defaultCatalog="mySchema" defaultReadOnly="true"
 							  defaultTransactionIsolation="2" initialSize="10"
 							  initSQL="SET CURRENT SCHEMA" logAbandoned="true"
-							  maxActive="10" maxIdle="5" maxWait="10000" minEvictableIdleTimeMillis="60000"
-							  minIdle="20" removeAbandoned="true" removeAbandonedTimeout="61" testOnBorrow="true"
-							  testOnReturn="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="4000"
+							  maxActive="10" maxIdle="5" maxWait="10000"
+							  minEvictableIdleTimeMillis="60000"
+							  minIdle="20" removeAbandoned="true"
+							  removeAbandonedTimeout="61" testOnBorrow="true"
+							  testOnReturn="true" testWhileIdle="true"
+							  timeBetweenEvictionRunsMillis="4000"
 							  validationQuery="SELECT 1"
-							  validatorClassName="org.springframework.cloud.aws.jdbc.config.xml.SampleValidator" />
+							  validatorClassName="org.springframework.cloud.aws.jdbc.config.xml.SampleValidator"/>
 	</jdbc:data-source>
 </beans>

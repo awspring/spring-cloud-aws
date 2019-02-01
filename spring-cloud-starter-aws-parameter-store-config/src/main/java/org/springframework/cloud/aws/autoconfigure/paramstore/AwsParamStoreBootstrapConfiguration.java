@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.aws.autoconfigure.paramstore;
 
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,32 +28,30 @@ import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
-
 /**
- * Spring Cloud Bootstrap Configuration for setting up an {@link AwsParamStorePropertySourceLocator} and its
- * dependencies.
+ * Spring Cloud Bootstrap Configuration for setting up an
+ * {@link AwsParamStorePropertySourceLocator} and its dependencies.
  *
  * @author Joris Kuipers
  * @since 2.0.0
  */
 @Configuration
 @EnableConfigurationProperties(AwsParamStoreProperties.class)
-@ConditionalOnClass({ AWSSimpleSystemsManagement.class, AwsParamStorePropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name= "enabled", matchIfMissing = true)
+@ConditionalOnClass({ AWSSimpleSystemsManagement.class,
+		AwsParamStorePropertySourceLocator.class })
+@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsParamStoreBootstrapConfiguration {
 
-    @Bean
-    AwsParamStorePropertySourceLocator awsParamStorePropertySourceLocator(
-                                    AWSSimpleSystemsManagement ssmClient, AwsParamStoreProperties properties) {
-        return new AwsParamStorePropertySourceLocator(ssmClient, properties);
-    }
+	@Bean
+	AwsParamStorePropertySourceLocator awsParamStorePropertySourceLocator(
+			AWSSimpleSystemsManagement ssmClient, AwsParamStoreProperties properties) {
+		return new AwsParamStorePropertySourceLocator(ssmClient, properties);
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    AWSSimpleSystemsManagement ssmClient() {
-        return AWSSimpleSystemsManagementClientBuilder.defaultClient();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	AWSSimpleSystemsManagement ssmClient() {
+		return AWSSimpleSystemsManagementClientBuilder.defaultClient();
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,44 +29,48 @@ import static org.junit.Assert.assertEquals;
  */
 public class Ec2MetadataRegionProviderTest {
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
+	@Rule
+	public final ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void getRegion_availabilityZoneWithMatchingRegion_returnsRegion() throws Exception {
-        //Arrange
-        Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
+	@Test
+	public void getRegion_availabilityZoneWithMatchingRegion_returnsRegion()
+			throws Exception {
+		// Arrange
+		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
-            @Override
-            protected Region getCurrentRegion() {
-                return Region.getRegion(Regions.EU_WEST_1);
-            }
-        };
+			@Override
+			protected Region getCurrentRegion() {
+				return Region.getRegion(Regions.EU_WEST_1);
+			}
+		};
 
-        //Act
-        Region region = regionProvider.getRegion();
+		// Act
+		Region region = regionProvider.getRegion();
 
-        //Assert
-        assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
-    }
+		// Assert
+		assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
+	}
 
-    @Test
-    public void getRegion_noMetadataAvailable_throwsIllegalStateException() throws Exception {
-        //Arrange
-        this.expectedException.expect(IllegalStateException.class);
-        this.expectedException.expectMessage("There is no EC2 meta data available, because the application is not running in the EC2 environment");
+	@Test
+	public void getRegion_noMetadataAvailable_throwsIllegalStateException()
+			throws Exception {
+		// Arrange
+		this.expectedException.expect(IllegalStateException.class);
+		this.expectedException.expectMessage(
+				"There is no EC2 meta data available, because the application is not running in the EC2 environment");
 
-        Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
+		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
-            @Override
-            protected Region getCurrentRegion() {
-                return null;
-            }
-        };
+			@Override
+			protected Region getCurrentRegion() {
+				return null;
+			}
+		};
 
-        //Act
-        regionProvider.getRegion();
+		// Act
+		regionProvider.getRegion();
 
-        //Assert
-    }
+		// Assert
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
@@ -34,57 +35,62 @@ import static org.junit.Assert.assertNotNull;
  */
 public class ContextRegionProviderAutoConfigurationTest {
 
-    private AnnotationConfigApplicationContext context;
+	private AnnotationConfigApplicationContext context;
 
-    @After
-    public void tearDown() throws Exception {
-        if (this.context != null) {
-            this.context.close();
-        }
+	@After
+	public void tearDown() throws Exception {
+		if (this.context != null) {
+			this.context.close();
+		}
 
-    }
+	}
 
-    @Test
-    public void regionProvider_autoDetectionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext();
-        this.context.register(ContextRegionProviderAutoConfiguration.class);
-        TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
+	@Test
+	public void regionProvider_autoDetectionConfigured_Ec2metaDataRegionProviderConfigured()
+			throws Exception {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
+		TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
 
-        //Act
-        this.context.refresh();
+		// Act
+		this.context.refresh();
 
-        //Assert
-        assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
-    }
+		// Assert
+		assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+	}
 
-    @Test
-    public void regionProvider_autoDetectionConfigured_emptyStaticRegionConfigured_Ec2metaDataRegionProviderConfigured() throws Exception {
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext();
-        this.context.register(ContextRegionProviderAutoConfiguration.class);
-        TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
-        TestPropertyValues.of("cloud.aws.region.static:").applyTo(this.context);
+	@Test
+	public void regionProvider_autoDetectionConfigured_emptyStaticRegionConfigured_Ec2metaDataRegionProviderConfigured()
+			throws Exception {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
+		TestPropertyValues.of("cloud.aws.region.auto").applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.region.static:").applyTo(this.context);
 
-        //Act
-        this.context.refresh();
+		// Act
+		this.context.refresh();
 
-        //Assert
-        assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
-    }
+		// Assert
+		assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+	}
 
-    @Test
-    public void regionProvider_staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() throws Exception {
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext();
-        this.context.register(ContextRegionProviderAutoConfiguration.class);
-        TestPropertyValues.of("cloud.aws.region.static:eu-west-1").applyTo(this.context);
+	@Test
+	public void regionProvider_staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured()
+			throws Exception {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
+		TestPropertyValues.of("cloud.aws.region.static:eu-west-1").applyTo(this.context);
 
-        //Act
-        this.context.refresh();
-        StaticRegionProvider regionProvider = this.context.getBean(StaticRegionProvider.class);
+		// Act
+		this.context.refresh();
+		StaticRegionProvider regionProvider = this.context
+				.getBean(StaticRegionProvider.class);
 
-        //Assert
-        assertEquals(Region.getRegion(Regions.EU_WEST_1), regionProvider.getRegion());
-    }
+		// Assert
+		assertEquals(Region.getRegion(Regions.EU_WEST_1), regionProvider.getRegion());
+	}
+
 }

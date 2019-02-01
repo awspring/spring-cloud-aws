@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,41 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import org.springframework.messaging.MessageHeaders;
-
 import java.util.Map;
 
+import org.springframework.messaging.MessageHeaders;
+
 /**
- * Specialization of the {@link MessageHeaders} class that allows to set an ID. This was done to support cases where the
- * ID sent by the producer must be restored on the consumer side for traceability.
+ * Specialization of the {@link MessageHeaders} class that allows to set an ID. This was
+ * done to support cases where the ID sent by the producer must be restored on the
+ * consumer side for traceability.
  *
  * @author Alain Sahli
  * @since 1.0
  */
 public class SqsMessageHeaders extends MessageHeaders {
 
-    public static final String SQS_DELAY_HEADER = "delay";
-    public static final String SQS_GROUP_ID_HEADER = "message-group-id";
-    public static final String SQS_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
+	/**
+	 * Delay header in a SQS message.
+	 */
+	public static final String SQS_DELAY_HEADER = "delay";
 
+	/**
+	 * Group id header in a SQS message.
+	 */
+	public static final String SQS_GROUP_ID_HEADER = "message-group-id";
 
-    public SqsMessageHeaders(Map<String, Object> headers) {
-        super(headers);
+	/**
+	 * Deduplication header in a SQS message.
+	 */
+	public static final String SQS_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
 
-        if (headers.containsKey(ID)) {
-            this.getRawHeaders().put(ID, headers.get(ID));
-        }
-    }
+	public SqsMessageHeaders(Map<String, Object> headers) {
+		super(headers);
+
+		if (headers.containsKey(ID)) {
+			this.getRawHeaders().put(ID, headers.get(ID));
+		}
+	}
+
 }

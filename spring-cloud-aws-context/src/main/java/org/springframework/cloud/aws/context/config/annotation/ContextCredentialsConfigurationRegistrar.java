@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,23 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Agim Emruli
  */
 @Configuration
-public class ContextCredentialsConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
+public class ContextCredentialsConfigurationRegistrar
+		implements ImportBeanDefinitionRegistrar {
 
-    @Override
-    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
-                importingClassMetadata.getAnnotationAttributes(EnableContextCredentials.class.getName(), false));
-        Assert.notNull(annotationAttributes,
-                "@EnableContextCredentials is not present on importing class " + importingClassMetadata.getClassName());
-        registerCredentialsProvider(registry, annotationAttributes.getString("accessKey"), annotationAttributes.getString("secretKey"),
-                annotationAttributes.getBoolean("instanceProfile"),
-                annotationAttributes.getString("profileName"),
-                annotationAttributes.getString("profilePath"));
-    }
+	@Override
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+			BeanDefinitionRegistry registry) {
+		AnnotationAttributes annotationAttributes = AnnotationAttributes
+				.fromMap(importingClassMetadata.getAnnotationAttributes(
+						EnableContextCredentials.class.getName(), false));
+		Assert.notNull(annotationAttributes,
+				"@EnableContextCredentials is not present on importing class "
+						+ importingClassMetadata.getClassName());
+		registerCredentialsProvider(registry, annotationAttributes.getString("accessKey"),
+				annotationAttributes.getString("secretKey"),
+				annotationAttributes.getBoolean("instanceProfile"),
+				annotationAttributes.getString("profileName"),
+				annotationAttributes.getString("profilePath"));
+	}
+
 }

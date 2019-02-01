@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation which is used to define certain classes / methods as runtime components. Runtime components are not
- * linked with other classes but called through a reflective call. This is for instance the case for Spring components
- * which are called through the BeanFactory.
+ * Annotation which is used to define certain classes / methods as runtime components.
+ * Runtime components are not linked with other classes but called through a reflective
+ * call. This is for instance the case for Spring components which are called through the
+ * BeanFactory.
  *
  * @author Agim Emruli
  * @since 1.0
  */
-@Target({ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.FIELD})
+@Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR,
+		ElementType.FIELD })
 @Retention(RetentionPolicy.SOURCE)
 public @interface RuntimeUse {
 
-    String value() default "";
+	String value() default "";
+
 }

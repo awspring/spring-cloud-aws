@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,58 +20,60 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.core.env.EnumerablePropertySource;
-
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 
+import org.springframework.core.env.EnumerablePropertySource;
+
 /**
- * Recursively retrieves all parameters under the given context / path with decryption from the AWS Parameter Store
- * using the provided SSM client.
+ * Recursively retrieves all parameters under the given context / path with decryption
+ * from the AWS Parameter Store using the provided SSM client.
  *
  * @author Joris Kuipers
  * @since 2.0.0
  */
-public class AwsParamStorePropertySource extends EnumerablePropertySource<AWSSimpleSystemsManagement> {
+public class AwsParamStorePropertySource
+		extends EnumerablePropertySource<AWSSimpleSystemsManagement> {
 
-    private String context;
-    private Map<String, Object> properties = new LinkedHashMap<>();
+	private String context;
 
-    public AwsParamStorePropertySource(String context, AWSSimpleSystemsManagement ssmClient) {
-        super(context, ssmClient);
-        this.context = context;
-    }
+	private Map<String, Object> properties = new LinkedHashMap<>();
 
-    public void init() {
-        GetParametersByPathRequest paramsRequest = new GetParametersByPathRequest()
-            .withPath(context)
-            .withRecursive(true)
-            .withWithDecryption(true);
-        getParameters(paramsRequest);
-    }
+	public AwsParamStorePropertySource(String context,
+			AWSSimpleSystemsManagement ssmClient) {
+		super(context, ssmClient);
+		this.context = context;
+	}
 
-    @Override
-    public String[] getPropertyNames() {
-        Set<String> strings = properties.keySet();
-        return strings.toArray(new String[strings.size()]);
-    }
+	public void init() {
+		GetParametersByPathRequest paramsRequest = new GetParametersByPathRequest()
+				.withPath(context).withRecursive(true).withWithDecryption(true);
+		getParameters(paramsRequest);
+	}
 
-    @Override
-    public Object getProperty(String name) {
-        return properties.get(name);
-    }
+	@Override
+	public String[] getPropertyNames() {
+		Set<String> strings = properties.keySet();
+		return strings.toArray(new String[strings.size()]);
+	}
 
-    private void getParameters(GetParametersByPathRequest paramsRequest) {
-        GetParametersByPathResult paramsResult = source.getParametersByPath(paramsRequest);
-        for (Parameter parameter : paramsResult.getParameters()) {
-            String key = parameter.getName().replace(context, "").replace('/', '.');
-            properties.put(key, parameter.getValue());
-        }
-        if (paramsResult.getNextToken() != null) {
-            getParameters(paramsRequest.withNextToken(paramsResult.getNextToken()));
-        }
-    }
+	@Override
+	public Object getProperty(String name) {
+		return properties.get(name);
+	}
+
+	private void getParameters(GetParametersByPathRequest paramsRequest) {
+		GetParametersByPathResult paramsResult = source
+				.getParametersByPath(paramsRequest);
+		for (Parameter parameter : paramsResult.getParameters()) {
+			String key = parameter.getName().replace(context, "").replace('/', '.');
+			properties.put(key, parameter.getValue());
+		}
+		if (paramsResult.getNextToken() != null) {
+			getParameters(paramsRequest.withNextToken(paramsResult.getNextToken()));
+		}
+	}
 
 }

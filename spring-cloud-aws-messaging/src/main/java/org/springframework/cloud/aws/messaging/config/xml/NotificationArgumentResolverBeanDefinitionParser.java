@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,31 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.w3c.dom.Element;
 
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
  */
-class NotificationArgumentResolverBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
+class NotificationArgumentResolverBeanDefinitionParser
+		extends AbstractSingleBeanDefinitionParser {
 
-    @Override
-    protected String getBeanClassName(Element element) {
-        return "org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
-    }
+	@Override
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
+	}
 
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
-                "amazon-sns", "com.amazonaws.services.sns.AmazonSNSClient"));
-    }
+	@Override
+	protected void doParse(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+		builder.addConstructorArgReference(
+				getCustomClientOrDefaultClientBeanName(element, parserContext,
+						"amazon-sns", "com.amazonaws.services.sns.AmazonSNSClient"));
+	}
+
 }

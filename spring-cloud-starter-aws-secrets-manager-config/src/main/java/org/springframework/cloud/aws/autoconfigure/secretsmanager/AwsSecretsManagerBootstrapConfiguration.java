@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,28 +29,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Spring Cloud Bootstrap Configuration for setting up an {@link AwsSecretsManagerPropertySourceLocator} and its
- * dependencies.
+ * Spring Cloud Bootstrap Configuration for setting up an
+ * {@link AwsSecretsManagerPropertySourceLocator} and its dependencies.
  *
  * @author Fabio Maia
  * @since 2.0.0
  */
 @Configuration
 @EnableConfigurationProperties(AwsSecretsManagerProperties.class)
-@ConditionalOnClass({ AWSSecretsManager.class, AwsSecretsManagerPropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX, name= "enabled", matchIfMissing = true)
+@ConditionalOnClass({ AWSSecretsManager.class,
+		AwsSecretsManagerPropertySourceLocator.class })
+@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsSecretsManagerBootstrapConfiguration {
 
-    @Bean
-    AwsSecretsManagerPropertySourceLocator awsSecretsManagerPropertySourceLocator(
-            AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
-        return new AwsSecretsManagerPropertySourceLocator(smClient, properties);
-    }
+	@Bean
+	AwsSecretsManagerPropertySourceLocator awsSecretsManagerPropertySourceLocator(
+			AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+		return new AwsSecretsManagerPropertySourceLocator(smClient, properties);
+	}
 
-    @Bean
-    @ConditionalOnMissingBean
-    AWSSecretsManager smClient() {
-        return AWSSecretsManagerClientBuilder.defaultClient();
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	AWSSecretsManager smClient() {
+		return AWSSecretsManagerClientBuilder.defaultClient();
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,24 @@ import com.amazonaws.util.EC2MetadataUtils;
  */
 public final class AwsCloudEnvironmentCheckUtils {
 
-    private static final String EC2_METADATA_ROOT = "/latest/meta-data";
+	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
 
-    private AwsCloudEnvironmentCheckUtils() {
-    }
+	private static Boolean isCloudEnvironment;
 
-    private static Boolean isCloudEnvironment;
+	private AwsCloudEnvironmentCheckUtils() {
+	}
 
-    public static boolean isRunningOnCloudEnvironment() {
-        if (isCloudEnvironment == null) {
-            try {
-                isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
-            } catch (AmazonClientException e) {
-                isCloudEnvironment = false;
-            }
-        }
-        return isCloudEnvironment;
-    }
+	public static boolean isRunningOnCloudEnvironment() {
+		if (isCloudEnvironment == null) {
+			try {
+				isCloudEnvironment = EC2MetadataUtils
+						.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
+			}
+			catch (AmazonClientException e) {
+				isCloudEnvironment = false;
+			}
+		}
+		return isCloudEnvironment;
+	}
+
 }

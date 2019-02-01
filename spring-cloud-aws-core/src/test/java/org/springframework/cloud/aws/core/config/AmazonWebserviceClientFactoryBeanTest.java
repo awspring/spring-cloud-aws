@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 
 /**
@@ -27,39 +28,42 @@ import org.springframework.cloud.aws.core.region.StaticRegionProvider;
  */
 public class AmazonWebserviceClientFactoryBeanTest {
 
-    @Test
-    public void getObject_withCustomRegion_returnsClientWithCustomRegion() throws Exception {
+	@Test
+	public void getObject_withCustomRegion_returnsClientWithCustomRegion()
+			throws Exception {
 
-        //Arrange
-        AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonTestWebserviceClient.class,
-                new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
-        factoryBean.setCustomRegion("eu-west-1");
+		// Arrange
+		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonTestWebserviceClient.class,
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+		factoryBean.setCustomRegion("eu-west-1");
 
+		// Act
+		factoryBean.afterPropertiesSet();
+		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
-        //Act
-        factoryBean.afterPropertiesSet();
-        AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
+		// Assert
+		Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
 
-        //Assert
-        Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
+	}
 
-    }
+	@Test
+	public void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider()
+			throws Exception {
 
-    @Test
-    public void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider() throws Exception {
+		// Arrange
+		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonTestWebserviceClient.class,
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+		factoryBean.setRegionProvider(new StaticRegionProvider("eu-west-1"));
 
-        //Arrange
-        AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(AmazonTestWebserviceClient.class,
-                new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
-        factoryBean.setRegionProvider(new StaticRegionProvider("eu-west-1"));
+		// Act
+		factoryBean.afterPropertiesSet();
+		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
+		// Assert
+		Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
 
-        //Act
-        factoryBean.afterPropertiesSet();
-        AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
+	}
 
-        //Assert
-        Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
-
-    }
 }

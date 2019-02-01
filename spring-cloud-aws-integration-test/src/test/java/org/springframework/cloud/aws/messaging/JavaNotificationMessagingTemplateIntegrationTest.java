@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging;
 
 import com.amazonaws.services.sns.AmazonSNS;
+
 import org.springframework.cloud.aws.IntegrationTestConfig;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSns;
@@ -31,26 +32,30 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Alain Sahli
  */
 @ContextConfiguration(classes = JavaNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
-public class JavaNotificationMessagingTemplateIntegrationTest extends NotificationMessagingTemplateIntegrationTest {
+public class JavaNotificationMessagingTemplateIntegrationTest
+		extends NotificationMessagingTemplateIntegrationTest {
 
-    @Configuration
-    @EnableSqs
-    @EnableSns
-    @Import(IntegrationTestConfig.class)
-    protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
+	@Configuration
+	@EnableSqs
+	@EnableSns
+	@Import(IntegrationTestConfig.class)
+	protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
 
-        @Bean
-        public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-            NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns, resourceIdResolver);
-            notificationMessagingTemplate.setDefaultDestinationName("SqsReceivingSnsTopic");
-            return notificationMessagingTemplate;
-        }
+		@Bean
+		public NotificationMessagingTemplate notificationMessagingTemplate(
+				AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
+			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(
+					amazonSns, resourceIdResolver);
+			notificationMessagingTemplate
+					.setDefaultDestinationName("SqsReceivingSnsTopic");
+			return notificationMessagingTemplate;
+		}
 
-        @Bean
-        public NotificationReceiver notificationReceiver() {
-            return new NotificationReceiver();
-        }
+		@Bean
+		public NotificationReceiver notificationReceiver() {
+			return new NotificationReceiver();
+		}
 
-    }
+	}
 
 }

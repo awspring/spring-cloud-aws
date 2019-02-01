@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,27 @@
 
 package org.springframework.cloud.aws.context.annotation;
 
-import org.springframework.context.annotation.Conditional;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.context.annotation.Conditional;
+
 /**
  * Condition that checks if a class is available. Duplicates the features of
  * org.springframework.boot.autoconfigure.condition.ConditionalOnClass, but this
- * annotation allows to be independent of Spring Boot classes inside the context
- * module.
+ * annotation allows to be independent of Spring Boot classes inside the context module.
  *
  * @author Agim Emruli
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Conditional(OnClassCondition.class)
 public @interface ConditionalOnClass {
 
-    String value();
+	String value();
 
 }

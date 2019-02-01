@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.endpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
@@ -25,19 +26,23 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Agim Emruli
  */
-public class NotificationSubjectHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
+public class NotificationSubjectHandlerMethodArgumentResolver
+		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
-                ClassUtils.isAssignable(String.class, parameter.getParameterType()));
-    }
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		return (parameter.hasParameterAnnotation(NotificationSubject.class)
+				&& ClassUtils.isAssignable(String.class, parameter.getParameterType()));
+	}
 
-    @Override
-    protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
-        if (!"Notification".equals(content.get("Type").asText())) {
-            throw new IllegalArgumentException("@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
-        }
-        return content.findPath("Subject").asText();
-    }
+	@Override
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content,
+			HttpInputMessage request, Class<?> parameterType) {
+		if (!"Notification".equals(content.get("Type").asText())) {
+			throw new IllegalArgumentException(
+					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
+		}
+		return content.findPath("Subject").asText();
+	}
+
 }

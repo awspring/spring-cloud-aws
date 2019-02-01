@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,39 @@
 
 package org.springframework.cloud.aws.messaging.endpoint.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
 /**
- * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoint subscriptions using the Spring Controller model.
- * This annotation configures a method to receive notification subscriptions using a
- * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus} object and to confirm them using the
- * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus#confirmSubscription()} method.
- *
- * A notification controller will be mapped to a particular url inside the application context. The mapped url
- * must be configured inside the Amazon Web Service platform as a subscription. Before receiving any notification
- * itself a controller must confirm the subscription. After confirming the subscription, the controller will start
- * to receive notifications using an annotated {@link org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationMessageMapping}
+ * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoint subscriptions
+ * using the Spring Controller model. This annotation configures a method to receive
+ * notification subscriptions using a
+ * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus} object and
+ * to confirm them using the
+ * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus#confirmSubscription()}
  * method.
  *
- * The mapping of the controller to a URL has to be done using a {@link org.springframework.web.bind.annotation.RequestMapping}
- * annotation. Typically one controller class will contain all the methods used to confirm a subscription, receive
- * notifications and receive the unsubscribe message.
+ * A notification controller will be mapped to a particular url inside the application
+ * context. The mapped url must be configured inside the Amazon Web Service platform as a
+ * subscription. Before receiving any notification itself a controller must confirm the
+ * subscription. After confirming the subscription, the controller will start to receive
+ * notifications using an annotated
+ * {@link org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationMessageMapping}
+ * method.
  *
- * <b>Note:</b> Currently this annotation does not allow an explicit mapping of controller methods to URLs. Therefore
- * this annotation can only be used in one controller class that has an class level @RequestMapping annotation.
+ * The mapping of the controller to a URL has to be done using a
+ * {@link org.springframework.web.bind.annotation.RequestMapping} annotation. Typically
+ * one controller class will contain all the methods used to confirm a subscription,
+ * receive notifications and receive the unsubscribe message.
+ *
+ * <b>Note:</b> Currently this annotation does not allow an explicit mapping of controller
+ * methods to URLs. Therefore this annotation can only be used in one controller class
+ * that has an class level @RequestMapping annotation.
  *
  * @author Agim Emruli
  */

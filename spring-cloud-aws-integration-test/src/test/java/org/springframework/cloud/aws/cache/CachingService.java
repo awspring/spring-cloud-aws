@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.aws.cache;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Agim Emruli
@@ -28,36 +28,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class CachingService {
 
-    private final AtomicInteger invocationCount = new AtomicInteger(0);
+	private final AtomicInteger invocationCount = new AtomicInteger(0);
 
-    @Cacheable("CacheCluster")
-    public String expensiveMethod(String key) {
-        this.invocationCount.incrementAndGet();
-        return key.toUpperCase();
-    }
+	@Cacheable("CacheCluster")
+	public String expensiveMethod(String key) {
+		this.invocationCount.incrementAndGet();
+		return key.toUpperCase();
+	}
 
-    @CacheEvict("CacheCluster")
-    public void deleteCacheKey(String key) {
-        // do nothing, we just want to delete the entry
-    }
+	@CacheEvict("CacheCluster")
+	public void deleteCacheKey(String key) {
+		// do nothing, we just want to delete the entry
+	}
 
-    @Cacheable("RedisCacheCluster")
-    public String expensiveRedisMethod(String key) {
-        this.invocationCount.incrementAndGet();
-        return key.toUpperCase();
-    }
+	@Cacheable("RedisCacheCluster")
+	public String expensiveRedisMethod(String key) {
+		this.invocationCount.incrementAndGet();
+		return key.toUpperCase();
+	}
 
-    @CacheEvict("RedisCacheCluster")
-    public void deleteRedisCacheKey(String key) {
-        // do nothing, we just want to delete the entry
-    }
+	@CacheEvict("RedisCacheCluster")
+	public void deleteRedisCacheKey(String key) {
+		// do nothing, we just want to delete the entry
+	}
 
+	public AtomicInteger getInvocationCount() {
+		return this.invocationCount;
+	}
 
-    public AtomicInteger getInvocationCount() {
-        return this.invocationCount;
-    }
+	public void resetInvocationCount() {
+		this.invocationCount.set(0);
+	}
 
-    public void resetInvocationCount() {
-        this.invocationCount.set(0);
-    }
 }

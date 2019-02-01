@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.cloud.aws.messaging.config.xml;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the Spring Cloud AWS messaging namespace
+ * {@link org.springframework.beans.factory.xml.NamespaceHandler} for the Spring Cloud AWS
+ * messaging namespace.
  *
  * @author Agim Emruli
  * @author Alain Sahli
@@ -28,12 +29,18 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 @SuppressWarnings("UnusedDeclaration")
 public class MessagingNamespaceHandler extends NamespaceHandlerSupport {
 
-    @Override
-    public void init() {
-        registerBeanDefinitionParser("annotation-driven-queue-listener", new AnnotationDrivenQueueListenerBeanDefinitionParser());
-        registerBeanDefinitionParser("queue-messaging-template", new QueueMessagingTemplateBeanDefinitionParser());
-        registerBeanDefinitionParser("notification-messaging-template", new NotificationMessagingTemplateBeanDefinitionParser());
-        registerBeanDefinitionParser("notification-argument-resolver", new NotificationArgumentResolverBeanDefinitionParser());
-        registerBeanDefinitionParser("sqs-async-client", new SqsAsyncClientBeanDefinitionParser());
-    }
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("annotation-driven-queue-listener",
+				new AnnotationDrivenQueueListenerBeanDefinitionParser());
+		registerBeanDefinitionParser("queue-messaging-template",
+				new QueueMessagingTemplateBeanDefinitionParser());
+		registerBeanDefinitionParser("notification-messaging-template",
+				new NotificationMessagingTemplateBeanDefinitionParser());
+		registerBeanDefinitionParser("notification-argument-resolver",
+				new NotificationArgumentResolverBeanDefinitionParser());
+		registerBeanDefinitionParser("sqs-async-client",
+				new SqsAsyncClientBeanDefinitionParser());
+	}
+
 }

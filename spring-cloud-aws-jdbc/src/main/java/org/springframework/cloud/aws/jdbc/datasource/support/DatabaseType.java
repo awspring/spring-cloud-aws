@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,34 +20,33 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.util.Assert;
 
 /**
- * Enumeration that holds all supported databases. The enumeration is mainly driven by the supported databases by the
- * underlying AWS cloud implementation.
+ * Enumeration that holds all supported databases. The enumeration is mainly driven by the
+ * supported databases by the underlying AWS cloud implementation.
+ * @author Agim Emruli
  */
 public enum DatabaseType {
-    @RuntimeUse
-    MYSQL,
-    @RuntimeUse
-    ORACLE,
-    @RuntimeUse
-    SQLSERVER,
-    @RuntimeUse
-    POSTGRES,
-    @RuntimeUse
-    MARIA,
-    @RuntimeUse
-    AURORA_POSTGRESQL,
-    @RuntimeUse
-    AURORA;
 
+	// @checkstyle:off
+	@RuntimeUse
+	MYSQL, @RuntimeUse
+	ORACLE, @RuntimeUse
+	SQLSERVER, @RuntimeUse
+	POSTGRES, @RuntimeUse
+	MARIA, @RuntimeUse
+	AURORA_POSTGRESQL, @RuntimeUse
+	AURORA;
+	// @checkstyle:on
 
-    public static DatabaseType fromEngine(String engineName) {
-        Assert.notNull(engineName, "Engine must not be null");
-        String lookupName = engineName.toUpperCase().replace("-", "_");
-        for (DatabaseType databaseType : values()) {
-            if (lookupName.startsWith(databaseType.toString())) {
-                return databaseType;
-            }
-        }
-        throw new IllegalStateException("No database type found for engine:'" + engineName + "'");
-    }
+	public static DatabaseType fromEngine(String engineName) {
+		Assert.notNull(engineName, "Engine must not be null");
+		String lookupName = engineName.toUpperCase().replace("-", "_");
+		for (DatabaseType databaseType : values()) {
+			if (lookupName.startsWith(databaseType.toString())) {
+				return databaseType;
+			}
+		}
+		throw new IllegalStateException(
+				"No database type found for engine:'" + engineName + "'");
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,20 @@
 
 package org.springframework.cloud.aws.messaging;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
@@ -33,15 +43,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -51,216 +52,238 @@ import static org.junit.Assert.assertTrue;
  * @author Alain Sahli
  * @since 1.0
  */
-@SuppressWarnings({"AbstractClassWithoutAbstractMethods", "SpringJavaAutowiringInspection"})
+@SuppressWarnings({ "AbstractClassWithoutAbstractMethods",
+		"SpringJavaAutowiringInspection" })
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class QueueListenerTest extends AbstractContainerTest {
 
-    @Autowired
-    private MessageListener messageListener;
+	@Autowired
+	private MessageListener messageListener;
 
-    @Autowired
-    private MessageListenerWithSendTo messageListenerWithSendTo;
+	@Autowired
+	private MessageListenerWithSendTo messageListenerWithSendTo;
 
-    @Autowired
-    private RedrivePolicyTestListener redrivePolicyTestListener;
+	@Autowired
+	private RedrivePolicyTestListener redrivePolicyTestListener;
 
-    @Autowired
-    private QueueMessagingTemplate queueMessagingTemplate;
+	@Autowired
+	private QueueMessagingTemplate queueMessagingTemplate;
 
-    @Autowired
-    private ManualDeletionPolicyTestListener manualDeletionPolicyTestListener;
+	@Autowired
+	private ManualDeletionPolicyTestListener manualDeletionPolicyTestListener;
 
-    @Test
-    public void messageMapping_singleMessageOnQueue_messageReceived() throws Exception {
-        // Arrange
-        this.messageListener.setCountDownLatch(new CountDownLatch(1));
-        this.messageListener.getReceivedMessages().clear();
+	@Test
+	public void messageMapping_singleMessageOnQueue_messageReceived() throws Exception {
+		// Arrange
+		this.messageListener.setCountDownLatch(new CountDownLatch(1));
+		this.messageListener.getReceivedMessages().clear();
 
-        // Act
-        this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Hello world!").build());
+		// Act
+		this.queueMessagingTemplate.send("QueueListenerTest",
+				MessageBuilder.withPayload("Hello world!").build());
 
-        // Assert
-        assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-        assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
-    }
+		// Assert
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+	}
 
-    @Test
-    public void send_simpleString_shouldBeReceivedWithoutDoubleQuotes() throws Exception {
-        // Arrange
-        this.messageListener.setCountDownLatch(new CountDownLatch(1));
-        this.messageListener.getReceivedMessages().clear();
+	@Test
+	public void send_simpleString_shouldBeReceivedWithoutDoubleQuotes() throws Exception {
+		// Arrange
+		this.messageListener.setCountDownLatch(new CountDownLatch(1));
+		this.messageListener.getReceivedMessages().clear();
 
-        // Act
-        this.queueMessagingTemplate.convertAndSend("QueueListenerTest", "Hello world!");
+		// Act
+		this.queueMessagingTemplate.convertAndSend("QueueListenerTest", "Hello world!");
 
-        // Assert
-        assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-        assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
-    }
+		// Assert
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+	}
 
-    @Test
-    public void sendToAnnotation_WithAValidDestination_messageIsSent() throws Exception {
-        // Arrange
-        this.messageListener.setCountDownLatch(new CountDownLatch(1));
-        this.messageListener.getReceivedMessages().clear();
-        this.messageListenerWithSendTo.getReceivedMessages().clear();
+	@Test
+	public void sendToAnnotation_WithAValidDestination_messageIsSent() throws Exception {
+		// Arrange
+		this.messageListener.setCountDownLatch(new CountDownLatch(1));
+		this.messageListener.getReceivedMessages().clear();
+		this.messageListenerWithSendTo.getReceivedMessages().clear();
 
-        // Act
-        this.queueMessagingTemplate.convertAndSend("SendToQueue", "Please answer!");
+		// Act
+		this.queueMessagingTemplate.convertAndSend("SendToQueue", "Please answer!");
 
-        // Assert
-        assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-        assertEquals("Please answer!", this.messageListenerWithSendTo.getReceivedMessages().get(0));
-        assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
-    }
+		// Assert
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertEquals("Please answer!",
+				this.messageListenerWithSendTo.getReceivedMessages().get(0));
+		assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
+	}
 
-    @Test
-    public void receiveMessage_withArgumentAnnotatedWithHeaderOrHeaders_shouldReceiveHeaderValues() throws Exception {
-        // Arrange
-        this.messageListener.setCountDownLatch(new CountDownLatch(1));
-        this.messageListener.getReceivedMessages().clear();
+	@Test
+	public void receiveMessage_withArgumentAnnotatedWithHeaderOrHeaders_shouldReceiveHeaderValues()
+			throws Exception {
+		// Arrange
+		this.messageListener.setCountDownLatch(new CountDownLatch(1));
+		this.messageListener.getReceivedMessages().clear();
 
-        // Act
-        ByteBuffer binaryValue = ByteBuffer.wrap("Binary value".getBytes());
-        int numberValue = 123456;
-        String stringValue = "String value";
-        this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload("Is the header received?")
-                .setHeader("stringHeader", stringValue)
-                .setHeader("numberHeader", numberValue)
-                .setHeader("binaryHeader", binaryValue)
-                .build());
+		// Act
+		ByteBuffer binaryValue = ByteBuffer.wrap("Binary value".getBytes());
+		int numberValue = 123456;
+		String stringValue = "String value";
+		this.queueMessagingTemplate.send("QueueListenerTest",
+				MessageBuilder.withPayload("Is the header received?")
+						.setHeader("stringHeader", stringValue)
+						.setHeader("numberHeader", numberValue)
+						.setHeader("binaryHeader", binaryValue).build());
 
-        // Assert
-        assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-        assertNotNull(this.messageListener.getSenderId());
-        assertNotNull(this.messageListener.getAllHeaders());
-        assertEquals(stringValue, this.messageListener.getAllHeaders().get("stringHeader"));
-        assertEquals(numberValue, this.messageListener.getAllHeaders().get("numberHeader"));
-        assertEquals(binaryValue, this.messageListener.getAllHeaders().get("binaryHeader"));
-    }
+		// Assert
+		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
+		assertNotNull(this.messageListener.getSenderId());
+		assertNotNull(this.messageListener.getAllHeaders());
+		assertEquals(stringValue,
+				this.messageListener.getAllHeaders().get("stringHeader"));
+		assertEquals(numberValue,
+				this.messageListener.getAllHeaders().get("numberHeader"));
+		assertEquals(binaryValue,
+				this.messageListener.getAllHeaders().get("binaryHeader"));
+	}
 
-    @Test
-    public void redrivePolicy_withMessageMappingThrowingAnException_messageShouldAppearInDeadLetterQueue() throws Exception {
-        // Arrange
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        this.redrivePolicyTestListener.setCountDownLatch(countDownLatch);
+	@Test
+	public void redrivePolicy_withMessageMappingThrowingAnException_messageShouldAppearInDeadLetterQueue()
+			throws Exception {
+		// Arrange
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		this.redrivePolicyTestListener.setCountDownLatch(countDownLatch);
 
-        // Act
-        this.queueMessagingTemplate.convertAndSend("QueueWithRedrivePolicy", "Hello");
+		// Act
+		this.queueMessagingTemplate.convertAndSend("QueueWithRedrivePolicy", "Hello");
 
-        // Assert
-        assertTrue(countDownLatch.await(15, TimeUnit.SECONDS));
-    }
+		// Assert
+		assertTrue(countDownLatch.await(15, TimeUnit.SECONDS));
+	}
 
-    @Test
-    public void manualDeletion_withAcknowledgmentCalled_shouldSucceedAndDeleteMessage() throws Exception {
-        // Act
-        this.queueMessagingTemplate.convertAndSend("ManualDeletionQueue", "Message");
+	@Test
+	public void manualDeletion_withAcknowledgmentCalled_shouldSucceedAndDeleteMessage()
+			throws Exception {
+		// Act
+		this.queueMessagingTemplate.convertAndSend("ManualDeletionQueue", "Message");
 
-        // Assert
-        assertTrue(this.manualDeletionPolicyTestListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-    }
+		// Assert
+		assertTrue(this.manualDeletionPolicyTestListener.getCountDownLatch().await(15,
+				TimeUnit.SECONDS));
+	}
 
-    public static class MessageListener {
+	public static class MessageListener {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-        private final List<String> receivedMessages = new ArrayList<>();
-        private CountDownLatch countDownLatch = new CountDownLatch(1);
-        private String senderId;
-        private Map<String, Object> allHeaders;
+		private static final Logger LOGGER = LoggerFactory
+				.getLogger(MessageListener.class);
 
-        @RuntimeUse
-        @SqsListener("QueueListenerTest")
-        public void receiveMessage(String message, @Header(value = "SenderId", required = false) String senderId, @Headers Map<String, Object> allHeaders) {
-            LOGGER.debug("Received message with content {}", message);
-            this.receivedMessages.add(message);
-            this.senderId = senderId;
-            this.allHeaders = allHeaders;
-            this.getCountDownLatch().countDown();
-        }
+		private final List<String> receivedMessages = new ArrayList<>();
 
-        CountDownLatch getCountDownLatch() {
-            return this.countDownLatch;
-        }
+		private CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        public void setCountDownLatch(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
+		private String senderId;
 
-        public List<String> getReceivedMessages() {
-            return this.receivedMessages;
-        }
+		private Map<String, Object> allHeaders;
 
-        public String getSenderId() {
-            return this.senderId;
-        }
+		@RuntimeUse
+		@SqsListener("QueueListenerTest")
+		public void receiveMessage(String message,
+				@Header(value = "SenderId", required = false) String senderId,
+				@Headers Map<String, Object> allHeaders) {
+			LOGGER.debug("Received message with content {}", message);
+			this.receivedMessages.add(message);
+			this.senderId = senderId;
+			this.allHeaders = allHeaders;
+			this.getCountDownLatch().countDown();
+		}
 
-        public Map<String, Object> getAllHeaders() {
-            return Collections.unmodifiableMap(this.allHeaders);
-        }
-    }
+		CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
+		}
 
-    public static class MessageListenerWithSendTo {
+		public void setCountDownLatch(CountDownLatch countDownLatch) {
+			this.countDownLatch = countDownLatch;
+		}
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-        private final List<String> receivedMessages = new ArrayList<>();
+		public List<String> getReceivedMessages() {
+			return this.receivedMessages;
+		}
 
-        @RuntimeUse
-        @SqsListener("SendToQueue")
-        @SendTo("QueueListenerTest")
-        public String receiveMessage(String message) {
-            LOGGER.debug("Received message with content {}", message);
-            this.receivedMessages.add(message);
-            return message.toUpperCase();
-        }
+		public String getSenderId() {
+			return this.senderId;
+		}
 
-        public List<String> getReceivedMessages() {
-            return this.receivedMessages;
-        }
+		public Map<String, Object> getAllHeaders() {
+			return Collections.unmodifiableMap(this.allHeaders);
+		}
 
-    }
+	}
 
-    public static class RedrivePolicyTestListener {
+	public static class MessageListenerWithSendTo {
 
-        private CountDownLatch countDownLatch = new CountDownLatch(1);
+		private static final Logger LOGGER = LoggerFactory
+				.getLogger(MessageListener.class);
 
-        public void setCountDownLatch(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
+		private final List<String> receivedMessages = new ArrayList<>();
 
-        @RuntimeUse
-        @SqsListener(value = "QueueWithRedrivePolicy", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
-        public void receiveThrowingException(String message) {
-            throw new RuntimeException();
-        }
+		@RuntimeUse
+		@SqsListener("SendToQueue")
+		@SendTo("QueueListenerTest")
+		public String receiveMessage(String message) {
+			LOGGER.debug("Received message with content {}", message);
+			this.receivedMessages.add(message);
+			return message.toUpperCase();
+		}
 
-        @RuntimeUse
-        @SqsListener("DeadLetterQueue")
-        public void receiveDeadLetters(String message) {
-            this.countDownLatch.countDown();
-        }
+		public List<String> getReceivedMessages() {
+			return this.receivedMessages;
+		}
 
-        @MessageExceptionHandler(RuntimeException.class)
-        public void handle() {
-            // Empty body just to avoid unnecessary log output because no exception handler was found.
-        }
+	}
 
-    }
+	public static class RedrivePolicyTestListener {
 
-    public static class ManualDeletionPolicyTestListener {
+		private CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        private final CountDownLatch countDownLatch = new CountDownLatch(1);
+		public void setCountDownLatch(CountDownLatch countDownLatch) {
+			this.countDownLatch = countDownLatch;
+		}
 
-        @SqsListener(value = "ManualDeletionQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-        public void receive(String message, Acknowledgment acknowledgment) throws ExecutionException, InterruptedException {
-            acknowledgment.acknowledge().get();
-            this.countDownLatch.countDown();
-        }
+		@RuntimeUse
+		@SqsListener(value = "QueueWithRedrivePolicy", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		public void receiveThrowingException(String message) {
+			throw new RuntimeException();
+		}
 
-        public CountDownLatch getCountDownLatch() {
-            return this.countDownLatch;
-        }
+		@RuntimeUse
+		@SqsListener("DeadLetterQueue")
+		public void receiveDeadLetters(String message) {
+			this.countDownLatch.countDown();
+		}
 
-    }
+		@MessageExceptionHandler(RuntimeException.class)
+		public void handle() {
+			// Empty body just to avoid unnecessary log output because no exception
+			// handler was found.
+		}
+
+	}
+
+	public static class ManualDeletionPolicyTestListener {
+
+		private final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		@SqsListener(value = "ManualDeletionQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		public void receive(String message, Acknowledgment acknowledgment)
+				throws ExecutionException, InterruptedException {
+			acknowledgment.acknowledge().get();
+			this.countDownLatch.countDown();
+		}
+
+		public CountDownLatch getCountDownLatch() {
+			return this.countDownLatch;
+		}
+
+	}
 
 }

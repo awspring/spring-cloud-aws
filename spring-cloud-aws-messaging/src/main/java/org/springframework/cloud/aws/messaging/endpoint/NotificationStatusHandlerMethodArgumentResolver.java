@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,49 +18,59 @@ package org.springframework.cloud.aws.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 
 /**
  * @author Agim Emruli
  */
-public class NotificationStatusHandlerMethodArgumentResolver extends AbstractNotificationMessageHandlerMethodArgumentResolver {
+public class NotificationStatusHandlerMethodArgumentResolver
+		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
-    private final AmazonSNS amazonSns;
+	private final AmazonSNS amazonSns;
 
-    public NotificationStatusHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
-        this.amazonSns = amazonSns;
-    }
+	public NotificationStatusHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
+		this.amazonSns = amazonSns;
+	}
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return NotificationStatus.class.isAssignableFrom(parameter.getParameterType());
-    }
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		return NotificationStatus.class.isAssignableFrom(parameter.getParameterType());
+	}
 
-    @Override
-    protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType) {
-        if (!"SubscriptionConfirmation".equals(content.get("Type").asText()) && !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
-            throw new IllegalArgumentException("NotificationStatus is only available for subscription and unsubscription requests");
-        }
-        return new AmazonSnsNotificationStatus(this.amazonSns, content.get("TopicArn").asText(), content.get("Token").asText());
-    }
+	@Override
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content,
+			HttpInputMessage request, Class<?> parameterType) {
+		if (!"SubscriptionConfirmation".equals(content.get("Type").asText())
+				&& !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
+			throw new IllegalArgumentException(
+					"NotificationStatus is only available for subscription and unsubscription requests");
+		}
+		return new AmazonSnsNotificationStatus(this.amazonSns,
+				content.get("TopicArn").asText(), content.get("Token").asText());
+	}
 
-    private static class AmazonSnsNotificationStatus implements NotificationStatus {
+	private static final class AmazonSnsNotificationStatus implements NotificationStatus {
 
-        private final AmazonSNS amazonSns;
-        private final String topicArn;
-        private final String confirmationToken;
+		private final AmazonSNS amazonSns;
 
-        private AmazonSnsNotificationStatus(AmazonSNS amazonSns, String topicArn, String confirmationToken) {
-            this.amazonSns = amazonSns;
-            this.topicArn = topicArn;
-            this.confirmationToken = confirmationToken;
-        }
+		private final String topicArn;
 
-        @Override
-        public void confirmSubscription() {
-            this.amazonSns.confirmSubscription(this.topicArn, this.confirmationToken);
-        }
+		private final String confirmationToken;
 
-    }
+		private AmazonSnsNotificationStatus(AmazonSNS amazonSns, String topicArn,
+				String confirmationToken) {
+			this.amazonSns = amazonSns;
+			this.topicArn = topicArn;
+			this.confirmationToken = confirmationToken;
+		}
+
+		@Override
+		public void confirmSubscription() {
+			this.amazonSns.confirmSubscription(this.topicArn, this.confirmationToken);
+		}
+
+	}
+
 }

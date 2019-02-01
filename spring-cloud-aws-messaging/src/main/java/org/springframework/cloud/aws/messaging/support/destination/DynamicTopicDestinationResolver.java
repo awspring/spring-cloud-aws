@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.Topic;
+
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.naming.AmazonResourceName;
 import org.springframework.messaging.core.DestinationResolutionException;
@@ -34,59 +35,71 @@ import org.springframework.util.StringUtils;
  */
 public class DynamicTopicDestinationResolver implements DestinationResolver<String> {
 
-    private final AmazonSNS amazonSns;
-    private final ResourceIdResolver resourceIdResolver;
-    private boolean autoCreate;
+	private final AmazonSNS amazonSns;
 
-    public DynamicTopicDestinationResolver(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-        this.amazonSns = amazonSns;
-        this.resourceIdResolver = resourceIdResolver;
-    }
+	private final ResourceIdResolver resourceIdResolver;
 
-    public DynamicTopicDestinationResolver(AmazonSNS amazonSns) {
-        this(amazonSns, null);
-    }
+	private boolean autoCreate;
 
-    public void setAutoCreate(boolean autoCreate) {
-        this.autoCreate = autoCreate;
-    }
+	public DynamicTopicDestinationResolver(AmazonSNS amazonSns,
+			ResourceIdResolver resourceIdResolver) {
+		this.amazonSns = amazonSns;
+		this.resourceIdResolver = resourceIdResolver;
+	}
 
-    @Override
-    public String resolveDestination(String name) throws DestinationResolutionException {
-        if (this.autoCreate) {
-            return this.amazonSns.createTopic(new CreateTopicRequest(name)).getTopicArn();
-        } else {
-            String physicalTopicName = name;
-            if (this.resourceIdResolver != null) {
-                physicalTopicName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
-            }
+	public DynamicTopicDestinationResolver(AmazonSNS amazonSns) {
+		this(amazonSns, null);
+	}
 
-            if (physicalTopicName != null && AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
-                return physicalTopicName;
-            }
+	public void setAutoCreate(boolean autoCreate) {
+		this.autoCreate = autoCreate;
+	}
 
-            String topicArn = getTopicResourceName(null, physicalTopicName);
-            if (topicArn == null) {
-                throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use " +
-                        "the right topic name or enable auto creation of topics for this DestinationResolver");
-            }
-            return topicArn;
-        }
-    }
+	@Override
+	public String resolveDestination(String name) throws DestinationResolutionException {
+		if (this.autoCreate) {
+			return this.amazonSns.createTopic(new CreateTopicRequest(name)).getTopicArn();
+		}
+		else {
+			String physicalTopicName = name;
+			if (this.resourceIdResolver != null) {
+				physicalTopicName = this.resourceIdResolver
+						.resolveToPhysicalResourceId(name);
+			}
 
-    private String getTopicResourceName(String marker, String topicName) {
-        ListTopicsResult listTopicsResult = this.amazonSns.listTopics(new ListTopicsRequest(marker));
-        for (Topic topic : listTopicsResult.getTopics()) {
-            AmazonResourceName resourceName = AmazonResourceName.fromString(topic.getTopicArn());
-            if (resourceName.getResourceType().equals(topicName)) {
-                return topic.getTopicArn();
-            }
-        }
+			if (physicalTopicName != null
+					&& AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
+				return physicalTopicName;
+			}
 
-        if (StringUtils.hasText(listTopicsResult.getNextToken())) {
-            return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
-        } else {
-            throw new IllegalArgumentException("No topic found for name :'" + topicName + "'");
-        }
-    }
+			String topicArn = getTopicResourceName(null, physicalTopicName);
+			if (topicArn == null) {
+				throw new IllegalArgumentException("No Topic with name: '" + name
+						+ "' found. Please use "
+						+ "the right topic name or enable auto creation of topics for this DestinationResolver");
+			}
+			return topicArn;
+		}
+	}
+
+	private String getTopicResourceName(String marker, String topicName) {
+		ListTopicsResult listTopicsResult = this.amazonSns
+				.listTopics(new ListTopicsRequest(marker));
+		for (Topic topic : listTopicsResult.getTopics()) {
+			AmazonResourceName resourceName = AmazonResourceName
+					.fromString(topic.getTopicArn());
+			if (resourceName.getResourceType().equals(topicName)) {
+				return topic.getTopicArn();
+			}
+		}
+
+		if (StringUtils.hasText(listTopicsResult.getNextToken())) {
+			return getTopicResourceName(listTopicsResult.getNextToken(), topicName);
+		}
+		else {
+			throw new IllegalArgumentException(
+					"No topic found for name :'" + topicName + "'");
+		}
+	}
+
 }

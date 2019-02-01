@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.aws.core.config;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
+
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsAsyncClientBuilder;
@@ -24,92 +27,104 @@ import com.amazonaws.client.builder.ExecutorFactory;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Method;
-import java.util.concurrent.ExecutorService;
-
 /**
- * {@link org.springframework.beans.factory.FactoryBean} class to create {@link AmazonWebServiceClient} instances. This class
- * is responsible to create the respective AmazonWebServiceClient classes because the configuration through Springs's
+ * {@link org.springframework.beans.factory.FactoryBean} class to create
+ * {@link AmazonWebServiceClient} instances. This class is responsible to create the
+ * respective AmazonWebServiceClient classes because the configuration through Springs's
  * BeanFactory fails due to invalid properties inside the Webservice client classes (see
  * https://github.com/aws/aws-sdk-java/issues/325)
  *
+ * @param <T> implementation of the {@link AmazonWebServiceClient}
  * @author Agim Emruli
  */
-public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient> extends AbstractFactoryBean<T> {
+public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
+		extends AbstractFactoryBean<T> {
 
-    private final Class<? extends AmazonWebServiceClient> clientClass;
-    private final AWSCredentialsProvider credentialsProvider;
-    private RegionProvider regionProvider;
-    private Region customRegion;
-    private ExecutorService executor;
+	private final Class<? extends AmazonWebServiceClient> clientClass;
 
-    public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
-                                             AWSCredentialsProvider credentialsProvider) {
-        this.clientClass = clientClass;
-        this.credentialsProvider = credentialsProvider;
-    }
+	private final AWSCredentialsProvider credentialsProvider;
 
-    public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
-        this(clientClass, credentialsProvider);
-        setRegionProvider(regionProvider);
-    }
+	private RegionProvider regionProvider;
 
-    @Override
-    public Class<?> getObjectType() {
-        return this.clientClass;
-    }
+	private Region customRegion;
 
-    @SuppressWarnings("unchecked")
-    @Override
-    protected T createInstance() throws Exception {
+	private ExecutorService executor;
 
-        String builderName = this.clientClass.getName() + "Builder";
-        Class<?> className = ClassUtils.resolveClassName(builderName, ClassUtils.getDefaultClassLoader());
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
+			AWSCredentialsProvider credentialsProvider) {
+		this.clientClass = clientClass;
+		this.credentialsProvider = credentialsProvider;
+	}
 
-        Method method = ClassUtils.getStaticMethod(className, "standard");
-        Assert.notNull(method, "Could not find standard() method in class:'" + className.getName() + "'");
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
+			AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
+		this(clientClass, credentialsProvider);
+		setRegionProvider(regionProvider);
+	}
 
-        AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils.invokeMethod(method, null);
+	@Override
+	public Class<?> getObjectType() {
+		return this.clientClass;
+	}
 
-        if (this.executor != null) {
-            AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
-            asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
-        }
+	@SuppressWarnings("unchecked")
+	@Override
+	protected T createInstance() throws Exception {
 
-        if (this.credentialsProvider != null) {
-            builder.withCredentials(this.credentialsProvider);
-        }
+		String builderName = this.clientClass.getName() + "Builder";
+		Class<?> className = ClassUtils.resolveClassName(builderName,
+				ClassUtils.getDefaultClassLoader());
 
-        if (this.customRegion != null) {
-            builder.withRegion(this.customRegion.getName());
-        } else if (this.regionProvider != null) {
-            builder.withRegion(this.regionProvider.getRegion().getName());
-        } else {
-            builder.withRegion(Regions.DEFAULT_REGION);
-        }
-        return builder.build();
-    }
+		Method method = ClassUtils.getStaticMethod(className, "standard");
+		Assert.notNull(method, "Could not find standard() method in class:'"
+				+ className.getName() + "'");
 
-    public void setRegionProvider(RegionProvider regionProvider) {
-        this.regionProvider = regionProvider;
-    }
+		AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils
+				.invokeMethod(method, null);
 
-    public void setCustomRegion(String customRegionName) {
-        this.customRegion = RegionUtils.getRegion(customRegionName);
-    }
+		if (this.executor != null) {
+			AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
+			asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
+		}
 
-    public void setExecutor(ExecutorService executor) {
-        this.executor = executor;
-    }
+		if (this.credentialsProvider != null) {
+			builder.withCredentials(this.credentialsProvider);
+		}
 
-    @Override
-    protected void destroyInstance(T instance) throws Exception {
-        instance.shutdown();
-    }
+		if (this.customRegion != null) {
+			builder.withRegion(this.customRegion.getName());
+		}
+		else if (this.regionProvider != null) {
+			builder.withRegion(this.regionProvider.getRegion().getName());
+		}
+		else {
+			builder.withRegion(Regions.DEFAULT_REGION);
+		}
+		return builder.build();
+	}
+
+	public void setRegionProvider(RegionProvider regionProvider) {
+		this.regionProvider = regionProvider;
+	}
+
+	public void setCustomRegion(String customRegionName) {
+		this.customRegion = RegionUtils.getRegion(customRegionName);
+	}
+
+	public void setExecutor(ExecutorService executor) {
+		this.executor = executor;
+	}
+
+	@Override
+	protected void destroyInstance(T instance) throws Exception {
+		instance.shutdown();
+	}
+
 }

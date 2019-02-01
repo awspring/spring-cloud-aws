@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,63 +22,75 @@
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
-				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd" />
+				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
-				schemaLocation="http://www.springframework.org/schema/tool/spring-tool.xsd" />
+				schemaLocation="http://www.springframework.org/schema/tool/spring-tool.xsd"/>
 
 	<xsd:element name="context-credentials">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.springframework.cloud.aws.core.credentials.credentials.CredentialsProviderFactoryBean">
+				source="java:org.springframework.cloud.aws.core.credentials.credentials.CredentialsProviderFactoryBean">
 				<![CDATA[
 	Creates the authentication configuration which will be used to authenticate the request made from this application context to the particular service.
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="com.amazonaws.auth.AWSCredentialsProvider" />
+					<tool:exports type="com.amazonaws.auth.AWSCredentialsProvider"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all>
-				<xsd:element name="simple-credentials" type="simpleCredentialsType" minOccurs="0" maxOccurs="1">
+				<xsd:element name="simple-credentials" type="simpleCredentialsType"
+							 minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation>
-							Simple credentials which can be used to configure the static credentials. This credentials
-							can be either hard-coded in the XML (not recommended), evaluated through an EL expression or
+							Simple credentials which can be used to configure the static
+							credentials. This credentials
+							can be either hard-coded in the XML (not recommended),
+							evaluated through an EL expression or
 							replaced by a property place holder variable.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-				<xsd:element name="instance-profile-credentials" minOccurs="0" maxOccurs="1">
+				<xsd:element name="instance-profile-credentials" minOccurs="0"
+							 maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation>
-							This credentials will be fetched through the particular instance profile. So there is no
-							need to define any additional information. NOTE: In order to use the instance profile
-							credentials, the application context must run inside an EC2 instance.
+							This credentials will be fetched through the particular
+							instance profile. So there is no
+							need to define any additional information. NOTE: In order to
+							use the instance profile
+							credentials, the application context must run inside an EC2
+							instance.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
 				<xsd:element name="profile-credentials" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation>
-							Profile based credentials provider that allows to configure the profiles inside an
-							AWS SDK specific configuration file using different profile names.
+							Profile based credentials provider that allows to configure
+							the profiles inside an
+							AWS SDK specific configuration file using different profile
+							names.
 						</xsd:documentation>
 					</xsd:annotation>
 					<xsd:complexType>
 						<xsd:attribute name="profileName" use="required">
 							<xsd:annotation>
 								<xsd:documentation>
-									Configures the profile name used by the profile credentials provider. The profile
-									name is specified according to the profile file format.
+									Configures the profile name used by the profile
+									credentials provider. The profile
+									name is specified according to the profile file
+									format.
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 						<xsd:attribute name="profilePath" use="optional">
 							<xsd:annotation>
 								<xsd:documentation>
-									Allows to configure the profile path. By default the profile file will be read
+									Allows to configure the profile path. By default the
+									profile file will be read
 									inside
 									the users directory in the folder .aws/credentials .
 								</xsd:documentation>
@@ -93,18 +105,19 @@
 	<xsd:element name="context-resource-loader">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParser">
-				Configures a resource loader that supports amazon S3 resources to be loaded by the application context
+				source="java:org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParser">
+				Configures a resource loader that supports amazon S3 resources to be
+				loaded by the application context
 				resource loader.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.core.io.ResourceLoader" />
+					<tool:exports type="org.springframework.core.io.ResourceLoader"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attributeGroup ref="locationAttributeGroup"/>
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -114,7 +127,8 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+							<tool:expected-type
+								type="org.springframework.core.task.TaskExecutor"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -129,7 +143,8 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.s3.AmazonS3" />
+							<tool:expected-type
+								type="com.amazonaws.services.s3.AmazonS3"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -140,21 +155,23 @@
 	<xsd:element name="context-region">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.springframework.cloud.aws.context.config.xml.ContextRegionBeanDefinitionParser">
+				source="java:org.springframework.cloud.aws.context.config.xml.ContextRegionBeanDefinitionParser">
 				<![CDATA[
 				Configures the application context wide region provider used for all webservice access to the amazon webservices
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.cloud.aws.core.region.RegionProvider" />
+					<tool:exports
+						type="org.springframework.cloud.aws.core.region.RegionProvider"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="locationAttributeGroup" />
+			<xsd:attributeGroup ref="locationAttributeGroup"/>
 			<xsd:attribute name="auto-detect" type="xsd:boolean" default="false">
 				<xsd:annotation>
-					<xsd:documentation>Defines that the region should be auto detected through the EC2 meta data
+					<xsd:documentation>Defines that the region should be auto detected
+						through the EC2 meta data
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -164,55 +181,61 @@
 	<xsd:element name="context-instance-data">
 		<xsd:annotation>
 			<xsd:documentation
-					source="java:org.springframework.cloud.aws.context.config.xml.ContextInstanceDataPropertySourceBeanDefinitionParser">
+				source="java:org.springframework.cloud.aws.context.config.xml.ContextInstanceDataPropertySourceBeanDefinitionParser">
 				<![CDATA[
 				Configures a property placeholder that is capable to resolver instance data specific placeholder (like instance id)
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
 					<tool:exports
-							type="org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor" />
+						type="org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="locationAttributeGroup" />
-			<xsd:attributeGroup ref="userTagsAttributeGroup" />
+			<xsd:attributeGroup ref="locationAttributeGroup"/>
+			<xsd:attributeGroup ref="userTagsAttributeGroup"/>
 			<xsd:attribute name="instance-id-provider" type="xsd:string" use="optional">
 				<xsd:annotation>
-					<xsd:documentation>Instance id provider, by default the instance id is taken from the instance
+					<xsd:documentation>Instance id provider, by default the instance id is
+						taken from the instance
 						meta-data. Might be changed with another strategy
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-									type="org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider" />
+								type="org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="amazon-ec2" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>Reference to a custom Amazon EC2 client bean if user tags should be retrieved
-						from EC2 meta-data. This attribute is ignored if there is no user-tags-map attribute configured
+					<xsd:documentation>Reference to a custom Amazon EC2 client bean if
+						user tags should be retrieved
+						from EC2 meta-data. This attribute is ignored if there is no
+						user-tags-map attribute configured
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.ec2.AmazonEC2" />
+							<tool:expected-type
+								type="com.amazonaws.services.ec2.AmazonEC2"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="value-separator" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>Value separator used to separate the values inside the user data (same default
+					<xsd:documentation>Value separator used to separate the values inside
+						the user data (same default
 						like property place holders default)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="attribute-separator" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>Attribute separator used to separate the attributes inside the global user data
+					<xsd:documentation>Attribute separator used to separate the attributes
+						inside the global user data
 						string
 					</xsd:documentation>
 				</xsd:annotation>
@@ -223,13 +246,15 @@
 	<xsd:attributeGroup name="locationAttributeGroup">
 		<xsd:annotation>
 			<xsd:documentation>
-				Attribute group that can be used by components which are region aware. This group
+				Attribute group that can be used by components which are region aware.
+				This group
 				allows users to configure the particular region.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="region" type="xsd:string" use="optional">
 			<xsd:annotation>
-				<xsd:documentation>The region that will be used, must be one of the valid regions.
+				<xsd:documentation>The region that will be used, must be one of the valid
+					regions.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -238,7 +263,7 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-								type="org.springframework.cloud.aws.core.region.RegionProvider" />
+							type="org.springframework.cloud.aws.core.region.RegionProvider"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -248,7 +273,8 @@
 	<xsd:attributeGroup name="userTagsAttributeGroup">
 		<xsd:attribute name="user-tags-map" type="xsd:string" use="optional">
 			<xsd:annotation>
-				<xsd:documentation>Exposed map that contains all user tags to be accessed via EL expression
+				<xsd:documentation>Exposed map that contains all user tags to be accessed
+					via EL expression
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -258,12 +284,13 @@
 		<xsd:attribute name="access-key" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
-					The access key used to make the request. An access key is assigned to one account or IAM user.
+					The access key used to make the request. An access key is assigned to
+					one account or IAM user.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
-					<xsd:minLength value="1" />
+					<xsd:minLength value="1"/>
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
@@ -275,7 +302,7 @@
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
-					<xsd:minLength value="1" />
+					<xsd:minLength value="1"/>
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
@@ -284,24 +311,28 @@
 	<xsd:element name="stack-configuration">
 		<xsd:annotation>
 			<xsd:documentation
-					source="org.springframework.cloud.aws.context.config.xml.StackConfigurationBeanDefinitionParser">
-				Configures an Amazon Cloud Formation stack and enables lookup of physical ids by logical ids for
+				source="org.springframework.cloud.aws.context.config.xml.StackConfigurationBeanDefinitionParser">
+				Configures an Amazon Cloud Formation stack and enables lookup of physical
+				ids by logical ids for
 				resources defined in the specified stack.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.cloud.aws.core.env.stack.StackResourceRegistry" />
+					<tool:exports
+						type="org.springframework.cloud.aws.core.env.stack.StackResourceRegistry"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="locationAttributeGroup" />
-			<xsd:attributeGroup ref="userTagsAttributeGroup" />
+			<xsd:attributeGroup ref="locationAttributeGroup"/>
+			<xsd:attributeGroup ref="userTagsAttributeGroup"/>
 			<xsd:attribute name="stack-name" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
-						The name of the stack to be configured. The corresponding stack must exist and must be
-						available. If no stack name is configured, the stack name is automatically detected
+						The name of the stack to be configured. The corresponding stack
+						must exist and must be
+						available. If no stack name is configured, the stack name is
+						automatically detected
 						based on the stack the current Amazon EC2 instance is part of.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -309,12 +340,14 @@
 			<xsd:attribute name="amazon-cloud-formation" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						A reference to an externally configured AmazonCloudFormation client, to be used to retrieve
+						A reference to an externally configured AmazonCloudFormation
+						client, to be used to retrieve
 						stack information from the CloudFormation service.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.amazonaws.services.cloudformation.AmazonCloudFormation" />
+							<tool:expected-type
+								type="com.amazonaws.services.cloudformation.AmazonCloudFormation"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

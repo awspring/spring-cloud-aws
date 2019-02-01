@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,40 @@
 
 package org.springframework.cloud.aws.messaging;
 
-import org.junit.After;
-import org.junit.Before;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
+import org.junit.Before;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 
 /**
  * @author Alain Sahli
  */
 abstract class AbstractContainerTest {
 
-    @Autowired
-    protected SimpleMessageListenerContainer simpleMessageListenerContainer;
+	@Autowired
+	protected SimpleMessageListenerContainer simpleMessageListenerContainer;
 
-    @Before
-    public void setUp() throws Exception {
-        if (!this.simpleMessageListenerContainer.isRunning()) {
-            this.simpleMessageListenerContainer.start();
-        }
-    }
+	@Before
+	public void setUp() throws Exception {
+		if (!this.simpleMessageListenerContainer.isRunning()) {
+			this.simpleMessageListenerContainer.start();
+		}
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        if (this.simpleMessageListenerContainer.isRunning()) {
-            CountDownLatch countDownLatch = new CountDownLatch(1);
-            this.simpleMessageListenerContainer.stop(countDownLatch::countDown);
+	@After
+	public void tearDown() throws Exception {
+		if (this.simpleMessageListenerContainer.isRunning()) {
+			CountDownLatch countDownLatch = new CountDownLatch(1);
+			this.simpleMessageListenerContainer.stop(countDownLatch::countDown);
 
-            if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
-                throw new Exception("Couldn't stop container withing 15 seconds");
-            }
-        }
-    }
+			if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
+				throw new Exception("Couldn't stop container withing 15 seconds");
+			}
+		}
+	}
 
 }

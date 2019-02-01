@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
@@ -30,30 +31,36 @@ import org.springframework.context.annotation.PropertySource;
  * @author Alain Sahli
  */
 @SpringBootTest(classes = BootQueueMessagingTemplateIntegrationTest.QueueMessagingTemplateIntegrationTestConfiguration.class)
-public class BootQueueMessagingTemplateIntegrationTest extends QueueMessagingTemplateIntegrationTest {
+public class BootQueueMessagingTemplateIntegrationTest
+		extends QueueMessagingTemplateIntegrationTest {
 
-    @Configuration
-    @EnableAutoConfiguration
-    @PropertySource({"classpath:Integration-test-config.properties", "file://${els.config.dir}/access.properties"})
-    protected static class QueueMessagingTemplateIntegrationTestConfiguration {
+	@Configuration
+	@EnableAutoConfiguration
+	@PropertySource({ "classpath:Integration-test-config.properties",
+			"file://${els.config.dir}/access.properties" })
+	protected static class QueueMessagingTemplateIntegrationTestConfiguration {
 
-        @Bean
-        public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-            QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-            queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
+		@Bean
+		public QueueMessagingTemplate defaultQueueMessagingTemplate(
+				AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
+			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
+					amazonSqs, resourceIdResolver);
+			queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
 
-            return queueMessagingTemplate;
-        }
+			return queueMessagingTemplate;
+		}
 
-        @Bean
-        public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-            QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
-            queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
-            queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());
+		@Bean
+		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(
+				AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
+			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
+					amazonSqs, resourceIdResolver);
+			queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
+			queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());
 
-            return queueMessagingTemplate;
-        }
+			return queueMessagingTemplate;
+		}
 
-    }
+	}
 
 }

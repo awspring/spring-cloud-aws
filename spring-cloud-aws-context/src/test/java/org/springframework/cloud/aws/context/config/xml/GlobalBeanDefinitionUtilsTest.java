@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context.config.xml;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -29,70 +30,84 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GlobalBeanDefinitionUtilsTest {
 
-    @Test
-    public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegistered() {
-        // Arrange
-        DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+	@Test
+	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegistered() {
+		// Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 
-        // Act
-        GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+		// Act
+		GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
 
-        // Assert
-        assertThat(registry.getBeanNamesForType(ResourceIdResolver.class).length, is(1));
-    }
+		// Assert
+		assertThat(registry.getBeanNamesForType(ResourceIdResolver.class).length, is(1));
+	}
 
-    @Test
-    public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegisteredUnderInternalName() {
-        // Arrange
-        DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+	@Test
+	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegisteredUnderInternalName() {
+		// Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 
-        // Act
-        GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+		// Act
+		GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
 
-        // Assert
-        assertThat(registry.getBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), is(not(nullValue())));
-    }
+		// Assert
+		assertThat(
+				registry.getBeanDefinition(
+						GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME),
+				is(not(nullValue())));
+	}
 
-    @Test
-    public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_returnsInternalBeanName() {
-        // Arrange
-        DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+	@Test
+	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_returnsInternalBeanName() {
+		// Arrange
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 
-        // Act
-        String resourceIdResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+		// Act
+		String resourceIdResolverBeanName = GlobalBeanDefinitionUtils
+				.retrieveResourceIdResolverBeanName(registry);
 
-        // Assert
-        assertThat(resourceIdResolverBeanName, is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
-    }
+		// Assert
+		assertThat(resourceIdResolverBeanName,
+				is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
+	}
 
-    @Test
-    public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_resourceIdResolverBeanIsNotAgainRegistered() {
-        // Arrange
-        BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
+	@Test
+	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_resourceIdResolverBeanIsNotAgainRegistered() {
+		// Arrange
+		BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
 
-        DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
-        registry.registerBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, resourceIdResolverBeanDefinition);
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		registry.registerBeanDefinition(
+				GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME,
+				resourceIdResolverBeanDefinition);
 
-        // Act
-        GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+		// Act
+		GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
 
-        // Assert
-        assertThat(registry.getBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME), is(resourceIdResolverBeanDefinition));
-    }
+		// Assert
+		assertThat(
+				registry.getBeanDefinition(
+						GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME),
+				is(resourceIdResolverBeanDefinition));
+	}
 
-    @Test
-    public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_returnsInternalBeanName() {
-        // Arrange
-        BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
+	@Test
+	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_returnsInternalBeanName() {
+		// Arrange
+		BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
 
-        DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
-        registry.registerBeanDefinition(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME, resourceIdResolverBeanDefinition);
+		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
+		registry.registerBeanDefinition(
+				GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME,
+				resourceIdResolverBeanDefinition);
 
-        // Act
-        String resourceIdResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+		// Act
+		String resourceIdResolverBeanName = GlobalBeanDefinitionUtils
+				.retrieveResourceIdResolverBeanName(registry);
 
-        // Assert
-        assertThat(resourceIdResolverBeanName, is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
-    }
+		// Assert
+		assertThat(resourceIdResolverBeanName,
+				is(GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.config.annotation;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
@@ -34,16 +35,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SnsConfiguration {
 
-    @Autowired(required = false)
-    private AWSCredentialsProvider awsCredentialsProvider;
+	@Autowired(required = false)
+	private AWSCredentialsProvider awsCredentialsProvider;
 
-    @Autowired(required = false)
-    private RegionProvider regionProvider;
+	@Autowired(required = false)
+	private RegionProvider regionProvider;
 
-    @ConditionalOnMissingAmazonClient(AmazonSNS.class)
-    @Bean
-    public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
-        return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
-                this.awsCredentialsProvider, this.regionProvider);
-    }
+	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
+	@Bean
+	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
+		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
+				this.awsCredentialsProvider, this.regionProvider);
+	}
+
 }

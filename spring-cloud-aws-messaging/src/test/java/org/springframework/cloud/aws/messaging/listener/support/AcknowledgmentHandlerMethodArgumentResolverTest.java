@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.listener.support;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -28,19 +29,22 @@ import org.springframework.messaging.support.MessageBuilder;
  */
 public class AcknowledgmentHandlerMethodArgumentResolverTest {
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
+	@Rule
+	public final ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException() throws Exception {
-        // Arrange
-        AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver("Acknowledgment");
-        Message<String> message = MessageBuilder.withPayload("no content").build();
+	@Test
+	public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException()
+			throws Exception {
+		// Arrange
+		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver(
+				"Acknowledgment");
+		Message<String> message = MessageBuilder.withPayload("no content").build();
 
-        this.expectedException.expect(IllegalArgumentException.class);
-        this.expectedException.expectMessage("Acknowledgment");
+		this.expectedException.expect(IllegalArgumentException.class);
+		this.expectedException.expectMessage("Acknowledgment");
 
-        // Act
-        acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message);
-    }
+		// Act
+		acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message);
+	}
+
 }

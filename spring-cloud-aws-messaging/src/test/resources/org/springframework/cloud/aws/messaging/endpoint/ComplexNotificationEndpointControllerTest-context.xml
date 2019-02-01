@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,15 +28,17 @@
 
 	<mvc:annotation-driven>
 		<mvc:argument-resolvers>
-			<ref bean="notificationResolver" />
+			<ref bean="notificationResolver"/>
 		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
 
-	<aws-messaging:notification-argument-resolver id="notificationResolver" amazon-sns="amazonSns" />
+	<aws-messaging:notification-argument-resolver id="notificationResolver"
+												  amazon-sns="amazonSns"/>
 
 	<bean id="amazonSns" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.amazonaws.services.sns.AmazonSNS" />
+		<constructor-arg value="com.amazonaws.services.sns.AmazonSNS"/>
 	</bean>
 
-	<bean class="org.springframework.cloud.aws.messaging.endpoint.ComplexNotificationTestController" />
+	<bean
+		class="org.springframework.cloud.aws.messaging.endpoint.ComplexNotificationTestController"/>
 </beans>

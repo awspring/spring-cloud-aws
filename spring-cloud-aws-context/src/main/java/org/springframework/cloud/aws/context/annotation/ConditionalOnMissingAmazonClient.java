@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,32 @@
 
 package org.springframework.cloud.aws.context.annotation;
 
-import org.springframework.context.annotation.Conditional;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
 
 /**
  * @author Alain Sahli
  * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 @Conditional(OnMissingAmazonClientCondition.class)
 public @interface ConditionalOnMissingAmazonClient {
 
-    /**
-     * <p>The Amazon clients that needs to be available in order to match the condition.</p>
-     *
-     * <b>IMPORTANT</b>: This condition does not verify the presence of a client, based on the type, but based on the
-     * default name as computed in {@link org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
-     */
-    Class<?> value();
+	/**
+	 * <p>
+	 * The Amazon clients that needs to be available in order to match the condition.
+	 * </p>
+	 *
+	 * <b>IMPORTANT</b>: This condition does not verify the presence of a client, based on
+	 * the type, but based on the default name as computed in
+	 * {@link org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
+	 * @return Amazon client class
+	 */
+	Class<?> value();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.cloud.aws.support.TestStackInstanceIdService;
@@ -35,32 +36,41 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 
-    @Autowired
-    private TestStackInstanceIdService testStackInstanceIdService;
+	@Autowired
+	private TestStackInstanceIdService testStackInstanceIdService;
 
-    @Autowired
-    private ConfigurableApplicationContext context;
+	@Autowired
+	private ConfigurableApplicationContext context;
 
-    @Before
-    public void enableInstanceIdMetadataService() {
-        this.testStackInstanceIdService.enable();
-    }
+	@Before
+	public void enableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.enable();
+	}
 
-    @After
-    public void disableInstanceIdMetadataService() {
-        this.testStackInstanceIdService.disable();
-    }
+	@After
+	public void disableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.disable();
+	}
 
-    @Test
-    public void testGetUserProperties() throws Exception {
+	@Test
+	public void testGetUserProperties() throws Exception {
 
-        Assert.assertEquals("tagv1", this.context.getBeanFactory().getBeanExpressionResolver().
-                evaluate("#{instanceData['tag1']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-        Assert.assertEquals("tagv2", this.context.getBeanFactory().getBeanExpressionResolver().
-                evaluate("#{instanceData['tag2']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-        Assert.assertEquals("tagv3", this.context.getBeanFactory().getBeanExpressionResolver().
-                evaluate("#{instanceData['tag3']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-        Assert.assertEquals("tagv4", this.context.getBeanFactory().getBeanExpressionResolver().
-                evaluate("#{instanceData['tag4']}", new BeanExpressionContext(this.context.getBeanFactory(), null)));
-    }
+		Assert.assertEquals("tagv1",
+				this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
+						"#{instanceData['tag1']}",
+						new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv2",
+				this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
+						"#{instanceData['tag2']}",
+						new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv3",
+				this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
+						"#{instanceData['tag3']}",
+						new BeanExpressionContext(this.context.getBeanFactory(), null)));
+		Assert.assertEquals("tagv4",
+				this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
+						"#{instanceData['tag4']}",
+						new BeanExpressionContext(this.context.getBeanFactory(), null)));
+	}
+
 }

@@ -1,195 +1,195 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Integration Test Template
 Parameters:
-  RdsPassword:
-    Description: The master password for the RDS instance
-    Type: String
-    MinLength: 8
-    NoEcho: true
-  AllowedFrom:
-    Description: Lockdown DB access to the host (default can be accessed from anywhere)
-    Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 0.0.0.0/0
-    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
+	RdsPassword:
+		Description: The master password for the RDS instance
+		Type: String
+		MinLength: 8
+		NoEcho: true
+	AllowedFrom:
+		Description: Lockdown DB access to the host (default can be accessed from anywhere)
+		Type: String
+		MinLength: '9'
+		MaxLength: '18'
+		Default: 0.0.0.0/0
+		AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+		ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
 Resources:
-  UserTagAndUserDataInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      DisableApiTermination: 'FALSE'
-      ImageId: ami-70edb016
-      UserData: !Base64 'data1:value1;data2:value2'
-      InstanceType: t2.nano
-      Tags:
-      - Key: tag1
-        Value: tagv1
-      - Key: tag3
-        Value: tagv3
-      - Key: tag2
-        Value: tagv2
-      - Key: tag4
-        Value: tagv4
-      NetworkInterfaces:
-          - GroupSet: ['Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup']
-            AssociatePublicIpAddress: 'true'
-            DeviceIndex: '0'
-            DeleteOnTermination: 'true'
-            SubnetId:
-              'Fn::ImportValue': !Sub 'TeamCity-SubnetA'
-  RdsSingleMicroInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      AllocatedStorage: '5'
-      DBInstanceClass: db.t2.micro
-      DBName: test
-      DBSubnetGroupName: !Ref 'RdsSubnetGroup'
-      Engine: mysql
-      MasterUsername: admin
-      MasterUserPassword: !Ref 'RdsPassword'
-      PubliclyAccessible: true
-      VPCSecurityGroups:
-        - !Ref 'DatabaseSecurityGroup'
-  RdsSingleMicroInstanceReplicaInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      AllocatedStorage: '5'
-      SourceDBInstanceIdentifier: !Ref 'RdsSingleMicroInstance'
-      DBInstanceClass: db.t2.micro
-      VPCSecurityGroups:
-        - !Ref 'DatabaseSecurityGroup'
-  RdsSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: Subnetgroup for both VPNs
-      SubnetIds: ['Fn::ImportValue': !Sub 'TeamCity-SubnetA', 'Fn::ImportValue': !Sub 'TeamCity-SubnetB']
-  DatabaseSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId:
-        'Fn::ImportValue': !Sub 'TeamCity-VPC'
-      GroupDescription: Elasticache Security Group
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '3306'
-        ToPort: '3306'
-        SourceSecurityGroupId:
-          'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
-      - IpProtocol: tcp
-        FromPort: '3306'
-        ToPort: '3306'
-        CidrIp: !Ref 'AllowedFrom'
-  EmptyBucket:
-    Type: AWS::S3::Bucket
-  PathMatcherBucket:
-    Type: AWS::S3::Bucket
-  PathMatcherBucket01:
-    Type: AWS::S3::Bucket
-  PathMatcherBucket02:
-    Type: AWS::S3::Bucket
-  PathMatcherBucket03:
-    Type: AWS::S3::Bucket
-  StringQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  SendToQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  JsonQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  StreamQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  LoadTestQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  QueueListenerTest:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  QueueWithRedrivePolicy:
-    Type: AWS::SQS::Queue
-    Properties:
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt [DeadLetterQueue, Arn]
-        maxReceiveCount: 1
-  DeadLetterQueue:
-    Type: AWS::SQS::Queue
-    Properties: {}
-  NotificationQueue:
-    Type: AWS::SQS::Queue
-  ManualDeletionQueue:
-    Type: AWS::SQS::Queue
-  SqsReceivingSnsTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      Subscription:
-      - Endpoint: !GetAtt [NotificationQueue, Arn]
-        Protocol: sqs
-  SnsToSqsPolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      PolicyDocument:
-        Version: '2008-10-17'
-        Id: SnsToSqsPolicy
-        Statement:
-        - Sid: Allow-Sns-SendMessage
-          Effect: Allow
-          Principal:
-            AWS: '*'
-          Action: ['sqs:SendMessage']
-          Resource: !GetAtt [NotificationQueue, Arn]
-          Condition:
-            ArnEquals:
-              aws:SourceArn: !Ref 'SqsReceivingSnsTopic'
-      Queues: [!Ref 'NotificationQueue']
-  HttpReceivingSnsTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      Subscription:
-      - Endpoint: http://build.elasticspring.org
-        Protocol: http
-  CacheCluster:
-    Type: AWS::ElastiCache::CacheCluster
-    Properties:
-      CacheNodeType: cache.t2.micro
-      CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
-      Engine: memcached
-      NumCacheNodes: '1'
-      VpcSecurityGroupIds:
-            - !GetAtt [CacheSecurityGroup, GroupId]
-  RedisCacheCluster:
-    Type: AWS::ElastiCache::CacheCluster
-    Properties:
-      CacheNodeType: cache.t2.micro
-      CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
-      Engine: redis
-      NumCacheNodes: '1'
-      VpcSecurityGroupIds:
-            - !GetAtt [CacheSecurityGroup, GroupId]
-  CacheSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId:
-        'Fn::ImportValue': !Sub 'TeamCity-VPC'
-      GroupDescription: Elasticache Security Group
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '11211'
-        ToPort: '11211'
-        SourceSecurityGroupId:
-          'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
-      - IpProtocol: tcp
-        FromPort: '6379'
-        ToPort: '6379'
-        SourceSecurityGroupId:
-          'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
-  CacheSubnetGroup:
-    Type: AWS::ElastiCache::SubnetGroup
-    Properties:
-      Description: Subnet group for both subnets
-      SubnetIds: ['Fn::ImportValue': !Sub 'TeamCity-SubnetA', 'Fn::ImportValue': !Sub 'TeamCity-SubnetB']
+	UserTagAndUserDataInstance:
+		Type: AWS::EC2::Instance
+		Properties:
+			DisableApiTermination: 'FALSE'
+			ImageId: ami-70edb016
+			UserData: !Base64 'data1:value1;data2:value2'
+			InstanceType: t2.nano
+			Tags:
+				- Key: tag1
+				  Value: tagv1
+				- Key: tag3
+				  Value: tagv3
+				- Key: tag2
+				  Value: tagv2
+				- Key: tag4
+				  Value: tagv4
+			NetworkInterfaces:
+				- GroupSet: ['Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup']
+				  AssociatePublicIpAddress: 'true'
+				  DeviceIndex: '0'
+				  DeleteOnTermination: 'true'
+				  SubnetId:
+					  'Fn::ImportValue': !Sub 'TeamCity-SubnetA'
+	RdsSingleMicroInstance:
+		Type: AWS::RDS::DBInstance
+		Properties:
+			AllocatedStorage: '5'
+			DBInstanceClass: db.t2.micro
+			DBName: test
+			DBSubnetGroupName: !Ref 'RdsSubnetGroup'
+			Engine: mysql
+			MasterUsername: admin
+			MasterUserPassword: !Ref 'RdsPassword'
+			PubliclyAccessible: true
+			VPCSecurityGroups:
+				- !Ref 'DatabaseSecurityGroup'
+	RdsSingleMicroInstanceReplicaInstance:
+		Type: AWS::RDS::DBInstance
+		Properties:
+			AllocatedStorage: '5'
+			SourceDBInstanceIdentifier: !Ref 'RdsSingleMicroInstance'
+			DBInstanceClass: db.t2.micro
+			VPCSecurityGroups:
+				- !Ref 'DatabaseSecurityGroup'
+	RdsSubnetGroup:
+		Type: AWS::RDS::DBSubnetGroup
+		Properties:
+			DBSubnetGroupDescription: Subnetgroup for both VPNs
+			SubnetIds: ['Fn::ImportValue': !Sub 'TeamCity-SubnetA', 'Fn::ImportValue': !Sub 'TeamCity-SubnetB']
+	DatabaseSecurityGroup:
+		Type: AWS::EC2::SecurityGroup
+		Properties:
+			VpcId:
+				'Fn::ImportValue': !Sub 'TeamCity-VPC'
+			GroupDescription: Elasticache Security Group
+			SecurityGroupIngress:
+				- IpProtocol: tcp
+				  FromPort: '3306'
+				  ToPort: '3306'
+				  SourceSecurityGroupId:
+					  'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
+				- IpProtocol: tcp
+				  FromPort: '3306'
+				  ToPort: '3306'
+				  CidrIp: !Ref 'AllowedFrom'
+	EmptyBucket:
+		Type: AWS::S3::Bucket
+	PathMatcherBucket:
+		Type: AWS::S3::Bucket
+	PathMatcherBucket01:
+		Type: AWS::S3::Bucket
+	PathMatcherBucket02:
+		Type: AWS::S3::Bucket
+	PathMatcherBucket03:
+		Type: AWS::S3::Bucket
+	StringQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	SendToQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	JsonQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	StreamQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	LoadTestQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	QueueListenerTest:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	QueueWithRedrivePolicy:
+		Type: AWS::SQS::Queue
+		Properties:
+			RedrivePolicy:
+				deadLetterTargetArn: !GetAtt [DeadLetterQueue, Arn]
+				maxReceiveCount: 1
+	DeadLetterQueue:
+		Type: AWS::SQS::Queue
+		Properties: {}
+	NotificationQueue:
+		Type: AWS::SQS::Queue
+	ManualDeletionQueue:
+		Type: AWS::SQS::Queue
+	SqsReceivingSnsTopic:
+		Type: AWS::SNS::Topic
+		Properties:
+			Subscription:
+				- Endpoint: !GetAtt [NotificationQueue, Arn]
+				  Protocol: sqs
+	SnsToSqsPolicy:
+		Type: AWS::SQS::QueuePolicy
+		Properties:
+			PolicyDocument:
+				Version: '2008-10-17'
+				Id: SnsToSqsPolicy
+				Statement:
+					- Sid: Allow-Sns-SendMessage
+					  Effect: Allow
+					  Principal:
+						  AWS: '*'
+					  Action: ['sqs:SendMessage']
+					  Resource: !GetAtt [NotificationQueue, Arn]
+					  Condition:
+						  ArnEquals:
+							  aws:SourceArn: !Ref 'SqsReceivingSnsTopic'
+			Queues: [!Ref 'NotificationQueue']
+	HttpReceivingSnsTopic:
+		Type: AWS::SNS::Topic
+		Properties:
+			Subscription:
+				- Endpoint: http://build.elasticspring.org
+				  Protocol: http
+	CacheCluster:
+		Type: AWS::ElastiCache::CacheCluster
+		Properties:
+			CacheNodeType: cache.t2.micro
+			CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+			Engine: memcached
+			NumCacheNodes: '1'
+			VpcSecurityGroupIds:
+				- !GetAtt [CacheSecurityGroup, GroupId]
+	RedisCacheCluster:
+		Type: AWS::ElastiCache::CacheCluster
+		Properties:
+			CacheNodeType: cache.t2.micro
+			CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+			Engine: redis
+			NumCacheNodes: '1'
+			VpcSecurityGroupIds:
+				- !GetAtt [CacheSecurityGroup, GroupId]
+	CacheSecurityGroup:
+		Type: AWS::EC2::SecurityGroup
+		Properties:
+			VpcId:
+				'Fn::ImportValue': !Sub 'TeamCity-VPC'
+			GroupDescription: Elasticache Security Group
+			SecurityGroupIngress:
+				- IpProtocol: tcp
+				  FromPort: '11211'
+				  ToPort: '11211'
+				  SourceSecurityGroupId:
+					  'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
+				- IpProtocol: tcp
+				  FromPort: '6379'
+				  ToPort: '6379'
+				  SourceSecurityGroupId:
+					  'Fn::ImportValue': !Sub 'TeamCity-InstanceSecurityGroup'
+	CacheSubnetGroup:
+		Type: AWS::ElastiCache::SubnetGroup
+		Properties:
+			Description: Subnet group for both subnets
+			SubnetIds: ['Fn::ImportValue': !Sub 'TeamCity-SubnetA', 'Fn::ImportValue': !Sub 'TeamCity-SubnetB']
 Outputs:
-  InstanceId:
-    Value: !Ref 'UserTagAndUserDataInstance'
+	InstanceId:
+		Value: !Ref 'UserTagAndUserDataInstance'

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -30,51 +31,56 @@ import static org.junit.Assert.assertNotNull;
 
 public class ContextResourceLoaderAutoConfigurationTest {
 
-    private AnnotationConfigApplicationContext context;
+	private AnnotationConfigApplicationContext context;
 
-    @After
-    public void tearDown() {
-        if (this.context != null) {
-            this.context.close();
-        }
-    }
+	@After
+	public void tearDown() {
+		if (this.context != null) {
+			this.context.close();
+		}
+	}
 
-    @Test
-    public void createResourceLoader_withCustomTaskExecutorSettings_executorConfigured() {
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext();
-        this.context.register(ContextResourceLoaderAutoConfiguration.class);
+	@Test
+	public void createResourceLoader_withCustomTaskExecutorSettings_executorConfigured() {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextResourceLoaderAutoConfiguration.class);
 
-        TestPropertyValues.of("cloud.aws.loader.corePoolSize:10",
-                "cloud.aws.loader.maxPoolSize:20",
-                "cloud.aws.loader.queueCapacity:0").applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.loader.corePoolSize:10",
+				"cloud.aws.loader.maxPoolSize:20", "cloud.aws.loader.queueCapacity:0")
+				.applyTo(this.context);
 
-        //Act
-        this.context.refresh();
+		// Act
+		this.context.refresh();
 
-        //Assert
-        SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context.getProtocolResolvers().iterator().next();
-        ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver, "taskExecutor");
-        assertNotNull(taskExecutor);
+		// Assert
+		SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context
+				.getProtocolResolvers().iterator().next();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils
+				.getField(simpleStorageProtocolResolver, "taskExecutor");
+		assertNotNull(taskExecutor);
 
-        assertEquals(10, taskExecutor.getCorePoolSize());
-        assertEquals(20, taskExecutor.getMaxPoolSize());
-        assertEquals(0, ReflectionTestUtils.getField(taskExecutor, "queueCapacity"));
-    }
+		assertEquals(10, taskExecutor.getCorePoolSize());
+		assertEquals(20, taskExecutor.getMaxPoolSize());
+		assertEquals(0, ReflectionTestUtils.getField(taskExecutor, "queueCapacity"));
+	}
 
-    @Test
-    public void createResourceLoader_withoutExecutorSettings_executorConfigured() {
+	@Test
+	public void createResourceLoader_withoutExecutorSettings_executorConfigured() {
 
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext();
-        this.context.register(ContextResourceLoaderAutoConfiguration.class);
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextResourceLoaderAutoConfiguration.class);
 
-        //Act
-        this.context.refresh();
+		// Act
+		this.context.refresh();
 
-        //Assert
-        SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context.getProtocolResolvers().iterator().next();
-        SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver, "taskExecutor");
-        assertNotNull(taskExecutor);
-    }
+		// Assert
+		SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context
+				.getProtocolResolvers().iterator().next();
+		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils
+				.getField(simpleStorageProtocolResolver, "taskExecutor");
+		assertNotNull(taskExecutor);
+	}
+
 }

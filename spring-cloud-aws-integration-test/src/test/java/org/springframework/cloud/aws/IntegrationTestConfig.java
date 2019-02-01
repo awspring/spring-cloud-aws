@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+
 import org.springframework.cloud.aws.context.config.annotation.EnableContextCredentials;
 import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration;
@@ -37,19 +38,23 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @EnableContextRegion(region = "eu-west-1")
 public class IntegrationTestConfig {
 
-    @Bean
-    public TestStackEnvironment testStackEnvironment(AmazonCloudFormation amazonCloudFormation) {
-        return new TestStackEnvironment(amazonCloudFormation);
-    }
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer configurer() {
+		return new PropertySourcesPlaceholderConfigurer();
+	}
 
-    @Bean
-    public TestStackInstanceIdService testStackInstanceIdService(AmazonCloudFormation amazonCloudFormation) {
-        return TestStackInstanceIdService.fromStackOutputKey(TestStackEnvironment.DEFAULT_STACK_NAME,
-                TestStackEnvironment.INSTANCE_ID_STACK_OUTPUT_KEY, amazonCloudFormation);
-    }
+	@Bean
+	public TestStackEnvironment testStackEnvironment(
+			AmazonCloudFormation amazonCloudFormation) {
+		return new TestStackEnvironment(amazonCloudFormation);
+	}
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer configurer() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
+	@Bean
+	public TestStackInstanceIdService testStackInstanceIdService(
+			AmazonCloudFormation amazonCloudFormation) {
+		return TestStackInstanceIdService.fromStackOutputKey(
+				TestStackEnvironment.DEFAULT_STACK_NAME,
+				TestStackEnvironment.INSTANCE_ID_STACK_OUTPUT_KEY, amazonCloudFormation);
+	}
+
 }

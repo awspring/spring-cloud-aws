@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,11 +31,13 @@
 
 
 	<aws-context:context-credentials>
-		<aws-context:instance-profile-credentials />
+		<aws-context:instance-profile-credentials/>
 	</aws-context:context-credentials>
 
-	<task:executor id="myThreadPoolTaskExecutor" pool-size="20" queue-capacity="0" keep-alive="0"
-				   rejection-policy="CALLER_RUNS" />
+	<task:executor id="myThreadPoolTaskExecutor" pool-size="20" queue-capacity="0"
+				   keep-alive="0"
+				   rejection-policy="CALLER_RUNS"/>
 
-	<aws-messaging:sqs-async-client id="customClient" task-executor="myThreadPoolTaskExecutor" />
+	<aws-messaging:sqs-async-client id="customClient"
+									task-executor="myThreadPoolTaskExecutor"/>
 </beans>

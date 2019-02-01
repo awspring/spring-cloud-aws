@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.springframework.cloud.aws.messaging.support;
 
+import java.lang.reflect.Method;
+
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-
-import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,83 +34,100 @@ import static org.junit.Assert.assertTrue;
 
 public class NotificationSubjectArgumentResolverTest {
 
-    @Test
-    public void supportsParameter_withNotificationSubjectMethodParameter_shouldReturnTrue() throws Exception {
-        // Arrange
-        NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
-        Method methodWithNotificationSubjectArgument = this.getClass().getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
-        MethodParameter methodParameter = new MethodParameter(methodWithNotificationSubjectArgument, 0);
+	@Test
+	public void supportsParameter_withNotificationSubjectMethodParameter_shouldReturnTrue()
+			throws Exception {
+		// Arrange
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		Method methodWithNotificationSubjectArgument = this.getClass()
+				.getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
+		MethodParameter methodParameter = new MethodParameter(
+				methodWithNotificationSubjectArgument, 0);
 
-        // Act
-        boolean result = notificationSubjectArgumentResolver.supportsParameter(methodParameter);
+		// Act
+		boolean result = notificationSubjectArgumentResolver
+				.supportsParameter(methodParameter);
 
-        // Assert
-        assertTrue(result);
-    }
+		// Assert
+		assertTrue(result);
+	}
 
-    @SuppressWarnings("EmptyMethod")
-    @RuntimeUse
-    private void methodWithNotificationSubjectArgument(@NotificationSubject String subject) {
-    }
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithNotificationSubjectArgument(
+			@NotificationSubject String subject) {
+	}
 
-    @Test
-    public void supportsParameter_withWrongMethodParameter_shouldReturnFalse() throws Exception {
-        // Arrange
-        NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
-        Method methodWithMissingAnnotation = this.getClass().getDeclaredMethod("methodWithMissingAnnotation", String.class);
-        MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation, 0);
+	@Test
+	public void supportsParameter_withWrongMethodParameter_shouldReturnFalse()
+			throws Exception {
+		// Arrange
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		Method methodWithMissingAnnotation = this.getClass()
+				.getDeclaredMethod("methodWithMissingAnnotation", String.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation,
+				0);
 
-        // Act
-        boolean result = notificationSubjectArgumentResolver.supportsParameter(methodParameter);
+		// Act
+		boolean result = notificationSubjectArgumentResolver
+				.supportsParameter(methodParameter);
 
-        // Assert
-        assertFalse(result);
-    }
+		// Assert
+		assertFalse(result);
+	}
 
-    @SuppressWarnings("EmptyMethod")
-    @RuntimeUse
-    private void methodWithMissingAnnotation(String subject) {
-    }
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithMissingAnnotation(String subject) {
+	}
 
-    @Test
-    public void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
-        // Arrange
-        NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
-        Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType", Long.class);
-        MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
+	@Test
+	public void supportsParameter_withWrongParameterType_shouldReturnFalse()
+			throws Exception {
+		// Arrange
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		Method methodWithWrongParameterType = this.getClass()
+				.getDeclaredMethod("methodWithWrongParameterType", Long.class);
+		MethodParameter methodParameter = new MethodParameter(
+				methodWithWrongParameterType, 0);
 
-        // Act
-        boolean result = notificationSubjectArgumentResolver.supportsParameter(methodParameter);
+		// Act
+		boolean result = notificationSubjectArgumentResolver
+				.supportsParameter(methodParameter);
 
-        // Assert
-        assertFalse(result);
-    }
+		// Assert
+		assertFalse(result);
+	}
 
-    @SuppressWarnings("EmptyMethod")
-    @RuntimeUse
-    private void methodWithWrongParameterType(@NotificationSubject Long subject) {
-    }
+	@SuppressWarnings("EmptyMethod")
+	@RuntimeUse
+	private void methodWithWrongParameterType(@NotificationSubject Long subject) {
+	}
 
-    @Test
-    public void resolveArgument_withValidRequestPayload_shouldReturnNotificationSubject() throws Exception {
-        // Arrange
-        NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
-        Method methodWithNotificationSubjectArgument = this.getClass().getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
-        MethodParameter methodParameter = new MethodParameter(methodWithNotificationSubjectArgument, 0);
+	@Test
+	public void resolveArgument_withValidRequestPayload_shouldReturnNotificationSubject()
+			throws Exception {
+		// Arrange
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		Method methodWithNotificationSubjectArgument = this.getClass()
+				.getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
+		MethodParameter methodParameter = new MethodParameter(
+				methodWithNotificationSubjectArgument, 0);
 
-        ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
-        jsonObject.put("Type", "Notification");
-        jsonObject.put("Subject", "My subject!");
-        jsonObject.put("Message", "message");
-        String payload = jsonObject.toString();
-        Message<String> message = MessageBuilder.withPayload(payload).build();
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Subject", "My subject!");
+		jsonObject.put("Message", "message");
+		String payload = jsonObject.toString();
+		Message<String> message = MessageBuilder.withPayload(payload).build();
 
-        // Act
-        Object result = notificationSubjectArgumentResolver.resolveArgument(methodParameter, message);
+		// Act
+		Object result = notificationSubjectArgumentResolver
+				.resolveArgument(methodParameter, message);
 
-        // Assert
-        assertTrue(String.class.isInstance(result));
-        assertEquals("My subject!", result);
-    }
+		// Assert
+		assertTrue(String.class.isInstance(result));
+		assertEquals("My subject!", result);
+	}
 
 }

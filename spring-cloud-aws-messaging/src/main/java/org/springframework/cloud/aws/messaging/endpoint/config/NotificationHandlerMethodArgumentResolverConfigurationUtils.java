@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
+
 import org.springframework.cloud.aws.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver;
@@ -29,12 +30,18 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolverCompo
  */
 public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 
-    public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
-        HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
-        composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
-        composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
-        composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
-        return composite;
-    }
+	private NotificationHandlerMethodArgumentResolverConfigurationUtils() {
+		throw new IllegalStateException("Can't instantiate a utility class");
+	}
+
+	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(
+			AmazonSNS amazonSns) {
+		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
+		composite.addResolver(
+				new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
+		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
+		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
+		return composite;
+	}
 
 }

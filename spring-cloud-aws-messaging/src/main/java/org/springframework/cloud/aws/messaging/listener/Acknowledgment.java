@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,26 @@ package org.springframework.cloud.aws.messaging.listener;
 import java.util.concurrent.Future;
 
 /**
- * Acknowledgment interface that can be injected as parameter into a listener method. The purpose of this acknowledgment
- * is to provide a way for the listener methods to acknowledge the reception and processing of a message. The call to
- * the {@link Acknowledgment#acknowledge} method triggers some implementation specific clean up tasks like removing a
- * message from the SQS queue. The {@link Acknowledgment#acknowledge} method returns a {@link Future} as the acknowledgment can
- * involve some asynchronous request to an AWS API.
+ * Acknowledgment interface that can be injected as parameter into a listener method. The
+ * purpose of this acknowledgment is to provide a way for the listener methods to
+ * acknowledge the reception and processing of a message. The call to the
+ * {@link Acknowledgment#acknowledge} method triggers some implementation specific clean
+ * up tasks like removing a message from the SQS queue. The
+ * {@link Acknowledgment#acknowledge} method returns a {@link Future} as the
+ * acknowledgment can involve some asynchronous request to an AWS API.
  *
  * @author Alain Sahli
  * @since 1.1
  */
 public interface Acknowledgment {
 
-    /**
-     * The call to this method acknowledges the caller that the listener method has finished the processing of the message
-     * and triggers some implementation specific clean up tasks like removing a message from the SQS queue.
-     *
-     * @return a {@link Future} as the acknowledgment can involve some asynchronous request (i.e. request to an AWS API).
-     */
-    Future<?> acknowledge();
+	/**
+	 * The call to this method acknowledges the caller that the listener method has
+	 * finished the processing of the message and triggers some implementation specific
+	 * clean up tasks like removing a message from the SQS queue.
+	 * @return a {@link Future} as the acknowledgment can involve some asynchronous
+	 * request (i.e. request to an AWS API).
+	 */
+	Future<?> acknowledge();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,20 @@
 
 package org.springframework.cloud.aws.messaging.support.destination;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
+
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * @author Agim Emruli
@@ -36,57 +37,67 @@ import java.net.URISyntaxException;
  */
 public class DynamicQueueUrlDestinationResolver implements DestinationResolver<String> {
 
-    private final AmazonSQS amazonSqs;
-    private final ResourceIdResolver resourceIdResolver;
-    private boolean autoCreate;
+	private final AmazonSQS amazonSqs;
 
-    public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
-        Assert.notNull(amazonSqs, "amazonSqs must not be null");
+	private final ResourceIdResolver resourceIdResolver;
 
-        this.amazonSqs = amazonSqs;
-        this.resourceIdResolver = resourceIdResolver;
-    }
+	private boolean autoCreate;
 
-    public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs) {
-        this(amazonSqs, null);
-    }
+	public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs,
+			ResourceIdResolver resourceIdResolver) {
+		Assert.notNull(amazonSqs, "amazonSqs must not be null");
 
-    public void setAutoCreate(boolean autoCreate) {
-        this.autoCreate = autoCreate;
-    }
+		this.amazonSqs = amazonSqs;
+		this.resourceIdResolver = resourceIdResolver;
+	}
 
-    @Override
-    public String resolveDestination(String name) throws DestinationResolutionException {
-        String queueName = name;
+	public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs) {
+		this(amazonSqs, null);
+	}
 
-        if (this.resourceIdResolver != null) {
-            queueName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
-        }
+	private static boolean isValidQueueUrl(String name) {
+		try {
+			URI candidate = new URI(name);
+			return ("http".equals(candidate.getScheme())
+					|| "https".equals(candidate.getScheme()));
+		}
+		catch (URISyntaxException e) {
+			return false;
+		}
+	}
 
-        if (isValidQueueUrl(queueName)) {
-            return queueName;
-        }
+	public void setAutoCreate(boolean autoCreate) {
+		this.autoCreate = autoCreate;
+	}
 
-        if (this.autoCreate) {
-            //Auto-create is fine to be called even if the queue exists.
-            CreateQueueResult createQueueResult = this.amazonSqs.createQueue(new CreateQueueRequest(queueName));
-            return createQueueResult.getQueueUrl();
-        } else {
-            try {
-                GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueName));
-                return getQueueUrlResult.getQueueUrl();
-            } catch (QueueDoesNotExistException e) {
-                throw new DestinationResolutionException(e.getMessage(), e);
-            }
-        }
-    }
+	@Override
+	public String resolveDestination(String name) throws DestinationResolutionException {
+		String queueName = name;
 
-    private static boolean isValidQueueUrl(String name) {
-        try {
-            URI candidate = new URI(name);
-            return ("http".equals(candidate.getScheme()) || "https".equals(candidate.getScheme()));
-        } catch (URISyntaxException e) {
-            return false;
-        }
-    }
+		if (this.resourceIdResolver != null) {
+			queueName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
+		}
+
+		if (isValidQueueUrl(queueName)) {
+			return queueName;
+		}
+
+		if (this.autoCreate) {
+			// Auto-create is fine to be called even if the queue exists.
+			CreateQueueResult createQueueResult = this.amazonSqs
+					.createQueue(new CreateQueueRequest(queueName));
+			return createQueueResult.getQueueUrl();
+		}
+		else {
+			try {
+				GetQueueUrlResult getQueueUrlResult = this.amazonSqs
+						.getQueueUrl(new GetQueueUrlRequest(queueName));
+				return getQueueUrlResult.getQueueUrl();
+			}
+			catch (QueueDoesNotExistException e) {
+				throw new DestinationResolutionException(e.getMessage(), e);
+			}
+		}
+	}
+
 }

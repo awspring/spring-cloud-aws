@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,24 @@ import static org.mockito.Mockito.when;
 
 public class AwsSecretsManagerPropertySourceTest {
 
-    private AWSSecretsManager smClient = mock(AWSSecretsManager.class);
-    private AwsSecretsManagerPropertySource propertySource =
-            new AwsSecretsManagerPropertySource("/config/myservice", smClient);
+	private AWSSecretsManager smClient = mock(AWSSecretsManager.class);
 
-    @Test
-    public void shouldParseSecretValue() {
-        GetSecretValueResult secretValueResult = new GetSecretValueResult();
-        secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+	private AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(
+			"/config/myservice", smClient);
 
-        when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
-            .thenReturn(secretValueResult);
+	@Test
+	public void shouldParseSecretValue() {
+		GetSecretValueResult secretValueResult = new GetSecretValueResult();
+		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
 
-        propertySource.init();
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
 
-        assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2");
-        assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
-        assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
-    }
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2");
+		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
+		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.context.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -32,49 +33,61 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySourcePostProcessor implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor {
+public class AmazonEc2InstanceDataPropertySourcePostProcessor
+		implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor {
 
-    static final String INSTANCE_DATA_PROPERTY_SOURCE_NAME = "InstanceData";
-    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
+	static final String INSTANCE_DATA_PROPERTY_SOURCE_NAME = "InstanceData";
 
-    private Environment environment;
-    private String valueSeparator;
-    private String attributeSeparator;
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(AmazonEc2InstanceDataPropertySourcePostProcessor.class);
 
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.environment = environment;
-    }
+	private Environment environment;
 
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+	private String valueSeparator;
 
-    public void setValueSeparator(String valueSeparator) {
-        this.valueSeparator = valueSeparator;
-    }
+	private String attributeSeparator;
 
-    public void setAttributeSeparator(String attributeSeparator) {
-        this.attributeSeparator = attributeSeparator;
-    }
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
 
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        if (this.environment instanceof ConfigurableEnvironment) {
-            AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(INSTANCE_DATA_PROPERTY_SOURCE_NAME);
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE;
+	}
 
-            if (StringUtils.hasText(this.valueSeparator)) {
-                propertySource.setUserDataValueSeparator(this.valueSeparator);
-            }
+	public void setValueSeparator(String valueSeparator) {
+		this.valueSeparator = valueSeparator;
+	}
 
-            if (StringUtils.hasText(this.attributeSeparator)) {
-                propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
-            }
+	public void setAttributeSeparator(String attributeSeparator) {
+		this.attributeSeparator = attributeSeparator;
+	}
 
-            ((ConfigurableEnvironment) this.environment).getPropertySources().addLast(propertySource);
-        } else {
-            LOGGER.warn("Environment is not of type '{}' property source with instance data is not available", ConfigurableEnvironment.class.getName());
-        }
-    }
+	@Override
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
+			throws BeansException {
+		if (this.environment instanceof ConfigurableEnvironment) {
+			AmazonEc2InstanceDataPropertySource propertySource = new AmazonEc2InstanceDataPropertySource(
+					INSTANCE_DATA_PROPERTY_SOURCE_NAME);
+
+			if (StringUtils.hasText(this.valueSeparator)) {
+				propertySource.setUserDataValueSeparator(this.valueSeparator);
+			}
+
+			if (StringUtils.hasText(this.attributeSeparator)) {
+				propertySource.setUserDataAttributeSeparator(this.attributeSeparator);
+			}
+
+			((ConfigurableEnvironment) this.environment).getPropertySources()
+					.addLast(propertySource);
+		}
+		else {
+			LOGGER.warn(
+					"Environment is not of type '{}' property source with instance data is not available",
+					ConfigurableEnvironment.class.getName());
+		}
+	}
+
 }

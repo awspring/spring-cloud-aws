@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,37 @@
 
 package org.springframework.cloud.aws.core.task;
 
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
-
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
+
 /**
- * Suppressing {@link java.util.concurrent.ExecutorService} implementation that ignores {@link #shutdownNow()} calls
- * which are made by the Amazon Webservice clients. If these clients receive an externally managed
- * {@link org.springframework.core.task.TaskExecutor} this implementation suppresses the calls to avoid exception during
- * application shutdown.
+ * Suppressing {@link java.util.concurrent.ExecutorService} implementation that ignores
+ * {@link #shutdownNow()} calls which are made by the Amazon Webservice clients. If these
+ * clients receive an externally managed
+ * {@link org.springframework.core.task.TaskExecutor} this implementation suppresses the
+ * calls to avoid exception during application shutdown.
  *
  * @author Agim Emruli
  * @since 1.0
  */
 public class ShutdownSuppressingExecutorServiceAdapter extends ExecutorServiceAdapter {
 
-    /**
-     * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
-     *
-     * @param taskExecutor
-     *         the target executor to delegate to, typically an externally managed one
-     */
-    public ShutdownSuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
-        super(taskExecutor);
-    }
+	/**
+	 * Create a new SuppressingExecutorServiceAdapter, using the given target executor.
+	 * @param taskExecutor the target executor to delegate to, typically an externally
+	 * managed one
+	 */
+	public ShutdownSuppressingExecutorServiceAdapter(TaskExecutor taskExecutor) {
+		super(taskExecutor);
+	}
 
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public List<Runnable> shutdownNow() {
-        return Collections.emptyList();
-    }
+	@SuppressWarnings("NullableProblems")
+	@Override
+	public List<Runnable> shutdownNow() {
+		return Collections.emptyList();
+	}
+
 }

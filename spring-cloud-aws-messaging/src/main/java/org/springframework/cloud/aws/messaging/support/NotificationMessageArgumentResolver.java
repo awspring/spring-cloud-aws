@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,25 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 /**
  * @author Alain Sahli
  */
-public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
+public class NotificationMessageArgumentResolver
+		implements HandlerMethodArgumentResolver {
 
-    private final MessageConverter converter;
+	private final MessageConverter converter;
 
-    public NotificationMessageArgumentResolver(MessageConverter converter) {
-        this.converter = new NotificationRequestConverter(converter);
-    }
+	public NotificationMessageArgumentResolver(MessageConverter converter) {
+		this.converter = new NotificationRequestConverter(converter);
+	}
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(NotificationMessage.class);
-    }
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		return parameter.hasParameterAnnotation(NotificationMessage.class);
+	}
 
-    @Override
-    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-        NotificationRequestConverter.NotificationRequest notificationRequest = (NotificationRequestConverter.NotificationRequest)
-                this.converter.fromMessage(message, parameter.getParameterType());
-        return notificationRequest.getMessage();
-    }
+	@Override
+	public Object resolveArgument(MethodParameter par, Message<?> msg) throws Exception {
+		Object object = this.converter.fromMessage(msg, par.getParameterType());
+		NotificationRequestConverter.NotificationRequest nr = (NotificationRequestConverter.NotificationRequest) object;
+		return nr.getMessage();
+	}
+
 }

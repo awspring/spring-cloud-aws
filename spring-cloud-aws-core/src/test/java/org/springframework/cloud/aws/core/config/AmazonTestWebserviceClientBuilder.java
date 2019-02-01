@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,20 @@ import com.amazonaws.client.builder.AwsSyncClientBuilder;
 /**
  * @author Agim Emruli
  */
-public class AmazonTestWebserviceClientBuilder extends AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
+public class AmazonTestWebserviceClientBuilder extends
+		AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
 
-    private AmazonTestWebserviceClientBuilder() {
-        super(new ClientConfigurationFactory());
-    }
+	private AmazonTestWebserviceClientBuilder() {
+		super(new ClientConfigurationFactory());
+	}
 
-    public static AmazonTestWebserviceClientBuilder standard() {
-        return new AmazonTestWebserviceClientBuilder();
-    }
+	public static AmazonTestWebserviceClientBuilder standard() {
+		return new AmazonTestWebserviceClientBuilder();
+	}
 
-    @Override
-    protected AmazonTestWebserviceClient build(AwsSyncClientParams clientParams) {
-        return new AmazonTestWebserviceClient(getCredentials());
-    }
+	@Override
+	protected AmazonTestWebserviceClient build(AwsSyncClientParams clientParams) {
+		return new AmazonTestWebserviceClient(getCredentials());
+	}
+
 }

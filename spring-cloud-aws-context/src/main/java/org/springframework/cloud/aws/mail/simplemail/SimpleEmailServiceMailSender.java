@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.aws.mail.simplemail;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.Body;
@@ -26,6 +29,7 @@ import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
@@ -33,82 +37,90 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Simple MailSender implementation to send E-Mails with the Amazon Simple Email Service. This implementation has no
- * dependencies to the Java Mail API. It can be used to send simple mail messages that doesn't have any attachment and
- * therefore only consist of a text body.
+ * Simple MailSender implementation to send E-Mails with the Amazon Simple Email Service.
+ * This implementation has no dependencies to the Java Mail API. It can be used to send
+ * simple mail messages that doesn't have any attachment and therefore only consist of a
+ * text body.
+ *
+ * @author Agim Emruli
  */
 public class SimpleEmailServiceMailSender implements MailSender, DisposableBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
-    private final AmazonSimpleEmailService emailService;
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(SimpleEmailServiceMailSender.class);
 
-    public SimpleEmailServiceMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-        this.emailService = amazonSimpleEmailService;
-    }
+	private final AmazonSimpleEmailService emailService;
 
-    @Override
-    public void send(SimpleMailMessage simpleMailMessage) throws MailException {
-        send(new SimpleMailMessage[]{simpleMailMessage});
-    }
+	public SimpleEmailServiceMailSender(
+			AmazonSimpleEmailService amazonSimpleEmailService) {
+		this.emailService = amazonSimpleEmailService;
+	}
 
-    @SuppressWarnings("OverloadedVarargsMethod")
-    @Override
-    public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
+	@Override
+	public void send(SimpleMailMessage simpleMailMessage) throws MailException {
+		send(new SimpleMailMessage[] { simpleMailMessage });
+	}
 
-        Map<Object, Exception> failedMessages = new HashMap<>();
+	@SuppressWarnings("OverloadedVarargsMethod")
+	@Override
+	public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
 
-        for (SimpleMailMessage simpleMessage : simpleMailMessages) {
-            try {
-                SendEmailResult sendEmailResult = getEmailService().sendEmail(prepareMessage(simpleMessage));
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Message with id: {} successfully send", sendEmailResult.getMessageId());
-                }
-            } catch (AmazonClientException e) {
-                //Ignore Exception because we are collecting and throwing all if any
-                //noinspection ThrowableResultOfMethodCallIgnored
-                failedMessages.put(simpleMessage, e);
-            }
-        }
+		Map<Object, Exception> failedMessages = new HashMap<>();
 
-        if (!failedMessages.isEmpty()) {
-            throw new MailSendException(failedMessages);
-        }
-    }
+		for (SimpleMailMessage simpleMessage : simpleMailMessages) {
+			try {
+				SendEmailResult sendEmailResult = getEmailService()
+						.sendEmail(prepareMessage(simpleMessage));
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Message with id: {} successfully send",
+							sendEmailResult.getMessageId());
+				}
+			}
+			catch (AmazonClientException e) {
+				// Ignore Exception because we are collecting and throwing all if any
+				// noinspection ThrowableResultOfMethodCallIgnored
+				failedMessages.put(simpleMessage, e);
+			}
+		}
 
-    @Override
-    public final void destroy() throws Exception {
-        getEmailService().shutdown();
-    }
+		if (!failedMessages.isEmpty()) {
+			throw new MailSendException(failedMessages);
+		}
+	}
 
-    protected AmazonSimpleEmailService getEmailService() {
-        return this.emailService;
-    }
+	@Override
+	public final void destroy() throws Exception {
+		getEmailService().shutdown();
+	}
 
-    private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
-        Destination destination = new Destination();
-        destination.withToAddresses(simpleMailMessage.getTo());
+	protected AmazonSimpleEmailService getEmailService() {
+		return this.emailService;
+	}
 
-        if (simpleMailMessage.getCc() != null) {
-            destination.withCcAddresses(simpleMailMessage.getCc());
-        }
+	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
+		Destination destination = new Destination();
+		destination.withToAddresses(simpleMailMessage.getTo());
 
-        if (simpleMailMessage.getBcc() != null) {
-            destination.withBccAddresses(simpleMailMessage.getBcc());
-        }
+		if (simpleMailMessage.getCc() != null) {
+			destination.withCcAddresses(simpleMailMessage.getCc());
+		}
 
-        Content subject = new Content(simpleMailMessage.getSubject());
-        Body body = new Body(new Content(simpleMailMessage.getText()));
+		if (simpleMailMessage.getBcc() != null) {
+			destination.withBccAddresses(simpleMailMessage.getBcc());
+		}
 
-        SendEmailRequest emailRequest = new SendEmailRequest(simpleMailMessage.getFrom(), destination, new Message(subject, body));
+		Content subject = new Content(simpleMailMessage.getSubject());
+		Body body = new Body(new Content(simpleMailMessage.getText()));
 
-        if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
-            emailRequest.withReplyToAddresses(simpleMailMessage.getReplyTo());
-        }
+		SendEmailRequest emailRequest = new SendEmailRequest(simpleMailMessage.getFrom(),
+				destination, new Message(subject, body));
 
-        return emailRequest;
-    }
+		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
+			emailRequest.withReplyToAddresses(simpleMailMessage.getReplyTo());
+		}
+
+		return emailRequest;
+	}
+
 }

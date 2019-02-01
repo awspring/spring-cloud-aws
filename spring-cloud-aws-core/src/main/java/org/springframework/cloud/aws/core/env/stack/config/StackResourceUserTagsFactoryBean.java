@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,50 @@
 
 package org.springframework.cloud.aws.core.env.stack.config;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
  * @author Agim Emruli
  */
-public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
+public class StackResourceUserTagsFactoryBean
+		extends AbstractFactoryBean<Map<String, String>> {
 
-    private final AmazonCloudFormation amazonCloudFormation;
-    private final StackNameProvider stackNameProvider;
+	private final AmazonCloudFormation amazonCloudFormation;
 
-    public StackResourceUserTagsFactoryBean(AmazonCloudFormation amazonCloudFormation, StackNameProvider stackNameProvider) {
-        this.amazonCloudFormation = amazonCloudFormation;
-        this.stackNameProvider = stackNameProvider;
-    }
+	private final StackNameProvider stackNameProvider;
 
-    @Override
-    public Class<?> getObjectType() {
-        return Map.class;
-    }
+	public StackResourceUserTagsFactoryBean(AmazonCloudFormation amazonCloudFormation,
+			StackNameProvider stackNameProvider) {
+		this.amazonCloudFormation = amazonCloudFormation;
+		this.stackNameProvider = stackNameProvider;
+	}
 
-    @Override
-    protected Map<String, String> createInstance() throws Exception {
-        LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
-        DescribeStacksResult stacksResult = this.amazonCloudFormation.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
-        for (Stack stack : stacksResult.getStacks()) {
-            for (Tag tag : stack.getTags()) {
-                userTags.put(tag.getKey(), tag.getValue());
-            }
-        }
-        return userTags;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return Map.class;
+	}
+
+	@Override
+	protected Map<String, String> createInstance() throws Exception {
+		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
+		DescribeStacksResult stacksResult = this.amazonCloudFormation
+				.describeStacks(new DescribeStacksRequest()
+						.withStackName(this.stackNameProvider.getStackName()));
+		for (Stack stack : stacksResult.getStacks()) {
+			for (Tag tag : stack.getTags()) {
+				userTags.put(tag.getKey(), tag.getValue());
+			}
+		}
+		return userTags;
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.aws.mail.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.ClassUtils;
-import org.w3c.dom.Element;
 
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
@@ -29,21 +30,29 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  */
 class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-    private static final boolean JAVA_MAIL_PRESENT = ClassUtils.isPresent("javax.mail.Session", SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
-    private static final String SIMPLE_EMAIL_CLIENT_CLASS_NAME = "com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient";
+	private static final boolean JAVA_MAIL_PRESENT = ClassUtils.isPresent(
+			"javax.mail.Session",
+			SimpleEmailServiceBeanDefinitionParser.class.getClassLoader());
 
-    @Override
-    protected String getBeanClassName(Element element) {
-        if (JAVA_MAIL_PRESENT) {
-            return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender";
-        }
+	// @checkstyle:off
+	private static final String SIMPLE_EMAIL_CLIENT_CLASS_NAME = "com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient";
 
-        return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender";
-    }
+	// @checkstyle:on
 
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
-                "amazon-ses", SIMPLE_EMAIL_CLIENT_CLASS_NAME));
-    }
+	@Override
+	protected String getBeanClassName(Element element) {
+		if (JAVA_MAIL_PRESENT) {
+			return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender";
+		}
+
+		return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender";
+	}
+
+	@Override
+	protected void doParse(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+		builder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element,
+				parserContext, "amazon-ses", SIMPLE_EMAIL_CLIENT_CLASS_NAME));
+	}
+
 }

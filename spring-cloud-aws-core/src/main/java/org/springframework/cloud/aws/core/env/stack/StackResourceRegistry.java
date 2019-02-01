@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,19 @@ package org.springframework.cloud.aws.core.env.stack;
  */
 public interface StackResourceRegistry {
 
-    /**
-     * Returns the name of the stack represented by this stack resource registry.
-     *
-     * @return the name of the stack
-     */
-    String getStackName();
+	/**
+	 * Returns the name of the stack represented by this stack resource registry.
+	 * @return the name of the stack
+	 */
+	String getStackName();
 
-    /**
-     * Returns the physical id of the resource identified by the provided logical resource id. If no resource with the
-     * provided logical id exists, null is returned.
-     *
-     * @param logicalResourceId
-     *         the logical id of the resource
-     * @return the physical id of the resource, or null, if no resource for the logical id exists in this stack.
-     */
-    String lookupPhysicalResourceId(String logicalResourceId);
+	/**
+	 * Returns the physical id of the resource identified by the provided logical resource
+	 * id. If no resource with the provided logical id exists, null is returned.
+	 * @param logicalResourceId the logical id of the resource
+	 * @return the physical id of the resource, or null, if no resource for the logical id
+	 * exists in this stack.
+	 */
+	String lookupPhysicalResourceId(String logicalResourceId);
 
 }

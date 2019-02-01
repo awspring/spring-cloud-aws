@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ public class ContextResourceLoaderAutoConfiguration {
 
 	/**
 	 * Bind AWS resource loader related properties to a property instance.
-	 *
 	 * @return An {@link AwsS3ResourceLoaderProperties} instance
 	 */
 	@Bean
@@ -54,47 +53,57 @@ public class ContextResourceLoaderAutoConfiguration {
 		return new AwsS3ResourceLoaderProperties();
 	}
 
-    public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {
+	/**
+	 * Sets additional properties for the task executor definition.
+	 */
+	public static class Registrar extends ContextResourceLoaderConfiguration.Registrar
+			implements EnvironmentAware {
 
-        private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
-        private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
-        private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
-        private Environment environment;
+		private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
 
+		private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
 
-        @Override
-        public void setEnvironment(Environment environment) {
-            this.environment = environment;
-        }
+		private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
 
-        @Override
-        protected BeanDefinition getTaskExecutorDefinition() {
-            if (containsProperty(CORE_POOL_SIZE_PROPERTY_NAME) ||
-                    containsProperty(MAX_POOL_SIZE_PROPERTY_NAME) ||
-                    containsProperty(QUEUE_CAPACITY_PROPERTY_NAME)) {
-                BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ThreadPoolTaskExecutor.class);
+		private Environment environment;
 
-                setPropertyIfConfigured(builder, CORE_POOL_SIZE_PROPERTY_NAME);
-                setPropertyIfConfigured(builder, MAX_POOL_SIZE_PROPERTY_NAME);
-                setPropertyIfConfigured(builder, QUEUE_CAPACITY_PROPERTY_NAME);
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = environment;
+		}
 
-                return builder.getBeanDefinition();
-            }
-            return super.getTaskExecutorDefinition();
-        }
+		@Override
+		protected BeanDefinition getTaskExecutorDefinition() {
+			if (containsProperty(CORE_POOL_SIZE_PROPERTY_NAME)
+					|| containsProperty(MAX_POOL_SIZE_PROPERTY_NAME)
+					|| containsProperty(QUEUE_CAPACITY_PROPERTY_NAME)) {
+				BeanDefinitionBuilder builder = BeanDefinitionBuilder
+						.rootBeanDefinition(ThreadPoolTaskExecutor.class);
 
-        private boolean containsProperty(String name) {
-            return this.environment.containsProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
-        }
+				setPropertyIfConfigured(builder, CORE_POOL_SIZE_PROPERTY_NAME);
+				setPropertyIfConfigured(builder, MAX_POOL_SIZE_PROPERTY_NAME);
+				setPropertyIfConfigured(builder, QUEUE_CAPACITY_PROPERTY_NAME);
 
-        private String getProperty(String name) {
-            return this.environment.getProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
-        }
+				return builder.getBeanDefinition();
+			}
+			return super.getTaskExecutorDefinition();
+		}
 
-        private void setPropertyIfConfigured(BeanDefinitionBuilder builder, String name) {
-            if (containsProperty(name)) {
-                builder.addPropertyValue(name, getProperty(name));
-            }
-        }
-    }
+		private boolean containsProperty(String name) {
+			return this.environment
+					.containsProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
+		}
+
+		private String getProperty(String name) {
+			return this.environment.getProperty(AWS_LOADER_PROPERTY_PREFIX + "." + name);
+		}
+
+		private void setPropertyIfConfigured(BeanDefinitionBuilder builder, String name) {
+			if (containsProperty(name)) {
+				builder.addPropertyValue(name, getProperty(name));
+			}
+		}
+
+	}
+
 }

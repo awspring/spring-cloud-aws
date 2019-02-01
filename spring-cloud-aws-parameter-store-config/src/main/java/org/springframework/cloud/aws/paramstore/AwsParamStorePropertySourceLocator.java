@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -30,92 +32,102 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.ReflectionUtils;
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-
 /**
- * Builds a {@link CompositePropertySource} with various {@link AwsParamStorePropertySource} instances based on
- * active profiles, application name and default context permutations.
- * Mostly copied from Spring Cloud Consul's config support, but without the option to have full config files in a
- * param value: with the AWS Parameter Store that wouldn't make sense, given the maximum size limit of 4096 characters
- * for a parameter value.
+ * Builds a {@link CompositePropertySource} with various
+ * {@link AwsParamStorePropertySource} instances based on active profiles, application
+ * name and default context permutations. Mostly copied from Spring Cloud Consul's config
+ * support, but without the option to have full config files in a param value: with the
+ * AWS Parameter Store that wouldn't make sense, given the maximum size limit of 4096
+ * characters for a parameter value.
  *
  * @author Joris Kuipers
  * @since 2.0.0
  */
 public class AwsParamStorePropertySourceLocator implements PropertySourceLocator {
 
-    private AWSSimpleSystemsManagement ssmClient;
-    private AwsParamStoreProperties properties;
-    private List<String> contexts = new ArrayList<>();
+	private AWSSimpleSystemsManagement ssmClient;
 
-    private Log logger = LogFactory.getLog(getClass());
+	private AwsParamStoreProperties properties;
 
-    public AwsParamStorePropertySourceLocator(AWSSimpleSystemsManagement ssmClient, AwsParamStoreProperties properties) {
-        this.ssmClient = ssmClient;
-        this.properties = properties;
-    }
+	private List<String> contexts = new ArrayList<>();
 
-    public List<String> getContexts() {
-        return contexts;
-    }
+	private Log logger = LogFactory.getLog(getClass());
 
-    @Override
-    public PropertySource<?> locate(Environment environment) {
-        if (!(environment instanceof ConfigurableEnvironment)) {
-            return null;
-        }
+	public AwsParamStorePropertySourceLocator(AWSSimpleSystemsManagement ssmClient,
+			AwsParamStoreProperties properties) {
+		this.ssmClient = ssmClient;
+		this.properties = properties;
+	}
 
-        ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
+	public List<String> getContexts() {
+		return contexts;
+	}
 
-        String appName = properties.getName();
+	@Override
+	public PropertySource<?> locate(Environment environment) {
+		if (!(environment instanceof ConfigurableEnvironment)) {
+			return null;
+		}
 
-        if (appName == null) {
-            appName = env.getProperty("spring.application.name");
-        }
+		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
-        List<String> profiles = Arrays.asList(env.getActiveProfiles());
+		String appName = properties.getName();
 
-        String prefix = this.properties.getPrefix();
+		if (appName == null) {
+			appName = env.getProperty("spring.application.name");
+		}
 
-        String defaultContext = prefix + "/" + this.properties.getDefaultContext();
-        this.contexts.add(defaultContext + "/");
-        addProfiles(this.contexts, defaultContext, profiles);
+		List<String> profiles = Arrays.asList(env.getActiveProfiles());
 
-        String baseContext = prefix + "/" + appName;
-        this.contexts.add(baseContext + "/");
-        addProfiles(this.contexts, baseContext, profiles);
+		String prefix = this.properties.getPrefix();
 
-        Collections.reverse(this.contexts);
+		String defaultContext = prefix + "/" + this.properties.getDefaultContext();
+		this.contexts.add(defaultContext + "/");
+		addProfiles(this.contexts, defaultContext, profiles);
 
-        CompositePropertySource composite = new CompositePropertySource("aws-param-store");
+		String baseContext = prefix + "/" + appName;
+		this.contexts.add(baseContext + "/");
+		addProfiles(this.contexts, baseContext, profiles);
 
-        for (String propertySourceContext : this.contexts) {
-            try {
-                composite.addPropertySource(create(propertySourceContext));
-            } catch (Exception e) {
-                if (this.properties.isFailFast()) {
-                    logger.error("Fail fast is set and there was an error reading configuration from AWS Parameter Store:\n"
-                        + e.getMessage());
-                    ReflectionUtils.rethrowRuntimeException(e);
-                } else {
-                    logger.warn("Unable to load AWS config from " + propertySourceContext, e);
-                }
-            }
-        }
+		Collections.reverse(this.contexts);
 
-        return composite;
-    }
+		CompositePropertySource composite = new CompositePropertySource(
+				"aws-param-store");
 
-    private AwsParamStorePropertySource create(String context) {
-        AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(context, this.ssmClient);
-        propertySource.init();
-        return propertySource;
-    }
+		for (String propertySourceContext : this.contexts) {
+			try {
+				composite.addPropertySource(create(propertySourceContext));
+			}
+			catch (Exception e) {
+				if (this.properties.isFailFast()) {
+					logger.error(
+							"Fail fast is set and there was an error reading configuration from AWS Parameter Store:\n"
+									+ e.getMessage());
+					ReflectionUtils.rethrowRuntimeException(e);
+				}
+				else {
+					logger.warn("Unable to load AWS config from " + propertySourceContext,
+							e);
+				}
+			}
+		}
 
-    private void addProfiles(List<String> contexts, String baseContext, List<String> profiles) {
-        for (String profile : profiles) {
-            contexts.add(baseContext + this.properties.getProfileSeparator() + profile + "/");
-        }
-    }
+		return composite;
+	}
+
+	private AwsParamStorePropertySource create(String context) {
+		AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(
+				context, this.ssmClient);
+		propertySource.init();
+		return propertySource;
+	}
+
+	private void addProfiles(List<String> contexts, String baseContext,
+			List<String> profiles) {
+		for (String profile : profiles) {
+			contexts.add(
+					baseContext + this.properties.getProfileSeparator() + profile + "/");
+		}
+	}
 
 }

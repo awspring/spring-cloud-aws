@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,24 @@
 
 package org.springframework.cloud.aws.context.annotation;
 
-import org.springframework.context.annotation.Conditional;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.context.annotation.Conditional;
+
 /**
- * {@link org.springframework.context.annotation.Conditional} annotation that returns true if the current JVM is started
- * inside an AWS cloud environment. Useful for beans that should only be created if the application context is
- * bootstrapped inside the AWS environment (e.g. beans that fetch meta data or beans that can only connect to AWS internal
- * services like Elasticache)
+ * {@link org.springframework.context.annotation.Conditional} annotation that returns true
+ * if the current JVM is started inside an AWS cloud environment. Useful for beans that
+ * should only be created if the application context is bootstrapped inside the AWS
+ * environment (e.g. beans that fetch meta data or beans that can only connect to AWS
+ * internal services like Elasticache)
  *
  * @author Agim Emruli
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Conditional(OnAwsCloudEnvironmentCondition.class)

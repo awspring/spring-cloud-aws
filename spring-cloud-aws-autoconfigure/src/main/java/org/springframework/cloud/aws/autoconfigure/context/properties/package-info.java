@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  * {@link org.springframework.boot.context.properties.ConfigurationProperties} within
  * Spring Boot auto configuration.
  *
- * @author tgianos
+ * @author Tom Gianos
  * @since 2.0.2
  */
 package org.springframework.cloud.aws.autoconfigure.context.properties;

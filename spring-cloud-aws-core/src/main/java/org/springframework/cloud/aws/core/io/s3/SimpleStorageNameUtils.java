@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.core.io.s3;
 import org.springframework.util.Assert;
 
 /**
- * Utility class that provides utility method to work with s3 storage resources
+ * Utility class that provides utility method to work with s3 storage resources.
  *
  * @author Agim Emruli
  * @author Alain Sahli
@@ -27,97 +27,112 @@ import org.springframework.util.Assert;
  */
 final class SimpleStorageNameUtils {
 
-    private static final String S3_PROTOCOL_PREFIX = "s3://";
-    private static final String PATH_DELIMITER = "/";
-    private static final String VERSION_DELIMITER = "^";
+	private static final String S3_PROTOCOL_PREFIX = "s3://";
 
-    private SimpleStorageNameUtils() {
-        // Avoid instantiation
-    }
+	private static final String PATH_DELIMITER = "/";
 
-    static boolean isSimpleStorageResource(String location) {
-        Assert.notNull(location, "Location must not be null");
-        return location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX);
-    }
+	private static final String VERSION_DELIMITER = "^";
 
-    static String getBucketNameFromLocation(String location) {
-        Assert.notNull(location, "Location must not be null");
-        if (!isSimpleStorageResource(location)) {
-            throw new IllegalArgumentException("The location :'" + location + "' is not a valid S3 location");
-        }
-        int bucketEndIndex = location.indexOf(PATH_DELIMITER, S3_PROTOCOL_PREFIX.length());
-        if (bucketEndIndex == -1 || bucketEndIndex == S3_PROTOCOL_PREFIX.length()) {
-            throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
-        }
-        return location.substring(S3_PROTOCOL_PREFIX.length(), bucketEndIndex);
-    }
+	private SimpleStorageNameUtils() {
+		// Avoid instantiation
+	}
 
-    static String getObjectNameFromLocation(String location) {
-        Assert.notNull(location, "Location must not be null");
-        if (!isSimpleStorageResource(location)) {
-            throw new IllegalArgumentException("The location :'" + location + "' is not a valid S3 location");
-        }
-        int bucketEndIndex = location.indexOf(PATH_DELIMITER, S3_PROTOCOL_PREFIX.length());
-        if (bucketEndIndex == -1 || bucketEndIndex == S3_PROTOCOL_PREFIX.length()) {
-            throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
-        }
+	static boolean isSimpleStorageResource(String location) {
+		Assert.notNull(location, "Location must not be null");
+		return location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX);
+	}
 
-        if (location.contains(VERSION_DELIMITER)) {
-            return getObjectNameFromLocation(location.substring(0, location.indexOf(VERSION_DELIMITER)));
-        }
+	static String getBucketNameFromLocation(String location) {
+		Assert.notNull(location, "Location must not be null");
+		if (!isSimpleStorageResource(location)) {
+			throw new IllegalArgumentException(
+					"The location :'" + location + "' is not a valid S3 location");
+		}
+		int bucketEndIndex = location.indexOf(PATH_DELIMITER,
+				S3_PROTOCOL_PREFIX.length());
+		if (bucketEndIndex == -1 || bucketEndIndex == S3_PROTOCOL_PREFIX.length()) {
+			throw new IllegalArgumentException("The location :'" + location
+					+ "' does not contain a valid bucket name");
+		}
+		return location.substring(S3_PROTOCOL_PREFIX.length(), bucketEndIndex);
+	}
 
-        int endIndex = location.length();
-        if (location.endsWith(PATH_DELIMITER)) {
-            endIndex--;
-        }
+	static String getObjectNameFromLocation(String location) {
+		Assert.notNull(location, "Location must not be null");
+		if (!isSimpleStorageResource(location)) {
+			throw new IllegalArgumentException(
+					"The location :'" + location + "' is not a valid S3 location");
+		}
+		int bucketEndIndex = location.indexOf(PATH_DELIMITER,
+				S3_PROTOCOL_PREFIX.length());
+		if (bucketEndIndex == -1 || bucketEndIndex == S3_PROTOCOL_PREFIX.length()) {
+			throw new IllegalArgumentException("The location :'" + location
+					+ "' does not contain a valid bucket name");
+		}
 
-        if (bucketEndIndex >= endIndex) {
-            return "";
-        }
+		if (location.contains(VERSION_DELIMITER)) {
+			return getObjectNameFromLocation(
+					location.substring(0, location.indexOf(VERSION_DELIMITER)));
+		}
 
-        return location.substring(++bucketEndIndex, endIndex);
-    }
+		int endIndex = location.length();
+		if (location.endsWith(PATH_DELIMITER)) {
+			endIndex--;
+		}
 
-    static String getVersionIdFromLocation(String location) {
-        Assert.notNull(location, "Location must not be null");
-        if (!isSimpleStorageResource(location)) {
-            throw new IllegalArgumentException("The location :'" + location + "' is not a valid S3 location");
-        }
-        int objectNameEndIndex = location.indexOf(VERSION_DELIMITER, S3_PROTOCOL_PREFIX.length());
-        if (objectNameEndIndex == -1 || location.endsWith(VERSION_DELIMITER)) {
-            return null;
-        }
+		if (bucketEndIndex >= endIndex) {
+			return "";
+		}
 
-        if (objectNameEndIndex == S3_PROTOCOL_PREFIX.length()) {
-            throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
-        }
+		return location.substring(++bucketEndIndex, endIndex);
+	}
 
-        return location.substring(++objectNameEndIndex, location.length());
-    }
+	static String getVersionIdFromLocation(String location) {
+		Assert.notNull(location, "Location must not be null");
+		if (!isSimpleStorageResource(location)) {
+			throw new IllegalArgumentException(
+					"The location :'" + location + "' is not a valid S3 location");
+		}
+		int objectNameEndIndex = location.indexOf(VERSION_DELIMITER,
+				S3_PROTOCOL_PREFIX.length());
+		if (objectNameEndIndex == -1 || location.endsWith(VERSION_DELIMITER)) {
+			return null;
+		}
 
-    static String getLocationForBucketAndObject(String bucketName, String objectName) {
-        Assert.notNull(bucketName, "Bucket name must not be null");
-        Assert.notNull(objectName, "ObjectName name must not be null");
-        StringBuilder location = new StringBuilder(S3_PROTOCOL_PREFIX.length() + bucketName.length() +
-                PATH_DELIMITER.length() + objectName.length());
-        location.append(S3_PROTOCOL_PREFIX);
-        location.append(bucketName);
-        location.append(PATH_DELIMITER);
-        location.append(objectName);
-        return location.toString();
-    }
+		if (objectNameEndIndex == S3_PROTOCOL_PREFIX.length()) {
+			throw new IllegalArgumentException("The location :'" + location
+					+ "' does not contain a valid bucket name");
+		}
 
-    static String getLocationForBucketAndObjectAndVersionId(String bucketName, String objectName, String versionId) {
-        String location = getLocationForBucketAndObject(bucketName, objectName);
-        return new StringBuffer(location).append(VERSION_DELIMITER).append(versionId).toString();
-    }
+		return location.substring(++objectNameEndIndex, location.length());
+	}
 
-    static String stripProtocol(String location) {
-        Assert.notNull(location, "Location must not be null");
-        if (!isSimpleStorageResource(location)) {
-            throw new IllegalArgumentException("The location :'" + location + "' is not a valid S3 location");
-        }
-        return location.substring(S3_PROTOCOL_PREFIX.length());
-    }
+	static String getLocationForBucketAndObject(String bucketName, String objectName) {
+		Assert.notNull(bucketName, "Bucket name must not be null");
+		Assert.notNull(objectName, "ObjectName name must not be null");
+		StringBuilder location = new StringBuilder(S3_PROTOCOL_PREFIX.length()
+				+ bucketName.length() + PATH_DELIMITER.length() + objectName.length());
+		location.append(S3_PROTOCOL_PREFIX);
+		location.append(bucketName);
+		location.append(PATH_DELIMITER);
+		location.append(objectName);
+		return location.toString();
+	}
+
+	static String getLocationForBucketAndObjectAndVersionId(String bucketName,
+			String objectName, String versionId) {
+		String location = getLocationForBucketAndObject(bucketName, objectName);
+		return new StringBuffer(location).append(VERSION_DELIMITER).append(versionId)
+				.toString();
+	}
+
+	static String stripProtocol(String location) {
+		Assert.notNull(location, "Location must not be null");
+		if (!isSimpleStorageResource(location)) {
+			throw new IllegalArgumentException(
+					"The location :'" + location + "' is not a valid S3 location");
+		}
+		return location.substring(S3_PROTOCOL_PREFIX.length());
+	}
 
 }

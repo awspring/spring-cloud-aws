@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.mail;
 
 import org.junit.Test;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,18 +27,21 @@ import static org.junit.Assert.assertSame;
 
 public class MailSenderAutoConfigurationTest {
 
-    @Test
-    public void mailSender_MailSenderWithJava_configuresJavaMailSender() throws Exception {
-        //Arrange
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.register(MailSenderAutoConfiguration.class);
+	@Test
+	public void mailSender_MailSenderWithJava_configuresJavaMailSender()
+			throws Exception {
+		// Arrange
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.register(MailSenderAutoConfiguration.class);
 
-        //Act
-        context.refresh();
+		// Act
+		context.refresh();
 
-        //Assert
-        assertNotNull(context.getBean(MailSender.class));
-        assertNotNull(context.getBean(JavaMailSender.class));
-        assertSame(context.getBean(MailSender.class), context.getBean(JavaMailSender.class));
-    }
+		// Assert
+		assertNotNull(context.getBean(MailSender.class));
+		assertNotNull(context.getBean(JavaMailSender.class));
+		assertSame(context.getBean(MailSender.class),
+				context.getBean(JavaMailSender.class));
+	}
+
 }

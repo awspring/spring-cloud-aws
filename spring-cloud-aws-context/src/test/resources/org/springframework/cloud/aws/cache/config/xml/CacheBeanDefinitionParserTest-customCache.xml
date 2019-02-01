@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,17 +25,20 @@
            	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd">
 
 	<aws-cache:cache-manager id="cacheManager">
-		<aws-cache:cache-ref ref="memc" />
+		<aws-cache:cache-ref ref="memc"/>
 	</aws-cache:cache-manager>
 
 
-	<bean id="memc" class="org.springframework.cloud.aws.cache.memcached.SimpleSpringMemcached">
-		<constructor-arg name="cacheName" value="memc" />
+	<bean id="memc"
+		  class="org.springframework.cloud.aws.cache.memcached.SimpleSpringMemcached">
+		<constructor-arg name="cacheName" value="memc"/>
 		<constructor-arg>
 			<bean class="net.spy.memcached.MemcachedClient">
 				<constructor-arg>
-					<bean class="net.spy.memcached.AddrUtil" factory-method="getAddresses">
-						<constructor-arg value="localhost:#{systemProperties['memcachedPort']}" />
+					<bean class="net.spy.memcached.AddrUtil"
+						  factory-method="getAddresses">
+						<constructor-arg
+							value="localhost:#{systemProperties['memcachedPort']}"/>
 					</bean>
 				</constructor-arg>
 			</bean>

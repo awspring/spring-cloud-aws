@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,17 +30,24 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MessagingAutoConfiguration {
 
-    @ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
-    @EnableSqs
-    @Configuration
-    public static class SqsAutoConfiguration {
+	/**
+	 * Auto configuration for SQS.
+	 */
+	@ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+	@EnableSqs
+	@Configuration
+	public static class SqsAutoConfiguration {
 
-    }
+	}
 
-    @ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
-    @EnableSns
-    @Configuration
-    public static class SnsAutoConfiguration {
+	/**
+	 * Auto configuration for SNS.
+	 */
+	@ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
+	@EnableSns
+	@Configuration
+	public static class SnsAutoConfiguration {
 
-    }
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.aws.autoconfigure.context.properties;
 
 /**
  * Properties related to AWS region configuration.
  *
- * @author tgianos
- * @see org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
+ * @author Tom Gianos
  * @since 2.0.2
+ * @see org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
  */
 public class AwsRegionProperties {
 
@@ -58,4 +59,5 @@ public class AwsRegionProperties {
 		// - tgianos 11/26/2018
 		this.staticRegion = staticRegion;
 	}
+
 }

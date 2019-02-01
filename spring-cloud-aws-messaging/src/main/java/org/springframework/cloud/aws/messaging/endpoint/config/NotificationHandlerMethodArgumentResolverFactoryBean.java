@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -27,22 +28,24 @@ import static org.springframework.cloud.aws.messaging.endpoint.config.Notificati
  * @author Agim Emruli
  * @author Alain Sahli
  */
-public class NotificationHandlerMethodArgumentResolverFactoryBean extends AbstractFactoryBean<HandlerMethodArgumentResolver> {
+public class NotificationHandlerMethodArgumentResolverFactoryBean
+		extends AbstractFactoryBean<HandlerMethodArgumentResolver> {
 
-    private final AmazonSNS amazonSns;
+	private final AmazonSNS amazonSns;
 
-    public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
-        Assert.notNull(amazonSns, "AmazonSns must not be null");
-        this.amazonSns = amazonSns;
-    }
+	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
+		Assert.notNull(amazonSns, "AmazonSns must not be null");
+		this.amazonSns = amazonSns;
+	}
 
-    @Override
-    public Class<HandlerMethodArgumentResolver> getObjectType() {
-        return HandlerMethodArgumentResolver.class;
-    }
+	@Override
+	public Class<HandlerMethodArgumentResolver> getObjectType() {
+		return HandlerMethodArgumentResolver.class;
+	}
 
-    @Override
-    protected HandlerMethodArgumentResolver createInstance() throws Exception {
-        return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
-    }
+	@Override
+	protected HandlerMethodArgumentResolver createInstance() throws Exception {
+		return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
+	}
+
 }

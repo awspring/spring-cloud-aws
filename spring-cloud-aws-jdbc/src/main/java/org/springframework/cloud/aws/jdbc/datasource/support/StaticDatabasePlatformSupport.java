@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,54 +28,64 @@ import java.util.Map;
  */
 public class StaticDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
-    private static final String JDBC_SCHEME_NAME = "jdbc:";
-    private final Map<DatabaseType, String> driverClassNameMappings;
-    private final Map<DatabaseType, String> schemeNames;
+	private static final String JDBC_SCHEME_NAME = "jdbc:";
 
-    /**
-     * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with the configuration information
-     */
-    public StaticDatabasePlatformSupport() {
-        this.driverClassNameMappings = getDefaultDriverClassNameMappings();
-        this.schemeNames = getDefaultSchemeNames();
-    }
+	private final Map<DatabaseType, String> driverClassNameMappings;
 
-    @Override
-    protected Map<DatabaseType, String> getDriverClassNameMappings() {
-        return this.driverClassNameMappings;
-    }
+	private final Map<DatabaseType, String> schemeNames;
 
-    @Override
-    protected Map<DatabaseType, String> getSchemeNames() {
-        return this.schemeNames;
-    }
+	/**
+	 * Populates both the {@link #driverClassNameMappings} and {@link #schemeNames} with
+	 * the configuration information.
+	 */
+	public StaticDatabasePlatformSupport() {
+		this.driverClassNameMappings = getDefaultDriverClassNameMappings();
+		this.schemeNames = getDefaultSchemeNames();
+	}
 
-    @Override
-    protected Map<DatabaseType, String> getAuthenticationInfo() {
-        return Collections.singletonMap(DatabaseType.ORACLE, "@");
-    }
+	private static Map<DatabaseType, String> getDefaultDriverClassNameMappings() {
+		HashMap<DatabaseType, String> driverClassNameMappings = new HashMap<>();
+		driverClassNameMappings.put(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.ORACLE, "oracle.jdbc.OracleDriver");
+		driverClassNameMappings.put(DatabaseType.SQLSERVER,
+				"net.sourceforge.jtds.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.POSTGRES, "org.postgresql.Driver");
+		driverClassNameMappings.put(DatabaseType.MARIA, "org.mariadb.jdbc.Driver");
+		driverClassNameMappings.put(DatabaseType.AURORA_POSTGRESQL,
+				driverClassNameMappings.get(DatabaseType.POSTGRES));
+		driverClassNameMappings.put(DatabaseType.AURORA,
+				driverClassNameMappings.get(DatabaseType.MYSQL));
+		return Collections.unmodifiableMap(driverClassNameMappings);
+	}
 
-    private static Map<DatabaseType, String> getDefaultDriverClassNameMappings() {
-        HashMap<DatabaseType, String> driverClassNameMappings = new HashMap<>();
-        driverClassNameMappings.put(DatabaseType.MYSQL, "com.mysql.jdbc.Driver");
-        driverClassNameMappings.put(DatabaseType.ORACLE, "oracle.jdbc.OracleDriver");
-        driverClassNameMappings.put(DatabaseType.SQLSERVER, "net.sourceforge.jtds.jdbc.Driver");
-        driverClassNameMappings.put(DatabaseType.POSTGRES, "org.postgresql.Driver");
-        driverClassNameMappings.put(DatabaseType.MARIA, "org.mariadb.jdbc.Driver");
-        driverClassNameMappings.put(DatabaseType.AURORA_POSTGRESQL, driverClassNameMappings.get(DatabaseType.POSTGRES));
-        driverClassNameMappings.put(DatabaseType.AURORA, driverClassNameMappings.get(DatabaseType.MYSQL));
-        return Collections.unmodifiableMap(driverClassNameMappings);
-    }
+	private static Map<DatabaseType, String> getDefaultSchemeNames() {
+		HashMap<DatabaseType, String> schemeNamesMappings = new HashMap<>();
+		schemeNamesMappings.put(DatabaseType.MYSQL, JDBC_SCHEME_NAME + "mysql");
+		schemeNamesMappings.put(DatabaseType.ORACLE, JDBC_SCHEME_NAME + "oracle:thin");
+		schemeNamesMappings.put(DatabaseType.SQLSERVER,
+				JDBC_SCHEME_NAME + "jtds:sqlserver");
+		schemeNamesMappings.put(DatabaseType.POSTGRES, JDBC_SCHEME_NAME + "postgresql");
+		schemeNamesMappings.put(DatabaseType.MARIA, JDBC_SCHEME_NAME + "mariadb");
+		schemeNamesMappings.put(DatabaseType.AURORA_POSTGRESQL,
+				schemeNamesMappings.get(DatabaseType.POSTGRES));
+		schemeNamesMappings.put(DatabaseType.AURORA,
+				schemeNamesMappings.get(DatabaseType.MYSQL));
+		return Collections.unmodifiableMap(schemeNamesMappings);
+	}
 
-    private static Map<DatabaseType, String> getDefaultSchemeNames() {
-        HashMap<DatabaseType, String> schemeNamesMappings = new HashMap<>();
-        schemeNamesMappings.put(DatabaseType.MYSQL, JDBC_SCHEME_NAME + "mysql");
-        schemeNamesMappings.put(DatabaseType.ORACLE, JDBC_SCHEME_NAME + "oracle:thin");
-        schemeNamesMappings.put(DatabaseType.SQLSERVER, JDBC_SCHEME_NAME + "jtds:sqlserver");
-        schemeNamesMappings.put(DatabaseType.POSTGRES, JDBC_SCHEME_NAME + "postgresql");
-        schemeNamesMappings.put(DatabaseType.MARIA, JDBC_SCHEME_NAME + "mariadb");
-        schemeNamesMappings.put(DatabaseType.AURORA_POSTGRESQL, schemeNamesMappings.get(DatabaseType.POSTGRES));
-        schemeNamesMappings.put(DatabaseType.AURORA, schemeNamesMappings.get(DatabaseType.MYSQL));
-        return Collections.unmodifiableMap(schemeNamesMappings);
-    }
+	@Override
+	protected Map<DatabaseType, String> getDriverClassNameMappings() {
+		return this.driverClassNameMappings;
+	}
+
+	@Override
+	protected Map<DatabaseType, String> getSchemeNames() {
+		return this.schemeNames;
+	}
+
+	@Override
+	protected Map<DatabaseType, String> getAuthenticationInfo() {
+		return Collections.singletonMap(DatabaseType.ORACLE, "@");
+	}
+
 }

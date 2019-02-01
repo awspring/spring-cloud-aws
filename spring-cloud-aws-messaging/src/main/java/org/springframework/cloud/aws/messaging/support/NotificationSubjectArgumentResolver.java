@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,26 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Alain Sahli
  */
-public class NotificationSubjectArgumentResolver implements HandlerMethodArgumentResolver {
+public class NotificationSubjectArgumentResolver
+		implements HandlerMethodArgumentResolver {
 
-    private final MessageConverter converter;
+	private final MessageConverter converter;
 
-    public NotificationSubjectArgumentResolver() {
-        this.converter = new NotificationRequestConverter(new StringMessageConverter());
-    }
+	public NotificationSubjectArgumentResolver() {
+		this.converter = new NotificationRequestConverter(new StringMessageConverter());
+	}
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return (parameter.hasParameterAnnotation(NotificationSubject.class) &&
-                ClassUtils.isAssignable(String.class, parameter.getParameterType()));
-    }
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		return (parameter.hasParameterAnnotation(NotificationSubject.class)
+				&& ClassUtils.isAssignable(String.class, parameter.getParameterType()));
+	}
 
-    @Override
-    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-        return ((NotificationRequestConverter.NotificationRequest) this.converter.fromMessage(message, String.class)).getSubject();
-    }
+	@Override
+	public Object resolveArgument(MethodParameter parameter, Message<?> message)
+			throws Exception {
+		return ((NotificationRequestConverter.NotificationRequest) this.converter
+				.fromMessage(message, String.class)).getSubject();
+	}
+
 }

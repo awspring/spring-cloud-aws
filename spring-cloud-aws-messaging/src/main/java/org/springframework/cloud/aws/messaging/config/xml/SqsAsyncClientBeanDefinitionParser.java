@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.cloud.aws.messaging.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.cloud.aws.core.task.ShutdownSuppressingExecutorServiceAdapter;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.parseCustomClientElement;
 
@@ -32,21 +33,28 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  */
 public class SqsAsyncClientBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
-    @Override
-    protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-        AbstractBeanDefinition sqsAsyncClientDefinition = parseCustomClientElement(
-                element, parserContext, BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME);
-        if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ShutdownSuppressingExecutorServiceAdapter.class);
-            builder.addConstructorArgReference(element.getAttribute("task-executor"));
-            sqsAsyncClientDefinition.getPropertyValues().addPropertyValue("executor", builder.getBeanDefinition());
-        }
-        if (Boolean.parseBoolean(element.getAttribute("buffered"))) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BufferedSqsClientBeanDefinitionUtils.BUFFERED_SQS_CLIENT_CLASS_NAME);
-            builder.addConstructorArgValue(sqsAsyncClientDefinition);
-            return builder.getBeanDefinition();
-        } else {
-            return sqsAsyncClientDefinition;
-        }
-    }
+	@Override
+	protected AbstractBeanDefinition parseInternal(Element element,
+			ParserContext parserContext) {
+		AbstractBeanDefinition sqsAsyncClientDefinition = parseCustomClientElement(
+				element, parserContext,
+				BufferedSqsClientBeanDefinitionUtils.SQS_CLIENT_CLASS_NAME);
+		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+					ShutdownSuppressingExecutorServiceAdapter.class);
+			builder.addConstructorArgReference(element.getAttribute("task-executor"));
+			sqsAsyncClientDefinition.getPropertyValues().addPropertyValue("executor",
+					builder.getBeanDefinition());
+		}
+		if (Boolean.parseBoolean(element.getAttribute("buffered"))) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+					BufferedSqsClientBeanDefinitionUtils.BUFFERED_SQS_CLIENT_CLASS_NAME);
+			builder.addConstructorArgValue(sqsAsyncClientDefinition);
+			return builder.getBeanDefinition();
+		}
+		else {
+			return sqsAsyncClientDefinition;
+		}
+	}
+
 }

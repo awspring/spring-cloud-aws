@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@
 package org.springframework.cloud.aws.core.env.stack.config;
 
 /**
- * Represents a strategy for resolving and providing the name of an amazon cloud formation stack.
+ * Represents a strategy for resolving and providing the name of an amazon cloud formation
+ * stack.
  *
  * @author Christian Stettler
  */
 public interface StackNameProvider {
 
-    /**
-     * Returns the name of the current stack.
-     *
-     * @return the name of the current stack.
-     */
-    String getStackName();
+	/**
+	 * Returns the name of the current stack.
+	 * @return the name of the current stack.
+	 */
+	String getStackName();
 
 }

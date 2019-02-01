@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -28,36 +33,44 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-
 /**
  * @author Agim Emruli
  */
-public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
+public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
+		implements HandlerMethodArgumentResolver {
 
-    private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
-    private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+	private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
 
+	private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-        Assert.notNull(parameter, "Parameter must not be null");
-        if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
-            webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, this.messageConverter.read(JsonNode.class,
-                    createInputMessage(webRequest)), RequestAttributes.SCOPE_REQUEST);
-        }
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object resolveArgument(MethodParameter parameter,
+			ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+			WebDataBinderFactory binderFactory) throws Exception {
+		Assert.notNull(parameter, "Parameter must not be null");
+		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
+				RequestAttributes.SCOPE_REQUEST) == null) {
+			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
+					this.messageConverter.read(JsonNode.class,
+							createInputMessage(webRequest)),
+					RequestAttributes.SCOPE_REQUEST);
+		}
 
-        JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
-        return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest), parameter.getParameterType());
-    }
+		JsonNode content = (JsonNode) webRequest.getAttribute(
+				NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
+		return doResolveArgumentFromNotificationMessage(content,
+				createInputMessage(webRequest), parameter.getParameterType());
+	}
 
-    protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request, Class<?> parameterType);
+	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content,
+			HttpInputMessage request, Class<?> parameterType);
 
-    private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
-        HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
-        return new ServletServerHttpRequest(servletRequest);
-    }
+	private HttpInputMessage createInputMessage(NativeWebRequest webRequest)
+			throws IOException {
+		HttpServletRequest servletRequest = webRequest
+				.getNativeRequest(HttpServletRequest.class);
+		return new ServletServerHttpRequest(servletRequest);
+	}
+
 }

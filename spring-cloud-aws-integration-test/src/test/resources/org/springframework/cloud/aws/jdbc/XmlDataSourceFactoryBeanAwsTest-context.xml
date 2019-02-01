@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,33 +30,36 @@
 	   					   http://www.springframework.org/schema/aop
 	   					   http://www.springframework.org/schema/aop/spring-aop.xsd">
 
-	<import resource="classpath:Integration-test-context.xml" />
+	<import resource="classpath:Integration-test-context.xml"/>
 
 	<jdbc:data-source
-			db-instance-identifier="RdsSingleMicroInstance"
-			password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
+		db-instance-identifier="RdsSingleMicroInstance"
+		password="${rdsPassword}" read-replica-support="true" user-tags-map="dbTags">
 		<jdbc:pool-attributes initialSize="1"
 							  connectionProperties="logger=com.mysql.cj.log.Slf4JLogger;profileSQL=true;socketTimeout=1000"
-							  testOnBorrow="true" validationQuery="SELECT 1" />
+							  testOnBorrow="true" validationQuery="SELECT 1"/>
 	</jdbc:data-source>
 
 	<jdbc:retry-interceptor db-instance-identifier="RdsSingleMicroInstance"
-							id="myInterceptor" back-off-policy="backOffPolicy" max-number-of-retries="10" />
+							id="myInterceptor" back-off-policy="backOffPolicy"
+							max-number-of-retries="10"/>
 
 	<bean id="backOffPolicy" class="org.springframework.retry.backoff.FixedBackOffPolicy">
-		<property name="backOffPeriod" value="12" />
+		<property name="backOffPeriod" value="12"/>
 	</bean>
 
-	<bean class="org.springframework.cloud.aws.jdbc.SimpleDatabaseService" />
+	<bean class="org.springframework.cloud.aws.jdbc.SimpleDatabaseService"/>
 
-	<tx:annotation-driven />
+	<tx:annotation-driven/>
 
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<bean id="transactionManager"
+		  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<!--suppress SpringModelInspection -->
-		<property name="dataSource" ref="RdsSingleMicroInstance" />
+		<property name="dataSource" ref="RdsSingleMicroInstance"/>
 	</bean>
 
 	<aop:config>
-		<aop:advisor advice-ref="myInterceptor" pointcut="bean(simpleDatabaseService)" order="1" />
+		<aop:advisor advice-ref="myInterceptor" pointcut="bean(simpleDatabaseService)"
+					 order="1"/>
 	</aop:config>
 </beans>

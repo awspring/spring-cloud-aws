@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.context.config.annotation;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -37,31 +38,42 @@ import org.springframework.core.type.AnnotationMetadata;
 @Import(ContextResourceLoaderConfiguration.Registrar.class)
 public class ContextResourceLoaderConfiguration {
 
-    public static class Registrar implements ImportBeanDefinitionRegistrar {
+	/**
+	 * Registrar for Amazon webservice client.
+	 */
+	public static class Registrar implements ImportBeanDefinitionRegistrar {
 
-        @Override
-        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-            BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this, registry, AmazonS3Client.class.getName(), null, null);
+		@Override
+		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+				BeanDefinitionRegistry registry) {
+			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils
+					.registerAmazonWebserviceClient(this, registry,
+							AmazonS3Client.class.getName(), null, null);
 
-            BeanDefinitionBuilder configurer = BeanDefinitionBuilder.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);
-            configurer.addConstructorArgValue(getProtocolResolver(client));
+			BeanDefinitionBuilder configurer = BeanDefinitionBuilder
+					.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);
+			configurer.addConstructorArgValue(getProtocolResolver(client));
 
-            BeanDefinitionReaderUtils.registerWithGeneratedName(configurer.getBeanDefinition(), registry);
-        }
+			BeanDefinitionReaderUtils
+					.registerWithGeneratedName(configurer.getBeanDefinition(), registry);
+		}
 
-        protected BeanDefinition getProtocolResolver(BeanDefinitionHolder client) {
-            BeanDefinitionBuilder resolver = BeanDefinitionBuilder.rootBeanDefinition(SimpleStorageProtocolResolver.class);
-            resolver.addConstructorArgReference(client.getBeanName());
+		protected BeanDefinition getProtocolResolver(BeanDefinitionHolder client) {
+			BeanDefinitionBuilder resolver = BeanDefinitionBuilder
+					.rootBeanDefinition(SimpleStorageProtocolResolver.class);
+			resolver.addConstructorArgReference(client.getBeanName());
 
-            BeanDefinition taskExecutor = getTaskExecutorDefinition();
-            if (taskExecutor != null) {
-                resolver.addPropertyValue("taskExecutor", taskExecutor);
-            }
-            return resolver.getBeanDefinition();
-        }
+			BeanDefinition taskExecutor = getTaskExecutorDefinition();
+			if (taskExecutor != null) {
+				resolver.addPropertyValue("taskExecutor", taskExecutor);
+			}
+			return resolver.getBeanDefinition();
+		}
 
-        protected BeanDefinition getTaskExecutorDefinition() {
-            return null;
-        }
-    }
+		protected BeanDefinition getTaskExecutorDefinition() {
+			return null;
+		}
+
+	}
+
 }

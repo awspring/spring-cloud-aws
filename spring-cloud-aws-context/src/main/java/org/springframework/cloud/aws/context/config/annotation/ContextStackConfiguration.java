@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
@@ -43,37 +44,47 @@ import org.springframework.util.StringUtils;
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class ContextStackConfiguration implements ImportAware {
 
-    private AnnotationAttributes annotationAttributes;
+	private AnnotationAttributes annotationAttributes;
 
-    @Autowired(required = false)
-    private RegionProvider regionProvider;
+	@Autowired(required = false)
+	private RegionProvider regionProvider;
 
-    @Autowired(required = false)
-    private AWSCredentialsProvider credentialsProvider;
+	@Autowired(required = false)
+	private AWSCredentialsProvider credentialsProvider;
 
-    @Autowired(required = false)
-    private AmazonEC2 amazonEc2;
+	@Autowired(required = false)
+	private AmazonEC2 amazonEc2;
 
-    @Override
-    public void setImportMetadata(AnnotationMetadata importMetadata) {
-        this.annotationAttributes = AnnotationAttributes.fromMap(
-                importMetadata.getAnnotationAttributes(EnableStackConfiguration.class.getName(), false));
-        Assert.notNull(this.annotationAttributes,
-                "@EnableStackConfiguration is not present on importing class " + importMetadata.getClassName());
-    }
+	@Override
+	public void setImportMetadata(AnnotationMetadata importMetadata) {
+		this.annotationAttributes = AnnotationAttributes
+				.fromMap(importMetadata.getAnnotationAttributes(
+						EnableStackConfiguration.class.getName(), false));
+		Assert.notNull(this.annotationAttributes,
+				"@EnableStackConfiguration is not present on importing class "
+						+ importMetadata.getClassName());
+	}
 
-    @Bean
-    public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation) {
-        if (StringUtils.hasText(this.annotationAttributes.getString("stackName"))) {
-            return new StackResourceRegistryFactoryBean(amazonCloudFormation, new StaticStackNameProvider(this.annotationAttributes.getString("stackName")));
-        } else {
-            return new StackResourceRegistryFactoryBean(amazonCloudFormation, new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEc2));
-        }
-    }
+	@Bean
+	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(
+			AmazonCloudFormation amazonCloudFormation) {
+		if (StringUtils.hasText(this.annotationAttributes.getString("stackName"))) {
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation,
+					new StaticStackNameProvider(
+							this.annotationAttributes.getString("stackName")));
+		}
+		else {
+			return new StackResourceRegistryFactoryBean(amazonCloudFormation,
+					new AutoDetectingStackNameProvider(amazonCloudFormation,
+							this.amazonEc2));
+		}
+	}
 
-    @Bean
-    @ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
-    public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
-        return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class, this.credentialsProvider, this.regionProvider);
-    }
+	@Bean
+	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
+	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
+		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class,
+				this.credentialsProvider, this.regionProvider);
+	}
+
 }

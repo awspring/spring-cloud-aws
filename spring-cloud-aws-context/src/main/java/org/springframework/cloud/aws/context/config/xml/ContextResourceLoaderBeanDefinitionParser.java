@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -24,7 +26,6 @@ import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
@@ -35,33 +36,46 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
  * @author Alain Sahli
  * @since 1.0
  */
-@SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
-public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
+@SuppressWarnings({ "UnusedDeclaration", "WeakerAccess" })
+public class ContextResourceLoaderBeanDefinitionParser
+		extends AbstractSimpleBeanDefinitionParser {
 
-    private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
-    private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer";
+	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
 
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	// @checkstyle:off
+	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer";
 
-        BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition("org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver");
-        resolverBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
+	// @checkstyle:on
 
-        if (StringUtils.hasText(element.getAttribute("task-executor"))) {
-            resolverBuilder.addPropertyReference(Conventions.attributeNameToPropertyName("task-executor"),
-                    element.getAttribute("task-executor"));
-        }
+	@Override
+	protected void doParse(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
 
-        builder.addConstructorArgValue(resolverBuilder.getBeanDefinition());
-    }
+		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(
+						"org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver");
+		resolverBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(
+				element, parserContext, "amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 
-    @Override
-    protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-        return BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), false);
-    }
+		if (StringUtils.hasText(element.getAttribute("task-executor"))) {
+			resolverBuilder.addPropertyReference(
+					Conventions.attributeNameToPropertyName("task-executor"),
+					element.getAttribute("task-executor"));
+		}
 
-    @Override
-    protected String getBeanClassName(Element element) {
-        return RESOURCE_LOADER_BEAN_POST_PROCESSOR;
-    }
+		builder.addConstructorArgValue(resolverBuilder.getBeanDefinition());
+	}
+
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition,
+			ParserContext parserContext) throws BeanDefinitionStoreException {
+		return BeanDefinitionReaderUtils.generateBeanName(definition,
+				parserContext.getRegistry(), false);
+	}
+
+	@Override
+	protected String getBeanClassName(Element element) {
+		return RESOURCE_LOADER_BEAN_POST_PROCESSOR;
+	}
+
 }

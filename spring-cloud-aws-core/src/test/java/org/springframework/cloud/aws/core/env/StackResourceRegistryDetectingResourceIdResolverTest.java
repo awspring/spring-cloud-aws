@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.aws.core.env;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,87 +33,102 @@ import static org.mockito.Mockito.when;
 
 public class StackResourceRegistryDetectingResourceIdResolverTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+	@Rule
+	public ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId() throws Exception {
-        // Arrange
-        StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-        resourceIdResolver.setBeanFactory(makeListableBeanFactory());
-        resourceIdResolver.afterPropertiesSet();
+	private static ListableBeanFactory makeListableBeanFactory(
+			StackResourceRegistry... stackResourceRegistries) {
+		Map<String, StackResourceRegistry> stackResourceRegistryMap = new HashMap<>();
 
-        // Act
-        String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
+		for (StackResourceRegistry stackResourceRegistry : stackResourceRegistries) {
+			stackResourceRegistryMap.put(String.valueOf(stackResourceRegistry.hashCode()),
+					stackResourceRegistry);
+		}
 
-        // Assert
-        assertThat(physicalResourceId, is("logicalResourceId"));
-    }
+		ListableBeanFactory listableBeanFactory = mock(ListableBeanFactory.class);
+		when(listableBeanFactory.getBeansOfType(StackResourceRegistry.class))
+				.thenReturn(stackResourceRegistryMap);
 
-    @Test
-    public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId() throws Exception {
-        // Arrange
-        StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-        resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
-        resourceIdResolver.afterPropertiesSet();
+		return listableBeanFactory;
+	}
 
-        // Act
-        String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
+	private static StackResourceRegistry makeStackResourceRegistry() {
+		return makeStackResourceRegistry(null, null);
+	}
 
-        // Assert
-        assertThat(physicalResourceId, is("logicalResourceId"));
-    }
+	private static StackResourceRegistry makeStackResourceRegistry(
+			String logicalResourceId, String physicalResourceId) {
+		StackResourceRegistry stackResourceRegistry = mock(StackResourceRegistry.class);
+		when(stackResourceRegistry.lookupPhysicalResourceId(logicalResourceId))
+				.thenReturn(physicalResourceId);
 
-    @Test
-    public void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry() throws Exception {
-        // Arrange
-        StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-        resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
-        resourceIdResolver.afterPropertiesSet();
+		return stackResourceRegistry;
+	}
 
-        // Act
-        String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
+	@Test
+	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
+			throws Exception {
+		// Arrange
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		resourceIdResolver.setBeanFactory(makeListableBeanFactory());
+		resourceIdResolver.afterPropertiesSet();
 
-        // Assert
-        assertThat(physicalResourceId, is("physicalResourceId"));
-    }
+		// Act
+		String physicalResourceId = resourceIdResolver
+				.resolveToPhysicalResourceId("logicalResourceId");
 
-    @Test
-    public void createInstance_multipleStackResourceRegistriesAvailable_throwsException() throws Exception {
-        // Arrange
-        StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-        resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry(), makeStackResourceRegistry()));
+		// Assert
+		assertThat(physicalResourceId, is("logicalResourceId"));
+	}
 
-        // Assert
-        this.expectedException.expect(IllegalStateException.class);
-        this.expectedException.expectMessage("Multiple stack resource registries found");
+	@Test
+	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
+			throws Exception {
+		// Arrange
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		resourceIdResolver
+				.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
+		resourceIdResolver.afterPropertiesSet();
 
-        // Act
-        resourceIdResolver.afterPropertiesSet();
-    }
+		// Act
+		String physicalResourceId = resourceIdResolver
+				.resolveToPhysicalResourceId("logicalResourceId");
 
-    private static ListableBeanFactory makeListableBeanFactory(StackResourceRegistry... stackResourceRegistries) {
-        Map<String, StackResourceRegistry> stackResourceRegistryMap = new HashMap<>();
+		// Assert
+		assertThat(physicalResourceId, is("logicalResourceId"));
+	}
 
-        for (StackResourceRegistry stackResourceRegistry : stackResourceRegistries) {
-            stackResourceRegistryMap.put(String.valueOf(stackResourceRegistry.hashCode()), stackResourceRegistry);
-        }
+	@Test
+	public void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry()
+			throws Exception {
+		// Arrange
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
+				makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
+		resourceIdResolver.afterPropertiesSet();
 
-        ListableBeanFactory listableBeanFactory = mock(ListableBeanFactory.class);
-        when(listableBeanFactory.getBeansOfType(StackResourceRegistry.class)).thenReturn(stackResourceRegistryMap);
+		// Act
+		String physicalResourceId = resourceIdResolver
+				.resolveToPhysicalResourceId("logicalResourceId");
 
-        return listableBeanFactory;
-    }
+		// Assert
+		assertThat(physicalResourceId, is("physicalResourceId"));
+	}
 
-    private static StackResourceRegistry makeStackResourceRegistry() {
-        return makeStackResourceRegistry(null, null);
-    }
+	@Test
+	public void createInstance_multipleStackResourceRegistriesAvailable_throwsException()
+			throws Exception {
+		// Arrange
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
+				makeStackResourceRegistry(), makeStackResourceRegistry()));
 
-    private static StackResourceRegistry makeStackResourceRegistry(String logicalResourceId, String physicalResourceId) {
-        StackResourceRegistry stackResourceRegistry = mock(StackResourceRegistry.class);
-        when(stackResourceRegistry.lookupPhysicalResourceId(logicalResourceId)).thenReturn(physicalResourceId);
+		// Assert
+		this.expectedException.expect(IllegalStateException.class);
+		this.expectedException.expectMessage("Multiple stack resource registries found");
 
-        return stackResourceRegistry;
-    }
+		// Act
+		resourceIdResolver.afterPropertiesSet();
+	}
 
 }

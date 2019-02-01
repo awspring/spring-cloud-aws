@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -26,128 +31,153 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider;
 
 /**
- * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation which parses the
- * &lt;context-credentials/&gt; Element
+ * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation which
+ * parses the &lt;context-credentials/&gt; Element.
  *
  * @author Agim Emruli
  * @since 1.0
  */
 class ContextCredentialsBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-    private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.AWSStaticCredentialsProvider";
-    private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
-    private static final String PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.profile.ProfileCredentialsProvider";
+	// @checkstyle:off
+	private static final String STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.AWSStaticCredentialsProvider";
 
-    private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
-    private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-key";
+	// @checkstyle:on
 
+	// @checkstyle:off
+	private static final String INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.InstanceProfileCredentialsProvider";
 
-    @Override
-    protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-        return CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
-    }
+	// @checkstyle:on
 
-    @Override
-    protected Class<?> getBeanClass(Element element) {
-        return CredentialsProviderFactoryBean.class;
-    }
+	// @checkstyle:off
+	private static final String PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME = "com.amazonaws.auth.profile.ProfileCredentialsProvider";
 
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        if (parserContext.getRegistry().containsBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)) {
-            parserContext.getReaderContext().error("Multiple <context-credentials/> detected. The <context-credentials/> is only allowed once per application context", element);
-        }
+	// @checkstyle:on
 
-        List<Element> elements = DomUtils.getChildElements(element);
-        ManagedList<BeanDefinition> credentialsProviders = new ManagedList<>(elements.size());
+	private static final String ACCESS_KEY_ATTRIBUTE_NAME = "access-key";
 
-        for (Element credentialsProviderElement : elements) {
-            if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {
-                credentialsProviders.add(getCredentialsProvider(STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getCredentials(credentialsProviderElement, parserContext)));
-            }
+	private static final String SECRET_KEY_ATTRIBUTE_NAME = "secret-key";
 
-            if ("instance-profile-credentials".equals(credentialsProviderElement.getLocalName())) {
-                credentialsProviders.add(getCredentialsProvider(INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME));
-            }
+	private static BeanDefinition getCredentialsProvider(
+			String credentialsProviderClassName, Object... constructorArg) {
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
+				.rootBeanDefinition(credentialsProviderClassName);
+		for (Object o : constructorArg) {
+			beanDefinitionBuilder.addConstructorArgValue(o);
+		}
 
-            if ("profile-credentials".equals(credentialsProviderElement.getLocalName())) {
-                credentialsProviders.add(getCredentialsProvider(PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME, getProfileConfiguration(credentialsProviderElement).toArray()));
-            }
-        }
+		return beanDefinitionBuilder.getBeanDefinition();
+	}
 
-        builder.addConstructorArgValue(credentialsProviders);
+	/**
+	 * Creates a bean definition for the credentials object. This methods creates a bean
+	 * definition instead of the direct implementation to allow property place holder to
+	 * change any place holder used for the access or secret key.
+	 * @param credentialsProviderElement - The element that contains the credentials
+	 * attributes ACCESS_KEY_ATTRIBUTE_NAME and SECRET_KEY_ATTRIBUTE_NAME
+	 * @param parserContext - Used to report any errors if there is no
+	 * ACCESS_KEY_ATTRIBUTE_NAME or SECRET_KEY_ATTRIBUTE_NAME available with a valid value
+	 * @return - the bean definition with an
+	 * {@link com.amazonaws.auth.BasicAWSCredentials} class
+	 */
+	private static BeanDefinition getCredentials(Element credentialsProviderElement,
+			ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.rootBeanDefinition("com.amazonaws.auth.BasicAWSCredentials");
+		builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME,
+				credentialsProviderElement, parserContext));
+		builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME,
+				credentialsProviderElement, parserContext));
+		return builder.getBeanDefinition();
+	}
 
-        replaceDefaultCredentialsProvider(parserContext.getRegistry(), CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+	private static List<String> getProfileConfiguration(Element element) {
+		List<String> constructorArguments = new ArrayList<>(2);
+		if (StringUtils.hasText(element.getAttribute("profilePath"))) {
+			constructorArguments.add(element.getAttribute("profilePath"));
+		}
 
-    }
+		if (StringUtils.hasText(element.getAttribute("profileName"))) {
+			constructorArguments.add(element.getAttribute("profileName"));
+		}
+		return constructorArguments;
+	}
 
-    private static BeanDefinition getCredentialsProvider(String credentialsProviderClassName, Object... constructorArg) {
-        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(credentialsProviderClassName);
-        for (Object o : constructorArg) {
-            beanDefinitionBuilder.addConstructorArgValue(o);
-        }
+	/**
+	 * Returns the attribute value and reports an error if the attribute value is null or
+	 * empty. Normally the reported error leads into an exception which will be thrown
+	 * through the {@link org.springframework.beans.factory.parsing.ProblemReporter}
+	 * implementation.
+	 * @param attribute - The name of the attribute which will be valuated
+	 * @param element - The element that contains the attribute
+	 * @param parserContext - The parser context used to report errors
+	 * @return - The attribute value
+	 */
+	private static String getAttributeValue(String attribute, Element element,
+			ParserContext parserContext) {
+		String attributeValue = element.getAttribute(attribute);
+		if (!StringUtils.hasText(attributeValue)) {
+			parserContext.getReaderContext().error(
+					"The '" + attribute + "' attribute must not be empty", element);
+		}
+		return attributeValue;
+	}
 
-        return beanDefinitionBuilder.getBeanDefinition();
-    }
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition,
+			ParserContext parserContext) throws BeanDefinitionStoreException {
+		return CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
+	}
 
-    /**
-     * Creates a bean definition for the credentials object. This methods creates a bean definition instead of the direct
-     * implementation to allow property place holder to change any place holder used for the access or secret key.
-     *
-     * @param credentialsProviderElement
-     *         - The element that contains the credentials attributes ACCESS_KEY_ATTRIBUTE_NAME and SECRET_KEY_ATTRIBUTE_NAME
-     * @param parserContext
-     *         - Used to report any errors if there is no ACCESS_KEY_ATTRIBUTE_NAME or SECRET_KEY_ATTRIBUTE_NAME available with
-     *         a
-     *         valid value
-     * @return - the bean definition with an {@link com.amazonaws.auth.BasicAWSCredentials} class
-     */
-    private static BeanDefinition getCredentials(Element credentialsProviderElement, ParserContext parserContext) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition("com.amazonaws.auth.BasicAWSCredentials");
-        builder.addConstructorArgValue(getAttributeValue(ACCESS_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
-        builder.addConstructorArgValue(getAttributeValue(SECRET_KEY_ATTRIBUTE_NAME, credentialsProviderElement, parserContext));
-        return builder.getBeanDefinition();
-    }
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return CredentialsProviderFactoryBean.class;
+	}
 
-    private static List<String> getProfileConfiguration(Element element) {
-        List<String> constructorArguments = new ArrayList<>(2);
-        if (StringUtils.hasText(element.getAttribute("profilePath"))) {
-            constructorArguments.add(element.getAttribute("profilePath"));
-        }
+	@Override
+	protected void doParse(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+		if (parserContext.getRegistry().containsBeanDefinition(
+				CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME)) {
+			parserContext.getReaderContext()
+					.error("Multiple <context-credentials/> detected. "
+							+ "The <context-credentials/> is only allowed once per application context",
+							element);
+		}
 
-        if (StringUtils.hasText(element.getAttribute("profileName"))) {
-            constructorArguments.add(element.getAttribute("profileName"));
-        }
-        return constructorArguments;
-    }
+		List<Element> elements = DomUtils.getChildElements(element);
+		ManagedList<BeanDefinition> credentialsProviders = new ManagedList<>(
+				elements.size());
 
-    /**
-     * Returns the attribute value and reports an error if the attribute value is null or empty. Normally the reported
-     * error leads into an exception which will be thrown through the {@link org.springframework.beans.factory.parsing.ProblemReporter}
-     * implementation.
-     *
-     * @param attribute
-     *         - The name of the attribute which will be valuated
-     * @param element
-     *         - The element that contains the attribute
-     * @param parserContext
-     *         - The parser context used to report errors
-     * @return - The attribute value
-     */
-    private static String getAttributeValue(String attribute, Element element, ParserContext parserContext) {
-        String attributeValue = element.getAttribute(attribute);
-        if (!StringUtils.hasText(attributeValue)) {
-            parserContext.getReaderContext().error("The '" + attribute + "' attribute must not be empty", element);
-        }
-        return attributeValue;
-    }
+		for (Element credentialsProviderElement : elements) {
+			if ("simple-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(
+						STATIC_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME,
+						getCredentials(credentialsProviderElement, parserContext)));
+			}
+
+			if ("instance-profile-credentials"
+					.equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(
+						INSTANCE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME));
+			}
+
+			if ("profile-credentials".equals(credentialsProviderElement.getLocalName())) {
+				credentialsProviders.add(getCredentialsProvider(
+						PROFILE_CREDENTIALS_PROVIDER_BEAN_CLASS_NAME,
+						getProfileConfiguration(credentialsProviderElement).toArray()));
+			}
+		}
+
+		builder.addConstructorArgValue(credentialsProviders);
+
+		replaceDefaultCredentialsProvider(parserContext.getRegistry(),
+				CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+
+	}
 
 }

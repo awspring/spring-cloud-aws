@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2013-2014 the original author or authors.
+  ~ Copyright 2013-2019 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,17 +28,20 @@
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<context:context-credentials>
-		<context:simple-credentials access-key="foo" secret-key="bar" />
+		<context:simple-credentials access-key="foo" secret-key="bar"/>
 	</context:context-credentials>
 
-	<jdbc:data-source db-instance-identifier="test" password="password" user-tags-map="dsTags"
-					  amazon-rds="amazonRds" amazon-identity-management="myIdentityService" />
+	<jdbc:data-source db-instance-identifier="test" password="password"
+					  user-tags-map="dsTags"
+					  amazon-rds="amazonRds"
+					  amazon-identity-management="myIdentityService"/>
 
 	<bean id="amazonRds" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.amazonaws.services.rds.AmazonRDS" />
+		<constructor-arg value="com.amazonaws.services.rds.AmazonRDS"/>
 	</bean>
 
 	<bean id="myIdentityService" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.amazonaws.services.identitymanagement.AmazonIdentityManagement" />
+		<constructor-arg
+			value="com.amazonaws.services.identitymanagement.AmazonIdentityManagement"/>
 	</bean>
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,57 +33,67 @@ import org.springframework.util.Assert;
  * @author Alain Sahli
  * @author Agim Emruli
  */
-public class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler, BeanFactoryAware {
+public class SendToHandlerMethodReturnValueHandler
+		implements HandlerMethodReturnValueHandler, BeanFactoryAware {
 
-    private final DestinationResolvingMessageSendingOperations<?> messageTemplate;
-    private BeanFactory beanFactory;
+	private final DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
-    public SendToHandlerMethodReturnValueHandler(DestinationResolvingMessageSendingOperations<?> messageTemplate) {
-        this.messageTemplate = messageTemplate;
-    }
+	private BeanFactory beanFactory;
 
-    @Override
-    public boolean supportsReturnType(MethodParameter returnType) {
-        return returnType.getMethodAnnotation(SendTo.class) != null;
-    }
+	public SendToHandlerMethodReturnValueHandler(
+			DestinationResolvingMessageSendingOperations<?> messageTemplate) {
+		this.messageTemplate = messageTemplate;
+	}
 
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
-        Assert.state(this.messageTemplate != null, "A messageTemplate must be set to handle the return value.");
+	@Override
+	public boolean supportsReturnType(MethodParameter returnType) {
+		return returnType.getMethodAnnotation(SendTo.class) != null;
+	}
 
-        if (returnValue != null) {
-            if (getDestinationName(returnType) != null) {
-                this.messageTemplate.convertAndSend(getDestinationName(returnType), returnValue);
-            } else {
-                this.messageTemplate.convertAndSend(returnValue);
-            }
-        }
-    }
+	@SuppressWarnings("ConstantConditions")
+	@Override
+	public void handleReturnValue(Object returnValue, MethodParameter returnType,
+			Message<?> message) throws Exception {
+		Assert.state(this.messageTemplate != null,
+				"A messageTemplate must be set to handle the return value.");
 
-    private String getDestinationName(MethodParameter returnType) {
-        String[] destination = returnType.getMethodAnnotation(SendTo.class).value();
-        return destination.length > 0 ? resolveName(destination[0]) : null;
-    }
+		if (returnValue != null) {
+			if (getDestinationName(returnType) != null) {
+				this.messageTemplate.convertAndSend(getDestinationName(returnType),
+						returnValue);
+			}
+			else {
+				this.messageTemplate.convertAndSend(returnValue);
+			}
+		}
+	}
 
-    private String resolveName(String name) {
-        if (!(this.beanFactory instanceof ConfigurableBeanFactory)) {
-            return name;
-        }
+	private String getDestinationName(MethodParameter returnType) {
+		String[] destination = returnType.getMethodAnnotation(SendTo.class).value();
+		return destination.length > 0 ? resolveName(destination[0]) : null;
+	}
 
-        ConfigurableBeanFactory configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
+	private String resolveName(String name) {
+		if (!(this.beanFactory instanceof ConfigurableBeanFactory)) {
+			return name;
+		}
 
-        String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
-        BeanExpressionResolver exprResolver = configurableBeanFactory.getBeanExpressionResolver();
-        if (exprResolver == null) {
-            return name;
-        }
-        Object result = exprResolver.evaluate(placeholdersResolved, new BeanExpressionContext(configurableBeanFactory, null));
-        return result != null ? result.toString() : name;
-    }
+		ConfigurableBeanFactory configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
 
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
+		String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
+		BeanExpressionResolver exprResolver = configurableBeanFactory
+				.getBeanExpressionResolver();
+		if (exprResolver == null) {
+			return name;
+		}
+		Object result = exprResolver.evaluate(placeholdersResolved,
+				new BeanExpressionContext(configurableBeanFactory, null));
+		return result != null ? result.toString() : name;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 }

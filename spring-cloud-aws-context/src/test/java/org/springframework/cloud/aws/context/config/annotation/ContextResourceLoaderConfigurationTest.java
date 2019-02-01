@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
-
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -31,49 +31,53 @@ import static org.junit.Assert.assertTrue;
 
 public class ContextResourceLoaderConfigurationTest {
 
-    private AnnotationConfigApplicationContext context;
+	private AnnotationConfigApplicationContext context;
 
-    @After
-    public void tearDown() {
-        if (this.context != null) {
-            this.context.close();
-        }
-    }
+	@After
+	public void tearDown() {
+		if (this.context != null) {
+			this.context.close();
+		}
+	}
 
-    @Test
-    public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
-        //Arrange
-        this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
+	@Test
+	public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext(
+				ApplicationConfigurationWithResourceLoader.class);
 
-        //Act
-        ApplicationBean bean =
-                this.context.getBean(ApplicationBean.class);
+		// Act
+		ApplicationBean bean = this.context.getBean(ApplicationBean.class);
 
-        //Assert
-        assertNotNull(bean.getResourceLoader());
-        assertTrue(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()));
+		// Assert
+		assertNotNull(bean.getResourceLoader());
+		assertTrue(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()));
 
-        DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean.getResourceLoader();
-        assertTrue(SimpleStorageProtocolResolver.class.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next()));
-    }
+		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean
+				.getResourceLoader();
+		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+	}
 
-    @EnableContextResourceLoader
-    static class ApplicationConfigurationWithResourceLoader {
+	@EnableContextResourceLoader
+	static class ApplicationConfigurationWithResourceLoader {
 
-        @Bean
-        public ApplicationBean appBean() {
-            return new ApplicationBean();
-        }
+		@Bean
+		public ApplicationBean appBean() {
+			return new ApplicationBean();
+		}
 
-    }
+	}
 
-    static class ApplicationBean {
+	static class ApplicationBean {
 
-        @Autowired
-        private ResourceLoader resourceLoader;
+		@Autowired
+		private ResourceLoader resourceLoader;
 
-        private ResourceLoader getResourceLoader() {
-            return this.resourceLoader;
-        }
-    }
+		private ResourceLoader getResourceLoader() {
+			return this.resourceLoader;
+		}
+
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,38 +31,46 @@ import org.springframework.util.ClassUtils;
  */
 public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFactory> {
 
-    private static final boolean JEDIS_AVAILABLE = ClassUtils.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
-    private static final boolean LETTUCE_AVAILABLE = ClassUtils.isPresent("io.lettuce.core.RedisClient", ClassUtils.getDefaultClassLoader());
+	private static final boolean JEDIS_AVAILABLE = ClassUtils
+			.isPresent("redis.clients.jedis.Jedis", ClassUtils.getDefaultClassLoader());
 
-    @Override
-    public boolean isSupportingCacheArchitecture(String architecture) {
-        return "redis".equalsIgnoreCase(architecture);
-    }
+	private static final boolean LETTUCE_AVAILABLE = ClassUtils
+			.isPresent("io.lettuce.core.RedisClient", ClassUtils.getDefaultClassLoader());
 
-    @Override
-    public Cache createCache(String cacheName, String host, int port) throws Exception {
-        return RedisCacheManager.builder(getConnectionFactory(host, port)).build().getCache(cacheName);
-    }
+	@Override
+	public boolean isSupportingCacheArchitecture(String architecture) {
+		return "redis".equalsIgnoreCase(architecture);
+	}
 
-    @Override
-    protected void destroyConnectionClient(RedisConnectionFactory connectionClient) throws Exception {
-        if (connectionClient instanceof DisposableBean) {
-            ((DisposableBean) connectionClient).destroy();
-        }
-    }
+	@Override
+	public Cache createCache(String cacheName, String host, int port) throws Exception {
+		return RedisCacheManager.builder(getConnectionFactory(host, port)).build()
+				.getCache(cacheName);
+	}
 
-    @Override
-    protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
-        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName(hostName);
-        configuration.setPort(port);
-        if (JEDIS_AVAILABLE) {
-            return new JedisConnectionFactory(configuration);
-        } else if (LETTUCE_AVAILABLE) {
-            return new LettuceConnectionFactory(configuration);
-        } else {
-            throw new IllegalArgumentException("No Jedis or lettuce client on classpath. " +
-                    "Please add one of the implementation to your classpath");
-        }
-    }
+	@Override
+	protected void destroyConnectionClient(RedisConnectionFactory connectionClient)
+			throws Exception {
+		if (connectionClient instanceof DisposableBean) {
+			((DisposableBean) connectionClient).destroy();
+		}
+	}
+
+	@Override
+	protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
+		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+		configuration.setHostName(hostName);
+		configuration.setPort(port);
+		if (JEDIS_AVAILABLE) {
+			return new JedisConnectionFactory(configuration);
+		}
+		else if (LETTUCE_AVAILABLE) {
+			return new LettuceConnectionFactory(configuration);
+		}
+		else {
+			throw new IllegalArgumentException("No Jedis or lettuce client on classpath. "
+					+ "Please add one of the implementation to your classpath");
+		}
+	}
+
 }

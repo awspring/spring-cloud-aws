@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.core.io.ProtocolResolver;
@@ -32,43 +33,47 @@ import org.springframework.core.task.TaskExecutor;
  */
 public class SimpleStorageProtocolResolver implements ProtocolResolver, InitializingBean {
 
-    private final AmazonS3 amazonS3;
+	private final AmazonS3 amazonS3;
 
-    /**
-     * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a huge memory consumption. The
-     * reason is that each multipart of 5MB will be put in the queue to be uploaded. Therefore a bounded queue is recommended.
-     */
-    private TaskExecutor taskExecutor;
+	/**
+	 * <b>IMPORTANT:</b> If a task executor is set with an unbounded queue there will be a
+	 * huge memory consumption. The reason is that each multipart of 5MB will be put in
+	 * the queue to be uploaded. Therefore a bounded queue is recommended.
+	 */
+	private TaskExecutor taskExecutor;
 
-    public SimpleStorageProtocolResolver(AmazonS3 amazonS3) {
-        this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
-    }
+	public SimpleStorageProtocolResolver(AmazonS3 amazonS3) {
+		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
+	}
 
-    @RuntimeUse
-    public void setTaskExecutor(TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
-    }
+	@RuntimeUse
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
 
-    @Override
-    public void afterPropertiesSet() {
-        if (this.taskExecutor == null) {
-            this.taskExecutor = new SyncTaskExecutor();
-        }
-    }
+	@Override
+	public void afterPropertiesSet() {
+		if (this.taskExecutor == null) {
+			this.taskExecutor = new SyncTaskExecutor();
+		}
+	}
 
+	@Override
+	public Resource resolve(String location, ResourceLoader resourceLoader) {
+		if (SimpleStorageNameUtils.isSimpleStorageResource(location)) {
+			return new SimpleStorageResource(this.amazonS3,
+					SimpleStorageNameUtils.getBucketNameFromLocation(location),
+					SimpleStorageNameUtils.getObjectNameFromLocation(location),
+					this.taskExecutor,
+					SimpleStorageNameUtils.getVersionIdFromLocation(location));
+		}
+		else {
+			return null;
+		}
+	}
 
-    @Override
-    public Resource resolve(String location, ResourceLoader resourceLoader) {
-        if (SimpleStorageNameUtils.isSimpleStorageResource(location)) {
-            return new SimpleStorageResource(this.amazonS3, SimpleStorageNameUtils.getBucketNameFromLocation(location),
-                    SimpleStorageNameUtils.getObjectNameFromLocation(location), this.taskExecutor,
-                    SimpleStorageNameUtils.getVersionIdFromLocation(location));
-        } else {
-            return null;
-        }
-    }
+	public AmazonS3 getAmazonS3() {
+		return this.amazonS3;
+	}
 
-    public AmazonS3 getAmazonS3() {
-        return this.amazonS3;
-    }
 }

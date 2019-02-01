@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,20 +30,22 @@ import org.springframework.core.io.Resource;
 @SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
 public class BootMailSenderAwsTest extends MailSenderAwsTest {
 
-    @SpringBootApplication
-    @PropertySource({"classpath:Integration-test-config.properties",
-            "file://${els.config.dir}/access.properties",
-            "file://${els.config.dir}/mail.properties"})
-    static class BootMailSenderAwsTestConfig {
+	@SpringBootApplication
+	@PropertySource({ "classpath:Integration-test-config.properties",
+			"file://${els.config.dir}/access.properties",
+			"file://${els.config.dir}/mail.properties" })
+	static class BootMailSenderAwsTestConfig {
 
-        @Value("file://${els.config.dir}/mail.properties")
-        private Resource mailConfigResource;
+		@Value("file://${els.config.dir}/mail.properties")
+		private Resource mailConfigResource;
 
-        @Bean(name = "mail")
-        public PropertiesFactoryBean mail() {
-            PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
-            factoryBean.setLocation(this.mailConfigResource);
-            return factoryBean;
-        }
-    }
+		@Bean(name = "mail")
+		public PropertiesFactoryBean mail() {
+			PropertiesFactoryBean factoryBean = new PropertiesFactoryBean();
+			factoryBean.setLocation(this.mailConfigResource);
+			return factoryBean;
+		}
+
+	}
+
 }

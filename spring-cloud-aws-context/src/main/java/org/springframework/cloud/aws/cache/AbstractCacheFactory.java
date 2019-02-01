@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,70 +16,75 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+
 /**
+ * @param <T> connection client type
  * @author Agim Emruli
  */
 public abstract class AbstractCacheFactory<T> implements CacheFactory, DisposableBean {
 
-    private final Map<String, T> nativeConnectionClients = new HashMap<>();
-    private final Map<String, Integer> expiryTimePerCache = new HashMap<>();
-    private int expiryTime;
+	private final Map<String, T> nativeConnectionClients = new HashMap<>();
 
-    protected AbstractCacheFactory() {
-    }
+	private final Map<String, Integer> expiryTimePerCache = new HashMap<>();
 
-    @Override
-    public void destroy() throws Exception {
-        synchronized (this.nativeConnectionClients) {
-            for (T connectionClient : this.nativeConnectionClients.values()) {
-                destroyConnectionClient(connectionClient);
-            }
-        }
-    }
+	private int expiryTime;
 
-    protected abstract void destroyConnectionClient(T connectionClient) throws Exception;
+	protected AbstractCacheFactory() {
+	}
 
-    protected final T getConnectionFactory(String hostName, int port) throws Exception {
-        synchronized (this.nativeConnectionClients) {
-            if (!this.nativeConnectionClients.containsKey(hostName)) {
-                T nativeConnectionClient = createConnectionClient(hostName, port);
-                if (nativeConnectionClient instanceof InitializingBean) {
-                    ((InitializingBean) nativeConnectionClient).afterPropertiesSet();
-                }
-                this.nativeConnectionClients.put(hostName, nativeConnectionClient);
-            }
-            return this.nativeConnectionClients.get(hostName);
-        }
-    }
+	@Override
+	public void destroy() throws Exception {
+		synchronized (this.nativeConnectionClients) {
+			for (T connectionClient : this.nativeConnectionClients.values()) {
+				destroyConnectionClient(connectionClient);
+			}
+		}
+	}
 
-    protected abstract T createConnectionClient(String hostName, int port) throws IOException;
+	protected abstract void destroyConnectionClient(T connectionClient) throws Exception;
 
-    protected int getExpiryTime() {
-        return this.expiryTime;
-    }
+	protected final T getConnectionFactory(String hostName, int port) throws Exception {
+		synchronized (this.nativeConnectionClients) {
+			if (!this.nativeConnectionClients.containsKey(hostName)) {
+				T nativeConnectionClient = createConnectionClient(hostName, port);
+				if (nativeConnectionClient instanceof InitializingBean) {
+					((InitializingBean) nativeConnectionClient).afterPropertiesSet();
+				}
+				this.nativeConnectionClients.put(hostName, nativeConnectionClient);
+			}
+			return this.nativeConnectionClients.get(hostName);
+		}
+	}
 
-    public void setExpiryTime(int expiryTime) {
-        this.expiryTime = expiryTime;
-    }
+	protected abstract T createConnectionClient(String hostName, int port)
+			throws IOException;
 
-    public void setExpiryTimePerCache(Map<String, Integer> expiryTimePerCache) {
-        this.expiryTimePerCache.putAll(expiryTimePerCache);
-    }
+	protected int getExpiryTime() {
+		return this.expiryTime;
+	}
 
-    @SuppressWarnings("UnusedParameters")
-    protected int getExpiryTime(String cacheName) {
-        if (this.expiryTimePerCache.containsKey(cacheName) &&
-                this.expiryTimePerCache.get(cacheName) != null &&
-                this.expiryTimePerCache.get(cacheName) != 0) {
-            return this.expiryTimePerCache.get(cacheName);
-        }
-        return getExpiryTime();
-    }
+	public void setExpiryTime(int expiryTime) {
+		this.expiryTime = expiryTime;
+	}
+
+	public void setExpiryTimePerCache(Map<String, Integer> expiryTimePerCache) {
+		this.expiryTimePerCache.putAll(expiryTimePerCache);
+	}
+
+	@SuppressWarnings("UnusedParameters")
+	protected int getExpiryTime(String cacheName) {
+		if (this.expiryTimePerCache.containsKey(cacheName)
+				&& this.expiryTimePerCache.get(cacheName) != null
+				&& this.expiryTimePerCache.get(cacheName) != 0) {
+			return this.expiryTimePerCache.get(cacheName);
+		}
+		return getExpiryTime();
+	}
+
 }

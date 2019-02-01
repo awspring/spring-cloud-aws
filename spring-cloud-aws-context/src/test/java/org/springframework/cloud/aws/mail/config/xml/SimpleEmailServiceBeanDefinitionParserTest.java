@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 package org.springframework.cloud.aws.mail.config.xml;
 
+import java.lang.reflect.Field;
+import java.net.URI;
+
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.lang.reflect.Field;
-import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -38,73 +39,93 @@ import static org.springframework.util.ReflectionUtils.makeAccessible;
  */
 public class SimpleEmailServiceBeanDefinitionParserTest {
 
+	private static String getEndpointUrlFromWebserviceClient(
+			AmazonSimpleEmailServiceClient client) throws Exception {
+		Field field = findField(AmazonSimpleEmailServiceClient.class, "endpoint");
+		makeAccessible(field);
+		URI endpointUri = (URI) field.get(client);
+		return endpointUri.toASCIIString();
+	}
 
-    @Test
-    public void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail() throws Exception {
-        //Arrange
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+	@Test
+	public void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail()
+			throws Exception {
+		// Arrange
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				getClass().getSimpleName() + "-context.xml", getClass());
 
-        //Act
-        AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
+		// Act
+		AmazonSimpleEmailServiceClient emailService = context.getBean(
+				getBeanName(AmazonSimpleEmailServiceClient.class.getName()),
+				AmazonSimpleEmailServiceClient.class);
 
-        MailSender mailSender = context.getBean(MailSender.class);
+		MailSender mailSender = context.getBean(MailSender.class);
 
-        //Assert
-        assertEquals("https://email.us-west-2.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
+		// Assert
+		assertEquals("https://email.us-west-2.amazonaws.com",
+				getEndpointUrlFromWebserviceClient(emailService));
 
-        assertTrue(mailSender instanceof JavaMailSender);
-    }
+		assertTrue(mailSender instanceof JavaMailSender);
+	}
 
-    @Test
-    public void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion() throws Exception {
-        //Arrange
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-region.xml", getClass());
+	@Test
+	public void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion()
+			throws Exception {
+		// Arrange
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				getClass().getSimpleName() + "-region.xml", getClass());
 
-        //Act
-        AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
+		// Act
+		AmazonSimpleEmailServiceClient emailService = context.getBean(
+				getBeanName(AmazonSimpleEmailServiceClient.class.getName()),
+				AmazonSimpleEmailServiceClient.class);
 
-        MailSender mailSender = context.getBean(MailSender.class);
+		MailSender mailSender = context.getBean(MailSender.class);
 
-        //Assert
-        assertEquals("https://email.eu-west-1.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
+		// Assert
+		assertEquals("https://email.eu-west-1.amazonaws.com",
+				getEndpointUrlFromWebserviceClient(emailService));
 
-        assertTrue(mailSender instanceof JavaMailSender);
-    }
+		assertTrue(mailSender instanceof JavaMailSender);
+	}
 
-    @Test
-    public void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider() throws Exception {
-        //Arrange
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-regionProvider.xml", getClass());
+	@Test
+	public void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider()
+			throws Exception {
+		// Arrange
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				getClass().getSimpleName() + "-regionProvider.xml", getClass());
 
-        //Act
-        AmazonSimpleEmailServiceClient emailService = context.getBean(getBeanName(AmazonSimpleEmailServiceClient.class.getName()), AmazonSimpleEmailServiceClient.class);
+		// Act
+		AmazonSimpleEmailServiceClient emailService = context.getBean(
+				getBeanName(AmazonSimpleEmailServiceClient.class.getName()),
+				AmazonSimpleEmailServiceClient.class);
 
-        MailSender mailSender = context.getBean(MailSender.class);
+		MailSender mailSender = context.getBean(MailSender.class);
 
-        //Assert
-        assertEquals("https://email.ap-southeast-2.amazonaws.com", getEndpointUrlFromWebserviceClient(emailService));
+		// Assert
+		assertEquals("https://email.ap-southeast-2.amazonaws.com",
+				getEndpointUrlFromWebserviceClient(emailService));
 
-        assertTrue(mailSender instanceof JavaMailSender);
-    }
+		assertTrue(mailSender instanceof JavaMailSender);
+	}
 
-    @Test
-    public void parse_MailSenderWithCustomSesClient_createMailSenderWithCustomSesClient() throws Exception {
-        //Arrange
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-ses-client.xml", getClass());
+	@Test
+	public void parse_MailSenderWithCustomSesClient_createMailSenderWithCustomSesClient()
+			throws Exception {
+		// Arrange
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				getClass().getSimpleName() + "-ses-client.xml", getClass());
 
-        //Act
-        AmazonSimpleEmailServiceClient emailService = context.getBean("emailServiceClient", AmazonSimpleEmailServiceClient.class);
+		// Act
+		AmazonSimpleEmailServiceClient emailService = context
+				.getBean("emailServiceClient", AmazonSimpleEmailServiceClient.class);
 
-        MailSender mailSender = context.getBean(MailSender.class);
+		MailSender mailSender = context.getBean(MailSender.class);
 
-        //Assert
-        assertSame(emailService, ReflectionTestUtils.getField(mailSender, "emailService"));
-    }
+		// Assert
+		assertSame(emailService,
+				ReflectionTestUtils.getField(mailSender, "emailService"));
+	}
 
-    private static String getEndpointUrlFromWebserviceClient(AmazonSimpleEmailServiceClient client) throws Exception {
-        Field field = findField(AmazonSimpleEmailServiceClient.class, "endpoint");
-        makeAccessible(field);
-        URI endpointUri = (URI) field.get(client);
-        return endpointUri.toASCIIString();
-    }
 }

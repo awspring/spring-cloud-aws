@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,44 @@
 
 package org.springframework.cloud.aws.core.env.ec2;
 
+import java.io.IOException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
-import java.io.IOException;
+import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AmazonEc2InstanceIdProviderAwsTest {
 
-    private TestStackInstanceIdService testStackInstanceIdService;
+	private TestStackInstanceIdService testStackInstanceIdService;
 
-    @Before
-    public void enableInstanceIdMetadataService() {
-        this.testStackInstanceIdService = TestStackInstanceIdService.fromInstanceId("i-abcdefg");
-        this.testStackInstanceIdService.enable();
-    }
+	@Before
+	public void enableInstanceIdMetadataService() {
+		this.testStackInstanceIdService = TestStackInstanceIdService
+				.fromInstanceId("i-abcdefg");
+		this.testStackInstanceIdService.enable();
+	}
 
-    @After
-    public void disableInstanceIdMetadataService() {
-        this.testStackInstanceIdService.disable();
-    }
+	@After
+	public void disableInstanceIdMetadataService() {
+		this.testStackInstanceIdService.disable();
+	}
 
-    @Test
-    public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService() throws IOException {
-        // Arrange
-        AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();
+	@Test
+	public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService()
+			throws IOException {
+		// Arrange
+		AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();
 
-        // Act
-        String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
+		// Act
+		String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
 
-        // Assert
-        assertThat(currentInstanceId, is("i-abcdefg"));
-    }
+		// Assert
+		assertThat(currentInstanceId, is("i-abcdefg"));
+	}
 
 }

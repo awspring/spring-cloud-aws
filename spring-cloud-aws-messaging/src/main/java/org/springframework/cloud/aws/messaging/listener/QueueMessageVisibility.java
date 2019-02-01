@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
+import java.util.concurrent.Future;
+
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
-
-import java.util.concurrent.Future;
 
 /**
  * @author Szymon Dembek
@@ -27,21 +27,25 @@ import java.util.concurrent.Future;
  */
 public class QueueMessageVisibility implements Visibility {
 
-    private final AmazonSQSAsync amazonSqsAsync;
-    private final String queueUrl;
-    private final String receiptHandle;
+	private final AmazonSQSAsync amazonSqsAsync;
 
-    public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
-        this.amazonSqsAsync = amazonSqsAsync;
-        this.queueUrl = queueUrl;
-        this.receiptHandle = receiptHandle;
-    }
+	private final String queueUrl;
 
-    @Override
-    public Future<?> extend(int seconds) {
-        return this.amazonSqsAsync.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
-                .withQueueUrl(this.queueUrl)
-                .withReceiptHandle(this.receiptHandle)
-                .withVisibilityTimeout(seconds));
-    }
+	private final String receiptHandle;
+
+	public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl,
+			String receiptHandle) {
+		this.amazonSqsAsync = amazonSqsAsync;
+		this.queueUrl = queueUrl;
+		this.receiptHandle = receiptHandle;
+	}
+
+	@Override
+	public Future<?> extend(int seconds) {
+		return this.amazonSqsAsync
+				.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
+						.withQueueUrl(this.queueUrl).withReceiptHandle(this.receiptHandle)
+						.withVisibilityTimeout(seconds));
+	}
+
 }
