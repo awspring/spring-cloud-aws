@@ -29,10 +29,7 @@ import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentChec
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -45,7 +42,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}
@@ -73,8 +70,9 @@ public class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertTrue(this.context
-				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+		assertThat(this.context
+				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"))
+						.isTrue();
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -95,8 +93,9 @@ public class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertFalse(this.context
-				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+		assertThat(this.context
+				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"))
+						.isFalse();
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -119,8 +118,8 @@ public class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
@@ -148,8 +147,8 @@ public class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
@@ -177,8 +176,8 @@ public class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);

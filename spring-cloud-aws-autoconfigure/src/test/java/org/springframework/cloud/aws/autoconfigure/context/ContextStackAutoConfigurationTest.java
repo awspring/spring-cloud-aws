@@ -41,8 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextStackAutoConfigurationTest {
 
@@ -52,7 +51,7 @@ public class ContextStackAutoConfigurationTest {
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}
@@ -80,7 +79,7 @@ public class ContextStackAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(StackResourceRegistry.class));
+		assertThat(this.context.getBean(StackResourceRegistry.class)).isNotNull();
 
 		httpServer.removeContext(httpContext);
 		MetaDataServer.shutdownHttpServer();
@@ -100,7 +99,7 @@ public class ContextStackAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(StackResourceRegistry.class));
+		assertThat(this.context.getBean(StackResourceRegistry.class)).isNotNull();
 	}
 
 	@Test
@@ -114,8 +113,9 @@ public class ContextStackAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(ResourceIdResolver.class));
-		assertTrue(this.context.getBeansOfType(StackResourceRegistry.class).isEmpty());
+		assertThat(this.context.getBean(ResourceIdResolver.class)).isNotNull();
+		assertThat(this.context.getBeansOfType(StackResourceRegistry.class).isEmpty())
+				.isTrue();
 	}
 
 	@Configuration

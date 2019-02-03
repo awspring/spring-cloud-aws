@@ -52,10 +52,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -76,49 +73,52 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		// Assert
 		AmazonSQSAsync amazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
-		assertNotNull(amazonSqsClient);
+		assertThat(amazonSqsClient).isNotNull();
 
 		SimpleMessageListenerContainer container = applicationContext
 				.getBean(SimpleMessageListenerContainer.class);
-		assertNotNull(container);
+		assertThat(container).isNotNull();
 
-		assertSame(amazonSqsClient, ReflectionTestUtils.getField(container, "amazonSqs"));
-		assertSame(
-				applicationContext
-						.getBean(StackResourceRegistryDetectingResourceIdResolver.class),
-				ReflectionTestUtils.getField(container, "resourceIdResolver"));
+		assertThat(ReflectionTestUtils.getField(container, "amazonSqs"))
+				.isSameAs(amazonSqsClient);
+		assertThat(ReflectionTestUtils.getField(container, "resourceIdResolver"))
+				.isSameAs(applicationContext
+						.getBean(StackResourceRegistryDetectingResourceIdResolver.class));
 
 		QueueMessageHandler queueMessageHandler = (QueueMessageHandler) ReflectionTestUtils
 				.getField(container, "messageHandler");
 		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler
 				.getReturnValueHandlers().get(0);
-		assertTrue(SendToHandlerMethodReturnValueHandler.class
-				.isInstance(sendToReturnValueHandler));
+		assertThat(SendToHandlerMethodReturnValueHandler.class
+				.isInstance(sendToReturnValueHandler)).isTrue();
 		QueueMessagingTemplate queueMessagingTemplate = (QueueMessagingTemplate) ReflectionTestUtils
 				.getField(sendToReturnValueHandler, "messageTemplate");
 
-		assertTrue(CompositeMessageConverter.class
-				.isInstance(queueMessagingTemplate.getMessageConverter()));
+		assertThat(CompositeMessageConverter.class
+				.isInstance(queueMessagingTemplate.getMessageConverter())).isTrue();
 
 		@SuppressWarnings("unchecked")
 		List<MessageConverter> messageConverters = (List<MessageConverter>) ReflectionTestUtils
 				.getField(queueMessagingTemplate.getMessageConverter(), "converters");
-		assertEquals(2, messageConverters.size());
-		assertTrue(StringMessageConverter.class.isInstance(messageConverters.get(0)));
-		assertTrue(MappingJackson2MessageConverter.class
-				.isInstance(messageConverters.get(1)));
+		assertThat(messageConverters.size()).isEqualTo(2);
+		assertThat(StringMessageConverter.class.isInstance(messageConverters.get(0)))
+				.isTrue();
+		assertThat(MappingJackson2MessageConverter.class
+				.isInstance(messageConverters.get(1))).isTrue();
 
 		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters
 				.get(0);
-		assertSame(String.class, stringMessageConverter.getSerializedPayloadClass());
-		assertEquals(false, ReflectionTestUtils.getField(stringMessageConverter,
-				"strictContentTypeMatch"));
+		assertThat(stringMessageConverter.getSerializedPayloadClass())
+				.isSameAs(String.class);
+		assertThat(ReflectionTestUtils.getField(stringMessageConverter,
+				"strictContentTypeMatch")).isEqualTo(false);
 
 		MappingJackson2MessageConverter jackson2MessageConverter = (MappingJackson2MessageConverter) messageConverters
 				.get(1);
-		assertSame(String.class, jackson2MessageConverter.getSerializedPayloadClass());
-		assertEquals(false, ReflectionTestUtils.getField(jackson2MessageConverter,
-				"strictContentTypeMatch"));
+		assertThat(jackson2MessageConverter.getSerializedPayloadClass())
+				.isSameAs(String.class);
+		assertThat(ReflectionTestUtils.getField(jackson2MessageConverter,
+				"strictContentTypeMatch")).isEqualTo(false);
 	}
 
 	@Test
@@ -134,16 +134,16 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		// Assert
 		BeanDefinition sqsAsync = registry.getBeanDefinition("myClient");
-		assertNotNull(sqsAsync);
+		assertThat(sqsAsync).isNotNull();
 
 		BeanDefinition abstractContainerDefinition = registry
 				.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		assertNotNull(abstractContainerDefinition);
+		assertThat(abstractContainerDefinition).isNotNull();
 
-		assertEquals(3, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals("myClient",
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues()
-						.getPropertyValue("amazonSqs").getValue()).getBeanName());
+		assertThat(abstractContainerDefinition.getPropertyValues().size()).isEqualTo(3);
+		assertThat(((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("amazonSqs").getValue()).getBeanName())
+						.isEqualTo("myClient");
 	}
 
 	@Test
@@ -159,20 +159,20 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 		// Assert
 		BeanDefinition executor = beanFactory.getBeanDefinition("executor");
-		assertNotNull(executor);
+		assertThat(executor).isNotNull();
 
 		BeanDefinition abstractContainerDefinition = beanFactory
 				.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		assertNotNull(abstractContainerDefinition);
+		assertThat(abstractContainerDefinition).isNotNull();
 
-		assertEquals(4, abstractContainerDefinition.getPropertyValues().size());
-		assertEquals("executor",
-				((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues()
-						.getPropertyValue("taskExecutor").getValue()).getBeanName());
+		assertThat(abstractContainerDefinition.getPropertyValues().size()).isEqualTo(4);
+		assertThat(((RuntimeBeanReference) abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("taskExecutor").getValue()).getBeanName())
+						.isEqualTo("executor");
 
 		AmazonSQSBufferedAsyncClient bufferedAsyncClient = beanFactory
 				.getBean(AmazonSQSBufferedAsyncClient.class);
-		assertNotNull(bufferedAsyncClient);
+		assertThat(bufferedAsyncClient).isNotNull();
 	}
 
 	@Test
@@ -190,21 +190,20 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		// Assert
 		BeanDefinition queueMessageHandler = registry
 				.getBeanDefinition(QueueMessageHandler.class.getName() + "#0");
-		assertNotNull(queueMessageHandler);
+		assertThat(queueMessageHandler).isNotNull();
 
-		assertEquals(1, queueMessageHandler.getPropertyValues().size());
+		assertThat(queueMessageHandler.getPropertyValues().size()).isEqualTo(1);
 		ManagedList<?> returnValueHandlers = (ManagedList<?>) queueMessageHandler
 				.getPropertyValues().getPropertyValue("customReturnValueHandlers")
 				.getValue();
-		assertEquals(1, returnValueHandlers.size());
+		assertThat(returnValueHandlers.size()).isEqualTo(1);
 		RootBeanDefinition sendToReturnValueHandler = (RootBeanDefinition) returnValueHandlers
 				.get(0);
 
-		assertEquals("messageTemplate",
-				((RuntimeBeanReference) sendToReturnValueHandler
-						.getConstructorArgumentValues()
-						.getArgumentValue(0, RuntimeBeanReference.class).getValue())
-								.getBeanName());
+		assertThat(((RuntimeBeanReference) sendToReturnValueHandler
+				.getConstructorArgumentValues()
+				.getArgumentValue(0, RuntimeBeanReference.class).getValue())
+						.getBeanName()).isEqualTo("messageTemplate");
 	}
 
 	@Test
@@ -221,16 +220,16 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		// Assert
 		BeanDefinition abstractContainerDefinition = registry
 				.getBeanDefinition(SimpleMessageListenerContainer.class.getName() + "#0");
-		assertNotNull(abstractContainerDefinition);
+		assertThat(abstractContainerDefinition).isNotNull();
 
-		assertEquals("false", abstractContainerDefinition.getPropertyValues()
-				.getPropertyValue("autoStartup").getValue());
-		assertEquals("9", abstractContainerDefinition.getPropertyValues()
-				.getPropertyValue("maxNumberOfMessages").getValue());
-		assertEquals("6", abstractContainerDefinition.getPropertyValues()
-				.getPropertyValue("visibilityTimeout").getValue());
-		assertEquals("3", abstractContainerDefinition.getPropertyValues()
-				.getPropertyValue("waitTimeOut").getValue());
+		assertThat(abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("autoStartup").getValue()).isEqualTo("false");
+		assertThat(abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("maxNumberOfMessages").getValue()).isEqualTo("9");
+		assertThat(abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("visibilityTimeout").getValue()).isEqualTo("6");
+		assertThat(abstractContainerDefinition.getPropertyValues()
+				.getPropertyValue("waitTimeOut").getValue()).isEqualTo("3");
 	}
 
 	@Test
@@ -247,11 +246,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		applicationContext.refresh();
 
 		// Assert
-		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
-		assertEquals(1, applicationContext.getBean(QueueMessageHandler.class)
-				.getCustomArgumentResolvers().size());
-		assertTrue(TestHandlerMethodArgumentResolver.class.isInstance(applicationContext
-				.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().get(0)));
+		assertThat(applicationContext.getBean(QueueMessageHandler.class)).isNotNull();
+		assertThat(applicationContext.getBean(QueueMessageHandler.class)
+				.getCustomArgumentResolvers().size()).isEqualTo(1);
+		assertThat(TestHandlerMethodArgumentResolver.class.isInstance(applicationContext
+				.getBean(QueueMessageHandler.class).getCustomArgumentResolvers().get(0)))
+						.isTrue();
 	}
 
 	@Test
@@ -268,12 +268,12 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		applicationContext.refresh();
 
 		// Assert
-		assertNotNull(applicationContext.getBean(QueueMessageHandler.class));
-		assertEquals(2, applicationContext.getBean(QueueMessageHandler.class)
-				.getCustomReturnValueHandlers().size());
-		assertTrue(TestHandlerMethodReturnValueHandler.class
+		assertThat(applicationContext.getBean(QueueMessageHandler.class)).isNotNull();
+		assertThat(applicationContext.getBean(QueueMessageHandler.class)
+				.getCustomReturnValueHandlers().size()).isEqualTo(2);
+		assertThat(TestHandlerMethodReturnValueHandler.class
 				.isInstance(applicationContext.getBean(QueueMessageHandler.class)
-						.getCustomReturnValueHandlers().get(0)));
+						.getCustomReturnValueHandlers().get(0))).isTrue();
 	}
 
 	@Test
@@ -293,16 +293,17 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Object amazonSqsAsyncClient = ReflectionTestUtils
 				.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.EU_WEST_1)
+								.getServiceEndpoint("sqs"));
 	}
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_customerRegionProviderConfigured_regionProviderConfiguredAndParsedForInternalCreatedSqsClient()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -317,11 +318,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Object amazonSqsAsyncClient = ReflectionTestUtils
 				.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
-		assertEquals(
-				"https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
-						.getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
+								.getServiceEndpoint("sqs"));
 	}
 
 	@Test
@@ -337,11 +337,10 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		Object amazonSqsAsyncClient = ReflectionTestUtils
 				.getField(amazonSQSBufferedAsyncClient, "realSQS");
 
-		assertEquals(
-				"https://" + Region.getRegion(Regions.AP_SOUTHEAST_1)
-						.getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.AP_SOUTHEAST_1)
+								.getServiceEndpoint("sqs"));
 	}
 
 	@Test
@@ -357,8 +356,8 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 				.getBean(SimpleMessageListenerContainer.class);
 		DestinationResolver<?> customDestinationResolver = applicationContext
 				.getBean(DestinationResolver.class);
-		assertTrue(customDestinationResolver == ReflectionTestUtils.getField(container,
-				"destinationResolver"));
+		assertThat(customDestinationResolver == ReflectionTestUtils.getField(container,
+				"destinationResolver")).isTrue();
 	}
 
 	@Test
@@ -371,7 +370,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 		// Assert
 		SimpleMessageListenerContainer container = applicationContext
 				.getBean(SimpleMessageListenerContainer.class);
-		assertEquals(5000L, container.getBackOffTime());
+		assertThat(container.getBackOffTime()).isEqualTo(5000L);
 	}
 
 	private static class TestHandlerMethodArgumentResolver

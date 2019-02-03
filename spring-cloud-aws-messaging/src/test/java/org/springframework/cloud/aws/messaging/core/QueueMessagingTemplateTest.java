@@ -40,7 +40,7 @@ import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -76,8 +76,8 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
 				.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
-		assertEquals("http://queue-url.com",
-				sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
+				.isEqualTo("http://queue-url.com");
 	}
 
 	@Test
@@ -93,8 +93,8 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
 				.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
-		assertEquals("http://queue-url.com",
-				sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
+				.isEqualTo("http://queue-url.com");
 	}
 
 	@Test
@@ -112,8 +112,8 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
 				.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
-		assertEquals("MYQUEUE",
-				sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
+				.isEqualTo("MYQUEUE");
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -137,8 +137,8 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<ReceiveMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
 				.forClass(ReceiveMessageRequest.class);
 		verify(amazonSqs).receiveMessage(sendMessageRequestArgumentCaptor.capture());
-		assertEquals("http://queue-url.com",
-				sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
+				.isEqualTo("http://queue-url.com");
 	}
 
 	@Test
@@ -152,8 +152,8 @@ public class QueueMessagingTemplateTest {
 		ArgumentCaptor<ReceiveMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
 				.forClass(ReceiveMessageRequest.class);
 		verify(amazonSqs).receiveMessage(sendMessageRequestArgumentCaptor.capture());
-		assertEquals("http://queue-url.com",
-				sendMessageRequestArgumentCaptor.getValue().getQueueUrl());
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
+				.isEqualTo("http://queue-url.com");
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -174,7 +174,7 @@ public class QueueMessagingTemplateTest {
 
 		String message = queueMessagingTemplate.receiveAndConvert(String.class);
 
-		assertEquals("My message", message);
+		assertThat(message).isEqualTo("My message");
 	}
 
 	@Test
@@ -186,7 +186,7 @@ public class QueueMessagingTemplateTest {
 		String message = queueMessagingTemplate.receiveAndConvert("my-queue",
 				String.class);
 
-		assertEquals("My message", message);
+		assertThat(message).isEqualTo("My message");
 	}
 
 	@Test
@@ -199,12 +199,12 @@ public class QueueMessagingTemplateTest {
 				createAmazonSqs(), (ResourceIdResolver) null, simpleMessageConverter);
 
 		// Assert
-		assertEquals(2,
+		assertThat(
 				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
-						.getConverters().size());
-		assertEquals(simpleMessageConverter,
+						.getConverters().size()).isEqualTo(2);
+		assertThat(
 				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
-						.getConverters().get(1));
+						.getConverters().get(1)).isEqualTo(simpleMessageConverter);
 	}
 
 	@Test
@@ -235,9 +235,9 @@ public class QueueMessagingTemplateTest {
 				sendMessageRequestArgumentCaptor.getValue().getMessageBody(),
 				TestPerson.class);
 
-		assertEquals("Agim", testPerson.getFirstName());
-		assertEquals("Emruli", testPerson.getLastName());
-		assertEquals(LocalDate.of(2017, 1, 1), testPerson.getActiveSince());
+		assertThat(testPerson.getFirstName()).isEqualTo("Agim");
+		assertThat(testPerson.getLastName()).isEqualTo("Emruli");
+		assertThat(testPerson.getActiveSince()).isEqualTo(LocalDate.of(2017, 1, 1));
 	}
 
 	@Test
@@ -264,9 +264,9 @@ public class QueueMessagingTemplateTest {
 				sendMessageRequestArgumentCaptor.getValue().getMessageBody(),
 				TestPerson.class);
 
-		assertEquals("Agim", testPerson.getFirstName());
-		assertEquals("Emruli", testPerson.getLastName());
-		assertEquals(LocalDate.of(2017, 1, 1), testPerson.getActiveSince());
+		assertThat(testPerson.getFirstName()).isEqualTo("Agim");
+		assertThat(testPerson.getLastName()).isEqualTo("Emruli");
+		assertThat(testPerson.getActiveSince()).isEqualTo(LocalDate.of(2017, 1, 1));
 	}
 
 	private AmazonSQSAsync createAmazonSqs() {

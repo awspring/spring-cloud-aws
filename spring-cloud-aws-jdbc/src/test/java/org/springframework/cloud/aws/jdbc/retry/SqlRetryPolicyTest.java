@@ -26,11 +26,10 @@ import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.retry.context.RetryContextSupport;
 import org.springframework.transaction.TransactionSystemException;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit test class for the {@link SqlRetryPolicy}
+ * Unit test class for the {@link SqlRetryPolicy}.
  *
  * @author Agim Emruli
  */
@@ -42,10 +41,10 @@ public class SqlRetryPolicyTest {
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
 		retryContext.registerThrowable(new SQLTransientException("foo"));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 
 		retryContext.registerThrowable(new TransientDataAccessResourceException("foo"));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 	}
 
 	@Test
@@ -54,10 +53,10 @@ public class SqlRetryPolicyTest {
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
 		retryContext.registerThrowable(new SQLException("foo"));
-		assertFalse(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isFalse();
 
 		retryContext.registerThrowable(new DataAccessResourceFailureException("foo"));
-		assertFalse(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isFalse();
 	}
 
 	@Test
@@ -67,7 +66,7 @@ public class SqlRetryPolicyTest {
 
 		retryContext.registerThrowable(new TransactionSystemException(
 				"Could not commit JDBC transaction", new SQLTransientException("foo")));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 	}
 
 	@Test
@@ -76,13 +75,13 @@ public class SqlRetryPolicyTest {
 		sqlRetryPolicy.setMaxNumberOfRetries(3);
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 		retryContext.registerThrowable(new SQLTransientException("foo"));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 		retryContext.registerThrowable(new SQLTransientException("foo"));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 		retryContext.registerThrowable(new SQLTransientException("foo"));
-		assertTrue(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 		retryContext.registerThrowable(new SQLTransientException("foo"));
-		assertFalse(sqlRetryPolicy.canRetry(retryContext));
+		assertThat(sqlRetryPolicy.canRetry(retryContext)).isFalse();
 	}
 
 }

@@ -26,8 +26,7 @@ import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -57,7 +56,7 @@ public class ContextRegionProviderAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+		assertThat(this.context.getBean(Ec2MetadataRegionProvider.class)).isNotNull();
 	}
 
 	@Test
@@ -73,7 +72,7 @@ public class ContextRegionProviderAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(Ec2MetadataRegionProvider.class));
+		assertThat(this.context.getBean(Ec2MetadataRegionProvider.class)).isNotNull();
 	}
 
 	@Test
@@ -90,7 +89,8 @@ public class ContextRegionProviderAutoConfigurationTest {
 				.getBean(StaticRegionProvider.class);
 
 		// Assert
-		assertEquals(Region.getRegion(Regions.EU_WEST_1), regionProvider.getRegion());
+		assertThat(regionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 }

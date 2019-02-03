@@ -20,9 +20,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.aws.cache.config.TestMemcacheServer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MemcachedCacheFactoryTest {
 
@@ -38,11 +36,11 @@ public class MemcachedCacheFactoryTest {
 				memCachedPort);
 
 		// Assert
-		assertNotNull(cache);
-		assertNotNull(cache.getNativeCache());
+		assertThat(cache).isNotNull();
+		assertThat(cache.getNativeCache()).isNotNull();
 
 		cache.put("test", "bar");
-		assertEquals("bar", cache.get("test", String.class));
+		assertThat(cache.get("test", String.class)).isEqualTo("bar");
 		cache.clear();
 
 		cacheFactory.destroy();
@@ -61,12 +59,12 @@ public class MemcachedCacheFactoryTest {
 				memCachedPort);
 
 		// Assert
-		assertNotNull(cache);
-		assertNotNull(cache.getNativeCache());
+		assertThat(cache).isNotNull();
+		assertThat(cache.getNativeCache()).isNotNull();
 
 		cache.put("testWithTimeOut", "bar");
 		Thread.sleep(2000);
-		assertNull(cache.get("testWithTimeOut"));
+		assertThat(cache.get("testWithTimeOut")).isNull();
 
 		cacheFactory.destroy();
 	}

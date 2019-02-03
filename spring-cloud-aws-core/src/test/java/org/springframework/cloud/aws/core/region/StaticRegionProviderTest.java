@@ -20,7 +20,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.Test;
 
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -29,8 +29,8 @@ public class StaticRegionProviderTest {
 
 	@Test
 	public void testGetRegion() throws Exception {
-		assertSame(Region.getRegion(Regions.US_EAST_1),
-				new StaticRegionProvider(Regions.US_EAST_1.getName()).getRegion());
+		assertThat(new StaticRegionProvider(Regions.US_EAST_1.getName()).getRegion())
+				.isSameAs(Region.getRegion(Regions.US_EAST_1));
 	}
 
 }

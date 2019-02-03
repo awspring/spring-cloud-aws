@@ -30,9 +30,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextInstanceDataConfigurationTest {
 
@@ -56,7 +54,7 @@ public class ContextInstanceDataConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertTrue(this.context.getBeanFactoryPostProcessors().isEmpty());
+		assertThat(this.context.getBeanFactoryPostProcessors().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -73,13 +71,16 @@ public class ContextInstanceDataConfigurationTest {
 				ApplicationConfiguration.class);
 
 		// Assert
-		assertEquals("test", this.context.getEnvironment().getProperty("instance-id"));
+		assertThat(this.context.getEnvironment().getProperty("instance-id"))
+				.isEqualTo("test");
 		httpServer.removeContext(httpContext);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void propertySource_enableInstanceDataWithCustomAttributeSeparator_propertySourceConfiguredAndUsesCustomAttributeSeparator()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = httpServer.createContext("/latest/user-data",
@@ -90,15 +91,17 @@ public class ContextInstanceDataConfigurationTest {
 				ApplicationConfigurationWithCustomAttributeSeparator.class);
 
 		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(httpContext);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void propertySource_enableInstanceDataWithCustomValueSeparator_propertySourceConfiguredAndUsesCustomValueSeparator()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = httpServer.createContext("/latest/user-data",
@@ -109,8 +112,8 @@ public class ContextInstanceDataConfigurationTest {
 				ApplicationConfigurationWithCustomValueSeparator.class);
 
 		// Assert
-		assertEquals("b", this.context.getEnvironment().getProperty("a"));
-		assertEquals("d", this.context.getEnvironment().getProperty("c"));
+		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(httpContext);
 	}
@@ -119,7 +122,7 @@ public class ContextInstanceDataConfigurationTest {
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}

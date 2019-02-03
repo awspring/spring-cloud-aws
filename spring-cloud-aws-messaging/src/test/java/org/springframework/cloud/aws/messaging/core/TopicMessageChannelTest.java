@@ -34,8 +34,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
@@ -64,7 +63,7 @@ public class TopicMessageChannelTest {
 		verify(amazonSns, only())
 				.publish(new PublishRequest("topicArn", "Message content", "Subject")
 						.withMessageAttributes(isNotNull()));
-		assertTrue(sent);
+		assertThat(sent).isTrue();
 	}
 
 	@Test
@@ -84,7 +83,7 @@ public class TopicMessageChannelTest {
 		verify(amazonSns, only())
 				.publish(new PublishRequest("topicArn", "Message content", null)
 						.withMessageAttributes(isNotNull()));
-		assertTrue(sent);
+		assertThat(sent).isTrue();
 	}
 
 	@Test
@@ -104,7 +103,7 @@ public class TopicMessageChannelTest {
 		verify(amazonSns, only())
 				.publish(new PublishRequest("topicArn", "Message content", null)
 						.withMessageAttributes(isNotNull()));
-		assertTrue(sent);
+		assertThat(sent).isTrue();
 	}
 
 	@Test
@@ -127,11 +126,12 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(headerValue, publishRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(headerName).getStringValue());
-		assertEquals(MessageAttributeDataTypes.STRING, publishRequestArgumentCaptor
-				.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertThat(sent).isTrue();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getStringValue()).isEqualTo(headerValue);
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getDataType())
+						.isEqualTo(MessageAttributeDataTypes.STRING);
 	}
 
 	@Test
@@ -165,41 +165,41 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
+		assertThat(sent).isTrue();
 		Map<String, MessageAttributeValue> messageAttributes = publishRequestArgumentCaptor
 				.getValue().getMessageAttributes();
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Double",
-				messageAttributes.get("double").getDataType());
-		assertEquals(String.valueOf(doubleValue),
-				messageAttributes.get("double").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Long",
-				messageAttributes.get("long").getDataType());
-		assertEquals(String.valueOf(longValue),
-				messageAttributes.get("long").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer",
-				messageAttributes.get("integer").getDataType());
-		assertEquals(String.valueOf(integerValue),
-				messageAttributes.get("integer").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte",
-				messageAttributes.get("byte").getDataType());
-		assertEquals(String.valueOf(byteValue),
-				messageAttributes.get("byte").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Short",
-				messageAttributes.get("short").getDataType());
-		assertEquals(String.valueOf(shortValue),
-				messageAttributes.get("short").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Float",
-				messageAttributes.get("float").getDataType());
-		assertEquals(String.valueOf(floatValue),
-				messageAttributes.get("float").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger",
-				messageAttributes.get("bigInteger").getDataType());
-		assertEquals(String.valueOf(bigIntegerValue),
-				messageAttributes.get("bigInteger").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal",
-				messageAttributes.get("bigDecimal").getDataType());
-		assertEquals(String.valueOf(bigDecimalValue),
-				messageAttributes.get("bigDecimal").getStringValue());
+		assertThat(messageAttributes.get("double").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Double");
+		assertThat(messageAttributes.get("double").getStringValue())
+				.isEqualTo(String.valueOf(doubleValue));
+		assertThat(messageAttributes.get("long").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Long");
+		assertThat(messageAttributes.get("long").getStringValue())
+				.isEqualTo(String.valueOf(longValue));
+		assertThat(messageAttributes.get("integer").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer");
+		assertThat(messageAttributes.get("integer").getStringValue())
+				.isEqualTo(String.valueOf(integerValue));
+		assertThat(messageAttributes.get("byte").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte");
+		assertThat(messageAttributes.get("byte").getStringValue())
+				.isEqualTo(String.valueOf(byteValue));
+		assertThat(messageAttributes.get("short").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Short");
+		assertThat(messageAttributes.get("short").getStringValue())
+				.isEqualTo(String.valueOf(shortValue));
+		assertThat(messageAttributes.get("float").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Float");
+		assertThat(messageAttributes.get("float").getStringValue())
+				.isEqualTo(String.valueOf(floatValue));
+		assertThat(messageAttributes.get("bigInteger").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger");
+		assertThat(messageAttributes.get("bigInteger").getStringValue())
+				.isEqualTo(String.valueOf(bigIntegerValue));
+		assertThat(messageAttributes.get("bigDecimal").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal");
+		assertThat(messageAttributes.get("bigDecimal").getStringValue())
+				.isEqualTo(String.valueOf(bigDecimalValue));
 	}
 
 	@Test
@@ -222,11 +222,12 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(headerValue, publishRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(headerName).getBinaryValue());
-		assertEquals(MessageAttributeDataTypes.BINARY, publishRequestArgumentCaptor
-				.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertThat(sent).isTrue();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getBinaryValue()).isEqualTo(headerValue);
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getDataType())
+						.isEqualTo(MessageAttributeDataTypes.BINARY);
 	}
 
 	@Test
@@ -247,9 +248,9 @@ public class TopicMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(uuid.toString(), sendMessageRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(MessageHeaders.ID).getStringValue());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(MessageHeaders.ID).getStringValue()).isEqualTo(uuid.toString());
 	}
 
 }

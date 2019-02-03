@@ -27,16 +27,15 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for class SimpleEmailServiceMailSender
+ * Tests for class SimpleEmailServiceMailSender.
  */
 public class SimpleEmailServiceMailSenderTest {
 
@@ -56,15 +55,17 @@ public class SimpleEmailServiceMailSenderTest {
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
-		assertEquals(simpleMailMessage.getTo()[0],
-				sendEmailRequest.getDestination().getToAddresses().get(0));
-		assertEquals(simpleMailMessage.getSubject(),
-				sendEmailRequest.getMessage().getSubject().getData());
-		assertEquals(simpleMailMessage.getText(),
-				sendEmailRequest.getMessage().getBody().getText().getData());
-		assertEquals(0, sendEmailRequest.getDestination().getCcAddresses().size());
-		assertEquals(0, sendEmailRequest.getDestination().getBccAddresses().size());
+		assertThat(sendEmailRequest.getSource()).isEqualTo(simpleMailMessage.getFrom());
+		assertThat(sendEmailRequest.getDestination().getToAddresses().get(0))
+				.isEqualTo(simpleMailMessage.getTo()[0]);
+		assertThat(sendEmailRequest.getMessage().getSubject().getData())
+				.isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.getMessage().getBody().getText().getData())
+				.isEqualTo(simpleMailMessage.getText());
+		assertThat(sendEmailRequest.getDestination().getCcAddresses().size())
+				.isEqualTo(0);
+		assertThat(sendEmailRequest.getDestination().getBccAddresses().size())
+				.isEqualTo(0);
 	}
 
 	@Test
@@ -85,17 +86,17 @@ public class SimpleEmailServiceMailSenderTest {
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		assertEquals(simpleMailMessage.getFrom(), sendEmailRequest.getSource());
-		assertEquals(simpleMailMessage.getTo()[0],
-				sendEmailRequest.getDestination().getToAddresses().get(0));
-		assertEquals(simpleMailMessage.getSubject(),
-				sendEmailRequest.getMessage().getSubject().getData());
-		assertEquals(simpleMailMessage.getText(),
-				sendEmailRequest.getMessage().getBody().getText().getData());
-		assertEquals(simpleMailMessage.getBcc()[0],
-				sendEmailRequest.getDestination().getBccAddresses().get(0));
-		assertEquals(simpleMailMessage.getCc()[0],
-				sendEmailRequest.getDestination().getCcAddresses().get(0));
+		assertThat(sendEmailRequest.getSource()).isEqualTo(simpleMailMessage.getFrom());
+		assertThat(sendEmailRequest.getDestination().getToAddresses().get(0))
+				.isEqualTo(simpleMailMessage.getTo()[0]);
+		assertThat(sendEmailRequest.getMessage().getSubject().getData())
+				.isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.getMessage().getBody().getText().getData())
+				.isEqualTo(simpleMailMessage.getText());
+		assertThat(sendEmailRequest.getDestination().getBccAddresses().get(0))
+				.isEqualTo(simpleMailMessage.getBcc()[0]);
+		assertThat(sendEmailRequest.getDestination().getCcAddresses().get(0))
+				.isEqualTo(simpleMailMessage.getCc()[0]);
 	}
 
 	@Test
@@ -136,8 +137,8 @@ public class SimpleEmailServiceMailSenderTest {
 			fail("Exception expected due to error while sending mail");
 		}
 		catch (MailSendException e) {
-			assertEquals(1, e.getFailedMessages().size());
-			assertTrue(e.getFailedMessages().containsKey(failureMail));
+			assertThat(e.getFailedMessages().size()).isEqualTo(1);
+			assertThat(e.getFailedMessages().containsKey(failureMail)).isTrue();
 		}
 	}
 

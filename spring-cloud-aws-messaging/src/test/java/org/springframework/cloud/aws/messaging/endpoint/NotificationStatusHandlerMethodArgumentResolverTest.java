@@ -28,7 +28,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,11 +91,15 @@ public class NotificationStatusHandlerMethodArgumentResolverTest {
 				new ServletWebRequest(servletRequest), null);
 
 		// Assert
-		assertTrue(resolvedArgument instanceof NotificationStatus);
+		assertThat(resolvedArgument instanceof NotificationStatus).isTrue();
 		((NotificationStatus) resolvedArgument).confirmSubscription();
 		verify(amazonSns, times(1)).confirmSubscription(
 				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
-				"111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+				"1111111111111111111111111111111111111111111111"
+						+ "1111111111111111111111111111111111111111111"
+						+ "1111111111111111111111111111111111111111111"
+						+ "1111111111111111111111111111111111111111111"
+						+ "11111111111111111111111111111111111");
 	}
 
 }

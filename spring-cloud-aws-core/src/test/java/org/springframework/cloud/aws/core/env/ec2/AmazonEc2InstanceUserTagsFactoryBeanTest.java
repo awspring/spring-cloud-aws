@@ -27,8 +27,7 @@ import com.amazonaws.services.ec2.model.ResourceType;
 import com.amazonaws.services.ec2.model.TagDescription;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,9 +65,9 @@ public class AmazonEc2InstanceUserTagsFactoryBeanTest {
 		Map<String, String> resultMap = amazonEc2InstanceUserTagsFactoryBean.getObject();
 
 		// Assert
-		assertEquals("valueA", resultMap.get("keyA"));
-		assertEquals("valueB", resultMap.get("keyB"));
-		assertFalse(resultMap.containsKey("keyC"));
+		assertThat(resultMap.get("keyA")).isEqualTo("valueA");
+		assertThat(resultMap.get("keyB")).isEqualTo("valueB");
+		assertThat(resultMap.containsKey("keyC")).isFalse();
 	}
 
 }

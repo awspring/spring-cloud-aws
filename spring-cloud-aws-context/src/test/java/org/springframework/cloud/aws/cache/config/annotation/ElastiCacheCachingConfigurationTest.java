@@ -39,19 +39,17 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ElastiCacheCachingConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
 	private static int getExpirationFromCache(Cache cache) throws IllegalAccessException {
-		assertTrue(cache instanceof SimpleSpringMemcached);
+		assertThat(cache instanceof SimpleSpringMemcached).isTrue();
 		Field expiration = ReflectionUtils.findField(SimpleSpringMemcached.class,
 				"expiration");
-		assertNotNull(expiration);
+		assertThat(expiration).isNotNull();
 		ReflectionUtils.makeAccessible(expiration);
 		return expiration.getInt(cache);
 	}
@@ -75,18 +73,20 @@ public class ElastiCacheCachingConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
-		assertNotNull(firstCache.getName());
-		assertEquals(0, getExpirationFromCache(firstCache));
+		assertThat(firstCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(firstCache)).isEqualTo(0);
 
 		Cache secondCache = cacheManager.getCache("secondCache");
-		assertNotNull(secondCache.getName());
-		assertEquals(0, getExpirationFromCache(secondCache));
+		assertThat(secondCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(secondCache)).isEqualTo(0);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithCustomExpirationTimes()
+			// @checkstyle:on
 			throws Exception {
 		// Arrange
 
@@ -97,19 +97,21 @@ public class ElastiCacheCachingConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
-		assertNotNull(firstCache.getName());
-		assertEquals(23, getExpirationFromCache(firstCache));
+		assertThat(firstCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(firstCache)).isEqualTo(23);
 
 		Cache secondCache = cacheManager.getCache("secondCache");
-		assertNotNull(secondCache.getName());
-		assertEquals(42, getExpirationFromCache(secondCache));
+		assertThat(secondCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(secondCache)).isEqualTo(42);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithMixedExpirationTimes()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 
 		// Act
@@ -119,14 +121,14 @@ public class ElastiCacheCachingConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
-		assertNotNull(firstCache.getName());
-		assertEquals(12, getExpirationFromCache(firstCache));
+		assertThat(firstCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(firstCache)).isEqualTo(12);
 
 		Cache secondCache = cacheManager.getCache("secondCache");
-		assertNotNull(secondCache.getName());
-		assertEquals(42, getExpirationFromCache(secondCache));
+		assertThat(secondCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(secondCache)).isEqualTo(42);
 	}
 
 	@Test
@@ -141,19 +143,21 @@ public class ElastiCacheCachingConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
-		assertNotNull(firstCache.getName());
-		assertEquals(0, getExpirationFromCache(firstCache));
+		assertThat(firstCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(firstCache)).isEqualTo(0);
 
 		Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
-		assertNotNull(secondCache.getName());
-		assertEquals(0, getExpirationFromCache(secondCache));
+		assertThat(secondCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(secondCache)).isEqualTo(0);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void enableElasticache_configuredWithoutExplicitClusterButDefaultExpiryTime_configuresImplicitlyConfiguredCachesWithDefaultExpiryTimeOnAllCaches()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 
 		// Act
@@ -163,14 +167,14 @@ public class ElastiCacheCachingConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
-		assertNotNull(firstCache.getName());
-		assertEquals(23, getExpirationFromCache(firstCache));
+		assertThat(firstCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(firstCache)).isEqualTo(23);
 
 		Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
-		assertNotNull(secondCache.getName());
-		assertEquals(23, getExpirationFromCache(secondCache));
+		assertThat(secondCache.getName()).isNotNull();
+		assertThat(getExpirationFromCache(secondCache)).isEqualTo(23);
 	}
 
 	@EnableElastiCache({ @CacheClusterConfig(name = "firstCache"),

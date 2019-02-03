@@ -30,8 +30,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -60,14 +59,17 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 				beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
 		// Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.DEFAULT_REGION), client.getRegion());
+		assertThat(client).isNotNull();
+		assertThat(beanDefinitionHolder.getBeanName()).isEqualTo("amazonTestWebservice");
+		assertThat(client.getRegion())
+				.isEqualTo(Region.getRegion(Regions.DEFAULT_REGION));
 	}
 
+	// @checkstyle:off
 	@Test
 	public void registerAmazonWebserviceClient_withCustomRegionProviderConfiguration_returnsBeanDefinitionWithRegionConfiguredThatIsReturnedByTheRegionProvider()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton(
@@ -87,9 +89,10 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 				beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
 		// Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.AP_SOUTHEAST_2), client.getRegion());
+		assertThat(client).isNotNull();
+		assertThat(beanDefinitionHolder.getBeanName()).isEqualTo("amazonTestWebservice");
+		assertThat(client.getRegion())
+				.isEqualTo(Region.getRegion(Regions.AP_SOUTHEAST_2));
 	}
 
 	@Test
@@ -112,9 +115,9 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 				beanDefinitionHolder.getBeanName(), AmazonTestWebserviceClient.class);
 
 		// Assert
-		assertNotNull(client);
-		assertEquals("amazonTestWebservice", beanDefinitionHolder.getBeanName());
-		assertEquals(Region.getRegion(Regions.EU_WEST_1), client.getRegion());
+		assertThat(client).isNotNull();
+		assertThat(beanDefinitionHolder.getBeanName()).isEqualTo("amazonTestWebservice");
+		assertThat(client.getRegion()).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
@@ -152,7 +155,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 				.getBeanName("com.amazonaws.services.rds.AmazonRDS");
 
 		// Assert
-		assertEquals("amazonRDS", beanName);
+		assertThat(beanName).isEqualTo("amazonRDS");
 	}
 
 	private static class StaticAwsCredentialsProvider implements AWSCredentialsProvider {

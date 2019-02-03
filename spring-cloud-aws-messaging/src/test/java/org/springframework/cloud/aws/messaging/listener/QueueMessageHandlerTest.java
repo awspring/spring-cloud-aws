@@ -69,11 +69,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -119,7 +115,7 @@ public class QueueMessageHandlerTest {
 
 		IncomingMessageHandler messageListener = applicationContext
 				.getBean(IncomingMessageHandler.class);
-		assertEquals("testContent", messageListener.getLastReceivedMessage());
+		assertThat(messageListener.getLastReceivedMessage()).isEqualTo("testContent");
 	}
 
 	@Test
@@ -139,13 +135,16 @@ public class QueueMessageHandlerTest {
 
 		IncomingMessageHandlerWithCustomParameter messageListener = applicationContext
 				.getBean(IncomingMessageHandlerWithCustomParameter.class);
-		assertNotNull(messageListener.getLastReceivedMessage());
-		assertEquals("myKey", messageListener.getLastReceivedMessage().getKey());
-		assertEquals("A value", messageListener.getLastReceivedMessage().getValue());
+		assertThat(messageListener.getLastReceivedMessage()).isNotNull();
+		assertThat(messageListener.getLastReceivedMessage().getKey()).isEqualTo("myKey");
+		assertThat(messageListener.getLastReceivedMessage().getValue())
+				.isEqualTo("A value");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() {
+		// @checkstyle:on
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler",
 				IncomingMessageHandler.class);
@@ -160,7 +159,7 @@ public class QueueMessageHandlerTest {
 
 		IncomingMessageHandler messageListener = applicationContext
 				.getBean(IncomingMessageHandler.class);
-		assertEquals("testContent", messageListener.getLastReceivedMessage());
+		assertThat(messageListener.getLastReceivedMessage()).isEqualTo("testContent");
 		verify(this.messageTemplate).convertAndSend(eq("sendTo"), eq("TESTCONTENT"));
 	}
 
@@ -204,7 +203,7 @@ public class QueueMessageHandlerTest {
 		}
 
 		// Assert
-		assertTrue(messageListener.isExceptionHandlerCalled());
+		assertThat(messageListener.isExceptionHandlerCalled()).isTrue();
 	}
 
 	@Test
@@ -225,14 +224,14 @@ public class QueueMessageHandlerTest {
 		queueMessageHandler.handleMessage(MessageBuilder
 				.withPayload("Hello from queue one!")
 				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "queueOne").build());
-		assertEquals("Hello from queue one!",
-				incomingMessageHandler.getLastReceivedMessage());
+		assertThat(incomingMessageHandler.getLastReceivedMessage())
+				.isEqualTo("Hello from queue one!");
 
 		queueMessageHandler.handleMessage(MessageBuilder
 				.withPayload("Hello from queue two!")
 				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "queueTwo").build());
-		assertEquals("Hello from queue two!",
-				incomingMessageHandler.getLastReceivedMessage());
+		assertThat(incomingMessageHandler.getLastReceivedMessage())
+				.isEqualTo("Hello from queue two!");
 	}
 
 	@Test
@@ -261,8 +260,8 @@ public class QueueMessageHandlerTest {
 		// Assert
 		IncomingMessageHandlerWithExpressionName incomingMessageHandler = applicationContext
 				.getBean(IncomingMessageHandlerWithExpressionName.class);
-		assertEquals("Hello from resolved queue!",
-				incomingMessageHandler.getLastReceivedMessage());
+		assertThat(incomingMessageHandler.getLastReceivedMessage())
+				.isEqualTo("Hello from resolved queue!");
 	}
 
 	@Test
@@ -294,8 +293,8 @@ public class QueueMessageHandlerTest {
 		// Assert
 		IncomingMessageHandlerWithPlaceholderName incomingMessageHandler = applicationContext
 				.getBean(IncomingMessageHandlerWithPlaceholderName.class);
-		assertEquals("Hello from resolved queue!",
-				incomingMessageHandler.getLastReceivedMessage());
+		assertThat(incomingMessageHandler.getLastReceivedMessage())
+				.isEqualTo("Hello from resolved queue!");
 	}
 
 	@Test
@@ -319,8 +318,8 @@ public class QueueMessageHandlerTest {
 				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
-		assertEquals("Hello from a sender", messageReceiver.getPayload());
-		assertEquals("elsUnitTest", messageReceiver.getSenderId());
+		assertThat(messageReceiver.getPayload()).isEqualTo("Hello from a sender");
+		assertThat(messageReceiver.getSenderId()).isEqualTo("elsUnitTest");
 	}
 
 	@Test
@@ -344,8 +343,8 @@ public class QueueMessageHandlerTest {
 				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
-		assertEquals("Hello from a sender", messageReceiver.getPayload());
-		assertNull(messageReceiver.getSenderId());
+		assertThat(messageReceiver.getPayload()).isEqualTo("Hello from a sender");
+		assertThat(messageReceiver.getSenderId()).isNull();
 	}
 
 	@Test
@@ -370,10 +369,11 @@ public class QueueMessageHandlerTest {
 						.setHeader("SenderId", "ID").build());
 
 		// Assert
-		assertNotNull(messageReceiver.getHeaders());
-		assertEquals("ID", messageReceiver.getHeaders().get("SenderId"));
-		assertEquals("testQueue", messageReceiver.getHeaders()
-				.get(QueueMessageHandler.LOGICAL_RESOURCE_ID));
+		assertThat(messageReceiver.getHeaders()).isNotNull();
+		assertThat(messageReceiver.getHeaders().get("SenderId")).isEqualTo("ID");
+		assertThat(
+				messageReceiver.getHeaders().get(QueueMessageHandler.LOGICAL_RESOURCE_ID))
+						.isEqualTo("testQueue");
 	}
 
 	@Test
@@ -470,8 +470,8 @@ public class QueueMessageHandlerTest {
 				.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue").build());
 
 		// Assert
-		assertEquals("Hi!", notificationMessageReceiver.getSubject());
-		assertEquals("Hello World!", notificationMessageReceiver.getMessage());
+		assertThat(notificationMessageReceiver.getSubject()).isEqualTo("Hi!");
+		assertThat(notificationMessageReceiver.getMessage()).isEqualTo("Hello World!");
 	}
 
 	@Test
@@ -487,7 +487,7 @@ public class QueueMessageHandlerTest {
 				.getMappingForMethod(receiveMethod, null);
 
 		// Assert
-		assertNull(mappingInformation);
+		assertThat(mappingInformation).isNull();
 	}
 
 	@Test
@@ -503,9 +503,10 @@ public class QueueMessageHandlerTest {
 				.getMappingForMethod(receiveMethod, null);
 
 		// Assert
-		assertTrue(mappingInformation.getLogicalResourceIds().contains("testQueue"));
-		assertEquals(SqsMessageDeletionPolicy.NO_REDRIVE,
-				mappingInformation.getDeletionPolicy());
+		assertThat(mappingInformation.getLogicalResourceIds().contains("testQueue"))
+				.isTrue();
+		assertThat(mappingInformation.getDeletionPolicy())
+				.isEqualTo(SqsMessageDeletionPolicy.NO_REDRIVE);
 	}
 
 	@Test
@@ -531,15 +532,18 @@ public class QueueMessageHandlerTest {
 		// Assert
 		ILoggingEvent loggingEvent = appender.list.get(0);
 
-		assertSame(Level.WARN, loggingEvent.getLevel());
-		assertTrue(loggingEvent.getMessage().contains("receive"));
-		assertTrue(loggingEvent.getMessage().contains(
-				"org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListenerDeletionPolicyNeverNoAcknowledgment"));
+		assertThat(loggingEvent.getLevel()).isSameAs(Level.WARN);
+		assertThat(loggingEvent.getMessage().contains("receive")).isTrue();
+		assertThat(loggingEvent.getMessage().contains(
+				"org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListener"
+						+ "DeletionPolicyNeverNoAcknowledgment")).isTrue();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void getMappingForMethod_methodWithExpressionProducingMultipleQueueNames_shouldMapMethodForEveryQueueNameReturnedByExpression()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("queueMessageHandler",
@@ -557,9 +561,9 @@ public class QueueMessageHandlerTest {
 
 		// Assert
 
-		assertEquals(2, mappingInformation.getLogicalResourceIds().size());
-		assertTrue(mappingInformation.getLogicalResourceIds()
-				.containsAll(Arrays.asList("queueOne", "queueTwo")));
+		assertThat(mappingInformation.getLogicalResourceIds().size()).isEqualTo(2);
+		assertThat(mappingInformation.getLogicalResourceIds()
+				.containsAll(Arrays.asList("queueOne", "queueTwo"))).isTrue();
 	}
 
 	@SuppressWarnings("UnusedDeclaration")

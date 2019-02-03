@@ -39,9 +39,7 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.core.task.SyncTaskExecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -67,7 +65,7 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertTrue(simpleStorageResource.exists());
+		assertThat(simpleStorageResource.exists()).isTrue();
 	}
 
 	@Test
@@ -82,7 +80,7 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Act
-		assertFalse(simpleStorageResource.exists());
+		assertThat(simpleStorageResource.exists()).isFalse();
 	}
 
 	@Test
@@ -100,7 +98,7 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertEquals(1234L, simpleStorageResource.contentLength());
+		assertThat(simpleStorageResource.contentLength()).isEqualTo(1234L);
 	}
 
 	@Test
@@ -119,7 +117,8 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertEquals(lastModified.getTime(), simpleStorageResource.lastModified());
+		assertThat(simpleStorageResource.lastModified())
+				.isEqualTo(lastModified.getTime());
 	}
 
 	@Test
@@ -171,7 +170,7 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertEquals("object", simpleStorageResource.getFilename());
+		assertThat(simpleStorageResource.getFilename()).isEqualTo("object");
 	}
 
 	@Test
@@ -193,8 +192,8 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertTrue(simpleStorageResource.exists());
-		assertEquals(42, simpleStorageResource.getInputStream().read());
+		assertThat(simpleStorageResource.exists()).isTrue();
+		assertThat(simpleStorageResource.getInputStream().read()).isEqualTo(42);
 	}
 
 	@Test
@@ -209,10 +208,10 @@ public class SimpleStorageResourceTest {
 		String description = simpleStorageResource.getDescription();
 
 		// Assert
-		assertTrue(description.contains("bucket"));
-		assertTrue(description.contains("object"));
-		assertTrue(description.contains("1"));
-		assertTrue(description.contains("2"));
+		assertThat(description.contains("bucket")).isTrue();
+		assertThat(description.contains("object")).isTrue();
+		assertThat(description.contains("1")).isTrue();
+		assertThat(description.contains("2")).isTrue();
 	}
 
 	@Test
@@ -227,8 +226,8 @@ public class SimpleStorageResourceTest {
 				"bucket", "object", new SyncTaskExecutor());
 
 		// Assert
-		assertEquals(new URL("https://s3.eu-west-1.amazonaws.com/bucket/object"),
-				simpleStorageResource.getURL());
+		assertThat(simpleStorageResource.getURL())
+				.isEqualTo(new URL("https://s3.eu-west-1.amazonaws.com/bucket/object"));
 
 	}
 
@@ -265,7 +264,7 @@ public class SimpleStorageResourceTest {
 				.createRelative("subObject");
 
 		// Assert
-		assertEquals("object/subObject", subObject.getFilename());
+		assertThat(subObject.getFilename()).isEqualTo("object/subObject");
 	}
 
 	@Test
@@ -278,13 +277,14 @@ public class SimpleStorageResourceTest {
 		when(amazonS3.putObject(eq("bucketName"), eq("objectName"),
 				any(InputStream.class), any(ObjectMetadata.class)))
 						.thenAnswer((Answer<PutObjectResult>) invocation -> {
-							assertEquals("bucketName", invocation.getArguments()[0]);
-							assertEquals("objectName", invocation.getArguments()[1]);
+							assertThat(invocation.getArguments()[0])
+									.isEqualTo("bucketName");
+							assertThat(invocation.getArguments()[1])
+									.isEqualTo("objectName");
 							byte[] content = new byte[messageContext.length()];
-							assertEquals(content.length,
-									((InputStream) invocation.getArguments()[2])
-											.read(content));
-							assertEquals(messageContext, new String(content));
+							assertThat(((InputStream) invocation.getArguments()[2])
+									.read(content)).isEqualTo(content.length);
+							assertThat(new String(content)).isEqualTo(messageContext);
 							return new PutObjectResult();
 						});
 		OutputStream outputStream = simpleStorageResource.getOutputStream();

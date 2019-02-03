@@ -23,8 +23,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -39,7 +38,7 @@ public class OnMissingAmazonClientConditionTest {
 				ConfigWithMissingAmazonClientCondition.class);
 
 		// Assert
-		assertTrue(applicationContext.containsBean("foo"));
+		assertThat(applicationContext.containsBean("foo")).isTrue();
 	}
 
 	@Test
@@ -50,7 +49,7 @@ public class OnMissingAmazonClientConditionTest {
 				ConfigWithMissingAmazonClientCondition.class);
 
 		// Assert
-		assertFalse(applicationContext.containsBean("foo"));
+		assertThat(applicationContext.containsBean("foo")).isFalse();
 	}
 
 	@Configuration

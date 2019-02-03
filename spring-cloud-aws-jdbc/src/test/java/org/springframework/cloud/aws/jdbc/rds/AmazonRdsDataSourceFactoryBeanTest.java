@@ -33,14 +33,14 @@ import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link AmazonRdsDataSourceFactoryBean}
+ * Unit test for {@link AmazonRdsDataSourceFactoryBean}.
  *
  * @author Agim Emruli
  * @since 1.0
@@ -103,7 +103,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
 
 		// Assert
-		assertNotNull(amazonRdsDataSourceFactoryBean.getObject());
+		assertThat(amazonRdsDataSourceFactoryBean.getObject()).isNotNull();
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(
 				DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
@@ -138,7 +138,7 @@ public class AmazonRdsDataSourceFactoryBeanTest {
 
 		// Assert
 		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		assertNotNull(datasource);
+		assertThat(datasource).isNotNull();
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(
 				DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));

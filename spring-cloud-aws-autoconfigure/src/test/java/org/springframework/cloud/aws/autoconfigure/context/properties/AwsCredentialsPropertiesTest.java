@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.aws.autoconfigure.context.properties;
 
 import java.util.UUID;
 
 import com.amazonaws.auth.profile.internal.AwsProfileNameLoader;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link AwsCredentialsProperties}.
@@ -39,67 +41,68 @@ public class AwsCredentialsPropertiesTest {
 
 	@Test
 	public void accessKeyCanBeSet() {
-		Assert.assertNull("Access key default value expected to be null",
-				this.properties.getAccessKey());
+		assertThat(this.properties.getAccessKey())
+				.as("Access key default value expected to be null").isNull();
 
 		String newAccessKey = UUID.randomUUID().toString();
 		this.properties.setAccessKey(newAccessKey);
-		Assert.assertEquals("Access key should have been assigned", newAccessKey,
-				this.properties.getAccessKey());
+		assertThat(this.properties.getAccessKey())
+				.as("Access key should have been assigned").isEqualTo(newAccessKey);
 	}
 
 	@Test
 	public void secretKeyCanBeSet() {
-		Assert.assertNull("Secret key default value expected to be null",
-				this.properties.getSecretKey());
+		assertThat(this.properties.getSecretKey())
+				.as("Secret key default value expected to be null").isNull();
 
 		String newSecretKey = UUID.randomUUID().toString();
 		this.properties.setSecretKey(newSecretKey);
-		Assert.assertEquals("Secret key should have been assigned", newSecretKey,
-				this.properties.getSecretKey());
+		assertThat(this.properties.getSecretKey())
+				.as("Secret key should have been assigned").isEqualTo(newSecretKey);
 	}
 
 	@Test
 	public void instanceProfileCanBeSet() {
-		Assert.assertTrue("Instance profile default expected to be true",
-				this.properties.isInstanceProfile());
+		assertThat(this.properties.isInstanceProfile())
+				.as("Instance profile default expected to be true").isTrue();
 
 		this.properties.setInstanceProfile(false);
-		Assert.assertFalse("Instance profile should have been assigned",
-				this.properties.isInstanceProfile());
+		assertThat(this.properties.isInstanceProfile())
+				.as("Instance profile should have been assigned").isFalse();
 	}
 
 	@Test
 	public void useDefaultAwsCredentialsChainCanBeSet() {
-		Assert.assertFalse("useDefaultAwsCredentialsChain default expected to be false",
-				this.properties.isUseDefaultAwsCredentialsChain());
+		assertThat(this.properties.isUseDefaultAwsCredentialsChain())
+				.as("useDefaultAwsCredentialsChain default expected to be false")
+				.isFalse();
 
 		this.properties.setUseDefaultAwsCredentialsChain(true);
-		Assert.assertTrue("useDefaultAwsCredentialsChain should have been assigned",
-				this.properties.isUseDefaultAwsCredentialsChain());
+		assertThat(this.properties.isUseDefaultAwsCredentialsChain())
+				.as("useDefaultAwsCredentialsChain should have been assigned").isTrue();
 	}
 
 	@Test
 	public void profileNameCanBeSet() {
-		Assert.assertEquals("Default profile name expected to be set",
-				AwsProfileNameLoader.DEFAULT_PROFILE_NAME,
-				this.properties.getProfileName());
+		assertThat(this.properties.getProfileName())
+				.as("Default profile name expected to be set")
+				.isEqualTo(AwsProfileNameLoader.DEFAULT_PROFILE_NAME);
 
 		String newProfileName = UUID.randomUUID().toString();
 		this.properties.setProfileName(newProfileName);
-		Assert.assertEquals("Profile name should have been assigned", newProfileName,
-				this.properties.getProfileName());
+		assertThat(this.properties.getProfileName())
+				.as("Profile name should have been assigned").isEqualTo(newProfileName);
 	}
 
 	@Test
 	public void profilePathCanBeSet() {
-		Assert.assertNull("Profile path default value expected to be null",
-				this.properties.getProfilePath());
+		assertThat(this.properties.getProfilePath())
+				.as("Profile path default value expected to be null").isNull();
 
 		String newProfilePath = UUID.randomUUID().toString();
 		this.properties.setProfilePath(newProfilePath);
-		Assert.assertEquals("Profile path should have been assigned", newProfilePath,
-				this.properties.getProfilePath());
+		assertThat(this.properties.getProfilePath())
+				.as("Profile path should have been assigned").isEqualTo(newProfilePath);
 	}
 
 }

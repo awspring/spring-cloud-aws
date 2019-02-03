@@ -24,9 +24,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
@@ -39,14 +37,14 @@ public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(
-				amazonSns);
+		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns);
 
 		// Act
 		Class<HandlerMethodArgumentResolver> type = factoryBean.getObjectType();
 
 		// Assert
-		assertSame(HandlerMethodArgumentResolver.class, type);
+		assertThat(type).isSameAs(HandlerMethodArgumentResolver.class);
 	}
 
 	@Test
@@ -54,17 +52,17 @@ public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
-		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(
-				amazonSns);
+		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns);
 		factoryBean.afterPropertiesSet();
 
 		// Act
 		HandlerMethodArgumentResolver argumentResolver = factoryBean.getObject();
 
 		// Assert
-		assertNotNull(argumentResolver);
-		assertEquals(3, ((HandlerMethodArgumentResolverComposite) argumentResolver)
-				.getResolvers().size());
+		assertThat(argumentResolver).isNotNull();
+		assertThat(((HandlerMethodArgumentResolverComposite) argumentResolver)
+				.getResolvers().size()).isEqualTo(3);
 	}
 
 	@Test

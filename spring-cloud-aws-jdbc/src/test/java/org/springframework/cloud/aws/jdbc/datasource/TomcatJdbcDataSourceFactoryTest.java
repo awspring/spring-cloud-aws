@@ -34,14 +34,11 @@ import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.springframework.transaction.TransactionDefinition;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
- * Unit test class for {@link TomcatJdbcDataSourceFactory}
+ * Unit test class for {@link TomcatJdbcDataSourceFactory}.
  *
  * @author Agim Emruli
  * @since 1.0
@@ -56,11 +53,11 @@ public class TomcatJdbcDataSourceFactoryTest {
 				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory
 				.createDataSource(dataSourceInformation);
-		assertNotNull(dataSource);
+		assertThat(dataSource).isNotNull();
 
-		assertEquals("com.mysql.jdbc.Driver", dataSource.getDriverClassName());
-		assertEquals("jdbc:mysql://localhost:3306/test", dataSource.getUrl());
-		assertEquals("user", dataSource.getUsername());
+		assertThat(dataSource.getDriverClassName()).isEqualTo("com.mysql.jdbc.Driver");
+		assertThat(dataSource.getUrl()).isEqualTo("jdbc:mysql://localhost:3306/test");
+		assertThat(dataSource.getUsername()).isEqualTo("user");
 	}
 
 	@Test
@@ -91,11 +88,11 @@ public class TomcatJdbcDataSourceFactoryTest {
 				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory
 				.createDataSource(dataSourceInformation);
-		assertNotNull(dataSource);
+		assertThat(dataSource).isNotNull();
 
-		assertEquals("com.mysql.driver", dataSource.getDriverClassName());
-		assertEquals("jdbc:sql://localhost:3306/test", dataSource.getUrl());
-		assertEquals("user", dataSource.getUsername());
+		assertThat(dataSource.getDriverClassName()).isEqualTo("com.mysql.driver");
+		assertThat(dataSource.getUrl()).isEqualTo("jdbc:sql://localhost:3306/test");
+		assertThat(dataSource.getUsername()).isEqualTo("user");
 	}
 
 	@Test
@@ -107,12 +104,12 @@ public class TomcatJdbcDataSourceFactoryTest {
 				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
 		DataSource dataSource = tomcatJdbcDataSourceFactory
 				.createDataSource(dataSourceInformation);
-		assertNotNull(dataSource);
+		assertThat(dataSource).isNotNull();
 
 		ConnectionPool pool = dataSource.createPool();
-		assertFalse(pool.isClosed());
+		assertThat(pool.isClosed()).isFalse();
 		tomcatJdbcDataSourceFactory.closeDataSource(dataSource);
-		assertTrue(pool.isClosed());
+		assertThat(pool.isClosed()).isTrue();
 	}
 
 	@Test
@@ -120,8 +117,8 @@ public class TomcatJdbcDataSourceFactoryTest {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolationName("READ_COMMITTED");
 
-		assertEquals(Connection.TRANSACTION_READ_COMMITTED,
-				tomcatJdbcDataSourceFactory.getDefaultTransactionIsolation());
+		assertThat(tomcatJdbcDataSourceFactory.getDefaultTransactionIsolation())
+				.isEqualTo(Connection.TRANSACTION_READ_COMMITTED);
 	}
 
 	@Test
@@ -186,8 +183,8 @@ public class TomcatJdbcDataSourceFactoryTest {
 			if (propertyDescriptor.getWriteMethod() != null
 					&& target.isReadableProperty(propertyDescriptor.getName())
 					&& !ignoredProperties.contains(propertyDescriptor.getName())) {
-				assertEquals(source.getPropertyValue(propertyDescriptor.getName()),
-						target.getPropertyValue(propertyDescriptor.getName()));
+				assertThat(target.getPropertyValue(propertyDescriptor.getName()))
+						.isEqualTo(source.getPropertyValue(propertyDescriptor.getName()));
 			}
 		}
 
@@ -204,7 +201,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 			fail("Expecting IllegalStateException");
 		}
 		catch (UnsupportedOperationException e) {
-			assertTrue(e.getMessage().contains("at runtime"));
+			assertThat(e.getMessage().contains("at runtime")).isTrue();
 		}
 
 		try {
@@ -212,7 +209,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 			fail("Expecting IllegalStateException");
 		}
 		catch (UnsupportedOperationException e) {
-			assertTrue(e.getMessage().contains("at runtime"));
+			assertThat(e.getMessage().contains("at runtime")).isTrue();
 		}
 
 		try {
@@ -220,7 +217,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 			fail("Expecting IllegalStateException");
 		}
 		catch (UnsupportedOperationException e) {
-			assertTrue(e.getMessage().contains("at runtime"));
+			assertThat(e.getMessage().contains("at runtime")).isTrue();
 		}
 
 		try {
@@ -228,7 +225,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 			fail("Expecting IllegalStateException");
 		}
 		catch (UnsupportedOperationException e) {
-			assertTrue(e.getMessage().contains("at runtime"));
+			assertThat(e.getMessage().contains("at runtime")).isTrue();
 		}
 	}
 

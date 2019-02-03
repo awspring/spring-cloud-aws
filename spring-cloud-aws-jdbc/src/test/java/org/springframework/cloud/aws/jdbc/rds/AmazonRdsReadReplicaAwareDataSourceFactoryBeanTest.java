@@ -33,9 +33,7 @@ import org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource;
 import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,19 +59,19 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 								.withMasterUsername("admin").withEndpoint(new Endpoint()
 										.withAddress("localhost").withPort(3306))));
 
-		AmazonRdsReadReplicaAwareDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(
+		AmazonRdsReadReplicaAwareDataSourceFactoryBean factoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(
 				amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+		factoryBean.setDataSourceFactory(dataSourceFactory);
 		when(dataSourceFactory.createDataSource(new DataSourceInformation(
 				DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret")))
 						.thenReturn(mock(DataSource.class));
 
 		// Act
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+		factoryBean.afterPropertiesSet();
 
 		// Assert
-		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		assertNotNull(datasource);
+		DataSource datasource = factoryBean.getObject();
+		assertThat(datasource).isNotNull();
 
 		verify(dataSourceFactory, times(1)).createDataSource(new DataSourceInformation(
 				DatabaseType.MYSQL, "localhost", 3306, "test", "admin", "secret"));
@@ -128,21 +126,21 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 						.thenReturn(createdDataSource);
 		when(createdDataSource.getConnection()).thenReturn(connection);
 
-		AmazonRdsReadReplicaAwareDataSourceFactoryBean amazonRdsDataSourceFactoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(
+		AmazonRdsReadReplicaAwareDataSourceFactoryBean factoryBean = new AmazonRdsReadReplicaAwareDataSourceFactoryBean(
 				amazonRDS, "test", "secret");
-		amazonRdsDataSourceFactoryBean.setDataSourceFactory(dataSourceFactory);
+		factoryBean.setDataSourceFactory(dataSourceFactory);
 
 		// Act
-		amazonRdsDataSourceFactoryBean.afterPropertiesSet();
+		factoryBean.afterPropertiesSet();
 
 		// Assert
-		DataSource datasource = amazonRdsDataSourceFactoryBean.getObject();
-		assertNotNull(datasource);
-		assertTrue(datasource instanceof LazyConnectionDataSourceProxy);
+		DataSource datasource = factoryBean.getObject();
+		assertThat(datasource).isNotNull();
+		assertThat(datasource instanceof LazyConnectionDataSourceProxy).isTrue();
 
 		ReadOnlyRoutingDataSource source = (ReadOnlyRoutingDataSource) ((LazyConnectionDataSourceProxy) datasource)
 				.getTargetDataSource();
-		assertEquals(3, source.getDataSources().size());
+		assertThat(source.getDataSources().size()).isEqualTo(3);
 	}
 
 }

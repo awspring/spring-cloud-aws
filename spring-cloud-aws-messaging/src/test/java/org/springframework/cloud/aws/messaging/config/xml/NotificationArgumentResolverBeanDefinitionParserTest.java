@@ -27,17 +27,16 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 
 public class NotificationArgumentResolverBeanDefinitionParserTest {
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_minimalConfiguration_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfigured()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-minimal.xml", getClass());
@@ -47,13 +46,16 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 				.getBean(HandlerMethodArgumentResolver.class);
 
 		// Assert
-		assertNotNull(argumentResolver);
-		assertTrue(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
+		assertThat(argumentResolver).isNotNull();
+		assertThat(context.containsBean(getBeanName(AmazonSNSClient.class.getName())))
+				.isTrue();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_customRegion_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customRegion.xml", getClass());
@@ -62,14 +64,16 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 		AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
 
 		// Assert
-		assertEquals(new URI("https",
-				Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"), null,
-				null), ReflectionTestUtils.getField(snsClient, "endpoint"));
+		assertThat(ReflectionTestUtils.getField(snsClient, "endpoint")).isEqualTo(new URI(
+				"https", Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"),
+				null, null));
 	}
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_customRegionProvider_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customRegionProvider.xml", getClass());
@@ -78,9 +82,9 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 		AmazonSNSClient snsClient = context.getBean(AmazonSNSClient.class);
 
 		// Assert
-		assertEquals(new URI("https",
-				Region.getRegion(Regions.US_WEST_2).getServiceEndpoint("sns"), null,
-				null), ReflectionTestUtils.getField(snsClient, "endpoint"));
+		assertThat(ReflectionTestUtils.getField(snsClient, "endpoint")).isEqualTo(new URI(
+				"https", Region.getRegion(Regions.US_WEST_2).getServiceEndpoint("sns"),
+				null, null));
 	}
 
 	@Test
@@ -95,8 +99,9 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 				AmazonSNSClient.class);
 
 		// Assert
-		assertNotNull(snsClient);
-		assertFalse(context.containsBean(getBeanName(AmazonSNSClient.class.getName())));
+		assertThat(snsClient).isNotNull();
+		assertThat(context.containsBean(getBeanName(AmazonSNSClient.class.getName())))
+				.isFalse();
 	}
 
 }

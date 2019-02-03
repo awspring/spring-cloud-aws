@@ -36,9 +36,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolverCompo
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -64,20 +62,23 @@ public class SnsConfigurationTest {
 				.getBean(RequestMappingHandlerAdapter.class);
 
 		// Assert
-		assertEquals(1, requestMappingHandlerAdapter.getCustomArgumentResolvers().size());
+		assertThat(requestMappingHandlerAdapter.getCustomArgumentResolvers().size())
+				.isEqualTo(1);
 		HandlerMethodArgumentResolver argumentResolver = requestMappingHandlerAdapter
 				.getCustomArgumentResolvers().get(0);
-		assertTrue(HandlerMethodArgumentResolverComposite.class
-				.isInstance(argumentResolver));
+		assertThat(
+				HandlerMethodArgumentResolverComposite.class.isInstance(argumentResolver))
+						.isTrue();
 
-		HandlerMethodArgumentResolverComposite compositeArgumentResolver = (HandlerMethodArgumentResolverComposite) argumentResolver;
-		assertEquals(3, compositeArgumentResolver.getResolvers().size());
-		assertNotNull(
+		HandlerMethodArgumentResolverComposite compositeArgumentResolver;
+		compositeArgumentResolver = (HandlerMethodArgumentResolverComposite) argumentResolver;
+		assertThat(compositeArgumentResolver.getResolvers().size()).isEqualTo(3);
+		assertThat(
 				ReflectionTestUtils
 						.getField(
 								getNotificationStatusHandlerMethodArgumentResolver(
 										compositeArgumentResolver.getResolvers()),
-								"amazonSns"));
+								"amazonSns")).isNotNull();
 	}
 
 	@Test
@@ -89,8 +90,8 @@ public class SnsConfigurationTest {
 		AmazonSNS amazonSns = this.webApplicationContext.getBean(AmazonSNS.class);
 
 		// Assert
-		assertEquals(SnsConfigurationWithCredentials.AWS_CREDENTIALS_PROVIDER,
-				ReflectionTestUtils.getField(amazonSns, "awsCredentialsProvider"));
+		assertThat(ReflectionTestUtils.getField(amazonSns, "awsCredentialsProvider"))
+				.isEqualTo(SnsConfigurationWithCredentials.AWS_CREDENTIALS_PROVIDER);
 	}
 
 	@Test
@@ -103,13 +104,15 @@ public class SnsConfigurationTest {
 				.getBean(RequestMappingHandlerAdapter.class);
 
 		// Assert
-		HandlerMethodArgumentResolverComposite handlerMethodArgumentResolver = (HandlerMethodArgumentResolverComposite) requestMappingHandlerAdapter
+		HandlerMethodArgumentResolverComposite handlerMethodArgumentResolver;
+		handlerMethodArgumentResolver = (HandlerMethodArgumentResolverComposite) requestMappingHandlerAdapter
 				.getCustomArgumentResolvers().get(0);
-		NotificationStatusHandlerMethodArgumentResolver notificationStatusHandlerMethodArgumentResolver = getNotificationStatusHandlerMethodArgumentResolver(
+		NotificationStatusHandlerMethodArgumentResolver notificationStatusHandlerMethodArgumentResolver;
+		notificationStatusHandlerMethodArgumentResolver = getNotificationStatusHandlerMethodArgumentResolver(
 				handlerMethodArgumentResolver.getResolvers());
-		assertEquals(SnsConfigurationWithCustomAmazonClient.AMAZON_SNS,
-				ReflectionTestUtils.getField(
-						notificationStatusHandlerMethodArgumentResolver, "amazonSns"));
+		assertThat(ReflectionTestUtils
+				.getField(notificationStatusHandlerMethodArgumentResolver, "amazonSns"))
+						.isEqualTo(SnsConfigurationWithCustomAmazonClient.AMAZON_SNS);
 	}
 
 	@Test
@@ -121,10 +124,9 @@ public class SnsConfigurationTest {
 		AmazonSNS amazonSns = this.webApplicationContext.getBean(AmazonSNS.class);
 
 		// Assert
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"),
-				ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
+		assertThat(ReflectionTestUtils.getField(amazonSns, "endpoint").toString())
+				.isEqualTo("https://"
+						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"));
 	}
 
 	private NotificationStatusHandlerMethodArgumentResolver getNotificationStatusHandlerMethodArgumentResolver(

@@ -34,7 +34,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -74,10 +74,11 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("destination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
-		assertEquals(headers.get("headerKey"), messageSendingTemplate.getMessageChannel()
-				.getSentMessage().getHeaders().get("headerKey"));
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
+		assertThat(messageSendingTemplate.getMessageChannel().getSentMessage()
+				.getHeaders().get("headerKey")).isEqualTo(headers.get("headerKey"));
 	}
 
 	@Test
@@ -96,8 +97,9 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("destination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
 	}
 
 	@Test
@@ -118,15 +120,18 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("destination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
-		assertEquals(headers.get("headerKey"), messageSendingTemplate.getMessageChannel()
-				.getSentMessage().getHeaders().get("headerKey"));
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
+		assertThat(messageSendingTemplate.getMessageChannel().getSentMessage()
+				.getHeaders().get("headerKey")).isEqualTo(headers.get("headerKey"));
 	}
 
+	// @checkstyle:off
 	@Test
 	public void convertAndSend_WithDestinationNamePayloadAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
 				this.destinationResolver);
@@ -145,14 +150,17 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("destination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
 		verify(messagePostProcessor).postProcessMessage(
 				messageSendingTemplate.getMessageChannel().getSentMessage());
 	}
 
+	// @checkstyle:off
 	@Test
 	public void convertAndSend_WithDestinationNamePayloadHeadersAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
+			// @checkstyle:on
 			throws Exception {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
@@ -174,10 +182,11 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("destination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
-		assertEquals(headers.get("headerKey"), messageSendingTemplate.getMessageChannel()
-				.getSentMessage().getHeaders().get("headerKey"));
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
+		assertThat(messageSendingTemplate.getMessageChannel().getSentMessage()
+				.getHeaders().get("headerKey")).isEqualTo(headers.get("headerKey"));
 		verify(messagePostProcessor).postProcessMessage(
 				messageSendingTemplate.getMessageChannel().getSentMessage());
 	}
@@ -201,10 +210,11 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 		// Assert
 		verify(this.destinationResolver).resolveDestination("defaultDestination");
-		assertEquals(payload,
-				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload());
-		assertEquals(headers.get("headerKey"), messageSendingTemplate.getMessageChannel()
-				.getSentMessage().getHeaders().get("headerKey"));
+		assertThat(
+				messageSendingTemplate.getMessageChannel().getSentMessage().getPayload())
+						.isEqualTo(payload);
+		assertThat(messageSendingTemplate.getMessageChannel().getSentMessage()
+				.getHeaders().get("headerKey")).isEqualTo(headers.get("headerKey"));
 
 	}
 

@@ -26,8 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextResourceLoaderConfigurationTest {
 
@@ -50,13 +49,14 @@ public class ContextResourceLoaderConfigurationTest {
 		ApplicationBean bean = this.context.getBean(ApplicationBean.class);
 
 		// Assert
-		assertNotNull(bean.getResourceLoader());
-		assertTrue(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()));
+		assertThat(bean.getResourceLoader()).isNotNull();
+		assertThat(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()))
+				.isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean
 				.getResourceLoader();
-		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+		assertThat(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	@EnableContextResourceLoader

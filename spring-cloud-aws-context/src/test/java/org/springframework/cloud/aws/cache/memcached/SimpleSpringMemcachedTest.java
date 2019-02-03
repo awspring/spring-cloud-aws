@@ -24,9 +24,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.cache.Cache;
 import org.springframework.scheduling.annotation.AsyncResult;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,7 +48,7 @@ public class SimpleSpringMemcachedTest {
 		String cacheName = cache.getName();
 
 		// Assert
-		assertEquals("test", cacheName);
+		assertThat(cacheName).isEqualTo("test");
 	}
 
 	@Test
@@ -95,7 +93,7 @@ public class SimpleSpringMemcachedTest {
 		Object nativeCache = cache.getNativeCache();
 
 		// Assert
-		assertSame(client, nativeCache);
+		assertThat(nativeCache).isSameAs(client);
 	}
 
 	@Test
@@ -111,7 +109,7 @@ public class SimpleSpringMemcachedTest {
 		Cache.ValueWrapper valueWrapper = cache.get("test");
 
 		// Assert
-		assertSame("cachedValue", valueWrapper.get());
+		assertThat(valueWrapper.get()).isSameAs("cachedValue");
 	}
 
 	@Test
@@ -125,7 +123,7 @@ public class SimpleSpringMemcachedTest {
 		Cache.ValueWrapper valueWrapper = cache.get("test");
 
 		// Assert
-		assertNull(valueWrapper);
+		assertThat(valueWrapper).isNull();
 	}
 
 	@Test
@@ -141,7 +139,7 @@ public class SimpleSpringMemcachedTest {
 		String cachedElement = cache.get("test", String.class);
 
 		// Assert
-		assertEquals("cachedValue", cachedElement);
+		assertThat(cachedElement).isEqualTo("cachedValue");
 	}
 
 	@Test
@@ -154,7 +152,7 @@ public class SimpleSpringMemcachedTest {
 		String cachedElement = cache.get("test", String.class);
 
 		// Assert
-		assertNull(cachedElement);
+		assertThat(cachedElement).isNull();
 	}
 
 	@Test
@@ -262,7 +260,7 @@ public class SimpleSpringMemcachedTest {
 		String value = cache.get("myKey", () -> "createdValue");
 
 		// Assert
-		assertEquals("createdValue", value);
+		assertThat(value).isEqualTo("createdValue");
 	}
 
 	@Test
@@ -281,7 +279,7 @@ public class SimpleSpringMemcachedTest {
 		});
 
 		// Assert
-		assertEquals("existingValue", value);
+		assertThat(value).isEqualTo("existingValue");
 	}
 
 	@Test
@@ -438,7 +436,7 @@ public class SimpleSpringMemcachedTest {
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
 
 		// Assert
-		assertNull(valueWrapper);
+		assertThat(valueWrapper).isNull();
 	}
 
 	@Test
@@ -453,7 +451,7 @@ public class SimpleSpringMemcachedTest {
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent("key", "value");
 
 		// Assert
-		assertEquals("value", valueWrapper.get());
+		assertThat(valueWrapper.get()).isEqualTo("value");
 	}
 
 }

@@ -25,7 +25,7 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,8 +55,8 @@ public class StackResourceUserTagsFactoryBeanTest {
 		Map<String, String> factoryBeanObject = factoryBean.getObject();
 
 		// Assert
-		assertEquals("value1", factoryBeanObject.get("key1"));
-		assertEquals("value2", factoryBeanObject.get("key2"));
+		assertThat(factoryBeanObject.get("key1")).isEqualTo("value1");
+		assertThat(factoryBeanObject.get("key2")).isEqualTo("value2");
 	}
 
 }

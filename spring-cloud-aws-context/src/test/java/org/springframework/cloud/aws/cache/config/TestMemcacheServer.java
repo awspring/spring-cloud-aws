@@ -32,8 +32,11 @@ import org.springframework.util.SocketUtils;
  * @author Agim Emruli
  */
 // Suppression as this is not a util class
+// @checkstyle:off
 @SuppressWarnings({ "UtilityClassWithoutPrivateConstructor", "NonFinalUtilityClass" })
 public class TestMemcacheServer {
+
+	// @checkstyle:on
 
 	@SuppressWarnings("StaticNonFinalField")
 	private static MemCacheDaemon<LocalCacheElement> daemon;

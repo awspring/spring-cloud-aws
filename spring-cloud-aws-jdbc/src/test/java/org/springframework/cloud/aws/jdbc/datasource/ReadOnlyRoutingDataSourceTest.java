@@ -30,8 +30,8 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,8 +62,8 @@ public class ReadOnlyRoutingDataSourceTest {
 		Connection connectionReturned = dataSource.getConnection();
 
 		// Assert
-		assertSame(connection,
-				((ConnectionProxy) connectionReturned).getTargetConnection());
+		assertThat(((ConnectionProxy) connectionReturned).getTargetConnection())
+				.isSameAs(connection);
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class ReadOnlyRoutingDataSourceTest {
 		});
 
 		// Assert
-		assertSame(connection, connectionReturned);
+		assertThat(connectionReturned).isSameAs(connection);
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class ReadOnlyRoutingDataSourceTest {
 		});
 
 		// Assert
-		assertSame(readOnlyConnection, connectionReturned);
+		assertThat(connectionReturned).isSameAs(readOnlyConnection);
 	}
 
 	@Test
@@ -193,7 +193,7 @@ public class ReadOnlyRoutingDataSourceTest {
 		});
 
 		// Assert
-		assertSame(connection, connectionReturned);
+		assertThat(connectionReturned).isSameAs(connection);
 	}
 
 }

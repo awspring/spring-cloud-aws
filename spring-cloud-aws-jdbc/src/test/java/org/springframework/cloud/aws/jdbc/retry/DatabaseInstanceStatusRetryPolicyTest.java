@@ -30,13 +30,12 @@ import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.context.RetryContextSupport;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test class for {@link DatabaseInstanceStatusRetryPolicy}
+ * Unit test class for {@link DatabaseInstanceStatusRetryPolicy}.
  *
  * @author Agim Emruli
  */
@@ -66,7 +65,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 				new TransientDataAccessResourceException("not available"));
 
 		// Assert
-		assertTrue(policy.canRetry(retryContext));
+		assertThat(policy.canRetry(retryContext)).isTrue();
 		policy.close(retryContext);
 	}
 
@@ -94,7 +93,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 				new TransientDataAccessResourceException("not available"));
 
 		// Assert
-		assertTrue(policy.canRetry(retryContext));
+		assertThat(policy.canRetry(retryContext)).isTrue();
 		policy.close(retryContext);
 	}
 
@@ -117,7 +116,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 				new TransientDataAccessResourceException("not available"));
 
 		// Assert
-		assertFalse(policy.canRetry(retryContext));
+		assertThat(policy.canRetry(retryContext)).isFalse();
 		policy.close(retryContext);
 	}
 
@@ -164,7 +163,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 		policy.open(retryContext);
 
 		// Assert
-		assertTrue(policy.canRetry(retryContext));
+		assertThat(policy.canRetry(retryContext)).isTrue();
 	}
 
 }

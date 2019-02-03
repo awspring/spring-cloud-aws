@@ -27,8 +27,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NotificationMessageHandlerMethodArgumentResolverTest {
 
@@ -84,7 +83,7 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 				new ServletWebRequest(servletRequest), null);
 
 		// Assert
-		assertEquals("asdasd", argument);
+		assertThat(argument).isEqualTo("asdasd");
 	}
 
 	@Test
@@ -101,7 +100,7 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 		boolean supportsParameter = resolver.supportsParameter(methodParameter);
 
 		// Assert
-		assertTrue(supportsParameter);
+		assertThat(supportsParameter).isTrue();
 	}
 
 }

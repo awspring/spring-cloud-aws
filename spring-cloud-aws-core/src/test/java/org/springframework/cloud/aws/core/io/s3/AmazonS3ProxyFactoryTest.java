@@ -32,12 +32,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.object.IsCompatibleType.typeCompatibleWith;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -49,16 +44,16 @@ public class AmazonS3ProxyFactoryTest {
 	public void verifyBasicAdvice() throws Exception {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
-		assertThat(AopUtils.isAopProxy(amazonS3), is(false));
+		assertThat(AopUtils.isAopProxy(amazonS3)).isFalse();
 
 		AmazonS3 proxy = AmazonS3ProxyFactory.createProxy(amazonS3);
-		assertThat(AopUtils.isAopProxy(proxy), is(true));
+		assertThat(AopUtils.isAopProxy(proxy)).isTrue();
 
 		Advised advised = (Advised) proxy;
-		assertThat(advised.getAdvisors().length, is(1));
-		assertThat(advised.getAdvisors()[0].getAdvice(),
-				instanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
-		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget()), is(false));
+		assertThat(advised.getAdvisors().length).isEqualTo(1);
+		assertThat(advised.getAdvisors()[0].getAdvice()).isInstanceOf(
+				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
+		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget())).isFalse();
 	}
 
 	@Test
@@ -68,13 +63,13 @@ public class AmazonS3ProxyFactoryTest {
 
 		AmazonS3 proxy = AmazonS3ProxyFactory
 				.createProxy(AmazonS3ProxyFactory.createProxy(amazonS3));
-		assertThat(AopUtils.isAopProxy(proxy), is(true));
+		assertThat(AopUtils.isAopProxy(proxy)).isTrue();
 
 		Advised advised = (Advised) proxy;
-		assertThat(advised.getAdvisors().length, is(1));
-		assertThat(advised.getAdvisors()[0].getAdvice(),
-				instanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
-		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget()), is(false));
+		assertThat(advised.getAdvisors().length).isEqualTo(1);
+		assertThat(advised.getAdvisors()[0].getAdvice()).isInstanceOf(
+				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
+		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget())).isFalse();
 	}
 
 	@Test
@@ -83,14 +78,14 @@ public class AmazonS3ProxyFactoryTest {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		AmazonS3 proxy1 = AmazonS3ProxyFactory.createProxy(amazonS3);
 
-		assertThat(proxy1.getClass(), typeCompatibleWith(AmazonS3.class));
-		assertThat(proxy1.getClass(), not(typeCompatibleWith(AmazonS3Client.class)));
+		assertThat(AmazonS3.class.isAssignableFrom(proxy1.getClass())).isTrue();
+		assertThat(AmazonS3Client.class.isAssignableFrom(proxy1.getClass())).isFalse();
 
 		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard()
 				.withRegion(Regions.DEFAULT_REGION).build();
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(amazonS3Client);
 
-		assertThat(proxy2.getClass(), typeCompatibleWith(AmazonS3.class));
+		assertThat(AmazonS3.class.isAssignableFrom(proxy2.getClass())).isTrue();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -103,19 +98,19 @@ public class AmazonS3ProxyFactoryTest {
 		factory.addAdvice(new TestAdvice());
 		AmazonS3 proxy1 = (AmazonS3) factory.getProxy();
 
-		assertThat(((Advised) proxy1).getAdvisors().length, is(1));
+		assertThat(((Advised) proxy1).getAdvisors().length).isEqualTo(1);
 
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(proxy1);
 		Advised advised = (Advised) proxy2;
 
-		assertThat(advised.getAdvisors().length, is(2));
+		assertThat(advised.getAdvisors().length).isEqualTo(2);
 
 		List<Class<? extends MethodInterceptor>> advisorClasses = new ArrayList<>();
 		for (Advisor advisor : advised.getAdvisors()) {
 			advisorClasses.add(((MethodInterceptor) advisor.getAdvice()).getClass());
 		}
-		assertThat(advisorClasses, hasItems(TestAdvice.class,
-				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class));
+		assertThat(advisorClasses).contains(TestAdvice.class,
+				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
 
 	}
 

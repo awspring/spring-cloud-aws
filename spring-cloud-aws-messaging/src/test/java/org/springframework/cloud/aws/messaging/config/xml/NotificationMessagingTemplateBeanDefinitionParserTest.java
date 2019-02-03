@@ -37,9 +37,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Alain Sahli
@@ -60,41 +58,44 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		// Assert
 		NotificationMessagingTemplate notificationMessagingTemplate = registry
 				.getBean(NotificationMessagingTemplate.class);
-		assertSame(registry.getBean(AmazonSNSClient.class),
-				ReflectionTestUtils.getField(notificationMessagingTemplate, "amazonSns"));
+		assertThat(
+				ReflectionTestUtils.getField(notificationMessagingTemplate, "amazonSns"))
+						.isSameAs(registry.getBean(AmazonSNSClient.class));
 
 		Object cachingDestinationResolverProxy = ReflectionTestUtils
 				.getField(notificationMessagingTemplate, "destinationResolver");
 		Object targetDestinationResolver = ReflectionTestUtils
 				.getField(cachingDestinationResolverProxy, "targetDestinationResolver");
-		assertEquals(
-				registry.getBean(
-						GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME),
-				ReflectionTestUtils.getField(targetDestinationResolver,
-						"resourceIdResolver"));
+		assertThat(ReflectionTestUtils.getField(targetDestinationResolver,
+				"resourceIdResolver")).isEqualTo(registry.getBean(
+						GlobalBeanDefinitionUtils.RESOURCE_ID_RESOLVER_BEAN_NAME));
 
-		assertTrue(CompositeMessageConverter.class
-				.isInstance(notificationMessagingTemplate.getMessageConverter()));
+		assertThat(CompositeMessageConverter.class
+				.isInstance(notificationMessagingTemplate.getMessageConverter()))
+						.isTrue();
 		@SuppressWarnings("unchecked")
 		List<MessageConverter> messageConverters = (List<MessageConverter>) ReflectionTestUtils
 				.getField(notificationMessagingTemplate.getMessageConverter(),
 						"converters");
-		assertEquals(2, messageConverters.size());
-		assertTrue(StringMessageConverter.class.isInstance(messageConverters.get(0)));
-		assertTrue(MappingJackson2MessageConverter.class
-				.isInstance(messageConverters.get(1)));
+		assertThat(messageConverters.size()).isEqualTo(2);
+		assertThat(StringMessageConverter.class.isInstance(messageConverters.get(0)))
+				.isTrue();
+		assertThat(MappingJackson2MessageConverter.class
+				.isInstance(messageConverters.get(1))).isTrue();
 
 		StringMessageConverter stringMessageConverter = (StringMessageConverter) messageConverters
 				.get(0);
-		assertSame(String.class, stringMessageConverter.getSerializedPayloadClass());
-		assertEquals(false, ReflectionTestUtils.getField(stringMessageConverter,
-				"strictContentTypeMatch"));
+		assertThat(stringMessageConverter.getSerializedPayloadClass())
+				.isSameAs(String.class);
+		assertThat(ReflectionTestUtils.getField(stringMessageConverter,
+				"strictContentTypeMatch")).isEqualTo(false);
 
 		MappingJackson2MessageConverter jackson2MessageConverter = (MappingJackson2MessageConverter) messageConverters
 				.get(1);
-		assertSame(String.class, jackson2MessageConverter.getSerializedPayloadClass());
-		assertEquals(false, ReflectionTestUtils.getField(jackson2MessageConverter,
-				"strictContentTypeMatch"));
+		assertThat(jackson2MessageConverter.getSerializedPayloadClass())
+				.isSameAs(String.class);
+		assertThat(ReflectionTestUtils.getField(jackson2MessageConverter,
+				"strictContentTypeMatch")).isEqualTo(false);
 	}
 
 	@Test
@@ -111,11 +112,10 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		// Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry
 				.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("mySnsClient",
-				((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition
-						.getConstructorArgumentValues()
-						.getArgumentValue(0, RuntimeBeanReference.class).getValue())
-								.getBeanName());
+		assertThat(((RuntimeBeanReference) notificationMessagingTemplateBeanDefinition
+				.getConstructorArgumentValues()
+				.getArgumentValue(0, RuntimeBeanReference.class).getValue())
+						.getBeanName()).isEqualTo("mySnsClient");
 	}
 
 	@Test
@@ -133,9 +133,9 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 		// Assert
 		BeanDefinition notificationMessagingTemplateBeanDefinition = registry
 				.getBeanDefinition("notificationMessagingTemplate");
-		assertEquals("myDefaultDestination",
-				notificationMessagingTemplateBeanDefinition.getPropertyValues()
-						.getPropertyValue("defaultDestinationName").getValue());
+		assertThat(notificationMessagingTemplateBeanDefinition.getPropertyValues()
+				.getPropertyValue("defaultDestinationName").getValue())
+						.isEqualTo("myDefaultDestination");
 	}
 
 	@Test
@@ -151,10 +151,9 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 
 		// Assert
 		AmazonSNSClient amazonSns = registry.getBean(AmazonSNSClient.class);
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"),
-				ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
+		assertThat(ReflectionTestUtils.getField(amazonSns, "endpoint").toString())
+				.isEqualTo("https://"
+						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"));
 	}
 
 	@Test
@@ -170,10 +169,9 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 
 		// Assert
 		AmazonSNSClient amazonSns = registry.getBean(AmazonSNSClient.class);
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.CN_NORTH_1).getServiceEndpoint("sns"),
-				ReflectionTestUtils.getField(amazonSns, "endpoint").toString());
+		assertThat(ReflectionTestUtils.getField(amazonSns, "endpoint").toString())
+				.isEqualTo("https://"
+						+ Region.getRegion(Regions.CN_NORTH_1).getServiceEndpoint("sns"));
 	}
 
 }

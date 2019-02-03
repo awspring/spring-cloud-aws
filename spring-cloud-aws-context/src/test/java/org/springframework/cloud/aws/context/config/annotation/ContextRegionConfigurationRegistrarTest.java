@@ -34,8 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextRegionConfigurationRegistrarTest {
 
@@ -63,9 +62,9 @@ public class ContextRegionConfigurationRegistrarTest {
 				.getBean(StaticRegionProvider.class);
 
 		// Assert
-		assertNotNull(staticRegionProvider);
-		assertEquals(Region.getRegion(Regions.EU_WEST_1),
-				staticRegionProvider.getRegion());
+		assertThat(staticRegionProvider).isNotNull();
+		assertThat(staticRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
@@ -80,7 +79,7 @@ public class ContextRegionConfigurationRegistrarTest {
 				.getBean(Ec2MetadataRegionProvider.class);
 
 		// Assert
-		assertNotNull(staticRegionProvider);
+		assertThat(staticRegionProvider).isNotNull();
 	}
 
 	@Test
@@ -98,9 +97,9 @@ public class ContextRegionConfigurationRegistrarTest {
 				.getBean(StaticRegionProvider.class);
 
 		// Assert
-		assertNotNull(staticRegionProvider);
-		assertEquals(Region.getRegion(Regions.EU_WEST_1),
-				staticRegionProvider.getRegion());
+		assertThat(staticRegionProvider).isNotNull();
+		assertThat(staticRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
@@ -118,9 +117,9 @@ public class ContextRegionConfigurationRegistrarTest {
 				.getBean(StaticRegionProvider.class);
 
 		// Assert
-		assertNotNull(staticRegionProvider);
-		assertEquals(Region.getRegion(Regions.EU_WEST_1),
-				staticRegionProvider.getRegion());
+		assertThat(staticRegionProvider).isNotNull();
+		assertThat(staticRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test

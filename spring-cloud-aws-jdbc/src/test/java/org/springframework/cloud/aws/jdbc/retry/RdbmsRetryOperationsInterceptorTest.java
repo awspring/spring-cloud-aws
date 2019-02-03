@@ -17,7 +17,6 @@
 package org.springframework.cloud.aws.jdbc.retry;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -28,13 +27,14 @@ import org.springframework.retry.RetryException;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test class for {@link RdbmsRetryOperationsInterceptor}
+ * Unit test class for {@link RdbmsRetryOperationsInterceptor}.
  *
  * @author Agim Emruli
  */
@@ -68,7 +68,7 @@ public class RdbmsRetryOperationsInterceptorTest {
 
 		when(methodInvocation.invocableClone()).thenReturn(methodInvocation);
 		when(methodInvocation.proceed()).then(invocation -> {
-			Assert.assertNotNull(RetrySynchronizationManager.getContext());
+			assertThat(RetrySynchronizationManager.getContext()).isNotNull();
 			return "foo";
 		});
 

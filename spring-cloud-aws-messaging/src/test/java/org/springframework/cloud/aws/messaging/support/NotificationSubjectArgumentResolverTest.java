@@ -28,9 +28,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NotificationSubjectArgumentResolverTest {
 
@@ -49,7 +47,7 @@ public class NotificationSubjectArgumentResolverTest {
 				.supportsParameter(methodParameter);
 
 		// Assert
-		assertTrue(result);
+		assertThat(result).isTrue();
 	}
 
 	@SuppressWarnings("EmptyMethod")
@@ -73,7 +71,7 @@ public class NotificationSubjectArgumentResolverTest {
 				.supportsParameter(methodParameter);
 
 		// Assert
-		assertFalse(result);
+		assertThat(result).isFalse();
 	}
 
 	@SuppressWarnings("EmptyMethod")
@@ -96,7 +94,7 @@ public class NotificationSubjectArgumentResolverTest {
 				.supportsParameter(methodParameter);
 
 		// Assert
-		assertFalse(result);
+		assertThat(result).isFalse();
 	}
 
 	@SuppressWarnings("EmptyMethod")
@@ -126,8 +124,8 @@ public class NotificationSubjectArgumentResolverTest {
 				.resolveArgument(methodParameter, message);
 
 		// Assert
-		assertTrue(String.class.isInstance(result));
-		assertEquals("My subject!", result);
+		assertThat(String.class.isInstance(result)).isTrue();
+		assertThat(result).isEqualTo("My subject!");
 	}
 
 }

@@ -22,8 +22,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MailSenderAutoConfigurationTest {
 
@@ -38,10 +37,10 @@ public class MailSenderAutoConfigurationTest {
 		context.refresh();
 
 		// Assert
-		assertNotNull(context.getBean(MailSender.class));
-		assertNotNull(context.getBean(JavaMailSender.class));
-		assertSame(context.getBean(MailSender.class),
-				context.getBean(JavaMailSender.class));
+		assertThat(context.getBean(MailSender.class)).isNotNull();
+		assertThat(context.getBean(JavaMailSender.class)).isNotNull();
+		assertThat(context.getBean(JavaMailSender.class))
+				.isSameAs(context.getBean(MailSender.class));
 	}
 
 }

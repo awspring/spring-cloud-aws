@@ -19,10 +19,11 @@ package org.springframework.cloud.aws.core.io.s3;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -76,7 +77,7 @@ public class AmazonS3ClientFactoryTest {
 				"http://s3.amazonaws.com");
 
 		// Prepare
-		Assert.assertEquals(Regions.DEFAULT_REGION.getName(), newClient.getRegionName());
+		assertThat(newClient.getRegionName()).isEqualTo(Regions.DEFAULT_REGION.getName());
 	}
 
 	@Test
@@ -91,7 +92,7 @@ public class AmazonS3ClientFactoryTest {
 				"https://myBucket.s3.eu-central-1.amazonaws.com");
 
 		// Prepare
-		Assert.assertEquals(Regions.EU_CENTRAL_1.getName(), newClient.getRegionName());
+		assertThat(newClient.getRegionName()).isEqualTo(Regions.EU_CENTRAL_1.getName());
 	}
 
 	@Test
@@ -106,7 +107,7 @@ public class AmazonS3ClientFactoryTest {
 				"https://myBucket.s3.eu-central-1.amazonaws.com");
 
 		// Prepare
-		Assert.assertEquals(Regions.EU_CENTRAL_1.getName(), newClient.getRegionName());
+		assertThat(newClient.getRegionName()).isEqualTo(Regions.EU_CENTRAL_1.getName());
 	}
 
 	@Test
@@ -124,7 +125,7 @@ public class AmazonS3ClientFactoryTest {
 				"https://myBucket.s3.eu-central-1.amazonaws.com");
 
 		// Prepare
-		Assert.assertSame(cachedClient, existingClient);
+		assertThat(existingClient).isSameAs(cachedClient);
 	}
 
 }

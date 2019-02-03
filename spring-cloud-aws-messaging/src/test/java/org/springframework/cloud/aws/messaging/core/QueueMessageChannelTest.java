@@ -51,11 +51,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -92,9 +88,9 @@ public class QueueMessageChannelTest {
 
 		// Assert
 		verify(amazonSqs, only()).sendMessage(any(SendMessageRequest.class));
-		assertEquals("message content",
-				sendMessageRequestArgumentCaptor.getValue().getMessageBody());
-		assertTrue(sent);
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageBody())
+				.isEqualTo("message content");
+		assertThat(sent).isTrue();
 	}
 
 	@Test
@@ -141,10 +137,10 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(mimeTypeAsString,
-				sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
-						.get(MessageHeaders.CONTENT_TYPE).getStringValue());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(MessageHeaders.CONTENT_TYPE).getStringValue())
+						.isEqualTo(mimeTypeAsString);
 	}
 
 	@Test
@@ -167,10 +163,10 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(mimeType.toString(),
-				sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
-						.get(MessageHeaders.CONTENT_TYPE).getStringValue());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(MessageHeaders.CONTENT_TYPE).getStringValue())
+						.isEqualTo(mimeType.toString());
 	}
 
 	@Test
@@ -192,8 +188,8 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		// Assert
-		assertNotNull(receivedMessage);
-		assertEquals("content", receivedMessage.getPayload());
+		assertThat(receivedMessage).isNotNull();
+		assertThat(receivedMessage.getPayload()).isEqualTo("content");
 	}
 
 	@Test
@@ -216,8 +212,8 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(2);
 
 		// Assert
-		assertNotNull(receivedMessage);
-		assertEquals("content", receivedMessage.getPayload());
+		assertThat(receivedMessage).isNotNull();
+		assertThat(receivedMessage.getPayload()).isEqualTo("content");
 	}
 
 	@Test
@@ -237,7 +233,7 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(2);
 
 		// Assert
-		assertNull(receivedMessage);
+		assertThat(receivedMessage).isNull();
 	}
 
 	@Test
@@ -257,7 +253,7 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive(0);
 
 		// Assert
-		assertNull(receivedMessage);
+		assertThat(receivedMessage).isNull();
 	}
 
 	@Test
@@ -286,8 +282,8 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		// Assert
-		assertEquals(mimeType,
-				receivedMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(receivedMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE))
+				.isEqualTo(mimeType);
 	}
 
 	@Test
@@ -311,11 +307,12 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(headerValue, sendMessageRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(headerName).getStringValue());
-		assertEquals(MessageAttributeDataTypes.STRING, sendMessageRequestArgumentCaptor
-				.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getStringValue()).isEqualTo(headerValue);
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getDataType())
+						.isEqualTo(MessageAttributeDataTypes.STRING);
 	}
 
 	@Test
@@ -345,7 +342,7 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		// Assert
-		assertEquals(headerValue, receivedMessage.getHeaders().get(headerName));
+		assertThat(receivedMessage.getHeaders().get(headerName)).isEqualTo(headerValue);
 	}
 
 	@Test
@@ -380,41 +377,41 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
+		assertThat(sent).isTrue();
 		Map<String, MessageAttributeValue> messageAttributes = sendMessageRequestArgumentCaptor
 				.getValue().getMessageAttributes();
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Double",
-				messageAttributes.get("double").getDataType());
-		assertEquals(String.valueOf(doubleValue),
-				messageAttributes.get("double").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Long",
-				messageAttributes.get("long").getDataType());
-		assertEquals(String.valueOf(longValue),
-				messageAttributes.get("long").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer",
-				messageAttributes.get("integer").getDataType());
-		assertEquals(String.valueOf(integerValue),
-				messageAttributes.get("integer").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte",
-				messageAttributes.get("byte").getDataType());
-		assertEquals(String.valueOf(byteValue),
-				messageAttributes.get("byte").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Short",
-				messageAttributes.get("short").getDataType());
-		assertEquals(String.valueOf(shortValue),
-				messageAttributes.get("short").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.lang.Float",
-				messageAttributes.get("float").getDataType());
-		assertEquals(String.valueOf(floatValue),
-				messageAttributes.get("float").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger",
-				messageAttributes.get("bigInteger").getDataType());
-		assertEquals(String.valueOf(bigIntegerValue),
-				messageAttributes.get("bigInteger").getStringValue());
-		assertEquals(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal",
-				messageAttributes.get("bigDecimal").getDataType());
-		assertEquals(String.valueOf(bigDecimalValue),
-				messageAttributes.get("bigDecimal").getStringValue());
+		assertThat(messageAttributes.get("double").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Double");
+		assertThat(messageAttributes.get("double").getStringValue())
+				.isEqualTo(String.valueOf(doubleValue));
+		assertThat(messageAttributes.get("long").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Long");
+		assertThat(messageAttributes.get("long").getStringValue())
+				.isEqualTo(String.valueOf(longValue));
+		assertThat(messageAttributes.get("integer").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer");
+		assertThat(messageAttributes.get("integer").getStringValue())
+				.isEqualTo(String.valueOf(integerValue));
+		assertThat(messageAttributes.get("byte").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Byte");
+		assertThat(messageAttributes.get("byte").getStringValue())
+				.isEqualTo(String.valueOf(byteValue));
+		assertThat(messageAttributes.get("short").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Short");
+		assertThat(messageAttributes.get("short").getStringValue())
+				.isEqualTo(String.valueOf(shortValue));
+		assertThat(messageAttributes.get("float").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.lang.Float");
+		assertThat(messageAttributes.get("float").getStringValue())
+				.isEqualTo(String.valueOf(floatValue));
+		assertThat(messageAttributes.get("bigInteger").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.math.BigInteger");
+		assertThat(messageAttributes.get("bigInteger").getStringValue())
+				.isEqualTo(String.valueOf(bigIntegerValue));
+		assertThat(messageAttributes.get("bigDecimal").getDataType())
+				.isEqualTo(MessageAttributeDataTypes.NUMBER + ".java.math.BigDecimal");
+		assertThat(messageAttributes.get("bigDecimal").getStringValue())
+				.isEqualTo(String.valueOf(bigDecimalValue));
 	}
 
 	@Test
@@ -485,14 +482,16 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		// Assert
-		assertEquals(doubleValue, receivedMessage.getHeaders().get("double"));
-		assertEquals(longValue, receivedMessage.getHeaders().get("long"));
-		assertEquals(integerValue, receivedMessage.getHeaders().get("integer"));
-		assertEquals(byteValue, receivedMessage.getHeaders().get("byte"));
-		assertEquals(shortValue, receivedMessage.getHeaders().get("short"));
-		assertEquals(floatValue, receivedMessage.getHeaders().get("float"));
-		assertEquals(bigIntegerValue, receivedMessage.getHeaders().get("bigInteger"));
-		assertEquals(bigDecimalValue, receivedMessage.getHeaders().get("bigDecimal"));
+		assertThat(receivedMessage.getHeaders().get("double")).isEqualTo(doubleValue);
+		assertThat(receivedMessage.getHeaders().get("long")).isEqualTo(longValue);
+		assertThat(receivedMessage.getHeaders().get("integer")).isEqualTo(integerValue);
+		assertThat(receivedMessage.getHeaders().get("byte")).isEqualTo(byteValue);
+		assertThat(receivedMessage.getHeaders().get("short")).isEqualTo(shortValue);
+		assertThat(receivedMessage.getHeaders().get("float")).isEqualTo(floatValue);
+		assertThat(receivedMessage.getHeaders().get("bigInteger"))
+				.isEqualTo(bigIntegerValue);
+		assertThat(receivedMessage.getHeaders().get("bigDecimal"))
+				.isEqualTo(bigDecimalValue);
 	}
 
 	@Test
@@ -582,11 +581,12 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(headerValue, sendMessageRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(headerName).getBinaryValue());
-		assertEquals(MessageAttributeDataTypes.BINARY, sendMessageRequestArgumentCaptor
-				.getValue().getMessageAttributes().get(headerName).getDataType());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getBinaryValue()).isEqualTo(headerValue);
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(headerName).getDataType())
+						.isEqualTo(MessageAttributeDataTypes.BINARY);
 	}
 
 	@Test
@@ -616,7 +616,7 @@ public class QueueMessageChannelTest {
 		Message<?> receivedMessage = messageChannel.receive();
 
 		// Assert
-		assertEquals(headerValue, receivedMessage.getHeaders().get(headerName));
+		assertThat(receivedMessage.getHeaders().get(headerName)).isEqualTo(headerValue);
 	}
 
 	@Test
@@ -637,9 +637,9 @@ public class QueueMessageChannelTest {
 		boolean sent = messageChannel.send(message);
 
 		// Assert
-		assertTrue(sent);
-		assertEquals(uuid.toString(), sendMessageRequestArgumentCaptor.getValue()
-				.getMessageAttributes().get(MessageHeaders.ID).getStringValue());
+		assertThat(sent).isTrue();
+		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes()
+				.get(MessageHeaders.ID).getStringValue()).isEqualTo(uuid.toString());
 	}
 
 	@Test
@@ -669,8 +669,8 @@ public class QueueMessageChannelTest {
 
 		// Assert
 		Object idMessageHeader = receivedMessage.getHeaders().get(MessageHeaders.ID);
-		assertTrue(UUID.class.isInstance(idMessageHeader));
-		assertEquals(uuid, idMessageHeader);
+		assertThat(UUID.class.isInstance(idMessageHeader)).isTrue();
+		assertThat(idMessageHeader).isEqualTo(uuid);
 	}
 
 	@Test
@@ -691,7 +691,7 @@ public class QueueMessageChannelTest {
 				.send(MessageBuilder.withPayload("Hello").build(), 1000);
 
 		// Assert
-		assertTrue(result);
+		assertThat(result).isTrue();
 		verify(amazonSqs, only()).sendMessageAsync(any(SendMessageRequest.class));
 	}
 
@@ -713,7 +713,7 @@ public class QueueMessageChannelTest {
 				.send(MessageBuilder.withPayload("Hello").build(), 1000);
 
 		// Assert
-		assertFalse(result);
+		assertThat(result).isFalse();
 	}
 
 	@Test
@@ -760,9 +760,9 @@ public class QueueMessageChannelTest {
 		// Assert
 		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor
 				.getValue();
-		assertEquals(new Integer(15), sendMessageRequest.getDelaySeconds());
-		assertFalse(sendMessageRequest.getMessageAttributes()
-				.containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
+		assertThat(sendMessageRequest.getDelaySeconds()).isEqualTo(new Integer(15));
+		assertThat(sendMessageRequest.getMessageAttributes()
+				.containsKey(SqsMessageHeaders.SQS_DELAY_HEADER)).isFalse();
 	}
 
 	@Test
@@ -786,9 +786,9 @@ public class QueueMessageChannelTest {
 		// Assert
 		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor
 				.getValue();
-		assertNull(sendMessageRequest.getDelaySeconds());
-		assertFalse(sendMessageRequest.getMessageAttributes()
-				.containsKey(SqsMessageHeaders.SQS_DELAY_HEADER));
+		assertThat(sendMessageRequest.getDelaySeconds()).isNull();
+		assertThat(sendMessageRequest.getMessageAttributes()
+				.containsKey(SqsMessageHeaders.SQS_DELAY_HEADER)).isFalse();
 	}
 
 	@Test
@@ -813,14 +813,16 @@ public class QueueMessageChannelTest {
 		// Assert
 		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor
 				.getValue();
-		assertEquals("id-5", sendMessageRequest.getMessageGroupId());
-		assertFalse(sendMessageRequest.getMessageAttributes()
-				.containsKey(SqsMessageHeaders.SQS_GROUP_ID_HEADER));
+		assertThat(sendMessageRequest.getMessageGroupId()).isEqualTo("id-5");
+		assertThat(sendMessageRequest.getMessageAttributes()
+				.containsKey(SqsMessageHeaders.SQS_GROUP_ID_HEADER)).isFalse();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void sendMessage_withDeduplicationIdHeader_shouldSetDeduplicationIdOnSendMessageRequestAndNotSetItAsHeaderAsMessageAttribute()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 
@@ -840,9 +842,9 @@ public class QueueMessageChannelTest {
 		// Assert
 		SendMessageRequest sendMessageRequest = sendMessageRequestArgumentCaptor
 				.getValue();
-		assertEquals("id-5", sendMessageRequest.getMessageDeduplicationId());
-		assertFalse(sendMessageRequest.getMessageAttributes()
-				.containsKey(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER));
+		assertThat(sendMessageRequest.getMessageDeduplicationId()).isEqualTo("id-5");
+		assertThat(sendMessageRequest.getMessageAttributes()
+				.containsKey(SqsMessageHeaders.SQS_DEDUPLICATION_ID_HEADER)).isFalse();
 	}
 
 }

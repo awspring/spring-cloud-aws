@@ -33,8 +33,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -57,10 +56,11 @@ public class ObjectMessageConverterTest {
 		MessageConverter messageConverter = new ObjectMessageConverter();
 		Message<?> message = messageConverter.toMessage(sourceMessage,
 				getMessageHeaders("UTF-8"));
-		assertTrue(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")));
+		assertThat(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")))
+				.isTrue();
 		MySerializableClass result = (MySerializableClass) messageConverter
 				.fromMessage(message, MySerializableClass.class);
-		assertEquals(content, result.getContent());
+		assertThat(result.getContent()).isEqualTo(content);
 	}
 
 	@Test
@@ -70,11 +70,12 @@ public class ObjectMessageConverterTest {
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
 		Message<?> message = messageConverter.toMessage(sourceMessage,
 				getMessageHeaders("ISO-8859-1"));
-		assertTrue(
-				Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")));
+		assertThat(
+				Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")))
+						.isTrue();
 		MySerializableClass result = (MySerializableClass) messageConverter
 				.fromMessage(message, MySerializableClass.class);
-		assertEquals(content, result.getContent());
+		assertThat(result.getContent()).isEqualTo(content);
 	}
 
 	@Test(expected = UnsupportedCharsetException.class)
@@ -102,7 +103,7 @@ public class ObjectMessageConverterTest {
 				null);
 	}
 
-	private static class MySerializableClass implements Serializable {
+	private static final class MySerializableClass implements Serializable {
 
 		private final String content;
 

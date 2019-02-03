@@ -34,8 +34,7 @@ import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourc
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class AmazonRdsDatabaseAutoConfigurationTest {
@@ -62,8 +61,9 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 	}
 
 	@Test
@@ -81,12 +81,13 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 
 		// Assert
 		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertNotNull(dataSource);
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(dataSource).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 
-		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
-		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl()
-				.endsWith("fooDb"));
+		assertThat(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource).isTrue();
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl()
+				.endsWith("fooDb")).isTrue();
 	}
 
 	@Test
@@ -105,13 +106,14 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean("test", DataSource.class));
-		assertNotNull(
-				this.context.getBean("&test", AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean("test", DataSource.class)).isNotNull();
+		assertThat(this.context.getBean("&test", AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 
-		assertNotNull(this.context.getBean("anotherOne", DataSource.class));
-		assertNotNull(this.context.getBean("&anotherOne",
-				AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean("anotherOne", DataSource.class)).isNotNull();
+		assertThat(
+				this.context.getBean("&anotherOne", AmazonRdsDataSourceFactoryBean.class))
+						.isNotNull();
 	}
 
 	@Test
@@ -130,9 +132,10 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context
-				.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context
+				.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class))
+						.isNotNull();
 	}
 
 	public static class ApplicationConfigurationWithoutReadReplica {

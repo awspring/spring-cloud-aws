@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.aws.autoconfigure.context.properties;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link AwsS3ResourceLoaderProperties}.
@@ -36,37 +38,37 @@ public class AwsS3ResourceLoaderPropertiesTest {
 
 	@Test
 	public void corePoolSizeCanBeSet() {
-		Assert.assertEquals("Default value of the core size should be one", 1,
-				this.properties.getCorePoolSize());
+		assertThat(this.properties.getCorePoolSize())
+				.as("Default value of the core size should be one").isEqualTo(1);
 
 		int newSize = 138;
 		this.properties.setCorePoolSize(newSize);
-		Assert.assertEquals("Core size should have been reset", newSize,
-				this.properties.getCorePoolSize());
+		assertThat(this.properties.getCorePoolSize())
+				.as("Core size should have been reset").isEqualTo(newSize);
 	}
 
 	@Test
 	public void maxPoolSizeCanBeSet() {
-		Assert.assertEquals(
-				"Default value of the max pool size should be integer max value",
-				Integer.MAX_VALUE, this.properties.getMaxPoolSize());
+		assertThat(this.properties.getMaxPoolSize())
+				.as("Default value of the max pool size should be integer max value")
+				.isEqualTo(Integer.MAX_VALUE);
 
 		int newSize = 11;
 		this.properties.setMaxPoolSize(newSize);
-		Assert.assertEquals("Max pool size should have been reset", newSize,
-				this.properties.getMaxPoolSize());
+		assertThat(this.properties.getMaxPoolSize())
+				.as("Max pool size should have been reset").isEqualTo(newSize);
 	}
 
 	@Test
 	public void queueCapacityCanBeSet() {
-		Assert.assertEquals(
-				"Default value of the queue capacity size should be integer max value",
-				Integer.MAX_VALUE, this.properties.getQueueCapacity());
+		assertThat(this.properties.getQueueCapacity()).as(
+				"Default value of the queue capacity size should be integer max value")
+				.isEqualTo(Integer.MAX_VALUE);
 
 		int newSize = 11;
 		this.properties.setQueueCapacity(newSize);
-		Assert.assertEquals("Queue capacity should have been reset", newSize,
-				this.properties.getQueueCapacity());
+		assertThat(this.properties.getQueueCapacity())
+				.as("Queue capacity should have been reset").isEqualTo(newSize);
 	}
 
 }

@@ -34,8 +34,7 @@ import org.junit.Test;
 
 import org.springframework.util.SocketUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -88,8 +87,10 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertEquals("valueA", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		assertEquals("valueB", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA"))
+				.isEqualTo("valueA");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB"))
+				.isEqualTo("valueB");
 
 		httpServer.removeContext("/latest/user-data/");
 	}
@@ -109,8 +110,10 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
 
 		// Assert
-		assertEquals("valueD", amazonEc2InstanceDataPropertySource.getProperty("keyA"));
-		assertEquals("valueE", amazonEc2InstanceDataPropertySource.getProperty("keyB"));
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA"))
+				.isEqualTo("valueD");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB"))
+				.isEqualTo("valueE");
 
 		httpServer.removeContext("/latest/user-data/");
 	}
@@ -126,8 +129,8 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertEquals("i1234567",
-				amazonEc2InstanceDataPropertySource.getProperty("instance-id"));
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("instance-id"))
+				.isEqualTo("i1234567");
 
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}
@@ -144,8 +147,8 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertEquals("amazonaws.com",
-				amazonEc2InstanceDataPropertySource.getProperty("services/domain"));
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("services/domain"))
+				.isEqualTo("amazonaws.com");
 
 		httpServer.removeContext("/latest/meta-data/services/domain");
 	}
@@ -161,8 +164,9 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertNull(amazonEc2InstanceDataPropertySource
-				.getProperty("non-existing-attribute"));
+		assertThat(
+				amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"))
+						.isNull();
 
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}
@@ -174,7 +178,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 		metadataCacheField.set(null, new HashMap<String, String>());
 	}
 
-	private static class StringWritingHttpHandler implements HttpHandler {
+	private static final class StringWritingHttpHandler implements HttpHandler {
 
 		private final byte[] content;
 

@@ -26,8 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,11 +64,14 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 		return stackResourceRegistry;
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
-		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
+		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory());
 		resourceIdResolver.afterPropertiesSet();
 
@@ -78,14 +80,17 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 				.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
-		assertThat(physicalResourceId, is("logicalResourceId"));
+		assertThat(physicalResourceId).isEqualTo("logicalResourceId");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
-		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
+		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver
 				.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
 		resourceIdResolver.afterPropertiesSet();
@@ -95,14 +100,17 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 				.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
-		assertThat(physicalResourceId, is("logicalResourceId"));
+		assertThat(physicalResourceId).isEqualTo("logicalResourceId");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
-		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
+		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
 				makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
 		resourceIdResolver.afterPropertiesSet();
@@ -112,14 +120,17 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 				.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
-		assertThat(physicalResourceId, is("physicalResourceId"));
+		assertThat(physicalResourceId).isEqualTo("physicalResourceId");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void createInstance_multipleStackResourceRegistriesAvailable_throwsException()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
-		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
+		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
+		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
 		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
 				makeStackResourceRegistry(), makeStackResourceRegistry()));
 

@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.env.Environment;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -43,8 +43,9 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 		staticApplicationContext.refresh();
 
 		// Assert
-		assertNotNull(staticApplicationContext.getEnvironment().getPropertySources().get(
-				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME));
+		assertThat(staticApplicationContext.getEnvironment().getPropertySources().get(
+				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME))
+						.isNotNull();
 	}
 
 	@Test

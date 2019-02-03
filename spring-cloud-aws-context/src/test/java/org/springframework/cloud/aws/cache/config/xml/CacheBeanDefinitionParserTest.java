@@ -42,8 +42,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -115,9 +114,9 @@ public class CacheBeanDefinitionParserTest {
 		Thread.sleep(2000);
 
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
-		assertNull(cache.get("foo"));
+		assertThat(cacheManager).isNotNull();
+		assertThat(cache).isNotNull();
+		assertThat(cache.get("foo")).isNull();
 	}
 
 	@Test
@@ -133,8 +132,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.put("foo", "bar");
 		cache.evict("foo");
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
+		assertThat(cacheManager).isNotNull();
+		assertThat(cache).isNotNull();
 	}
 
 	@Test
@@ -193,8 +192,8 @@ public class CacheBeanDefinitionParserTest {
 		Cache memcached = cacheManager.getCache("memcached");
 
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(memcached);
+		assertThat(cacheManager).isNotNull();
+		assertThat(memcached).isNotNull();
 
 		memc.put("foo", "bar");
 		memc.evict("foo");
@@ -250,8 +249,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
+		assertThat(cacheManager).isNotNull();
+		assertThat(cache).isNotNull();
 	}
 
 	@Test
@@ -317,8 +316,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
+		assertThat(cacheManager).isNotNull();
+		assertThat(cache).isNotNull();
 	}
 
 	@Test
@@ -340,8 +339,8 @@ public class CacheBeanDefinitionParserTest {
 						.getBeanName(AmazonElastiCacheClient.class.getName()));
 
 		// Assert
-		assertNotNull(beanDefinition);
-		assertNotNull(beanDefinition.getPropertyValues().get("customRegion"));
+		assertThat(beanDefinition).isNotNull();
+		assertThat(beanDefinition.getPropertyValues().get("customRegion")).isNotNull();
 	}
 
 	@Test
@@ -380,8 +379,8 @@ public class CacheBeanDefinitionParserTest {
 		cache.evict("foo");
 
 		// Assert
-		assertNotNull(cacheManager);
-		assertNotNull(cache);
+		assertThat(cacheManager).isNotNull();
+		assertThat(cache).isNotNull();
 	}
 
 }

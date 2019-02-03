@@ -22,7 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -48,7 +48,7 @@ public class Ec2MetadataRegionProviderTest {
 		Region region = regionProvider.getRegion();
 
 		// Assert
-		assertEquals(Region.getRegion(Regions.EU_WEST_1), region);
+		assertThat(region).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test

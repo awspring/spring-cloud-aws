@@ -36,7 +36,8 @@ public class VisibilityHandlerMethodArgumentResolverTest {
 	public void resolveArgument_messageWithNoVisibilityHeader_throwIllegalArgumentException()
 			throws Exception {
 		// Arrange
-		VisibilityHandlerMethodArgumentResolver visibilityHandlerMethodArgumentResolver = new VisibilityHandlerMethodArgumentResolver(
+		VisibilityHandlerMethodArgumentResolver visibilityHandlerMethodArgumentResolver;
+		visibilityHandlerMethodArgumentResolver = new VisibilityHandlerMethodArgumentResolver(
 				"Visibility");
 		Message<String> message = MessageBuilder.withPayload("no content").build();
 

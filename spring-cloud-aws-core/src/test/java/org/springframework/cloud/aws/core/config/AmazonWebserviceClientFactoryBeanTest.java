@@ -18,10 +18,11 @@ package org.springframework.cloud.aws.core.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -43,7 +44,7 @@ public class AmazonWebserviceClientFactoryBeanTest {
 		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
 		// Assert
-		Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
+		assertThat(webserviceClient.getRegion().getName()).isEqualTo("eu-west-1");
 
 	}
 
@@ -62,7 +63,7 @@ public class AmazonWebserviceClientFactoryBeanTest {
 		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
 		// Assert
-		Assert.assertEquals("eu-west-1", webserviceClient.getRegion().getName());
+		assertThat(webserviceClient.getRegion().getName()).isEqualTo("eu-west-1");
 
 	}
 

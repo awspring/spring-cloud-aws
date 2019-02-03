@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -79,7 +79,10 @@ public class NotificationEndpointControllerTest {
 		// Assert
 		verify(this.amazonSnsMock, times(1)).confirmSubscription(
 				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
-				"111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+				"111111111111111111111111111111111111111111111111111111"
+						+ "11111111111111111111111111111111111111111111111111111"
+						+ "111111111111111111111111111111111111111111111111111111"
+						+ "1111111111111111111111111111111111111111111111111");
 	}
 
 	@Test
@@ -98,8 +101,8 @@ public class NotificationEndpointControllerTest {
 				.andExpect(status().isNoContent());
 
 		// Assert
-		assertEquals("asdasd", this.notificationTestController.getMessage());
-		assertEquals("asdasd", this.notificationTestController.getSubject());
+		assertThat(this.notificationTestController.getMessage()).isEqualTo("asdasd");
+		assertThat(this.notificationTestController.getSubject()).isEqualTo("asdasd");
 	}
 
 	@Test
@@ -120,7 +123,10 @@ public class NotificationEndpointControllerTest {
 		// Assert
 		verify(this.amazonSnsMock, times(1)).confirmSubscription(
 				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
-				"2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45");
+				"2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb"
+						+ "8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d3"
+						+ "4dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf"
+						+ "54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45");
 	}
 
 }

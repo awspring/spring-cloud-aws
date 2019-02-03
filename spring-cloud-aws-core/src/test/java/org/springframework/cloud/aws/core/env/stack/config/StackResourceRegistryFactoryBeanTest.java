@@ -26,18 +26,13 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -140,10 +135,10 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdOne"),
-				is("physicalResourceIdOne"));
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"),
-				is("physicalResourceIdTwo"));
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdOne"))
+				.isEqualTo("physicalResourceIdOne");
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"))
+				.isEqualTo("physicalResourceIdTwo");
 	}
 
 	@Test
@@ -172,7 +167,7 @@ public class StackResourceRegistryFactoryBeanTest {
 		// Assert
 		verify(cloudFormationClient, times(2))
 				.listStackResources(isA(ListStackResourcesRequest.class));
-		Assert.assertEquals(2, stackResourceFactory.getAllResources().size());
+		assertThat(stackResourceFactory.getAllResources().size()).isEqualTo(2);
 	}
 
 	@Test
@@ -191,13 +186,13 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.getAllResources().size(), is(2));
+		assertThat(stackResourceRegistry.getAllResources().size()).isEqualTo(2);
 		for (StackResource stackResource : stackResourceRegistry.getAllResources()) {
-			assertThat(stackResource.getLogicalId(),
-					anyOf(is("logicalResourceIdOne"), is("logicalResourceIdTwo")));
-			assertThat(stackResource.getPhysicalId(),
-					anyOf(is("physicalResourceIdOne"), is("physicalResourceIdTwo")));
-			assertThat(stackResource.getType(), is("Amazon::SES::Test"));
+			assertThat(stackResource.getLogicalId()).isIn("logicalResourceIdOne",
+					"logicalResourceIdTwo");
+			assertThat(stackResource.getPhysicalId()).isIn("physicalResourceIdOne",
+					"physicalResourceIdTwo");
+			assertThat(stackResource.getType()).isEqualTo("Amazon::SES::Test");
 		}
 	}
 
@@ -213,12 +208,14 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.getStackName(), is(STACK_NAME));
+		assertThat(stackResourceRegistry.getStackName()).isEqualTo(STACK_NAME);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void createInstance_stackWithNoResources_returnsStackResourceRegistryAnsweringWithNullForNonExistingLogicalResourceId()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(
 				STACK_NAME, Collections.emptyMap());
@@ -228,8 +225,8 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId(
-				"nonExistingLogicalResourceId"), is(nullValue()));
+		assertThat(stackResourceRegistry
+				.lookupPhysicalResourceId("nonExistingLogicalResourceId")).isNull();
 	}
 
 	@Test
@@ -249,21 +246,21 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.getAllResources().size(), is(3));
+		assertThat(stackResourceRegistry.getAllResources().size()).isEqualTo(3);
 		for (StackResource stackResource : stackResourceRegistry.getAllResources()) {
-			assertThat(stackResource.getLogicalId(),
-					anyOf(is("logicalResourceIdOne"), is("logicalNestedStack"),
-							is("logicalNestedStack.logicalResourceIdTwo")));
-			assertThat(stackResource.getPhysicalId(), anyOf(is("physicalResourceIdOne"),
-					is("physicalStackId"), is("physicalResourceIdTwo")));
-			assertThat(stackResource.getType(),
-					anyOf(is("AWS::CloudFormation::Stack"), is("Amazon::SES::Test")));
+			assertThat(stackResource.getLogicalId()).isIn("logicalResourceIdOne",
+					"logicalNestedStack", "logicalNestedStack.logicalResourceIdTwo");
+			assertThat(stackResource.getPhysicalId()).isIn("physicalResourceIdOne",
+					"physicalStackId", "physicalResourceIdTwo");
+			assertThat(stackResource.getType()).isIn("AWS::CloudFormation::Stack",
+					"Amazon::SES::Test");
 		}
 
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId(
-				"logicalNestedStack.logicalResourceIdTwo"), notNullValue());
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"),
-				notNullValue());
+		assertThat(stackResourceRegistry
+				.lookupPhysicalResourceId("logicalNestedStack.logicalResourceIdTwo"))
+						.isNotNull();
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResourceIdTwo"))
+				.isNotNull();
 	}
 
 	@Test
@@ -286,13 +283,15 @@ public class StackResourceRegistryFactoryBeanTest {
 				.createInstance();
 
 		// Assert
-		assertThat(stackResourceRegistry.getAllResources().size(), is(4));
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId(
-				"logicalNested1Stack.logicalResource"), notNullValue());
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId(
-				"logicalNested2Stack.logicalResource"), notNullValue());
-		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResource"),
-				nullValue());
+		assertThat(stackResourceRegistry.getAllResources().size()).isEqualTo(4);
+		assertThat(stackResourceRegistry
+				.lookupPhysicalResourceId("logicalNested1Stack.logicalResource"))
+						.isNotNull();
+		assertThat(stackResourceRegistry
+				.lookupPhysicalResourceId("logicalNested2Stack.logicalResource"))
+						.isNotNull();
+		assertThat(stackResourceRegistry.lookupPhysicalResourceId("logicalResource"))
+				.isNull();
 	}
 
 }

@@ -26,8 +26,7 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextResourceLoaderAutoConfigurationTest {
 
@@ -58,11 +57,12 @@ public class ContextResourceLoaderAutoConfigurationTest {
 				.getProtocolResolvers().iterator().next();
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils
 				.getField(simpleStorageProtocolResolver, "taskExecutor");
-		assertNotNull(taskExecutor);
+		assertThat(taskExecutor).isNotNull();
 
-		assertEquals(10, taskExecutor.getCorePoolSize());
-		assertEquals(20, taskExecutor.getMaxPoolSize());
-		assertEquals(0, ReflectionTestUtils.getField(taskExecutor, "queueCapacity"));
+		assertThat(taskExecutor.getCorePoolSize()).isEqualTo(10);
+		assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(20);
+		assertThat(ReflectionTestUtils.getField(taskExecutor, "queueCapacity"))
+				.isEqualTo(0);
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class ContextResourceLoaderAutoConfigurationTest {
 				.getProtocolResolvers().iterator().next();
 		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils
 				.getField(simpleStorageProtocolResolver, "taskExecutor");
-		assertNotNull(taskExecutor);
+		assertThat(taskExecutor).isNotNull();
 	}
 
 }

@@ -38,9 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class AmazonRdsInstanceConfigurationTest {
@@ -64,8 +62,9 @@ public class AmazonRdsInstanceConfigurationTest {
 				ApplicationConfigurationWithoutReadReplica.class);
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 	}
 
 	@Test
@@ -79,12 +78,13 @@ public class AmazonRdsInstanceConfigurationTest {
 
 		// Assert
 		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertNotNull(dataSource);
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(dataSource).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 
-		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
-		assertTrue(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl()
-				.endsWith("fooDb"));
+		assertThat(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource).isTrue();
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl()
+				.endsWith("fooDb")).isTrue();
 	}
 
 	@Test
@@ -98,20 +98,22 @@ public class AmazonRdsInstanceConfigurationTest {
 
 		// Assert
 		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertNotNull(dataSource);
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(dataSource).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 
-		assertTrue(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource);
-		assertEquals("SELECT 1 FROM TEST",
-				((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
-						.getValidationQuery());
-		assertEquals(0,
-				((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize());
+		assertThat(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource).isTrue();
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
+				.getValidationQuery()).isEqualTo("SELECT 1 FROM TEST");
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize())
+				.isEqualTo(0);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		HashMap<String, Object> propertySourceProperties = new HashMap<>();
@@ -128,13 +130,16 @@ public class AmazonRdsInstanceConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		HashMap<String, Object> propertySourceProperties = new HashMap<>();
@@ -151,8 +156,9 @@ public class AmazonRdsInstanceConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context.getBean(AmazonRdsDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
 	}
 
 	@Test
@@ -165,9 +171,10 @@ public class AmazonRdsInstanceConfigurationTest {
 				ApplicationConfigurationWithReadReplica.class);
 
 		// Assert
-		assertNotNull(this.context.getBean(DataSource.class));
-		assertNotNull(this.context
-				.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class));
+		assertThat(this.context.getBean(DataSource.class)).isNotNull();
+		assertThat(this.context
+				.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class))
+						.isNotNull();
 	}
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
@@ -252,8 +259,11 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	}
 
+	// @checkstyle:off
 	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
 	public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
+
+		// @checkstyle:on
 
 		@Bean
 		public AmazonRDS amazonRDS() {
@@ -276,8 +286,11 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	}
 
+	// @checkstyle:off
 	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}", password = "${password}", username = "${username}")
 	public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
+
+		// @checkstyle:on
 
 		@Bean
 		static PropertySourcesPlaceholderConfigurer configurer() {

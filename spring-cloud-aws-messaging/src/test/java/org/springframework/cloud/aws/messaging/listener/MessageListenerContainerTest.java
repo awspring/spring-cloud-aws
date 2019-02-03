@@ -39,12 +39,8 @@ import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -69,7 +65,7 @@ public class MessageListenerContainerTest {
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
 		container.afterPropertiesSet();
-		assertTrue(container.isActive());
+		assertThat(container.isActive()).isTrue();
 	}
 
 	@Test
@@ -105,8 +101,9 @@ public class MessageListenerContainerTest {
 
 		DestinationResolver<String> destinationResolver = container
 				.getDestinationResolver();
-		assertNotNull(destinationResolver);
-		assertTrue(CachingDestinationResolverProxy.class.isInstance(destinationResolver));
+		assertThat(destinationResolver).isNotNull();
+		assertThat(CachingDestinationResolverProxy.class.isInstance(destinationResolver))
+				.isTrue();
 	}
 
 	@Test
@@ -119,7 +116,7 @@ public class MessageListenerContainerTest {
 		container.afterPropertiesSet();
 		container.destroy();
 
-		assertFalse(container.isActive());
+		assertThat(container.isActive()).isFalse();
 	}
 
 	@Test
@@ -127,7 +124,7 @@ public class MessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setBeanName("test");
-		assertEquals("test", container.getBeanName());
+		assertThat(container.getBeanName()).isEqualTo("test");
 	}
 
 	@Test
@@ -143,47 +140,47 @@ public class MessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 
-		assertEquals(destinationResolver, container.getDestinationResolver());
+		assertThat(container.getDestinationResolver()).isEqualTo(destinationResolver);
 	}
 
 	@Test
 	public void testMaxNumberOfMessages() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		assertNull(container.getMaxNumberOfMessages());
+		assertThat(container.getMaxNumberOfMessages()).isNull();
 		container.setMaxNumberOfMessages(23);
-		assertEquals(new Integer(23), container.getMaxNumberOfMessages());
+		assertThat(container.getMaxNumberOfMessages()).isEqualTo(new Integer(23));
 	}
 
 	@Test
 	public void testVisibilityTimeout() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		assertNull(container.getVisibilityTimeout());
+		assertThat(container.getVisibilityTimeout()).isNull();
 		container.setVisibilityTimeout(32);
-		assertEquals(new Integer(32), container.getVisibilityTimeout());
+		assertThat(container.getVisibilityTimeout()).isEqualTo(new Integer(32));
 	}
 
 	@Test
 	public void testWaitTimeout() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		assertEquals(new Integer(20), container.getWaitTimeOut());
+		assertThat(container.getWaitTimeOut()).isEqualTo(new Integer(20));
 		container.setWaitTimeOut(42);
-		assertEquals(new Integer(42), container.getWaitTimeOut());
+		assertThat(container.getWaitTimeOut()).isEqualTo(new Integer(42));
 	}
 
 	@Test
 	public void testIsAutoStartup() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		assertTrue(container.isAutoStartup());
+		assertThat(container.isAutoStartup()).isTrue();
 		container.setAutoStartup(false);
-		assertFalse(container.isAutoStartup());
+		assertThat(container.isAutoStartup()).isFalse();
 	}
 
 	@Test
 	public void testGetAndSetPhase() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
-		assertEquals(Integer.MAX_VALUE, container.getPhase());
+		assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
 		container.setPhase(23);
-		assertEquals(23L, container.getPhase());
+		assertThat(container.getPhase()).isEqualTo(23L);
 	}
 
 	@Test
@@ -201,13 +198,13 @@ public class MessageListenerContainerTest {
 						.withQueueUrl("http://testQueue.amazonaws.com"));
 
 		container.start();
-		assertTrue(container.isRunning());
+		assertThat(container.isRunning()).isTrue();
 
 		container.stop();
-		assertFalse(container.isRunning());
+		assertThat(container.isRunning()).isFalse();
 
 		// Container can still be active an restarted later (e.g. paused for a while)
-		assertTrue(container.isActive());
+		assertThat(container.isActive()).isTrue();
 	}
 
 	@Test
@@ -238,14 +235,14 @@ public class MessageListenerContainerTest {
 		container.start();
 
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
-		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue")
-				.getReceiveMessageRequest().getQueueUrl());
-		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getMaxNumberOfMessages().longValue());
-		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getVisibilityTimeout().longValue());
-		assertEquals(33L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getWaitTimeSeconds().longValue());
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getQueueUrl()).isEqualTo("http://testQueue.amazonaws.com");
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getMaxNumberOfMessages().longValue()).isEqualTo(11L);
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getVisibilityTimeout().longValue()).isEqualTo(22L);
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getWaitTimeSeconds().longValue()).isEqualTo(33L);
 	}
 
 	@Test
@@ -280,22 +277,22 @@ public class MessageListenerContainerTest {
 		container.start();
 
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
-		assertEquals("http://testQueue.amazonaws.com", registeredQueues.get("testQueue")
-				.getReceiveMessageRequest().getQueueUrl());
-		assertEquals(11L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getMaxNumberOfMessages().longValue());
-		assertEquals(22L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getVisibilityTimeout().longValue());
-		assertEquals(33L, registeredQueues.get("testQueue").getReceiveMessageRequest()
-				.getWaitTimeSeconds().longValue());
-		assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues
-				.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
-		assertEquals(11L, registeredQueues.get("anotherTestQueue")
-				.getReceiveMessageRequest().getMaxNumberOfMessages().longValue());
-		assertEquals(22L, registeredQueues.get("anotherTestQueue")
-				.getReceiveMessageRequest().getVisibilityTimeout().longValue());
-		assertEquals(33L, registeredQueues.get("anotherTestQueue")
-				.getReceiveMessageRequest().getWaitTimeSeconds().longValue());
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getQueueUrl()).isEqualTo("http://testQueue.amazonaws.com");
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getMaxNumberOfMessages().longValue()).isEqualTo(11L);
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getVisibilityTimeout().longValue()).isEqualTo(22L);
+		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
+				.getWaitTimeSeconds().longValue()).isEqualTo(33L);
+		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
+				.getQueueUrl()).isEqualTo("http://anotherTestQueue.amazonaws.com");
+		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
+				.getMaxNumberOfMessages().longValue()).isEqualTo(11L);
+		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
+				.getVisibilityTimeout().longValue()).isEqualTo(22L);
+		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
+				.getWaitTimeSeconds().longValue()).isEqualTo(33L);
 	}
 
 	@Test
@@ -326,7 +323,7 @@ public class MessageListenerContainerTest {
 		container.start();
 
 		try {
-			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertThat(countDownLatch.await(10, TimeUnit.MILLISECONDS)).isTrue();
 		}
 		catch (InterruptedException e) {
 			fail("Expected doStart() method to be called");
@@ -364,7 +361,7 @@ public class MessageListenerContainerTest {
 		container.stop();
 
 		try {
-			assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+			assertThat(countDownLatch.await(10, TimeUnit.MILLISECONDS)).isTrue();
 		}
 		catch (InterruptedException e) {
 			fail("Expected doStart() method to be called");
@@ -400,7 +397,7 @@ public class MessageListenerContainerTest {
 
 		container.stop(() -> {
 			try {
-				assertTrue(countDownLatch.await(10, TimeUnit.MILLISECONDS));
+				assertThat(countDownLatch.await(10, TimeUnit.MILLISECONDS)).isTrue();
 			}
 			catch (InterruptedException e) {
 				fail("Expected doStart() method to be called");
@@ -411,13 +408,14 @@ public class MessageListenerContainerTest {
 	@Test
 	public void doDestroy_WhenContainerIsDestroyed_shouldBeCalled() throws Exception {
 		// Arrange
-		DestroyAwareAbstractMessageListenerContainer abstractMessageListenerContainer = new DestroyAwareAbstractMessageListenerContainer();
+		DestroyAwareAbstractMessageListenerContainer abstractMessageListenerContainer;
+		abstractMessageListenerContainer = new DestroyAwareAbstractMessageListenerContainer();
 
 		// Act
 		abstractMessageListenerContainer.destroy();
 
 		// Assert
-		assertTrue(abstractMessageListenerContainer.isDestroyCalled());
+		assertThat(abstractMessageListenerContainer.isDestroyCalled()).isTrue();
 	}
 
 	@Test
@@ -455,11 +453,11 @@ public class MessageListenerContainerTest {
 		ArgumentCaptor<String> logMsgArgCaptor = ArgumentCaptor.forClass(String.class);
 		verify(loggerMock).warn(logMsgArgCaptor.capture());
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
-		assertFalse(registeredQueues.containsKey("testQueue"));
-		assertEquals("Ignoring queue with name 'testQueue' as it does not exist.",
-				logMsgArgCaptor.getValue());
-		assertEquals("http://anotherTestQueue.amazonaws.com", registeredQueues
-				.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl());
+		assertThat(registeredQueues.containsKey("testQueue")).isFalse();
+		assertThat(logMsgArgCaptor.getValue())
+				.isEqualTo("Ignoring queue with name 'testQueue' as it does not exist.");
+		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
+				.getQueueUrl()).isEqualTo("http://anotherTestQueue.amazonaws.com");
 	}
 
 	private static class StubAbstractMessageListenerContainer

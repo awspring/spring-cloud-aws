@@ -23,8 +23,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RedisCacheFactoryTest {
 
@@ -40,8 +39,8 @@ public class RedisCacheFactoryTest {
 			@Override
 			protected RedisConnectionFactory createConnectionClient(String hostName,
 					int port) {
-				assertEquals("someHost", hostName);
-				assertEquals(4711, port);
+				assertThat(hostName).isEqualTo("someHost");
+				assertThat(port).isEqualTo(4711);
 				return connectionFactory;
 			}
 		};
@@ -51,9 +50,9 @@ public class RedisCacheFactoryTest {
 		redisCacheFactory.destroy();
 
 		// Assert
-		assertNotNull(cache);
-		assertEquals("test", cache.getName());
-		assertNotNull(cache.getNativeCache());
+		assertThat(cache).isNotNull();
+		assertThat(cache.getName()).isEqualTo("test");
+		assertThat(cache.getNativeCache()).isNotNull();
 
 		DisposableBean disposableBean = (DisposableBean) connectionFactory;
 		Mockito.verify(disposableBean, Mockito.times(1)).destroy();

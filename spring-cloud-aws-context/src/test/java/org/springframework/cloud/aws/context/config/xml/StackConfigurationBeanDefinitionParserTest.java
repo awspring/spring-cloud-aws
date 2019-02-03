@@ -44,14 +44,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,9 +56,11 @@ import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientCo
  */
 public class StackConfigurationBeanDefinitionParserTest {
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_stackConfigurationWithExternallyConfiguredCloudFormationClient_returnsConfiguredStackWithExternallyConfiguredClient()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
@@ -89,9 +84,9 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.getBean(StackResourceRegistry.class);
 
 		// Assert
-		assertNotNull(stackResourceRegistry);
-		assertFalse(beanFactory.containsBeanDefinition(
-				getBeanName(AmazonCloudFormationClient.class.getName())));
+		assertThat(stackResourceRegistry).isNotNull();
+		assertThat(beanFactory.containsBeanDefinition(
+				getBeanName(AmazonCloudFormationClient.class.getName()))).isFalse();
 		verify(amazonCloudFormationMock, times(1)).listStackResources(
 				new ListStackResourcesRequest().withStackName("test"));
 		beanFactory.getBean("customStackTags");
@@ -113,11 +108,10 @@ public class StackConfigurationBeanDefinitionParserTest {
 		// Assert
 		AmazonCloudFormationClient amazonCloudFormation = registry
 				.getBean(AmazonCloudFormationClient.class);
-		assertEquals(
-				"https://" + Region.getRegion(Regions.SA_EAST_1)
-						.getServiceEndpoint("cloudformation"),
-				ReflectionTestUtils.getField(amazonCloudFormation, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonCloudFormation, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.SA_EAST_1)
+								.getServiceEndpoint("cloudformation"));
 	}
 
 	@Test
@@ -134,11 +128,10 @@ public class StackConfigurationBeanDefinitionParserTest {
 		// Assert
 		AmazonCloudFormationClient amazonCloudFormation = registry
 				.getBean(AmazonCloudFormationClient.class);
-		assertEquals(
-				"https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
-						.getServiceEndpoint("cloudformation"),
-				ReflectionTestUtils.getField(amazonCloudFormation, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonCloudFormation, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
+								.getServiceEndpoint("cloudformation"));
 	}
 
 	@Test
@@ -165,12 +158,14 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.getBean(ResourceIdResolver.class);
 
 		// Assert
-		assertThat(resourceIdResolver, is(not(nullValue())));
+		assertThat(resourceIdResolver).isNotNull();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		AmazonCloudFormation amazonCloudFormation = Mockito
@@ -193,13 +188,14 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.getBean("IntegrationTestStack", StackResourceRegistry.class);
 
 		// Assert
-		assertThat(staticStackNameProviderBasedStackResourceRegistry,
-				is(not(nullValue())));
+		assertThat(staticStackNameProviderBasedStackResourceRegistry).isNotNull();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void stackResourceRegistry_stackConfigurationWithoutStaticName_stackResourceRegistryBeanExposedUnderGeneratedName()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		HttpServer server = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = server.createContext("/latest/meta-data/instance-id",
@@ -233,14 +229,15 @@ public class StackConfigurationBeanDefinitionParserTest {
 						StackResourceRegistry.class);
 
 		// Assert
-		assertThat(autoDetectingStackNameProviderBasedStackResourceRegistry,
-				is(not(nullValue())));
+		assertThat(autoDetectingStackNameProviderBasedStackResourceRegistry).isNotNull();
 
 		server.removeContext(httpContext);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+		// @checkstyle:on
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		AmazonCloudFormation amazonCloudFormation = Mockito
@@ -269,12 +266,14 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.resolveToPhysicalResourceId("EmptyBucket");
 
 		// Assert
-		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
+		assertThat(physicalResourceId).startsWith("integrationteststack-emptybucket-");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		HttpServer server = MetaDataServer.setupHttpServer();
 		HttpContext httpContext = server.createContext("/latest/meta-data/instance-id",
@@ -311,13 +310,15 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.resolveToPhysicalResourceId("EmptyBucket");
 
 		// Assert
-		assertThat(physicalResourceId, startsWith("integrationteststack-emptybucket-"));
+		assertThat(physicalResourceId).startsWith("integrationteststack-emptybucket-");
 
 		server.removeContext(httpContext);
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resourceIdResolverResolveToPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_returnsLogicalResourceIdAsPhysicalResourceId() {
+		// @checkstyle:on
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		AmazonCloudFormation amazonCloudFormation = Mockito
@@ -342,7 +343,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 				.resolveToPhysicalResourceId("nonExistingLogicalResourceId");
 
 		// Assert
-		assertThat(physicalResourceId, is("nonExistingLogicalResourceId"));
+		assertThat(physicalResourceId).isEqualTo("nonExistingLogicalResourceId");
 	}
 
 	@After

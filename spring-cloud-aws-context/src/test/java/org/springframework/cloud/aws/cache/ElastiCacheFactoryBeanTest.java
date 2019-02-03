@@ -32,8 +32,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.cache.Cache;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +65,7 @@ public class ElastiCacheFactoryBeanTest {
 		Cache cache = elasticCacheFactoryBean.getObject();
 
 		// Assert
-		assertNotNull(cache);
+		assertThat(cache).isNotNull();
 	}
 
 	@Test
@@ -98,7 +97,7 @@ public class ElastiCacheFactoryBeanTest {
 		Cache cache = elastiCacheFactoryBean.getObject();
 
 		// Assert
-		assertNotNull(cache);
+		assertThat(cache).isNotNull();
 	}
 
 	@Test
@@ -129,7 +128,7 @@ public class ElastiCacheFactoryBeanTest {
 		// Assert
 	}
 
-	private static class TestCacheFactory implements CacheFactory {
+	private static final class TestCacheFactory implements CacheFactory {
 
 		private final String expectedCacheName;
 
@@ -151,9 +150,9 @@ public class ElastiCacheFactoryBeanTest {
 
 		@Override
 		public Cache createCache(String cacheName, String host, int port) {
-			assertEquals(this.expectedCacheName, cacheName);
-			assertEquals(this.expectedHostName, host);
-			assertEquals(this.expectedPort, port);
+			assertThat(this.expectedCacheName).isEqualTo(cacheName);
+			assertThat(this.expectedHostName).isEqualTo(host);
+			assertThat(this.expectedPort).isEqualTo(port);
 			return mock(Cache.class);
 		}
 

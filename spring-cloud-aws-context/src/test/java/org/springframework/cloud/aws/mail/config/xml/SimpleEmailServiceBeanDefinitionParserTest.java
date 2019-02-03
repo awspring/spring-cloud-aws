@@ -27,9 +27,7 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.springframework.util.ReflectionUtils.findField;
 import static org.springframework.util.ReflectionUtils.makeAccessible;
@@ -62,10 +60,10 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		// Assert
-		assertEquals("https://email.us-west-2.amazonaws.com",
-				getEndpointUrlFromWebserviceClient(emailService));
+		assertThat(getEndpointUrlFromWebserviceClient(emailService))
+				.isEqualTo("https://email.us-west-2.amazonaws.com");
 
-		assertTrue(mailSender instanceof JavaMailSender);
+		assertThat(mailSender instanceof JavaMailSender).isTrue();
 	}
 
 	@Test
@@ -83,10 +81,10 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		// Assert
-		assertEquals("https://email.eu-west-1.amazonaws.com",
-				getEndpointUrlFromWebserviceClient(emailService));
+		assertThat(getEndpointUrlFromWebserviceClient(emailService))
+				.isEqualTo("https://email.eu-west-1.amazonaws.com");
 
-		assertTrue(mailSender instanceof JavaMailSender);
+		assertThat(mailSender instanceof JavaMailSender).isTrue();
 	}
 
 	@Test
@@ -104,10 +102,10 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		// Assert
-		assertEquals("https://email.ap-southeast-2.amazonaws.com",
-				getEndpointUrlFromWebserviceClient(emailService));
+		assertThat(getEndpointUrlFromWebserviceClient(emailService))
+				.isEqualTo("https://email.ap-southeast-2.amazonaws.com");
 
-		assertTrue(mailSender instanceof JavaMailSender);
+		assertThat(mailSender instanceof JavaMailSender).isTrue();
 	}
 
 	@Test
@@ -124,8 +122,8 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 		MailSender mailSender = context.getBean(MailSender.class);
 
 		// Assert
-		assertSame(emailService,
-				ReflectionTestUtils.getField(mailSender, "emailService"));
+		assertThat(ReflectionTestUtils.getField(mailSender, "emailService"))
+				.isSameAs(emailService);
 	}
 
 }

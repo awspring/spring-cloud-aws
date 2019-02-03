@@ -28,8 +28,7 @@ import org.junit.Test;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,7 +45,8 @@ public class DynamicQueueUrlDestinationResolverTest {
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
 				amazonSqs);
 		dynamicQueueDestinationResolver.setAutoCreate(true);
-		assertEquals(queueUrl, dynamicQueueDestinationResolver.resolveDestination("foo"));
+		assertThat(dynamicQueueDestinationResolver.resolveDestination("foo"))
+				.isEqualTo(queueUrl);
 	}
 
 	@Test
@@ -55,8 +55,8 @@ public class DynamicQueueUrlDestinationResolverTest {
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
 				amazonSqs);
 		String destination = "http://sqs-amazon.aws.com/123123123/myQueue";
-		assertEquals(destination,
-				dynamicQueueDestinationResolver.resolveDestination(destination));
+		assertThat(dynamicQueueDestinationResolver.resolveDestination(destination))
+				.isEqualTo(destination);
 	}
 
 	@Test
@@ -68,7 +68,8 @@ public class DynamicQueueUrlDestinationResolverTest {
 
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
 				amazonSqs);
-		assertEquals(queueUrl, dynamicQueueDestinationResolver.resolveDestination("foo"));
+		assertThat(dynamicQueueDestinationResolver.resolveDestination("foo"))
+				.isEqualTo(queueUrl);
 	}
 
 	@Test
@@ -86,8 +87,9 @@ public class DynamicQueueUrlDestinationResolverTest {
 			dynamicQueueDestinationResolver.resolveDestination(queueUrl);
 		}
 		catch (DestinationResolutionException e) {
-			assertTrue(
-					e.getMessage().startsWith("AWS.SimpleQueueService.NonExistentQueue"));
+			assertThat(
+					e.getMessage().startsWith("AWS.SimpleQueueService.NonExistentQueue"))
+							.isTrue();
 		}
 	}
 
@@ -103,7 +105,7 @@ public class DynamicQueueUrlDestinationResolverTest {
 		String physicalResourceId = dynamicQueueUrlDestinationResolver
 				.resolveDestination("testQueue");
 
-		assertEquals("http://queue.com", physicalResourceId);
+		assertThat(physicalResourceId).isEqualTo("http://queue.com");
 
 	}
 
@@ -124,7 +126,7 @@ public class DynamicQueueUrlDestinationResolverTest {
 		String physicalResourceId = dynamicQueueUrlDestinationResolver
 				.resolveDestination("testQueue");
 
-		assertEquals("http://queue.com", physicalResourceId);
+		assertThat(physicalResourceId).isEqualTo("http://queue.com");
 	}
 
 	@Test(expected = IllegalArgumentException.class)

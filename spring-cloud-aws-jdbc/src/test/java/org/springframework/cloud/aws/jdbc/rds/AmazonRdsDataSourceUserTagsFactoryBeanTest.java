@@ -32,8 +32,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,8 +70,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		Map<String, String> userTagMap = factoryBean.getObject();
 
 		// Assert
-		assertEquals("value1", userTagMap.get("key1"));
-		assertEquals("value2", userTagMap.get("key2"));
+		assertThat(userTagMap.get("key1")).isEqualTo("value1");
+		assertThat(userTagMap.get("key2")).isEqualTo("value2");
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		Map<String, String> userTagMap = factoryBean.getObject();
 
 		// Assert
-		assertTrue(userTagMap.isEmpty());
+		assertThat(userTagMap.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -130,8 +129,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		Map<String, String> userTagMap = factoryBean.getObject();
 
 		// Assert
-		assertEquals("value1", userTagMap.get("key1"));
-		assertEquals("value2", userTagMap.get("key2"));
+		assertThat(userTagMap.get("key1")).isEqualTo("value1");
+		assertThat(userTagMap.get("key2")).isEqualTo("value2");
 	}
 
 }

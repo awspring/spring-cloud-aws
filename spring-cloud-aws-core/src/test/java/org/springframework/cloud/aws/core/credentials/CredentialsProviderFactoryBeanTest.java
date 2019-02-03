@@ -25,15 +25,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for
- * {@link org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean}
+ * {@link org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean}.
  *
  * @author Agim Emruli
  */
@@ -62,9 +60,10 @@ public class CredentialsProviderFactoryBeanTest {
 				.getObject();
 
 		// Assert
-		assertNotNull(credentialsProvider);
-		assertTrue(
-				DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider));
+		assertThat(credentialsProvider).isNotNull();
+		assertThat(
+				DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider))
+						.isTrue();
 	}
 
 	@Test
@@ -84,8 +83,8 @@ public class CredentialsProviderFactoryBeanTest {
 		when(first.getCredentials()).thenReturn(null, foo);
 		when(second.getCredentials()).thenReturn(bar);
 
-		assertEquals(bar, provider.getCredentials());
-		assertEquals(foo, provider.getCredentials());
+		assertThat(provider.getCredentials()).isEqualTo(bar);
+		assertThat(provider.getCredentials()).isEqualTo(foo);
 	}
 
 }

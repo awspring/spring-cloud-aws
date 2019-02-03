@@ -66,11 +66,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MimeType;
 import org.springframework.util.StopWatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -158,9 +155,9 @@ public class SimpleMessageListenerContainerTest {
 
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
 				.getTaskExecutor();
-		assertNotNull(taskExecutor);
-		assertEquals(SimpleMessageListenerContainer.class.getSimpleName() + "-",
-				taskExecutor.getThreadNamePrefix());
+		assertThat(taskExecutor).isNotNull();
+		assertThat(taskExecutor.getThreadNamePrefix())
+				.isEqualTo(SimpleMessageListenerContainer.class.getSimpleName() + "-");
 	}
 
 	@Test
@@ -174,8 +171,8 @@ public class SimpleMessageListenerContainerTest {
 
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
 				.getTaskExecutor();
-		assertNotNull(taskExecutor);
-		assertEquals("testContainerName-", taskExecutor.getThreadNamePrefix());
+		assertThat(taskExecutor).isNotNull();
+		assertThat(taskExecutor.getThreadNamePrefix()).isEqualTo("testContainerName-");
 	}
 
 	@Test
@@ -209,8 +206,8 @@ public class SimpleMessageListenerContainerTest {
 
 		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
 				.getTaskExecutor();
-		assertNotNull(taskExecutor);
-		assertEquals(expectedPoolMaxSize, taskExecutor.getMaxPoolSize());
+		assertThat(taskExecutor).isNotNull();
+		assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(expectedPoolMaxSize);
 	}
 
 	@Test
@@ -224,7 +221,7 @@ public class SimpleMessageListenerContainerTest {
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
-		assertEquals(taskExecutor, container.getTaskExecutor());
+		assertThat(container.getTaskExecutor()).isEqualTo(taskExecutor);
 	}
 
 	@Test
@@ -241,7 +238,7 @@ public class SimpleMessageListenerContainerTest {
 			public void handleMessage(org.springframework.messaging.Message<?> message)
 					throws MessagingException {
 				countDownLatch.countDown();
-				assertEquals("messageContent", message.getPayload());
+				assertThat(message.getPayload()).isEqualTo("messageContent");
 			}
 		};
 		container.setMessageHandler(messageHandler);
@@ -272,7 +269,7 @@ public class SimpleMessageListenerContainerTest {
 
 		container.start();
 
-		assertTrue(countDownLatch.await(1, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue();
 
 		container.stop();
 	}
@@ -368,12 +365,13 @@ public class SimpleMessageListenerContainerTest {
 
 		container.start();
 
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
-		assertEquals("messageContent",
-				applicationContext.getBean(TestMessageListener.class).getMessage());
-		assertEquals("anotherMessageContent", applicationContext
-				.getBean(AnotherTestMessageListener.class).getMessage());
+		assertThat(applicationContext.getBean(TestMessageListener.class).getMessage())
+				.isEqualTo("messageContent");
+		assertThat(
+				applicationContext.getBean(AnotherTestMessageListener.class).getMessage())
+						.isEqualTo("anotherMessageContent");
 	}
 
 	@Test
@@ -426,12 +424,12 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 
 		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
-		assertEquals("ID",
-				this.stringMessageCaptor.getValue().getHeaders().get("SenderId"));
+		assertThat(this.stringMessageCaptor.getValue().getHeaders().get("SenderId"))
+				.isEqualTo("ID");
 
 	}
 
@@ -451,8 +449,8 @@ public class SimpleMessageListenerContainerTest {
 		simpleMessageListenerContainer.destroy();
 
 		// Assert
-		assertTrue(((ThreadPoolTaskExecutor) simpleMessageListenerContainer
-				.getTaskExecutor()).getThreadPoolExecutor().isTerminated());
+		assertThat(((ThreadPoolTaskExecutor) simpleMessageListenerContainer
+				.getTaskExecutor()).getThreadPoolExecutor().isTerminated()).isTrue();
 	}
 
 	@Test
@@ -468,8 +466,8 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		// Assert
-		assertFalse(((ThreadPoolTaskExecutor) container.getTaskExecutor())
-				.getThreadPoolExecutor().isTerminated());
+		assertThat(((ThreadPoolTaskExecutor) container.getTaskExecutor())
+				.getThreadPoolExecutor().isTerminated()).isFalse();
 		container.stop();
 	}
 
@@ -530,12 +528,12 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 
 		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
-		assertEquals(mimeType, this.stringMessageCaptor.getValue().getHeaders()
-				.get(MessageHeaders.CONTENT_TYPE));
+		assertThat(this.stringMessageCaptor.getValue().getHeaders()
+				.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(mimeType);
 	}
 
 	@Test
@@ -549,7 +547,7 @@ public class SimpleMessageListenerContainerTest {
 				.getField(simpleMessageListenerContainer, "messageHandler");
 
 		// Assert
-		assertEquals(1, queueMessageHandler.getHandlerMethods().size());
+		assertThat(queueMessageHandler.getHandlerMethods().size()).isEqualTo(1);
 	}
 
 	@Test
@@ -594,7 +592,7 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"http://executeMessage_successfulExecution_shouldRemoveMessageFromQueue.amazonaws.com",
@@ -627,31 +625,40 @@ public class SimpleMessageListenerContainerTest {
 				TestMessageListenerThatThrowsAnExceptionWithAllDeletionPolicy.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
-				"http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
-				"http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com")
-						.withAttributeNames("All").withMaxNumberOfMessages(10)
-						.withWaitTimeSeconds(20).withMessageAttributeNames("All")))
-								.thenReturn(new ReceiveMessageResult().withMessages(
-										new Message().withBody("messageContent")
-												.withReceiptHandle("ReceiptHandle")),
-										new ReceiveMessageResult());
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com")
+								.withAttributeNames("All").withMaxNumberOfMessages(10)
+								.withWaitTimeSeconds(20)
+								.withMessageAttributeNames("All")))
+										.thenReturn(
+												new ReceiveMessageResult()
+														.withMessages(new Message()
+																.withBody(
+																		"messageContent")
+																.withReceiptHandle(
+																		"ReceiptHandle")),
+												new ReceiveMessageResult());
 
 		// Act
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"http://executeMessage_executionThrowsExceptionAndQueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com",
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com",
 				"ReceiptHandle")));
 	}
 
@@ -677,35 +684,44 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListenerThatThrowsAnExceptionWithAllExceptOnRedriveDeletionPolicy.class);
+		Class clazz = TestMessageListenerThatThrowsAnExceptionWithAllExceptOnRedriveDeletionPolicy.class;
+		applicationContext.registerSingleton("testMessageListener", clazz);
 
 		mockGetQueueUrl(sqs, "testQueue",
-				"http://executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
 		mockGetQueueAttributesWithRedrivePolicy(sqs,
-				"http://executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"http://executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com")
-						.withAttributeNames("All").withMaxNumberOfMessages(10)
-						.withWaitTimeSeconds(20).withMessageAttributeNames("All")))
-								.thenReturn(new ReceiveMessageResult().withMessages(
-										new Message().withBody("messageContent")
-												.withReceiptHandle("ReceiptHandle")),
-										new ReceiveMessageResult());
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com")
+								.withAttributeNames("All").withMaxNumberOfMessages(10)
+								.withWaitTimeSeconds(20)
+								.withMessageAttributeNames("All")))
+										.thenReturn(
+												new ReceiveMessageResult()
+														.withMessages(new Message()
+																.withBody(
+																		"messageContent")
+																.withReceiptHandle(
+																		"ReceiptHandle")),
+												new ReceiveMessageResult());
 
 		// Act
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(2L, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"http://executeMessage_executionThrowsExceptionAndQueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com",
+				"http://executeMessage_executionThrowsExceptionAnd"
+						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com",
 				"ReceiptHandle")));
 	}
 
@@ -742,7 +758,7 @@ public class SimpleMessageListenerContainerTest {
 			public void handleMessage(org.springframework.messaging.Message<?> message)
 					throws MessagingException {
 				countDownLatch.countDown();
-				assertEquals("messageContent", message.getPayload());
+				assertThat(message.getPayload()).isEqualTo("messageContent");
 			}
 		};
 
@@ -769,7 +785,7 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		// Assert
-		assertTrue(countDownLatch.await(1, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		setLogLevel(previous);
 	}
@@ -800,16 +816,18 @@ public class SimpleMessageListenerContainerTest {
 				TestMessageListenerWithManualDeletionPolicy.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
-				"http://receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
-				"http://receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs,
-				"http://receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+		mockReceiveMessage(sqs, "http://receiveMessage_withMessageListenerMethodAnd"
+				+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
 				"messageContent", "ReceiptHandle");
 
 		// Act
@@ -818,7 +836,8 @@ public class SimpleMessageListenerContainerTest {
 		// Assert
 		countDownLatch.await(1L, TimeUnit.SECONDS);
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"http://receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
 				"ReceiptHandle")));
 		TestMessageListenerWithManualDeletionPolicy testMessageListenerWithManualDeletionPolicy = applicationContext
 				.getBean(TestMessageListenerWithManualDeletionPolicy.class);
@@ -826,7 +845,8 @@ public class SimpleMessageListenerContainerTest {
 				TimeUnit.SECONDS);
 		testMessageListenerWithManualDeletionPolicy.acknowledge();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"http://receiveMessage_withMessageListenerMethodAndNeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
 				"ReceiptHandle")));
 		container.stop();
 	}
@@ -857,16 +877,18 @@ public class SimpleMessageListenerContainerTest {
 				TestMessageListenerWithVisibilityProlong.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
-				"http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
-				"http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+				"http://receiveMessage_withMessageListenerMethodAnd"
+						+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs,
-				"http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
+		mockReceiveMessage(sqs, "http://receiveMessage_withMessageListenerMethodAnd"
+				+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
 				"messageContent", "ReceiptHandle");
 
 		// Act
@@ -883,7 +905,8 @@ public class SimpleMessageListenerContainerTest {
 		testMessageListenerWithVisibilityProlong.extend(5);
 		verify(sqs, times(1))
 				.changeMessageVisibilityAsync(eq(new ChangeMessageVisibilityRequest(
-						"http://receiveMessage_withMessageListenerMethodAndVisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
+						"http://receiveMessage_withMessageListenerMethodAnd"
+								+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
 						"ReceiptHandle", 5)));
 		container.stop();
 	}
@@ -950,7 +973,7 @@ public class SimpleMessageListenerContainerTest {
 		// Assert
 		TestMessageListenerWithAllPossibleDeletionPolicies bean = applicationContext
 				.getBean(TestMessageListenerWithAllPossibleDeletionPolicies.class);
-		assertTrue(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS));
+		assertThat(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"http://alwaysSuccess.amazonaws.com", "alwaysSuccess")));
@@ -1007,20 +1030,20 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 		container.start();
 
-		assertTrue(container.isRunning("testQueue"));
-		assertTrue(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isTrue();
+		assertThat(container.isRunning("anotherTestQueue")).isTrue();
 
 		// Act
 		container.stop("testQueue");
 
 		// Assert
-		assertFalse(container.isRunning("testQueue"));
-		assertTrue(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
+		assertThat(container.isRunning("anotherTestQueue")).isTrue();
 
 		container.stop();
 
-		assertFalse(container.isRunning("testQueue"));
-		assertFalse(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
+		assertThat(container.isRunning("anotherTestQueue")).isFalse();
 	}
 
 	@Test
@@ -1048,8 +1071,8 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 		container.stop("testQueue");
 
-		assertFalse(container.isRunning("testQueue"));
-		assertTrue(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
+		assertThat(container.isRunning("anotherTestQueue")).isTrue();
 
 		sqs.setReceiveMessageEnabled(true);
 
@@ -1057,19 +1080,19 @@ public class SimpleMessageListenerContainerTest {
 		container.start("testQueue");
 
 		// Assert
-		assertTrue(container.isRunning("testQueue"));
-		assertTrue(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isTrue();
+		assertThat(container.isRunning("anotherTestQueue")).isTrue();
 
 		TestMessageListener testMessageListener = applicationContext
 				.getBean(TestMessageListener.class);
 		boolean await = testMessageListener.getCountDownLatch().await(1,
 				TimeUnit.SECONDS);
-		assertTrue(await);
-		assertEquals("Hello", testMessageListener.getMessage());
+		assertThat(await).isTrue();
+		assertThat(testMessageListener.getMessage()).isEqualTo("Hello");
 		container.stop();
 
-		assertFalse(container.isRunning("testQueue"));
-		assertFalse(container.isRunning("anotherTestQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
+		assertThat(container.isRunning("anotherTestQueue")).isFalse();
 	}
 
 	@Test
@@ -1131,13 +1154,13 @@ public class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 		container.start();
 
-		assertTrue(container.isRunning("testQueue"));
+		assertThat(container.isRunning("testQueue")).isTrue();
 
 		// Act
 		container.start("testQueue");
 
 		// Assert
-		assertTrue(container.isRunning("testQueue"));
+		assertThat(container.isRunning("testQueue")).isTrue();
 
 		container.stop();
 	}
@@ -1169,13 +1192,13 @@ public class SimpleMessageListenerContainerTest {
 		container.start();
 
 		container.stop("testQueue");
-		assertFalse(container.isRunning("testQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
 
 		// Act
 		container.stop("testQueue");
 
 		// Assert
-		assertFalse(container.isRunning("testQueue"));
+		assertThat(container.isRunning("testQueue")).isFalse();
 	}
 
 	@Test
@@ -1217,11 +1240,14 @@ public class SimpleMessageListenerContainerTest {
 		stopWatch.stop();
 
 		// Assert
-		assertEquals(100, container.getQueueStopTimeout());
-		assertTrue("stop must last at least the defined queue stop timeout (> 100ms)",
-				stopWatch.getTotalTimeMillis() >= container.getQueueStopTimeout());
-		assertTrue("stop must last less than the listener method (< 10000ms)", stopWatch
-				.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME);
+		assertThat(container.getQueueStopTimeout()).isEqualTo(100);
+		assertThat(stopWatch.getTotalTimeMillis() >= container.getQueueStopTimeout())
+				.as("stop must last at least the defined queue stop timeout (> 100ms)")
+				.isTrue();
+		assertThat(stopWatch
+				.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME)
+						.as("stop must last less than the listener method (< 10000ms)")
+						.isTrue();
 		container.stop();
 	}
 
@@ -1302,13 +1328,15 @@ public class SimpleMessageListenerContainerTest {
 		stopWatch.stop();
 
 		// Assert
-		assertTrue("Stop time must be shorter than stopping one queue after the other",
-				stopWatch.getTotalTimeMillis() < 200);
+		assertThat(stopWatch.getTotalTimeMillis() < 200)
+				.as("Stop time must be shorter than stopping one queue after the other")
+				.isTrue();
 	}
 
 	// This class is needed because it does not seem to work when using mockito to mock
 	// those requests
-	private static class MockAmazonSqsAsyncClient extends AmazonSQSBufferedAsyncClient {
+	private static final class MockAmazonSqsAsyncClient
+			extends AmazonSQSBufferedAsyncClient {
 
 		private volatile boolean receiveMessageEnabled;
 

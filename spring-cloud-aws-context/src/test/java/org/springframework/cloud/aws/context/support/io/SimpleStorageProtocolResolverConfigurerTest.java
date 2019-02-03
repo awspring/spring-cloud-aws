@@ -29,8 +29,7 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.springframework.beans.factory.support.BeanDefinitionReaderUtils.generateBeanName;
 
@@ -74,14 +73,14 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 				.getBean(FieldInjectionTarget.class);
 
 		// Assert
-		assertNotNull(fieldInjectionTarget.getResourceLoader());
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(fieldInjectionTarget.getResourceLoader()));
+		assertThat(fieldInjectionTarget.getResourceLoader()).isNotNull();
+		assertThat(DefaultResourceLoader.class
+				.isInstance(fieldInjectionTarget.getResourceLoader())).isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) fieldInjectionTarget
 				.getResourceLoader();
-		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+		assertThat(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	@Test
@@ -100,17 +99,17 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 				.getBean(MethodInjectionTarget.class);
 
 		// Assert
-		assertNotNull(methodInjectionTarget.getResourceLoader());
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(methodInjectionTarget.getResourceLoader()));
+		assertThat(methodInjectionTarget.getResourceLoader()).isNotNull();
+		assertThat(DefaultResourceLoader.class
+				.isInstance(methodInjectionTarget.getResourceLoader())).isTrue();
 
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(methodInjectionTarget.getResourceLoader()));
+		assertThat(DefaultResourceLoader.class
+				.isInstance(methodInjectionTarget.getResourceLoader())).isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) methodInjectionTarget
 				.getResourceLoader();
-		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+		assertThat(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	@Test
@@ -129,17 +128,17 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 				.getBean(ConstructorInjectionTarget.class);
 
 		// Assert
-		assertNotNull(constructorInjectionTarget.getResourceLoader());
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(constructorInjectionTarget.getResourceLoader()));
+		assertThat(constructorInjectionTarget.getResourceLoader()).isNotNull();
+		assertThat(DefaultResourceLoader.class
+				.isInstance(constructorInjectionTarget.getResourceLoader())).isTrue();
 
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(constructorInjectionTarget.getResourceLoader()));
+		assertThat(DefaultResourceLoader.class
+				.isInstance(constructorInjectionTarget.getResourceLoader())).isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) constructorInjectionTarget
 				.getResourceLoader();
-		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+		assertThat(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	@Test
@@ -154,17 +153,17 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 
 		ResourceLoaderAwareBean resourceLoaderAwareBean = staticApplicationContext
 				.getBean(ResourceLoaderAwareBean.class);
-		assertNotNull(resourceLoaderAwareBean.getResourceLoader());
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+		assertThat(resourceLoaderAwareBean.getResourceLoader()).isNotNull();
+		assertThat(DefaultResourceLoader.class
+				.isInstance(resourceLoaderAwareBean.getResourceLoader())).isTrue();
 
-		assertTrue(DefaultResourceLoader.class
-				.isInstance(resourceLoaderAwareBean.getResourceLoader()));
+		assertThat(DefaultResourceLoader.class
+				.isInstance(resourceLoaderAwareBean.getResourceLoader())).isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) resourceLoaderAwareBean
 				.getResourceLoader();
-		assertTrue(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next()));
+		assertThat(SimpleStorageProtocolResolver.class.isInstance(
+				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	private static final class FieldInjectionTarget {

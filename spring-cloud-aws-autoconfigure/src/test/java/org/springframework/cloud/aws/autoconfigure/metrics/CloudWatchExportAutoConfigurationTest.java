@@ -25,9 +25,7 @@ import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for the {@link CloudWatchExportAutoConfiguration}.
@@ -51,7 +49,8 @@ public class CloudWatchExportAutoConfigurationTest {
 	public void testWithoutSettingAnyConfigProperties() {
 		this.context.register(CloudWatchExportAutoConfiguration.class);
 		this.context.refresh();
-		assertTrue(this.context.getBeansOfType(CloudWatchMeterRegistry.class).isEmpty());
+		assertThat(this.context.getBeansOfType(CloudWatchMeterRegistry.class).isEmpty())
+				.isTrue();
 	}
 
 	@Test
@@ -63,19 +62,20 @@ public class CloudWatchExportAutoConfigurationTest {
 
 		CloudWatchMeterRegistry metricsExporter = this.context
 				.getBean(CloudWatchMeterRegistry.class);
-		assertNotNull(metricsExporter);
+		assertThat(metricsExporter).isNotNull();
 
 		CloudWatchConfig cloudWatchConfig = this.context.getBean(CloudWatchConfig.class);
-		assertNotNull(cloudWatchConfig);
+		assertThat(cloudWatchConfig).isNotNull();
 
 		Clock clock = this.context.getBean(Clock.class);
-		assertNotNull(clock);
+		assertThat(clock).isNotNull();
 
 		CloudWatchProperties cloudWatchProperties = this.context
 				.getBean(CloudWatchProperties.class);
-		assertNotNull(cloudWatchProperties);
+		assertThat(cloudWatchProperties).isNotNull();
 
-		assertEquals(cloudWatchConfig.namespace(), cloudWatchProperties.getNamespace());
+		assertThat(cloudWatchProperties.getNamespace())
+				.isEqualTo(cloudWatchConfig.namespace());
 	}
 
 }

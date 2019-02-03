@@ -48,9 +48,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 
@@ -72,10 +70,10 @@ public class SqsConfigurationTest {
 				.getBean(SimpleMessageListenerContainer.class);
 
 		// Assert
-		assertTrue(container.isRunning());
+		assertThat(container.isRunning()).isTrue();
 		QueueMessageHandler queueMessageHandler = applicationContext
 				.getBean(QueueMessageHandler.class);
-		assertTrue(QueueMessageHandler.class.isInstance(queueMessageHandler));
+		assertThat(QueueMessageHandler.class.isInstance(queueMessageHandler)).isTrue();
 
 		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler
 				.getCustomReturnValueHandlers().get(0);
@@ -85,8 +83,9 @@ public class SqsConfigurationTest {
 				.getField(messagingTemplate, "amazonSqs");
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(amazonBufferedSqsClient, "realSQS");
-		assertNotNull(
-				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"));
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"))
+						.isNotNull();
 	}
 
 	@Test
@@ -98,8 +97,8 @@ public class SqsConfigurationTest {
 
 		// Assert
 		AmazonSQSAsync amazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
-		assertEquals(ConfigurationWithCustomAmazonClient.CUSTOM_SQS_CLIENT,
-				amazonSqsClient);
+		assertThat(amazonSqsClient)
+				.isEqualTo(ConfigurationWithCustomAmazonClient.CUSTOM_SQS_CLIENT);
 	}
 
 	@Test
@@ -112,28 +111,26 @@ public class SqsConfigurationTest {
 				.getBean(QueueMessageHandler.class);
 
 		// Assert
-		assertEquals(1, messageHandler.getCustomArgumentResolvers().size());
-		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_ARGUMENT_RESOLVER,
-				messageHandler.getCustomArgumentResolvers().get(0));
+		assertThat(messageHandler.getCustomArgumentResolvers().size()).isEqualTo(1);
+		assertThat(messageHandler.getCustomArgumentResolvers().get(0)).isEqualTo(
+				ConfigurationWithCustomizedMessageHandler.CUSTOM_ARGUMENT_RESOLVER);
 
-		assertEquals(2, messageHandler.getCustomReturnValueHandlers().size());
-		assertEquals(
-				ConfigurationWithCustomizedMessageHandler.CUSTOM_RETURN_VALUE_HANDLER,
-				messageHandler.getCustomReturnValueHandlers().get(0));
+		assertThat(messageHandler.getCustomReturnValueHandlers().size()).isEqualTo(2);
+		assertThat(messageHandler.getCustomReturnValueHandlers().get(0)).isEqualTo(
+				ConfigurationWithCustomizedMessageHandler.CUSTOM_RETURN_VALUE_HANDLER);
 
 		Object sendToMessageTemplate = ReflectionTestUtils.getField(
 				messageHandler.getReturnValueHandlers().get(1), "messageTemplate");
-		assertEquals(ConfigurationWithCustomizedMessageHandler.CUSTOM_AMAZON_SQS,
-				ReflectionTestUtils.getField(sendToMessageTemplate, "amazonSqs"));
+		assertThat(ReflectionTestUtils.getField(sendToMessageTemplate, "amazonSqs"))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandler.CUSTOM_AMAZON_SQS);
 
 		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate,
 				"destinationResolver");
 		Object targetDestinationResolver = ReflectionTestUtils
 				.getField(destinationResolver, "targetDestinationResolver");
-		assertEquals(
-				ConfigurationWithCustomizedMessageHandler.CUSTOM_RESOURCE_ID_RESOLVER,
-				ReflectionTestUtils.getField(targetDestinationResolver,
-						"resourceIdResolver"));
+		assertThat(ReflectionTestUtils.getField(targetDestinationResolver,
+				"resourceIdResolver")).isEqualTo(
+						ConfigurationWithCustomizedMessageHandler.CUSTOM_RESOURCE_ID_RESOLVER);
 	}
 
 	@Test
@@ -146,27 +143,28 @@ public class SqsConfigurationTest {
 				.getBean(SimpleMessageListenerContainer.class);
 
 		// Assert
-		assertEquals(ConfigurationWithCustomContainerFactory.AMAZON_SQS,
-				ReflectionTestUtils.getField(container, "amazonSqs"));
-		assertEquals(ConfigurationWithCustomContainerFactory.AUTO_STARTUP,
-				container.isAutoStartup());
-		assertEquals(ConfigurationWithCustomContainerFactory.MAX_NUMBER_OF_MESSAGES,
-				ReflectionTestUtils.getField(container, "maxNumberOfMessages"));
-		assertEquals(ConfigurationWithCustomContainerFactory.MESSAGE_HANDLER,
-				ReflectionTestUtils.getField(container, "messageHandler"));
-		assertEquals(ConfigurationWithCustomContainerFactory.RESOURCE_ID_RESOLVER,
-				ReflectionTestUtils.getField(container, "resourceIdResolver"));
-		assertEquals(ConfigurationWithCustomContainerFactory.TASK_EXECUTOR,
-				ReflectionTestUtils.getField(container, "taskExecutor"));
-		assertEquals(ConfigurationWithCustomContainerFactory.VISIBILITY_TIMEOUT,
-				ReflectionTestUtils.getField(container, "visibilityTimeout"));
-		assertEquals(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT,
-				ReflectionTestUtils.getField(container, "waitTimeOut"));
-		assertTrue(
+		assertThat(ReflectionTestUtils.getField(container, "amazonSqs"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.AMAZON_SQS);
+		assertThat(container.isAutoStartup())
+				.isEqualTo(ConfigurationWithCustomContainerFactory.AUTO_STARTUP);
+		assertThat(ReflectionTestUtils.getField(container, "maxNumberOfMessages"))
+				.isEqualTo(
+						ConfigurationWithCustomContainerFactory.MAX_NUMBER_OF_MESSAGES);
+		assertThat(ReflectionTestUtils.getField(container, "messageHandler"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.MESSAGE_HANDLER);
+		assertThat(ReflectionTestUtils.getField(container, "resourceIdResolver"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.RESOURCE_ID_RESOLVER);
+		assertThat(ReflectionTestUtils.getField(container, "taskExecutor"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.TASK_EXECUTOR);
+		assertThat(ReflectionTestUtils.getField(container, "visibilityTimeout"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.VISIBILITY_TIMEOUT);
+		assertThat(ReflectionTestUtils.getField(container, "waitTimeOut"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT);
+		assertThat(
 				ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils
-						.getField(container, "destinationResolver"));
-		assertEquals(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME,
-				container.getBackOffTime());
+						.getField(container, "destinationResolver")).isTrue();
+		assertThat(container.getBackOffTime())
+				.isEqualTo(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME);
 	}
 
 	@Test
@@ -179,11 +177,11 @@ public class SqsConfigurationTest {
 				.getBean(QueueMessageHandler.class);
 
 		// Assert
-		assertEquals(1, queueMessageHandler.getReturnValueHandlers().size());
-		assertTrue(
+		assertThat(queueMessageHandler.getReturnValueHandlers().size()).isEqualTo(1);
+		assertThat(
 				ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE == ReflectionTestUtils
 						.getField(queueMessageHandler.getReturnValueHandlers().get(0),
-								"messageTemplate"));
+								"messageTemplate")).isTrue();
 	}
 
 	@Test
@@ -197,8 +195,8 @@ public class SqsConfigurationTest {
 				.getBean(QueueMessageHandler.class);
 
 		// Assert
-		assertEquals(queueMessageHandler, ReflectionTestUtils
-				.getField(simpleMessageListenerContainer, "messageHandler"));
+		assertThat(ReflectionTestUtils.getField(simpleMessageListenerContainer,
+				"messageHandler")).isEqualTo(queueMessageHandler);
 	}
 
 	@Test
@@ -213,8 +211,9 @@ public class SqsConfigurationTest {
 				.getBean(AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(bufferedAmazonSqsClient, "realSQS");
-		assertTrue(DefaultAWSCredentialsProviderChain.class.isInstance(
-				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider")));
+		assertThat(DefaultAWSCredentialsProviderChain.class.isInstance(
+				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider")))
+						.isTrue();
 	}
 
 	@Test
@@ -228,10 +227,9 @@ public class SqsConfigurationTest {
 				.getField(bufferedAmazonSqsClient, "realSQS");
 
 		// Assert
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqs, "endpoint").toString());
+		assertThat(ReflectionTestUtils.getField(amazonSqs, "endpoint").toString())
+				.isEqualTo("https://"
+						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"));
 	}
 
 	@EnableSqs

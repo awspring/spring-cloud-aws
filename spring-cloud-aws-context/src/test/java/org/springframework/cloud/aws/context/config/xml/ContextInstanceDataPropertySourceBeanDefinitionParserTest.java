@@ -37,10 +37,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -66,8 +63,8 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 		BeanFactoryPostProcessor postProcessor = beanFactory.getBean(
 				"AmazonEc2InstanceDataPropertySourcePostProcessor",
 				BeanFactoryPostProcessor.class);
-		assertNotNull(postProcessor);
-		assertEquals(1, beanFactory.getBeanDefinitionCount());
+		assertThat(postProcessor).isNotNull();
+		assertThat(beanFactory.getBeanDefinitionCount()).isEqualTo(1);
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -88,8 +85,9 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 				getClass().getSimpleName() + "-context.xml", getClass()));
 
 		// Assert
-		assertFalse(beanFactory
-				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"));
+		assertThat(beanFactory
+				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"))
+						.isFalse();
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -106,10 +104,10 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 				getClass().getSimpleName() + "-userTagsMap.xml", getClass()));
 
 		// Assert
-		assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
-		assertTrue(beanFactory
+		assertThat(beanFactory.containsBeanDefinition("myUserTags")).isTrue();
+		assertThat(beanFactory
 				.containsBeanDefinition(AmazonWebserviceClientConfigurationUtils
-						.getBeanName(AmazonEC2Client.class.getName())));
+						.getBeanName(AmazonEC2Client.class.getName()))).isTrue();
 	}
 
 	@Test
@@ -124,21 +122,23 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 				getClass().getSimpleName() + "-customEc2Client.xml", getClass()));
 
 		// Assert
-		assertTrue(beanFactory.containsBeanDefinition("myUserTags"));
+		assertThat(beanFactory.containsBeanDefinition("myUserTags")).isTrue();
 
 		ConstructorArgumentValues.ValueHolder valueHolder = beanFactory
 				.getBeanDefinition("myUserTags").getConstructorArgumentValues()
 				.getArgumentValue(0, BeanReference.class);
 		BeanReference beanReference = (BeanReference) valueHolder.getValue();
-		assertEquals("amazonEC2Client", beanReference.getBeanName());
-		assertFalse(beanFactory
+		assertThat(beanReference.getBeanName()).isEqualTo("amazonEC2Client");
+		assertThat(beanFactory
 				.containsBeanDefinition(AmazonWebserviceClientConfigurationUtils
-						.getBeanName(AmazonEC2Client.class.getName())));
+						.getBeanName(AmazonEC2Client.class.getName()))).isFalse();
 	}
 
+	// @checkstyle:off
 	@Test
 	public void parseInternal_singleElementWithCustomAttributeAndValueSeparator_postProcessorCreatedWithCustomAttributeAndValueSeparator()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext instanceIdHttpContext = httpServer.createContext(
@@ -158,8 +158,8 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 		applicationContext.refresh();
 
 		// Assert
-		assertEquals("b", applicationContext.getEnvironment().getProperty("a"));
-		assertEquals("d", applicationContext.getEnvironment().getProperty("c"));
+		assertThat(applicationContext.getEnvironment().getProperty("a")).isEqualTo("b");
+		assertThat(applicationContext.getEnvironment().getProperty("c")).isEqualTo("d");
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
@@ -169,7 +169,7 @@ public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}

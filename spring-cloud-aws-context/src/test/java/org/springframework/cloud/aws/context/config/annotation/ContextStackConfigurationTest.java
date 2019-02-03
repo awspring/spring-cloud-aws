@@ -36,8 +36,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextStackConfigurationTest {
 
@@ -69,8 +68,8 @@ public class ContextStackConfigurationTest {
 		// Assert
 		StackResourceRegistry stackResourceRegistry = this.context
 				.getBean(StackResourceRegistry.class);
-		assertNotNull(stackResourceRegistry);
-		assertEquals("testStack", stackResourceRegistry.getStackName());
+		assertThat(stackResourceRegistry).isNotNull();
+		assertThat(stackResourceRegistry.getStackName()).isEqualTo("testStack");
 
 		httpServer.removeContext(httpContext);
 	}
@@ -88,8 +87,8 @@ public class ContextStackConfigurationTest {
 		// Assert
 		StackResourceRegistry stackResourceRegistry = this.context
 				.getBean(StackResourceRegistry.class);
-		assertNotNull(stackResourceRegistry);
-		assertEquals("manualStackName", stackResourceRegistry.getStackName());
+		assertThat(stackResourceRegistry).isNotNull();
+		assertThat(stackResourceRegistry.getStackName()).isEqualTo("manualStackName");
 	}
 
 	@Configuration

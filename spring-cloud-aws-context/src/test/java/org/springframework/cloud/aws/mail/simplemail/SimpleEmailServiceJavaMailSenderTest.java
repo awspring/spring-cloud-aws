@@ -44,18 +44,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for class SimpleEmailServiceJavaMailSender
+ * Tests for class SimpleEmailServiceJavaMailSender.
  */
 public class SimpleEmailServiceJavaMailSenderTest {
 
@@ -68,8 +65,8 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		// Assert
-		assertNotNull(mimeMessage);
-		assertEquals(0, mimeMessage.getSession().getProperties().size());
+		assertThat(mimeMessage).isNotNull();
+		assertThat(mimeMessage.getSession().getProperties().size()).isEqualTo(0);
 	}
 
 	@Test
@@ -86,9 +83,9 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		// Assert
-		assertNotNull(mimeMessage);
-		assertEquals("agim.emruli@maildomain.com",
-				mimeMessage.getSession().getProperty("mail.from"));
+		assertThat(mimeMessage).isNotNull();
+		assertThat(mimeMessage.getSession().getProperty("mail.from"))
+				.isEqualTo("agim.emruli@maildomain.com");
 	}
 
 	@Test
@@ -104,7 +101,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		// Assert
-		assertSame(customSession, mimeMessage.getSession());
+		assertThat(mimeMessage.getSession()).isSameAs(customSession);
 	}
 
 	@Test
@@ -119,7 +116,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 
 		// Assert
-		assertEquals("ISO-8859-1", mimeMessageHelper.getEncoding());
+		assertThat(mimeMessageHelper.getEncoding()).isEqualTo("ISO-8859-1");
 	}
 
 	@Test
@@ -134,7 +131,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 
 		// Assert
-		assertNotNull("ISO-8859-1", mimeMessageHelper.getFileTypeMap());
+		assertThat(mimeMessageHelper.getFileTypeMap()).as("ISO-8859-1").isNotNull();
 	}
 
 	@Test
@@ -145,11 +142,11 @@ public class SimpleEmailServiceJavaMailSenderTest {
 
 		MimeMessage mimeMessage = mailSender.createMimeMessage(
 				new ByteArrayInputStream(getMimeMessageAsByteArray(original)));
-		assertNotNull(mimeMessage);
-		assertEquals(original.getSubject(), mimeMessage.getSubject());
-		assertEquals(original.getContent(), mimeMessage.getContent());
-		assertEquals(original.getRecipients(Message.RecipientType.TO)[0],
-				mimeMessage.getRecipients(Message.RecipientType.TO)[0]);
+		assertThat(mimeMessage).isNotNull();
+		assertThat(mimeMessage.getSubject()).isEqualTo(original.getSubject());
+		assertThat(mimeMessage.getContent()).isEqualTo(original.getContent());
+		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0])
+				.isEqualTo(original.getRecipients(Message.RecipientType.TO)[0]);
 	}
 
 	@Test
@@ -163,7 +160,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 				.thenReturn(new SendRawEmailResult().withMessageId("123"));
 		MimeMessage mimeMessage = createMimeMessage();
 		mailSender.send(mimeMessage);
-		assertEquals("123", mimeMessage.getMessageID());
+		assertThat(mimeMessage.getMessageID()).isEqualTo("123");
 	}
 
 	@Test
@@ -202,10 +199,10 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
 				new ByteArrayInputStream(
 						request.getValue().getRawMessage().getData().array()));
-		assertEquals("to@domain.com",
-				mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
-		assertEquals("subject", mimeMessage.getSubject());
-		assertEquals("body", mimeMessage.getContent());
+		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString())
+				.isEqualTo("to@domain.com");
+		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
+		assertThat(mimeMessage.getContent()).isEqualTo("body");
 	}
 
 	@Test
@@ -241,10 +238,10 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
 				new ByteArrayInputStream(
 						request.getValue().getRawMessage().getData().array()));
-		assertEquals("to@domain.com",
-				mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString());
-		assertEquals("subject", mimeMessage.getSubject());
-		assertEquals("body", mimeMessage.getContent());
+		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString())
+				.isEqualTo("to@domain.com");
+		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
+		assertThat(mimeMessage.getContent()).isEqualTo("body");
 
 	}
 
@@ -266,8 +263,9 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			fail("MailPreparationException expected due to error while creating mail");
 		}
 		catch (MailParseException e) {
-			assertTrue(e.getMessage().startsWith("Could not parse raw MIME content"));
-			assertSame(ioException, e.getCause().getCause());
+			assertThat(e.getMessage().startsWith("Could not parse raw MIME content"))
+					.isTrue();
+			assertThat(e.getCause().getCause()).isSameAs(ioException);
 		}
 	}
 
@@ -288,8 +286,8 @@ public class SimpleEmailServiceJavaMailSenderTest {
 			fail("Exception expected due to error while sending mail");
 		}
 		catch (MailSendException e) {
-			assertEquals(1, e.getFailedMessages().size());
-			assertTrue(e.getFailedMessages().containsKey(failureMail));
+			assertThat(e.getFailedMessages().size()).isEqualTo(1);
+			assertThat(e.getFailedMessages().containsKey(failureMail)).isTrue();
 		}
 	}
 
@@ -307,10 +305,10 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		}
 		catch (MailSendException e) {
 			// expected due to empty mail message
-			assertEquals(1, e.getFailedMessages().size());
+			assertThat(e.getFailedMessages().size()).isEqualTo(1);
 			// noinspection ThrowableResultOfMethodCallIgnored
-			assertTrue(e.getFailedMessages()
-					.get(mimeMessage) instanceof MailPreparationException);
+			assertThat(e.getFailedMessages()
+					.get(mimeMessage) instanceof MailPreparationException).isTrue();
 		}
 
 		MimeMessage failureMessage = null;
@@ -327,10 +325,10 @@ public class SimpleEmailServiceJavaMailSenderTest {
 		}
 		catch (MailSendException e) {
 			// expected due to exception writing message
-			assertEquals(1, e.getFailedMessages().size());
+			assertThat(e.getFailedMessages().size()).isEqualTo(1);
 			// noinspection ThrowableResultOfMethodCallIgnored
-			assertTrue(e.getFailedMessages()
-					.get(failureMessage) instanceof MailParseException);
+			assertThat(e.getFailedMessages()
+					.get(failureMessage) instanceof MailParseException).isTrue();
 		}
 	}
 

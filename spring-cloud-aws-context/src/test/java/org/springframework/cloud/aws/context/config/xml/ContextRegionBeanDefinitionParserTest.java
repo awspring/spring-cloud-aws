@@ -27,10 +27,7 @@ import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -53,8 +50,9 @@ public class ContextRegionBeanDefinitionParserTest {
 				RegionProvider.class);
 
 		// Assert
-		assertNotNull(myRegionProvider);
-		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertThat(myRegionProvider).isNotNull();
+		assertThat(myRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.SA_EAST_1));
 	}
 
 	@Test
@@ -70,8 +68,9 @@ public class ContextRegionBeanDefinitionParserTest {
 				RegionProvider.class);
 
 		// Assert
-		assertNotNull(myRegionProvider);
-		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertThat(myRegionProvider).isNotNull();
+		assertThat(myRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.SA_EAST_1));
 	}
 
 	@Test
@@ -87,8 +86,9 @@ public class ContextRegionBeanDefinitionParserTest {
 				RegionProvider.class);
 
 		// Assert
-		assertNotNull(myRegionProvider);
-		assertEquals(Region.getRegion(Regions.SA_EAST_1), myRegionProvider.getRegion());
+		assertThat(myRegionProvider).isNotNull();
+		assertThat(myRegionProvider.getRegion())
+				.isEqualTo(Region.getRegion(Regions.SA_EAST_1));
 	}
 
 	@Test
@@ -104,8 +104,8 @@ public class ContextRegionBeanDefinitionParserTest {
 				RegionProvider.class);
 
 		// Assert
-		assertNotNull(myRegionProvider);
-		assertTrue(myRegionProvider instanceof Ec2MetadataRegionProvider);
+		assertThat(myRegionProvider).isNotNull();
+		assertThat(myRegionProvider instanceof Ec2MetadataRegionProvider).isTrue();
 	}
 
 	@Test
@@ -123,9 +123,9 @@ public class ContextRegionBeanDefinitionParserTest {
 				RegionProvider.class);
 
 		// Assert
-		assertNotNull(defaultRegionProvider);
-		assertNotNull(myRegionProvider);
-		assertSame(defaultRegionProvider, myRegionProvider);
+		assertThat(defaultRegionProvider).isNotNull();
+		assertThat(myRegionProvider).isNotNull();
+		assertThat(myRegionProvider).isSameAs(defaultRegionProvider);
 	}
 
 	@Test
@@ -166,8 +166,9 @@ public class ContextRegionBeanDefinitionParserTest {
 	public void parse_twoRegionProviderConfigured_reportsError() throws Exception {
 		// Arrange
 		this.expectedException.expect(BeanDefinitionParsingException.class);
-		this.expectedException.expectMessage(
-				"Multiple <context-region/> elements detected. The <context-region/> element is only allowed once per application context");
+		this.expectedException
+				.expectMessage("Multiple <context-region/> elements detected. "
+						+ "The <context-region/> element is only allowed once per application context");
 
 		// Act
 		// noinspection ResultOfObjectAllocationIgnored

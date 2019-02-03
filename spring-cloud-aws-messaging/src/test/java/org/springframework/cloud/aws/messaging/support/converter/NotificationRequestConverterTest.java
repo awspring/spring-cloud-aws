@@ -26,8 +26,7 @@ import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -67,14 +66,14 @@ public class NotificationRequestConverterTest {
 						MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
-		assertTrue(NotificationRequestConverter.NotificationRequest.class
-				.isInstance(notificationRequest));
-		assertEquals("Hello",
+		assertThat(NotificationRequestConverter.NotificationRequest.class
+				.isInstance(notificationRequest)).isTrue();
+		assertThat(
 				((NotificationRequestConverter.NotificationRequest) notificationRequest)
-						.getSubject());
-		assertEquals("World",
+						.getSubject()).isEqualTo("Hello");
+		assertThat(
 				((NotificationRequestConverter.NotificationRequest) notificationRequest)
-						.getMessage());
+						.getMessage()).isEqualTo("World");
 	}
 
 	@Test
@@ -91,11 +90,11 @@ public class NotificationRequestConverterTest {
 						MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
-		assertTrue(NotificationRequestConverter.NotificationRequest.class
-				.isInstance(notificationRequest));
-		assertEquals("World",
+		assertThat(NotificationRequestConverter.NotificationRequest.class
+				.isInstance(notificationRequest)).isTrue();
+		assertThat(
 				((NotificationRequestConverter.NotificationRequest) notificationRequest)
-						.getMessage());
+						.getMessage()).isEqualTo("World");
 	}
 
 	@Test

@@ -24,9 +24,8 @@ import org.junit.Test;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -54,7 +53,7 @@ public class SimpleStorageProtocolResolverTest {
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
-		assertNotNull(resource);
+		assertThat(resource).isNotNull();
 	}
 
 	@Test
@@ -67,7 +66,7 @@ public class SimpleStorageProtocolResolverTest {
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
-		assertNotNull(resource);
+		assertThat(resource).isNotNull();
 	}
 
 	@Test
@@ -85,7 +84,7 @@ public class SimpleStorageProtocolResolverTest {
 		String resourceName = "s3://bucket/object^versionIdValue";
 		Resource resource = resourceLoader.resolve(resourceName,
 				new DefaultResourceLoader());
-		assertNotNull(resource);
+		assertThat(resource).isNotNull();
 	}
 
 	@Test
@@ -96,11 +95,12 @@ public class SimpleStorageProtocolResolverTest {
 		DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
 		resourceLoader.addProtocolResolver(new SimpleStorageProtocolResolver(amazonS3));
 
-		assertNotNull(resourceLoader.getResource("s3://bucket/object/"));
+		assertThat(resourceLoader.getResource("s3://bucket/object/")).isNotNull();
 
-		assertNotNull(resourceLoader.getResource("s3://bucket/object"));
+		assertThat(resourceLoader.getResource("s3://bucket/object")).isNotNull();
 
-		assertNotNull(resourceLoader.getResource("s3://prefix.bucket/object.suffix"));
+		assertThat(resourceLoader.getResource("s3://prefix.bucket/object.suffix"))
+				.isNotNull();
 
 		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}
@@ -114,11 +114,11 @@ public class SimpleStorageProtocolResolverTest {
 		resourceLoader.addProtocolResolver(new SimpleStorageProtocolResolver(amazonS3));
 
 		try {
-			assertNotNull(resourceLoader.getResource("s3://bucketsAndObject"));
+			assertThat(resourceLoader.getResource("s3://bucketsAndObject")).isNotNull();
 			fail("expected exception due to missing object");
 		}
 		catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("valid bucket name"));
+			assertThat(e.getMessage().contains("valid bucket name")).isTrue();
 		}
 
 		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");

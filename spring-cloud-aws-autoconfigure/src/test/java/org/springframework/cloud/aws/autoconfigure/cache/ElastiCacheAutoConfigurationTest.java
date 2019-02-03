@@ -43,9 +43,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ElastiCacheAutoConfigurationTest {
 
@@ -65,7 +63,7 @@ public class ElastiCacheAutoConfigurationTest {
 	public void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}
@@ -94,9 +92,11 @@ public class ElastiCacheAutoConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertTrue(cacheManager.getCacheNames().contains("sampleCacheOneLogical"));
-		assertTrue(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"));
-		assertEquals(2, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().contains("sampleCacheOneLogical"))
+				.isTrue();
+		assertThat(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"))
+				.isTrue();
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -119,7 +119,7 @@ public class ElastiCacheAutoConfigurationTest {
 		// Assert
 		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
 				.cacheManager();
-		assertEquals(0, cacheManager.getCacheNames().size());
+		assertThat(cacheManager.getCacheNames().size()).isEqualTo(0);
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}

@@ -28,7 +28,7 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,9 +41,11 @@ public class DynamicTopicDestinationResolverTest {
 	@Rule
 	public final ExpectedException expectedException = ExpectedException.none();
 
+	// @checkstyle:off
 	@Test
 	public void resolveDestination_withNonExistentTopicAndWithoutMarkerReturnedOnListTopics_shouldThrowIllegalArgumentException()
 			throws Exception {
+		// @checkstyle:on
 		// Arrange
 		this.expectedException.expect(IllegalArgumentException.class);
 		this.expectedException.expectMessage("No topic found for name :'test'");
@@ -59,8 +61,10 @@ public class DynamicTopicDestinationResolverTest {
 		resolver.resolveDestination("test");
 	}
 
+	// @checkstyle:off
 	@Test
 	public void resolveDestination_withNonExistentTopicAndWithMarkerReturnedOnListTopics_shouldCallListMultipleTimeWithMarkerAndThrowIllegalArgumentException()
+			// @checkstyle:on
 			throws Exception {
 		// Arrange
 		this.expectedException.expect(IllegalArgumentException.class);
@@ -96,7 +100,7 @@ public class DynamicTopicDestinationResolverTest {
 		String resolvedDestinationName = resolver.resolveDestination("test");
 
 		// Assert
-		assertEquals(topicArn, resolvedDestinationName);
+		assertThat(resolvedDestinationName).isEqualTo(topicArn);
 	}
 
 	@Test
@@ -119,7 +123,7 @@ public class DynamicTopicDestinationResolverTest {
 		String resolvedDestinationName = resolver.resolveDestination("test");
 
 		// Assert
-		assertEquals(topicArn, resolvedDestinationName);
+		assertThat(resolvedDestinationName).isEqualTo(topicArn);
 	}
 
 	@Test
@@ -136,7 +140,7 @@ public class DynamicTopicDestinationResolverTest {
 		String resolvedDestinationName = resolver.resolveDestination(topicArn);
 
 		// Assert
-		assertEquals(topicArn, resolvedDestinationName);
+		assertThat(resolvedDestinationName).isEqualTo(topicArn);
 	}
 
 	@Test
@@ -157,7 +161,7 @@ public class DynamicTopicDestinationResolverTest {
 		String resolvedDestinationName = resolver.resolveDestination("test");
 
 		// Assert
-		assertEquals(topicArn, resolvedDestinationName);
+		assertThat(resolvedDestinationName).isEqualTo(topicArn);
 	}
 
 	@Test
@@ -183,7 +187,7 @@ public class DynamicTopicDestinationResolverTest {
 		String resolvedDestinationName = resolver.resolveDestination(logicalTopicName);
 
 		// Assert
-		assertEquals(physicalTopicName, resolvedDestinationName);
+		assertThat(resolvedDestinationName).isEqualTo(physicalTopicName);
 	}
 
 }

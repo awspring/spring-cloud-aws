@@ -36,7 +36,8 @@ public class AcknowledgmentHandlerMethodArgumentResolverTest {
 	public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException()
 			throws Exception {
 		// Arrange
-		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver(
+		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = null;
+		acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver(
 				"Acknowledgment");
 		Message<String> message = MessageBuilder.withPayload("no content").build();
 

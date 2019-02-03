@@ -30,10 +30,7 @@ import org.springframework.cloud.aws.core.task.ShutdownSuppressingExecutorServic
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqsAsyncClientBeanDefinitionParserTest {
 
@@ -53,10 +50,10 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 				.getBean("customClient", AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient asyncClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(sqsBufferedAsyncClient, "realSQS");
-		assertNotNull(asyncClient);
+		assertThat(asyncClient).isNotNull();
 		ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) ReflectionTestUtils
 				.getField(asyncClient, "executorService");
-		assertEquals(50, threadPoolExecutor.getCorePoolSize());
+		assertThat(threadPoolExecutor.getCorePoolSize()).isEqualTo(50);
 	}
 
 	@Test
@@ -73,8 +70,8 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		// Assert
 		AmazonSQSAsyncClient asyncClient = beanFactory.getBean("customClient",
 				AmazonSQSAsyncClient.class);
-		assertNotNull(asyncClient);
-		assertTrue(AmazonSQSAsyncClient.class.isInstance(asyncClient));
+		assertThat(asyncClient).isNotNull();
+		assertThat(AmazonSQSAsyncClient.class.isInstance(asyncClient)).isTrue();
 	}
 
 	@Test
@@ -93,11 +90,11 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 				.getBean("customClient", AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient asyncClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(sqsBufferedAsyncClient, "realSQS");
-		assertNotNull(asyncClient);
+		assertThat(asyncClient).isNotNull();
 		ShutdownSuppressingExecutorServiceAdapter executor = (ShutdownSuppressingExecutorServiceAdapter) ReflectionTestUtils
 				.getField(asyncClient, "executorService");
-		assertSame(beanFactory.getBean("myThreadPoolTaskExecutor"),
-				ReflectionTestUtils.getField(executor, "taskExecutor"));
+		assertThat(ReflectionTestUtils.getField(executor, "taskExecutor"))
+				.isSameAs(beanFactory.getBean("myThreadPoolTaskExecutor"));
 	}
 
 	@Test
@@ -115,11 +112,10 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		AmazonSQSBufferedAsyncClient amazonSqs = registry
 				.getBean(AmazonSQSBufferedAsyncClient.class);
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
-		assertEquals(
-				"https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.EU_WEST_1)
+								.getServiceEndpoint("sqs"));
 	}
 
 	@Test
@@ -137,11 +133,10 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 		AmazonSQSBufferedAsyncClient amazonSqs = registry
 				.getBean(AmazonSQSBufferedAsyncClient.class);
 		Object amazonSqsAsyncClient = ReflectionTestUtils.getField(amazonSqs, "realSQS");
-		assertEquals(
-				"https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
-						.getServiceEndpoint("sqs"),
-				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint")
-						.toString());
+		assertThat(
+				ReflectionTestUtils.getField(amazonSqsAsyncClient, "endpoint").toString())
+						.isEqualTo("https://" + Region.getRegion(Regions.AP_SOUTHEAST_2)
+								.getServiceEndpoint("sqs"));
 	}
 
 }

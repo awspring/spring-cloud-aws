@@ -23,11 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test class for
- * {@link org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport}
+ * {@link org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport}.
  *
  * @author Agim Emruli
  * @since 1.0
@@ -39,8 +39,9 @@ public class MapBasedDatabasePlatformSupportTest {
 
 	@Test
 	public void testGetDriverClassNameForDatabase() throws Exception {
-		assertEquals("com.mysql.jdbc.Driver", new SimpleDatabasePlatformSupport()
-				.getDriverClassNameForDatabase(DatabaseType.MYSQL));
+		assertThat(new SimpleDatabasePlatformSupport()
+				.getDriverClassNameForDatabase(DatabaseType.MYSQL))
+						.isEqualTo("com.mysql.jdbc.Driver");
 	}
 
 	@Test
@@ -63,7 +64,7 @@ public class MapBasedDatabasePlatformSupportTest {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
 		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
 				DatabaseType.MYSQL, "localhost", 3306, "testDb");
-		assertEquals("jdbc:mysql://localhost:3306/testDb", url);
+		assertThat(url).isEqualTo("jdbc:mysql://localhost:3306/testDb");
 	}
 
 	@Test
@@ -74,7 +75,7 @@ public class MapBasedDatabasePlatformSupportTest {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
 		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
 				DatabaseType.MYSQL, "localhost<", 3306, "testDb");
-		assertEquals("jdbc:mysql://localhost:3306/testDb", url);
+		assertThat(url).isEqualTo("jdbc:mysql://localhost:3306/testDb");
 	}
 
 	private static class SimpleDatabasePlatformSupport
