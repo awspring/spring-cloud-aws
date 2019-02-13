@@ -435,8 +435,10 @@ public class MessageListenerContainerTest {
 		applicationContext.registerSingleton("anotherMessageListener",
 				AnotherMessageListener.class);
 
+		String destinationResolutionExceptionMessage = "Queue not found";
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue")))
-				.thenThrow(new DestinationResolutionException("Queue not found"));
+				.thenThrow(new DestinationResolutionException(
+						destinationResolutionExceptionMessage));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue")))
 				.thenReturn(new GetQueueUrlResult()
 						.withQueueUrl("http://anotherTestQueue.amazonaws.com"));
@@ -455,7 +457,8 @@ public class MessageListenerContainerTest {
 		Map<String, QueueAttributes> registeredQueues = container.getRegisteredQueues();
 		assertThat(registeredQueues.containsKey("testQueue")).isFalse();
 		assertThat(logMsgArgCaptor.getValue())
-				.isEqualTo("Ignoring queue with name 'testQueue' as it does not exist.");
+				.isEqualTo("Ignoring queue with name 'testQueue': "
+						+ destinationResolutionExceptionMessage);
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
 				.getQueueUrl()).isEqualTo("http://anotherTestQueue.amazonaws.com");
 	}
