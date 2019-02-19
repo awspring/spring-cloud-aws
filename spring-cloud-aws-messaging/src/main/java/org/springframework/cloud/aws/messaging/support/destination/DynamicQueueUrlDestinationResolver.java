@@ -95,8 +95,20 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 				return getQueueUrlResult.getQueueUrl();
 			}
 			catch (QueueDoesNotExistException e) {
-				throw new DestinationResolutionException(e.getMessage(), e);
+				throw toDestinationResolutionException(e);
 			}
+		}
+	}
+
+	private DestinationResolutionException toDestinationResolutionException(
+			QueueDoesNotExistException e) {
+		if (e.getMessage() != null && e.getMessage().contains("access")) {
+			return new DestinationResolutionException(
+					"The queue does not exist or no access to perform action sqs:GetQueueUrl.",
+					e);
+		}
+		else {
+			return new DestinationResolutionException("The queue does not exist.", e);
 		}
 	}
 

@@ -322,12 +322,11 @@ abstract class AbstractMessageListenerContainer
 		catch (DestinationResolutionException e) {
 			if (getLogger().isDebugEnabled()) {
 				getLogger().debug(
-						"Ignoring queue with name '" + queue + "' as it does not exist.",
-						e);
+						"Ignoring queue with name '" + queue + "': " + e.getMessage(), e);
 			}
 			else {
 				getLogger().warn(
-						"Ignoring queue with name '" + queue + "' as it does not exist.");
+						"Ignoring queue with name '" + queue + "': " + e.getMessage());
 			}
 			return null;
 		}

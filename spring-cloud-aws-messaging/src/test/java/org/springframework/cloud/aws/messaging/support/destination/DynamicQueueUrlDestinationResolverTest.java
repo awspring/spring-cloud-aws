@@ -87,9 +87,29 @@ public class DynamicQueueUrlDestinationResolverTest {
 			dynamicQueueDestinationResolver.resolveDestination(queueUrl);
 		}
 		catch (DestinationResolutionException e) {
-			assertThat(
-					e.getMessage().startsWith("AWS.SimpleQueueService.NonExistentQueue"))
-							.isTrue();
+			assertThat(e.getMessage()).startsWith("The queue does not exist.");
+		}
+	}
+
+	@Test
+	public void testPotentiallyNoAccessToPerformGetQueueUrl() throws Exception {
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonServiceException exception = new QueueDoesNotExistException(
+				"AWS.SimpleQueueService.NonExistentQueue");
+		exception.setErrorCode("AWS.SimpleQueueService.NonExistentQueue");
+		exception.setErrorMessage(
+				"The specified queue does not exist or you do not have access to it.");
+		String queueUrl = "noAccessGetQueueUrlName";
+		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueUrl)))
+				.thenThrow(exception);
+		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
+				amazonSqs);
+		try {
+			dynamicQueueDestinationResolver.resolveDestination(queueUrl);
+		}
+		catch (DestinationResolutionException e) {
+			assertThat(e.getMessage()).startsWith(
+					"The queue does not exist or no access to perform action sqs:GetQueueUrl.");
 		}
 	}
 
