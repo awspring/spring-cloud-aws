@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "defaultValue": "true",
+      "name": "cloud.aws.stack.auto",
+      "description": "Enables the automatic stack name detection for the application.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": "myStackName",
+      "name": "cloud.aws.stack.name",
+      "description": "The name of the manually configured stack name that will be used to retrieve the resources.",
+      "type": "java.lang.String"
+    },
+    {
+      "defaultValue": "",
+      "name": "management.metrics.export.cloudwatch.namespace",
+      "description": "Cloud watch namespace.",
+      "type": "java.lang.String"
+    },
+    {
+      "defaultValue": true,
+      "name": "management.metrics.export.cloudwatch.enabled",
+      "description": "Enables cloud watch metrics.",
+      "type": "java.lang.Boolean"
+    }
+  ]
+}
