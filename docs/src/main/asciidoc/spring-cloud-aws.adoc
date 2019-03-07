@@ -76,7 +76,7 @@ developer snapshots), you need to specify the repository location in your Maven 
 <repositories>
     <repository>
         <id>io.spring.repo.maven.release</id>
-        <url>http://repo.spring.io/release/</url>
+        <url>https://repo.spring.io/release/</url>
         <snapshots><enabled>false</enabled></snapshots>
     </repository>
 </repositories>
@@ -89,7 +89,7 @@ For milestones:
 <repositories>
     <repository>
         <id>io.spring.repo.maven.milestone</id>
-        <url>http://repo.spring.io/milestone/</url>
+        <url>https://repo.spring.io/milestone/</url>
         <snapshots><enabled>false</enabled></snapshots>
     </repository>
 </repositories>
