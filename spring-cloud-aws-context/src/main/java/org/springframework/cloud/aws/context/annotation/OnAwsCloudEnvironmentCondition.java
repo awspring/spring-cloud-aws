@@ -24,12 +24,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Agim Emruli
  * @author Gleb Schukin
+ * @author Bernardo Martins
  */
 public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition {
 
 	@Override
 	public ConfigurationPhase getConfigurationPhase() {
-		return ConfigurationPhase.PARSE_CONFIGURATION;
+		return ConfigurationPhase.REGISTER_BEAN;
 	}
 
 	@Override
