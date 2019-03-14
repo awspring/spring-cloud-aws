@@ -24,16 +24,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Jon Schneider
  * @author Dawid Kublik
+ * @author Bernardo Martins
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = "management.metrics.export.cloudwatch")
 public class CloudWatchProperties extends StepRegistryProperties {
+
+	private static final int DEFAULT_BATCH_SIZE = 20;
 
 	/**
 	 * The namespace which will be used when sending metrics to CloudWatch. This property
 	 * is needed and must not be null.
 	 */
 	private String namespace = "";
+
+	public CloudWatchProperties() {
+		setBatchSize(DEFAULT_BATCH_SIZE);
+	}
 
 	public String getNamespace() {
 		return this.namespace;
