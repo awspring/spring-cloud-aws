@@ -268,7 +268,7 @@ public class MessageListenerContainerTest {
 						.withQueueUrl("http://testQueue.amazonaws.com"));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue")))
 				.thenReturn(new GetQueueUrlResult()
-						.withQueueUrl("http://anotherTestQueue.amazonaws.com"));
+						.withQueueUrl("https://anotherTestQueue.amazonaws.com"));
 		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class)))
 				.thenReturn(new GetQueueAttributesResult());
 
@@ -286,7 +286,7 @@ public class MessageListenerContainerTest {
 		assertThat(registeredQueues.get("testQueue").getReceiveMessageRequest()
 				.getWaitTimeSeconds().longValue()).isEqualTo(33L);
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
-				.getQueueUrl()).isEqualTo("http://anotherTestQueue.amazonaws.com");
+				.getQueueUrl()).isEqualTo("https://anotherTestQueue.amazonaws.com");
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
 				.getMaxNumberOfMessages().longValue()).isEqualTo(11L);
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
@@ -441,7 +441,7 @@ public class MessageListenerContainerTest {
 						destinationResolutionExceptionMessage));
 		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("anotherTestQueue")))
 				.thenReturn(new GetQueueUrlResult()
-						.withQueueUrl("http://anotherTestQueue.amazonaws.com"));
+						.withQueueUrl("https://anotherTestQueue.amazonaws.com"));
 		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class)))
 				.thenReturn(new GetQueueAttributesResult());
 
@@ -460,7 +460,7 @@ public class MessageListenerContainerTest {
 				.isEqualTo("Ignoring queue with name 'testQueue': "
 						+ destinationResolutionExceptionMessage);
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest()
-				.getQueueUrl()).isEqualTo("http://anotherTestQueue.amazonaws.com");
+				.getQueueUrl()).isEqualTo("https://anotherTestQueue.amazonaws.com");
 	}
 
 	private static class StubAbstractMessageListenerContainer

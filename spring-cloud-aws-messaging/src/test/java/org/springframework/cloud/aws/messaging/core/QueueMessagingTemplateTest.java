@@ -77,7 +77,7 @@ public class QueueMessagingTemplateTest {
 				.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
 		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
-				.isEqualTo("http://queue-url.com");
+				.isEqualTo("https://queue-url.com");
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class QueueMessagingTemplateTest {
 				.forClass(SendMessageRequest.class);
 		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
 		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
-				.isEqualTo("http://queue-url.com");
+				.isEqualTo("https://queue-url.com");
 	}
 
 	@Test
@@ -138,7 +138,7 @@ public class QueueMessagingTemplateTest {
 				.forClass(ReceiveMessageRequest.class);
 		verify(amazonSqs).receiveMessage(sendMessageRequestArgumentCaptor.capture());
 		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
-				.isEqualTo("http://queue-url.com");
+				.isEqualTo("https://queue-url.com");
 	}
 
 	@Test
@@ -153,7 +153,7 @@ public class QueueMessagingTemplateTest {
 				.forClass(ReceiveMessageRequest.class);
 		verify(amazonSqs).receiveMessage(sendMessageRequestArgumentCaptor.capture());
 		assertThat(sendMessageRequestArgumentCaptor.getValue().getQueueUrl())
-				.isEqualTo("http://queue-url.com");
+				.isEqualTo("https://queue-url.com");
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -273,7 +273,7 @@ public class QueueMessagingTemplateTest {
 		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class);
 
 		GetQueueUrlResult queueUrl = new GetQueueUrlResult();
-		queueUrl.setQueueUrl("http://queue-url.com");
+		queueUrl.setQueueUrl("https://queue-url.com");
 		when(amazonSqs.getQueueUrl(any(GetQueueUrlRequest.class))).thenReturn(queueUrl);
 
 		ReceiveMessageResult receiveMessageResult = new ReceiveMessageResult();

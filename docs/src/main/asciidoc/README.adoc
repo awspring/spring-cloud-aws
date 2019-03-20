@@ -45,8 +45,8 @@ variable `GEM_HOME`to the ruby gem folder. For example:
 
 = Using IntelliJ IDEA
 Spring Cloud AWS development is done with
-http://www.jetbrains.com/idea/[IntelliJ IDEA]. In order to create all
-http://www.jetbrains.com/idea/[IntelliJ IDEA] project files, you have to
+https://www.jetbrains.com/idea/[IntelliJ IDEA]. In order to create all
+https://www.jetbrains.com/idea/[IntelliJ IDEA] project files, you have to
 import the file within idea as a maven project.
 
 _Note:_ Please make sure to revert all changes in the .idea config file
@@ -138,11 +138,11 @@ Spring Cloud Team on https://twitter.com/springcentral[Twitter]
 
 Individual team members can be found on different social media channels
 
-* Agim Emruli (http://twitter.com/aemruli[Twitter] /
-http://de.linkedin.com/in/agimemruli[LinkedIn])
-* Alain Sahli (http://twitter.com/sahlialain[Twitter] /
-http://ch.linkedin.com/in/asahli[LinkedIn])
-* Christian Stettler (http://twitter.com/chrisstettler[Twitter])
+* Agim Emruli (https://twitter.com/aemruli[Twitter] /
+https://de.linkedin.com/in/agimemruli[LinkedIn])
+* Alain Sahli (https://twitter.com/sahlialain[Twitter] /
+https://ch.linkedin.com/in/asahli[LinkedIn])
+* Christian Stettler (https://twitter.com/chrisstettler[Twitter])
 
 == Contributing
 

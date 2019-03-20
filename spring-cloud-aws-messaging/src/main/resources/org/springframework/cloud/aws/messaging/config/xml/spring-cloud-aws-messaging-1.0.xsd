@@ -24,11 +24,11 @@
 			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/tool"
-				schemaLocation="http://www.springframework.org/schema/tool/spring-tool.xsd"/>
+				schemaLocation="https://www.springframework.org/schema/tool/spring-tool.xsd"/>
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
-				schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd"/>
+				schemaLocation="https://www.springframework.org/schema/beans/spring-beans.xsd"/>
 	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
-				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd"/>
+				schemaLocation="https://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd"/>
 
 	<xsd:element name="annotation-driven-queue-listener">
 		<xsd:annotation>
@@ -147,7 +147,7 @@
 						Configures the wait timeout that the poll request will wait for new message to arrive if the are currently no
 						messages on the queue. Higher values will reduce poll request to the system significantly. The value should
 						be between 1 and 20. For more information read the
-						<a href="http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
+						<a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
