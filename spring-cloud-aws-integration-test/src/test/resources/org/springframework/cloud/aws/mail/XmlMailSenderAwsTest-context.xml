@@ -20,11 +20,11 @@
 	   xmlns:util="http://www.springframework.org/schema/util"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/util
-                           http://www.springframework.org/schema/util/spring-util.xsd
+                           https://www.springframework.org/schema/util/spring-util.xsd
                            http://www.springframework.org/schema/cloud/aws/mail
-                           http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
+                           https://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 
 	<import resource="classpath:Integration-test-context.xml"/>

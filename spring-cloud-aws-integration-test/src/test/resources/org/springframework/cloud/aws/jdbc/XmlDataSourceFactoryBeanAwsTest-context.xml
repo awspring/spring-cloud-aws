@@ -22,13 +22,13 @@
 	   xmlns:aop="http://www.springframework.org/schema/aop"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/jdbc
-	   					   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd
+	   					   https://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd
 	   					   http://www.springframework.org/schema/tx
-	   					   http://www.springframework.org/schema/tx/spring-tx.xsd
+	   					   https://www.springframework.org/schema/tx/spring-tx.xsd
 	   					   http://www.springframework.org/schema/aop
-	   					   http://www.springframework.org/schema/aop/spring-aop.xsd">
+	   					   https://www.springframework.org/schema/aop/spring-aop.xsd">
 
 	<import resource="classpath:Integration-test-context.xml"/>
 
