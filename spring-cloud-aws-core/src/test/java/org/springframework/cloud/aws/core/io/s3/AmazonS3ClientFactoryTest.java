@@ -59,7 +59,8 @@ public class AmazonS3ClientFactoryTest {
 		this.expectedException.expectMessage("AmazonS3 must not be null");
 
 		// Act
-		amazonS3ClientFactory.createClientForEndpointUrl(null, "https://s3.amazonaws.com");
+		amazonS3ClientFactory.createClientForEndpointUrl(null,
+				"https://s3.amazonaws.com");
 
 		// Prepare
 
