@@ -38,7 +38,7 @@ public class DynamicQueueUrlDestinationResolverTest {
 	@Test
 	public void testAutoCreate() throws Exception {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
-		String queueUrl = "http://foo/bar";
+		String queueUrl = "https://foo/bar";
 		when(amazonSqs.createQueue(new CreateQueueRequest("foo")))
 				.thenReturn(new CreateQueueResult().withQueueUrl(queueUrl));
 
@@ -54,7 +54,7 @@ public class DynamicQueueUrlDestinationResolverTest {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
 				amazonSqs);
-		String destination = "http://sqs-amazon.aws.com/123123123/myQueue";
+		String destination = "https://sqs-amazon.aws.com/123123123/myQueue";
 		assertThat(dynamicQueueDestinationResolver.resolveDestination(destination))
 				.isEqualTo(destination);
 	}
@@ -62,7 +62,7 @@ public class DynamicQueueUrlDestinationResolverTest {
 	@Test
 	public void testNoAutoCreate() throws Exception {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
-		String queueUrl = "http://foo/bar";
+		String queueUrl = "https://foo/bar";
 		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("foo")))
 				.thenReturn(new GetQueueUrlResult().withQueueUrl(queueUrl));
 

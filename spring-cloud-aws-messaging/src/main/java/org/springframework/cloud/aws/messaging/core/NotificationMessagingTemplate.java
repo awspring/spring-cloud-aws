@@ -69,7 +69,7 @@ public class NotificationMessagingTemplate
 	 * Convenience method that sends a notification with the given {@literal message} and
 	 * {@literal subject} to the {@literal destination}. The {@literal subject} is sent as
 	 * header as defined in the
-	 * <a href="http://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
+	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
 	 * JSON formats</a>.
 	 * @param destinationName The logical name of the destination
 	 * @param message The message to send
@@ -84,7 +84,7 @@ public class NotificationMessagingTemplate
 	 * Convenience method that sends a notification with the given {@literal message} and
 	 * {@literal subject} to the {@literal destination}. The {@literal subject} is sent as
 	 * header as defined in the
-	 * <a href="http://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
+	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
 	 * JSON formats</a>. The configured default destination will be used.
 	 * @param message The message to send
 	 * @param subject The subject to send

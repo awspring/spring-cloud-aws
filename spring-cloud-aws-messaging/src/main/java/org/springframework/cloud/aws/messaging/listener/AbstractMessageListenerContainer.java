@@ -93,7 +93,7 @@ abstract class AbstractMessageListenerContainer
 	/**
 	 * By default sets the maximum value for long polling in SQS. For more information
 	 * read the <a href=
-	 * "http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>
+	 * "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>
 	 */
 	private Integer waitTimeOut = DEFAULT_WAIT_TIME_IN_SECONDS;
 

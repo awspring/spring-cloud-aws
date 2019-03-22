@@ -29,7 +29,7 @@ import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromS
 /**
  * Test for {@link AmazonResourceName} class. The examples are taken from the aws
  * documentation at
- * http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+ * https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
  *
  * @author Agim Emruli
  * @since 1.0
