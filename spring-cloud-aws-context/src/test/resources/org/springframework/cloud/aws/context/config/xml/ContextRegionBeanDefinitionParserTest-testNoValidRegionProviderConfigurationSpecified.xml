@@ -18,9 +18,9 @@
 	   xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
-	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
+	   					   https://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<!--suppress UnparsedCustomBeanInspection -->
 	<context:context-region/>

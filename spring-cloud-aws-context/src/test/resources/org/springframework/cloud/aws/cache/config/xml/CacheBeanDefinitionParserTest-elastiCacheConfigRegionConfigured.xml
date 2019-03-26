@@ -20,9 +20,9 @@
 	   xmlns:aws-cache="http://www.springframework.org/schema/cloud/aws/cache"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   		http://www.springframework.org/schema/beans/spring-beans.xsd
+	   		https://www.springframework.org/schema/beans/spring-beans.xsd
 	   		http://www.springframework.org/schema/cloud/aws/cache
-           	http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd">
+           	https://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd">
 
 	<aws-cache:cache-manager id="cacheManager">
 		<aws-cache:cache-cluster name="memcached" region="eu-west-1"/>
