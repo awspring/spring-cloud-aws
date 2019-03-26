@@ -89,7 +89,7 @@ public class SimpleMessageListenerContainerFactory {
 	 * arrive if the are currently no messages on the queue. Higher values will reduce
 	 * poll request to the system significantly. The value should be between 1 and 20. For
 	 * more information read the <a href=
-	 * "http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
+	 * "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
 	 * @param waitTimeOut - the wait time out in seconds
 	 */
 	public void setWaitTimeOut(Integer waitTimeOut) {

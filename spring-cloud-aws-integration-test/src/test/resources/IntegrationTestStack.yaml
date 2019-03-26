@@ -148,7 +148,7 @@ Resources:
 		Type: AWS::SNS::Topic
 		Properties:
 			Subscription:
-				- Endpoint: http://build.elasticspring.org
+				- Endpoint: https://build.elasticspring.org
 				  Protocol: http
 	CacheCluster:
 		Type: AWS::ElastiCache::CacheCluster

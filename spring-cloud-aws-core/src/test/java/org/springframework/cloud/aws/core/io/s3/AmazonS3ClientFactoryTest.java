@@ -59,7 +59,7 @@ public class AmazonS3ClientFactoryTest {
 		this.expectedException.expectMessage("AmazonS3 must not be null");
 
 		// Act
-		amazonS3ClientFactory.createClientForEndpointUrl(null, "http://s3.amazonaws.com");
+		amazonS3ClientFactory.createClientForEndpointUrl(null, "https://s3.amazonaws.com");
 
 		// Prepare
 
@@ -74,7 +74,7 @@ public class AmazonS3ClientFactoryTest {
 
 		// Act
 		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
-				"http://s3.amazonaws.com");
+				"https://s3.amazonaws.com");
 
 		// Prepare
 		assertThat(newClient.getRegionName()).isEqualTo(Regions.DEFAULT_REGION.getName());
