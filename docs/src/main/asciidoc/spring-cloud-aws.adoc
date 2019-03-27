@@ -1741,7 +1741,8 @@ outlines all properties for a data source using `test` as the instance identifie
 
 
 === Read-replica configuration
-Amazon RDS allows to use https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html[MySQL read-replica]
+Amazon RDS allows to use MySQL, MariaDB, Oracle, PostgreSQL and
+Microsoft SQL Server https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html[read-replica]
 instances to increase the overall throughput of the database by offloading read data access to one or more read-replica
 slaves while maintaining the data in one master database.
 
