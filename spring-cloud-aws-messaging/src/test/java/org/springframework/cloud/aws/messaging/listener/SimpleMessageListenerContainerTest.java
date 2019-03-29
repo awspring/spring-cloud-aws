@@ -932,12 +932,15 @@ public class SimpleMessageListenerContainerTest {
 		mockGetQueueAttributesWithEmptyResult(sqs, "https://alwaysSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "alwaysError", "https://alwaysError.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "https://alwaysError.amazonaws.com");
-		mockGetQueueUrl(sqs, "onSuccessSuccess", "https://onSuccessSuccess.amazonaws.com");
+		mockGetQueueUrl(sqs, "onSuccessSuccess",
+				"https://onSuccessSuccess.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
 				"https://onSuccessSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "onSuccessError", "https://onSuccessError.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs, "https://onSuccessError.amazonaws.com");
-		mockGetQueueUrl(sqs, "noRedriveSuccess", "https://noRedriveSuccess.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs,
+				"https://onSuccessError.amazonaws.com");
+		mockGetQueueUrl(sqs, "noRedriveSuccess",
+				"https://noRedriveSuccess.amazonaws.com");
 		mockGetQueueAttributesWithRedrivePolicy(sqs,
 				"https://noRedriveSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "noRedriveError", "https://noRedriveError.amazonaws.com");
@@ -954,7 +957,8 @@ public class SimpleMessageListenerContainerTest {
 
 		mockReceiveMessage(sqs, "https://alwaysSuccess.amazonaws.com", "foo",
 				"alwaysSuccess");
-		mockReceiveMessage(sqs, "https://alwaysError.amazonaws.com", "foo", "alwaysError");
+		mockReceiveMessage(sqs, "https://alwaysError.amazonaws.com", "foo",
+				"alwaysError");
 		mockReceiveMessage(sqs, "https://onSuccessSuccess.amazonaws.com", "foo",
 				"onSuccessSuccess");
 		mockReceiveMessage(sqs, "https://onSuccessError.amazonaws.com", "foo",
@@ -1290,7 +1294,8 @@ public class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		mockGetQueueUrl(sqs, "testQueue", "http://testQueue.amazonaws.com");
-		mockGetQueueUrl(sqs, "anotherTestQueue", "https://anotherTestQueue.amazonaws.com");
+		mockGetQueueUrl(sqs, "anotherTestQueue",
+				"https://anotherTestQueue.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "http://testQueue.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
 				"https://anotherTestQueue.amazonaws.com");

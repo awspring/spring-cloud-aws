@@ -24,7 +24,7 @@
 	   					   http://www.springframework.org/schema/mvc
 	   					   https://www.springframework.org/schema/mvc/spring-mvc.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/messaging
-	   					   https://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd">
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd">
 
 	<mvc:annotation-driven>
 		<mvc:argument-resolvers>

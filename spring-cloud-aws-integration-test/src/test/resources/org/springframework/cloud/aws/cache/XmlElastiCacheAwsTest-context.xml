@@ -22,7 +22,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
        					   https://www.springframework.org/schema/beans/spring-beans.xsd
        					   http://www.springframework.org/schema/cloud/aws/cache
-       					   https://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd
+       					   http://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd
        					   http://www.springframework.org/schema/cache
        					   https://www.springframework.org/schema/cache/spring-cache.xsd">
 

@@ -30,9 +30,9 @@ import org.springframework.util.StringUtils;
  * region, if the service is region based. Also most of the resources will be typically
  * bound to an account if the resource is scoped ot an account.
  * <p>
- * More information on resources are available on
- * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">the
- * Amazon Webservice Manual</a>
+ * More information on resources are available on <a href=
+ * "https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">the Amazon
+ * Webservice Manual</a>
  * </p>
  *
  * @author Agim Emruli

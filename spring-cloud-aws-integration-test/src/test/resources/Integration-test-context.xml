@@ -24,7 +24,7 @@
                            http://www.springframework.org/schema/context
                            https://www.springframework.org/schema/context/spring-context.xsd
                            http://www.springframework.org/schema/cloud/aws/context
-                           https://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
+                           http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<aws-context:context-credentials>
 		<aws-context:simple-credentials access-key="${cloud.aws.credentials.accessKey}"

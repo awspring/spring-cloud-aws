@@ -22,9 +22,9 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
-	   					   https://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/messaging
-	   					   https://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd">
+	   					   http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd">
 
 
 	<aws-context:context-credentials>
