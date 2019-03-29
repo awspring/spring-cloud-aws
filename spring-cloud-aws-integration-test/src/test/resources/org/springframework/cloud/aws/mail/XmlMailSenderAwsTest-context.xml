@@ -24,7 +24,7 @@
                            http://www.springframework.org/schema/util
                            https://www.springframework.org/schema/util/spring-util.xsd
                            http://www.springframework.org/schema/cloud/aws/mail
-                           https://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
+                           http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 
 	<import resource="classpath:Integration-test-context.xml"/>

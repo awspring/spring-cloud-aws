@@ -24,7 +24,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/jdbc
-	   					   https://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd
+	   					   http://www.springframework.org/schema/cloud/aws/jdbc/spring-cloud-aws-jdbc.xsd
 	   					   http://www.springframework.org/schema/tx
 	   					   https://www.springframework.org/schema/tx/spring-tx.xsd
 	   					   http://www.springframework.org/schema/aop

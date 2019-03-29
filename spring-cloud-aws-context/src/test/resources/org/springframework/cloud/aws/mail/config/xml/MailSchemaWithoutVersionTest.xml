@@ -21,7 +21,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			     	   	   https://www.springframework.org/schema/beans/spring-beans.xsd
 			     	   	   http://www.springframework.org/schema/cloud/aws/mail
-			     	   	   https://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
+			     	   	   http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
 
 	<mail:mail-sender id="mailSender"/>
 
