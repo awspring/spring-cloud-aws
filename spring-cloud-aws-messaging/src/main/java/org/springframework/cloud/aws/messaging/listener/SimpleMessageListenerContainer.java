@@ -418,7 +418,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				applyDeletionPolicyOnSuccess(receiptHandle);
 			}
 			catch (MessagingException messagingException) {
-				applyDeletionPolicyOnError(receiptHandle, messagingException);
+				applyDeletionPolicyOnError(receiptHandle);
 			}
 		}
 
@@ -430,16 +430,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			}
 		}
 
-		private void applyDeletionPolicyOnError(String receiptHandle,
-				MessagingException messagingException) {
+		private void applyDeletionPolicyOnError(String receiptHandle) {
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS
 					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE
 							&& !this.hasRedrivePolicy)) {
 				deleteMessage(receiptHandle);
-			}
-			else if (this.deletionPolicy == SqsMessageDeletionPolicy.ON_SUCCESS) {
-				getLogger().error("Exception encountered while processing message.",
-						messagingException);
 			}
 		}
 

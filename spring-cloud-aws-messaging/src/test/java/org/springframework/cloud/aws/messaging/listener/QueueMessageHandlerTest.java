@@ -70,6 +70,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodReturnValue
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -566,6 +567,40 @@ public class QueueMessageHandlerTest {
 				.containsAll(Arrays.asList("queueOne", "queueTwo"))).isTrue();
 	}
 
+	@Test
+	public void processHandlerMethodException_invocableHandlerMethodNotAvailable_errorMustBeLogged() {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("sqsListenerWithoutMessageExceptionHandler",
+				SqsListenerWithoutMessageExceptionHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				getQueueMessageHandlerBeanDefinition());
+		applicationContext.refresh();
+		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
+
+		LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		ListAppender<ILoggingEvent> appender = new ListAppender<>();
+		appender.start();
+		Logger log = logContext.getLogger(QueueMessageHandler.class);
+		log.setLevel(Level.ERROR);
+		log.addAppender(appender);
+		appender.setContext(log.getLoggerContext());
+
+		// Act
+		try {
+			messageHandler.handleMessage(MessageBuilder.withPayload("testContent")
+					.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receive")
+					.build());
+			fail();
+		}
+		catch (MessagingException e) {
+			// ignore
+		}
+
+		// Assert
+		assertThat(appender.list).hasSize(1);
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 
@@ -600,6 +635,15 @@ public class QueueMessageHandlerTest {
 
 		private String getLastReceivedMessage() {
 			return this.lastReceivedMessage;
+		}
+
+	}
+
+	private static class SqsListenerWithoutMessageExceptionHandler {
+
+		@SqsListener("receive")
+		public String receive(String value) {
+			throw new RuntimeException("test exception");
 		}
 
 	}

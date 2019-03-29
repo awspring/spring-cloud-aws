@@ -52,6 +52,7 @@ import org.springframework.messaging.handler.invocation.AbstractExceptionHandler
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.comparator.ComparableComparator;
 import org.springframework.validation.Errors;
@@ -233,7 +234,15 @@ public class QueueMessageHandler
 	@Override
 	protected void processHandlerMethodException(HandlerMethod handlerMethod,
 			Exception ex, Message<?> message) {
-		super.processHandlerMethodException(handlerMethod, ex, message);
+		InvocableHandlerMethod exceptionHandlerMethod = getExceptionHandlerMethod(
+				handlerMethod, ex);
+		if (exceptionHandlerMethod != null) {
+			super.processHandlerMethodException(handlerMethod, ex, message);
+		}
+		else {
+			this.logger.error("An exception occurred while invoking the handler method",
+					ex);
+		}
 		throw new MessagingException(
 				"An exception occurred while invoking the handler method", ex);
 	}
