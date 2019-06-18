@@ -83,12 +83,12 @@ public class ContextCredentialsAutoConfiguration {
 			}
 
 			Boolean useDefaultCredentialsChain = this.environment.getProperty(
-					AWS_CREDENTIALS_PROPERTY_PREFIX + ".useDefaultAwsCredentialsChain",
+					AWS_CREDENTIALS_PROPERTY_PREFIX + ".use-default-aws-credentials-chain",
 					Boolean.class, false);
 			String accessKey = this.environment
-					.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".accessKey");
+					.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key");
 			String secretKey = this.environment
-					.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".secretKey");
+					.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".secret-key");
 			if (useDefaultCredentialsChain && (StringUtils.isEmpty(accessKey)
 					|| StringUtils.isEmpty(secretKey))) {
 				registerDefaultAWSCredentialsProvider(registry);
@@ -96,15 +96,15 @@ public class ContextCredentialsAutoConfiguration {
 			else {
 				registerCredentialsProvider(registry, accessKey, secretKey,
 						this.environment.getProperty(
-								AWS_CREDENTIALS_PROPERTY_PREFIX + ".instanceProfile",
+								AWS_CREDENTIALS_PROPERTY_PREFIX + ".instance-profile",
 								Boolean.class, true)
 								&& !this.environment.containsProperty(
-										AWS_CREDENTIALS_PROPERTY_PREFIX + ".accessKey"),
+										AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key"),
 						this.environment.getProperty(
-								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profileName",
+								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profile-name",
 								DEFAULT_PROFILE_NAME),
 						this.environment.getProperty(
-								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profilePath"));
+								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profile-path"));
 			}
 		}
 
