@@ -43,6 +43,8 @@ import org.springframework.util.ReflectionUtils;
  */
 public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLocator {
 
+	private String propertySourceName;
+
 	private AWSSecretsManager smClient;
 
 	private AwsSecretsManagerProperties properties;
@@ -51,10 +53,14 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 	private Log logger = LogFactory.getLog(getClass());
 
-	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient,
-			AwsSecretsManagerProperties properties) {
+	public AwsSecretsManagerPropertySourceLocator(String propertySourceName, AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+		this.propertySourceName = propertySourceName;
 		this.smClient = smClient;
 		this.properties = properties;
+	}
+
+	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+		this("aws-secrets-manager", smClient, properties);
 	}
 
 	public List<String> getContexts() {
@@ -89,8 +95,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 		Collections.reverse(this.contexts);
 
-		CompositePropertySource composite = new CompositePropertySource(
-				"aws-secrets-manager");
+		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
 
 		for (String propertySourceContext : this.contexts) {
 			try {
