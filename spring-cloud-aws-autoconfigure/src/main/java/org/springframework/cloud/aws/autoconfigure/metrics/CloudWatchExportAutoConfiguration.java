@@ -55,7 +55,8 @@ import org.springframework.context.annotation.Import;
 		SimpleMetricsExportAutoConfiguration.class })
 @AutoConfigureAfter(MetricsAutoConfiguration.class)
 @EnableConfigurationProperties(CloudWatchProperties.class)
-@ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch", name = "namespace")
+@ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch",
+		name = "namespace")
 @ConditionalOnClass({ CloudWatchMeterRegistry.class, RegionProvider.class })
 public class CloudWatchExportAutoConfiguration {
 
@@ -63,7 +64,8 @@ public class CloudWatchExportAutoConfiguration {
 	private RegionProvider regionProvider;
 
 	@Bean
-	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled",
+			matchIfMissing = true)
 	public CloudWatchMeterRegistry cloudWatchMeterRegistry(CloudWatchConfig config,
 			Clock clock, AmazonCloudWatchAsync client) {
 		return new CloudWatchMeterRegistry(config, clock, client);

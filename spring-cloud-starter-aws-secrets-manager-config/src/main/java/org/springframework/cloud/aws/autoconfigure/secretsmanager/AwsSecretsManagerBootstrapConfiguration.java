@@ -39,7 +39,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(AwsSecretsManagerProperties.class)
 @ConditionalOnClass({ AWSSecretsManager.class,
 		AwsSecretsManagerPropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
+@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX,
+		name = "enabled", matchIfMissing = true)
 public class AwsSecretsManagerBootstrapConfiguration {
 
 	@Bean

@@ -201,7 +201,8 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	}
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", databaseName = "fooDb")
+	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret",
+			databaseName = "fooDb")
 	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
 
 		@Bean
@@ -260,7 +261,8 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	// @checkstyle:off
-	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}", password = "#{environment.password}", username = "#{environment.username}")
+	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}",
+			password = "#{environment.password}", username = "#{environment.username}")
 	public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
 
 		// @checkstyle:on
@@ -287,7 +289,8 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	// @checkstyle:off
-	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}", password = "${password}", username = "${username}")
+	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}",
+			password = "${password}", username = "${username}")
 	public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
 
 		// @checkstyle:on
@@ -318,7 +321,8 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	}
 
-	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret", readReplicaSupport = true)
+	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret",
+			readReplicaSupport = true)
 	public static class ApplicationConfigurationWithReadReplica {
 
 		@Bean

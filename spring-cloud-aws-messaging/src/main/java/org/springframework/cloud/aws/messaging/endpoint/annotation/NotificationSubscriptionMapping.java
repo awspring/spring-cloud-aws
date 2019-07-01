@@ -53,7 +53,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping(headers = "x-amz-sns-message-type=SubscriptionConfirmation", method = RequestMethod.POST)
+@RequestMapping(headers = "x-amz-sns-message-type=SubscriptionConfirmation",
+		method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationSubscriptionMapping {
 
