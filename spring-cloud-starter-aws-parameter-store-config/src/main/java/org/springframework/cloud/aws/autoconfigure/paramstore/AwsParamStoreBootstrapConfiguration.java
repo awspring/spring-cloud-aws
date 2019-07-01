@@ -39,8 +39,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(AwsParamStoreProperties.class)
 @ConditionalOnClass({ AWSSimpleSystemsManagement.class,
 		AwsParamStorePropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled",
-		matchIfMissing = true)
+@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsParamStoreBootstrapConfiguration {
 
 	@Bean

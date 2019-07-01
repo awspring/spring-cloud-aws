@@ -26,16 +26,14 @@ import org.springframework.context.annotation.Configuration;
  * @author Alain Sahli
  * @author Agim Emruli
  */
-@ConditionalOnClass(
-		name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+@ConditionalOnClass(name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 @Configuration
 public class MessagingAutoConfiguration {
 
 	/**
 	 * Auto configuration for SQS.
 	 */
-	@ConditionalOnMissingBean(
-			type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
+	@ConditionalOnMissingBean(type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 	@EnableSqs
 	@Configuration
 	public static class SqsAutoConfiguration {
