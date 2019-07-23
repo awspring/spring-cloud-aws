@@ -244,8 +244,10 @@ public class ElastiCacheCachingConfigurationTest {
 
 	}
 
-	@EnableElastiCache(value = { @CacheClusterConfig(name = "firstCache"),
-			@CacheClusterConfig(name = "secondCache", expiration = 42) }, defaultExpiration = 12)
+	@EnableElastiCache(
+			value = { @CacheClusterConfig(name = "firstCache"),
+					@CacheClusterConfig(name = "secondCache", expiration = 42) },
+			defaultExpiration = 12)
 	public static class ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime {
 
 		@Bean

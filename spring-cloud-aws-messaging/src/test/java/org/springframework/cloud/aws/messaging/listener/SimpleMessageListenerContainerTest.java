@@ -1444,7 +1444,8 @@ public class SimpleMessageListenerContainerTest {
 	private static class TestMessageListenerThatThrowsAnExceptionWithAllExceptOnRedriveDeletionPolicy {
 
 		@SuppressWarnings("UnusedDeclaration")
-		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "testQueue",
+				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void handleMessage(String message) {
 			throw new RuntimeException();
 		}
@@ -1483,7 +1484,8 @@ public class SimpleMessageListenerContainerTest {
 		private Visibility visibility;
 
 		@RuntimeUse
-		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "testQueue",
+				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void manualSuccess(String message, Visibility visibility) {
 			this.visibility = visibility;
 			this.countDownLatch.countDown();
@@ -1527,52 +1529,60 @@ public class SimpleMessageListenerContainerTest {
 		private final CountDownLatch countdownLatch = new CountDownLatch(8);
 
 		@RuntimeUse
-		@SqsListener(value = "alwaysSuccess", deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
+		@SqsListener(value = "alwaysSuccess",
+				deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
 		private void alwaysSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "alwaysError", deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
+		@SqsListener(value = "alwaysError",
+				deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
 		private void alwaysError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "onSuccessSuccess", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "onSuccessSuccess",
+				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void onSuccessSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "onSuccessError", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "onSuccessError",
+				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void onSuccessError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "noRedriveSuccess", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "noRedriveSuccess",
+				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void noRedriveSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "noRedriveError", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "noRedriveError",
+				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void noRedriveError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "neverSuccess", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "neverSuccess",
+				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		private void neverSuccess(String message, Acknowledgment acknowledgment) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "neverError", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "neverError",
+				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		private void neverError(String message, Acknowledgment acknowledgment) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");

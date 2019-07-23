@@ -328,7 +328,8 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	}
 
-	@EnableContextCredentials(accessKey = "#{environment.accessKey}", secretKey = "#{environment.secretKey}")
+	@EnableContextCredentials(accessKey = "#{environment.accessKey}",
+			secretKey = "#{environment.secretKey}")
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions {
 
 	}
@@ -338,7 +339,8 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	}
 
-	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret", instanceProfile = true)
+	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret",
+			instanceProfile = true)
 	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAndInstanceProfile {
 
 	}
@@ -353,13 +355,15 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	}
 
-	@EnableContextCredentials(profileName = "customProfile", profilePath = "${profilePath}")
+	@EnableContextCredentials(profileName = "customProfile",
+			profilePath = "${profilePath}")
 	public static class ApplicationConfigurationWithProfileAndCustomProfilePath {
 
 	}
 
 	// @checkstyle:off
-	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret", instanceProfile = true, profileName = "customProfile")
+	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret",
+			instanceProfile = true, profileName = "customProfile")
 	public static class ApplicationConfigurationWithAllProviders {
 
 	}
