@@ -1,0 +1,30 @@
+|===
+|Name | Default | Description
+
+|aws.paramstore.default-context | application | 
+|aws.paramstore.enabled | true | Is AWS Parameter Store support enabled.
+|aws.paramstore.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
+|aws.paramstore.name |  | Alternative to spring.application.name to use in looking up values in AWS Parameter Store.
+|aws.paramstore.prefix | /config | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
+|aws.paramstore.profile-separator | _ | 
+|aws.secretsmanager.default-context | application | 
+|aws.secretsmanager.enabled | true | Is AWS Secrets Manager support enabled.
+|aws.secretsmanager.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
+|aws.secretsmanager.name |  | Alternative to spring.application.name to use in looking up values in AWS Secrets Manager.
+|aws.secretsmanager.prefix | /secret | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
+|aws.secretsmanager.profile-separator | _ | 
+|cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
+|cloud.aws.credentials.instance-profile | true | Configures an instance profile credentials provider with no further configuration.
+|cloud.aws.credentials.profile-name |  | The AWS profile name.
+|cloud.aws.credentials.profile-path |  | The AWS profile path.
+|cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
+|cloud.aws.credentials.use-default-aws-credentials-chain | false | Use the DefaultAWSCredentials Chain instead of configuring a custom credentials chain.
+|cloud.aws.loader.core-pool-size | 1 | The core pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setCorePoolSize(int)
+|cloud.aws.loader.max-pool-size |  | The maximum pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setMaxPoolSize(int)
+|cloud.aws.loader.queue-capacity |  | The maximum queue capacity for backed up S3 requests. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setQueueCapacity(int)
+|cloud.aws.region.auto | true | Enables automatic region detection based on the EC2 meta data service.
+|cloud.aws.region.static |  | 
+|cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
+|cloud.aws.stack.name | myStackName | The name of the manually configured stack name that will be used to retrieve the resources.
+
+|===

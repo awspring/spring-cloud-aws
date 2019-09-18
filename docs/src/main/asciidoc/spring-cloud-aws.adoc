@@ -1,13 +1,5 @@
 = Spring Cloud AWS
-Agim Emruli; Alain Sahli
-:githubroot: https://github.com/spring-cloud
-:github: {githubroot}/spring-cloud-aws
-:githubmaster: {github}/tree/master
-:docslink: {githubmaster}/docs/src/main/asciidoc
-:toc:
-:numbered:
-:icons: font
-:nofooter:
+include::_attributes.adoc[]
 
 
 include::intro.adoc[]
@@ -2283,3 +2275,6 @@ public class SimpleResourceLoadingBean {
 	}
 }
 ----
+== Configuration properties
+
+To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].
