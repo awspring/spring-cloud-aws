@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -97,6 +98,7 @@ public final class AmazonS3ProxyFactory {
 	 *
 	 * @author Greg Turnquist
 	 * @author Agim Emruli
+	 * @author André Caron
 	 * @since 1.1
 	 */
 	static final class SimpleStorageRedirectInterceptor implements MethodInterceptor {
@@ -131,11 +133,32 @@ public final class AmazonS3ProxyFactory {
 			}
 		}
 
+		/**
+		 * Builds a new S3 client based on the information from the
+		 * {@link AmazonS3Exception}. Extracts from the exception's additional details the
+		 * region and endpoint of the bucket to be redirected to.
+		 *
+		 * Extracting the region from the exception is needed because the US S3 buckets
+		 * don't always return an endpoint that includes the region and
+		 * {@link AmazonS3ClientFactory} will default to us-west-2 if the hostname of
+		 * the endpoint is "s3.amazonaws.com". The us-east-1 bucket is quite likely to
+		 * return the "s3.amazonaws.com" endpoint.
+		 */
 		private AmazonS3 buildAmazonS3ForRedirectLocation(AmazonS3 prototype,
 				AmazonS3Exception e) {
 			try {
+				Regions redirectRegion;
+				try {
+					redirectRegion = Regions.fromName(
+							e.getAdditionalDetails().get("x-amz-bucket-region"));
+				}
+				catch (IllegalArgumentException iae) {
+					redirectRegion = null;
+				}
+
 				return this.amazonS3ClientFactory.createClientForEndpointUrl(prototype,
-						"https://" + e.getAdditionalDetails().get("Endpoint"));
+						"https://" + e.getAdditionalDetails().get("Endpoint"),
+						redirectRegion);
 			}
 			catch (Exception ex) {
 				LOGGER.error("Error getting new Amazon S3 for redirect", ex);

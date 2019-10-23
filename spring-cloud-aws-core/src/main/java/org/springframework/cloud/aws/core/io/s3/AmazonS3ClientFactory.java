@@ -93,10 +93,16 @@ public class AmazonS3ClientFactory {
 	}
 
 	public AmazonS3 createClientForEndpointUrl(AmazonS3 prototype, String endpointUrl) {
+		return createClientForEndpointUrl(prototype, endpointUrl, null);
+	}
+
+	AmazonS3 createClientForEndpointUrl(AmazonS3 prototype, String endpointUrl,
+			Regions bucketRegion) {
 		Assert.notNull(prototype, "AmazonS3 must not be null");
 		Assert.notNull(endpointUrl, "Endpoint Url must not be null");
 
-		String region = getRegion(endpointUrl);
+		String region = bucketRegion != null ? bucketRegion.getName()
+				: getRegion(endpointUrl);
 		Assert.notNull(region,
 				"Error detecting region from endpoint url:'" + endpointUrl + "'");
 

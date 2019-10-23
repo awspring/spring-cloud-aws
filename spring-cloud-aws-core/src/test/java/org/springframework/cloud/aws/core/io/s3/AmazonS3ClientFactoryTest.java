@@ -82,6 +82,21 @@ public class AmazonS3ClientFactoryTest {
 	}
 
 	@Test
+	public void createClientForEndpointUrl_withProvidedBucketRegion_createClientForDefaultRegion() {
+		// Arrange
+		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
+				.withRegion(Regions.EU_CENTRAL_1).build();
+
+		// Act
+		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
+				"https://s3.amazonaws.com", Regions.US_EAST_1);
+
+		// Prepare
+		assertThat(newClient.getRegionName()).isEqualTo(Regions.US_EAST_1.getName());
+	}
+
+	@Test
 	public void createClientForEndpointUrl_withCustomRegionUrl_createClientForCustomRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
