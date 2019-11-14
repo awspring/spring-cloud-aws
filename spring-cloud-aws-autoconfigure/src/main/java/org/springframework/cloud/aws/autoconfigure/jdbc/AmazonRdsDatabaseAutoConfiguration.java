@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  * @author Alain Sahli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
 @ConditionalOnClass(name = { "com.amazonaws.services.rds.AmazonRDSClient",

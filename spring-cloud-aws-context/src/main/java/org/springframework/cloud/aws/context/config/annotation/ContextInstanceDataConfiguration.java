@@ -30,7 +30,7 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Agim Emruli
  */
 @SuppressWarnings("NonFinalUtilityClass")
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnAwsCloudEnvironment
 public class ContextInstanceDataConfiguration implements ImportBeanDefinitionRegistrar {
 

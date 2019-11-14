@@ -49,7 +49,7 @@ import org.springframework.context.annotation.Import;
  * @author Jan Sauer
  * @since 2.0.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextCredentialsAutoConfiguration.class)
 @AutoConfigureBefore({ CompositeMeterRegistryAutoConfiguration.class,
 		SimpleMetricsExportAutoConfiguration.class })

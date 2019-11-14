@@ -31,7 +31,7 @@ import static org.springframework.cloud.aws.messaging.endpoint.config.Notificati
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
 public class SnsWebConfiguration implements WebMvcConfigurer {
 

@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Agim Emruli
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class SnsConfiguration {
 
 	@Autowired(required = false)

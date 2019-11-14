@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * @author Agim Emruli
  */
 // @checkstyle:off
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class AmazonRdsInstanceConfiguration {
 

@@ -127,19 +127,19 @@ public class ContextInstanceDataConfigurationTest {
 		field.set(null, null);
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextInstanceData
 	public static class ApplicationConfiguration {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextInstanceData(attributeSeparator = "/")
 	public static class ApplicationConfigurationWithCustomAttributeSeparator {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextInstanceData(valueSeparator = "=")
 	public static class ApplicationConfigurationWithCustomValueSeparator {
 

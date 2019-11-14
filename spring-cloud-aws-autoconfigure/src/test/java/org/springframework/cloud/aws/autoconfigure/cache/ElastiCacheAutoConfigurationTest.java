@@ -124,7 +124,7 @@ public class ElastiCacheAutoConfigurationTest {
 		httpServer.removeContext(instanceIdHttpContext);
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class MockCacheConfigurationWithStackCaches {
 
 		@Bean

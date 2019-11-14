@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Fabio Maia
  * @since 2.0.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsSecretsManagerProperties.class)
 @ConditionalOnClass({ AWSSecretsManager.class,
 		AwsSecretsManagerPropertySourceLocator.class })

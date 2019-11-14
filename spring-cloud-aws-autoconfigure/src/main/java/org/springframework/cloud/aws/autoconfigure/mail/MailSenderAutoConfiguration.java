@@ -40,7 +40,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration.class)
 @ConditionalOnClass(name = { "org.springframework.mail.MailSender",
 		"com.amazonaws.services.simpleemail.AmazonSimpleEmailService" })

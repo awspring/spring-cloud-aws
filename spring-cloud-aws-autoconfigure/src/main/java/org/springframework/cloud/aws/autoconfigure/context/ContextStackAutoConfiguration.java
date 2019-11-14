@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import({ ContextCredentialsAutoConfiguration.class,
 		ContextDefaultConfigurationRegistrar.class })
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")

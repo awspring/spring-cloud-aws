@@ -172,25 +172,25 @@ public class ContextRegionConfigurationRegistrarTest {
 		// Assert
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(region = "eu-west-1")
 	static class ApplicationConfigurationWithStaticRegionProvider {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(autoDetect = true)
 	static class ApplicationConfigurationWithDynamicRegionProvider {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(region = "#{environment.region}")
 	static class ApplicationConfigurationWithExpressionRegion {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(region = "${region}")
 	static class ApplicationConfigurationWithPlaceHolderRegion {
 
@@ -201,19 +201,19 @@ public class ContextRegionConfigurationRegistrarTest {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion
 	static class ApplicationConfigurationWithNoRegion {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(autoDetect = true, region = "eu-west-1")
 	static class ApplicationConfigurationWithAutoDetectionAndRegion {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(region = "eu-wast-1")
 	static class ApplicationConfigurationWithWrongRegion {
 

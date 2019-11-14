@@ -34,7 +34,7 @@ import org.springframework.core.type.AnnotationMetadata;
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextResourceLoaderConfiguration.Registrar.class)
 public class ContextResourceLoaderConfiguration {
 

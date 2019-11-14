@@ -52,7 +52,7 @@ public class OnMissingAmazonClientConditionTest {
 		assertThat(applicationContext.containsBean("foo")).isFalse();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	protected static class ConfigWithDummyS3Client {
 
 		@Bean
@@ -62,7 +62,7 @@ public class OnMissingAmazonClientConditionTest {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	protected static class ConfigWithMissingAmazonClientCondition {
 
 		@Bean

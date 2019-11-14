@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class ContextStackConfiguration implements ImportAware {
 

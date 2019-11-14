@@ -118,7 +118,7 @@ public class ContextStackAutoConfigurationTest {
 				.isTrue();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class AutoConfigurationStackRegistryTestConfiguration {
 
 		@Bean
@@ -138,7 +138,7 @@ public class ContextStackAutoConfigurationTest {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class ManualConfigurationStackRegistryTestConfiguration {
 
 		@Bean

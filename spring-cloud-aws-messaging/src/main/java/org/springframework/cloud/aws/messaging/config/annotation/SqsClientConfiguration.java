@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Lazy;
  * @author Alain Sahli
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnMissingAmazonClient(AmazonSQS.class)
 public class SqsClientConfiguration {
 

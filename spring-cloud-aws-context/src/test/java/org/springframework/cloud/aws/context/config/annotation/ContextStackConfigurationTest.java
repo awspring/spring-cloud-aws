@@ -91,7 +91,7 @@ public class ContextStackConfigurationTest {
 		assertThat(stackResourceRegistry.getStackName()).isEqualTo("manualStackName");
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableStackConfiguration
 	static class ApplicationConfigurationWithEmptyStackName {
 
@@ -112,7 +112,7 @@ public class ContextStackConfigurationTest {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableStackConfiguration(stackName = "manualStackName")
 	static class ManualConfigurationStackRegistryTestConfiguration {
 

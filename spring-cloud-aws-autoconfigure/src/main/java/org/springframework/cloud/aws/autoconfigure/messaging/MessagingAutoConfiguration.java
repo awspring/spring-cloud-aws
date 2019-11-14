@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @ConditionalOnClass(
 		name = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class MessagingAutoConfiguration {
 
 	/**
@@ -37,7 +37,7 @@ public class MessagingAutoConfiguration {
 	@ConditionalOnMissingBean(
 			type = "org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer")
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class SqsAutoConfiguration {
 
 	}
@@ -47,7 +47,7 @@ public class MessagingAutoConfiguration {
 	 */
 	@ConditionalOnClass(name = "com.amazonaws.services.sns.AmazonSNS")
 	@EnableSns
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class SnsAutoConfiguration {
 
 	}

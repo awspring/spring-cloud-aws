@@ -233,7 +233,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class MinimalConfiguration {
 
 		@Bean
@@ -244,7 +244,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithCustomAmazonClient {
 
 		public static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class,
@@ -263,7 +263,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithCustomizedMessageHandler
 			extends MinimalConfiguration {
 
@@ -295,7 +295,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithCustomContainerFactory {
 
 		public static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class,
@@ -352,7 +352,7 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithCustomSendToMessageTemplate {
 
 		public static final DestinationResolvingMessageSendingOperations<?> SEND_TO_MESSAGE_TEMPLATE = mock(
@@ -369,14 +369,14 @@ public class SqsConfigurationTest {
 	}
 
 	@EnableSqs
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithMissingAwsCredentials {
 
 	}
 
 	@EnableSqs
 	@EnableContextRegion(region = "eu-west-1")
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class ConfigurationWithRegionProvider {
 
 	}

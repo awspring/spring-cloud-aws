@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
 /**
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class ElastiCacheCachingConfiguration implements ImportAware {
 

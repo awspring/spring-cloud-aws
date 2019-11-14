@@ -27,7 +27,7 @@ import org.springframework.core.type.AnnotationMetadata;
  *
  * @author Agim Emruli
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class ContextDefaultConfigurationRegistrar
 		implements ImportBeanDefinitionRegistrar {
 

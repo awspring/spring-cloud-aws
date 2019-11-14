@@ -39,7 +39,7 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Agim Emruli
  * @author Petromir Dzhunev
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(ContextRegionProviderAutoConfiguration.Registrar.class)
 public class ContextRegionProviderAutoConfiguration {
 

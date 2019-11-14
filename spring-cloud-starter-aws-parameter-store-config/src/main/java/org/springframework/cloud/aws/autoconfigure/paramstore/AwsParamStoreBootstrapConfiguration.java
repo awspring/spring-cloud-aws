@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Joris Kuipers
  * @since 2.0.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsParamStoreProperties.class)
 @ConditionalOnClass({ AWSSimpleSystemsManagement.class,
 		AwsParamStorePropertySourceLocator.class })
