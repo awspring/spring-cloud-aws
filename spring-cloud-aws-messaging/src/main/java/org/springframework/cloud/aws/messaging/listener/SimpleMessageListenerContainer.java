@@ -201,7 +201,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
 
 			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null
-					? getMaxNumberOfMessages() : DEFAULT_WORKER_THREADS;
+					? getMaxNumberOfMessages() : DEFAULT_MAX_NUMBER_OF_MESSAGES;
 			threadPoolTaskExecutor
 					.setMaxPoolSize(spinningThreads * (maxNumberOfMessagePerBatch + 1));
 		}
