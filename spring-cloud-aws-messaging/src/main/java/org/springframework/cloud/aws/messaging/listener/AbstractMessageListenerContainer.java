@@ -58,7 +58,7 @@ abstract class AbstractMessageListenerContainer
 
 	private static final String RECEIVING_MESSAGE_ATTRIBUTES = "All";
 
-	//Visible to child classes for thread pool sizing
+	// Visible to child classes for thread pool sizing
 	protected static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 
 	private static final int DEFAULT_WAIT_TIME_IN_SECONDS = 20;
