@@ -664,6 +664,17 @@ You can configure the following settings in a Spring Cloud `bootstrap.properties
 |Can be used to disable the Parameter Store Configuration support even though the auto-configuration is on the classpath.
 |===
 
+[TIP]
+====
+In order to find out which properties are retrieved from AWS Parameter Store on application startup,
+turn on `DEBUG` logging on `org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource` class.
+
+[source,indent=0]
+----
+logging.level.org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource=debug
+----
+====
+
 === Integrating your Spring Cloud application with the AWS Secrets Manager
 
 Spring Cloud provides support for centralized configuration, which can be read and made available as a regular Spring

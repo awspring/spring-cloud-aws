@@ -24,6 +24,8 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.core.env.EnumerablePropertySource;
 
@@ -36,6 +38,9 @@ import org.springframework.core.env.EnumerablePropertySource;
  */
 public class AwsParamStorePropertySource
 		extends EnumerablePropertySource<AWSSimpleSystemsManagement> {
+
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(AwsParamStorePropertySource.class);
 
 	private String context;
 
@@ -69,6 +74,8 @@ public class AwsParamStorePropertySource
 				.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.getParameters()) {
 			String key = parameter.getName().replace(context, "").replace('/', '.');
+			LOGGER.debug("Populating property retrieved from AWS Parameter Store: {}",
+					key);
 			properties.put(key, parameter.getValue());
 		}
 		if (paramsResult.getNextToken() != null) {
