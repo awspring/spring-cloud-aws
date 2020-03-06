@@ -31,7 +31,7 @@
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
-		<docs.whitelisted.branches>1.1.x,1.2.x,2.1.x</docs.whitelisted.branches>
+		<docs.whitelisted.branches>2.1.x,2.2.x</docs.whitelisted.branches>
 		<configprops.inclusionPattern>cloud.aws.*|aws.*</configprops.inclusionPattern>
 	</properties>
 	<dependencies>
