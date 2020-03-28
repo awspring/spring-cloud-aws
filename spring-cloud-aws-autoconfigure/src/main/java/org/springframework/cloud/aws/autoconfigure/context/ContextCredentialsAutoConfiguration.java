@@ -99,7 +99,7 @@ public class ContextCredentialsAutoConfiguration {
 								AWS_CREDENTIALS_PROPERTY_PREFIX + ".instance-profile",
 								Boolean.class, true)
 								&& !this.environment.containsProperty(
-										AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key"),
+								AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key"),
 						this.environment.getProperty(
 								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profile-name",
 								DEFAULT_PROFILE_NAME),
