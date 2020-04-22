@@ -30,14 +30,12 @@
 	<description>Spring Cloud AWS Actuator</description>
 
 	<properties>
-		<micrometer.version>1.0.4</micrometer.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-cloudwatch</artifactId>
-			<version>${micrometer.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
