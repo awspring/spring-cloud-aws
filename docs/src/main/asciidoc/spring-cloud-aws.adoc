@@ -952,7 +952,7 @@ be resolved against the SQS API. The send method that takes no destination argum
 
 [source,java,index=0]
 ----
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
@@ -962,8 +962,8 @@ public class SqsQueueSender {
 	private final QueueMessagingTemplate queueMessagingTemplate;
 
 	@Autowired
-	public SqsQueueSender(AmazonSQS amazonSqs) {
-		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
+	public SqsQueueSender(AmazonSQSAsync amazonSQSAsync) {
+		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSQSAsync);
 	}
 
 	public void send(String message) {
@@ -973,7 +973,7 @@ public class SqsQueueSender {
 ----
 
 This example uses the `MessageBuilder` class to create a message with a string payload. The `QueueMessagingTemplate` is
-constructed by passing a reference to the `AmazonSQS` client. The destination in the send method is a string value that
+constructed by passing a reference to the `AmazonSQSAsync` client. The destination in the send method is a string value that
 must match the queue name defined on AWS. This value will be resolved at runtime by the Amazon SQS client. Optionally
 a `ResourceIdResolver` implementation can be passed to the `QueueMessagingTemplate` constructor to resolve resources by
 logical name when running inside a CloudFormation stack (see <<Managing cloud environments>> for more information about
@@ -1003,7 +1003,7 @@ With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML
 </beans>
 ----
 
-In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQS` client
+In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQSAsync` client
 is automatically created and passed to the template's constructor based on the provided credentials. If the
 application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor (see
 <<Managing cloud environments>> for more information about resource name resolution).
