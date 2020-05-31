@@ -47,7 +47,7 @@ abstract class AbstractContainerTest {
 			this.simpleMessageListenerContainer.stop(countDownLatch::countDown);
 
 			if (!countDownLatch.await(15, TimeUnit.SECONDS)) {
-				throw new Exception("Couldn't stop container withing 15 seconds");
+				throw new Exception("Couldn't stop container within 15 seconds");
 			}
 		}
 	}
