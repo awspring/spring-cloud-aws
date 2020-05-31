@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.amazonaws.regions.AwsRegionProviderChain;
+
 import org.springframework.context.annotation.Import;
 
 /**
@@ -29,11 +31,15 @@ import org.springframework.context.annotation.Import;
  * Service clients that are created inside the application context (by the Spring Cloud
  * AWS classes). A region can be either manually configured
  * {@link EnableContextRegion#region()} with a constant expression, dynamic expression
- * (using a SpEL expression) or a place holder. The region can also be dynamically
- * retrieved from the EC2 instance meta-data if the application context is running inside
- * a EC2 instance by enabling the {@link EnableContextRegion#autoDetect()} attribute.
+ * (using a SpEL expression) or a place holder. If the application context is running
+ * inside a EC2 instance The region can also be dynamically retrieved from the EC2
+ * instance meta-data by enabling the {@link EnableContextRegion#autoDetect()} attribute
+ * or from the default AWS SDK {@link AwsRegionProviderChain} by enabling
+ * {@link EnableContextRegion#autoDetect()} and
+ * {@link EnableContextRegion#useDefaultAwsRegionChain()}.
  *
  * @author Agim Emruli
+ * @author Maciej Walkowiak
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -57,5 +63,13 @@ public @interface EnableContextRegion {
 	 * attribute.
 	 */
 	boolean autoDetect() default false;
+
+	/**
+	 * Whether default AWS SDK region provider chain should be used when auto is set to
+	 * true.
+	 * @return - if default AWS SDK region provider chain should be used for region
+	 * resolution.
+	 */
+	boolean useDefaultAwsRegionChain() default false;
 
 }

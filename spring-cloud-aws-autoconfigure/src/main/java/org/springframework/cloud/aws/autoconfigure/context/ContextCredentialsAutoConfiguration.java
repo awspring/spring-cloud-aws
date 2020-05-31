@@ -82,9 +82,11 @@ public class ContextCredentialsAutoConfiguration {
 				return;
 			}
 
-			Boolean useDefaultCredentialsChain = this.environment.getProperty(
-					AWS_CREDENTIALS_PROPERTY_PREFIX + ".use-default-aws-credentials-chain",
-					Boolean.class, false);
+			Boolean useDefaultCredentialsChain = this.environment
+					.getProperty(
+							AWS_CREDENTIALS_PROPERTY_PREFIX
+									+ ".use-default-aws-credentials-chain",
+							Boolean.class, false);
 			String accessKey = this.environment
 					.getProperty(AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key");
 			String secretKey = this.environment
@@ -99,7 +101,7 @@ public class ContextCredentialsAutoConfiguration {
 								AWS_CREDENTIALS_PROPERTY_PREFIX + ".instance-profile",
 								Boolean.class, true)
 								&& !this.environment.containsProperty(
-								AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key"),
+										AWS_CREDENTIALS_PROPERTY_PREFIX + ".access-key"),
 						this.environment.getProperty(
 								AWS_CREDENTIALS_PROPERTY_PREFIX + ".profile-name",
 								DEFAULT_PROFILE_NAME),

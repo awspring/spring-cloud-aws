@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
+import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.util.StringUtils;
@@ -55,7 +56,7 @@ public final class ContextConfigurationUtils {
 	}
 
 	public static void registerRegionProvider(BeanDefinitionRegistry registry,
-			boolean autoDetect, String configuredRegion) {
+			boolean autoDetect, boolean useDefaultRegionChain, String configuredRegion) {
 		if (autoDetect && StringUtils.hasText(configuredRegion)) {
 			throw new IllegalArgumentException(
 					"No region must be configured if autoDetect is defined as true");
@@ -64,8 +65,9 @@ public final class ContextConfigurationUtils {
 		AbstractBeanDefinition beanDefinition;
 
 		if (autoDetect) {
-			beanDefinition = BeanDefinitionBuilder
-					.genericBeanDefinition(Ec2MetadataRegionProvider.class)
+			beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(
+					useDefaultRegionChain ? DefaultAwsRegionProviderChainDelegate.class
+							: Ec2MetadataRegionProvider.class)
 					.getBeanDefinition();
 		}
 		else if (StringUtils.hasText(configuredRegion)) {

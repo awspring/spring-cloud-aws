@@ -315,6 +315,10 @@ The properties to configure the region are shown below
 |true
 |Enables automatic region detection based on the EC2 meta data service
 
+|cloud.aws.region.useDefaultAwsRegionChain
+|true
+|Use the DefaultAWSRegion Chain instead of configuring a custom region chain
+
 |cloud.aws.region.static
 |eu-west-1
 |Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,

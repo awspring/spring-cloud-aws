@@ -70,12 +70,19 @@ public class ContextRegionProviderAutoConfiguration {
 				return;
 			}
 
-			registerRegionProvider(registry, this.environment.getProperty(
+			boolean useDefaultRegionChain = this.environment.getProperty(
+					AWS_REGION_PROPERTIES_PREFIX + ".use-default-aws-region-chain",
+					Boolean.class, false);
+
+			String staticRegion = this.environment
+					.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static");
+
+			boolean autoDetect = this.environment.getProperty(
 					AWS_REGION_PROPERTIES_PREFIX + ".auto", Boolean.class, true)
-					&& !StringUtils.hasText(this.environment
-							.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static")),
-					this.environment
-							.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static"));
+					&& !StringUtils.hasText(staticRegion);
+
+			registerRegionProvider(registry, autoDetect, useDefaultRegionChain,
+					staticRegion);
 		}
 
 		@Override

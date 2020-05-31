@@ -21,16 +21,20 @@ import com.amazonaws.regions.Regions;
 import org.junit.After;
 import org.junit.Test;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
 import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Agim Emruli
  * @author Petromir Dzhunev
+ * @author Maciej Walkowiak
  */
 public class ContextRegionProviderAutoConfigurationTest {
 
@@ -91,6 +95,25 @@ public class ContextRegionProviderAutoConfigurationTest {
 		// Assert
 		assertThat(regionProvider.getRegion())
 				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
+	}
+
+	@Test
+	public void regionProvider_autoDetectionAndDefaultChainConfigured_DefaultAwsRegionProviderChainDelegateConfigured() {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextRegionProviderAutoConfiguration.class);
+		TestPropertyValues.of("cloud.aws.region.auto:true").applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.region.useDefaultAwsRegionChain:true")
+				.applyTo(this.context);
+
+		// Act
+		this.context.refresh();
+
+		// Assert
+		assertThat(this.context.getBean(DefaultAwsRegionProviderChainDelegate.class))
+				.isNotNull();
+		assertThatThrownBy(() -> this.context.getBean(Ec2MetadataRegionProvider.class))
+				.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 }

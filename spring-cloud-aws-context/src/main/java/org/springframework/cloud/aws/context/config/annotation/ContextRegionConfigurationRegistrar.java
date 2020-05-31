@@ -43,9 +43,12 @@ public class ContextRegionConfigurationRegistrar
 						+ importingClassMetadata.getClassName());
 
 		boolean autoDetect = annotationAttributes.getBoolean("autoDetect");
+		boolean useDefaultAwsRegionChain = annotationAttributes
+				.getBoolean("useDefaultAwsRegionChain");
 		String configuredRegion = annotationAttributes.getString("region");
 
-		registerRegionProvider(registry, autoDetect, configuredRegion);
+		registerRegionProvider(registry, autoDetect, useDefaultAwsRegionChain,
+				configuredRegion);
 	}
 
 }

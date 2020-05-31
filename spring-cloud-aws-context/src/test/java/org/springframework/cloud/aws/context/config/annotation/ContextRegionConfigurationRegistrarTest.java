@@ -83,6 +83,21 @@ public class ContextRegionConfigurationRegistrarTest {
 	}
 
 	@Test
+	public void regionProvider_withAutoDetectedRegionAndDefaultChain_defaulAwsChainRegionProviderConfigured()
+			throws Exception {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext(
+				ApplicationConfigurationWithDynamicRegionProvider.class);
+
+		// Act
+		Ec2MetadataRegionProvider staticRegionProvider = this.context
+				.getBean(Ec2MetadataRegionProvider.class);
+
+		// Assert
+		assertThat(staticRegionProvider).isNotNull();
+	}
+
+	@Test
 	public void regionProvider_withExpressionConfiguredRegion_staticRegionProviderConfigured()
 			throws Exception {
 		// Arrange
@@ -216,6 +231,12 @@ public class ContextRegionConfigurationRegistrarTest {
 	@Configuration(proxyBeanMethods = false)
 	@EnableContextRegion(region = "eu-wast-1")
 	static class ApplicationConfigurationWithWrongRegion {
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@EnableContextRegion(autoDetect = true, useDefaultAwsRegionChain = true)
+	static class ApplicationConfigurationWithAutoDetectionAndDefaultChain {
 
 	}
 

@@ -148,7 +148,8 @@ public class ContextCredentialsAutoConfigurationTest {
 	public void credentialsProvider_dashSeparatedPropertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextCredentialsAutoConfiguration.class);
-		TestPropertyValues.of("cloud.aws.credentials.use-default-aws-credentials-chain:true")
+		TestPropertyValues
+				.of("cloud.aws.credentials.use-default-aws-credentials-chain:true")
 				.applyTo(this.context);
 		this.context.refresh();
 

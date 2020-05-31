@@ -20,6 +20,7 @@ package org.springframework.cloud.aws.autoconfigure.context.properties;
  * Properties related to AWS region configuration.
  *
  * @author Tom Gianos
+ * @author Maciej Walkowiak
  * @since 2.0.2
  * @see org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
  */
@@ -29,6 +30,12 @@ public class AwsRegionProperties {
 	 * Enables automatic region detection based on the EC2 meta data service.
 	 */
 	private boolean auto = true;
+
+	/**
+	 * Whether default AWS SDK region provider chain should be used when auto is set to
+	 * true.
+	 */
+	private boolean useDefaultAwsRegionChain;
 
 	/**
 	 * Configures a static region for the application. Possible regions are (currently)
@@ -58,6 +65,14 @@ public class AwsRegionProperties {
 		// creating a bean definition. Leaving for now.
 		// - tgianos 11/26/2018
 		this.staticRegion = staticRegion;
+	}
+
+	public boolean isUseDefaultAwsRegionChain() {
+		return useDefaultAwsRegionChain;
+	}
+
+	public void setUseDefaultAwsRegionChain(boolean useDefaultAwsRegionChain) {
+		this.useDefaultAwsRegionChain = useDefaultAwsRegionChain;
 	}
 
 }
