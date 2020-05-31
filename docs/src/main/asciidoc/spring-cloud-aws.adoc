@@ -87,6 +87,26 @@ For milestones:
 </repositories>
 ----
 
+=== Amazon SDK dependency version management
+
+Amazon SDK is released more frequently than Spring Cloud AWS. If you need to use newer version of AWS SDK than one configured by Spring Cloud AWS
+add AWS SDK BOM to dependency management section making sure it is declared before any other BOM dependency that configures AWS SDK dependencies.
+
+[source,xml,indent=0]
+----
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-bom</artifactId>
+			<version>${aws-java-sdk.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+----
+
 === Amazon SDK configuration
 The Spring Cloud AWS configuration is currently done using custom elements provided by Spring Cloud AWS namespaces.
 JavaConfig will be supported soon. The configuration setup is done directly in Spring XML configuration files
