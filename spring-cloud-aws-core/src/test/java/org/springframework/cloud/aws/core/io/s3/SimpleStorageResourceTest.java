@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 
@@ -295,6 +296,17 @@ public class SimpleStorageResourceTest {
 		outputStream.close();
 
 		// Assert
+	}
+
+	@Test
+	public void getUri_encodes_objectName() throws Exception {
+		AmazonS3 s3 = mock(AmazonS3.class);
+		when(s3.getRegion()).thenReturn(Region.US_West_2);
+		SimpleStorageResource resource = new SimpleStorageResource(s3, "bucketName",
+				"some/[objectName]", new SyncTaskExecutor());
+
+		assertThat(resource.getURI()).isEqualTo(new URI(
+				"https://s3.us-west-2.amazonaws.com/bucketName/some%2F%5BobjectName%5D"));
 	}
 
 }

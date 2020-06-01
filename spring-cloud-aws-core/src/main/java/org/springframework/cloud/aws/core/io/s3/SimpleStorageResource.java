@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -139,8 +141,10 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	@Override
 	public URL getURL() throws IOException {
 		Region region = this.amazonS3.getRegion().toAWSRegion();
+		String encodedObjectName = URLEncoder.encode(this.objectName,
+				StandardCharsets.UTF_8.toString());
 		return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME),
-				"/" + this.bucketName + "/" + this.objectName);
+				"/" + this.bucketName + "/" + encodedObjectName);
 	}
 
 	@Override
