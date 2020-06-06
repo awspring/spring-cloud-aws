@@ -307,25 +307,40 @@ Spring Boot provides a standard way to define properties with property file or Y
 AWS provides support to configure the credential information with the Spring Boot application configuration files.
 Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
 
+Unless `cloud.aws.credentials.use-default-aws-credentials-chain` is set to `true`, Spring Cloud AWS configures following
+credentials chain:
+
+1. `AWSStaticCredentialsProvider` if `cloud.aws.credentials.access-key` is provided
+2. `EC2ContainerCredentialsProviderWrapper` unless `cloud.aws.credentials.instance-profile` is set to `false`
+3. `ProfileCredentialsProvider`
+
 [cols="3*", options="header"]
 |===
 |property
 |example
 |description
 
-|cloud.aws.credentials.accessKey
+|cloud.aws.credentials.access-key
 |AKIAIOSFODNN7EXAMPLE
 |The access key to be used with a static provider
 
-|cloud.aws.credentials.secretKey
+|cloud.aws.credentials.secret-key
 |wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 |The secret key to be used with a static provider
 
-|cloud.aws.credentials.instanceProfile
+|cloud.aws.credentials.instance-profile
 |true
 |Configures an instance profile credentials provider with no further configuration
 
-|cloud.aws.credentials.useDefaultAwsCredentialsChain
+|cloud.aws.credentials.profile-name
+|default
+|The name of a configuration profile in the specified configuration file
+
+|cloud.aws.credentials.profile-path
+|`~/.aws/credentials`
+|The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
+
+|cloud.aws.credentials.use-default-aws-credentials-chain
 |true
 |Use the DefaultAWSCredentials Chain instead of configuring a custom credentials chain
 |===
@@ -347,7 +362,7 @@ The properties to configure the region are shown below
 |true
 |Enables automatic region detection based on the EC2 meta data service
 
-|cloud.aws.region.useDefaultAwsRegionChain
+|cloud.aws.region.use-default-aws-region-chain
 |true
 |Use the DefaultAWSRegion Chain instead of configuring a custom region chain
 
