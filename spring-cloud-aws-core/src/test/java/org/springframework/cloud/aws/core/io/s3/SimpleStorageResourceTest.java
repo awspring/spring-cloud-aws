@@ -233,6 +233,21 @@ public class SimpleStorageResourceTest {
 	}
 
 	@Test
+	public void getUrl_existingObject_returnsUrlWithS3Scheme() throws Exception {
+
+		AmazonS3Client amazonS3 = mock(AmazonS3Client.class);
+
+		// Act
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3,
+				"bucket", "object", new SyncTaskExecutor());
+
+		// Assert
+		assertThat(simpleStorageResource.getS3Uri())
+				.isEqualTo(new URI("s3://bucket/object"));
+
+	}
+
+	@Test
 	public void getFile_existingObject_throwsMeaningFullException() throws Exception {
 
 		this.expectedException.expect(UnsupportedOperationException.class);

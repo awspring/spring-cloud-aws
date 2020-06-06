@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -145,6 +147,15 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 				StandardCharsets.UTF_8.toString());
 		return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME),
 				"/" + this.bucketName + "/" + encodedObjectName);
+	}
+
+	public URI getS3Uri() {
+		try {
+			return new URI("s3", "//" + this.bucketName + "/" + this.objectName, null);
+		}
+		catch (URISyntaxException e) {
+			throw new RuntimeException("Failed to resolve s3:// uri", e);
+		}
 	}
 
 	@Override
