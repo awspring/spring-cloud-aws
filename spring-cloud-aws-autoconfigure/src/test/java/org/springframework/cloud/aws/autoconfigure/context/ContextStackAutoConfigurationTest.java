@@ -32,16 +32,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
+import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
+import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ContextStackAutoConfigurationTest {
 
@@ -92,7 +96,8 @@ public class ContextStackAutoConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
 		this.context.register(ContextStackAutoConfiguration.class);
-		TestPropertyValues.of("cloud.aws.stack.name:manualStackName")
+		TestPropertyValues
+				.of("cloud.aws.stack.name:manualStackName", "cloud.aws.stack.auto:true")
 				.applyTo(this.context);
 
 		// Act
@@ -100,6 +105,27 @@ public class ContextStackAutoConfigurationTest {
 
 		// Assert
 		assertThat(this.context.getBean(StackResourceRegistry.class)).isNotNull();
+	}
+
+	@Test
+	public void stackRegistry_manualConfigurationEnabledAndStackNameProvided_returnsStaticStackNameProvider()
+			throws Exception {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
+		this.context.register(ContextStackAutoConfiguration.class);
+		TestPropertyValues
+				.of("cloud.aws.stack.name:manualStackName", "cloud.aws.stack.auto:true")
+				.applyTo(this.context);
+
+		// Act
+		this.context.refresh();
+
+		// Assert
+		assertThat(this.context.getBean(StaticStackNameProvider.class)).isNotNull();
+		assertThatThrownBy(
+				() -> this.context.getBean(AutoDetectingStackNameProvider.class))
+						.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 	@Test
@@ -116,6 +142,20 @@ public class ContextStackAutoConfigurationTest {
 		assertThat(this.context.getBean(ResourceIdResolver.class)).isNotNull();
 		assertThat(this.context.getBeansOfType(StackResourceRegistry.class).isEmpty())
 				.isTrue();
+	}
+
+	@Test
+	public void stackResourceRegistryFactoryBean_isNotCreatedWhenStackNameAbsentAndStackAutoFalse() {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ContextStackAutoConfiguration.class);
+		TestPropertyValues.of("cloud.aws.stack.auto:false").applyTo(this.context);
+		// Act
+		this.context.refresh();
+
+		// Assert
+		assertThatThrownBy(() -> this.context.getBean("stackResourceRegistryFactoryBean"))
+				.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 	@Configuration(proxyBeanMethods = false)
