@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.listener;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,6 +50,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
+import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -85,6 +87,7 @@ import static org.mockito.Mockito.when;
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Wojciech Mąka
  * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
@@ -378,11 +381,98 @@ class QueueMessageHandlerTest {
 		queueMessageHandler
 				.handleMessage(MessageBuilder.withPayload("Hello from a sender")
 						.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue")
-						.setHeader("SenderId", "ID").build());
+						.setHeader("SenderId", "ID").setHeader("SentTimestamp", "1000")
+						.setHeader("ApproximateFirstReceiveTimestamp", "2000").build());
 
 		// Assert
 		assertThat(messageReceiver.getHeaders()).isNotNull();
 		assertThat(messageReceiver.getHeaders().get("SenderId")).isEqualTo("ID");
+		assertThat(
+				messageReceiver.getHeaders().get(QueueMessageHandler.LOGICAL_RESOURCE_ID))
+						.isEqualTo("testQueue");
+	}
+
+	@Test
+	public void receiveMessage_withSqsMessageHeadersObject_shouldReceiveAllHeaders() {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",
+				MessageReceiverWithSqsMessageHeadersObject.class);
+		applicationContext.registerSingleton("queueMessageHandler",
+				QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext
+				.getBean(QueueMessageHandler.class);
+		MessageReceiverWithSqsMessageHeadersObject messageReceiver = applicationContext
+				.getBean(MessageReceiverWithSqsMessageHeadersObject.class);
+
+		// Act
+		queueMessageHandler
+				.handleMessage(MessageBuilder.createMessage("Hello from a sender",
+						new SqsMessageHeaders(new HashMap<String, Object>() {
+							{
+								put(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue");
+								put("SenderId", "ID");
+								put(SqsMessageHeaders.SQS_SENT_TIMESTAMP, "1000");
+								put(SqsMessageHeaders.SQS_APPROXIMATE_RECEIVE_COUNT, "1");
+								put(SqsMessageHeaders.SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP,
+										"2000");
+							}
+						})));
+
+		// Assert
+		assertThat(messageReceiver.getHeaders()).isNotNull();
+		assertThat(messageReceiver.getHeaders().getTimestamp()).isEqualTo(1000);
+		assertThat(messageReceiver.getHeaders().getSentTimestamp()).isEqualTo(1000);
+		assertThat(messageReceiver.getHeaders().getApproximateReceiveCount())
+				.isEqualTo(1);
+		assertThat(messageReceiver.getHeaders().getApproximateFirstReceiveTimestamp())
+				.isEqualTo(2000);
+		assertThat(
+				messageReceiver.getHeaders().get(QueueMessageHandler.LOGICAL_RESOURCE_ID))
+						.isEqualTo("testQueue");
+	}
+
+	@Test
+	public void receiveMessage_withMessageHeadersObject_shouldReceiveAllHeaders() {
+		// Arrange
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",
+				MessageReceiverWithMessageHeadersObject.class);
+		applicationContext.registerSingleton("queueMessageHandler",
+				QueueMessageHandler.class);
+		applicationContext.refresh();
+
+		QueueMessageHandler queueMessageHandler = applicationContext
+				.getBean(QueueMessageHandler.class);
+		MessageReceiverWithMessageHeadersObject messageReceiver = applicationContext
+				.getBean(MessageReceiverWithMessageHeadersObject.class);
+
+		// Act
+		queueMessageHandler
+				.handleMessage(MessageBuilder.createMessage("Hello from a sender",
+						new SqsMessageHeaders(new HashMap<String, Object>() {
+							{
+								put(QueueMessageHandler.LOGICAL_RESOURCE_ID, "testQueue");
+								put("SenderId", "ID");
+								put(SqsMessageHeaders.SQS_SENT_TIMESTAMP, "1000");
+								put(SqsMessageHeaders.SQS_APPROXIMATE_RECEIVE_COUNT, "1");
+								put(SqsMessageHeaders.SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP,
+										"2000");
+							}
+						})));
+
+		// Assert
+		assertThat(messageReceiver.getHeaders()).isNotNull();
+		assertThat(messageReceiver.getHeaders().getTimestamp()).isEqualTo(1000);
+		assertThat(messageReceiver.getHeaders().get(SqsMessageHeaders.SQS_SENT_TIMESTAMP))
+				.isEqualTo("1000");
+		assertThat(messageReceiver.getHeaders()
+				.get(SqsMessageHeaders.SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP))
+						.isEqualTo("2000");
+		assertThat(messageReceiver.getHeaders()
+				.get(SqsMessageHeaders.SQS_APPROXIMATE_RECEIVE_COUNT)).isEqualTo("1");
 		assertThat(
 				messageReceiver.getHeaders().get(QueueMessageHandler.LOGICAL_RESOURCE_ID))
 						.isEqualTo("testQueue");
@@ -802,6 +892,54 @@ class QueueMessageHandlerTest {
 		@SqsListener("testQueue")
 		public void receive(@Payload String payload,
 				@Headers Map<String, String> headers) {
+			this.payload = payload;
+			this.headers = headers;
+		}
+
+	}
+
+	private static class MessageReceiverWithSqsMessageHeadersObject {
+
+		private String payload;
+
+		private SqsMessageHeaders headers;
+
+		@RuntimeUse
+		public String getPayload() {
+			return this.payload;
+		}
+
+		public SqsMessageHeaders getHeaders() {
+			return this.headers;
+		}
+
+		@RuntimeUse
+		@SqsListener("testQueue")
+		public void receive(@Payload String payload, SqsMessageHeaders headers) {
+			this.payload = payload;
+			this.headers = headers;
+		}
+
+	}
+
+	private static class MessageReceiverWithMessageHeadersObject {
+
+		private String payload;
+
+		private MessageHeaders headers;
+
+		@RuntimeUse
+		public String getPayload() {
+			return this.payload;
+		}
+
+		public MessageHeaders getHeaders() {
+			return this.headers;
+		}
+
+		@RuntimeUse
+		@SqsListener("testQueue")
+		public void receive(@Payload String payload, MessageHeaders headers) {
 			this.payload = payload;
 			this.headers = headers;
 		}
