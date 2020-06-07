@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -39,6 +39,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 /**
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration.class)
@@ -48,8 +49,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 @Import(ContextCredentialsAutoConfiguration.class)
 public class MailSenderAutoConfiguration {
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+	private final RegionProvider regionProvider;
+
+	public MailSenderAutoConfiguration(ObjectProvider<RegionProvider> regionProvider) {
+		this.regionProvider = regionProvider.getIfAvailable();
+	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)

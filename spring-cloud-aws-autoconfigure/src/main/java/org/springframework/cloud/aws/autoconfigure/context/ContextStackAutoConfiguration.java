@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -44,6 +44,7 @@ import org.springframework.context.annotation.Import;
 /**
  * @author Agim Emruli
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @Import({ ContextCredentialsAutoConfiguration.class,
@@ -52,17 +53,11 @@ import org.springframework.context.annotation.Import;
 @EnableConfigurationProperties(AwsStackProperties.class)
 public class ContextStackAutoConfiguration {
 
-	@Autowired
-	private AwsStackProperties properties;
+	private final AwsStackProperties properties;
 
-	@Autowired(required = false)
-	private AmazonEC2 amazonEC2;
-
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
-
-	@Autowired(required = false)
-	private AWSCredentialsProvider credentialsProvider;
+	public ContextStackAutoConfiguration(AwsStackProperties properties) {
+		this.properties = properties;
+	}
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -76,8 +71,10 @@ public class ContextStackAutoConfiguration {
 	@ConditionalOnProperty(name = "cloud.aws.stack.auto", havingValue = "true",
 			matchIfMissing = true)
 	public StackNameProvider autoDetectingStackNameProvider(
-			AmazonCloudFormation amazonCloudFormation) {
-		return new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEC2);
+			AmazonCloudFormation amazonCloudFormation,
+			ObjectProvider<AmazonEC2> amazonEC2) {
+		return new AutoDetectingStackNameProvider(amazonCloudFormation,
+				amazonEC2.getIfAvailable());
 	}
 
 	@Bean
@@ -92,9 +89,11 @@ public class ContextStackAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
-	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
+	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation(
+			ObjectProvider<RegionProvider> regionProvider,
+			ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class,
-				this.credentialsProvider, this.regionProvider);
+				credentialsProvider.getIfAvailable(), regionProvider.getIfAvailable());
 	}
 
 }

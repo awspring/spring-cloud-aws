@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import io.micrometer.cloudwatch.CloudWatchConfig;
 import io.micrometer.cloudwatch.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Import;
  * @author Jon Schneider
  * @author Dawid Kublik
  * @author Jan Sauer
+ * @author Eddú Meléndez
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
@@ -60,9 +61,6 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnClass({ CloudWatchMeterRegistry.class, RegionProvider.class })
 public class CloudWatchExportAutoConfiguration {
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
-
 	@Bean
 	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled",
 			matchIfMissing = true)
@@ -74,9 +72,10 @@ public class CloudWatchExportAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
 	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(
-			AWSCredentialsProvider credentialsProvider) {
+			AWSCredentialsProvider credentialsProvider,
+			ObjectProvider<RegionProvider> regionProvider) {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class,
-				credentialsProvider, this.regionProvider);
+				credentialsProvider, regionProvider.getIfAvailable());
 	}
 
 	@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
@@ -31,17 +31,23 @@ import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Alain Sahli
+ * @author Eddú Meléndez
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnMissingAmazonClient(AmazonSQS.class)
 public class SqsClientConfiguration {
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider awsCredentialsProvider;
+	private final AWSCredentialsProvider awsCredentialsProvider;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+	private final RegionProvider regionProvider;
+
+	public SqsClientConfiguration(
+			ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
+			ObjectProvider<RegionProvider> regionProvider) {
+		this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
+		this.regionProvider = regionProvider.getIfAvailable();
+	}
 
 	@Lazy
 	@Bean(destroyMethod = "shutdown")

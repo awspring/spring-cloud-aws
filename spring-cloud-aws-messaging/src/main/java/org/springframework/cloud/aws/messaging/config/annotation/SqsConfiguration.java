@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
@@ -37,30 +37,38 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  * @since 1.0
  */
 @Configuration
 @Import(ContextDefaultConfigurationRegistrar.class)
 public class SqsConfiguration {
 
-	@Autowired(required = false)
-	// @checkstyle:off
-	private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory = new SimpleMessageListenerContainerFactory();
+	private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;
 
-	// @checkstyle:on
-	@Autowired(required = false)
-	private final QueueMessageHandlerFactory queueMessageHandlerFactory = new QueueMessageHandlerFactory();
+	private final QueueMessageHandlerFactory queueMessageHandlerFactory;
 
-	// @checkstyle:off
-	@Autowired
-	public BeanFactory beanFactory;
+	private final BeanFactory beanFactory;
 
-	// @checkstyle:on
-	@Autowired(required = false)
-	private ResourceIdResolver resourceIdResolver;
+	private final ResourceIdResolver resourceIdResolver;
 
-	@Autowired(required = false)
-	private MappingJackson2MessageConverter mappingJackson2MessageConverter;
+	private final MappingJackson2MessageConverter mappingJackson2MessageConverter;
+
+	public SqsConfiguration(
+			ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
+			ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory,
+			BeanFactory beanFactory,
+			ObjectProvider<ResourceIdResolver> resourceIdResolver,
+			ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter) {
+		this.simpleMessageListenerContainerFactory = simpleMessageListenerContainerFactory
+				.getIfAvailable(SimpleMessageListenerContainerFactory::new);
+		this.queueMessageHandlerFactory = queueMessageHandlerFactory
+				.getIfAvailable(QueueMessageHandlerFactory::new);
+		this.beanFactory = beanFactory;
+		this.resourceIdResolver = resourceIdResolver.getIfAvailable();
+		this.mappingJackson2MessageConverter = mappingJackson2MessageConverter
+				.getIfAvailable();
+	}
 
 	@Bean
 	public SimpleMessageListenerContainer simpleMessageListenerContainer(
@@ -68,7 +76,8 @@ public class SqsConfiguration {
 		if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
 			this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
 		}
-		if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null) {
+		if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null
+				&& this.resourceIdResolver != null) {
 			this.simpleMessageListenerContainerFactory
 					.setResourceIdResolver(this.resourceIdResolver);
 		}

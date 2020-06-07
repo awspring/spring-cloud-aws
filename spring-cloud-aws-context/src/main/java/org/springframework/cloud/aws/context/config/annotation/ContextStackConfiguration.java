@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
@@ -46,14 +47,19 @@ public class ContextStackConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+	private final RegionProvider regionProvider;
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider credentialsProvider;
+	private final AWSCredentialsProvider credentialsProvider;
 
-	@Autowired(required = false)
-	private AmazonEC2 amazonEc2;
+	private final AmazonEC2 amazonEc2;
+
+	public ContextStackConfiguration(ObjectProvider<RegionProvider> regionProvider,
+			ObjectProvider<AWSCredentialsProvider> credentialsProvider,
+			ObjectProvider<AmazonEC2> amazonEc2) {
+		this.regionProvider = regionProvider.getIfAvailable();
+		this.credentialsProvider = credentialsProvider.getIfAvailable();
+		this.amazonEc2 = amazonEc2.getIfAvailable();
+	}
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {

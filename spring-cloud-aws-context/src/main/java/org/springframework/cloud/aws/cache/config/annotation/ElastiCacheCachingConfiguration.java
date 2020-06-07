@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.cache.CacheFactory;
 import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
@@ -60,14 +61,19 @@ public class ElastiCacheCachingConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
 
-	@Autowired(required = false)
-	private RegionProvider regionProvider;
+	private final RegionProvider regionProvider;
 
-	@Autowired(required = false)
-	private AWSCredentialsProvider credentialsProvider;
+	private final AWSCredentialsProvider credentialsProvider;
 
-	@Autowired(required = false)
-	private ListableStackResourceFactory stackResourceFactory;
+	private final ListableStackResourceFactory stackResourceFactory;
+
+	public ElastiCacheCachingConfiguration(ObjectProvider<RegionProvider> regionProvider,
+			ObjectProvider<AWSCredentialsProvider> credentialsProvider,
+			ObjectProvider<ListableStackResourceFactory> stackResourceFactory) {
+		this.regionProvider = regionProvider.getIfAvailable();
+		this.credentialsProvider = credentialsProvider.getIfAvailable();
+		this.stackResourceFactory = stackResourceFactory.getIfAvailable();
+	}
 
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
