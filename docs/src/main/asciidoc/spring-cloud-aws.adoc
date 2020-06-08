@@ -305,14 +305,16 @@ only configure classes that are available in the Spring Boot application's class
 ===== Configuring credentials
 Spring Boot provides a standard way to define properties with property file or YAML configuration files. Spring Cloud
 AWS provides support to configure the credential information with the Spring Boot application configuration files.
-Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
 
-Unless `cloud.aws.credentials.use-default-aws-credentials-chain` is set to `true`, Spring Cloud AWS configures following
-credentials chain:
+By default Spring Cloud AWS configures https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] to resolve AWS credentials.
+
+If other credentials providers are configured, https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] is not used and Spring Cloud AWS configures following credentials chain:
 
 1. `AWSStaticCredentialsProvider` if `cloud.aws.credentials.access-key` is provided
-2. `EC2ContainerCredentialsProviderWrapper` unless `cloud.aws.credentials.instance-profile` is set to `false`
-3. `ProfileCredentialsProvider`
+2. `EC2ContainerCredentialsProviderWrapper` if `cloud.aws.credentials.instance-profile` is set to `true`
+3. `ProfileCredentialsProvider` if `cloud.aws.credentials.profile-name` is provided
+
+Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
 
 [cols="3*", options="header"]
 |===
@@ -339,15 +341,11 @@ credentials chain:
 |cloud.aws.credentials.profile-path
 |`~/.aws/credentials`
 |The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
-
-|cloud.aws.credentials.use-default-aws-credentials-chain
-|true
-|Use the DefaultAWSCredentials Chain instead of configuring a custom credentials chain
 |===
 
 ===== Configuring region
 Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
-Boot configuration files. The region can be automatically detected or explicitly configured (e.g. in case of local tests
+Boot configuration files. The region can be automatically detected using https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/DefaultAwsRegionProviderChain.html[DefaultAwsRegionProviderChain] or explicitly configured (e.g. in case of local tests
 against the AWS cloud).
 
 The properties to configure the region are shown below
@@ -357,14 +355,6 @@ The properties to configure the region are shown below
 |property
 |example
 |description
-
-|cloud.aws.region.auto
-|true
-|Enables automatic region detection based on the EC2 meta data service
-
-|cloud.aws.region.use-default-aws-region-chain
-|true
-|Use the DefaultAWSRegion Chain instead of configuring a custom region chain
 
 |cloud.aws.region.static
 |eu-west-1

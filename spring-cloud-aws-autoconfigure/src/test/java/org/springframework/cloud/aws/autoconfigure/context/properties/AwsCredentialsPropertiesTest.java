@@ -18,7 +18,6 @@ package org.springframework.cloud.aws.autoconfigure.context.properties;
 
 import java.util.UUID;
 
-import com.amazonaws.auth.profile.internal.AwsProfileNameLoader;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link AwsCredentialsProperties}.
  *
  * @author Tom Gianos
+ * @author Maciej Walkowiak
  * @since 2.0.2
  */
 public class AwsCredentialsPropertiesTest {
@@ -64,29 +64,17 @@ public class AwsCredentialsPropertiesTest {
 	@Test
 	public void instanceProfileCanBeSet() {
 		assertThat(this.properties.isInstanceProfile())
-				.as("Instance profile default expected to be true").isTrue();
+				.as("Instance profile default expected to be false").isFalse();
 
-		this.properties.setInstanceProfile(false);
+		this.properties.setInstanceProfile(true);
 		assertThat(this.properties.isInstanceProfile())
-				.as("Instance profile should have been assigned").isFalse();
-	}
-
-	@Test
-	public void useDefaultAwsCredentialsChainCanBeSet() {
-		assertThat(this.properties.isUseDefaultAwsCredentialsChain())
-				.as("useDefaultAwsCredentialsChain default expected to be false")
-				.isFalse();
-
-		this.properties.setUseDefaultAwsCredentialsChain(true);
-		assertThat(this.properties.isUseDefaultAwsCredentialsChain())
-				.as("useDefaultAwsCredentialsChain should have been assigned").isTrue();
+				.as("Instance profile should have been assigned").isTrue();
 	}
 
 	@Test
 	public void profileNameCanBeSet() {
 		assertThat(this.properties.getProfileName())
-				.as("Default profile name expected to be set")
-				.isEqualTo(AwsProfileNameLoader.DEFAULT_PROFILE_NAME);
+				.as("Default profile name is not expected to be set").isEqualTo(null);
 
 		String newProfileName = UUID.randomUUID().toString();
 		this.properties.setProfileName(newProfileName);

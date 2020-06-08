@@ -38,16 +38,6 @@ public class AwsRegionPropertiesTest {
 	}
 
 	@Test
-	public void autoCanBeSet() {
-		assertThat(this.properties.isAuto()).as("Default value of auto should be true")
-				.isTrue();
-
-		this.properties.setAuto(false);
-		assertThat(this.properties.isAuto())
-				.as("Auto should have been reassigned as false").isFalse();
-	}
-
-	@Test
 	public void staticRegionCanBeSet() {
 		assertThat(this.properties.getStatic())
 				.as("Static region value should have default of null").isNull();

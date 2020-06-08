@@ -16,20 +16,17 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.aws.autoconfigure.context.properties.AwsRegionProperties;
-import org.springframework.context.EnvironmentAware;
+import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
+import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
-import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerRegionProvider;
 
 /**
  * Region auto configuration, based on <a
@@ -38,58 +35,21 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  *
  * @author Agim Emruli
  * @author Petromir Dzhunev
+ * @author Maciej Walkowiak
  */
 @Configuration(proxyBeanMethods = false)
-@Import(ContextRegionProviderAutoConfiguration.Registrar.class)
+@EnableConfigurationProperties(AwsRegionProperties.class)
 public class ContextRegionProviderAutoConfiguration {
 
-	/**
-	 * The prefix used for AWS region related properties.
-	 */
-	public static final String AWS_REGION_PROPERTIES_PREFIX = "cloud.aws.region";
-
-	/**
-	 * Bind AWS region related properties to a property instance.
-	 * @return An {@link AwsRegionProperties} instance
-	 */
-	@Bean
-	@ConfigurationProperties(prefix = AWS_REGION_PROPERTIES_PREFIX)
-	public AwsRegionProperties awsRegionProperties() {
-		return new AwsRegionProperties();
-	}
-
-	static class Registrar implements EnvironmentAware, ImportBeanDefinitionRegistrar {
-
-		private Environment environment;
-
-		@Override
-		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
-				BeanDefinitionRegistry registry) {
-			// Do not register region provider if already existing
-			if (registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-				return;
-			}
-
-			boolean useDefaultRegionChain = this.environment.getProperty(
-					AWS_REGION_PROPERTIES_PREFIX + ".use-default-aws-region-chain",
-					Boolean.class, false);
-
-			String staticRegion = this.environment
-					.getProperty(AWS_REGION_PROPERTIES_PREFIX + ".static");
-
-			boolean autoDetect = this.environment.getProperty(
-					AWS_REGION_PROPERTIES_PREFIX + ".auto", Boolean.class, true)
-					&& !StringUtils.hasText(staticRegion);
-
-			registerRegionProvider(registry, autoDetect, useDefaultRegionChain,
-					staticRegion);
+	@ConditionalOnMissingBean(name = REGION_PROVIDER_BEAN_NAME)
+	@Bean(name = REGION_PROVIDER_BEAN_NAME)
+	RegionProvider regionProvider(AwsRegionProperties properties) {
+		if (StringUtils.hasText(properties.getStatic())) {
+			return new StaticRegionProvider(properties.getStatic());
 		}
-
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
+		else {
+			return new DefaultAwsRegionProviderChainDelegate();
 		}
-
 	}
 
 }
