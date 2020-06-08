@@ -16,23 +16,23 @@
 
 package org.springframework.cloud.aws.paramstore;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
 
 /**
  * Configuration properties for the AWS Parameter Store integration. Mostly based on the
  * Spring Cloud Consul Configuration equivalent.
  *
  * @author Joris Kuipers
+ * @author Matej Nedic
  * @since 2.0.0
  */
 @ConfigurationProperties(AwsParamStoreProperties.CONFIG_PREFIX)
-@Validated
-public class AwsParamStoreProperties {
+public class AwsParamStoreProperties implements Validator {
 
 	/**
 	 * Configuration prefix.
@@ -40,18 +40,25 @@ public class AwsParamStoreProperties {
 	public static final String CONFIG_PREFIX = "aws.paramstore";
 
 	/**
+	 * Pattern used for prefix validation.
+	 */
+	private static final Pattern PREFIX_PATTERN = Pattern
+			.compile("(/[a-zA-Z0-9.\\-_]+)*");
+
+	/**
+	 * Pattern used for profileSeparator validation.
+	 */
+	private static final Pattern PROFILE_SEPARATOR_PATTERN = Pattern
+			.compile("[a-zA-Z0-9.\\-_/]+");
+
+	/**
 	 * Prefix indicating first level for every property. Value must start with a forward
 	 * slash followed by a valid path segment or be empty. Defaults to "/config".
 	 */
-	@NotNull
-	@Pattern(regexp = "(/[a-zA-Z0-9.\\-_]+)*")
 	private String prefix = "/config";
 
-	@NotEmpty
 	private String defaultContext = "application";
 
-	@NotNull
-	@Pattern(regexp = "[a-zA-Z0-9.\\-_/]+")
 	private String profileSeparator = "_";
 
 	/** Throw exceptions during config lookup if true, otherwise, log warnings. */
@@ -65,6 +72,34 @@ public class AwsParamStoreProperties {
 
 	/** Is AWS Parameter Store support enabled. */
 	private boolean enabled = true;
+
+	@Override
+	public boolean supports(Class clazz) {
+		return AwsParamStoreProperties.class.isAssignableFrom(clazz);
+	}
+
+	@Override
+	public void validate(Object target, Errors errors) {
+		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "prefix", "NotEmpty",
+				"prefix should not be empty or null.");
+		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "defaultContext", "NotEmpty",
+				"defaultContext should not be empty or null.");
+		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "profileSeparator", "NotEmpty",
+				"profileSeparator should not be empty or null.");
+
+		AwsParamStoreProperties awsParamStoreProperties = (AwsParamStoreProperties) target;
+
+		if (!PREFIX_PATTERN.matcher(awsParamStoreProperties.getPrefix()).matches()) {
+			errors.rejectValue("prefix", "Pattern",
+					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+		}
+		if (!PROFILE_SEPARATOR_PATTERN
+				.matcher(awsParamStoreProperties.getProfileSeparator()).matches()) {
+			errors.rejectValue("profileSeparator", "Pattern",
+					"The profileSeparator must have pattern of:  "
+							+ PROFILE_SEPARATOR_PATTERN.toString());
+		}
+	}
 
 	public String getPrefix() {
 		return prefix;
