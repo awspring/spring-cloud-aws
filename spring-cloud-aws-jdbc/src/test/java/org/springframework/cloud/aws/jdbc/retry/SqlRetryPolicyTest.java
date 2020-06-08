@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.jdbc.retry;
 import java.sql.SQLException;
 import java.sql.SQLTransientException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -33,10 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Agim Emruli
  */
-public class SqlRetryPolicyTest {
+class SqlRetryPolicyTest {
 
 	@Test
-	public void testRetryTransientExceptions() throws Exception {
+	void testRetryTransientExceptions() throws Exception {
 		SqlRetryPolicy sqlRetryPolicy = new SqlRetryPolicy();
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
@@ -48,7 +48,7 @@ public class SqlRetryPolicyTest {
 	}
 
 	@Test
-	public void testNoRetryPersistentExceptions() throws Exception {
+	void testNoRetryPersistentExceptions() throws Exception {
 		SqlRetryPolicy sqlRetryPolicy = new SqlRetryPolicy();
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
@@ -60,7 +60,7 @@ public class SqlRetryPolicyTest {
 	}
 
 	@Test
-	public void testWithNestedException() throws Exception {
+	void testWithNestedException() throws Exception {
 		SqlRetryPolicy sqlRetryPolicy = new SqlRetryPolicy();
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
@@ -70,7 +70,7 @@ public class SqlRetryPolicyTest {
 	}
 
 	@Test
-	public void testMaxRetriesReached() throws Exception {
+	void testMaxRetriesReached() throws Exception {
 		SqlRetryPolicy sqlRetryPolicy = new SqlRetryPolicy();
 		sqlRetryPolicy.setMaxNumberOfRetries(3);
 		RetryContextSupport retryContext = new RetryContextSupport(null);

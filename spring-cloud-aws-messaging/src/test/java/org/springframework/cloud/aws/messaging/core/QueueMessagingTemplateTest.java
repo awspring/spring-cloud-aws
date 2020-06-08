@@ -28,7 +28,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
@@ -41,6 +41,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -49,21 +50,22 @@ import static org.mockito.Mockito.when;
 /**
  * @author Alain Sahli
  */
-public class QueueMessagingTemplateTest {
+class QueueMessagingTemplateTest {
 
-	@Test(expected = IllegalStateException.class)
-	public void send_withoutDefaultDestination_throwAnException() {
+	@Test
+	void send_withoutDefaultDestination_throwAnException() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("message content")
 				.build();
-		queueMessagingTemplate.send(stringMessage);
+		assertThatThrownBy(() -> queueMessagingTemplate.send(stringMessage))
+				.isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
-	public void send_withDefaultDestination_usesDefaultDestination() {
+	void send_withDefaultDestination_usesDefaultDestination() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -81,7 +83,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void send_withDestination_usesDestination() {
+	void send_withDestination_usesDestination() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -98,7 +100,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void send_withCustomDestinationResolveAndDestination_usesDestination() {
+	void send_withCustomDestinationResolveAndDestination_usesDestination() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs,
@@ -116,17 +118,18 @@ public class QueueMessagingTemplateTest {
 				.isEqualTo("MYQUEUE");
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void receive_withoutDefaultDestination_throwsAnException() {
+	@Test
+	void receive_withoutDefaultDestination_throwsAnException() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
 
-		queueMessagingTemplate.receive();
+		assertThatThrownBy(queueMessagingTemplate::receive)
+				.isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
-	public void receive_withDefaultDestination_useDefaultDestination() {
+	void receive_withDefaultDestination_useDefaultDestination() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -142,7 +145,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void receive_withDestination_usesDestination() {
+	void receive_withDestination_usesDestination() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -156,17 +159,18 @@ public class QueueMessagingTemplateTest {
 				.isEqualTo("https://queue-url.com");
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void receiveAndConvert_withoutDefaultDestination_throwsAnException() {
+	@Test
+	void receiveAndConvert_withoutDefaultDestination_throwsAnException() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
 
-		queueMessagingTemplate.receiveAndConvert(String.class);
+		assertThatThrownBy(() -> queueMessagingTemplate.receiveAndConvert(String.class))
+				.isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
-	public void receiveAndConvert_withDefaultDestination_usesDefaultDestinationAndConvertsMessage() {
+	void receiveAndConvert_withDefaultDestination_usesDefaultDestinationAndConvertsMessage() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -178,7 +182,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void receiveAndConvert_withDestination_usesDestinationAndConvertsMessage() {
+	void receiveAndConvert_withDestination_usesDestinationAndConvertsMessage() {
 		AmazonSQSAsync amazonSqs = createAmazonSqs();
 		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
 				amazonSqs);
@@ -190,7 +194,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void instantiation_withConverter_shouldAddItToTheCompositeConverter() {
+	void instantiation_withConverter_shouldAddItToTheCompositeConverter() {
 		// Arrange
 		SimpleMessageConverter simpleMessageConverter = new SimpleMessageConverter();
 
@@ -208,7 +212,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void instantiation_WithCustomJacksonConverterThatSupportsJava8Types_shouldConvertMessageToString()
+	void instantiation_WithCustomJacksonConverterThatSupportsJava8Types_shouldConvertMessageToString()
 			throws IOException {
 
 		// Arrange
@@ -241,7 +245,7 @@ public class QueueMessagingTemplateTest {
 	}
 
 	@Test
-	public void instantiation_withDefaultMapping2JacksonConverter_shouldSupportJava8Types()
+	void instantiation_withDefaultMapping2JacksonConverter_shouldSupportJava8Types()
 			throws IOException {
 
 		// Arrange

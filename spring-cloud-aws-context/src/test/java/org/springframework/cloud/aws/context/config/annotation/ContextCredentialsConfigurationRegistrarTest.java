@@ -26,8 +26,8 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -37,19 +37,19 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContextCredentialsConfigurationRegistrarTest {
+class ContextCredentialsConfigurationRegistrarTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void credentialsProvider_defaultCredentialsProviderWithoutFurtherConfig_awsCredentialsProviderConfigured()
+	void credentialsProvider_defaultCredentialsProviderWithoutFurtherConfig_awsCredentialsProviderConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
@@ -66,7 +66,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@Test
-	public void credentialsProvider_configWithAccessAndSecretKey_staticAwsCredentialsProviderConfigured()
+	void credentialsProvider_configWithAccessAndSecretKey_staticAwsCredentialsProviderConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
@@ -94,7 +94,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	// @checkstyle:off
 	@Test
-	public void credentialsProvider_configWithAccessAndSecretKeyAsExpressions_staticAwsCredentialsProviderConfiguredWithResolvedExpressions()
+	void credentialsProvider_configWithAccessAndSecretKeyAsExpressions_staticAwsCredentialsProviderConfiguredWithResolvedExpressions()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -132,7 +132,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	// @checkstyle:off
 	@Test
-	public void credentialsProvider_configWithAccessAndSecretKeyAsPlaceHolders_staticAwsCredentialsProviderConfiguredWithResolvedPlaceHolders()
+	void credentialsProvider_configWithAccessAndSecretKeyAsPlaceHolders_staticAwsCredentialsProviderConfiguredWithResolvedPlaceHolders()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -173,7 +173,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 
 	// @checkstyle:off
 	@Test
-	public void credentialsProvider_configWithAccessAndSecretKeyAndInstanceProfile_staticAwsCredentialsProviderConfiguredWithInstanceProfile()
+	void credentialsProvider_configWithAccessAndSecretKeyAndInstanceProfile_staticAwsCredentialsProviderConfiguredWithInstanceProfile()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -198,7 +198,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@Test
-	public void credentialsProvider_configWithInstanceProfile_instanceProfileCredentialsProviderConfigured()
+	void credentialsProvider_configWithInstanceProfile_instanceProfileCredentialsProviderConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
@@ -220,7 +220,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@Test
-	public void credentialsProvider_configWithProfileNameAndNoProfilePath_profileCredentialsProviderConfigured()
+	void credentialsProvider_configWithProfileNameAndNoProfilePath_profileCredentialsProviderConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
@@ -248,7 +248,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@Test
-	public void credentialsProvider_configWithProfileNameAndCustomProfilePath_profileCredentialsProviderConfigured()
+	void credentialsProvider_configWithProfileNameAndCustomProfilePath_profileCredentialsProviderConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -292,7 +292,7 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@Test
-	public void credentialsProvider_configWithAllProviders_allCredentialsProvidersConfigured()
+	void credentialsProvider_configWithAllProviders_allCredentialsProvidersConfigured()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
@@ -319,52 +319,52 @@ public class ContextCredentialsConfigurationRegistrarTest {
 	}
 
 	@EnableContextCredentials
-	public static class ApplicationConfigurationWithDefaultCredentialsProvider {
+	static class ApplicationConfigurationWithDefaultCredentialsProvider {
 
 	}
 
 	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret")
-	public static class ApplicationConfigurationWithAccessKeyAndSecretKey {
+	static class ApplicationConfigurationWithAccessKeyAndSecretKey {
 
 	}
 
 	@EnableContextCredentials(accessKey = "#{environment.accessKey}",
 			secretKey = "#{environment.secretKey}")
-	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions {
+	static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsExpressions {
 
 	}
 
 	@EnableContextCredentials(accessKey = "${accessKey}", secretKey = "${secretKey}")
-	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsPlaceHolder {
+	static class ApplicationConfigurationWithAccessKeyAndSecretKeyAsPlaceHolder {
 
 	}
 
 	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret",
 			instanceProfile = true)
-	public static class ApplicationConfigurationWithAccessKeyAndSecretKeyAndInstanceProfile {
+	static class ApplicationConfigurationWithAccessKeyAndSecretKeyAndInstanceProfile {
 
 	}
 
 	@EnableContextCredentials(instanceProfile = true)
-	public static class ApplicationConfigurationWithInstanceProfileOnly {
+	static class ApplicationConfigurationWithInstanceProfileOnly {
 
 	}
 
 	@EnableContextCredentials(profileName = "test")
-	public static class ApplicationConfigurationWithProfileAndDefaultProfilePath {
+	static class ApplicationConfigurationWithProfileAndDefaultProfilePath {
 
 	}
 
 	@EnableContextCredentials(profileName = "customProfile",
 			profilePath = "${profilePath}")
-	public static class ApplicationConfigurationWithProfileAndCustomProfilePath {
+	static class ApplicationConfigurationWithProfileAndCustomProfilePath {
 
 	}
 
 	// @checkstyle:off
 	@EnableContextCredentials(accessKey = "accessTest", secretKey = "testSecret",
 			instanceProfile = true, profileName = "customProfile")
-	public static class ApplicationConfigurationWithAllProviders {
+	static class ApplicationConfigurationWithAllProviders {
 
 	}
 	// @checkstyle:on

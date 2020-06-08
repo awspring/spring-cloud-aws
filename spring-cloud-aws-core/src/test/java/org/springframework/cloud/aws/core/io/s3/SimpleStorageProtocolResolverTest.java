@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.core.io.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -37,10 +37,10 @@ import static org.mockito.Mockito.when;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageProtocolResolverTest {
+class SimpleStorageProtocolResolverTest {
 
 	@Test
-	public void testGetResourceWithExistingResource() {
+	void testGetResourceWithExistingResource() {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
@@ -57,7 +57,7 @@ public class SimpleStorageProtocolResolverTest {
 	}
 
 	@Test
-	public void testGetResourceWithNonExistingResource() {
+	void testGetResourceWithNonExistingResource() {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
@@ -70,7 +70,7 @@ public class SimpleStorageProtocolResolverTest {
 	}
 
 	@Test
-	public void testGetResourceWithVersionId() {
+	void testGetResourceWithVersionId() {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
 		SimpleStorageProtocolResolver resourceLoader = new SimpleStorageProtocolResolver(
@@ -88,7 +88,7 @@ public class SimpleStorageProtocolResolverTest {
 	}
 
 	@Test
-	public void testGetResourceWithDifferentPatterns() {
+	void testGetResourceWithDifferentPatterns() {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
@@ -106,7 +106,7 @@ public class SimpleStorageProtocolResolverTest {
 	}
 
 	@Test
-	public void testGetResourceWithMalFormedUrl() {
+	void testGetResourceWithMalFormedUrl() {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
@@ -125,7 +125,7 @@ public class SimpleStorageProtocolResolverTest {
 	}
 
 	@Test
-	public void testValidS3Pattern() {
+	void testValidS3Pattern() {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
 		DefaultResourceLoader resourceLoader = new DefaultResourceLoader();

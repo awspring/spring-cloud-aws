@@ -20,14 +20,14 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AwsParamStorePropertySourceTest {
+class AwsParamStorePropertySourceTest {
 
 	private AWSSimpleSystemsManagement ssmClient = mock(AWSSimpleSystemsManagement.class);
 
@@ -35,7 +35,7 @@ public class AwsParamStorePropertySourceTest {
 			"/config/myservice/", ssmClient);
 
 	@Test
-	public void followsNextToken() {
+	void followsNextToken() {
 		GetParametersByPathResult firstResult = new GetParametersByPathResult()
 				.withNextToken("next").withParameters(
 						new Parameter().withName("/config/myservice/key1")

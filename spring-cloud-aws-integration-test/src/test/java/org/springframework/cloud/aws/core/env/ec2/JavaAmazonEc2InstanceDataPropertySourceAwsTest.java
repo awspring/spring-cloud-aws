@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Agim Emruli
  */
 @ContextConfiguration(classes = JavaAmazonEc2InstanceDataPropertySourceAwsTest.JavaAmazonEc2InstanceDataPropertySourceAwsTestConfig.class)
-public class JavaAmazonEc2InstanceDataPropertySourceAwsTest
+class JavaAmazonEc2InstanceDataPropertySourceAwsTest
 		extends AmazonEc2InstanceDataPropertySourceAwsTest {
 
 	@Configuration

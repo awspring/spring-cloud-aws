@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.core.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 
@@ -27,11 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Agim Emruli
  */
-public class AmazonWebserviceClientFactoryBeanTest {
+class AmazonWebserviceClientFactoryBeanTest {
 
 	@Test
-	public void getObject_withCustomRegion_returnsClientWithCustomRegion()
-			throws Exception {
+	void getObject_withCustomRegion_returnsClientWithCustomRegion() throws Exception {
 
 		// Arrange
 		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
@@ -49,7 +48,7 @@ public class AmazonWebserviceClientFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider()
+	void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider()
 			throws Exception {
 
 		// Arrange

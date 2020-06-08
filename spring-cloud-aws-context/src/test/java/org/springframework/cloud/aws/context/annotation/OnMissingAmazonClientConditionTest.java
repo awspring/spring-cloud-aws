@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.context.annotation;
 
 import com.amazonaws.services.s3.AmazonS3;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Alain Sahli
  */
-public class OnMissingAmazonClientConditionTest {
+class OnMissingAmazonClientConditionTest {
 
 	@Test
-	public void condition_withMatchingCase_shouldCreateBeanFoo() throws Exception {
+	void condition_withMatchingCase_shouldCreateBeanFoo() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithMissingAmazonClientCondition.class);
@@ -42,7 +42,7 @@ public class OnMissingAmazonClientConditionTest {
 	}
 
 	@Test
-	public void condition_withNonMatchingCase_shouldNotCreateBeanFoo() throws Exception {
+	void condition_withNonMatchingCase_shouldNotCreateBeanFoo() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithDummyS3Client.class,
@@ -56,7 +56,7 @@ public class OnMissingAmazonClientConditionTest {
 	protected static class ConfigWithDummyS3Client {
 
 		@Bean
-		public AmazonS3 amazonS3() {
+		AmazonS3 amazonS3() {
 			return mock(AmazonS3.class);
 		}
 
@@ -67,7 +67,7 @@ public class OnMissingAmazonClientConditionTest {
 
 		@Bean
 		@ConditionalOnMissingAmazonClient(AmazonS3.class)
-		public String foo() {
+		String foo() {
 			return "foo";
 		}
 

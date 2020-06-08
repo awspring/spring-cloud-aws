@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -34,14 +34,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Petromir Dzhunev
  * @author Maciej Walkowiak
  */
-public class ContextRegionProviderAutoConfigurationTest {
+class ContextRegionProviderAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(
 					AutoConfigurations.of(ContextRegionProviderAutoConfiguration.class));
 
 	@Test
-	public void autoDetectionConfigured_noConfigurationProvided_DefaultAwsRegionProviderChainDelegateConfigured() {
+	void autoDetectionConfigured_noConfigurationProvided_DefaultAwsRegionProviderChainDelegateConfigured() {
 		this.contextRunner.run((context) -> {
 			assertThat(context.getBean(DefaultAwsRegionProviderChainDelegate.class))
 					.isNotNull();
@@ -49,7 +49,7 @@ public class ContextRegionProviderAutoConfigurationTest {
 	}
 
 	@Test
-	public void autoDetectionConfigured_emptyStaticRegionConfigured_DefaultAwsRegionProviderChainDelegateConfigured() {
+	void autoDetectionConfigured_emptyStaticRegionConfigured_DefaultAwsRegionProviderChainDelegateConfigured() {
 		this.contextRunner.withPropertyValues("cloud.aws.region.static:")
 				.run((context) -> {
 					assertThat(
@@ -59,7 +59,7 @@ public class ContextRegionProviderAutoConfigurationTest {
 	}
 
 	@Test
-	public void staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() {
+	void staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() {
 		this.contextRunner.withPropertyValues("cloud.aws.region.static:eu-west-1")
 				.run((context) -> {
 					StaticRegionProvider regionProvider = context

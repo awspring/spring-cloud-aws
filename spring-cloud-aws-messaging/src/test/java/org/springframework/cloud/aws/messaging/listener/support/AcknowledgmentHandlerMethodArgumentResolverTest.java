@@ -16,36 +16,33 @@
 
 package org.springframework.cloud.aws.messaging.listener.support;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Alain Sahli
  * @since 1.1
  */
-public class AcknowledgmentHandlerMethodArgumentResolverTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class AcknowledgmentHandlerMethodArgumentResolverTest {
 
 	@Test
-	public void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException()
+	void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException()
 			throws Exception {
 		// Arrange
-		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver = null;
+		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver;
 		acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver(
 				"Acknowledgment");
 		Message<String> message = MessageBuilder.withPayload("no content").build();
 
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("Acknowledgment");
-
 		// Act
-		acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message);
+		assertThatThrownBy(() -> acknowledgmentHandlerMethodArgumentResolver
+				.resolveArgument(null, message))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("Acknowledgment");
 	}
 
 }

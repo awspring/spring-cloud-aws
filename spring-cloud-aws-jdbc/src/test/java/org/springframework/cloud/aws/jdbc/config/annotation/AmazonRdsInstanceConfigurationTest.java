@@ -26,8 +26,8 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
@@ -41,19 +41,19 @@ import org.springframework.core.env.MapPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AmazonRdsInstanceConfigurationTest {
+class AmazonRdsInstanceConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica()
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica()
 			throws Exception {
 		// Arrange
 
@@ -68,7 +68,7 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDatabaseName()
+	void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDatabaseName()
 			throws Exception {
 		// Arrange
 
@@ -88,7 +88,7 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDataSourceFactory()
+	void configureBean_withCustomDatabaseNameConfigured_configuresDataSourceWithCustomDataSourceFactory()
 			throws Exception {
 		// Arrange
 
@@ -111,7 +111,7 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions()
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithExpressions_configuresFactoryBeanWithoutReadReplicaAndResolvedExpressions()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -137,7 +137,7 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders()
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplicaWithPlaceHolder_configuresFactoryBeanWithoutReadReplicaAndResolvedPlaceHolders()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -162,7 +162,7 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled()
+	void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled()
 			throws Exception {
 		// Arrange
 
@@ -178,10 +178,10 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
-	public static class ApplicationConfigurationWithoutReadReplica {
+	static class ApplicationConfigurationWithoutReadReplica {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -203,10 +203,10 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret",
 			databaseName = "fooDb")
-	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
+	static class ApplicationConfigurationWithoutReadReplicaAndCustomDbName {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -227,10 +227,10 @@ public class AmazonRdsInstanceConfigurationTest {
 	}
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret")
-	public static class ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory {
+	static class ApplicationConfigurationWithoutReadReplicaAndCustomDataSourceFactory {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -249,7 +249,7 @@ public class AmazonRdsInstanceConfigurationTest {
 		}
 
 		@Bean
-		public RdsInstanceConfigurer instanceConfigurer() {
+		RdsInstanceConfigurer instanceConfigurer() {
 			return () -> {
 				TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
 				dataSourceFactory.setInitialSize(0);
@@ -263,12 +263,12 @@ public class AmazonRdsInstanceConfigurationTest {
 	// @checkstyle:off
 	@EnableRdsInstance(dbInstanceIdentifier = "#{environment.dbInstanceIdentifier}",
 			password = "#{environment.password}", username = "#{environment.username}")
-	public static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
+	static class ApplicationConfigurationWithoutReadReplicaAndExpressions {
 
 		// @checkstyle:on
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -291,7 +291,7 @@ public class AmazonRdsInstanceConfigurationTest {
 	// @checkstyle:off
 	@EnableRdsInstance(dbInstanceIdentifier = "${dbInstanceIdentifier}",
 			password = "${password}", username = "${username}")
-	public static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
+	static class ApplicationConfigurationWithoutReadReplicaAndPlaceHolder {
 
 		// @checkstyle:on
 
@@ -301,7 +301,7 @@ public class AmazonRdsInstanceConfigurationTest {
 		}
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -323,10 +323,10 @@ public class AmazonRdsInstanceConfigurationTest {
 
 	@EnableRdsInstance(dbInstanceIdentifier = "test", password = "secret",
 			readReplicaSupport = true)
-	public static class ApplicationConfigurationWithReadReplica {
+	static class ApplicationConfigurationWithReadReplica {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))

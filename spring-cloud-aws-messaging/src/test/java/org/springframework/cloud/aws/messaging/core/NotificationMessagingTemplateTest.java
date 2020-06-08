@@ -23,7 +23,7 @@ import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.Topic;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
@@ -36,10 +36,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Alain Sahli
  */
-public class NotificationMessagingTemplateTest {
+class NotificationMessagingTemplateTest {
 
 	@Test
-	public void send_validTextMessage_usesTopicChannel() throws Exception {
+	void send_validTextMessage_usesTopicChannel() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(
@@ -61,7 +61,7 @@ public class NotificationMessagingTemplateTest {
 	}
 
 	@Test
-	public void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel()
+	void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -80,7 +80,7 @@ public class NotificationMessagingTemplateTest {
 	}
 
 	@Test
-	public void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject()
+	void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -102,7 +102,7 @@ public class NotificationMessagingTemplateTest {
 	}
 
 	@Test
-	public void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
+	void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(

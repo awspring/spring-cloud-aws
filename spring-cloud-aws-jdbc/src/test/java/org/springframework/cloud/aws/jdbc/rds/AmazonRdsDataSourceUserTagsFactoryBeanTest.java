@@ -28,7 +28,7 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
@@ -39,10 +39,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
+class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 
 	@Test
-	public void getObject_instanceWithTagsConfiguredWithCustomResourceResolverAndCustomRegion_mapWithTagsReturned()
+	void getObject_instanceWithTagsConfiguredWithCustomResourceResolverAndCustomRegion_mapWithTagsReturned()
 			throws Exception {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);
@@ -75,7 +75,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_instanceWithOutTags_emptyMapReturned() throws Exception {
+	void getObject_instanceWithOutTags_emptyMapReturned() throws Exception {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
@@ -105,7 +105,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_instanceWithTagsAndNoResourceIdResolverAndDefaultRegion_mapWithTagsReturned()
+	void getObject_instanceWithTagsAndNoResourceIdResolverAndDefaultRegion_mapWithTagsReturned()
 			throws Exception {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);

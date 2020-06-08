@@ -19,11 +19,10 @@ package org.springframework.cloud.aws.jdbc.datasource.support;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit test class for
@@ -32,35 +31,33 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Agim Emruli
  * @since 1.0
  */
-public class MapBasedDatabasePlatformSupportTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class MapBasedDatabasePlatformSupportTest {
 
 	@Test
-	public void testGetDriverClassNameForDatabase() throws Exception {
+	void testGetDriverClassNameForDatabase() throws Exception {
 		assertThat(new SimpleDatabasePlatformSupport()
 				.getDriverClassNameForDatabase(DatabaseType.MYSQL))
 						.isEqualTo("com.mysql.jdbc.Driver");
 	}
 
 	@Test
-	public void testGetDriverNonConfiguredDatabasePlatform() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("No driver");
-		new SimpleDatabasePlatformSupport()
-				.getDriverClassNameForDatabase(DatabaseType.ORACLE);
+	void testGetDriverNonConfiguredDatabasePlatform() throws Exception {
+		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport()
+				.getDriverClassNameForDatabase(DatabaseType.ORACLE))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("No driver");
 	}
 
 	@Test
-	public void testNullDriver() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("must not be null");
-		new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(null);
+	void testNullDriver() throws Exception {
+		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport()
+				.getDriverClassNameForDatabase(null))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("must not be null");
 	}
 
 	@Test
-	public void testGetDatabaseUrlForDatabase() throws Exception {
+	void testGetDatabaseUrlForDatabase() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
 		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
 				DatabaseType.MYSQL, "localhost", 3306, "testDb");
@@ -68,14 +65,13 @@ public class MapBasedDatabasePlatformSupportTest {
 	}
 
 	@Test
-	public void testGetDatabaseUrlWrongHostName() throws Exception {
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException
-				.expectMessage("Error constructing URI from Host:'localhost<'");
+	void testGetDatabaseUrlWrongHostName() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
-		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
-				DatabaseType.MYSQL, "localhost<", 3306, "testDb");
-		assertThat(url).isEqualTo("jdbc:mysql://localhost:3306/testDb");
+		assertThatThrownBy(() -> simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
+				DatabaseType.MYSQL, "localhost<", 3306, "testDb"))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining(
+								"Error constructing URI from Host:'localhost<'");
 	}
 
 	private static class SimpleDatabasePlatformSupport

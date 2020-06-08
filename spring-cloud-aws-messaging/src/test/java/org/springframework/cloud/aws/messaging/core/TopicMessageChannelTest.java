@@ -26,7 +26,7 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.messaging.Message;
@@ -44,10 +44,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Alain Sahli
  */
-public class TopicMessageChannelTest {
+class TopicMessageChannelTest {
 
 	@Test
-	public void sendMessage_validTextMessageAndSubject_returnsTrue() throws Exception {
+	void sendMessage_validTextMessageAndSubject_returnsTrue() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
@@ -67,8 +67,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_validTextMessageWithoutSubject_returnsTrue()
-			throws Exception {
+	void sendMessage_validTextMessageWithoutSubject_returnsTrue() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
@@ -87,8 +86,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_validTextMessageAndTimeout_timeoutIsIgnored()
-			throws Exception {
+	void sendMessage_validTextMessageAndTimeout_timeoutIsIgnored() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 
@@ -107,7 +105,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withStringMessageHeader_shouldBeSentAsTopicMessageAttribute()
+	void sendMessage_withStringMessageHeader_shouldBeSentAsTopicMessageAttribute()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -135,7 +133,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withNumericMessageHeaders_shouldBeSentAsTopicMessageAttributes()
+	void sendMessage_withNumericMessageHeaders_shouldBeSentAsTopicMessageAttributes()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -203,7 +201,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withBinaryMessageHeader_shouldBeSentAsBinaryMessageAttribute()
+	void sendMessage_withBinaryMessageHeader_shouldBeSentAsBinaryMessageAttribute()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -231,7 +229,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withUuidAsId_shouldConvertUuidToString() throws Exception {
+	void sendMessage_withUuidAsId_shouldConvertUuidToString() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		TopicMessageChannel messageChannel = new TopicMessageChannel(amazonSns,

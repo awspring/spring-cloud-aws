@@ -26,7 +26,7 @@ import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -43,10 +43,10 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Agim Emruli
  * @since 1.0
  */
-public class TomcatJdbcDataSourceFactoryTest {
+class TomcatJdbcDataSourceFactoryTest {
 
 	@Test
-	public void testCreateWithDefaultSettings() throws Exception {
+	void testCreateWithDefaultSettings() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
 		DataSourceInformation dataSourceInformation = new DataSourceInformation(
@@ -61,7 +61,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 	}
 
 	@Test
-	public void testWithCustomDatabasePlatformSupport() throws Exception {
+	void testWithCustomDatabasePlatformSupport() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
 		tomcatJdbcDataSourceFactory
@@ -96,7 +96,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 	}
 
 	@Test
-	public void testCloseDataSource() throws Exception {
+	void testCloseDataSource() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setInitialSize(0);
 
@@ -113,7 +113,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 	}
 
 	@Test
-	public void testSetDefaultIsolationLevelName() throws Exception {
+	void testSetDefaultIsolationLevelName() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolationName("READ_COMMITTED");
 
@@ -122,7 +122,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 	}
 
 	@Test
-	public void testAllPropertiesSet() throws Exception {
+	void testAllPropertiesSet() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
 		tomcatJdbcDataSourceFactory.setDbProperties(new Properties());
@@ -192,7 +192,7 @@ public class TomcatJdbcDataSourceFactoryTest {
 
 	@Test // Test that the setters are not usable which will be configured at runtime
 			// during datasource creation
-	public void testInvalidPoolAttributes() throws Exception {
+	void testInvalidPoolAttributes() throws Exception {
 
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 

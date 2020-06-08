@@ -18,23 +18,18 @@ package org.springframework.cloud.aws.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Agim Emruli
  */
-public class Ec2MetadataRegionProviderTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class Ec2MetadataRegionProviderTest {
 
 	@Test
-	public void getRegion_availabilityZoneWithMatchingRegion_returnsRegion()
-			throws Exception {
+	void getRegion_availabilityZoneWithMatchingRegion_returnsRegion() throws Exception {
 		// Arrange
 		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
@@ -52,13 +47,8 @@ public class Ec2MetadataRegionProviderTest {
 	}
 
 	@Test
-	public void getRegion_noMetadataAvailable_throwsIllegalStateException()
-			throws Exception {
+	void getRegion_noMetadataAvailable_throwsIllegalStateException() throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage(
-				"There is no EC2 meta data available, because the application is not running in the EC2 environment");
-
 		Ec2MetadataRegionProvider regionProvider = new Ec2MetadataRegionProvider() {
 
 			@Override
@@ -67,10 +57,11 @@ public class Ec2MetadataRegionProviderTest {
 			}
 		};
 
-		// Act
-		regionProvider.getRegion();
-
 		// Assert
+		assertThatThrownBy(regionProvider::getRegion)
+				.isInstanceOf(IllegalStateException.class).hasMessageContaining(
+						"There is no EC2 meta data available, because the application is not running in the EC2 environment");
+
 	}
 
 }

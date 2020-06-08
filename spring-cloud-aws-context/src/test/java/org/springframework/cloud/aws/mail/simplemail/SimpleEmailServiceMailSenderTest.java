@@ -20,7 +20,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 
@@ -37,10 +37,10 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for class SimpleEmailServiceMailSender.
  */
-public class SimpleEmailServiceMailSenderTest {
+class SimpleEmailServiceMailSenderTest {
 
 	@Test
-	public void testSendSimpleMailWithMinimalProperties() throws Exception {
+	void testSendSimpleMailWithMinimalProperties() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
 				emailService);
@@ -69,7 +69,7 @@ public class SimpleEmailServiceMailSenderTest {
 	}
 
 	@Test
-	public void testSendSimpleMailWithCCandBCC() throws Exception {
+	void testSendSimpleMailWithCCandBCC() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
 				emailService);
@@ -100,7 +100,7 @@ public class SimpleEmailServiceMailSenderTest {
 	}
 
 	@Test
-	public void testSendMultipleMails() throws Exception {
+	void testSendMultipleMails() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
 				emailService);
@@ -116,7 +116,7 @@ public class SimpleEmailServiceMailSenderTest {
 	}
 
 	@Test
-	public void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
+	void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
 				emailService);
@@ -143,7 +143,7 @@ public class SimpleEmailServiceMailSenderTest {
 	}
 
 	@Test
-	public void testShutDownOfResources() throws Exception {
+	void testShutDownOfResources() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
 				emailService);

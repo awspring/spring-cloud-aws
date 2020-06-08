@@ -25,25 +25,25 @@ import com.amazonaws.SDKGlobalConfiguration;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Agim Emruli
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 
 	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
@@ -52,8 +52,8 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 	@Autowired
 	private SimpleConfigurationBean simpleConfigurationBean;
 
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
+	@BeforeAll
+	static void setupHttpServer() throws Exception {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 		httpServer = HttpServer.create(address, -1);
 		httpServer.createContext("/latest/user-data", new StringWritingHttpHandler(
@@ -66,8 +66,8 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 		restContextInstanceDataCondition();
 	}
 
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
+	@AfterAll
+	static void shutdownHttpServer() throws Exception {
 		if (httpServer != null) {
 			httpServer.stop(10);
 		}
@@ -95,11 +95,11 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 	}
 
 	@Test
-	public void testInstanceDataResolution() throws Exception {
-		Assert.assertEquals("value1", this.simpleConfigurationBean.getValue1());
-		Assert.assertEquals("value2", this.simpleConfigurationBean.getValue2());
-		Assert.assertEquals("value3", this.simpleConfigurationBean.getValue3());
-		Assert.assertEquals("i123456", this.simpleConfigurationBean.getValue4());
+	void testInstanceDataResolution() throws Exception {
+		Assertions.assertEquals("value1", this.simpleConfigurationBean.getValue1());
+		Assertions.assertEquals("value2", this.simpleConfigurationBean.getValue2());
+		Assertions.assertEquals("value3", this.simpleConfigurationBean.getValue3());
+		Assertions.assertEquals("i123456", this.simpleConfigurationBean.getValue4());
 	}
 
 	private static class StringWritingHttpHandler implements HttpHandler {

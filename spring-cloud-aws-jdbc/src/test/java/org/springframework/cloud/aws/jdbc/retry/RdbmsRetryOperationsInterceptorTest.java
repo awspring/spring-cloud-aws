@@ -17,9 +17,7 @@
 package org.springframework.cloud.aws.jdbc.retry;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.retry.RetryContext;
@@ -28,6 +26,7 @@ import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,13 +37,10 @@ import static org.mockito.Mockito.when;
  *
  * @author Agim Emruli
  */
-public class RdbmsRetryOperationsInterceptorTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class RdbmsRetryOperationsInterceptorTest {
 
 	@Test
-	public void testRetryContextIsAvailable() throws Throwable {
+	void testRetryContextIsAvailable() throws Throwable {
 		RetryContext retryContext = mock(RetryContext.class);
 		RetrySynchronizationManager.register(retryContext);
 
@@ -62,7 +58,7 @@ public class RdbmsRetryOperationsInterceptorTest {
 	}
 
 	@Test
-	public void testRetryContextIsNotAvailable() throws Throwable {
+	void testRetryContextIsNotAvailable() throws Throwable {
 
 		ProxyMethodInvocation methodInvocation = mock(ProxyMethodInvocation.class);
 
@@ -81,15 +77,15 @@ public class RdbmsRetryOperationsInterceptorTest {
 	}
 
 	@Test
-	public void testRetryContextWithoutTransaction() throws Throwable {
-		this.expectedException.expect(RetryException.class);
-		this.expectedException.expectMessage("An active transaction was found");
-
+	void testRetryContextWithoutTransaction() throws Throwable {
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		try {
 			RdbmsRetryOperationsInterceptor operationsInterceptor = new RdbmsRetryOperationsInterceptor();
 			MethodInvocation methodInvocation = mock(MethodInvocation.class);
-			operationsInterceptor.invoke(methodInvocation);
+
+			assertThatThrownBy(() -> operationsInterceptor.invoke(methodInvocation))
+					.isInstanceOf(RetryException.class)
+					.hasMessageContaining("An active transaction was found");
 		}
 		finally {
 			TransactionSynchronizationManager.setActualTransactionActive(false);

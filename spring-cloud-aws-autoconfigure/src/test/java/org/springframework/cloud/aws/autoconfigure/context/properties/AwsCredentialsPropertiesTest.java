@@ -18,8 +18,8 @@ package org.springframework.cloud.aws.autoconfigure.context.properties;
 
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,17 +30,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Maciej Walkowiak
  * @since 2.0.2
  */
-public class AwsCredentialsPropertiesTest {
+class AwsCredentialsPropertiesTest {
 
 	private AwsCredentialsProperties properties;
 
-	@Before
-	public void setup() {
+	@BeforeEach
+	void setup() {
 		this.properties = new AwsCredentialsProperties();
 	}
 
 	@Test
-	public void accessKeyCanBeSet() {
+	void accessKeyCanBeSet() {
 		assertThat(this.properties.getAccessKey())
 				.as("Access key default value expected to be null").isNull();
 
@@ -51,7 +51,7 @@ public class AwsCredentialsPropertiesTest {
 	}
 
 	@Test
-	public void secretKeyCanBeSet() {
+	void secretKeyCanBeSet() {
 		assertThat(this.properties.getSecretKey())
 				.as("Secret key default value expected to be null").isNull();
 
@@ -62,7 +62,7 @@ public class AwsCredentialsPropertiesTest {
 	}
 
 	@Test
-	public void instanceProfileCanBeSet() {
+	void instanceProfileCanBeSet() {
 		assertThat(this.properties.isInstanceProfile())
 				.as("Instance profile default expected to be false").isFalse();
 
@@ -72,7 +72,7 @@ public class AwsCredentialsPropertiesTest {
 	}
 
 	@Test
-	public void profileNameCanBeSet() {
+	void profileNameCanBeSet() {
 		assertThat(this.properties.getProfileName())
 				.as("Default profile name is not expected to be set").isEqualTo(null);
 
@@ -83,7 +83,7 @@ public class AwsCredentialsPropertiesTest {
 	}
 
 	@Test
-	public void profilePathCanBeSet() {
+	void profilePathCanBeSet() {
 		assertThat(this.properties.getProfilePath())
 				.as("Profile path default value expected to be null").isNull();
 

@@ -18,17 +18,17 @@ package org.springframework.cloud.aws.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
  */
-public class StaticRegionProviderTest {
+class StaticRegionProviderTest {
 
 	@Test
-	public void testGetRegion() throws Exception {
+	void testGetRegion() throws Exception {
 		assertThat(new StaticRegionProvider(Regions.US_EAST_1.getName()).getRegion())
 				.isSameAs(Region.getRegion(Regions.US_EAST_1));
 	}

@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -36,7 +36,7 @@ import static org.springframework.beans.factory.support.BeanDefinitionReaderUtil
 /**
  *
  */
-public class SimpleStorageProtocolResolverConfigurerTest {
+class SimpleStorageProtocolResolverConfigurerTest {
 
 	private static void configureApplicationContext(
 			StaticApplicationContext staticApplicationContext) {
@@ -59,7 +59,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 	}
 
 	@Test
-	public void postProcessBeans_beanWithFieldInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
+	void postProcessBeans_beanWithFieldInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
 		// Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -84,7 +84,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 	}
 
 	@Test
-	public void postProcessBeans_beanWithMethodInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
+	void postProcessBeans_beanWithMethodInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
 		// Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -113,7 +113,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 	}
 
 	@Test
-	public void postProcessBeans_beanWithConstructorInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
+	void postProcessBeans_beanWithConstructorInjectedResourceLoader_receivesSimpleStorageResourceLoader() {
 		// Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
@@ -142,7 +142,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 	}
 
 	@Test
-	public void postProcessBeans_beanWithResourceLoaderAwareInterface_receivesSimpleStorageResourceLoader() {
+	void postProcessBeans_beanWithResourceLoaderAwareInterface_receivesSimpleStorageResourceLoader() {
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
 
 		configureApplicationContext(staticApplicationContext);
@@ -172,7 +172,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 		@Autowired
 		private ResourceLoader resourceLoader;
 
-		public ResourceLoader getResourceLoader() {
+		ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
 		}
 
@@ -182,12 +182,12 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 
 		private ResourceLoader resourceLoader;
 
-		public ResourceLoader getResourceLoader() {
+		ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
 		}
 
 		@Autowired
-		public void setResourceLoader(
+		void setResourceLoader(
 				@SuppressWarnings("SpringJavaAutowiringInspection") ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
 		}
@@ -204,7 +204,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 			this.resourceLoader = resourceLoader;
 		}
 
-		public ResourceLoader getResourceLoader() {
+		ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
 		}
 
@@ -214,7 +214,7 @@ public class SimpleStorageProtocolResolverConfigurerTest {
 
 		private ResourceLoader resourceLoader;
 
-		public ResourceLoader getResourceLoader() {
+		ResourceLoader getResourceLoader() {
 			return this.resourceLoader;
 		}
 

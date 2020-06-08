@@ -24,8 +24,8 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -37,19 +37,19 @@ import org.springframework.context.annotation.Bean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AmazonRdsDatabaseAutoConfigurationTest {
+class AmazonRdsDatabaseAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica()
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -67,7 +67,7 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withCustomDataBaseName_configuresFactoryBeanWithCustomDatabaseName()
+	void configureBean_withCustomDataBaseName_configuresFactoryBeanWithCustomDatabaseName()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -91,7 +91,7 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndNoReadReplicaAndMultipleDatabases_configuresBothDatabases()
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplicaAndMultipleDatabases_configuresBothDatabases()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -117,7 +117,7 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 	}
 
 	@Test
-	public void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled()
+	void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -138,10 +138,10 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 						.isNotNull();
 	}
 
-	public static class ApplicationConfigurationWithoutReadReplica {
+	static class ApplicationConfigurationWithoutReadReplica {
 
 		@Bean
-		public AmazonRDSClient amazonRDS() {
+		AmazonRDSClient amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -161,10 +161,10 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 
 	}
 
-	public static class ApplicationConfigurationWithMultipleDatabases {
+	static class ApplicationConfigurationWithMultipleDatabases {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))
@@ -193,10 +193,10 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 
 	}
 
-	public static class ApplicationConfigurationWithReadReplica {
+	static class ApplicationConfigurationWithReadReplica {
 
 		@Bean
-		public AmazonRDS amazonRDS() {
+		AmazonRDS amazonRDS() {
 			AmazonRDSClient client = Mockito.mock(AmazonRDSClient.class);
 			when(client.describeDBInstances(
 					new DescribeDBInstancesRequest().withDBInstanceIdentifier("test")))

@@ -34,7 +34,7 @@ import org.springframework.util.SocketUtils;
 // Suppression as this is not a util class
 // @checkstyle:off
 @SuppressWarnings({ "UtilityClassWithoutPrivateConstructor", "NonFinalUtilityClass" })
-public class TestMemcacheServer {
+class TestMemcacheServer {
 
 	// @checkstyle:on
 
@@ -44,7 +44,7 @@ public class TestMemcacheServer {
 	@SuppressWarnings("StaticNonFinalField")
 	private static int portForInstance;
 
-	public static int startServer() {
+	static int startServer() {
 		if (daemon == null) {
 			System.setProperty("net.spy.log.LoggerImpl", SLF4JLogger.class.getName());
 
@@ -64,7 +64,7 @@ public class TestMemcacheServer {
 		return portForInstance;
 	}
 
-	public static void stopServer() {
+	static void stopServer() {
 		try {
 			daemon.stop();
 			daemon = null;

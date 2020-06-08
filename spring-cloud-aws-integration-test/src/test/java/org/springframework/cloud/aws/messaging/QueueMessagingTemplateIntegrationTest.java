@@ -22,20 +22,20 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Agim Emruli
  * @author Alain Sahli
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class QueueMessagingTemplateIntegrationTest {
+@ExtendWith(SpringExtension.class)
+abstract class QueueMessagingTemplateIntegrationTest {
 
 	private static final String JSON_QUEUE_NAME = "JsonQueue";
 
@@ -50,7 +50,7 @@ public abstract class QueueMessagingTemplateIntegrationTest {
 	private QueueMessagingTemplate messagingTemplateWithCustomConverter;
 
 	@Test
-	public void sendAndReceive_stringMessageWithProvidedDestination_shouldUseTheProvidedDestination()
+	void sendAndReceive_stringMessageWithProvidedDestination_shouldUseTheProvidedDestination()
 			throws Exception {
 		// Arrange
 		String messageContent = "testMessage";
@@ -66,7 +66,7 @@ public abstract class QueueMessagingTemplateIntegrationTest {
 	}
 
 	@Test
-	public void sendAndReceive_ObjectMessageWithDefaultDestination_shouldUseTheStreamQueue()
+	void sendAndReceive_ObjectMessageWithDefaultDestination_shouldUseTheStreamQueue()
 			throws Exception {
 		// Arrange
 		List<String> payload = Collections.singletonList("myString");
@@ -81,7 +81,7 @@ public abstract class QueueMessagingTemplateIntegrationTest {
 	}
 
 	@Test
-	public void sendAndReceive_JsonMessageWithDefaultDestination_shouldUseTheJsonQueue()
+	void sendAndReceive_JsonMessageWithDefaultDestination_shouldUseTheJsonQueue()
 			throws Exception {
 		// Arrange
 		DummyObject payload = new DummyObject("Hello", 100);
@@ -97,7 +97,7 @@ public abstract class QueueMessagingTemplateIntegrationTest {
 	}
 
 	@Test
-	public void convertAndSend_aStringWithJsonConverter_shouldSerializeAndDeserializeCorrectly()
+	void convertAndSend_aStringWithJsonConverter_shouldSerializeAndDeserializeCorrectly()
 			throws Exception {
 		// Act
 		this.defaultQueueMessagingTemplate.convertAndSend(JSON_QUEUE_NAME, "A String");

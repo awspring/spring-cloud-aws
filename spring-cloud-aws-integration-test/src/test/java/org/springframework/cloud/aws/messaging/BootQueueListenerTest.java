@@ -32,7 +32,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Alain Sahli
  */
 @SpringBootTest(classes = BootQueueListenerTest.QueueListenerTestConfiguration.class)
-public class BootQueueListenerTest extends QueueListenerTest {
+class BootQueueListenerTest extends QueueListenerTest {
 
 	@Configuration
 	@EnableAutoConfiguration

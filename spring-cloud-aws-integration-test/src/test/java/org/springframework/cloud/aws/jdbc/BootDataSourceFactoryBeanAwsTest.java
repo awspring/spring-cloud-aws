@@ -24,7 +24,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringBootTest(classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
-public class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
+class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 	@SpringBootApplication
 	@PropertySource({ "classpath:Integration-test-config.properties",

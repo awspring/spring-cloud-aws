@@ -24,8 +24,8 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cache.Cache;
@@ -41,7 +41,7 @@ import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ElastiCacheCachingConfigurationTest {
+class ElastiCacheCachingConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
@@ -54,15 +54,15 @@ public class ElastiCacheCachingConfigurationTest {
 		return expiration.getInt(cache);
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void enableElasticache_configuredWithExplicitCluster_configuresExplicitlyConfiguredCaches()
+	void enableElasticache_configuredWithExplicitCluster_configuresExplicitlyConfiguredCaches()
 			throws Exception {
 		// Arrange
 
@@ -85,7 +85,7 @@ public class ElastiCacheCachingConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithCustomExpirationTimes()
+	void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithCustomExpirationTimes()
 			// @checkstyle:on
 			throws Exception {
 		// Arrange
@@ -109,7 +109,7 @@ public class ElastiCacheCachingConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithMixedExpirationTimes()
+	void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithMixedExpirationTimes()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -132,7 +132,7 @@ public class ElastiCacheCachingConfigurationTest {
 	}
 
 	@Test
-	public void enableElasticache_configuredWithoutExplicitCluster_configuresImplicitlyConfiguredCaches()
+	void enableElasticache_configuredWithoutExplicitCluster_configuresImplicitlyConfiguredCaches()
 			throws Exception {
 		// Arrange
 
@@ -155,7 +155,7 @@ public class ElastiCacheCachingConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void enableElasticache_configuredWithoutExplicitClusterButDefaultExpiryTime_configuresImplicitlyConfiguredCachesWithDefaultExpiryTimeOnAllCaches()
+	void enableElasticache_configuredWithoutExplicitClusterButDefaultExpiryTime_configuresImplicitlyConfiguredCachesWithDefaultExpiryTimeOnAllCaches()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -179,10 +179,10 @@ public class ElastiCacheCachingConfigurationTest {
 
 	@EnableElastiCache({ @CacheClusterConfig(name = "firstCache"),
 			@CacheClusterConfig(name = "secondCache") })
-	public static class ApplicationConfigurationWithExplicitStackConfiguration {
+	static class ApplicationConfigurationWithExplicitStackConfiguration {
 
 		@Bean
-		public AmazonElastiCache amazonElastiCache() {
+		AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
 			DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest()
@@ -215,10 +215,10 @@ public class ElastiCacheCachingConfigurationTest {
 
 	@EnableElastiCache({ @CacheClusterConfig(name = "firstCache", expiration = 23),
 			@CacheClusterConfig(name = "secondCache", expiration = 42) })
-	public static class ApplicationConfigurationWithExplicitStackConfigurationAndExpiryTime {
+	static class ApplicationConfigurationWithExplicitStackConfigurationAndExpiryTime {
 
 		@Bean
-		public AmazonElastiCache amazonElastiCache() {
+		AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
 			DescribeCacheClustersRequest firstCache = new DescribeCacheClustersRequest()
@@ -248,10 +248,10 @@ public class ElastiCacheCachingConfigurationTest {
 			value = { @CacheClusterConfig(name = "firstCache"),
 					@CacheClusterConfig(name = "secondCache", expiration = 42) },
 			defaultExpiration = 12)
-	public static class ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime {
+	static class ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime {
 
 		@Bean
-		public AmazonElastiCache amazonElastiCache() {
+		AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
 			DescribeCacheClustersRequest firstCache = new DescribeCacheClustersRequest()
@@ -278,10 +278,10 @@ public class ElastiCacheCachingConfigurationTest {
 	}
 
 	@EnableElastiCache
-	public static class ApplicationConfigurationWithNoExplicitStackConfiguration {
+	static class ApplicationConfigurationWithNoExplicitStackConfiguration {
 
 		@Bean
-		public AmazonElastiCache amazonElastiCache() {
+		AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
 			DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest()
@@ -319,7 +319,7 @@ public class ElastiCacheCachingConfigurationTest {
 		}
 
 		@Bean
-		public ListableStackResourceFactory stackResourceFactory() {
+		ListableStackResourceFactory stackResourceFactory() {
 			ListableStackResourceFactory resourceFactory = Mockito
 					.mock(ListableStackResourceFactory.class);
 			Mockito.when(
@@ -335,10 +335,10 @@ public class ElastiCacheCachingConfigurationTest {
 	}
 
 	@EnableElastiCache(defaultExpiration = 23)
-	public static class ApplicationConfigurationWithNoExplicitStackConfigurationAndDefaultExpiration {
+	static class ApplicationConfigurationWithNoExplicitStackConfigurationAndDefaultExpiration {
 
 		@Bean
-		public AmazonElastiCache amazonElastiCache() {
+		AmazonElastiCache amazonElastiCache() {
 			AmazonElastiCache amazonElastiCache = Mockito.mock(AmazonElastiCache.class);
 			int port = TestMemcacheServer.startServer();
 			DescribeCacheClustersRequest sampleCacheOneLogical = new DescribeCacheClustersRequest()
@@ -376,7 +376,7 @@ public class ElastiCacheCachingConfigurationTest {
 		}
 
 		@Bean
-		public ListableStackResourceFactory stackResourceFactory() {
+		ListableStackResourceFactory stackResourceFactory() {
 			ListableStackResourceFactory resourceFactory = Mockito
 					.mock(ListableStackResourceFactory.class);
 			Mockito.when(

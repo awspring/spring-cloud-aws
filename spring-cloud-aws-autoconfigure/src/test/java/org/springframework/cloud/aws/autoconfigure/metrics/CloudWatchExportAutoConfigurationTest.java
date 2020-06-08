@@ -19,8 +19,8 @@ package org.springframework.cloud.aws.autoconfigure.metrics;
 import io.micrometer.cloudwatch.CloudWatchConfig;
 import io.micrometer.cloudwatch.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
@@ -32,21 +32,21 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Dawid Kublik
  */
-public class CloudWatchExportAutoConfigurationTest {
+class CloudWatchExportAutoConfigurationTest {
 
 	private MockEnvironment env;
 
 	private AnnotationConfigApplicationContext context;
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 		this.env = new MockEnvironment();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setEnvironment(this.env);
 	}
 
 	@Test
-	public void testWithoutSettingAnyConfigProperties() {
+	void testWithoutSettingAnyConfigProperties() {
 		this.context.register(CloudWatchExportAutoConfiguration.class);
 		this.context.refresh();
 		assertThat(this.context.getBeansOfType(CloudWatchMeterRegistry.class).isEmpty())
@@ -54,7 +54,7 @@ public class CloudWatchExportAutoConfigurationTest {
 	}
 
 	@Test
-	public void testConfiguration() throws Exception {
+	void testConfiguration() throws Exception {
 		this.env.setProperty("management.metrics.export.cloudwatch.namespace", "test");
 
 		this.context.register(CloudWatchExportAutoConfiguration.class);

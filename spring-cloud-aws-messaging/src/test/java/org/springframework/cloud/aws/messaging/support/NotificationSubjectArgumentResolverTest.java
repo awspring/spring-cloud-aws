@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
@@ -30,10 +30,10 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NotificationSubjectArgumentResolverTest {
+class NotificationSubjectArgumentResolverTest {
 
 	@Test
-	public void supportsParameter_withNotificationSubjectMethodParameter_shouldReturnTrue()
+	void supportsParameter_withNotificationSubjectMethodParameter_shouldReturnTrue()
 			throws Exception {
 		// Arrange
 		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
@@ -57,8 +57,7 @@ public class NotificationSubjectArgumentResolverTest {
 	}
 
 	@Test
-	public void supportsParameter_withWrongMethodParameter_shouldReturnFalse()
-			throws Exception {
+	void supportsParameter_withWrongMethodParameter_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
 		Method methodWithMissingAnnotation = this.getClass()
@@ -80,8 +79,7 @@ public class NotificationSubjectArgumentResolverTest {
 	}
 
 	@Test
-	public void supportsParameter_withWrongParameterType_shouldReturnFalse()
-			throws Exception {
+	void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
 		Method methodWithWrongParameterType = this.getClass()
@@ -103,7 +101,7 @@ public class NotificationSubjectArgumentResolverTest {
 	}
 
 	@Test
-	public void resolveArgument_withValidRequestPayload_shouldReturnNotificationSubject()
+	void resolveArgument_withValidRequestPayload_shouldReturnNotificationSubject()
 			throws Exception {
 		// Arrange
 		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();

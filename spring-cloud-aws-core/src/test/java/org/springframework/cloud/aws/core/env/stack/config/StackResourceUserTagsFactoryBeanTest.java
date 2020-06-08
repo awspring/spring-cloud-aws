@@ -23,7 +23,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,10 +32,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class StackResourceUserTagsFactoryBeanTest {
+class StackResourceUserTagsFactoryBeanTest {
 
 	@Test
-	public void getObject_stackWithTagsDefined_createTagsMap() throws Exception {
+	void getObject_stackWithTagsDefined_createTagsMap() throws Exception {
 		// Arrange
 		AmazonCloudFormation cloudFormation = mock(AmazonCloudFormation.class);
 		StackNameProvider stackNameProvider = mock(StackNameProvider.class);

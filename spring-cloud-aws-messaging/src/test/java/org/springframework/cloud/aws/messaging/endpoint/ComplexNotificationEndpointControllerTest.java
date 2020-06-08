@@ -17,9 +17,9 @@
 package org.springframework.cloud.aws.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -46,10 +46,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Agim Emruli
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = Config.class)
-public class ComplexNotificationEndpointControllerTest {
+class ComplexNotificationEndpointControllerTest {
 
 	@Autowired
 	private WebApplicationContext context;
@@ -62,13 +62,13 @@ public class ComplexNotificationEndpointControllerTest {
 
 	private MockMvc mockMvc;
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
 	}
 
 	@Test
-	public void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
+	void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
 			throws Exception {
 		// Arrange
 		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
@@ -93,7 +93,7 @@ public class ComplexNotificationEndpointControllerTest {
 
 	// @checkstyle:off
 	@Test
-	public void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod()
+	void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -118,7 +118,7 @@ public class ComplexNotificationEndpointControllerTest {
 	}
 
 	@Test
-	public void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController()
+	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController()
 			throws Exception {
 		// Arrange
 		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(

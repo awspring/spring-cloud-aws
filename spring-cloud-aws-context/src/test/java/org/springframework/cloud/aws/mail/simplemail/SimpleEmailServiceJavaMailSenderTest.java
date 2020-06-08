@@ -33,7 +33,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 
@@ -54,10 +54,10 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for class SimpleEmailServiceJavaMailSender.
  */
-public class SimpleEmailServiceJavaMailSenderTest {
+class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
-	public void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() {
+	void createMimeMessage_withDefaultPropertiesAndNoEncodingAndFileTypeMap_returnsSessionWithEmptyProperties() {
 		// Arrange
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
@@ -70,7 +70,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() {
+	void createMimeMessage_withCustomProperties_sessionMaintainsCustomProperties() {
 		// Arrange
 		Properties mailProperties = new Properties();
 		mailProperties.setProperty("mail.from", "agim.emruli@maildomain.com");
@@ -89,7 +89,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() {
+	void createMimeMessage_withCustomSession_sessionUsedInMailIsCustomSession() {
 		// Arrange
 		Session customSession = Session.getInstance(new Properties());
 
@@ -105,7 +105,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() {
+	void createMimeMessage_withCustomEncoding_encodingIsDetectedInMimeMessageHelper() {
 		// Arrange
 		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
 				null);
@@ -120,7 +120,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() {
+	void createMimeMessage_withCustomFileTypeMap_fileTypeMapIsAvailableInMailSender() {
 		// Arrange
 		SimpleEmailServiceJavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(
 				null);
@@ -135,7 +135,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testCreateMimeMessageFromPreDefinedMessage() throws Exception {
+	void testCreateMimeMessageFromPreDefinedMessage() throws Exception {
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(null);
 
 		MimeMessage original = createMimeMessage();
@@ -150,7 +150,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMimeMessage() throws MessagingException {
+	void testSendMimeMessage() throws MessagingException {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -164,7 +164,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMultipleMimeMessages() throws Exception {
+	void testSendMultipleMimeMessages() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -177,7 +177,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMailWithMimeMessagePreparator() throws Exception {
+	void testSendMailWithMimeMessagePreparator() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -206,7 +206,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
+	void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
 
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
@@ -246,7 +246,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
+	void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
 		InputStream inputStream = mock(InputStream.class);
 
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
@@ -270,7 +270,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMultipleMailsWithException() throws Exception {
+	void testSendMultipleMailsWithException() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
@@ -292,7 +292,7 @@ public class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	public void testSendMailsWithExceptionWhilePreparing() {
+	void testSendMailsWithExceptionWhilePreparing() {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);

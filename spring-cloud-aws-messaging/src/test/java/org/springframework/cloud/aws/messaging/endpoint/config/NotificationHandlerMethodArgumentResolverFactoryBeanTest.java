@@ -17,23 +17,19 @@
 package org.springframework.cloud.aws.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 
 	@Test
-	public void getObjectType_defaultConfiguration_returnsHandlerMethodArgumentResolverType()
+	void getObjectType_defaultConfiguration_returnsHandlerMethodArgumentResolverType()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -48,7 +44,7 @@ public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_withDefaultConfiguration_createCompositeResolverWithAllDelegatedResolvers()
+	void getObject_withDefaultConfiguration_createCompositeResolverWithAllDelegatedResolvers()
 			throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
@@ -66,16 +62,13 @@ public class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_withNullSnsClient_reportsError() throws Exception {
-		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("not be null");
-
-		// Act
-		// noinspection ResultOfObjectAllocationIgnored
-		new NotificationHandlerMethodArgumentResolverFactoryBean(null);
-
+	void createInstance_withNullSnsClient_reportsError() throws Exception {
 		// Assert
+		assertThatThrownBy(
+				() -> new NotificationHandlerMethodArgumentResolverFactoryBean(null))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("not be null");
+
 	}
 
 }

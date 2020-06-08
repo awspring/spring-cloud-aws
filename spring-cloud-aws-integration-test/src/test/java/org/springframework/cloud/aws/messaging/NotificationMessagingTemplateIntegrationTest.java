@@ -19,9 +19,9 @@ package org.springframework.cloud.aws.messaging;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
@@ -29,15 +29,15 @@ import org.springframework.cloud.aws.messaging.config.annotation.NotificationMes
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Alain Sahli
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class NotificationMessagingTemplateIntegrationTest
 		extends AbstractContainerTest {
 
@@ -47,13 +47,13 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 	@Autowired
 	private NotificationReceiver notificationReceiver;
 
-	@Before
-	public void resetMocks() throws Exception {
+	@BeforeEach
+	void resetMocks() throws Exception {
 		this.notificationReceiver.reset();
 	}
 
 	@Test
-	public void send_validTextMessage_shouldBeDelivered() throws Exception {
+	void send_validTextMessage_shouldBeDelivered() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
@@ -71,7 +71,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 	}
 
 	@Test
-	public void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination()
+	void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination()
 			throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);

@@ -20,9 +20,9 @@ import java.lang.reflect.Field;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
@@ -34,12 +34,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Agim Emruli
  */
-public class ContextInstanceDataAutoConfigurationTest {
+class ContextInstanceDataAutoConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@Before
-	public void restContextInstanceDataCondition() throws IllegalAccessException {
+	@BeforeEach
+	void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
 		assertThat(field).isNotNull();
@@ -47,15 +47,15 @@ public class ContextInstanceDataAutoConfigurationTest {
 		field.set(null, null);
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment()
+	void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment()
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
@@ -78,7 +78,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	public void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment()
+	void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment()
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
@@ -101,7 +101,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	public void placeHolder_noExplicitConfiguration_createInstanceDataResolverThatResolvesWithDefaultAttributes()
+	void placeHolder_noExplicitConfiguration_createInstanceDataResolverThatResolvesWithDefaultAttributes()
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
@@ -126,7 +126,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	public void placeHolder_customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator()
+	void placeHolder_customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator()
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
@@ -155,7 +155,7 @@ public class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	public void placeHolder_customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute()
+	void placeHolder_customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute()
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();

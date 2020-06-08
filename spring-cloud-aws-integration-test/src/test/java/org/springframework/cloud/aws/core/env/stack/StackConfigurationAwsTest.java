@@ -18,21 +18,21 @@ package org.springframework.cloud.aws.core.env.stack;
 
 import java.util.Collection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.support.TestStackEnvironment;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class StackConfigurationAwsTest {
+@ExtendWith(SpringExtension.class)
+abstract class StackConfigurationAwsTest {
 
 	@Autowired
 	private ListableStackResourceFactory stackResourceFactory;
@@ -41,7 +41,7 @@ public abstract class StackConfigurationAwsTest {
 	private ResourceIdResolver resourceIdResolver;
 
 	@Test
-	public void resourcesByType_withResourceType_containsMinimumResources()
+	void resourcesByType_withResourceType_containsMinimumResources()
 			throws Exception {
 		// Arrange
 
@@ -58,7 +58,7 @@ public abstract class StackConfigurationAwsTest {
 	}
 
 	@Test
-	public void lookupPhysicalResourceId_withEC2Instance_returnsPhysicalName()
+	void lookupPhysicalResourceId_withEC2Instance_returnsPhysicalName()
 			throws Exception {
 		// Arrange
 
@@ -72,7 +72,7 @@ public abstract class StackConfigurationAwsTest {
 	}
 
 	@Test
-	public void getAllResources_withConfiguredStack_returnsNonEmptyResourceList()
+	void getAllResources_withConfiguredStack_returnsNonEmptyResourceList()
 			throws Exception {
 		// Arrange
 
@@ -85,7 +85,7 @@ public abstract class StackConfigurationAwsTest {
 	}
 
 	@Test
-	public void getStackName_withManuallyConfiguredStackName_returnsManuallyConfiguredStackName()
+	void getStackName_withManuallyConfiguredStackName_returnsManuallyConfiguredStackName()
 			throws Exception {
 		// Arrange
 
@@ -96,7 +96,9 @@ public abstract class StackConfigurationAwsTest {
 		assertEquals(TestStackEnvironment.DEFAULT_STACK_NAME, stackName);
 	}
 
-	public void resourceIdResolver_configuredByDefault_notNull() {
+
+	@Test
+	void resourceIdResolver_configuredByDefault_notNull() {
 		// Arrange
 
 		// Act

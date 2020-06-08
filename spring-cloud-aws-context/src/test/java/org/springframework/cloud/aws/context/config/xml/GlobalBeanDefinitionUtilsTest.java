@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.context.config.xml;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -25,11 +25,11 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class GlobalBeanDefinitionUtilsTest {
+class GlobalBeanDefinitionUtilsTest {
 
 	// @checkstyle:off
 	@Test
-	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegistered() {
+	void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegistered() {
 		// @checkstyle:on
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
@@ -44,7 +44,7 @@ public class GlobalBeanDefinitionUtilsTest {
 
 	// @checkstyle:off
 	@Test
-	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegisteredUnderInternalName() {
+	void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_resourceIdResolverBeanIsRegisteredUnderInternalName() {
 		// @checkstyle:on
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
@@ -58,7 +58,7 @@ public class GlobalBeanDefinitionUtilsTest {
 	}
 
 	@Test
-	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_returnsInternalBeanName() {
+	void retrieveResourceIdResolverBeanName_resourceIdResolverBeanNotYetRegistered_returnsInternalBeanName() {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 
@@ -73,7 +73,7 @@ public class GlobalBeanDefinitionUtilsTest {
 
 	// @checkstyle:off
 	@Test
-	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_resourceIdResolverBeanIsNotAgainRegistered() {
+	void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_resourceIdResolverBeanIsNotAgainRegistered() {
 		// @checkstyle:on
 		// Arrange
 		BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
@@ -93,7 +93,7 @@ public class GlobalBeanDefinitionUtilsTest {
 	}
 
 	@Test
-	public void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_returnsInternalBeanName() {
+	void retrieveResourceIdResolverBeanName_resourceIdResolverBeanAlreadyRegistered_returnsInternalBeanName() {
 		// Arrange
 		BeanDefinition resourceIdResolverBeanDefinition = new GenericBeanDefinition();
 

@@ -26,7 +26,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import org.apache.http.client.CredentialsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Agim Emruli
  * @author Maciej Walkowiak
  */
-public class ContextCredentialsAutoConfigurationTest {
+class ContextCredentialsAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(
@@ -50,7 +50,7 @@ public class ContextCredentialsAutoConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() {
+	void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() {
 		// @checkstyle:on
 		this.contextRunner.run((context) -> {
 			AWSCredentialsProvider awsCredentialsProvider = context.getBean(
@@ -63,7 +63,7 @@ public class ContextCredentialsAutoConfigurationTest {
 	}
 
 	@Test
-	public void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
+	void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
 		this.contextRunner
 				.withPropertyValues(
 						"cloud.aws.credentials.use-default-aws-credentials-chain:true")
@@ -80,7 +80,7 @@ public class ContextCredentialsAutoConfigurationTest {
 
 	// @checkstyle:off
 	@Test
-	public void credentialsProvider_accessKeyAndSecretKeyConfigured_configuresStaticCredentialsProviderWithAccessAndSecretKey() {
+	void credentialsProvider_accessKeyAndSecretKeyConfigured_configuresStaticCredentialsProviderWithAccessAndSecretKey() {
 		// @checkstyle:on
 		this.contextRunner.withPropertyValues(
 				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
@@ -105,7 +105,7 @@ public class ContextCredentialsAutoConfigurationTest {
 	}
 
 	@Test
-	public void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
+	void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues(
 				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
 				"cloud.aws.credentials.instance-profile:true").run((context) -> {
@@ -123,7 +123,7 @@ public class ContextCredentialsAutoConfigurationTest {
 	}
 
 	@Test
-	public void credentialsProvider_profileNameConfigured_configuresProfileCredentialsProvider() {
+	void credentialsProvider_profileNameConfigured_configuresProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues(
 				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
 				"cloud.aws.credentials.profile-name:test").run((context) -> {
@@ -143,7 +143,7 @@ public class ContextCredentialsAutoConfigurationTest {
 	}
 
 	@Test
-	public void credentialsProvider_profileNameAndPathConfigured_configuresProfileCredentialsProvider()
+	void credentialsProvider_profileNameAndPathConfigured_configuresProfileCredentialsProvider()
 			throws IOException {
 		this.contextRunner
 				.withPropertyValues(

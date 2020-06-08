@@ -25,9 +25,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
@@ -55,13 +53,10 @@ import static org.mockito.Mockito.withSettings;
 /**
  * @author Alain Sahli
  */
-public class SqsConfigurationTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class SqsConfigurationTest {
 
 	@Test
-	public void configuration_withMinimalBeans_shouldStartSqsListenerContainer()
+	void configuration_withMinimalBeans_shouldStartSqsListenerContainer()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -89,7 +84,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withCustomAmazonClient_shouldBeUsedByTheContainer()
+	void configuration_withCustomAmazonClient_shouldBeUsedByTheContainer()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -102,7 +97,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void messageHandler_withFactoryConfiguration_shouldUseCustomValues()
+	void messageHandler_withFactoryConfiguration_shouldUseCustomValues()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -134,7 +129,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withCustomConfigurationFactory_shouldBeUsedToCreateTheContainer()
+	void configuration_withCustomConfigurationFactory_shouldBeUsedToCreateTheContainer()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -168,7 +163,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withCustomSendToMessageTemplate_shouldUseTheConfiguredTemplate()
+	void configuration_withCustomSendToMessageTemplate_shouldUseTheConfiguredTemplate()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -185,7 +180,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void queueMessageHandlerBeanMustBeSetOnContainer() throws Exception {
+	void queueMessageHandlerBeanMustBeSetOnContainer() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				MinimalConfiguration.class);
@@ -200,7 +195,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider()
+	void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider()
 			throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
@@ -217,7 +212,7 @@ public class SqsConfigurationTest {
 	}
 
 	@Test
-	public void configuration_withRegionProvider_shouldUseItForClient() throws Exception {
+	void configuration_withRegionProvider_shouldUseItForClient() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithRegionProvider.class);
@@ -234,10 +229,10 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class MinimalConfiguration {
+	static class MinimalConfiguration {
 
 		@Bean
-		public AWSCredentialsProvider awsCredentials() {
+		AWSCredentialsProvider awsCredentials() {
 			return mock(AWSCredentialsProvider.class);
 		}
 
@@ -245,18 +240,18 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithCustomAmazonClient {
+	static class ConfigurationWithCustomAmazonClient {
 
-		public static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class,
+		static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class,
 				withSettings().stubOnly());
 
 		@Bean
-		public AWSCredentialsProvider awsCredentials() {
+		AWSCredentialsProvider awsCredentials() {
 			return mock(AWSCredentialsProvider.class);
 		}
 
 		@Bean
-		public AmazonSQSAsync amazonSQS() {
+		AmazonSQSAsync amazonSQS() {
 			return CUSTOM_SQS_CLIENT;
 		}
 
@@ -264,23 +259,22 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithCustomizedMessageHandler
-			extends MinimalConfiguration {
+	static class ConfigurationWithCustomizedMessageHandler extends MinimalConfiguration {
 
-		public static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(
+		static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(
 				HandlerMethodReturnValueHandler.class);
 
-		public static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(
+		static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(
 				HandlerMethodArgumentResolver.class);
 
-		public static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class,
+		static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class,
 				withSettings().stubOnly());
 
-		public static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(
+		static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(
 				ResourceIdResolver.class);
 
 		@Bean
-		public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+		QueueMessageHandlerFactory queueMessageHandlerFactory() {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
 			factory.setArgumentResolvers(
 					Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
@@ -296,30 +290,30 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithCustomContainerFactory {
+	static class ConfigurationWithCustomContainerFactory {
 
-		public static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class,
+		static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class,
 				withSettings().stubOnly());
 
-		public static final boolean AUTO_STARTUP = true;
+		static final boolean AUTO_STARTUP = true;
 
-		public static final int MAX_NUMBER_OF_MESSAGES = 1456;
+		static final int MAX_NUMBER_OF_MESSAGES = 1456;
 
-		public static final QueueMessageHandler MESSAGE_HANDLER;
+		static final QueueMessageHandler MESSAGE_HANDLER;
 
-		public static final ResourceIdResolver RESOURCE_ID_RESOLVER = mock(
+		static final ResourceIdResolver RESOURCE_ID_RESOLVER = mock(
 				ResourceIdResolver.class);
 
-		public static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
+		static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 
-		public static final int VISIBILITY_TIMEOUT = 1789;
+		static final int VISIBILITY_TIMEOUT = 1789;
 
-		public static final int WAIT_TIME_OUT = 12;
+		static final int WAIT_TIME_OUT = 12;
 
-		public static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(
+		static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(
 				mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 
-		public static final long BACK_OFF_TIME = 5000;
+		static final long BACK_OFF_TIME = 5000;
 
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -328,7 +322,7 @@ public class SqsConfigurationTest {
 		}
 
 		@Bean
-		public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
+		SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory() {
 			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
 			factory.setAmazonSqs(amazonSQS());
 			factory.setAutoStartup(AUTO_STARTUP);
@@ -345,7 +339,7 @@ public class SqsConfigurationTest {
 		}
 
 		@Bean
-		public AmazonSQSAsync amazonSQS() {
+		AmazonSQSAsync amazonSQS() {
 			return AMAZON_SQS;
 		}
 
@@ -353,13 +347,13 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithCustomSendToMessageTemplate {
+	static class ConfigurationWithCustomSendToMessageTemplate {
 
-		public static final DestinationResolvingMessageSendingOperations<?> SEND_TO_MESSAGE_TEMPLATE = mock(
+		static final DestinationResolvingMessageSendingOperations<?> SEND_TO_MESSAGE_TEMPLATE = mock(
 				DestinationResolvingMessageSendingOperations.class);
 
 		@Bean
-		public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+		QueueMessageHandlerFactory queueMessageHandlerFactory() {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
 			factory.setSendToMessagingTemplate(SEND_TO_MESSAGE_TEMPLATE);
 
@@ -370,14 +364,14 @@ public class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithMissingAwsCredentials {
+	static class ConfigurationWithMissingAwsCredentials {
 
 	}
 
 	@EnableSqs
 	@EnableContextRegion(region = "eu-west-1")
 	@Configuration(proxyBeanMethods = false)
-	public static class ConfigurationWithRegionProvider {
+	static class ConfigurationWithRegionProvider {
 
 	}
 

@@ -26,8 +26,8 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.aws.context.MetaDataServer;
@@ -38,12 +38,12 @@ import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContextStackConfigurationTest {
+class ContextStackConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		if (this.context != null) {
 			this.context.close();
 		}
@@ -52,7 +52,7 @@ public class ContextStackConfigurationTest {
 	}
 
 	@Test
-	public void stackRegistry_noStackNameConfigured_returnsAutoConfiguredStackRegistry()
+	void stackRegistry_noStackNameConfigured_returnsAutoConfiguredStackRegistry()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -75,7 +75,7 @@ public class ContextStackConfigurationTest {
 	}
 
 	@Test
-	public void stackRegistry_stackNameConfigured_returnsConfiguredStackRegistryForName()
+	void stackRegistry_stackNameConfigured_returnsConfiguredStackRegistryForName()
 			throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
@@ -96,7 +96,7 @@ public class ContextStackConfigurationTest {
 	static class ApplicationConfigurationWithEmptyStackName {
 
 		@Bean
-		public AmazonCloudFormation amazonCloudFormation() {
+		AmazonCloudFormation amazonCloudFormation() {
 			AmazonCloudFormation amazonCloudFormation = Mockito
 					.mock(AmazonCloudFormation.class);
 			Mockito.when(amazonCloudFormation.describeStackResources(
@@ -117,7 +117,7 @@ public class ContextStackConfigurationTest {
 	static class ManualConfigurationStackRegistryTestConfiguration {
 
 		@Bean
-		public AmazonCloudFormation amazonCloudFormation() {
+		AmazonCloudFormation amazonCloudFormation() {
 			AmazonCloudFormation amazonCloudFormation = Mockito
 					.mock(AmazonCloudFormation.class);
 			Mockito.when(amazonCloudFormation.listStackResources(

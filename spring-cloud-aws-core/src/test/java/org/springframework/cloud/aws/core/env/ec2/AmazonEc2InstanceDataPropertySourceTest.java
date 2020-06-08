@@ -27,10 +27,10 @@ import com.amazonaws.util.EC2MetadataUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.util.SocketUtils;
 
@@ -39,15 +39,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySourceTest {
+class AmazonEc2InstanceDataPropertySourceTest {
 
 	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
 
 	@SuppressWarnings("StaticNonFinalField")
 	private static HttpServer httpServer;
 
-	@BeforeClass
-	public static void setupHttpServer() throws Exception {
+	@BeforeAll
+	static void setupHttpServer() throws Exception {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 		httpServer = HttpServer.create(address, -1);
 		httpServer.start();
@@ -55,8 +55,8 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 				"http://" + address.getHostName() + ":" + address.getPort());
 	}
 
-	@AfterClass
-	public static void shutdownHttpServer() throws Exception {
+	@AfterAll
+	static void shutdownHttpServer() throws Exception {
 		if (httpServer != null) {
 			httpServer.stop(10);
 		}
@@ -76,7 +76,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
-	public void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys()
+	void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys()
 			throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(
@@ -96,8 +96,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
-	public void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys()
-			throws Exception {
+	void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(
 				"keyA=valueD,keyB=valueE".getBytes("UTF-8")));
@@ -119,7 +118,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
-	public void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
+	void getProperty_knownAttribute_returnsAttributeValue() throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/meta-data/instance-id",
 				new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
@@ -136,7 +135,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
-	public void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue()
+	void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue()
 			throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/meta-data/services/domain",
@@ -154,7 +153,7 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 	}
 
 	@Test
-	public void getProperty_unknownAttribute_returnsNull() throws Exception {
+	void getProperty_unknownAttribute_returnsNull() throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/meta-data/instance-id",
 				new StringWritingHttpHandler("i1234567".getBytes("UTF-8")));
@@ -171,8 +170,8 @@ public class AmazonEc2InstanceDataPropertySourceTest {
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}
 
-	@After
-	public void clearMetadataCache() throws Exception {
+	@AfterEach
+	void clearMetadataCache() throws Exception {
 		Field metadataCacheField = EC2MetadataUtils.class.getDeclaredField("cache");
 		metadataCacheField.setAccessible(true);
 		metadataCacheField.set(null, new HashMap<String, String>());

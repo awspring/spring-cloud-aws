@@ -21,9 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -31,17 +29,15 @@ import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactory
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Agim Emruli
  */
-public class AmazonWebserviceClientConfigurationUtilsTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class AmazonWebserviceClientConfigurationUtilsTest {
 
 	@Test
-	public void registerAmazonWebserviceClient_withMinimalConfiguration_returnsDefaultBeanDefinition()
+	void registerAmazonWebserviceClient_withMinimalConfiguration_returnsDefaultBeanDefinition()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -67,7 +63,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 
 	// @checkstyle:off
 	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionProviderConfiguration_returnsBeanDefinitionWithRegionConfiguredThatIsReturnedByTheRegionProvider()
+	void registerAmazonWebserviceClient_withCustomRegionProviderConfiguration_returnsBeanDefinitionWithRegionConfiguredThatIsReturnedByTheRegionProvider()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -96,7 +92,7 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 	}
 
 	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionConfiguration_returnsBeanDefinitionWithRegionConfigured()
+	void registerAmazonWebserviceClient_withCustomRegionConfiguration_returnsBeanDefinitionWithRegionConfigured()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -121,32 +117,27 @@ public class AmazonWebserviceClientConfigurationUtilsTest {
 	}
 
 	@Test
-	public void registerAmazonWebserviceClient_withCustomRegionAndRegionProviderConfigured_reportsError()
+	void registerAmazonWebserviceClient_withCustomRegionAndRegionProviderConfigured_reportsError()
 			throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"Only region or regionProvider can be configured, but not both");
-
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton(
 				AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
 				new StaticAwsCredentialsProvider());
 
-		BeanDefinitionHolder beanDefinitionHolder = AmazonWebserviceClientConfigurationUtils
+		// Assert
+		assertThatThrownBy(() -> AmazonWebserviceClientConfigurationUtils
 				.registerAmazonWebserviceClient(new Object(), beanFactory,
 						AmazonTestWebserviceClient.class.getName(), "someProvider",
-						Regions.EU_WEST_1.getName());
+						Regions.EU_WEST_1.getName()))
+								.isInstanceOf(IllegalArgumentException.class)
+								.hasMessageContaining(
+										"Only region or regionProvider can be configured, but not both");
 
-		// Act
-		beanFactory.getBean(beanDefinitionHolder.getBeanName(),
-				AmazonTestWebserviceClient.class);
-
-		// Assert
 	}
 
 	@Test
-	public void generateBeanName_withInterfaceAndCapitalLetterInSequence_producesDeCapitalizedBeanName()
+	void generateBeanName_withInterfaceAndCapitalLetterInSequence_producesDeCapitalizedBeanName()
 			throws Exception {
 		// Arrange
 

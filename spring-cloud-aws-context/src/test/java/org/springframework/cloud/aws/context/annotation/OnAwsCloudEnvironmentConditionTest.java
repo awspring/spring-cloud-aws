@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.context.annotation;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -27,10 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Bernardo Martins
  */
-public class OnAwsCloudEnvironmentConditionTest {
+class OnAwsCloudEnvironmentConditionTest {
 
 	@Test
-	public void condition_methodAnnotation_shouldNotCreateBeanFoo() {
+	void condition_methodAnnotation_shouldNotCreateBeanFoo() {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithConditionalOnAwsCloudEnvironmentAnnotatedBean.class);
@@ -40,7 +40,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 	}
 
 	@Test
-	public void condition_typeAnnotation_shouldNotCreateBeanFoo() {
+	void condition_typeAnnotation_shouldNotCreateBeanFoo() {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithConditionalOnAwsCloudEnvironmentAnnotation.class);
@@ -50,7 +50,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 	}
 
 	@Test
-	public void condition_methodAnnotation_shouldCreateBeanFoo() {
+	void condition_methodAnnotation_shouldCreateBeanFoo() {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithConditionalOnMissingAwsCloudEnvironmentAnnotatedBean.class);
@@ -60,7 +60,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 	}
 
 	@Test
-	public void condition_typeAnnotation_shouldCreateBeanFoo() {
+	void condition_typeAnnotation_shouldCreateBeanFoo() {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigWithConditionalOnMissingAwsCloudEnvironmentAnnotation.class);
@@ -74,7 +74,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 
 		@Bean
 		@ConditionalOnAwsCloudEnvironment
-		public String foo() {
+		String foo() {
 			return "foo";
 		}
 
@@ -85,7 +85,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 	protected static class ConfigWithConditionalOnAwsCloudEnvironmentAnnotation {
 
 		@Bean
-		public String foo() {
+		String foo() {
 			return "foo";
 		}
 
@@ -96,7 +96,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 
 		@Bean
 		@ConditionalOnMissingAwsCloudEnvironment
-		public String foo() {
+		String foo() {
 			return "foo";
 		}
 
@@ -107,7 +107,7 @@ public class OnAwsCloudEnvironmentConditionTest {
 	protected static class ConfigWithConditionalOnMissingAwsCloudEnvironmentAnnotation {
 
 		@Bean
-		public String foo() {
+		String foo() {
 			return "foo";
 		}
 

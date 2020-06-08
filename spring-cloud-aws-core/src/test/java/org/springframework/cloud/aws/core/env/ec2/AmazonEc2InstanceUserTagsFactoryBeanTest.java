@@ -25,7 +25,7 @@ import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.ResourceType;
 import com.amazonaws.services.ec2.model.TagDescription;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -34,10 +34,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceUserTagsFactoryBeanTest {
+class AmazonEc2InstanceUserTagsFactoryBeanTest {
 
 	@Test
-	public void getObject_userTagDataAvailable_objectContainsAllAvailableKeys()
+	void getObject_userTagDataAvailable_objectContainsAllAvailableKeys()
 			throws Exception {
 		// Arrange
 		AmazonEC2 amazonEC2 = mock(AmazonEC2.class);

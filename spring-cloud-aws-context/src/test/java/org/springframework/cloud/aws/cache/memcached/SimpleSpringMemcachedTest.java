@@ -17,14 +17,13 @@
 package org.springframework.cloud.aws.cache.memcached;
 
 import net.spy.memcached.MemcachedClientIF;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cache.Cache;
 import org.springframework.scheduling.annotation.AsyncResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,13 +32,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class SimpleSpringMemcachedTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class SimpleSpringMemcachedTest {
 
 	@Test
-	public void getName_configuredName_configuredNameReturned() throws Exception {
+	void getName_configuredName_configuredNameReturned() throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
@@ -52,38 +48,27 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void simpleSpringMemcached_withoutName_reportsError() throws Exception {
+	void simpleSpringMemcached_withoutName_reportsError() throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("cacheName is mandatory");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 
-		// Act
-		// noinspection ResultOfObjectAllocationIgnored
-		new SimpleSpringMemcached(client, null);
-
 		// Assert
+		assertThatThrownBy(() -> new SimpleSpringMemcached(client, null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("cacheName is mandatory");
 
 	}
 
 	@Test
-	public void simpleSpringMemcached_withoutMemcachedClient_reportsError()
-			throws Exception {
-		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("memcachedClient is mandatory");
-
-		// Act
-		// noinspection ResultOfObjectAllocationIgnored
-		new SimpleSpringMemcached(null, "test");
-
+	void simpleSpringMemcached_withoutMemcachedClient_reportsError() throws Exception {
 		// Assert
-
+		assertThatThrownBy(() -> new SimpleSpringMemcached(null, "test"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("memcachedClient is mandatory");
 	}
 
 	@Test
-	public void getNativeCache_withConfiguredMemcachedClient_returnsConfiguredMemcachedClient()
+	void getNativeCache_withConfiguredMemcachedClient_returnsConfiguredMemcachedClient()
 			throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -97,7 +82,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_withoutTypeParameterAndFoundInstance_returnsValueWrapperWithInstance()
+	void get_withoutTypeParameterAndFoundInstance_returnsValueWrapperWithInstance()
 			throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -113,8 +98,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_withoutTypeParameterAndNonFoundInstance_returnsValue()
-			throws Exception {
+	void get_withoutTypeParameterAndNonFoundInstance_returnsValue() throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
@@ -127,8 +111,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_withTypeParameterAndFoundInstance_returnsConvertedValue()
-			throws Exception {
+	void get_withTypeParameterAndFoundInstance_returnsConvertedValue() throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
@@ -143,7 +126,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_withTypeParameterAndNonFoundInstance_returnsValue() throws Exception {
+	void get_withTypeParameterAndNonFoundInstance_returnsValue() throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
@@ -156,97 +139,79 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_withTypeParameterAndNonCompatibleInstance_reportsIllegalArgumentException()
+	void get_withTypeParameterAndNonCompatibleInstance_reportsIllegalArgumentException()
 			throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"java.lang.Long is not assignable to class java.lang.String");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
 		when(client.get("test")).thenReturn(23L);
 
-		// Act
-		cache.get("test", String.class);
-
 		// Assert
+		assertThatThrownBy(() -> cache.get("test", String.class))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+						"java.lang.Long is not assignable to class java.lang.String");
 	}
 
 	@Test
-	public void get_withoutTypeParameterAndNonCompatibleCacheKey_reportsIllegalArgumentException()
+	void get_withoutTypeParameterAndNonCompatibleCacheKey_reportsIllegalArgumentException()
 			throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"java.lang.Long is not assignable to class java.lang.String");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.get(23L);
-
 		// Assert
+		assertThatThrownBy(() -> cache.get(23L))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+						"java.lang.Long is not assignable to class java.lang.String");
 	}
 
 	@Test
-	public void get_withTypeParameterAndNonCompatibleCacheKey_reportsIllegalArgumentException()
+	void get_withTypeParameterAndNonCompatibleCacheKey_reportsIllegalArgumentException()
 			throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"java.lang.Long is not assignable to class java.lang.String");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.get(23L, Object.class);
-
 		// Assert
+		assertThatThrownBy(() -> cache.get(23L, Object.class))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+						"java.lang.Long is not assignable to class java.lang.String");
 	}
 
 	@Test
-	public void get_withoutTypeParameterAndNullCacheKey_reportsIllegalArgumentException()
+	void get_withoutTypeParameterAndNullCacheKey_reportsIllegalArgumentException()
 			throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("key parameter is mandatory");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.get(null);
-
 		// Assert
+		assertThatThrownBy(() -> cache.get(null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("key parameter is mandatory");
 	}
 
 	@Test
-	public void get_withTypeParameterAndNullCacheKey_reportsIllegalArgumentException()
+	void get_withTypeParameterAndNullCacheKey_reportsIllegalArgumentException()
 			throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("key parameter is mandatory");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.get(null, Object.class);
-
 		// Assert
+		assertThatThrownBy(() -> cache.get(null, Object.class))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("key parameter is mandatory");
 	}
 
 	@Test
-	public void get_witValueLoaderAndNonExistingValue_createsValueFromValueLoaderAndStoresItInCache()
+	void get_witValueLoaderAndNonExistingValue_createsValueFromValueLoaderAndStoresItInCache()
 			throws Exception {
 
 		// Arrange
@@ -264,8 +229,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void get_witValueLoaderAndExistingValue_doesNotCallValueLoader()
-			throws Exception {
+	void get_witValueLoaderAndExistingValue_doesNotCallValueLoader() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -283,41 +247,33 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void put_nullCacheKey_reportsIllegalArgumentException() throws Exception {
+	void put_nullCacheKey_reportsIllegalArgumentException() throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("key parameter is mandatory");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.put(null, "test");
-
 		// Assert
+		assertThatThrownBy(() -> cache.put(null, "test"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("key parameter is mandatory");
 	}
 
 	@Test
-	public void put_longCacheKey_reportsIllegalArgumentException() throws Exception {
+	void put_longCacheKey_reportsIllegalArgumentException() throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"java.lang.Long is not assignable to class java.lang.String");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.put(23L, "test");
-
 		// Assert
+		assertThatThrownBy(() -> cache.put(23L, "test"))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+						"java.lang.Long is not assignable to class java.lang.String");
 	}
 
 	@Test
-	public void put_nullCacheValueWithDefaultExpiration_keyStoredInCache()
-			throws Exception {
+	void put_nullCacheValueWithDefaultExpiration_keyStoredInCache() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -332,7 +288,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void put_withDefaultExpiration_keyStoredInCache() throws Exception {
+	void put_withDefaultExpiration_keyStoredInCache() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -347,7 +303,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void put_withCustomExpiration_keyStoredInCache() throws Exception {
+	void put_withCustomExpiration_keyStoredInCache() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -363,40 +319,34 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void evict_nullCacheKey_reportsIllegalArgumentException() throws Exception {
+	void evict_nullCacheKey_reportsIllegalArgumentException() throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("key parameter is mandatory");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.evict(null);
-
 		// Assert
+		assertThatThrownBy(() -> cache.evict(null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("key parameter is mandatory");
 	}
 
 	@Test
-	public void evict_longCacheKey_reportsIllegalArgumentException() throws Exception {
+	void evict_longCacheKey_reportsIllegalArgumentException() throws Exception {
 
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"java.lang.Long is not assignable to class java.lang.String");
-
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
 
-		// Act
-		cache.evict(23L);
-
 		// Assert
+		assertThatThrownBy(() -> cache.evict(23L))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+						"java.lang.Long is not assignable to class java.lang.String");
+
 	}
 
 	@Test
-	public void evict_withCacheKey_deletedObjectInCache() throws Exception {
+	void evict_withCacheKey_deletedObjectInCache() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -411,7 +361,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void clear_withDefaultSettings_flushesCache() throws Exception {
+	void clear_withDefaultSettings_flushesCache() throws Exception {
 
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
@@ -425,8 +375,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void putIfAbsent_withNewValue_shouldPutTheNewValueAndReturnNull()
-			throws Exception {
+	void putIfAbsent_withNewValue_shouldPutTheNewValueAndReturnNull() throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);
 		SimpleSpringMemcached cache = new SimpleSpringMemcached(client, "test");
@@ -440,7 +389,7 @@ public class SimpleSpringMemcachedTest {
 	}
 
 	@Test
-	public void putIfAbsent_withExistingValue_shouldNotPutTheValueAndReturnTheExistingOne()
+	void putIfAbsent_withExistingValue_shouldNotPutTheValueAndReturnTheExistingOne()
 			throws Exception {
 		// Arrange
 		MemcachedClientIF client = mock(MemcachedClientIF.class);

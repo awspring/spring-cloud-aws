@@ -30,11 +30,11 @@ import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.MutablePropertyValues;
@@ -70,7 +70,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodReturnValue
 import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,14 +87,14 @@ import static org.mockito.Mockito.when;
  * @author Maciej Walkowiak
  * @since 1.0
  */
-@RunWith(MockitoJUnitRunner.class)
-public class QueueMessageHandlerTest {
+@ExtendWith(MockitoExtension.class)
+class QueueMessageHandlerTest {
 
 	@Mock
 	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		// noinspection RedundantArrayCreation to avoid unchecked generic array creation
 		// for varargs parameter with Java 8.
 		reset(new DestinationResolvingMessageSendingOperations<?>[] {
@@ -102,7 +102,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() {
+	void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler",
 				IncomingMessageHandler.class);
@@ -120,7 +120,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodWithCustomObjectAsParameter_parameterIsConverted() {
+	void receiveMessage_methodWithCustomObjectAsParameter_parameterIsConverted() {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				QueueMessageHandlerWithJacksonConfiguration.class);
 
@@ -144,7 +144,7 @@ public class QueueMessageHandlerTest {
 
 	// @checkstyle:off
 	@Test
-	public void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() {
+	void receiveAndReplyMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessageAndReplySentBackToSendToDestination() {
 		// @checkstyle:on
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler",
@@ -177,7 +177,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveAndReplayMessage_withExceptionThrownInSendTo_shouldCallExceptionHandler() {
+	void receiveAndReplayMessage_withExceptionThrownInSendTo_shouldCallExceptionHandler() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler",
@@ -208,7 +208,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithSqsListenerContainingMultipleQueueNames_methodInvokedForEachQueueName() {
+	void receiveMessage_methodAnnotatedWithSqsListenerContainingMultipleQueueNames_methodInvokedForEachQueueName() {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton(
 				"incomingMessageHandlerWithMultipleQueueNames",
@@ -236,7 +236,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() {
+	void receiveMessage_methodAnnotatedWithSqsListenerContainingExpression_methodInvokedOnResolvedExpression() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.getEnvironment().getPropertySources()
@@ -266,7 +266,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() {
+	void receiveMessage_methodAnnotatedWithSqsListenerContainingPlaceholder_methodInvokedOnResolvedPlaceholder() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.getEnvironment().getPropertySources()
@@ -299,7 +299,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withHeaderAnnotationAsArgument_shouldReceiveRequestedHeader() {
+	void receiveMessage_withHeaderAnnotationAsArgument_shouldReceiveRequestedHeader() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation",
@@ -324,7 +324,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withWrongHeaderAnnotationValueAsArgument_shouldReceiveNullAsHeaderValue() {
+	void receiveMessage_withWrongHeaderAnnotationValueAsArgument_shouldReceiveNullAsHeaderValue() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation",
@@ -349,7 +349,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withHeadersAsArgumentAnnotation_shouldReceiveAllHeaders() {
+	void receiveMessage_withHeadersAsArgumentAnnotation_shouldReceiveAllHeaders() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeadersAnnotation",
@@ -378,7 +378,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withCustomArgumentResolvers_shouldCallThemBeforeTheDefaultOnes()
+	void receiveMessage_withCustomArgumentResolvers_shouldCallThemBeforeTheDefaultOnes()
 			throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -412,7 +412,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withCustomReturnValueHandlers_shouldCallThemBeforeTheDefaultOnes()
+	void receiveMessage_withCustomReturnValueHandlers_shouldCallThemBeforeTheDefaultOnes()
 			throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -446,7 +446,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() {
+	void receiveMessage_withNotificationMessageAndSubject_shouldResolveThem() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("notificationMessageReceiver",
@@ -476,7 +476,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void getMappingForMethod_methodWithEmptySqsListenerValue_shouldReturnNull()
+	void getMappingForMethod_methodWithEmptySqsListenerValue_shouldReturnNull()
 			throws Exception {
 		// Arrange
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -492,7 +492,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void getMappingForMethod_methodWithMessageMappingAnnotation_shouldReturnMappingInformation()
+	void getMappingForMethod_methodWithMessageMappingAnnotation_shouldReturnMappingInformation()
 			throws Exception {
 		// Arrange
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -511,7 +511,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void getMappingForMethod_methodWithDeletionPolicyNeverWithoutParameterTypeAcknowledgment_warningMustBeLogged()
+	void getMappingForMethod_methodWithDeletionPolicyNeverWithoutParameterTypeAcknowledgment_warningMustBeLogged()
 			throws Exception {
 		// Arrange
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
@@ -542,7 +542,7 @@ public class QueueMessageHandlerTest {
 
 	// @checkstyle:off
 	@Test
-	public void getMappingForMethod_methodWithExpressionProducingMultipleQueueNames_shouldMapMethodForEveryQueueNameReturnedByExpression()
+	void getMappingForMethod_methodWithExpressionProducingMultipleQueueNames_shouldMapMethodForEveryQueueNameReturnedByExpression()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -568,7 +568,7 @@ public class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void processHandlerMethodException_invocableHandlerMethodNotAvailable_errorMustBeLogged() {
+	void processHandlerMethodException_invocableHandlerMethodNotAvailable_errorMustBeLogged() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("sqsListenerWithoutMessageExceptionHandler",
@@ -587,15 +587,12 @@ public class QueueMessageHandlerTest {
 		appender.setContext(log.getLoggerContext());
 
 		// Act
-		try {
-			messageHandler.handleMessage(MessageBuilder.withPayload("testContent")
-					.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID, "receive")
-					.build());
-			fail();
-		}
-		catch (MessagingException e) {
-			// ignore
-		}
+		assertThatThrownBy(
+				() -> messageHandler
+						.handleMessage(MessageBuilder.withPayload("testContent")
+								.setHeader(QueueMessageHandler.LOGICAL_RESOURCE_ID,
+										"receive")
+								.build())).isInstanceOf(MessagingException.class);
 
 		// Assert
 		assertThat(appender.list).hasSize(1);
@@ -702,7 +699,7 @@ public class QueueMessageHandlerTest {
 
 		private final String value;
 
-		public DummyKeyValueHolder(@JsonProperty("key") String key,
+		DummyKeyValueHolder(@JsonProperty("key") String key,
 				@JsonProperty("value") String value) {
 			this.key = key;
 			this.value = value;

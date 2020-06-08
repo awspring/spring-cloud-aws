@@ -18,9 +18,9 @@ package org.springframework.cloud.aws.core.env.ec2;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
@@ -31,20 +31,20 @@ public class AmazonEc2InstanceIdProviderAwsTest {
 
 	private TestStackInstanceIdService testStackInstanceIdService;
 
-	@Before
-	public void enableInstanceIdMetadataService() {
+	@BeforeEach
+	void enableInstanceIdMetadataService() {
 		this.testStackInstanceIdService = TestStackInstanceIdService
 				.fromInstanceId("i-abcdefg");
 		this.testStackInstanceIdService.enable();
 	}
 
-	@After
-	public void disableInstanceIdMetadataService() {
+	@AfterEach
+	void disableInstanceIdMetadataService() {
 		this.testStackInstanceIdService.disable();
 	}
 
 	@Test
-	public void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService()
+	void getCurrentInstanceId_instanceIdAvailableViaMetadataService_returnsInstanceIdFromMetadataService()
 			throws IOException {
 		// Arrange
 		AmazonEc2InstanceIdProvider amazonEc2InstanceIdProvider = new AmazonEc2InstanceIdProvider();

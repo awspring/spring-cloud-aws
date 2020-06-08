@@ -25,7 +25,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
 import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
@@ -42,10 +42,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
+class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 
 	@Test
-	public void afterPropertiesSet_instanceWithoutReadReplica_createsNoDataSourceRouter()
+	void afterPropertiesSet_instanceWithoutReadReplica_createsNoDataSourceRouter()
 			throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
@@ -78,7 +78,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBeanTest {
 	}
 
 	@Test
-	public void afterPropertiesSet_instanceWithReadReplica_createsDataSourceRouter()
+	void afterPropertiesSet_instanceWithReadReplica_createsDataSourceRouter()
 			throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);

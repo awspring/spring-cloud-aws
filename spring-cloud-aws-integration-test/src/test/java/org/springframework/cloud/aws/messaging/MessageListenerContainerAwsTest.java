@@ -25,22 +25,22 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
+@ExtendWith(SpringExtension.class)
+abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 
 	private static final int BATCH_MESSAGE_SIZE = 10;
 
@@ -61,7 +61,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 	@Autowired
 	private StackResourceRegistry stackResourceRegistry;
 
-	@Before
+	@BeforeEach
 	public void insertTotalNumberOfMessagesIntoTheLoadTestQueue()
 			throws InterruptedException {
 		CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
@@ -76,7 +76,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 	}
 
 	@Test
-	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
+	void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
 		assertTrue(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES));
 	}
 

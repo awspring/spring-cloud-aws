@@ -31,7 +31,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Alain Sahli
  */
 @SpringBootTest(classes = BootQueueMessagingTemplateIntegrationTest.QueueMessagingTemplateIntegrationTestConfiguration.class)
-public class BootQueueMessagingTemplateIntegrationTest
+class BootQueueMessagingTemplateIntegrationTest
 		extends QueueMessagingTemplateIntegrationTest {
 
 	@Configuration

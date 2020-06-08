@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.aws.context.config.annotation;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
@@ -28,19 +28,19 @@ import org.springframework.core.io.ResourceLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContextResourceLoaderConfigurationTest {
+class ContextResourceLoaderConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
+	void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext(
 				ApplicationConfigurationWithResourceLoader.class);
@@ -63,7 +63,7 @@ public class ContextResourceLoaderConfigurationTest {
 	static class ApplicationConfigurationWithResourceLoader {
 
 		@Bean
-		public ApplicationBean appBean() {
+		ApplicationBean appBean() {
 			return new ApplicationBean();
 		}
 

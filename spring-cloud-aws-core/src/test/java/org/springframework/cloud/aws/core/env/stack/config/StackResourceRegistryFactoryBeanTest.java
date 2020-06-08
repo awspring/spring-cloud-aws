@@ -26,7 +26,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StackResourceRegistryFactoryBeanTest {
+class StackResourceRegistryFactoryBeanTest {
 
 	private static final String STACK_NAME = "myStack";
 
@@ -120,7 +120,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithTwoResources_returnsStackResourceRegistryWithTwoResources()
+	void createInstance_stackWithTwoResources_returnsStackResourceRegistryWithTwoResources()
 			throws Exception {
 		// Arrange
 		Map<String, String> resourceIdMappings = new HashMap<>();
@@ -142,7 +142,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithNextTag_returnsStackResourceRegistryBuildWithTwoPages()
+	void createInstance_stackWithNextTag_returnsStackResourceRegistryBuildWithTwoPages()
 			throws Exception {
 		// Arrange
 		AmazonCloudFormation cloudFormationClient = mock(AmazonCloudFormation.class);
@@ -171,8 +171,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithTwoResources_listsBothResources()
-			throws Exception {
+	void createInstance_stackWithTwoResources_listsBothResources() throws Exception {
 		// Arrange
 		Map<String, String> resourceIdMappings = new HashMap<>();
 		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
@@ -197,7 +196,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithName_returnsStackResourceRegistryWithStackName()
+	void createInstance_stackWithName_returnsStackResourceRegistryWithStackName()
 			throws Exception {
 		// Arrange
 		StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean = makeStackResourceRegistryFactoryBean(
@@ -213,7 +212,7 @@ public class StackResourceRegistryFactoryBeanTest {
 
 	// @checkstyle:off
 	@Test
-	public void createInstance_stackWithNoResources_returnsStackResourceRegistryAnsweringWithNullForNonExistingLogicalResourceId()
+	void createInstance_stackWithNoResources_returnsStackResourceRegistryAnsweringWithNullForNonExistingLogicalResourceId()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -230,7 +229,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithNestedStack() throws Exception {
+	void createInstance_stackWithNestedStack() throws Exception {
 		// Arrange
 		Map<String, String> resourceIdMappings = new HashMap<>();
 		resourceIdMappings.put("logicalResourceIdOne", "physicalResourceIdOne");
@@ -264,7 +263,7 @@ public class StackResourceRegistryFactoryBeanTest {
 	}
 
 	@Test
-	public void createInstance_stackWithNestedStack_dontReturnDuplicateResourceId()
+	void createInstance_stackWithNestedStack_dontReturnDuplicateResourceId()
 			throws Exception {
 		// Arrange
 		Map<String, String> resourceIdMappings = new HashMap<>();

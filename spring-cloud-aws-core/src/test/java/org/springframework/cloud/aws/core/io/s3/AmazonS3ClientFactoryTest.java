@@ -19,55 +19,45 @@ package org.springframework.cloud.aws.core.io.s3;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Agim Emruli
  */
-public class AmazonS3ClientFactoryTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class AmazonS3ClientFactoryTest {
 
 	@Test
-	public void createClientForEndpointUrl_withNullEndpoint_throwsIllegalArgumentException() {
+	void createClientForEndpointUrl_withNullEndpoint_throwsIllegalArgumentException() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
 				.withRegion(Regions.DEFAULT_REGION).build();
 
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("Endpoint Url must not be null");
-
-		// Act
-		amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, null);
-
-		// Prepare
+		// Assert
+		assertThatThrownBy(
+				() -> amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, null))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("Endpoint Url must not be null");
 
 	}
 
 	@Test
-	public void createClientForEndpointUrl_withNullAmazonS3Client_throwsIllegalArgumentException() {
+	void createClientForEndpointUrl_withNullAmazonS3Client_throwsIllegalArgumentException() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage("AmazonS3 must not be null");
-
-		// Act
-		amazonS3ClientFactory.createClientForEndpointUrl(null,
-				"https://s3.amazonaws.com");
-
-		// Prepare
+		// Assert
+		assertThatThrownBy(() -> amazonS3ClientFactory.createClientForEndpointUrl(null,
+				"https://s3.amazonaws.com")).isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("AmazonS3 must not be null");
 
 	}
 
 	@Test
-	public void createClientForEndpointUrl_withDefaultRegionUrl_createClientForDefaultRegion() {
+	void createClientForEndpointUrl_withDefaultRegionUrl_createClientForDefaultRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
@@ -82,7 +72,7 @@ public class AmazonS3ClientFactoryTest {
 	}
 
 	@Test
-	public void createClientForEndpointUrl_withCustomRegionUrl_createClientForCustomRegion() {
+	void createClientForEndpointUrl_withCustomRegionUrl_createClientForCustomRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1)
@@ -97,7 +87,7 @@ public class AmazonS3ClientFactoryTest {
 	}
 
 	@Test
-	public void createClientForEndpointUrl_withProxiedClient_createClientForCustomRegion() {
+	void createClientForEndpointUrl_withProxiedClient_createClientForCustomRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 		AmazonS3 amazonS3 = AmazonS3ProxyFactory.createProxy(
@@ -112,7 +102,7 @@ public class AmazonS3ClientFactoryTest {
 	}
 
 	@Test
-	public void createClientForEndpointUrl_withCustomRegionUrlAndCachedClient_returnsCachedClient() {
+	void createClientForEndpointUrl_withCustomRegionUrlAndCachedClient_returnsCachedClient() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1)

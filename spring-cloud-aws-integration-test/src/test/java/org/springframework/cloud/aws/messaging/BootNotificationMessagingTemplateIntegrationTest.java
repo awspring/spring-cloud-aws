@@ -30,7 +30,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Alain Sahli
  */
 @SpringBootTest(classes = BootNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
-public class BootNotificationMessagingTemplateIntegrationTest
+class BootNotificationMessagingTemplateIntegrationTest
 		extends NotificationMessagingTemplateIntegrationTest {
 
 	@Configuration

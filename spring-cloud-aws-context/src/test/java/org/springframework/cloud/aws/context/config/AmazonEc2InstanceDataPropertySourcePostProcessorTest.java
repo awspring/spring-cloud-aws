@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.context.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
+class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 
 	@Test
-	public void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource()
+	void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource()
 			throws Exception {
 		// Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
@@ -49,7 +49,7 @@ public class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 	}
 
 	@Test
-	public void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration()
+	void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration()
 			throws Exception {
 		// Arrange
 		ConfigurableListableBeanFactory staticApplicationContext = new DefaultListableBeanFactory();

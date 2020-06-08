@@ -26,7 +26,7 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringBootTest(classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
-public class BootPathMatchingResourceLoaderAwsTest
+class BootPathMatchingResourceLoaderAwsTest
 		extends PathMatchingResourceLoaderAwsTest {
 
 	@SpringBootApplication

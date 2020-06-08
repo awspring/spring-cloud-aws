@@ -25,9 +25,7 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 
@@ -40,6 +38,7 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -52,13 +51,10 @@ import static org.mockito.Mockito.withSettings;
  * @author Alain Sahli
  * @since 1.0
  */
-public class MessageListenerContainerTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class MessageListenerContainerTest {
 
 	@Test
-	public void testAfterPropertiesSetIsSettingActiveFlag() throws Exception {
+	void testAfterPropertiesSetIsSettingActiveFlag() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
@@ -69,30 +65,28 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testAmazonSqsNullThrowsException() throws Exception {
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("amazonSqs must not be null");
-
+	void testAmazonSqsNullThrowsException() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 
-		container.afterPropertiesSet();
+		assertThatThrownBy(container::afterPropertiesSet)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("amazonSqs must not be null");
 	}
 
 	@Test
-	public void testMessageHandlerNullThrowsException() throws Exception {
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("messageHandler must not be null");
-
+	void testMessageHandlerNullThrowsException() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 
-		container.afterPropertiesSet();
+		assertThatThrownBy(container::afterPropertiesSet)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("messageHandler must not be null");
 	}
 
 	@Test
-	public void testDestinationResolverIsCreatedIfNull() throws Exception {
+	void testDestinationResolverIsCreatedIfNull() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
@@ -107,7 +101,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testDisposableBeanResetActiveFlag() throws Exception {
+	void testDisposableBeanResetActiveFlag() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
@@ -120,7 +114,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testSetAndGetBeanName() throws Exception {
+	void testSetAndGetBeanName() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setBeanName("test");
@@ -128,7 +122,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testCustomDestinationResolverSet() throws Exception {
+	void testCustomDestinationResolverSet() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
@@ -144,7 +138,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testMaxNumberOfMessages() throws Exception {
+	void testMaxNumberOfMessages() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		assertThat(container.getMaxNumberOfMessages()).isNull();
 		container.setMaxNumberOfMessages(23);
@@ -152,7 +146,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testVisibilityTimeout() throws Exception {
+	void testVisibilityTimeout() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		assertThat(container.getVisibilityTimeout()).isNull();
 		container.setVisibilityTimeout(32);
@@ -160,7 +154,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testWaitTimeout() throws Exception {
+	void testWaitTimeout() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		assertThat(container.getWaitTimeOut()).isEqualTo(new Integer(20));
 		container.setWaitTimeOut(42);
@@ -168,7 +162,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testIsAutoStartup() throws Exception {
+	void testIsAutoStartup() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		assertThat(container.isAutoStartup()).isTrue();
 		container.setAutoStartup(false);
@@ -176,7 +170,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testGetAndSetPhase() throws Exception {
+	void testGetAndSetPhase() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 		assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
 		container.setPhase(23);
@@ -184,7 +178,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testIsActive() throws Exception {
+	void testIsActive() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -208,7 +202,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void receiveMessageRequests_withOneElement_created() throws Exception {
+	void receiveMessageRequests_withOneElement_created() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -246,7 +240,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void receiveMessageRequests_withMultipleElements_created() throws Exception {
+	void receiveMessageRequests_withMultipleElements_created() throws Exception {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -296,7 +290,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testStartCallsDoStartMethod() throws Exception {
+	void testStartCallsDoStartMethod() throws Exception {
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
@@ -332,7 +326,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testStopCallsDoStopMethod() throws Exception {
+	void testStopCallsDoStopMethod() throws Exception {
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
@@ -369,7 +363,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void testStopCallsDoStopMethodWithRunnable() throws Exception {
+	void testStopCallsDoStopMethodWithRunnable() throws Exception {
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		AbstractMessageListenerContainer container = new AbstractMessageListenerContainer() {
 
@@ -406,7 +400,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void doDestroy_WhenContainerIsDestroyed_shouldBeCalled() throws Exception {
+	void doDestroy_WhenContainerIsDestroyed_shouldBeCalled() throws Exception {
 		// Arrange
 		DestroyAwareAbstractMessageListenerContainer abstractMessageListenerContainer;
 		abstractMessageListenerContainer = new DestroyAwareAbstractMessageListenerContainer();
@@ -419,7 +413,7 @@ public class MessageListenerContainerTest {
 	}
 
 	@Test
-	public void receiveMessageRequests_withDestinationResolverThrowingException_shouldLogWarningAndNotCreateRequest()
+	void receiveMessageRequests_withDestinationResolverThrowingException_shouldLogWarningAndNotCreateRequest()
 			throws Exception {
 		// Arrange
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
@@ -487,7 +481,7 @@ public class MessageListenerContainerTest {
 
 		@SuppressWarnings({ "UnusedDeclaration", "EmptyMethod" })
 		@SqsListener("testQueue")
-		public void listenerMethod(String ignore) {
+		void listenerMethod(String ignore) {
 
 		}
 
@@ -497,7 +491,7 @@ public class MessageListenerContainerTest {
 
 		@SuppressWarnings({ "UnusedDeclaration", "EmptyMethod" })
 		@SqsListener("anotherTestQueue")
-		public void listenerMethod(String ignore) {
+		void listenerMethod(String ignore) {
 
 		}
 

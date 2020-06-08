@@ -18,12 +18,10 @@ package org.springframework.cloud.aws.messaging.listener;
 
 import java.lang.reflect.Method;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
@@ -36,6 +34,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.mock.env.MockPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -45,18 +44,14 @@ import static org.mockito.Mockito.verify;
  * @author Alain Sahli
  * @author Agim Emruli
  */
-@RunWith(MockitoJUnitRunner.class)
-public class SendToHandlerMethodReturnValueHandlerTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+@ExtendWith(MockitoExtension.class)
+class SendToHandlerMethodReturnValueHandlerTest {
 
 	@Mock
 	private DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	@Test
-	public void supportsReturnType_methodAnnotatedWithSendTo_trueIsReturned()
-			throws Exception {
+	void supportsReturnType_methodAnnotatedWithSendTo_trueIsReturned() throws Exception {
 		// Arrange
 		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
 		sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(
@@ -73,7 +68,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void supportsReturnType_methodWithoutSendToAnnotation_falseIsReturned()
+	void supportsReturnType_methodWithoutSendToAnnotation_falseIsReturned()
 			throws Exception {
 		// Arrange
 		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
@@ -92,7 +87,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void supportsReturnType_methodWithSendToAnnotationWithoutValue_trueIsReturned()
+	void supportsReturnType_methodWithSendToAnnotationWithoutValue_trueIsReturned()
 			throws Exception {
 		// Arrange
 		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
@@ -111,26 +106,24 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void handleReturnValue_withNullMessageTemplate_exceptionIsThrown()
-			throws Exception {
+	void handleReturnValue_withNullMessageTemplate_exceptionIsThrown() throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage(
-				"A messageTemplate must be set to handle the return value.");
-
 		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
 		MethodParameter methodParameter = new MethodParameter(validSendToMethod, -1);
 		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
 		sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(
 				null);
 
-		// Act
-		sendToHandlerMethodReturnValueHandler.handleReturnValue("Return me!",
-				methodParameter, MessageBuilder.withPayload("Nothing").build());
+		// Assert
+		assertThatThrownBy(() -> sendToHandlerMethodReturnValueHandler.handleReturnValue(
+				"Return me!", methodParameter,
+				MessageBuilder.withPayload("Nothing").build()))
+						.isInstanceOf(IllegalStateException.class).hasMessage(
+								"A messageTemplate must be set to handle the return value.");
 	}
 
 	@Test
-	public void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled()
+	void handleReturnValue_withNullReturnValue_NoMessageTemplateIsCalled()
 			throws Exception {
 		// Arrange
 		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
@@ -148,7 +141,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void handleReturnValue_withAMessageTemplateAndAValidMethodWithDestination_templateIsCalled()
+	void handleReturnValue_withAMessageTemplateAndAValidMethodWithDestination_templateIsCalled()
 			throws Exception {
 		// Arrange
 		Method validSendToMethod = this.getClass().getDeclaredMethod("validSendToMethod");
@@ -167,7 +160,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void handleReturnValue_withExpressionInSendToName_templateIsCalled()
+	void handleReturnValue_withExpressionInSendToName_templateIsCalled()
 			throws Exception {
 		// Arrange
 		Method validSendToMethod = this.getClass().getDeclaredMethod("expressionMethod");
@@ -196,7 +189,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 	}
 
 	@Test
-	public void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled()
+	void handleReturnValue_withPlaceHolderInSendToName_templateIsCalled()
 			throws Exception {
 		// Arrange
 		Method validSendToMethod = this.getClass().getDeclaredMethod("placeHolderMethod");
@@ -231,7 +224,7 @@ public class SendToHandlerMethodReturnValueHandlerTest {
 
 	// @checkstyle:off
 	@Test
-	public void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled()
+	void handleReturnValue_withAMessageTemplateAndAValidMethodWithoutDestination_templateIsCalled()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange

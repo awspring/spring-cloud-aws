@@ -16,19 +16,19 @@
 
 package org.springframework.cloud.aws.cache;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.support.profile.AmazonWebserviceProfileValueSource;
 import org.springframework.cloud.aws.support.profile.IfAmazonWebserviceEnvironment;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ProfileValueSourceConfiguration(AmazonWebserviceProfileValueSource.class)
 public abstract class ElastiCacheAwsTest {
 
@@ -36,7 +36,7 @@ public abstract class ElastiCacheAwsTest {
 	@Autowired
 	private CachingService cachingService;
 
-	@Before
+	@BeforeEach
 	public void resetInvocationCount() throws Exception {
 		this.cachingService.resetInvocationCount();
 	}

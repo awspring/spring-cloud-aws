@@ -26,17 +26,18 @@ import java.util.concurrent.Executors;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * @author Alain Sahli
@@ -44,8 +45,8 @@ import static org.junit.Assert.assertEquals;
  * @since 1.0
  */
 @SuppressWarnings("SpringJavaAutowiringInspection")
-@RunWith(SpringJUnit4ClassRunner.class)
-public abstract class PathMatchingResourceLoaderAwsTest {
+@ExtendWith(SpringExtension.class)
+abstract class PathMatchingResourceLoaderAwsTest {
 
 	private static final List<String> FILES_FOR_HIERARCHY = Arrays.asList(
 			"foo1/bar1/baz1/test1.txt", "foo1/bar1/test1.txt", "foo1/test1.txt",
@@ -75,16 +76,16 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 
 		String protocolAndBucket = "s3://" + bucketName;
 		try {
-			assertEquals("test the '?' wildcard", 1, this.resourceLoader
-					.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length);
-			assertEquals("test the '*' wildcard", 1, this.resourceLoader
-					.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length);
-			assertEquals("test the '**' wildcard", 4, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/test1.txt").length);
-			assertEquals("test a mix of '**' and '?'", 6, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/test?.txt").length);
-			assertEquals("test all together", 2, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/baz*/test?.txt").length);
+			assertEquals(1, this.resourceLoader
+					.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length, "test the '?' wildcard");
+			assertEquals(1, this.resourceLoader
+					.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length, "test the '*' wildcard");
+			assertEquals(4, this.resourceLoader
+					.getResources(protocolAndBucket + "/**/test1.txt").length, "test the '**' wildcard");
+			assertEquals(6, this.resourceLoader
+					.getResources(protocolAndBucket + "/**/test?.txt").length, "test a mix of '**' and '?'");
+			assertEquals(2, this.resourceLoader
+					.getResources(protocolAndBucket + "/**/baz*/test?.txt").length, "test all together");
 		}
 		finally {
 			deleteTestFiles(bucketName);
@@ -102,14 +103,14 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 		String bucketPrefix = firstBucket.substring(0, firstBucket.lastIndexOf("-") - 2);
 		try {
 			createTestFiles(firstBucket, secondBucket, thirdBucket);
-			assertEquals("test the '?' wildcard", 1,
+			assertEquals(1,
 					this.resourceLoader.getResources("s3://" + bucketPrefix + "??"
 							+ firstBucket.substring(firstBucket.lastIndexOf("-"))
-							+ "/test1.txt").length);
-			assertEquals("test the '*' wildcard", 3, this.resourceLoader
-					.getResources("s3://" + bucketPrefix + "*/test1.txt").length);
-			assertEquals("test the '**' wildcard", 4 * 3,
-					this.resourceLoader.getResources("s3://**/test1.txt").length);
+							+ "/test1.txt").length, "test the '?' wildcard");
+			assertEquals(3, this.resourceLoader
+					.getResources("s3://" + bucketPrefix + "*/test1.txt").length, "test the '*' wildcard");
+			assertEquals(4 * 3,
+					this.resourceLoader.getResources("s3://**/test1.txt").length, "test the '**' wildcard");
 		}
 		finally {
 			deleteTestFiles(firstBucket, secondBucket, thirdBucket);

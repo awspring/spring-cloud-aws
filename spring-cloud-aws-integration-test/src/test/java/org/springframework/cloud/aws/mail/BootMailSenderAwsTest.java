@@ -28,7 +28,7 @@ import org.springframework.core.io.Resource;
  * @author Agim Emruli
  */
 @SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
-public class BootMailSenderAwsTest extends MailSenderAwsTest {
+class BootMailSenderAwsTest extends MailSenderAwsTest {
 
 	@SpringBootApplication
 	@PropertySource({ "classpath:Integration-test-config.properties",

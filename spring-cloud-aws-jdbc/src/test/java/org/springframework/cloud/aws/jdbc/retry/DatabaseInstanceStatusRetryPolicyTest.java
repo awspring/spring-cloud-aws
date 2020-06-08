@@ -21,9 +21,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -31,6 +29,7 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.context.RetryContextSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,14 +39,10 @@ import static org.mockito.Mockito.when;
  * @author Agim Emruli
  */
 @SuppressWarnings("NonBooleanMethodNameMayNotStartWithQuestion")
-public class DatabaseInstanceStatusRetryPolicyTest {
-
-	@Rule
-	public final ExpectedException expectedException = ExpectedException.none();
+class DatabaseInstanceStatusRetryPolicyTest {
 
 	@Test
-	public void canRetry_retryPossibleDueToAvailableDatabase_returnsTrue()
-			throws Exception {
+	void canRetry_retryPossibleDueToAvailableDatabase_returnsTrue() throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
@@ -70,7 +65,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	}
 
 	@Test
-	public void canRetry_withResourceIdResolver_returnsTrue() throws Exception {
+	void canRetry_withResourceIdResolver_returnsTrue() throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
@@ -98,7 +93,7 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	}
 
 	@Test
-	public void canRetry_retryNotPossibleDueToNoDatabase_returnsFalse() throws Exception {
+	void canRetry_retryNotPossibleDueToNoDatabase_returnsFalse() throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
@@ -121,13 +116,9 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 	}
 
 	@Test
-	public void canRetry_multipleDatabasesFoundForInstanceIdentifier_reportsException()
+	void canRetry_multipleDatabasesFoundForInstanceIdentifier_reportsException()
 			throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException
-				.expectMessage("Multiple databases found for same identifier");
-
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 
 		DatabaseInstanceStatusRetryPolicy policy = new DatabaseInstanceStatusRetryPolicy(
@@ -146,11 +137,14 @@ public class DatabaseInstanceStatusRetryPolicyTest {
 				new TransientDataAccessResourceException("not available"));
 
 		// Assert
-		policy.canRetry(retryContext);
+
+		assertThatThrownBy(() -> policy.canRetry(retryContext))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("Multiple databases found for same identifier");
 	}
 
 	@Test
-	public void canRetry_noExceptionRegistered_returnsTrue() throws Exception {
+	void canRetry_noExceptionRegistered_returnsTrue() throws Exception {
 		// Arrange
 		AmazonRDS amazonRDS = mock(AmazonRDS.class);
 

@@ -22,8 +22,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
 import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
@@ -42,18 +42,18 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Alain Sahli
  */
-public class SnsConfigurationTest {
+class SnsConfigurationTest {
 
 	private AnnotationConfigWebApplicationContext webApplicationContext;
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 		this.webApplicationContext = new AnnotationConfigWebApplicationContext();
 		this.webApplicationContext.setServletContext(new MockServletContext());
 	}
 
 	@Test
-	public void enableSns_withMinimalConfig_shouldConfigureACompositeArgumentResolver()
+	void enableSns_withMinimalConfig_shouldConfigureACompositeArgumentResolver()
 			throws Exception {
 		// Arrange & Act
 		this.webApplicationContext.register(MinimalSnsConfiguration.class);
@@ -82,8 +82,7 @@ public class SnsConfigurationTest {
 	}
 
 	@Test
-	public void enableSns_withProvidedCredentials_shouldBeUsedToCreateClient()
-			throws Exception {
+	void enableSns_withProvidedCredentials_shouldBeUsedToCreateClient() throws Exception {
 		// Arrange & Act
 		this.webApplicationContext.register(SnsConfigurationWithCredentials.class);
 		this.webApplicationContext.refresh();
@@ -95,7 +94,7 @@ public class SnsConfigurationTest {
 	}
 
 	@Test
-	public void enableSns_withCustomAmazonSnsClient_shouldBeUsedByTheArgumentResolver()
+	void enableSns_withCustomAmazonSnsClient_shouldBeUsedByTheArgumentResolver()
 			throws Exception {
 		// Arrange & Act
 		this.webApplicationContext.register(SnsConfigurationWithCustomAmazonClient.class);
@@ -116,8 +115,7 @@ public class SnsConfigurationTest {
 	}
 
 	@Test
-	public void enableSns_withRegionProvided_shouldBeUsedToCreateClient()
-			throws Exception {
+	void enableSns_withRegionProvided_shouldBeUsedToCreateClient() throws Exception {
 		// Arrange & Act
 		this.webApplicationContext.register(SnsConfigurationWithRegionProvider.class);
 		this.webApplicationContext.refresh();
@@ -151,11 +149,11 @@ public class SnsConfigurationTest {
 	@EnableSns
 	protected static class SnsConfigurationWithCredentials {
 
-		public static final AWSCredentialsProvider AWS_CREDENTIALS_PROVIDER = mock(
+		static final AWSCredentialsProvider AWS_CREDENTIALS_PROVIDER = mock(
 				AWSCredentialsProvider.class);
 
 		@Bean
-		public AWSCredentialsProvider awsCredentialsProvider() {
+		AWSCredentialsProvider awsCredentialsProvider() {
 			return AWS_CREDENTIALS_PROVIDER;
 		}
 
@@ -165,10 +163,10 @@ public class SnsConfigurationTest {
 	@EnableSns
 	protected static class SnsConfigurationWithCustomAmazonClient {
 
-		public static final AmazonSNS AMAZON_SNS = mock(AmazonSNS.class);
+		static final AmazonSNS AMAZON_SNS = mock(AmazonSNS.class);
 
 		@Bean
-		public AmazonSNS amazonSNS() {
+		AmazonSNS amazonSNS() {
 			return AMAZON_SNS;
 		}
 

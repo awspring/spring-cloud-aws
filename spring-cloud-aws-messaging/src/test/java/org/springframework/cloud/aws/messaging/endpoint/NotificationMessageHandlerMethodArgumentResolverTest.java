@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.aws.messaging.endpoint;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
@@ -28,19 +26,13 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class NotificationMessageHandlerMethodArgumentResolverTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class NotificationMessageHandlerMethodArgumentResolverTest {
 
 	@Test
-	public void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
+	void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
 		// Arrange
-		this.expectedException.expect(IllegalArgumentException.class);
-		this.expectedException.expectMessage(
-				"@NotificationMessage annotated parameters are only allowed");
-
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
 
 		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
@@ -54,15 +46,16 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 						"subscriptionMethod", NotificationStatus.class),
 				0);
 
-		// Act
-		resolver.resolveArgument(methodParameter, null,
-				new ServletWebRequest(servletRequest), null);
-
 		// Assert
+		assertThatThrownBy(() -> resolver.resolveArgument(methodParameter, null,
+				new ServletWebRequest(servletRequest), null))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining(
+								"@NotificationMessage annotated parameters are only allowed");
 	}
 
 	@Test
-	public void resolveArgument_notificationMessageTypeWithSubject_reportsErrors()
+	void resolveArgument_notificationMessageTypeWithSubject_reportsErrors()
 			throws Exception {
 		// Arrange
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
@@ -87,8 +80,7 @@ public class NotificationMessageHandlerMethodArgumentResolverTest {
 	}
 
 	@Test
-	public void supportsParameter_withIntegerParameterType_shouldReturnFalse()
-			throws Exception {
+	void supportsParameter_withIntegerParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver();
 		MethodParameter methodParameter = new MethodParameter(

@@ -32,7 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Alain Sahli
  */
 @ContextConfiguration(classes = JavaMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
-public class JavaMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
+class JavaMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
 	@Configuration
 	@EnableSqs

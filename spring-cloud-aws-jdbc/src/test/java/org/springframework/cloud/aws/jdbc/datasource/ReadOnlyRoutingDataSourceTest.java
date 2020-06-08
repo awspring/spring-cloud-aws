@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import javax.sql.DataSource;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -38,10 +38,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class ReadOnlyRoutingDataSourceTest {
+class ReadOnlyRoutingDataSourceTest {
 
 	@Test
-	public void getConnection_NoReadReplicaAvailableNoTransactionActive_returnsDefaultDataSource()
+	void getConnection_NoReadReplicaAvailableNoTransactionActive_returnsDefaultDataSource()
 			throws Exception {
 
 		// Arrange
@@ -67,7 +67,7 @@ public class ReadOnlyRoutingDataSourceTest {
 	}
 
 	@Test
-	public void getConnection_NoReadReplicaAvailableReadOnlyTransactionActive_returnsDefaultDataSource()
+	void getConnection_NoReadReplicaAvailableReadOnlyTransactionActive_returnsDefaultDataSource()
 			throws Exception {
 
 		// Arrange
@@ -107,7 +107,7 @@ public class ReadOnlyRoutingDataSourceTest {
 	}
 
 	@Test
-	public void getConnection_ReadReplicaAvailableReadOnlyTransactionActive_returnsReadReplicaDataSource()
+	void getConnection_ReadReplicaAvailableReadOnlyTransactionActive_returnsReadReplicaDataSource()
 			throws Exception {
 
 		// Arrange
@@ -152,7 +152,7 @@ public class ReadOnlyRoutingDataSourceTest {
 	}
 
 	@Test
-	public void getConnection_ReadReplicaAvailableWriteTransactionActive_returnsDefaultDataSource()
+	void getConnection_ReadReplicaAvailableWriteTransactionActive_returnsDefaultDataSource()
 			throws Exception {
 
 		// Arrange

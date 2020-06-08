@@ -19,21 +19,17 @@ package org.springframework.cloud.aws.core.env;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class StackResourceRegistryDetectingResourceIdResolverTest {
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
+class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	private static ListableBeanFactory makeListableBeanFactory(
 			StackResourceRegistry... stackResourceRegistries) {
@@ -66,7 +62,7 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	// @checkstyle:off
 	@Test
-	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
+	void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndNoStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -85,7 +81,7 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	// @checkstyle:off
 	@Test
-	public void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
+	void resolveToPhysicalResourceId_logicalResourceIdOfNonStackResourceAndStackResourceRegistryAvailable_returnsLogicalResourceIdAsPhysicalResourceId()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -105,7 +101,7 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	// @checkstyle:off
 	@Test
-	public void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry()
+	void resolveToPhysicalResourceId_logicalResourceIdOfStackResourceAndStackResourceRegistryAvailable_returnsPhysicalResourceIdFromStackResourceRegistry()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -125,7 +121,7 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	// @checkstyle:off
 	@Test
-	public void createInstance_multipleStackResourceRegistriesAvailable_throwsException()
+	void createInstance_multipleStackResourceRegistriesAvailable_throwsException()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -135,11 +131,9 @@ public class StackResourceRegistryDetectingResourceIdResolverTest {
 				makeStackResourceRegistry(), makeStackResourceRegistry()));
 
 		// Assert
-		this.expectedException.expect(IllegalStateException.class);
-		this.expectedException.expectMessage("Multiple stack resource registries found");
-
-		// Act
-		resourceIdResolver.afterPropertiesSet();
+		assertThatThrownBy(resourceIdResolver::afterPropertiesSet)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Multiple stack resource registries found");
 	}
 
 }

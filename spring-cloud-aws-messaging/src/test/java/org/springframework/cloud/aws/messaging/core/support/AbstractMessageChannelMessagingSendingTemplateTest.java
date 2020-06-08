@@ -19,12 +19,12 @@ package org.springframework.cloud.aws.messaging.core.support;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.messaging.Message;
@@ -43,20 +43,20 @@ import static org.mockito.Mockito.when;
 /**
  * @author Alain Sahli
  */
-@RunWith(MockitoJUnitRunner.class)
-public class AbstractMessageChannelMessagingSendingTemplateTest {
+@ExtendWith(MockitoExtension.class)
+class AbstractMessageChannelMessagingSendingTemplateTest {
 
 	@Mock
 	private DestinationResolver<String> destinationResolver;
 
 	@SuppressWarnings("unchecked")
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 		reset(this.destinationResolver);
 	}
 
 	@Test
-	public void send_WithDestinationNameAndMessage_shouldResolveTheDestinationAndSendTheMessage()
+	void send_WithDestinationNameAndMessage_shouldResolveTheDestinationAndSendTheMessage()
 			throws Exception {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
@@ -82,7 +82,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 	}
 
 	@Test
-	public void convertAndSend_WithDestinationNameAndPayload_shouldResolveTheDestinationAndSendTheConvertedMessage()
+	void convertAndSend_WithDestinationNameAndPayload_shouldResolveTheDestinationAndSendTheConvertedMessage()
 			throws Exception {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
@@ -103,7 +103,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 	}
 
 	@Test
-	public void convertAndSend_WithDestinationNamePayloadAndHeaders_shouldResolveTheDestinationAndSendTheConvertedMessage()
+	void convertAndSend_WithDestinationNamePayloadAndHeaders_shouldResolveTheDestinationAndSendTheConvertedMessage()
 			throws Exception {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
@@ -129,7 +129,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 	// @checkstyle:off
 	@Test
-	public void convertAndSend_WithDestinationNamePayloadAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
+	void convertAndSend_WithDestinationNamePayloadAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -159,7 +159,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 
 	// @checkstyle:off
 	@Test
-	public void convertAndSend_WithDestinationNamePayloadHeadersAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
+	void convertAndSend_WithDestinationNamePayloadHeadersAndPostProcessor_shouldResolveTheDestinationSendTheConvertedMessageAndCallPostProcessor()
 			// @checkstyle:on
 			throws Exception {
 		// Arrange
@@ -192,7 +192,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 	}
 
 	@Test
-	public void send_WithPayload_shouldUseDefaultDestination() throws Exception {
+	void send_WithPayload_shouldUseDefaultDestination() throws Exception {
 		// Arrange
 		MessageSendingTemplateTest messageSendingTemplate = new MessageSendingTemplateTest(
 				this.destinationResolver);
@@ -235,7 +235,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 			return this.messageChannel;
 		}
 
-		public MessageChannelTest getMessageChannel() {
+		MessageChannelTest getMessageChannel() {
 			return this.messageChannel;
 		}
 
@@ -257,7 +257,7 @@ public class AbstractMessageChannelMessagingSendingTemplateTest {
 			return false;
 		}
 
-		public Message<?> getSentMessage() {
+		Message<?> getSentMessage() {
 			return this.sentMessage;
 		}
 

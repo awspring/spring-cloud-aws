@@ -28,7 +28,7 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 
 import org.springframework.core.io.DefaultResourceLoader;
@@ -48,10 +48,10 @@ import static org.mockito.Mockito.when;
  * @author Greg Turnquist
  * @since 1.0
  */
-public class PathMatchingSimpleStorageResourcePatternResolverTest {
+class PathMatchingSimpleStorageResourcePatternResolverTest {
 
 	@Test
-	public void testWildcardInBucketName() throws Exception {
+	void testWildcardInBucketName() throws Exception {
 		AmazonS3 amazonS3 = prepareMockForTestWildcardInBucketName();
 
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
@@ -65,7 +65,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 	}
 
 	@Test
-	public void testWildcardInKey() throws IOException {
+	void testWildcardInKey() throws IOException {
 		AmazonS3 amazonS3 = prepareMockForTestWildcardInKey();
 
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
@@ -84,7 +84,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 	}
 
 	@Test
-	public void testLoadingClasspathFile() throws Exception {
+	void testLoadingClasspathFile() throws Exception {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
@@ -101,7 +101,7 @@ public class PathMatchingSimpleStorageResourcePatternResolverTest {
 	}
 
 	@Test
-	public void testTruncatedListings() throws Exception {
+	void testTruncatedListings() throws Exception {
 		AmazonS3 amazonS3 = prepareMockForTestTruncatedListings();
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 

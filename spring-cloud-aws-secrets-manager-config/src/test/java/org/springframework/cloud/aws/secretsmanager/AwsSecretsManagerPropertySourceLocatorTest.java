@@ -19,7 +19,7 @@ package org.springframework.cloud.aws.secretsmanager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
@@ -34,14 +34,14 @@ import static org.mockito.Mockito.when;
  *
  * @author Anthony Foulfoin
  */
-public class AwsSecretsManagerPropertySourceLocatorTest {
+class AwsSecretsManagerPropertySourceLocatorTest {
 
 	private AWSSecretsManager smClient = mock(AWSSecretsManager.class);
 
 	private MockEnvironment env = new MockEnvironment();
 
 	@Test
-	public void locate_nameSpecifiedInConstructor_returnsPropertySourceWithSpecifiedName() {
+	void locate_nameSpecifiedInConstructor_returnsPropertySourceWithSpecifiedName() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult();
 		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
 		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
@@ -57,7 +57,7 @@ public class AwsSecretsManagerPropertySourceLocatorTest {
 	}
 
 	@Test
-	public void locate_nameNotSpecifiedInConstructor_returnsPropertySourceWithDefaultName() {
+	void locate_nameNotSpecifiedInConstructor_returnsPropertySourceWithDefaultName() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult();
 		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
 		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
