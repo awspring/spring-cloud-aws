@@ -53,13 +53,15 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 	private Log logger = LogFactory.getLog(getClass());
 
-	public AwsSecretsManagerPropertySourceLocator(String propertySourceName, AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+	public AwsSecretsManagerPropertySourceLocator(String propertySourceName,
+			AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
 		this.propertySourceName = propertySourceName;
 		this.smClient = smClient;
 		this.properties = properties;
 	}
 
-	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient,
+			AwsSecretsManagerProperties properties) {
 		this("aws-secrets-manager", smClient, properties);
 	}
 
@@ -95,7 +97,8 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 		Collections.reverse(this.contexts);
 
-		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
+		CompositePropertySource composite = new CompositePropertySource(
+				this.propertySourceName);
 
 		for (String propertySourceContext : this.contexts) {
 			try {
