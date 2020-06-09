@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.cache;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
@@ -25,12 +26,15 @@ import org.springframework.context.annotation.Import;
 
 /**
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableElastiCache
 @ConditionalOnClass(name = "com.amazonaws.services.elasticache.AmazonElastiCache")
 @ConditionalOnAwsCloudEnvironment
+@ConditionalOnProperty(name = "cloud.aws.elasticache.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class ElastiCacheAutoConfiguration {
 
 }

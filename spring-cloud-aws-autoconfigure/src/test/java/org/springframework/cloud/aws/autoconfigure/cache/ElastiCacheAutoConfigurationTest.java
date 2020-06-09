@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,18 @@ import com.amazonaws.services.elasticache.model.Endpoint;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cloud.aws.autoconfigure.context.MetaDataServer;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
 import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;
@@ -47,7 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ElastiCacheAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(ElastiCacheAutoConfiguration.class));
 
 	@AfterAll
 	static void shutDownHttpServer() {
@@ -68,11 +69,6 @@ class ElastiCacheAutoConfigurationTest {
 		field.set(null, null);
 	}
 
-	@AfterEach
-	void tearDown() throws Exception {
-		this.context.close();
-	}
-
 	@Test
 	void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager()
 			throws Exception {
@@ -82,21 +78,17 @@ class ElastiCacheAutoConfigurationTest {
 				"/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(MockCacheConfigurationWithStackCaches.class);
-		this.context.register(ElastiCacheAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
-		assertThat(cacheManager.getCacheNames().contains("sampleCacheOneLogical"))
-				.isTrue();
-		assertThat(cacheManager.getCacheNames().contains("sampleCacheTwoLogical"))
-				.isTrue();
-		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
+		this.contextRunner
+				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
+				.run(context -> {
+					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
+							.cacheManager();
+					assertThat(cacheManager.getCacheNames()
+							.contains("sampleCacheOneLogical")).isTrue();
+					assertThat(cacheManager.getCacheNames()
+							.contains("sampleCacheTwoLogical")).isTrue();
+					assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
+				});
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -110,18 +102,19 @@ class ElastiCacheAutoConfigurationTest {
 				"/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ElastiCacheAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
-		assertThat(cacheManager.getCacheNames().size()).isEqualTo(0);
+		this.contextRunner.run(context -> {
+			CacheManager cacheManager = context.getBean(CachingConfigurer.class)
+					.cacheManager();
+			assertThat(cacheManager.getCacheNames().size()).isEqualTo(0);
+		});
 
 		httpServer.removeContext(instanceIdHttpContext);
+	}
+
+	@Test
+	public void elastiCacheIsDisabled() {
+		this.contextRunner.withPropertyValues("cloud.aws.elasticache.enabled:false").run(
+				context -> assertThat(context).doesNotHaveBean(CachingConfigurer.class));
 	}
 
 	@Configuration(proxyBeanMethods = false)

@@ -11,6 +11,36 @@
       "name": "management.metrics.export.cloudwatch.enabled",
       "description": "Enables cloud watch metrics.",
       "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "cloud.aws.rds.enabled",
+      "description": "Enables RDS integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "cloud.aws.messaging.enabled",
+      "description": "Enables SQS/SNS integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "cloud.aws.elasticache.enabled",
+      "description": "Enables ElastiCache integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "cloud.aws.mail.enabled",
+      "description": "Enables Mail integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "cloud.aws.stack.enabled",
+      "description": "Enables Stack integration.",
+      "type": "java.lang.Boolean"
     }
   ]
 }

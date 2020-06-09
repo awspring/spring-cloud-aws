@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.cloud.aws.autoconfigure.mail;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -26,20 +27,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class MailSenderAutoConfigurationTest {
 
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(MailSenderAutoConfiguration.class));
+
 	@Test
-	void mailSender_MailSenderWithJava_configuresJavaMailSender() throws Exception {
-		// Arrange
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.register(MailSenderAutoConfiguration.class);
+	public void mailSender_MailSenderWithJava_configuresJavaMailSender() {
+		this.contextRunner.run(context -> {
+			assertThat(context.getBean(MailSender.class)).isNotNull();
+			assertThat(context.getBean(JavaMailSender.class)).isNotNull();
+			assertThat(context.getBean(JavaMailSender.class))
+					.isSameAs(context.getBean(MailSender.class));
+		});
+	}
 
-		// Act
-		context.refresh();
-
-		// Assert
-		assertThat(context.getBean(MailSender.class)).isNotNull();
-		assertThat(context.getBean(JavaMailSender.class)).isNotNull();
-		assertThat(context.getBean(JavaMailSender.class))
-				.isSameAs(context.getBean(MailSender.class));
+	@Test
+	void mailIsDisabled() {
+		this.contextRunner.withPropertyValues("cloud.aws.mail.enabled:false")
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(MailSender.class);
+					assertThat(context).doesNotHaveBean(JavaMailSender.class);
+				});
 	}
 
 }

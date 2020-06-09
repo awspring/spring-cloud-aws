@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -41,6 +42,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
@@ -48,6 +50,8 @@ import org.springframework.util.StringUtils;
 @ConditionalOnClass(name = { "com.amazonaws.services.rds.AmazonRDSClient",
 		"org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration" })
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
+@ConditionalOnProperty(name = "cloud.aws.rds.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class AmazonRdsDatabaseAutoConfiguration {
 
 	/**

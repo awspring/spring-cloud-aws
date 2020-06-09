@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
@@ -47,6 +48,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 		"com.amazonaws.services.simpleemail.AmazonSimpleEmailService" })
 @ConditionalOnMissingBean(MailSender.class)
 @Import(ContextCredentialsAutoConfiguration.class)
+@ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class MailSenderAutoConfiguration {
 
 	private final RegionProvider regionProvider;

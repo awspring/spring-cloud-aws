@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,103 +38,78 @@ import static org.mockito.Mockito.when;
 
 class AmazonRdsDatabaseAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(
+					AutoConfigurations.of(AmazonRdsDatabaseAutoConfiguration.class));
 
-	@AfterEach
-	void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
+	@Test
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica() {
+		this.contextRunner
+				.withUserConfiguration(ApplicationConfigurationWithoutReadReplica.class)
+				.withPropertyValues("cloud.aws.rds.test.password:secret").run(context -> {
+					assertThat(context.getBean(DataSource.class)).isNotNull();
+					assertThat(context.getBean(AmazonRdsDataSourceFactoryBean.class))
+							.isNotNull();
+				});
 	}
 
 	@Test
-	void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica()
-			throws Exception {
-		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
-		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-		TestPropertyValues.of("cloud.aws.rds.test.password:secret").applyTo(this.context);
+	void configureBean_withCustomDataBaseName_configuresFactoryBeanWithCustomDatabaseName() {
+		this.contextRunner
+				.withUserConfiguration(ApplicationConfigurationWithoutReadReplica.class)
+				.withPropertyValues("cloud.aws.rds.test.password:secret",
+						"cloud.aws.rds.test.databaseName:fooDb")
+				.run(context -> {
+					DataSource dataSource = context.getBean(DataSource.class);
+					assertThat(dataSource).isNotNull();
+					assertThat(context.getBean(AmazonRdsDataSourceFactoryBean.class))
+							.isNotNull();
 
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getBean(DataSource.class)).isNotNull();
-		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
-				.isNotNull();
+					assertThat(
+							dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource)
+									.isTrue();
+					assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
+							.getUrl().endsWith("fooDb")).isTrue();
+				});
 	}
 
 	@Test
-	void configureBean_withCustomDataBaseName_configuresFactoryBeanWithCustomDatabaseName()
-			throws Exception {
-		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ApplicationConfigurationWithoutReadReplica.class);
-		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-		TestPropertyValues.of("cloud.aws.rds.test.password:secret",
-				"cloud.aws.rds.test.databaseName:fooDb").applyTo(this.context);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		DataSource dataSource = this.context.getBean(DataSource.class);
-		assertThat(dataSource).isNotNull();
-		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
-				.isNotNull();
-
-		assertThat(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource).isTrue();
-		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getUrl()
-				.endsWith("fooDb")).isTrue();
-	}
-
-	@Test
-	void configureBean_withDefaultClientSpecifiedAndNoReadReplicaAndMultipleDatabases_configuresBothDatabases()
-			throws Exception {
-		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ApplicationConfigurationWithMultipleDatabases.class);
-		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-		TestPropertyValues
-				.of("cloud.aws.rds.test.password:secret",
+	void configureBean_withDefaultClientSpecifiedAndNoReadReplicaAndMultipleDatabases_configuresBothDatabases() {
+		this.contextRunner
+				.withUserConfiguration(
+						ApplicationConfigurationWithMultipleDatabases.class)
+				.withPropertyValues("cloud.aws.rds.test.password:secret",
 						"cloud.aws.rds.anotherOne.password:verySecret")
-				.applyTo(this.context);
+				.run(context -> {
+					assertThat(context.getBean("test", DataSource.class)).isNotNull();
+					assertThat(context.getBean("&test",
+							AmazonRdsDataSourceFactoryBean.class)).isNotNull();
 
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getBean("test", DataSource.class)).isNotNull();
-		assertThat(this.context.getBean("&test", AmazonRdsDataSourceFactoryBean.class))
-				.isNotNull();
-
-		assertThat(this.context.getBean("anotherOne", DataSource.class)).isNotNull();
-		assertThat(
-				this.context.getBean("&anotherOne", AmazonRdsDataSourceFactoryBean.class))
-						.isNotNull();
+					assertThat(context.getBean("anotherOne", DataSource.class))
+							.isNotNull();
+					assertThat(context.getBean("&anotherOne",
+							AmazonRdsDataSourceFactoryBean.class)).isNotNull();
+				});
 	}
 
 	@Test
-	void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled()
-			throws Exception {
-		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ApplicationConfigurationWithReadReplica.class);
-		this.context.register(AmazonRdsDatabaseAutoConfiguration.class);
-		TestPropertyValues
-				.of("cloud.aws.rds.test.password:secret",
+	void configureBean_withDefaultClientSpecifiedAndReadReplica_configuresFactoryBeanWithReadReplicaEnabled() {
+		this.contextRunner
+				.withUserConfiguration(ApplicationConfigurationWithReadReplica.class)
+				.withPropertyValues("cloud.aws.rds.test.password:secret",
 						"cloud.aws.rds.test.readReplicaSupport:true")
-				.applyTo(this.context);
+				.run(context -> {
+					assertThat(context.getBean(DataSource.class)).isNotNull();
+					assertThat(context.getBean(
+							AmazonRdsReadReplicaAwareDataSourceFactoryBean.class))
+									.isNotNull();
+				});
+	}
 
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getBean(DataSource.class)).isNotNull();
-		assertThat(this.context
-				.getBean(AmazonRdsReadReplicaAwareDataSourceFactoryBean.class))
-						.isNotNull();
+	@Test
+	void rdsIsDisabled() {
+		this.contextRunner.withPropertyValues("cloud.aws.rds.enabled:false")
+				.run(context -> assertThat(context).doesNotHaveBean(DataSource.class));
 	}
 
 	static class ApplicationConfigurationWithoutReadReplica {

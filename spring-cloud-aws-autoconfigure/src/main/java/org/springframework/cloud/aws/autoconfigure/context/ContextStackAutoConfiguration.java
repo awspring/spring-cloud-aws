@@ -51,6 +51,8 @@ import org.springframework.context.annotation.Import;
 		ContextDefaultConfigurationRegistrar.class })
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
 @EnableConfigurationProperties(AwsStackProperties.class)
+@ConditionalOnProperty(name = "cloud.aws.stack.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class ContextStackAutoConfiguration {
 
 	private final AwsStackProperties properties;
