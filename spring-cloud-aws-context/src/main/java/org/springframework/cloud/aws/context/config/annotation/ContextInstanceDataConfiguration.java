@@ -17,7 +17,6 @@
 package org.springframework.cloud.aws.context.config.annotation;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.annotation.AnnotationAttributes;
@@ -31,7 +30,6 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  */
 @SuppressWarnings("NonFinalUtilityClass")
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnAwsCloudEnvironment
 public class ContextInstanceDataConfiguration implements ImportBeanDefinitionRegistrar {
 
 	@Override

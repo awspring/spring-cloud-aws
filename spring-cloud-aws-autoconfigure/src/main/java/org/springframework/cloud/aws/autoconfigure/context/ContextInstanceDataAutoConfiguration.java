@@ -17,7 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnAwsCloudEnvironment;
+import org.springframework.cloud.aws.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

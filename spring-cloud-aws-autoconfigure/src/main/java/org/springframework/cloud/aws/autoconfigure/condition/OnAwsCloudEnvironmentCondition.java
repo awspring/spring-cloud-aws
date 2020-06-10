@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package org.springframework.cloud.aws.autoconfigure.condition;
 
+import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
+import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
+import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
+ * {@link Condition} that checks if the environment is AWS.
+ *
  * @author Agim Emruli
  * @author Gleb Schukin
  * @author Bernardo Martins
+ * @author Eddú Meléndez
  */
-@Deprecated
-public class OnAwsCloudEnvironmentCondition implements ConfigurationCondition {
+public class OnAwsCloudEnvironmentCondition extends SpringBootCondition {
 
 	@Override
-	public ConfigurationPhase getConfigurationPhase() {
-		return ConfigurationPhase.REGISTER_BEAN;
-	}
-
-	@Override
-	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment();
+	public ConditionOutcome getMatchOutcome(ConditionContext context,
+			AnnotatedTypeMetadata metadata) {
+		if (AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment()) {
+			return ConditionOutcome.match();
+		}
+		return ConditionOutcome.noMatch("not running in aws environment");
 	}
 
 }
