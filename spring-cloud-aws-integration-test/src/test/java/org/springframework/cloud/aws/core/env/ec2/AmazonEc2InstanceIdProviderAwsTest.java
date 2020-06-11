@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AmazonEc2InstanceIdProviderAwsTest {
 
@@ -53,7 +52,7 @@ public class AmazonEc2InstanceIdProviderAwsTest {
 		String currentInstanceId = amazonEc2InstanceIdProvider.getCurrentInstanceId();
 
 		// Assert
-		assertThat(currentInstanceId, is("i-abcdefg"));
+		assertThat(currentInstanceId).isEqualTo("i-abcdefg");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.support.TestStackEnvironment;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class StackConfigurationAwsTest {
@@ -50,11 +47,11 @@ public abstract class StackConfigurationAwsTest {
 				.resourcesByType("AWS::EC2::Instance");
 
 		// Assert
-		assertEquals(1, resourcesByType.size());
+		assertThat(resourcesByType.size()).isEqualTo(1);
 
 		StackResource stackResource = resourcesByType.iterator().next();
-		assertEquals("UserTagAndUserDataInstance", stackResource.getLogicalId());
-		assertEquals("AWS::EC2::Instance", stackResource.getType());
+		assertThat(stackResource.getLogicalId()).isEqualTo("UserTagAndUserDataInstance");
+		assertThat(stackResource.getType()).isEqualTo("AWS::EC2::Instance");
 	}
 
 	@Test
@@ -67,8 +64,8 @@ public abstract class StackConfigurationAwsTest {
 				.lookupPhysicalResourceId("UserTagAndUserDataInstance");
 
 		// Assert
-		assertNotNull(physicalResourceId);
-		assertNotEquals("UserTagAndUserDataInstance", physicalResourceId);
+		assertThat(physicalResourceId).isNotNull();
+		assertThat(physicalResourceId).isNotEqualTo("UserTagAndUserDataInstance");
 	}
 
 	@Test
@@ -81,7 +78,7 @@ public abstract class StackConfigurationAwsTest {
 				.getAllResources();
 
 		// Assert
-		assertFalse(allResources.isEmpty());
+		assertThat(allResources.isEmpty()).isFalse();
 	}
 
 	@Test
@@ -93,16 +90,17 @@ public abstract class StackConfigurationAwsTest {
 		String stackName = this.stackResourceFactory.getStackName();
 
 		// Assert
-		assertEquals(TestStackEnvironment.DEFAULT_STACK_NAME, stackName);
+		assertThat(stackName).isEqualTo(TestStackEnvironment.DEFAULT_STACK_NAME);
 	}
 
+	@Test
 	public void resourceIdResolver_configuredByDefault_notNull() {
 		// Arrange
 
 		// Act
 
 		// Assert
-		assertNotNull(this.resourceIdResolver);
+		assertThat(this.resourceIdResolver).isNotNull();
 	}
 
 }

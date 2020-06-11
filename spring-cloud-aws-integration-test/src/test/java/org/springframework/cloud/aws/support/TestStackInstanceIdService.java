@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import com.sun.net.httpserver.HttpServer;
  *
  * @author Christian Stettler
  */
-public class TestStackInstanceIdService {
+public final class TestStackInstanceIdService {
 
 	private static final String INSTANCE_ID_SERVICE_HOSTNAME = "localhost";
 
@@ -134,7 +134,7 @@ public class TestStackInstanceIdService {
 	/**
 	 * Handler for responding with specified instance id
 	 */
-	private static class InstanceIdHttpHandler implements HttpHandler {
+	private static final class InstanceIdHttpHandler implements HttpHandler {
 
 		private final String instanceId;
 
@@ -160,7 +160,7 @@ public class TestStackInstanceIdService {
 	 * Useful for unit testing.
 	 * </p>
 	 */
-	private static class StaticInstanceIdSource implements InstanceIdSource {
+	private static final class StaticInstanceIdSource implements InstanceIdSource {
 
 		private final String instanceId;
 
@@ -182,7 +182,7 @@ public class TestStackInstanceIdService {
 	 * Useful for integration testing.
 	 * </p>
 	 */
-	private static class AmazonStackOutputBasedInstanceIdSource
+	private static final class AmazonStackOutputBasedInstanceIdSource
 			implements InstanceIdSource {
 
 		private final String stackName;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -83,8 +81,10 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 				MessageBuilder.withPayload("Hello world!").build());
 
 		// Assert
-		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+		assertThat(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS))
+				.isTrue();
+		assertThat(this.messageListener.getReceivedMessages().get(0))
+				.isEqualTo("Hello world!");
 	}
 
 	@Test
@@ -97,8 +97,10 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("QueueListenerTest", "Hello world!");
 
 		// Assert
-		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
+		assertThat(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS))
+				.isTrue();
+		assertThat(this.messageListener.getReceivedMessages().get(0))
+				.isEqualTo("Hello world!");
 	}
 
 	@Test
@@ -112,10 +114,12 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("SendToQueue", "Please answer!");
 
 		// Assert
-		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		assertEquals("Please answer!",
-				this.messageListenerWithSendTo.getReceivedMessages().get(0));
-		assertEquals("PLEASE ANSWER!", this.messageListener.getReceivedMessages().get(0));
+		assertThat(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS))
+				.isTrue();
+		assertThat(this.messageListenerWithSendTo.getReceivedMessages().get(0))
+				.isEqualTo("Please answer!");
+		assertThat(this.messageListener.getReceivedMessages().get(0))
+				.isEqualTo("PLEASE ANSWER!");
 	}
 
 	@Test
@@ -136,15 +140,16 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 						.setHeader("binaryHeader", binaryValue).build());
 
 		// Assert
-		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
-		assertNotNull(this.messageListener.getSenderId());
-		assertNotNull(this.messageListener.getAllHeaders());
-		assertEquals(stringValue,
-				this.messageListener.getAllHeaders().get("stringHeader"));
-		assertEquals(numberValue,
-				this.messageListener.getAllHeaders().get("numberHeader"));
-		assertEquals(binaryValue,
-				this.messageListener.getAllHeaders().get("binaryHeader"));
+		assertThat(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS))
+				.isTrue();
+		assertThat(this.messageListener.getSenderId()).isNotNull();
+		assertThat(this.messageListener.getAllHeaders()).isNotNull();
+		assertThat(this.messageListener.getAllHeaders().get("stringHeader"))
+				.isEqualTo(stringValue);
+		assertThat(this.messageListener.getAllHeaders().get("numberHeader"))
+				.isEqualTo(numberValue);
+		assertThat(this.messageListener.getAllHeaders().get("binaryHeader"))
+				.isEqualTo(binaryValue);
 	}
 
 	@Test
@@ -158,7 +163,7 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("QueueWithRedrivePolicy", "Hello");
 
 		// Assert
-		assertTrue(countDownLatch.await(15, TimeUnit.SECONDS));
+		assertThat(countDownLatch.await(15, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -168,8 +173,8 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("ManualDeletionQueue", "Message");
 
 		// Assert
-		assertTrue(this.manualDeletionPolicyTestListener.getCountDownLatch().await(15,
-				TimeUnit.SECONDS));
+		assertThat(this.manualDeletionPolicyTestListener.getCountDownLatch().await(15,
+				TimeUnit.SECONDS)).isTrue();
 	}
 
 	public static class MessageListener {
@@ -250,7 +255,8 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "QueueWithRedrivePolicy", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "QueueWithRedrivePolicy",
+				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		public void receiveThrowingException(String message) {
 			throw new RuntimeException();
 		}
@@ -273,7 +279,8 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		@SqsListener(value = "ManualDeletionQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "ManualDeletionQueue",
+				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		public void receive(String message, Acknowledgment acknowledgment)
 				throws ExecutionException, InterruptedException {
 			acknowledgment.acknowledge().get();

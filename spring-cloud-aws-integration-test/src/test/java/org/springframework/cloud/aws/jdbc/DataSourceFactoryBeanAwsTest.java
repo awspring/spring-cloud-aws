@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * AWS backed integration test for the datasource feature of the jdbc module
@@ -42,7 +42,7 @@ public abstract class DataSourceFactoryBeanAwsTest {
 	public void testWriteAndReadWithReadReplicaEnabled() throws Exception {
 		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
 		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
-		assertEquals(lastAccessDatabase.getTime(), checkDatabase.getTime());
+		assertThat(checkDatabase.getTime()).isEqualTo(lastAccessDatabase.getTime());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,7 @@ import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
@@ -77,7 +76,8 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 
 	@Test
 	public void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
-		assertTrue(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES));
+		assertThat(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES))
+				.isTrue();
 	}
 
 	static class MessageReceiver {
@@ -87,7 +87,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 		@RuntimeUse
 		@SqsListener("LoadTestQueue")
 		public void onMessage(String message) {
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			this.getCountDownLatch().countDown();
 		}
 
@@ -97,7 +97,7 @@ public abstract class MessageListenerContainerAwsTest extends AbstractContainerT
 
 	}
 
-	private static class QueueMessageSender implements Runnable {
+	private static final class QueueMessageSender implements Runnable {
 
 		private final String queueUrl;
 

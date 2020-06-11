@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Alain Sahli
@@ -75,16 +75,21 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 
 		String protocolAndBucket = "s3://" + bucketName;
 		try {
-			assertEquals("test the '?' wildcard", 1, this.resourceLoader
-					.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length);
-			assertEquals("test the '*' wildcard", 1, this.resourceLoader
-					.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length);
-			assertEquals("test the '**' wildcard", 4, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/test1.txt").length);
-			assertEquals("test a mix of '**' and '?'", 6, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/test?.txt").length);
-			assertEquals("test all together", 2, this.resourceLoader
-					.getResources(protocolAndBucket + "/**/baz*/test?.txt").length);
+			assertThat(this.resourceLoader
+					.getResources(protocolAndBucket + "/foo1/bar?/test1.txt").length)
+							.as("test the '?' wildcard").isEqualTo(1);
+			assertThat(this.resourceLoader
+					.getResources(protocolAndBucket + "/foo*/bar2/test2.txt").length)
+							.as("test the '*' wildcard").isEqualTo(1);
+			assertThat(this.resourceLoader
+					.getResources(protocolAndBucket + "/**/test1.txt").length)
+							.as("test the '**' wildcard").isEqualTo(4);
+			assertThat(this.resourceLoader
+					.getResources(protocolAndBucket + "/**/test?.txt").length)
+							.as("test a mix of '**' and '?'").isEqualTo(6);
+			assertThat(this.resourceLoader
+					.getResources(protocolAndBucket + "/**/baz*/test?.txt").length)
+							.as("test all together").isEqualTo(2);
 		}
 		finally {
 			deleteTestFiles(bucketName);
@@ -102,14 +107,14 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 		String bucketPrefix = firstBucket.substring(0, firstBucket.lastIndexOf("-") - 2);
 		try {
 			createTestFiles(firstBucket, secondBucket, thirdBucket);
-			assertEquals("test the '?' wildcard", 1,
-					this.resourceLoader.getResources("s3://" + bucketPrefix + "??"
-							+ firstBucket.substring(firstBucket.lastIndexOf("-"))
-							+ "/test1.txt").length);
-			assertEquals("test the '*' wildcard", 3, this.resourceLoader
-					.getResources("s3://" + bucketPrefix + "*/test1.txt").length);
-			assertEquals("test the '**' wildcard", 4 * 3,
-					this.resourceLoader.getResources("s3://**/test1.txt").length);
+			assertThat(this.resourceLoader.getResources("s3://" + bucketPrefix + "??"
+					+ firstBucket.substring(firstBucket.lastIndexOf("-"))
+					+ "/test1.txt").length).as("test the '?' wildcard").isEqualTo(1);
+			assertThat(this.resourceLoader
+					.getResources("s3://" + bucketPrefix + "*/test1.txt").length)
+							.as("test the '*' wildcard").isEqualTo(3);
+			assertThat(this.resourceLoader.getResources("s3://**/test1.txt").length)
+					.as("test the '**' wildcard").isEqualTo(4 * 3);
 		}
 		finally {
 			deleteTestFiles(firstBucket, secondBucket, thirdBucket);
@@ -139,7 +144,7 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 		this.executor.invokeAll(deleteFileCallables);
 	}
 
-	private static class CreateFileCallable implements Callable<String> {
+	private static final class CreateFileCallable implements Callable<String> {
 
 		private final String fileName;
 
@@ -164,7 +169,7 @@ public abstract class PathMatchingResourceLoaderAwsTest {
 
 	}
 
-	private static class DeleteFileCallable implements Callable<String> {
+	private static final class DeleteFileCallable implements Callable<String> {
 
 		private final String fileName;
 

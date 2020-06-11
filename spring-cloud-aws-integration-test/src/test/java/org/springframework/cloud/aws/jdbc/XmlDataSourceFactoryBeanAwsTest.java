@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
@@ -34,7 +34,7 @@ public class XmlDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTes
 
 	@Test
 	public void testDatabaseInstanceUserProperties() throws Exception {
-		assertEquals("RdsSingleMicroInstance", this.dbLogicalName);
+		assertThat(this.dbLogicalName).isEqualTo("RdsSingleMicroInstance");
 	}
 
 }
