@@ -42,11 +42,13 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.HandlerMethod;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.MessageMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
@@ -99,6 +101,9 @@ public class QueueMessageHandler
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
 		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter));
+		resolvers.add(new MessageMethodArgumentResolver(
+				this.messageConverters.isEmpty() ? new StringMessageConverter()
+						: new CompositeMessageConverter(this.messageConverters)));
 		resolvers.add(new PayloadArgumentResolver(compositeMessageConverter,
 				new NoOpValidator()));
 
