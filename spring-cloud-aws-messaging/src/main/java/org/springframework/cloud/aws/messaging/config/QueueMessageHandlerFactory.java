@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
@@ -54,6 +55,8 @@ public class QueueMessageHandlerFactory {
 	private BeanFactory beanFactory;
 
 	private List<MessageConverter> messageConverters;
+
+	private ObjectMapper objectMapper;
 
 	public void setArgumentResolvers(
 			List<HandlerMethodArgumentResolver> argumentResolvers) {
@@ -123,10 +126,20 @@ public class QueueMessageHandlerFactory {
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * Configures an {@link ObjectMapper} that is used by default
+	 * {@link MappingJackson2MessageConverter} created if no {@link #messageConverters}
+	 * are set.
+	 * @param objectMapper - object mapper, can be null
+	 */
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
+
 	public QueueMessageHandler createQueueMessageHandler() {
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(
-				CollectionUtils.isEmpty(this.messageConverters)
-						? Arrays.asList(getDefaultMappingJackson2MessageConverter())
+				CollectionUtils.isEmpty(this.messageConverters) ? Arrays.asList(
+						getDefaultMappingJackson2MessageConverter(this.objectMapper))
 						: this.messageConverters);
 
 		if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
@@ -159,7 +172,7 @@ public class QueueMessageHandlerFactory {
 	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(
 			AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 		return new QueueMessagingTemplate(amazonSqs, resourceIdResolver,
-				getDefaultMappingJackson2MessageConverter());
+				getDefaultMappingJackson2MessageConverter(this.objectMapper));
 	}
 
 	public List<MessageConverter> getMessageConverters() {
@@ -176,10 +189,16 @@ public class QueueMessageHandlerFactory {
 		this.messageConverters = messageConverters;
 	}
 
-	private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter() {
+	private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter(
+			ObjectMapper objectMapper) {
 		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);
 		jacksonMessageConverter.setStrictContentTypeMatch(true);
+
+		if (objectMapper != null) {
+			jacksonMessageConverter.setObjectMapper(objectMapper);
+		}
+
 		return jacksonMessageConverter;
 	}
 

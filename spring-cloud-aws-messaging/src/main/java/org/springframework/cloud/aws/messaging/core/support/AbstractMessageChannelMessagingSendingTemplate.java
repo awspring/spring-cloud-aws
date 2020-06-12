@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -33,7 +32,6 @@ import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
-import org.springframework.util.ClassUtils;
 
 /**
  * @param <D> message channel type
@@ -44,10 +42,6 @@ import org.springframework.util.ClassUtils;
 public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends MessageChannel>
 		extends AbstractMessageSendingTemplate<D>
 		implements DestinationResolvingMessageSendingOperations<D> {
-
-	private static final boolean JACKSON_2_PRESENT = ClassUtils.isPresent(
-			"com.fasterxml.jackson.databind.ObjectMapper",
-			AbstractMessageChannelMessagingSendingTemplate.class.getClassLoader());
 
 	private final DestinationResolver<String> destinationResolver;
 
@@ -120,10 +114,8 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 		if (messageConverter != null) {
 			messageConverters.add(messageConverter);
 		}
-		else if (JACKSON_2_PRESENT) {
+		else {
 			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
-			mappingJackson2MessageConverter
-					.setObjectMapper(Jackson2ObjectMapperBuilder.json().build());
 			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 			messageConverters.add(mappingJackson2MessageConverter);
 		}

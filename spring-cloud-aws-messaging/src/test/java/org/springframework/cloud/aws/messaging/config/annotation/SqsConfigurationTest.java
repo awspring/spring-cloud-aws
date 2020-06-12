@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.messaging.config.annotation;
 
 import java.util.Collections;
+import java.util.List;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
@@ -25,6 +26,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
@@ -40,6 +42,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -52,6 +56,7 @@ import static org.mockito.Mockito.withSettings;
 
 /**
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  */
 class SqsConfigurationTest {
 
@@ -192,6 +197,25 @@ class SqsConfigurationTest {
 		// Assert
 		assertThat(ReflectionTestUtils.getField(simpleMessageListenerContainer,
 				"messageHandler")).isEqualTo(queueMessageHandler);
+	}
+
+	@Test
+	void configuration_withObjectMapper_shouldSetObjectMapperOnQueueMessageHandler()
+			throws Exception {
+		// Arrange & Act
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
+				ConfigurationWithObjectMapper.class);
+		QueueMessageHandler queueMessageHandler = applicationContext
+				.getBean(QueueMessageHandler.class);
+		ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
+		List<MessageConverter> converters = (List<MessageConverter>) ReflectionTestUtils
+				.getField(queueMessageHandler, "messageConverters");
+		MappingJackson2MessageConverter mappingJackson2MessageConverter = (MappingJackson2MessageConverter) converters
+				.get(0);
+
+		// Assert
+		assertThat(mappingJackson2MessageConverter.getObjectMapper())
+				.isEqualTo(objectMapper);
 	}
 
 	@Test
@@ -372,6 +396,18 @@ class SqsConfigurationTest {
 	@EnableContextRegion(region = "eu-west-1")
 	@Configuration(proxyBeanMethods = false)
 	static class ConfigurationWithRegionProvider {
+
+	}
+
+	@EnableSqs
+	@EnableContextRegion(region = "eu-west-1")
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithObjectMapper {
+
+		@Bean
+		ObjectMapper objectMapper() {
+			return new ObjectMapper();
+		}
 
 	}
 

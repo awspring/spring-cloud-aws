@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.messaging.config.annotation;
 import java.util.Arrays;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -54,12 +55,15 @@ public class SqsConfiguration {
 
 	private final MappingJackson2MessageConverter mappingJackson2MessageConverter;
 
+	private final ObjectMapper objectMapper;
+
 	public SqsConfiguration(
 			ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
 			ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory,
 			BeanFactory beanFactory,
 			ObjectProvider<ResourceIdResolver> resourceIdResolver,
-			ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter) {
+			ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter,
+			ObjectProvider<ObjectMapper> objectMapper) {
 		this.simpleMessageListenerContainerFactory = simpleMessageListenerContainerFactory
 				.getIfAvailable(SimpleMessageListenerContainerFactory::new);
 		this.queueMessageHandlerFactory = queueMessageHandlerFactory
@@ -68,6 +72,7 @@ public class SqsConfiguration {
 		this.resourceIdResolver = resourceIdResolver.getIfAvailable();
 		this.mappingJackson2MessageConverter = mappingJackson2MessageConverter
 				.getIfAvailable();
+		this.objectMapper = objectMapper.getIfAvailable();
 	}
 
 	@Bean
@@ -111,6 +116,7 @@ public class SqsConfiguration {
 		}
 
 		this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
+		this.queueMessageHandlerFactory.setObjectMapper(this.objectMapper);
 
 		return this.queueMessageHandlerFactory.createQueueMessageHandler();
 	}

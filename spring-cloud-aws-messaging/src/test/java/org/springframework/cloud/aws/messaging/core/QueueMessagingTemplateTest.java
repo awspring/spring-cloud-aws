@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.messaging.core;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -27,12 +26,10 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -205,72 +202,26 @@ class QueueMessagingTemplateTest {
 		// Assert
 		assertThat(
 				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
-						.getConverters().size()).isEqualTo(2);
+						.getConverters()).hasSize(2);
 		assertThat(
 				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
 						.getConverters().get(1)).isEqualTo(simpleMessageConverter);
 	}
 
 	@Test
-	void instantiation_WithCustomJacksonConverterThatSupportsJava8Types_shouldConvertMessageToString()
-			throws IOException {
-
-		// Arrange
-		AmazonSQSAsync amazonSqs = createAmazonSqs();
-
-		ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
-
-		MappingJackson2MessageConverter simpleMessageConverter = new MappingJackson2MessageConverter();
-		simpleMessageConverter.setSerializedPayloadClass(String.class);
-		simpleMessageConverter.setObjectMapper(objectMapper);
-
-		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
-				amazonSqs, (ResourceIdResolver) null, simpleMessageConverter);
-
+	void instantiation_withoutConverter_shouldAddDefaultJacksonConverterToTheCompositeConverter() {
 		// Act
-		queueMessagingTemplate.convertAndSend("test",
-				new TestPerson("Agim", "Emruli", LocalDate.of(2017, 1, 1)));
+		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
+				createAmazonSqs(), (ResourceIdResolver) null, null);
 
 		// Assert
-		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
-				.forClass(SendMessageRequest.class);
-		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
-		TestPerson testPerson = objectMapper.readValue(
-				sendMessageRequestArgumentCaptor.getValue().getMessageBody(),
-				TestPerson.class);
-
-		assertThat(testPerson.getFirstName()).isEqualTo("Agim");
-		assertThat(testPerson.getLastName()).isEqualTo("Emruli");
-		assertThat(testPerson.getActiveSince()).isEqualTo(LocalDate.of(2017, 1, 1));
-	}
-
-	@Test
-	void instantiation_withDefaultMapping2JacksonConverter_shouldSupportJava8Types()
-			throws IOException {
-
-		// Arrange
-		AmazonSQSAsync amazonSqs = createAmazonSqs();
-
-		ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
-
-		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
-				amazonSqs);
-
-		// Act
-		queueMessagingTemplate.convertAndSend("test",
-				new TestPerson("Agim", "Emruli", LocalDate.of(2017, 1, 1)));
-
-		// Assert
-		ArgumentCaptor<SendMessageRequest> sendMessageRequestArgumentCaptor = ArgumentCaptor
-				.forClass(SendMessageRequest.class);
-		verify(amazonSqs).sendMessage(sendMessageRequestArgumentCaptor.capture());
-		TestPerson testPerson = objectMapper.readValue(
-				sendMessageRequestArgumentCaptor.getValue().getMessageBody(),
-				TestPerson.class);
-
-		assertThat(testPerson.getFirstName()).isEqualTo("Agim");
-		assertThat(testPerson.getLastName()).isEqualTo("Emruli");
-		assertThat(testPerson.getActiveSince()).isEqualTo(LocalDate.of(2017, 1, 1));
+		assertThat(
+				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
+						.getConverters()).hasSize(2);
+		assertThat(
+				((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter())
+						.getConverters().get(1))
+								.isInstanceOf(MappingJackson2MessageConverter.class);
 	}
 
 	private AmazonSQSAsync createAmazonSqs() {
