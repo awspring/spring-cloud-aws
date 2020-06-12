@@ -29,7 +29,9 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration;
+import org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration.RdsInstanceConfigurerBeanPostProcessor;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -41,7 +43,9 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  */
+// @checkstyle:off
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(DataSourceAutoConfiguration.class)
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
@@ -49,6 +53,13 @@ import org.springframework.util.StringUtils;
 		"org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration" })
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
 public class AmazonRdsDatabaseAutoConfiguration {
+
+	// @checkstyle:on
+
+	@Bean
+	public static RdsInstanceConfigurerBeanPostProcessor rdsInstanceConfigurerBeanPostProcessor() {
+		return new RdsInstanceConfigurerBeanPostProcessor();
+	}
 
 	/**
 	 * Registrar for Amazon RDS.

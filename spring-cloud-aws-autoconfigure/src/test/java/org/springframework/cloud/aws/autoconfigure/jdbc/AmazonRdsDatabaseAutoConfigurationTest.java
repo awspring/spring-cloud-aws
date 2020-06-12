@@ -29,6 +29,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer;
+import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -46,6 +48,31 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 		if (this.context != null) {
 			this.context.close();
 		}
+	}
+
+	@Test
+	public void registersRdsInstanceConfigurer() {
+		// Arrange
+		this.context = new AnnotationConfigApplicationContext();
+		this.context.register(ApplicationConfigurationWithoutReadReplica.class,
+				AmazonRdsDatabaseAutoConfiguration.class,
+				CustomRdsInstanceConfigurer.class);
+		TestPropertyValues.of("cloud.aws.rds.test.password:secret").applyTo(this.context);
+
+		// Act
+		this.context.refresh();
+
+		// Assert
+		DataSource dataSource = this.context.getBean(DataSource.class);
+		assertThat(dataSource).isNotNull();
+		assertThat(this.context.getBean(AmazonRdsDataSourceFactoryBean.class))
+				.isNotNull();
+
+		assertThat(dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource).isTrue();
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
+				.getValidationQuery()).isEqualTo("SELECT 1 FROM TEST");
+		assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource).getInitialSize())
+				.isEqualTo(0);
 	}
 
 	@Test
@@ -223,6 +250,20 @@ public class AmazonRdsDatabaseAutoConfigurationTest {
 													.withAddress("localhost")
 													.withPort(3306))));
 			return client;
+		}
+
+	}
+
+	public static class CustomRdsInstanceConfigurer {
+
+		@Bean
+		public RdsInstanceConfigurer instanceConfigurer() {
+			return () -> {
+				TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+				dataSourceFactory.setInitialSize(0);
+				dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
+				return dataSourceFactory;
+			};
 		}
 
 	}
