@@ -19,9 +19,11 @@ package org.springframework.cloud.aws.jdbc;
 import java.util.Date;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@Category(AWSIntegration.class)
 public abstract class DataSourceFactoryBeanAwsTest {
 
 	@Autowired

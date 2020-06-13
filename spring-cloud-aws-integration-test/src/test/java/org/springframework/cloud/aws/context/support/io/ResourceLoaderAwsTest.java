@@ -38,9 +38,11 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -56,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@Category(AWSIntegration.class)
 public abstract class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";

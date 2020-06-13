@@ -21,11 +21,14 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.support.TestStackInstanceIdService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(AWSIntegration.class)
 public class AmazonEc2InstanceIdProviderAwsTest {
 
 	private TestStackInstanceIdService testStackInstanceIdService;
