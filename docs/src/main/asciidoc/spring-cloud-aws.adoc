@@ -1786,9 +1786,9 @@ TIP: This class returns an anonymous class of type `org.springframework.cloud.aw
 The data sources can also be configured using the Spring Boot configuration files. Because of the dynamic number of
 data sources inside one application, the Spring Boot properties must be configured for each data source.
 
-A data source configuration consists of the general property name `cloud.aws.rds.<instanceName>`  for the data source identifier
-following the sub properties for the particular data source where `instanceName` is the name of the concrete instance. The table below
-outlines all properties for a data source using `test` as the instance identifier.
+A data source configuration consists of the general property name `cloud.aws.rds.instances` with `[index]` dereferences for the multiple data sources
+following the sub properties for each particular data source. The table below
+outlines all properties for a data source.
 
 [cols="3*", options="header"]
 |===
@@ -1796,19 +1796,23 @@ outlines all properties for a data source using `test` as the instance identifie
 |example
 |description
 
-|cloud.aws.rds.test.password
+|cloud.aws.rds.instances[0].dbInstanceIdentifier
+|test
+|The identifier for the db instance
+
+|cloud.aws.rds.instances[0].password
 |verySecret
 |The password for the db instance test
 
-|cloud.aws.rds.test.username
+|cloud.aws.rds.instances[0].username
 |admin
 |The username for the db instance test (optional)
 
-|cloud.aws.rds.test.readReplicaSupport
+|cloud.aws.rds.instances[0].readReplicaSupport
 |true
 |If read-replicas should be used for the data source (see below)
 
-|cloud.aws.rds.test.databaseName
+|cloud.aws.rds.instances[0].databaseName
 |fooDb
 |Custom database name if the default one from rds should not be used
 

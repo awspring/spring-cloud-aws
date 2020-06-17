@@ -41,6 +41,7 @@ import org.springframework.core.env.MapPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@Deprecated
 class AmazonRdsInstanceConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;

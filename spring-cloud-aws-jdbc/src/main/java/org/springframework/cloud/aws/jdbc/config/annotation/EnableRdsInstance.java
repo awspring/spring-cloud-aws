@@ -25,11 +25,13 @@ import org.springframework.context.annotation.Import;
 
 /**
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import({ AmazonRdsInstanceConfiguration.Registrar.class,
 		AmazonRdsInstanceConfiguration.class })
+@Deprecated
 public @interface EnableRdsInstance {
 
 	String dbInstanceIdentifier();
