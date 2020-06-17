@@ -140,9 +140,9 @@ public final class AmazonS3ProxyFactory {
 		 *
 		 * Extracting the region from the exception is needed because the US S3 buckets
 		 * don't always return an endpoint that includes the region and
-		 * {@link AmazonS3ClientFactory} will default to us-west-2 if the hostname of
-		 * the endpoint is "s3.amazonaws.com". The us-east-1 bucket is quite likely to
-		 * return the "s3.amazonaws.com" endpoint.
+		 * {@link AmazonS3ClientFactory} will default to us-west-2 if the hostname of the
+		 * endpoint is "s3.amazonaws.com". The us-east-1 bucket is quite likely to return
+		 * the "s3.amazonaws.com" endpoint.
 		 */
 		private AmazonS3 buildAmazonS3ForRedirectLocation(AmazonS3 prototype,
 				AmazonS3Exception e) {

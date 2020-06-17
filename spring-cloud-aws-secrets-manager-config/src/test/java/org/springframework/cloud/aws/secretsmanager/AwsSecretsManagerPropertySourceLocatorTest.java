@@ -44,10 +44,12 @@ public class AwsSecretsManagerPropertySourceLocatorTest {
 	public void locate_nameSpecifiedInConstructor_returnsPropertySourceWithSpecifiedName() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult();
 		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
-		when(smClient.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
 
 		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
-		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator("my-name", smClient, properties);
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
+				"my-name", smClient, properties);
 
 		PropertySource propertySource = locator.locate(env);
 
@@ -58,10 +60,12 @@ public class AwsSecretsManagerPropertySourceLocatorTest {
 	public void locate_nameNotSpecifiedInConstructor_returnsPropertySourceWithDefaultName() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult();
 		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
-		when(smClient.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
 
 		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
-		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(smClient, properties);
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
+				smClient, properties);
 
 		PropertySource propertySource = locator.locate(env);
 
