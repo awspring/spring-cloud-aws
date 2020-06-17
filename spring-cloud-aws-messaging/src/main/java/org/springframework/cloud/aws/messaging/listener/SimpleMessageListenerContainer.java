@@ -40,6 +40,7 @@ import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.cre
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Mete Alpaslan Katircioglu
  * @since 1.0
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
@@ -440,7 +441,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private void deleteMessage(String receiptHandle) {
 			getAmazonSqs().deleteMessageAsync(
-					new DeleteMessageRequest(this.queueUrl, receiptHandle));
+					new DeleteMessageRequest(this.queueUrl, receiptHandle),
+					new DeleteMessageHandler(receiptHandle));
 		}
 
 		private org.springframework.messaging.Message<String> getMessageForExecution() {

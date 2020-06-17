@@ -26,6 +26,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
@@ -596,7 +597,7 @@ public class SimpleMessageListenerContainerTest {
 		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"https://executeMessage_successfulExecution_shouldRemoveMessageFromQueue.amazonaws.com",
-				"ReceiptHandle")));
+				"ReceiptHandle")), any(AsyncHandler.class));
 	}
 
 	@Test
@@ -659,7 +660,7 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"https://executeMessage_executionThrowsExceptionAnd"
 						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com",
-				"ReceiptHandle")));
+				"ReceiptHandle")), any(AsyncHandler.class));
 	}
 
 	@Test
@@ -722,7 +723,7 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"https://executeMessage_executionThrowsExceptionAnd"
 						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com",
-				"ReceiptHandle")));
+				"ReceiptHandle")), any(AsyncHandler.class));
 	}
 
 	@Test
@@ -838,7 +839,7 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"https://receiveMessage_withMessageListenerMethodAnd"
 						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
-				"ReceiptHandle")));
+				"ReceiptHandle")), any(AsyncHandler.class));
 		TestMessageListenerWithManualDeletionPolicy testMessageListenerWithManualDeletionPolicy = applicationContext
 				.getBean(TestMessageListenerWithManualDeletionPolicy.class);
 		testMessageListenerWithManualDeletionPolicy.getCountDownLatch().await(1L,
@@ -847,7 +848,7 @@ public class SimpleMessageListenerContainerTest {
 		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
 				"https://receiveMessage_withMessageListenerMethodAnd"
 						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
-				"ReceiptHandle")));
+				"ReceiptHandle")), any(AsyncHandler.class));
 		container.stop();
 	}
 
@@ -979,22 +980,38 @@ public class SimpleMessageListenerContainerTest {
 				.getBean(TestMessageListenerWithAllPossibleDeletionPolicies.class);
 		assertThat(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://alwaysSuccess.amazonaws.com", "alwaysSuccess")));
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://alwaysError.amazonaws.com", "alwaysError")));
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://onSuccessSuccess.amazonaws.com", "onSuccessSuccess")));
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://onSuccessError.amazonaws.com", "onSuccessError")));
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://noRedriveSuccess.amazonaws.com", "noRedriveSuccess")));
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://noRedriveError.amazonaws.com", "noRedriveError")));
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://neverSuccess.amazonaws.com", "neverSuccess")));
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://neverError.amazonaws.com", "neverError")));
+		verify(sqs, times(1)).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://alwaysSuccess.amazonaws.com",
+						"alwaysSuccess")),
+				any(AsyncHandler.class));
+		verify(sqs, times(1)).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://alwaysError.amazonaws.com",
+						"alwaysError")),
+				any(AsyncHandler.class));
+		verify(sqs, times(1)).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://onSuccessSuccess.amazonaws.com",
+						"onSuccessSuccess")),
+				any(AsyncHandler.class));
+		verify(sqs, never()).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://onSuccessError.amazonaws.com",
+						"onSuccessError")),
+				any(AsyncHandler.class));
+		verify(sqs, times(1)).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://noRedriveSuccess.amazonaws.com",
+						"noRedriveSuccess")),
+				any(AsyncHandler.class));
+		verify(sqs, never()).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://noRedriveError.amazonaws.com",
+						"noRedriveError")),
+				any(AsyncHandler.class));
+		verify(sqs, never()).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://neverSuccess.amazonaws.com",
+						"neverSuccess")),
+				any(AsyncHandler.class));
+		verify(sqs, never()).deleteMessageAsync(
+				eq(new DeleteMessageRequest("https://neverError.amazonaws.com",
+						"neverError")),
+				any(AsyncHandler.class));
 
 		setLogLevel(previous);
 	}
