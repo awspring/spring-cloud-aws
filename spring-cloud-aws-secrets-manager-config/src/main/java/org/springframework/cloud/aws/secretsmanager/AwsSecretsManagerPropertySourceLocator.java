@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.cloud.aws.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import org.apache.commons.logging.Log;
@@ -39,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
  * support.
  *
  * @author Fabio Maia
+ * @author Matej Nedic
  * @since 2.0.0
  */
 public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLocator {
@@ -49,7 +51,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 	private AwsSecretsManagerProperties properties;
 
-	private List<String> contexts = new ArrayList<>();
+	private final Set<String> contexts = new LinkedHashSet();
 
 	private Log logger = LogFactory.getLog(getClass());
 
@@ -66,7 +68,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 	}
 
 	public List<String> getContexts() {
-		return contexts;
+		return new ArrayList<>(contexts);
 	}
 
 	@Override
@@ -87,15 +89,13 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 		String prefix = this.properties.getPrefix();
 
+		String appContext = prefix + "/" + appName;
+		addProfiles(this.contexts, appContext, profiles);
+		this.contexts.add(appContext);
+
 		String defaultContext = prefix + "/" + this.properties.getDefaultContext();
-		this.contexts.add(defaultContext);
 		addProfiles(this.contexts, defaultContext, profiles);
-
-		String baseContext = prefix + "/" + appName;
-		this.contexts.add(baseContext);
-		addProfiles(this.contexts, baseContext, profiles);
-
-		Collections.reverse(this.contexts);
+		this.contexts.add(defaultContext);
 
 		CompositePropertySource composite = new CompositePropertySource(
 				this.propertySourceName);
@@ -128,7 +128,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 		return propertySource;
 	}
 
-	private void addProfiles(List<String> contexts, String baseContext,
+	private void addProfiles(Set<String> contexts, String baseContext,
 			List<String> profiles) {
 		for (String profile : profiles) {
 			contexts.add(baseContext + this.properties.getProfileSeparator() + profile);
