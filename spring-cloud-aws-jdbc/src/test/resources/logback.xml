@@ -22,6 +22,9 @@
 		</encoder>
 	</appender>
 
+	<logger name="com.amazonaws.util.EC2MetadataUtils" level="ERROR"/>
+	<logger name="com.amazonaws.internal.InstanceMetadataServiceResourceFetcher" level="ERROR"/>
+
 	<root level="error">
 		<appender-ref ref="STDOUT"/>
 	</root>
