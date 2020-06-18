@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.aws.messaging;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
 import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
@@ -47,6 +42,10 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Agim Emruli
@@ -86,11 +85,6 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 		// Assert
 		assertTrue(this.messageListener.getCountDownLatch().await(15, TimeUnit.SECONDS));
 		assertEquals("Hello world!", this.messageListener.getReceivedMessages().get(0));
-		assertEquals(1, this.messageListener.getApproximateReceiveCount().longValue());
-		assertNotNull(this.messageListener.getApproximateFirstReceiveTimestamp());
-		assertNotNull(this.messageListener.getSentTimestamp());
-		assertNotNull(this.messageListener.getTimestamp());
-		assertEquals(this.messageListener.getTimestamp(), this.messageListener.getSentTimestamp());
 	}
 
 	@Test
@@ -189,30 +183,17 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 		private String senderId;
 
-		private Long timestamp;
-
-		private Long sentTimestamp;
-
-		private Long approximateFirstReceiveTimestamp;
-
-		private Long approximateReceiveCount;
-
 		private Map<String, Object> allHeaders;
 
 		@RuntimeUse
 		@SqsListener("QueueListenerTest")
 		public void receiveMessage(String message,
 				@Header(value = "SenderId", required = false) String senderId,
-				@Headers Map<String, Object> allHeaders, SqsMessageHeaders asSqsHeaders) {
+				@Headers Map<String, Object> allHeaders) {
 			LOGGER.debug("Received message with content {}", message);
 			this.receivedMessages.add(message);
 			this.senderId = senderId;
 			this.allHeaders = allHeaders;
-			this.approximateReceiveCount = asSqsHeaders.getApproximateReceiveCount();
-			this.approximateFirstReceiveTimestamp = asSqsHeaders
-					.getApproximateFirstReceiveTimestamp();
-			this.timestamp = asSqsHeaders.getTimestamp();
-			this.sentTimestamp = asSqsHeaders.getSentTimestamp();
 			this.getCountDownLatch().countDown();
 		}
 
@@ -230,22 +211,6 @@ public abstract class QueueListenerTest extends AbstractContainerTest {
 
 		public String getSenderId() {
 			return this.senderId;
-		}
-
-		public Long getTimestamp() {
-			return timestamp;
-		}
-
-		public Long getSentTimestamp() {
-			return sentTimestamp;
-		}
-
-		public Long getApproximateFirstReceiveTimestamp() {
-			return approximateFirstReceiveTimestamp;
-		}
-
-		public Long getApproximateReceiveCount() {
-			return approximateReceiveCount;
 		}
 
 		public Map<String, Object> getAllHeaders() {

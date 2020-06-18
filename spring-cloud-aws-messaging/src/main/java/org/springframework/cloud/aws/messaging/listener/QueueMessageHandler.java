@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHa
 import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
-import org.springframework.cloud.aws.messaging.support.SqsHeadersMethodArgumentResolver;
 import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -48,6 +47,7 @@ import org.springframework.messaging.handler.HandlerMethod;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.support.AnnotationExceptionHandlerMethodResolver;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.MessageMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
 import org.springframework.messaging.handler.invocation.AbstractExceptionHandlerMethodResolver;
@@ -64,7 +64,6 @@ import org.springframework.validation.Validator;
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Maciej Walkowiak
- * @author Wojciech Mąka
  * @since 1.0
  */
 public class QueueMessageHandler
@@ -94,7 +93,7 @@ public class QueueMessageHandler
 				getCustomArgumentResolvers());
 
 		resolvers.add(new HeaderMethodArgumentResolver(null, null));
-		resolvers.add(new SqsHeadersMethodArgumentResolver());
+		resolvers.add(new HeadersMethodArgumentResolver());
 
 		resolvers.add(new NotificationSubjectArgumentResolver());
 		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
@@ -113,6 +112,7 @@ public class QueueMessageHandler
 
 	@Override
 	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
+
 		return new ArrayList<>(this.getCustomReturnValueHandlers());
 	}
 

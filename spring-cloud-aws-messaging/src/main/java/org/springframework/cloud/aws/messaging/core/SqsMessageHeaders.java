@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 import org.springframework.messaging.MessageHeaders;
 
@@ -28,7 +26,6 @@ import org.springframework.messaging.MessageHeaders;
  * consumer side for traceability.
  *
  * @author Alain Sahli
- * @author Wojciech Mąka
  * @since 1.0
  */
 public class SqsMessageHeaders extends MessageHeaders {
@@ -48,52 +45,12 @@ public class SqsMessageHeaders extends MessageHeaders {
 	 */
 	public static final String SQS_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
 
-	/**
-	 * ApproximateFirstReceiveTimestamp header in a SQS message.
-	 */
-	public static final String SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP = "ApproximateFirstReceiveTimestamp";
-
-	/**
-	 * ApproximateReceiveCount header in a SQS message.
-	 */
-	public static final String SQS_APPROXIMATE_RECEIVE_COUNT = "ApproximateReceiveCount";
-
-	/**
-	 * SentTimestamp header in a SQS message.
-	 */
-	public static final String SQS_SENT_TIMESTAMP = "SentTimestamp";
-
 	public SqsMessageHeaders(Map<String, Object> headers) {
-		super(headers, getId(headers), getTimestamp(headers));
-	}
+		super(headers);
 
-	public Long getApproximateFirstReceiveTimestamp() {
-		return containsKey(SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP)
-				? Long.parseLong(Objects.requireNonNull(
-						get(SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP, String.class)))
-				: null;
-	}
-
-	public Long getSentTimestamp() {
-		return getTimestamp(getRawHeaders());
-	}
-
-	public Long getApproximateReceiveCount() {
-		return containsKey(SQS_APPROXIMATE_RECEIVE_COUNT)
-				? Long.parseLong(Objects
-						.requireNonNull(get(SQS_APPROXIMATE_RECEIVE_COUNT, String.class)))
-				: null;
-	}
-
-	private static Long getTimestamp(Map<String, Object> headers) {
-		return headers.containsKey(SQS_SENT_TIMESTAMP)
-				? Long.parseLong(
-						Objects.requireNonNull((String) headers.get(SQS_SENT_TIMESTAMP)))
-				: null;
-	}
-
-	private static UUID getId(Map<String, Object> headers) {
-		return headers.containsKey(ID) ? (UUID) headers.get(ID) : null;
+		if (headers.containsKey(ID)) {
+			this.getRawHeaders().put(ID, headers.get(ID));
+		}
 	}
 
 }
