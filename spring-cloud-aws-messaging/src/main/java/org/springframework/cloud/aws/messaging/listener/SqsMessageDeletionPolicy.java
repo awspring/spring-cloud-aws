@@ -26,6 +26,7 @@ package org.springframework.cloud.aws.messaging.listener;
  * dead letter queue).
  * <p>
  * The following deletion policies are available:
+ * </p>
  * <ul>
  * <li><b>ALWAYS</b>: Always deletes message in case of success (no exception thrown) or
  * failure (exception thrown) during message processing by the listener method.</li>
@@ -36,7 +37,6 @@ package org.springframework.cloud.aws.messaging.listener;
  * method. If an exception is thrown by the listener method, the message will not be
  * deleted.</li>
  * </ul>
- * </p>
  *
  * @author Alain Sahli
  * @since 1.1
