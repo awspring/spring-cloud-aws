@@ -29,6 +29,8 @@ import org.mockito.Mockito;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer;
+import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +43,29 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(
 					AutoConfigurations.of(AmazonRdsDatabaseAutoConfiguration.class));
+
+	@Test
+	public void registersRdsInstanceConfigurer() {
+		// Arrange
+		this.contextRunner
+				.withUserConfiguration(ApplicationConfigurationWithoutReadReplica.class)
+				.withUserConfiguration(CustomRdsInstanceConfigurer.class)
+				.withPropertyValues("cloud.aws.rds.test.password:secret").run(context -> {
+					// Assert
+					DataSource dataSource = context.getBean(DataSource.class);
+					assertThat(dataSource).isNotNull();
+					assertThat(context.getBean(AmazonRdsDataSourceFactoryBean.class))
+							.isNotNull();
+
+					assertThat(
+							dataSource instanceof org.apache.tomcat.jdbc.pool.DataSource)
+									.isTrue();
+					assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
+							.getValidationQuery()).isEqualTo("SELECT 1 FROM TEST");
+					assertThat(((org.apache.tomcat.jdbc.pool.DataSource) dataSource)
+							.getInitialSize()).isEqualTo(0);
+				});
+	}
 
 	@Test
 	void configureBean_withDefaultClientSpecifiedAndNoReadReplica_configuresFactoryBeanWithoutReadReplica() {
@@ -197,6 +222,20 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 													.withAddress("localhost")
 													.withPort(3306))));
 			return client;
+		}
+
+	}
+
+	public static class CustomRdsInstanceConfigurer {
+
+		@Bean
+		public RdsInstanceConfigurer instanceConfigurer() {
+			return () -> {
+				TomcatJdbcDataSourceFactory dataSourceFactory = new TomcatJdbcDataSourceFactory();
+				dataSourceFactory.setInitialSize(0);
+				dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
+				return dataSourceFactory;
+			};
 		}
 
 	}
