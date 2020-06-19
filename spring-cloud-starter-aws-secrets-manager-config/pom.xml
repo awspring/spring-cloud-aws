@@ -37,16 +37,12 @@
 	</properties>
 	<dependencies>
 		<!-- note that we don't depend on spring-cloud-aws-autoconfigure: that module brings in
-		     spring-cloud-aws-context and unwanted autoconfiguration when you just want to use
+		     spring-cloud-aws-context and unwanted auto-configuration when you just want to use
 		     the Secrets Manager configuration support.
 		     We simply include our own auto-configuration for Spring Cloud in this starter instead. -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-secrets-manager-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -37,7 +37,7 @@
 	</properties>
 	<dependencies>
 		<!-- note that we don't depend on spring-cloud-aws-autoconfigure: that module brings in
-		     spring-cloud-aws-context and unwanted autoconfiguration when you just want to use
+		     spring-cloud-aws-context and unwanted auto-configuration when you just want to use
 		     the Parameter Store configuration support.
 		     We simply include our own auto-configuration for Spring Cloud in this starter instead. -->
 		<dependency>
