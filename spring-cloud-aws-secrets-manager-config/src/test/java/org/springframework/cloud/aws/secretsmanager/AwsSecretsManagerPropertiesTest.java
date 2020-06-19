@@ -58,6 +58,30 @@ public class AwsSecretsManagerPropertiesTest {
 		assertThat(errors.getFieldError(field).getCode()).isEqualTo(errorCode);
 	}
 
+	@Test
+	void acceptsForwardSlashAsProfileSeparator() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
+		properties.setProfileSeparator("/");
+
+		Errors errors = new BeanPropertyBindingResult(properties, "properties");
+
+		properties.validate(properties, errors);
+
+		assertThat(errors.getFieldError("profileSeparator")).isNull();
+	}
+
+	@Test
+	void acceptsBackslashAsProfileSeparator() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
+		properties.setProfileSeparator("\\");
+
+		Errors errors = new BeanPropertyBindingResult(properties, "properties");
+
+		properties.validate(properties, errors);
+
+		assertThat(errors.getFieldError("profileSeparator")).isNull();
+	}
+
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
 				Arguments.of(

@@ -60,6 +60,30 @@ public class AwsParamStorePropertiesTest {
 		assertThat(errors.getAllErrors()).isEmpty();
 	}
 
+	@Test
+	void acceptsForwardSlashAsProfileSeparator() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setProfileSeparator("/");
+
+		Errors errors = new BeanPropertyBindingResult(properties, "properties");
+
+		properties.validate(properties, errors);
+
+		assertThat(errors.getFieldError("profileSeparator")).isNull();
+	}
+
+	@Test
+	void acceptsBackslashAsProfileSeparator() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setProfileSeparator("\\");
+
+		Errors errors = new BeanPropertyBindingResult(properties, "properties");
+
+		properties.validate(properties, errors);
+
+		assertThat(errors.getFieldError("profileSeparator")).isNull();
+	}
+
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
 				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("").build(),

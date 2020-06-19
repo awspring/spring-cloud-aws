@@ -49,7 +49,7 @@ public class AwsParamStoreProperties implements Validator {
 	 * Pattern used for profileSeparator validation.
 	 */
 	private static final Pattern PROFILE_SEPARATOR_PATTERN = Pattern
-			.compile("[a-zA-Z0-9.\\-_/]+");
+			.compile("[a-zA-Z0-9.\\-_/\\\\]+");
 
 	/**
 	 * Prefix indicating first level for every property. Value must start with a forward

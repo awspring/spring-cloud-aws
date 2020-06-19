@@ -685,8 +685,8 @@ You can configure the following settings in a Spring Cloud `bootstrap.properties
 
 |`aws.paramstore.profileSeparator`
 |`_`
-|String that separates an appended profile from the context name. Note that an AWS parameter key can only contain
- dots, dashes and underscores next to alphanumeric characters.
+|String that separates an appended profile from the context name. Can only contain
+ dots, dashes, forward slashes, backward slashes and underscores next to alphanumeric characters.
 
 |`aws.paramstore.failFast`
 |`true`
@@ -768,7 +768,8 @@ You can configure the following settings in a Spring Cloud `bootstrap.properties
 
 |`aws.secretsmanager.profileSeparator`
 |`_`
-|String that separates an appended profile from the context name.
+|String that separates an appended profile from the context name. Can only contain
+ dots, dashes, forward slashes, backward slashes and underscores next to alphanumeric characters.
 
 |`aws.secretsmanager.failFast`
 |`true`
