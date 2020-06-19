@@ -2327,13 +2327,13 @@ public class SimpleResourceLoadingBean {
 ----
 == CloudWatch Metrics
 Spring Cloud AWS provides Spring Boot auto-configuration for Micrometer CloudWatch integration.
-To send metrics to CloudWatch add a dependency to `spring-cloud-aws-actuator` module:
+To send metrics to CloudWatch add a dependency to `micrometer-registry-cloudwatch` module:
 
 [source,xml,indent=0]
 ----
 <dependency>
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-aws-actuator</artifactId>
+	<groupId>io.micrometer</groupId>
+	<artifactId>micrometer-registry-cloudwatch</artifactId>
 </dependency>
 ----
 

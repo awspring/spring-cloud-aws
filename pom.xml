@@ -58,7 +58,6 @@
 		<module>spring-cloud-aws-jdbc</module>
 		<module>spring-cloud-aws-messaging</module>
 		<module>spring-cloud-aws-autoconfigure</module>
-		<module>spring-cloud-aws-actuator</module>
 		<module>spring-cloud-aws-parameter-store-config</module>
 		<module>spring-cloud-aws-secrets-manager-config</module>
 		<module>spring-cloud-starter-aws</module>
