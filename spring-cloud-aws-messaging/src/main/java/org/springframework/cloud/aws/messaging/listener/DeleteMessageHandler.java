@@ -16,36 +16,40 @@
 
 package org.springframework.cloud.aws.messaging.listener;
 
-import java.util.concurrent.Future;
-
-import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.DeleteMessageResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @author Alain Sahli
+ * Callback executed on SQS message deletion.
+ *
  * @author Mete Alpaslan Katircioglu
- * @since 1.1
  */
-public class QueueMessageAcknowledgment implements Acknowledgment {
+class DeleteMessageHandler
+		implements AsyncHandler<DeleteMessageRequest, DeleteMessageResult> {
 
-	private final AmazonSQSAsync amazonSqsAsync;
-
-	private final String queueUrl;
+	private static final Logger logger = LoggerFactory
+			.getLogger(DeleteMessageHandler.class);
 
 	private final String receiptHandle;
 
-	public QueueMessageAcknowledgment(AmazonSQSAsync amazonSqsAsync, String queueUrl,
-			String receiptHandle) {
-		this.amazonSqsAsync = amazonSqsAsync;
-		this.queueUrl = queueUrl;
+	DeleteMessageHandler(String receiptHandle) {
 		this.receiptHandle = receiptHandle;
 	}
 
 	@Override
-	public Future<?> acknowledge() {
-		return this.amazonSqsAsync.deleteMessageAsync(
-				new DeleteMessageRequest(this.queueUrl, this.receiptHandle),
-				new DeleteMessageHandler(this.receiptHandle));
+	public void onError(Exception exception) {
+		logger.warn("An exception occurred while deleting '{}' receiptHandle",
+				receiptHandle, exception);
+	}
+
+	@Override
+	public void onSuccess(DeleteMessageRequest request,
+			DeleteMessageResult deleteMessageResult) {
+		logger.trace("'{}' receiptHandle is deleted successfully",
+				request.getReceiptHandle());
 	}
 
 }
