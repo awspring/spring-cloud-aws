@@ -97,6 +97,27 @@ class NotificationRequestConverterTest {
 	}
 
 	@Test
+	void fromMessage_withNumberAttribute_shouldReturnMessage() throws Exception {
+		// Arrange
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "World");
+		ObjectNode messageAttributes = JsonNodeFactory.instance.objectNode();
+		messageAttributes.set("number-attribute", JsonNodeFactory.instance.objectNode()
+				.put("Value", "30").put("Type", "Number.long"));
+		jsonObject.set("MessageAttributes", messageAttributes);
+		String payload = jsonObject.toString();
+
+		// Act
+		Object notificationRequest = new NotificationRequestConverter(
+				new StringMessageConverter()).fromMessage(
+						MessageBuilder.withPayload(payload).build(), String.class);
+
+		// Assert
+		assertThat(notificationRequest).isNotNull();
+	}
+
+	@Test
 	void testNoTypeSupplied() throws Exception {
 		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Message", "Hello World!");

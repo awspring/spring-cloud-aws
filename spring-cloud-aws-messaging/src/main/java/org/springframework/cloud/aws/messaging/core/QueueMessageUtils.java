@@ -32,6 +32,7 @@ import org.springframework.util.NumberUtils;
 
 /**
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 public final class QueueMessageUtils {
@@ -63,6 +64,18 @@ public final class QueueMessageUtils {
 
 		return new GenericMessage<>(message.getBody(),
 				new SqsMessageHeaders(messageHeaders));
+	}
+
+	public static Object getNumberValue(String attributeValue, String attributeType) {
+		try {
+			return NumberParser.parseNumber(attributeValue, attributeType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new MessagingException(String.format(
+					"Message attribute with value '%s' and data type '%s' could not be converted "
+							+ "into a Number because target class was not found.",
+					attributeValue, attributeType), e);
+		}
 	}
 
 	private static Map<String, Object> getAttributesAsMessageHeaders(
@@ -97,10 +110,8 @@ public final class QueueMessageUtils {
 			}
 			else if (messageAttribute.getValue().getDataType()
 					.startsWith(MessageAttributeDataTypes.NUMBER)) {
-				Object numberValue = getNumberValue(messageAttribute.getValue());
-				if (numberValue != null) {
-					messageHeaders.put(messageAttribute.getKey(), numberValue);
-				}
+				messageHeaders.put(messageAttribute.getKey(),
+						getNumberValue(messageAttribute.getValue()));
 			}
 			else if (MessageAttributeDataTypes.BINARY
 					.equals(messageAttribute.getValue().getDataType())) {
@@ -113,19 +124,43 @@ public final class QueueMessageUtils {
 	}
 
 	private static Object getNumberValue(MessageAttributeValue value) {
-		String numberType = value.getDataType()
-				.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
-		try {
-			Class<? extends Number> numberTypeClass = Class.forName(numberType)
-					.asSubclass(Number.class);
-			return NumberUtils.parseNumber(value.getStringValue(), numberTypeClass);
+		return getNumberValue(value.getStringValue(), value.getDataType());
+	}
+
+	private static class NumberParser {
+
+		private static final Map<String, Class<? extends Number>> PRIMITIVE_TO_WRAPPED = new HashMap<>();
+
+		static {
+			PRIMITIVE_TO_WRAPPED.put(byte.class.getName(), Byte.class);
+			PRIMITIVE_TO_WRAPPED.put(short.class.getName(), Short.class);
+			PRIMITIVE_TO_WRAPPED.put(int.class.getName(), Integer.class);
+			PRIMITIVE_TO_WRAPPED.put(long.class.getName(), Long.class);
+			PRIMITIVE_TO_WRAPPED.put(float.class.getName(), Float.class);
+			PRIMITIVE_TO_WRAPPED.put(double.class.getName(), Double.class);
 		}
-		catch (ClassNotFoundException e) {
-			throw new MessagingException(String.format(
-					"Message attribute with value '%s' and data type '%s' could not be converted "
-							+ "into a Number because target class was not found.",
-					value.getStringValue(), value.getDataType()), e);
+
+		public static Object parseNumber(String value, String type)
+				throws ClassNotFoundException {
+			if (MessageAttributeDataTypes.NUMBER.equals(type)) {
+				return NumberUtils.parseNumber(value, Number.class);
+			}
+			else {
+				String javaType = type
+						.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
+
+				if (PRIMITIVE_TO_WRAPPED.containsKey(javaType.toLowerCase())) {
+					return NumberUtils.parseNumber(value,
+							PRIMITIVE_TO_WRAPPED.get(javaType.toLowerCase()));
+				}
+				else {
+					Class<? extends Number> numberTypeClass = Class.forName(javaType)
+							.asSubclass(Number.class);
+					return NumberUtils.parseNumber(value, numberTypeClass);
+				}
+			}
 		}
+
 	}
 
 }
