@@ -19,8 +19,8 @@ package org.springframework.cloud.aws.secretsmanager;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 /**
@@ -80,21 +80,29 @@ public class AwsSecretsManagerProperties implements Validator {
 
 	@Override
 	public void validate(Object target, Errors errors) {
-		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "prefix", "NotEmpty",
-				"prefix should not be empty or null.");
-		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "defaultContext", "NotEmpty",
-				"defaultContext should not be empty or null.");
-		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "profileSeparator", "NotEmpty",
-				"profileSeparator should not be empty or null.");
+		AwsSecretsManagerProperties properties = (AwsSecretsManagerProperties) target;
 
-		AwsSecretsManagerProperties awsSecretsManagerProperties = (AwsSecretsManagerProperties) target;
+		if (StringUtils.isEmpty(properties.getPrefix())) {
+			errors.rejectValue("prefix", "NotEmpty",
+					"prefix should not be empty or null.");
+		}
 
-		if (!PREFIX_PATTERN.matcher(awsSecretsManagerProperties.getPrefix()).matches()) {
+		if (StringUtils.isEmpty(properties.getDefaultContext())) {
+			errors.rejectValue("defaultContext", "NotEmpty",
+					"defaultContext should not be empty or null.");
+		}
+
+		if (StringUtils.isEmpty(properties.getProfileSeparator())) {
+			errors.rejectValue("profileSeparator", "NotEmpty",
+					"profileSeparator should not be empty or null.");
+		}
+
+		if (!PREFIX_PATTERN.matcher(properties.getPrefix()).matches()) {
 			errors.rejectValue("prefix", "Pattern",
 					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
-		if (!PROFILE_SEPARATOR_PATTERN
-				.matcher(awsSecretsManagerProperties.getProfileSeparator()).matches()) {
+		if (!PROFILE_SEPARATOR_PATTERN.matcher(properties.getProfileSeparator())
+				.matches()) {
 			errors.rejectValue("profileSeparator", "Pattern",
 					"The profileSeparator must have pattern of:  "
 							+ PROFILE_SEPARATOR_PATTERN.toString());
