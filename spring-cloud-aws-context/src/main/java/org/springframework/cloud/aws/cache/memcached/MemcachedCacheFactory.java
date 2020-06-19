@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import net.spy.memcached.MemcachedClient;
@@ -28,6 +29,14 @@ import org.springframework.cloud.aws.cache.AbstractCacheFactory;
  * @author Agim Emruli
  */
 public class MemcachedCacheFactory extends AbstractCacheFactory<MemcachedClient> {
+
+	public MemcachedCacheFactory() {
+	}
+
+	public MemcachedCacheFactory(Map<String, Integer> expiryTimePerCache,
+			int expiryTime) {
+		super(expiryTimePerCache, expiryTime);
+	}
 
 	@Override
 	public boolean isSupportingCacheArchitecture(String architecture) {

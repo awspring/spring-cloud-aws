@@ -50,9 +50,11 @@ import org.springframework.util.Assert;
 /**
  * @author Agim Emruli
  * @author Eddú Meléndez
+ * @deprecated use auto-configuration
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
+@Deprecated
 public class ElastiCacheCachingConfiguration implements ImportAware {
 
 	private static final String CACHE_CLUSTER_CONFIG_ATTRIBUTE_NAME = AnnotationUtils.VALUE;

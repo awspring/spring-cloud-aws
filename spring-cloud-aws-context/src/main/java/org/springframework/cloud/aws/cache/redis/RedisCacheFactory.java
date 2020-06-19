@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.cache.redis;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
 import org.springframework.cloud.aws.cache.AbstractCacheFactory;
@@ -36,6 +38,13 @@ public class RedisCacheFactory extends AbstractCacheFactory<RedisConnectionFacto
 
 	private static final boolean LETTUCE_AVAILABLE = ClassUtils
 			.isPresent("io.lettuce.core.RedisClient", ClassUtils.getDefaultClassLoader());
+
+	public RedisCacheFactory() {
+	}
+
+	public RedisCacheFactory(Map<String, Integer> expiryTimePerCache, int expiryTime) {
+		super(expiryTimePerCache, expiryTime);
+	}
 
 	@Override
 	public boolean isSupportingCacheArchitecture(String architecture) {

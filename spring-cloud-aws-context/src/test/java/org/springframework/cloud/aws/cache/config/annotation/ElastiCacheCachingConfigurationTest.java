@@ -41,6 +41,7 @@ import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Deprecated
 class ElastiCacheCachingConfigurationTest {
 
 	private AnnotationConfigApplicationContext context;

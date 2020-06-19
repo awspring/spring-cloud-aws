@@ -24,7 +24,9 @@ package org.springframework.cloud.aws.cache.config.annotation;
  * the expiration.
  *
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
+@Deprecated
 public @interface CacheClusterConfig {
 
 	/**

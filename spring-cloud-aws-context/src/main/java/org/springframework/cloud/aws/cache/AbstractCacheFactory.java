@@ -38,6 +38,12 @@ public abstract class AbstractCacheFactory<T> implements CacheFactory, Disposabl
 	protected AbstractCacheFactory() {
 	}
 
+	protected AbstractCacheFactory(Map<String, Integer> expiryTimePerCache,
+			int expiryTime) {
+		this.setExpiryTimePerCache(expiryTimePerCache);
+		this.setExpiryTime(expiryTime);
+	}
+
 	@Override
 	public void destroy() throws Exception {
 		synchronized (this.nativeConnectionClients) {

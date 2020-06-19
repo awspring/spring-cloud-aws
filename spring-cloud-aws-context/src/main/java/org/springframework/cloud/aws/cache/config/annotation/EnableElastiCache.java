@@ -42,11 +42,13 @@ import org.springframework.context.annotation.Import;
  * in one stack) will be used.
  *
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @EnableCaching
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import(ElastiCacheCachingConfiguration.class)
+@Deprecated
 public @interface EnableElastiCache {
 
 	/**
