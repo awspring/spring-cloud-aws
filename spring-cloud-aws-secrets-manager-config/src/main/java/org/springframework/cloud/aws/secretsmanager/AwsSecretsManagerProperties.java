@@ -51,7 +51,7 @@ public class AwsSecretsManagerProperties {
 	private String defaultContext = "application";
 
 	@NotNull
-	@Pattern(regexp = "[a-zA-Z0-9.\\-_]+")
+	@Pattern(regexp = "[a-zA-Z0-9.\\-_/\\\\]+")
 	private String profileSeparator = "_";
 
 	/** Throw exceptions during config lookup if true, otherwise, log warnings. */
