@@ -1190,6 +1190,32 @@ In this example the `extractLeafs` method will receive messages coming from the 
 that specifies `QueueMessagingTemplate` as the messaging template to be used to send the return value of the message
 listener method.
 
+===== Handling Exceptions
+
+Exception thrown inside `@SqsListener` annotated methods can be handled by methods annotated with `@MessageExceptionHandler`.
+
+[source,java,indent=0]
+----
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyMessageHandler {
+
+	@SqsListener("queueName")
+	void handle(String message) {
+		...
+		throw new MyException("something went wrong");
+	}
+
+	@MessageExceptionHandler(MyException.class)
+	void handleException(MyException e) {
+		...
+	}
+}
+----
+
 ==== The SimpleMessageListenerContainerFactory
 The `SimpleMessageListenerContainer` can also be configured with Java by creating a bean of type `SimpleMessageListenerContainerFactory`.
 
