@@ -23,7 +23,7 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
 
@@ -44,7 +44,7 @@ public class AwsParamStorePropertySourceLocatorTest {
 	private MockEnvironment env = new MockEnvironment();
 
 	@Test
-	public void contextExpectedToHave2Elements() {
+	void contextExpectedToHave2Elements() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
 				.withDefaultContext("application").withName("application").build();
 
@@ -62,7 +62,7 @@ public class AwsParamStorePropertySourceLocatorTest {
 	}
 
 	@Test
-	public void contextExpectedToHave4Elements() {
+	void contextExpectedToHave4Elements() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
 				.withDefaultContext("application").withName("messaging-service").build();
 
@@ -80,7 +80,7 @@ public class AwsParamStorePropertySourceLocatorTest {
 	}
 
 	@Test
-	public void contextSpecificOrderExpected() {
+	void contextSpecificOrderExpected() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
 				.withDefaultContext("application").withName("messaging-service").build();
 
