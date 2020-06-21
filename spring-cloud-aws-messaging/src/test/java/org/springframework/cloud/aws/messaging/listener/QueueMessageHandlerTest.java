@@ -29,6 +29,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,6 +51,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
+import org.springframework.cloud.aws.messaging.core.MessageAttributeDataTypes;
+import org.springframework.cloud.aws.messaging.core.QueueMessageUtils;
 import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.context.annotation.Bean;
@@ -176,6 +179,33 @@ class QueueMessageHandlerTest {
 					assertThat(messageListener.getLastReceivedMessage()).isNotNull();
 					assertThat(messageListener.getLastReceivedMessage().getPayload())
 							.isEqualTo(messagePayload);
+				});
+	}
+
+	@Test
+	void receiveMessage_methodWithSqsMessageAsParameter_parameterIsConverted() {
+		new ApplicationContextRunner()
+				.withConfiguration(UserConfigurations
+						.of(QueueMessageHandlerWithJacksonMappingConfiguration.class))
+				.withBean(IncomingMessageHandlerWithSqsMessageParameter.class)
+				.run((context) -> {
+					Map<String, MessageAttributeValue> attributes = new HashMap<>();
+					attributes.put(QueueMessageHandler.LOGICAL_RESOURCE_ID,
+							new MessageAttributeValue().withStringValue("testQueue")
+									.withDataType(MessageAttributeDataTypes.STRING));
+					Message<?> message = QueueMessageUtils
+							.createMessage(new com.amazonaws.services.sqs.model.Message()
+									.withBody("message body")
+									.withMessageAttributes(attributes));
+
+					MessageHandler messageHandler = context.getBean(MessageHandler.class);
+					messageHandler.handleMessage(message);
+
+					IncomingMessageHandlerWithSqsMessageParameter messageListener = context
+							.getBean(IncomingMessageHandlerWithSqsMessageParameter.class);
+					assertThat(messageListener.getLastReceivedMessage()).isNotNull();
+					assertThat(messageListener.getLastReceivedMessage().getBody())
+							.isEqualTo("message body");
 				});
 	}
 
@@ -1019,6 +1049,22 @@ class QueueMessageHandlerTest {
 		@RuntimeUse
 		@SqsListener("testQueue")
 		public void receive(Message<DummyKeyValueHolder> value) {
+			this.lastReceivedMessage = value;
+		}
+
+	}
+
+	private static class IncomingMessageHandlerWithSqsMessageParameter {
+
+		private com.amazonaws.services.sqs.model.Message lastReceivedMessage;
+
+		public com.amazonaws.services.sqs.model.Message getLastReceivedMessage() {
+			return this.lastReceivedMessage;
+		}
+
+		@RuntimeUse
+		@SqsListener("testQueue")
+		public void receive(com.amazonaws.services.sqs.model.Message value) {
 			this.lastReceivedMessage = value;
 		}
 

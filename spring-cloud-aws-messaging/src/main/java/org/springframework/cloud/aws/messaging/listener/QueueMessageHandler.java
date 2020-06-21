@@ -111,6 +111,7 @@ public class QueueMessageHandler
 		resolvers.add(new MessageMethodArgumentResolver(
 				this.messageConverters.isEmpty() ? new StringMessageConverter()
 						: new CompositeMessageConverter(this.messageConverters)));
+		resolvers.add(new SqsMessageMethodArgumentResolver());
 		resolvers.add(new PayloadArgumentResolver(compositeMessageConverter,
 				new NoOpValidator()));
 

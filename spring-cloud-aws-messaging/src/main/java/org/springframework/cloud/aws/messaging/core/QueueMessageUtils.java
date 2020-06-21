@@ -41,6 +41,8 @@ public final class QueueMessageUtils {
 
 	private static final String MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME = "MessageId";
 
+	private static final String SOURCE_DATA_HEADER = "sourceData";
+
 	private QueueMessageUtils() {
 		// Avoid instantiation
 	}
@@ -57,6 +59,7 @@ public final class QueueMessageUtils {
 		messageHeaders.put(MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME, message.getMessageId());
 		messageHeaders.put(RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME,
 				message.getReceiptHandle());
+		messageHeaders.put(SOURCE_DATA_HEADER, message);
 
 		messageHeaders.putAll(additionalHeaders);
 		messageHeaders.putAll(getAttributesAsMessageHeaders(message));
@@ -76,6 +79,12 @@ public final class QueueMessageUtils {
 							+ "into a Number because target class was not found.",
 					attributeValue, attributeType), e);
 		}
+	}
+
+	public static com.amazonaws.services.sqs.model.Message getSourceData(
+			Message<?> message) {
+		return (com.amazonaws.services.sqs.model.Message) message.getHeaders()
+				.get(SOURCE_DATA_HEADER);
 	}
 
 	private static Map<String, Object> getAttributesAsMessageHeaders(
