@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.cloud.aws.secretsmanager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
@@ -33,6 +36,7 @@ import static org.mockito.Mockito.when;
  * Unit test for {@link AwsSecretsManagerPropertySourceLocator}.
  *
  * @author Anthony Foulfoin
+ * @author Matej Nedic
  */
 class AwsSecretsManagerPropertySourceLocatorTest {
 
@@ -66,10 +70,93 @@ class AwsSecretsManagerPropertySourceLocatorTest {
 		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
 		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
 				smClient, properties);
-
 		PropertySource propertySource = locator.locate(env);
 
 		assertThat(propertySource.getName()).isEqualTo("aws-secrets-manager");
+	}
+
+	@Test
+	public void contextExpectedToHave2Elements() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder()
+				.withDefaultContext("application").withName("application").build();
+
+		GetSecretValueResult secretValueResult = new GetSecretValueResult();
+		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
+
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
+				smClient, properties);
+		env.setActiveProfiles("test");
+		locator.locate(env);
+
+		assertThat(locator.getContexts()).hasSize(2);
+	}
+
+	@Test
+	public void contextExpectedToHave4Elements() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder()
+				.withDefaultContext("application").withName("messaging-service").build();
+
+		GetSecretValueResult secretValueResult = new GetSecretValueResult();
+		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
+
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
+				smClient, properties);
+		env.setActiveProfiles("test");
+		locator.locate(env);
+
+		assertThat(locator.getContexts()).hasSize(4);
+	}
+
+	@Test
+	public void contextSpecificOrderExpected() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder()
+				.withDefaultContext("application").withName("messaging-service").build();
+
+		GetSecretValueResult secretValueResult = new GetSecretValueResult();
+		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
+				.thenReturn(secretValueResult);
+
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(
+				smClient, properties);
+		env.setActiveProfiles("test");
+		locator.locate(env);
+
+		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
+
+		assertThat(contextToBeTested.get(0)).isEqualTo("/secret/messaging-service_test");
+		assertThat(contextToBeTested.get(1)).isEqualTo("/secret/messaging-service");
+		assertThat(contextToBeTested.get(2)).isEqualTo("/secret/application_test");
+		assertThat(contextToBeTested.get(3)).isEqualTo("/secret/application");
+
+	}
+
+	private final static class AwsSecretsManagerPropertiesBuilder {
+
+		private final AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
+
+		private AwsSecretsManagerPropertiesBuilder() {
+		}
+
+		public AwsSecretsManagerPropertiesBuilder withDefaultContext(
+				String defaultContext) {
+			this.properties.setDefaultContext(defaultContext);
+			return this;
+		}
+
+		public AwsSecretsManagerPropertiesBuilder withName(String name) {
+			this.properties.setName(name);
+			return this;
+		}
+
+		public AwsSecretsManagerProperties build() {
+			return this.properties;
+		}
+
 	}
 
 }
