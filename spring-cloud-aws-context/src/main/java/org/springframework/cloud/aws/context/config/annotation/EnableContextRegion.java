@@ -40,10 +40,12 @@ import org.springframework.context.annotation.Import;
  *
  * @author Agim Emruli
  * @author Maciej Walkowiak
+ * @deprecated use auto-configuration
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import(ContextRegionConfigurationRegistrar.class)
+@Deprecated
 public @interface EnableContextRegion {
 
 	/**

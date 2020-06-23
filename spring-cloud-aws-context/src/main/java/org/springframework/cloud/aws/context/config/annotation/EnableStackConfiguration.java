@@ -27,10 +27,12 @@ import org.springframework.context.annotation.Import;
  * Enables Cloudformation support for the application context configuration.
  *
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import(ContextStackConfiguration.class)
+@Deprecated
 public @interface EnableStackConfiguration {
 
 	/**

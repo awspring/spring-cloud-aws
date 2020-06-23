@@ -27,9 +27,11 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 
 /**
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @SuppressWarnings("NonFinalUtilityClass")
 @Configuration(proxyBeanMethods = false)
+@Deprecated
 public class ContextInstanceDataConfiguration implements ImportBeanDefinitionRegistrar {
 
 	@Override

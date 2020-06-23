@@ -27,8 +27,10 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 
 /**
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @Configuration(proxyBeanMethods = false)
+@Deprecated
 public class ContextRegionConfigurationRegistrar
 		implements ImportBeanDefinitionRegistrar {
 

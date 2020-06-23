@@ -31,10 +31,12 @@ import org.springframework.context.annotation.Import;
  * <b>Note:</b>This annotation does not have any effect outside the EC2 environment.
  *
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(ContextInstanceDataConfiguration.class)
+@Deprecated
 public @interface EnableContextInstanceData {
 
 	/**

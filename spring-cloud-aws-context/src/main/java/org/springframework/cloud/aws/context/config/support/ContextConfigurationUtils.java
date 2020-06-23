@@ -37,7 +37,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
+@Deprecated
 public final class ContextConfigurationUtils {
 
 	/**

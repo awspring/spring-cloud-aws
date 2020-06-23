@@ -29,10 +29,12 @@ import org.springframework.context.annotation.Import;
  * (either through annotations or xml).
  *
  * @author Agim Emruli
+ * @deprecated use auto-configuration
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Import(ContextCredentialsConfigurationRegistrar.class)
 @Target(ElementType.TYPE)
+@Deprecated
 public @interface EnableContextCredentials {
 
 	/**

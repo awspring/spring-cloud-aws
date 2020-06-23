@@ -40,9 +40,11 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  * @author Eddú Meléndez
+ * @deprecated use auto-configuration
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextDefaultConfigurationRegistrar.class)
+@Deprecated
 public class ContextStackConfiguration implements ImportAware {
 
 	private AnnotationAttributes annotationAttributes;
