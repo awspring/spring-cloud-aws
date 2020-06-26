@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.util.StringUtils;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
  * {@link AwsSecretsManagerPropertySourceLocator} and its dependencies.
  *
  * @author Fabio Maia
+ * @author Matej Nedic
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
@@ -51,8 +53,9 @@ public class AwsSecretsManagerBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	AWSSecretsManager smClient() {
-		return AWSSecretsManagerClientBuilder.defaultClient();
+	AWSSecretsManager smClient(AwsSecretsManagerProperties awsSecretsManagerProperties) {
+		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion()) ?
+			AWSSecretsManagerClientBuilder.defaultClient() :
+			AWSSecretsManagerClientBuilder.standard().withRegion(awsSecretsManagerProperties.getRegion()).build();
 	}
-
 }

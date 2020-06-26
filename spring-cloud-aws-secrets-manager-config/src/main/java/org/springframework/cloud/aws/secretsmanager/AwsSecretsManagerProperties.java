@@ -28,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
  * Spring Cloud Consul Configuration equivalent.
  *
  * @author Fabio Maia
+ * @author Matej Nedic
  * @since 2.0.0
  */
 @ConfigurationProperties(AwsSecretsManagerProperties.CONFIG_PREFIX)
@@ -56,6 +57,11 @@ public class AwsSecretsManagerProperties {
 
 	/** Throw exceptions during config lookup if true, otherwise, log warnings. */
 	private boolean failFast = true;
+
+	/**
+	 * If region value is not null or empty it will be used in creation of AWSSecretsManager.
+	 */
+	private String region;
 
 	/**
 	 * Alternative to spring.application.name to use in looking up values in AWS Secrets
@@ -114,4 +120,11 @@ public class AwsSecretsManagerProperties {
 		this.enabled = enabled;
 	}
 
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(final String region) {
+		this.region = region;
+	}
 }
