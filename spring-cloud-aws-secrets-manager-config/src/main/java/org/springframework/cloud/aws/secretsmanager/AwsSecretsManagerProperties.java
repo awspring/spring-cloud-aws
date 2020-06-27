@@ -65,6 +65,12 @@ public class AwsSecretsManagerProperties implements Validator {
 	private boolean failFast = true;
 
 	/**
+	 * If region value is not null or empty it will be used in creation of
+	 * AWSSecretsManager.
+	 */
+	private String region;
+
+	/**
 	 * Alternative to spring.application.name to use in looking up values in AWS Secrets
 	 * Manager.
 	 */
@@ -155,6 +161,14 @@ public class AwsSecretsManagerProperties implements Validator {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(final String region) {
+		this.region = region;
 	}
 
 }

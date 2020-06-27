@@ -61,6 +61,12 @@ public class AwsParamStoreProperties implements Validator {
 
 	private String profileSeparator = "_";
 
+	/**
+	 * If region value is not null or empty it will be used in creation of
+	 * AWSSimpleSystemsManagement.
+	 */
+	private String region;
+
 	/** Throw exceptions during config lookup if true, otherwise, log warnings. */
 	private boolean failFast = true;
 
@@ -155,6 +161,14 @@ public class AwsParamStoreProperties implements Validator {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(final String region) {
+		this.region = region;
 	}
 
 }
