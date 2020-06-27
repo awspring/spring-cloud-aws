@@ -20,19 +20,19 @@ import java.lang.reflect.Method;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerProperties;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AwsSecretsManagerBootstrapConfigurationTest {
+class AwsSecretsManagerBootstrapConfigurationTest {
 
 	AwsSecretsManagerBootstrapConfiguration bootstrapConfig = new AwsSecretsManagerBootstrapConfiguration();
 
 	@Test
-	public void testWithStaticRegion() {
+	void testWithStaticRegion() {
 		String region = "us-east-2";
 		AwsSecretsManagerProperties awsParamStoreProperties = new AwsSecretsManagerProperties();
 		awsParamStoreProperties.setRegion(region);

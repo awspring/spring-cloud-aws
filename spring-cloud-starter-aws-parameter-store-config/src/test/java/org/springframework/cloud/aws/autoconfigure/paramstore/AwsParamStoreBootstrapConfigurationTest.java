@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
 import org.springframework.util.ReflectionUtils;
@@ -32,12 +32,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Matej Nedic
  */
-public class AwsParamStoreBootstrapConfigurationTest {
+class AwsParamStoreBootstrapConfigurationTest {
 
 	AwsParamStoreBootstrapConfiguration bootstrapConfig = new AwsParamStoreBootstrapConfiguration();
 
 	@Test
-	public void testWithStaticRegion() {
+	void testWithStaticRegion() {
 		String region = "us-east-2";
 		AwsParamStoreProperties awsParamStoreProperties = new AwsParamStoreProperties();
 		awsParamStoreProperties.setRegion(region);
