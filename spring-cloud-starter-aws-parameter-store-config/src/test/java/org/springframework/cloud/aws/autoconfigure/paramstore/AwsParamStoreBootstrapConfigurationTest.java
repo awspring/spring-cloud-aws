@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test for {@link AwsParamStoreBootstrapConfiguration}.
+ *
  * @author Matej Nedic
  */
 public class AwsParamStoreBootstrapConfigurationTest {
@@ -42,15 +43,17 @@ public class AwsParamStoreBootstrapConfigurationTest {
 		awsParamStoreProperties.setRegion(region);
 
 		Method SSMClientMethod = ReflectionUtils.findMethod(
-			AwsParamStoreBootstrapConfiguration.class, "ssmClient", AwsParamStoreProperties.class);
+				AwsParamStoreBootstrapConfiguration.class, "ssmClient",
+				AwsParamStoreProperties.class);
 		SSMClientMethod.setAccessible(true);
 		AWSSimpleSystemsManagementClient awsSimpleClient = (AWSSimpleSystemsManagementClient) ReflectionUtils
 				.invokeMethod(SSMClientMethod, bootstrapConfig, awsParamStoreProperties);
 
 		Method signingRegionMethod = ReflectionUtils
-			.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
+				.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
 		signingRegionMethod.setAccessible(true);
-		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod, awsSimpleClient);
+		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod,
+				awsSimpleClient);
 
 		assertThat(signedRegion).isEqualTo(region);
 	}

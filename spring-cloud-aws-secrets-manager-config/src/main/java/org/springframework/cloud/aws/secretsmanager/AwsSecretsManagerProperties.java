@@ -59,7 +59,8 @@ public class AwsSecretsManagerProperties {
 	private boolean failFast = true;
 
 	/**
-	 * If region value is not null or empty it will be used in creation of AWSSecretsManager.
+	 * If region value is not null or empty it will be used in creation of
+	 * AWSSecretsManager.
 	 */
 	private String region;
 
@@ -127,4 +128,5 @@ public class AwsSecretsManagerProperties {
 	public void setRegion(final String region) {
 		this.region = region;
 	}
+
 }

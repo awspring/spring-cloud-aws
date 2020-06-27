@@ -54,8 +54,10 @@ public class AwsSecretsManagerBootstrapConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	AWSSecretsManager smClient(AwsSecretsManagerProperties awsSecretsManagerProperties) {
-		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion()) ?
-			AWSSecretsManagerClientBuilder.defaultClient() :
-			AWSSecretsManagerClientBuilder.standard().withRegion(awsSecretsManagerProperties.getRegion()).build();
+		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion())
+				? AWSSecretsManagerClientBuilder.defaultClient()
+				: AWSSecretsManagerClientBuilder.standard()
+						.withRegion(awsSecretsManagerProperties.getRegion()).build();
 	}
+
 }

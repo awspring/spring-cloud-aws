@@ -29,7 +29,6 @@ import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 /**
  * Spring Cloud Bootstrap Configuration for setting up an
  * {@link AwsParamStorePropertySourceLocator} and its dependencies.
@@ -54,10 +53,12 @@ public class AwsParamStoreBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	AWSSimpleSystemsManagement ssmClient(AwsParamStoreProperties awsParamStoreProperties) {
-		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion()) ?
-			AWSSimpleSystemsManagementClientBuilder.defaultClient() :
-			AWSSimpleSystemsManagementClientBuilder.standard().withRegion(awsParamStoreProperties.getRegion()).build();
+	AWSSimpleSystemsManagement ssmClient(
+			AwsParamStoreProperties awsParamStoreProperties) {
+		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion())
+				? AWSSimpleSystemsManagementClientBuilder.defaultClient()
+				: AWSSimpleSystemsManagementClientBuilder.standard()
+						.withRegion(awsParamStoreProperties.getRegion()).build();
 	}
 
 }

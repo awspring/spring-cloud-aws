@@ -56,7 +56,8 @@ public class AwsParamStoreProperties {
 	private String profileSeparator = "_";
 
 	/**
-	 * If region value is not null or empty it will be used in creation of AWSSimpleSystemsManagement.
+	 * If region value is not null or empty it will be used in creation of
+	 * AWSSimpleSystemsManagement.
 	 */
 	private String region;
 
@@ -127,4 +128,5 @@ public class AwsParamStoreProperties {
 	public void setRegion(final String region) {
 		this.region = region;
 	}
+
 }

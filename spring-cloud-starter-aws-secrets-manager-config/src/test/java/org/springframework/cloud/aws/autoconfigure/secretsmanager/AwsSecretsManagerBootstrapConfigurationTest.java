@@ -38,17 +38,19 @@ public class AwsSecretsManagerBootstrapConfigurationTest {
 		awsParamStoreProperties.setRegion(region);
 
 		Method SMClientMethod = ReflectionUtils.findMethod(
-			AwsSecretsManagerBootstrapConfiguration.class, "smClient", AwsSecretsManagerProperties.class);
+				AwsSecretsManagerBootstrapConfiguration.class, "smClient",
+				AwsSecretsManagerProperties.class);
 		SMClientMethod.setAccessible(true);
 		AWSSecretsManagerClient awsSimpleClient = (AWSSecretsManagerClient) ReflectionUtils
-			.invokeMethod(SMClientMethod,  bootstrapConfig, awsParamStoreProperties);
+				.invokeMethod(SMClientMethod, bootstrapConfig, awsParamStoreProperties);
 
-		Method signingRegionMethod = ReflectionUtils.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
+		Method signingRegionMethod = ReflectionUtils
+				.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
 		signingRegionMethod.setAccessible(true);
-		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod, awsSimpleClient);
+		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod,
+				awsSimpleClient);
 
 		assertThat(signedRegion).isEqualTo(region);
 	}
-
 
 }
