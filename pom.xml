@@ -182,17 +182,6 @@
 
 	<profiles>
 		<profile>
-			<id>integration-test</id>
-			<activation>
-				<property>
-					<name>els.config.dir</name>
-				</property>
-			</activation>
-			<modules>
-				<module>spring-cloud-aws-integration-test</module>
-			</modules>
-		</profile>
-		<profile>
 			<id>spring</id>
 			<repositories>
 				<repository>
