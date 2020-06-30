@@ -66,6 +66,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * annotation.
  *
  * @author Alain Sahli
+ * @author Matej Nedic
  * @since 1.1
  */
 @Target(ElementType.METHOD)
@@ -85,6 +86,6 @@ public @interface SqsListener {
 	 * called.
 	 * @return deletion policy
 	 */
-	SqsMessageDeletionPolicy deletionPolicy() default SqsMessageDeletionPolicy.NO_REDRIVE;
+	SqsMessageDeletionPolicy deletionPolicy() default SqsMessageDeletionPolicy.DEFAULT;
 
 }

@@ -1030,7 +1030,8 @@ class QueueMessageHandlerTest {
 		@Bean
 		QueueMessageHandler queueMessageHandler() {
 			return new QueueMessageHandler(
-					Arrays.asList(mappingJackson2MessageConverter()));
+					Arrays.asList(mappingJackson2MessageConverter()),
+					SqsMessageDeletionPolicy.NO_REDRIVE);
 		}
 
 		@Bean

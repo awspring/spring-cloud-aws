@@ -28,6 +28,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
+import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
@@ -38,6 +39,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  * @since 1.0
  */
 public class QueueMessageHandlerFactory {
@@ -51,6 +53,8 @@ public class QueueMessageHandlerFactory {
 	private AmazonSQSAsync amazonSqs;
 
 	private ResourceIdResolver resourceIdResolver;
+
+	private SqsMessageDeletionPolicy sqsMessageDeletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE;
 
 	private BeanFactory beanFactory;
 
@@ -105,6 +109,17 @@ public class QueueMessageHandlerFactory {
 	}
 
 	/**
+	 * Configures global deletion Policy.
+	 * @param sqsMessageDeletionPolicy if set it will use SqsMessageDeletionPolicy param
+	 * as global default value only if SqsMessageDeletionPolicy is omitted
+	 * from @SqsListener annotation. Should not be null.
+	 */
+	public void setSqsMessageDeletionPolicy(
+			final SqsMessageDeletionPolicy sqsMessageDeletionPolicy) {
+		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy;
+	}
+
+	/**
 	 * This value is only used if no {@code sendToMessagingTemplate} has been set.
 	 * @param resourceIdResolver the resourceIdResolver to use for resolving logical to
 	 * physical ids in a CloudFormation environment. This resolver will be used by the
@@ -140,7 +155,8 @@ public class QueueMessageHandlerFactory {
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(
 				CollectionUtils.isEmpty(this.messageConverters) ? Arrays.asList(
 						getDefaultMappingJackson2MessageConverter(this.objectMapper))
-						: this.messageConverters);
+						: this.messageConverters,
+				this.sqsMessageDeletionPolicy);
 
 		if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
 			queueMessageHandler.getCustomArgumentResolvers()
