@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Alain Sahli
+ * @author Mete Alpaslan Katırcıoğlu
  * @since 1.0
  */
 public class SimpleMessageListenerContainerFactory {
@@ -40,6 +41,8 @@ public class SimpleMessageListenerContainerFactory {
 	private Integer visibilityTimeout;
 
 	private Integer waitTimeOut;
+
+	private Long queueStopTimeout;
 
 	private boolean autoStartup = true;
 
@@ -94,6 +97,15 @@ public class SimpleMessageListenerContainerFactory {
 	 */
 	public void setWaitTimeOut(Integer waitTimeOut) {
 		this.waitTimeOut = waitTimeOut;
+	}
+
+	/**
+	 * Configures the queue stop timeout that waits for a queue to stop before
+	 * interrupting the running thread.
+	 * @param queueStopTimeout in milliseconds
+	 */
+	public void setQueueStopTimeout(Long queueStopTimeout) {
+		this.queueStopTimeout = queueStopTimeout;
 	}
 
 	/**
@@ -203,6 +215,9 @@ public class SimpleMessageListenerContainerFactory {
 		}
 		if (this.waitTimeOut != null) {
 			simpleMessageListenerContainer.setWaitTimeOut(this.waitTimeOut);
+		}
+		if (this.queueStopTimeout != null) {
+			simpleMessageListenerContainer.setQueueStopTimeout(this.queueStopTimeout);
 		}
 		if (this.resourceIdResolver != null) {
 			simpleMessageListenerContainer.setResourceIdResolver(this.resourceIdResolver);

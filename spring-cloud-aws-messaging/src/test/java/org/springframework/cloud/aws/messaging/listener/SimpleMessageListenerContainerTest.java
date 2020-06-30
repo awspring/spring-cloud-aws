@@ -83,6 +83,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Mete Alpaslan Katırcıoğlu
  * @since 1.0
  */
 class SimpleMessageListenerContainerTest {
@@ -1270,7 +1271,7 @@ class SimpleMessageListenerContainerTest {
 				.isTrue();
 		assertThat(stopWatch
 				.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME)
-						.as("stop must last less than the listener method (< 10000ms)")
+						.as("stop must last less than the listener method (< 20000ms)")
 						.isTrue();
 		container.stop();
 	}
@@ -1621,7 +1622,7 @@ class SimpleMessageListenerContainerTest {
 
 	private static class LongRunningListenerMethod {
 
-		private static final int LISTENER_METHOD_WAIT_TIME = 10000;
+		private static final int LISTENER_METHOD_WAIT_TIME = 20000;
 
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 

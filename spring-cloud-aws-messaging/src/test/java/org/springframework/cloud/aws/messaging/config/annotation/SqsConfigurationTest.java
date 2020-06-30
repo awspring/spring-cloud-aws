@@ -57,6 +57,7 @@ import static org.mockito.Mockito.withSettings;
 /**
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Mete Alpaslan Katırcıoğlu
  */
 class SqsConfigurationTest {
 
@@ -160,6 +161,8 @@ class SqsConfigurationTest {
 				.isEqualTo(ConfigurationWithCustomContainerFactory.VISIBILITY_TIMEOUT);
 		assertThat(ReflectionTestUtils.getField(container, "waitTimeOut"))
 				.isEqualTo(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT);
+		assertThat(ReflectionTestUtils.getField(container, "queueStopTimeout"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.QUEUE_STOP_TIME_OUT);
 		assertThat(
 				ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils
 						.getField(container, "destinationResolver")).isTrue();
@@ -334,6 +337,8 @@ class SqsConfigurationTest {
 
 		static final int WAIT_TIME_OUT = 12;
 
+		static final long QUEUE_STOP_TIME_OUT = 12;
+
 		static final DestinationResolver<String> DESTINATION_RESOLVER = new DynamicQueueUrlDestinationResolver(
 				mock(AmazonSQSAsync.class, withSettings().stubOnly()));
 
@@ -356,6 +361,7 @@ class SqsConfigurationTest {
 			factory.setTaskExecutor(TASK_EXECUTOR);
 			factory.setVisibilityTimeout(VISIBILITY_TIMEOUT);
 			factory.setWaitTimeOut(WAIT_TIME_OUT);
+			factory.setQueueStopTimeout(QUEUE_STOP_TIME_OUT);
 			factory.setDestinationResolver(DESTINATION_RESOLVER);
 			factory.setBackOffTime(BACK_OFF_TIME);
 

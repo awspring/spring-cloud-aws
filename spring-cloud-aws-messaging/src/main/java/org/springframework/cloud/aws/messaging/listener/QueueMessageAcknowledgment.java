@@ -23,7 +23,7 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 
 /**
  * @author Alain Sahli
- * @author Mete Alpaslan Katircioglu
+ * @author Mete Alpaslan Katırcıoğlu
  * @since 1.1
  */
 public class QueueMessageAcknowledgment implements Acknowledgment {

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Callback executed on SQS message deletion.
  *
- * @author Mete Alpaslan Katircioglu
+ * @author Mete Alpaslan Katırcıoğlu
  */
 class DeleteMessageHandler
 		implements AsyncHandler<DeleteMessageRequest, DeleteMessageResult> {

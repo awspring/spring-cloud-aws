@@ -40,7 +40,7 @@ import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.cre
 /**
  * @author Agim Emruli
  * @author Alain Sahli
- * @author Mete Alpaslan Katircioglu
+ * @author Mete Alpaslan Katırcıoğlu
  * @since 1.0
  */
 public class SimpleMessageListenerContainer extends AbstractMessageListenerContainer {
@@ -54,7 +54,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private long backOffTime = 10000;
 
-	private long queueStopTimeout = 10000;
+	private long queueStopTimeout = 20000;
 
 	private AsyncTaskExecutor taskExecutor;
 
@@ -100,7 +100,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	/**
 	 * The number of milliseconds the {@link SimpleMessageListenerContainer#stop(String)}
 	 * method waits for a queue to stop before interrupting the current thread. Default
-	 * value is 10000 milliseconds (10 seconds).
+	 * value is 20000 milliseconds (20 seconds).
 	 * @param queueStopTimeout in milliseconds
 	 */
 	public void setQueueStopTimeout(long queueStopTimeout) {
