@@ -52,7 +52,7 @@ class AwsParamStoreBootstrapConfigurationTest {
 	}
 
 	@Test
-	public void testUserAgent() {
+	void testUserAgent() {
 		String region = "us-east-2";
 		AWSSimpleSystemsManagementClient awsSimpleClient = createParamStoreClient(region);
 

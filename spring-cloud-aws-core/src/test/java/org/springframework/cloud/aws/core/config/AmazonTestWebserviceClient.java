@@ -34,7 +34,7 @@ class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	private Region region;
 
-	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
+	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
 		super(SpringCloudClientConfiguration.getClientConfiguration());
 		notNull(awsCredentialsProvider, "CredentialsProvider must not be null");
 	}

@@ -68,7 +68,7 @@ class AmazonWebserviceClientFactoryBeanTest {
 	}
 
 	@Test
-	public void getObject_withCustomUserAgentPrefix() throws Exception {
+	void getObject_withCustomUserAgentPrefix() throws Exception {
 
 		// Arrange
 		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(

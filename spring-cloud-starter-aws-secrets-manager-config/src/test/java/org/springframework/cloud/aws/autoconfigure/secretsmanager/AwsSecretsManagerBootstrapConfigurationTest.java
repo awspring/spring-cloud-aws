@@ -46,7 +46,7 @@ class AwsSecretsManagerBootstrapConfigurationTest {
 	}
 
 	@Test
-	public void testUserAgent() {
+	void testUserAgent() {
 		String region = "us-east-2";
 		AWSSecretsManagerClient awsSimpleClient = createSecretsManagerClient(region);
 
