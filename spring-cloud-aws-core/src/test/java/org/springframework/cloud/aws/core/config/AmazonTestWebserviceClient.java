@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,26 @@
 package org.springframework.cloud.aws.core.config;
 
 import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
+
+import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
 
 import static org.springframework.util.Assert.notNull;
 
 /**
- * @author Agim Emruli Test stub used by
- * {@link AmazonWebserviceClientConfigurationUtilsTest}
+ * Test stub used by {@link AmazonWebserviceClientConfigurationUtilsTest}
+ *
+ * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 
 	private Region region;
 
-	AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
-		super(new ClientConfiguration());
-		notNull(awsCredentialsProvider, "Credentialsprovider must not be null");
+	public AmazonTestWebserviceClient(AWSCredentialsProvider awsCredentialsProvider) {
+		super(SpringCloudClientConfiguration.getClientConfiguration());
+		notNull(awsCredentialsProvider, "CredentialsProvider must not be null");
 	}
 
 	Region getRegion() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 class AmazonWebserviceClientFactoryBeanTest {
 
@@ -63,6 +64,25 @@ class AmazonWebserviceClientFactoryBeanTest {
 
 		// Assert
 		assertThat(webserviceClient.getRegion().getName()).isEqualTo("eu-west-1");
+
+	}
+
+	@Test
+	public void getObject_withCustomUserAgentPrefix() throws Exception {
+
+		// Arrange
+		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonTestWebserviceClient.class,
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+		factoryBean.setRegionProvider(new StaticRegionProvider("eu-west-1"));
+
+		// Act
+		factoryBean.afterPropertiesSet();
+		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
+
+		// Assert
+		assertThat(webserviceClient.getClientConfiguration().getUserAgentPrefix())
+				.startsWith("spring-cloud-aws/");
 
 	}
 

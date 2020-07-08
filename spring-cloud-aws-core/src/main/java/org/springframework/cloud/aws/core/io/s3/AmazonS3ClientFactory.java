@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.AmazonS3URI;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -39,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
  * region base.
  *
  * @author Agim Emruli
+ * @author Eddú Meléndez
  * @since 1.2
  */
 public class AmazonS3ClientFactory {
@@ -117,7 +119,9 @@ public class AmazonS3ClientFactory {
 
 	private AmazonS3ClientBuilder buildAmazonS3ForRegion(AmazonS3 prototype,
 			String region) {
-		AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
+		AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard()
+				.withClientConfiguration(
+						SpringCloudClientConfiguration.getClientConfiguration());
 
 		AmazonS3Client target = getAmazonS3ClientFromProxy(prototype);
 		if (target != null) {

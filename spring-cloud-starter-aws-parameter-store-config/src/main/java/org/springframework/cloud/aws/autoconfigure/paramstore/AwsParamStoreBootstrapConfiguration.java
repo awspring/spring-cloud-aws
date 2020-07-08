@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.paramstore;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.util.StringUtils;
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
 import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
 import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocator;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Joris Kuipers
  * @author Matej Nedic
+ * @author Eddú Meléndez
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
@@ -55,10 +58,12 @@ public class AwsParamStoreBootstrapConfiguration {
 	@ConditionalOnMissingBean
 	AWSSimpleSystemsManagement ssmClient(
 			AwsParamStoreProperties awsParamStoreProperties) {
+		AWSSimpleSystemsManagementClientBuilder builder = AWSSimpleSystemsManagementClientBuilder
+				.standard().withClientConfiguration(
+						SpringCloudClientConfiguration.getClientConfiguration());
 		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion())
-				? AWSSimpleSystemsManagementClientBuilder.defaultClient()
-				: AWSSimpleSystemsManagementClientBuilder.standard()
-						.withRegion(awsParamStoreProperties.getRegion()).build();
+				? builder.withRegion(Regions.DEFAULT_REGION).build()
+				: builder.withRegion(awsParamStoreProperties.getRegion()).build();
 	}
 
 }
