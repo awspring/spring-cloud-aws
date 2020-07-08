@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit test for {@link AwsParamStoreBootstrapConfiguration}.
  *
  * @author Matej Nedic
+ * @author Eddú Meléndez
  */
 public class AwsParamStoreBootstrapConfigurationTest {
 
@@ -39,6 +40,27 @@ public class AwsParamStoreBootstrapConfigurationTest {
 	@Test
 	public void testWithStaticRegion() {
 		String region = "us-east-2";
+		AWSSimpleSystemsManagementClient awsSimpleClient = createParamStoreClient(region);
+
+		Method signingRegionMethod = ReflectionUtils
+				.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
+		signingRegionMethod.setAccessible(true);
+		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod,
+				awsSimpleClient);
+
+		assertThat(signedRegion).isEqualTo(region);
+	}
+
+	@Test
+	public void testUserAgent() {
+		String region = "us-east-2";
+		AWSSimpleSystemsManagementClient awsSimpleClient = createParamStoreClient(region);
+
+		assertThat(awsSimpleClient.getClientConfiguration().getUserAgentPrefix())
+				.startsWith("spring-cloud-aws/");
+	}
+
+	private AWSSimpleSystemsManagementClient createParamStoreClient(String region) {
 		AwsParamStoreProperties awsParamStoreProperties = new AwsParamStoreProperties();
 		awsParamStoreProperties.setRegion(region);
 
@@ -48,14 +70,7 @@ public class AwsParamStoreBootstrapConfigurationTest {
 		SSMClientMethod.setAccessible(true);
 		AWSSimpleSystemsManagementClient awsSimpleClient = (AWSSimpleSystemsManagementClient) ReflectionUtils
 				.invokeMethod(SSMClientMethod, bootstrapConfig, awsParamStoreProperties);
-
-		Method signingRegionMethod = ReflectionUtils
-				.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
-		signingRegionMethod.setAccessible(true);
-		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod,
-				awsSimpleClient);
-
-		assertThat(signedRegion).isEqualTo(region);
+		return awsSimpleClient;
 	}
 
 }

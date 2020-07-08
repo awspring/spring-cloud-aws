@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -43,6 +44,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @param <T> implementation of the {@link AmazonWebServiceClient}
  * @author Agim Emruli
+ * @author Eddú Meléndez
  */
 public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 		extends AbstractFactoryBean<T> {
@@ -93,6 +95,9 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
 			asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
 		}
+
+		builder.withClientConfiguration(
+				SpringCloudClientConfiguration.getClientConfiguration());
 
 		if (this.credentialsProvider != null) {
 			builder.withCredentials(this.credentialsProvider);
