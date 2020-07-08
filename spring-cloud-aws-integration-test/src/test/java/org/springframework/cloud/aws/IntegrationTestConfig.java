@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.annotation.Order;
 
 /**
  * @author Agim Emruli
@@ -37,6 +38,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @EnableStackConfiguration(stackName = "IntegrationTestStack")
 @PropertySource("file://${els.config.dir}/access.properties")
 @EnableContextRegion(region = "eu-west-1")
+@Order(1)
 public class IntegrationTestConfig {
 
 	@Bean
