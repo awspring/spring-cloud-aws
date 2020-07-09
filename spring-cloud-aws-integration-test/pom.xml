@@ -161,14 +161,15 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.github.davidmoten</groupId>
+				<!-- snapshot version till https://github.com/davidmoten/aws-maven-plugin/pull/19 is merged -->
+				<groupId>com.github.maciejwalkowiak</groupId>
 				<artifactId>aws-maven-plugin</artifactId>
 				<version>0.2.26</version>
 				<configuration>
 					<stackName>IntegrationTestStack</stackName>
 					<template>src/test/resources/IntegrationTestStack.yaml</template>
 					<parameters>
-						<RdsPassword>test123456</RdsPassword>
+						<RdsPassword>${rdsPassword}</RdsPassword>
 					</parameters>
 					<intervalSeconds>2</intervalSeconds>
 				</configuration>
@@ -191,4 +192,11 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>

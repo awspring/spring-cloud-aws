@@ -198,7 +198,7 @@ Resources:
         - Key: tag4
           Value: tagv4
       NetworkInterfaces:
-        - GroupSet: !Ref 'InstanceSecurityGroup'
+        - GroupSet: [!Ref 'InstanceSecurityGroup']
           AssociatePublicIpAddress: 'true'
           DeviceIndex: '0'
           DeleteOnTermination: 'true'
