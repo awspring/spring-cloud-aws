@@ -81,7 +81,7 @@ class AmazonWebserviceClientFactoryBeanTest {
 		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
 		// Assert
-		assertThat(webserviceClient.getClientConfiguration().getUserAgentPrefix())
+		assertThat(webserviceClient.getClientConfiguration().getUserAgentSuffix())
 				.startsWith("spring-cloud-aws/");
 
 	}

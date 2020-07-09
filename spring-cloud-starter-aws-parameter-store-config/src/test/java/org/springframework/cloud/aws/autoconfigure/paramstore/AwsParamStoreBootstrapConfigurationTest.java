@@ -56,7 +56,7 @@ class AwsParamStoreBootstrapConfigurationTest {
 		String region = "us-east-2";
 		AWSSimpleSystemsManagementClient awsSimpleClient = createParamStoreClient(region);
 
-		assertThat(awsSimpleClient.getClientConfiguration().getUserAgentPrefix())
+		assertThat(awsSimpleClient.getClientConfiguration().getUserAgentSuffix())
 				.startsWith("spring-cloud-aws/");
 	}
 

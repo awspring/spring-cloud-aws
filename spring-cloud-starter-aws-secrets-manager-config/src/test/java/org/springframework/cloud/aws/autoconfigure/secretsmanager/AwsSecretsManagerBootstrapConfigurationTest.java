@@ -50,7 +50,7 @@ class AwsSecretsManagerBootstrapConfigurationTest {
 		String region = "us-east-2";
 		AWSSecretsManagerClient awsSimpleClient = createSecretsManagerClient(region);
 
-		assertThat(awsSimpleClient.getClientConfiguration().getUserAgentPrefix())
+		assertThat(awsSimpleClient.getClientConfiguration().getUserAgentSuffix())
 				.startsWith("spring-cloud-aws/");
 	}
 
