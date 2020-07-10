@@ -24,7 +24,10 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringBootTest(
-		classes = BootStackConfigurationAwsTest.BootStackConfigurationAwsTestConfig.class)
+		classes = BootStackConfigurationAwsTest.BootStackConfigurationAwsTestConfig.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 public class BootStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
 	@SpringBootApplication

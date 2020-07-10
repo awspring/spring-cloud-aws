@@ -31,7 +31,10 @@ import org.springframework.context.annotation.PropertySource;
 /**
  * @author Alain Sahli
  */
-@SpringBootTest(classes = BootQueueListenerTest.QueueListenerTestConfiguration.class)
+@SpringBootTest(classes = BootQueueListenerTest.QueueListenerTestConfiguration.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 public class BootQueueListenerTest extends QueueListenerTest {
 
 	@Configuration
