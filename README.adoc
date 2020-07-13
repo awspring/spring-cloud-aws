@@ -114,7 +114,7 @@ configuration settings will automatically execute the integration tests.
 To build with the integration tests you must execute
 
 -----------------------------------------------------------------------------------------------------
-mvn verify -Dels.config.dir=/Users/foo/config/dir
+mvn verify -Dels.config.dir=/Users/foo/config/dir -DrdsPassword=<password from access.properties file>
 (on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
 -----------------------------------------------------------------------------------------------------
 
