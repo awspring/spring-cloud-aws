@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,29 +26,31 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
  */
-
 @ExtendWith(SpringExtension.class)
+@AWSIntegration
 public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 
 	private static final int HTTP_SERVER_TEST_PORT = SocketUtils.findAvailableTcpPort();
+
 	@SuppressWarnings("StaticNonFinalField")
 	private static HttpServer httpServer;
+
 	@Autowired
 	private SimpleConfigurationBean simpleConfigurationBean;
 
@@ -89,20 +91,20 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 	private static void restContextInstanceDataCondition() throws IllegalAccessException {
 		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
 				"isCloudEnvironment");
-		assertNotNull(field);
+		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
 	}
 
 	@Test
 	void testInstanceDataResolution() throws Exception {
-		Assertions.assertEquals("value1", this.simpleConfigurationBean.getValue1());
-		Assertions.assertEquals("value2", this.simpleConfigurationBean.getValue2());
-		Assertions.assertEquals("value3", this.simpleConfigurationBean.getValue3());
-		Assertions.assertEquals("i123456", this.simpleConfigurationBean.getValue4());
+		assertThat(this.simpleConfigurationBean.getValue1()).isEqualTo("value1");
+		assertThat(this.simpleConfigurationBean.getValue2()).isEqualTo("value2");
+		assertThat(this.simpleConfigurationBean.getValue3()).isEqualTo("value3");
+		assertThat(this.simpleConfigurationBean.getValue4()).isEqualTo("i123456");
 	}
 
-	private static class StringWritingHttpHandler implements HttpHandler {
+	private static final class StringWritingHttpHandler implements HttpHandler {
 
 		private final byte[] content;
 

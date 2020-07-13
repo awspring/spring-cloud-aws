@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -50,15 +51,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.FileCopyUtils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
  */
 @ExtendWith(SpringExtension.class)
+@AWSIntegration
 abstract class ResourceLoaderAwsTest {
 
 	private static final String S3_PREFIX = "s3://";
@@ -77,8 +76,7 @@ abstract class ResourceLoaderAwsTest {
 	private StackResourceRegistry stackResourceRegistry;
 
 	@Test
-	void testUploadAndDownloadOfSmallFileWithInjectedResourceLoader()
-			throws Exception {
+	void testUploadAndDownloadOfSmallFileWithInjectedResourceLoader() throws Exception {
 		String bucketName = this.stackResourceRegistry
 				.lookupPhysicalResourceId("EmptyBucket");
 		uploadFileTestFile(bucketName,
@@ -86,12 +84,13 @@ abstract class ResourceLoaderAwsTest {
 				"hello world");
 		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName
 				+ "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
-		assertTrue(resource.exists());
+		assertThat(resource.exists()).isTrue();
 		InputStream inputStream = resource.getInputStream();
-		assertNotNull(inputStream);
-		assertEquals("hello world",
-				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
-		assertEquals("hello world".length(), resource.contentLength());
+		assertThat(inputStream).isNotNull();
+		assertThat(
+				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")))
+						.isEqualTo("hello world");
+		assertThat(resource.contentLength()).isEqualTo("hello world".length());
 	}
 
 	@Test
@@ -102,7 +101,7 @@ abstract class ResourceLoaderAwsTest {
 				"hello world");
 		Resource resource = this.resourceLoader.getResource(
 				S3_PREFIX + bucketName + "/testUploadFileWithRelativePathParent");
-		assertTrue(resource.exists());
+		assertThat(resource.exists()).isTrue();
 
 		WritableResource childFileResource = (WritableResource) resource
 				.createRelative("child");
@@ -115,10 +114,11 @@ abstract class ResourceLoaderAwsTest {
 		this.createdObjects.add(childFileResource.getFilename());
 
 		InputStream inputStream = childFileResource.getInputStream();
-		assertNotNull(inputStream);
-		assertEquals("hello world",
-				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")));
-		assertEquals("hello world".length(), childFileResource.contentLength());
+		assertThat(inputStream).isNotNull();
+		assertThat(
+				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")))
+						.isEqualTo("hello world");
+		assertThat(childFileResource.contentLength()).isEqualTo("hello world".length());
 	}
 
 	private void uploadFileTestFile(String bucketName, String objectKey, String content)
@@ -136,7 +136,7 @@ abstract class ResourceLoaderAwsTest {
 				.lookupPhysicalResourceId("EmptyBucket");
 		Resource resource = this.resourceLoader.getResource(
 				S3_PREFIX + bucketName + "/testUploadFileWithMoreThenFiveMegabytes");
-		assertTrue(WritableResource.class.isInstance(resource));
+		assertThat(WritableResource.class.isInstance(resource)).isTrue();
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
 		for (int i = 0; i < (1024 * 1024 * 6); i++) {
@@ -153,7 +153,7 @@ abstract class ResourceLoaderAwsTest {
 				.lookupPhysicalResourceId("EmptyBucket");
 		Resource resource = this.resourceLoader
 				.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
-		assertTrue(WritableResource.class.isInstance(resource));
+		assertThat(WritableResource.class.isInstance(resource)).isTrue();
 
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
@@ -186,8 +186,8 @@ abstract class ResourceLoaderAwsTest {
 
 		byte[] downloadedMd5Checksum = md.digest();
 
-		assertEquals(DigestUtils.md5DigestAsHex(originalMd5Checksum),
-				DigestUtils.md5DigestAsHex(downloadedMd5Checksum));
+		assertThat(DigestUtils.md5DigestAsHex(downloadedMd5Checksum))
+				.isEqualTo(DigestUtils.md5DigestAsHex(originalMd5Checksum));
 		this.createdObjects.add("test-file.jpg");
 	}
 
@@ -198,16 +198,17 @@ abstract class ResourceLoaderAwsTest {
 				.lookupPhysicalResourceId("EmptyBucket");
 
 		// Act & Assert
-		assertFalse(this.resourceLoader
-				.getResource(S3_PREFIX + bucketName + "/dummy-file.txt").exists());
+		assertThat(this.resourceLoader
+				.getResource(S3_PREFIX + bucketName + "/dummy-file.txt").exists())
+						.isFalse();
 	}
 
 	@Test
 	void exists_withNonExistingBucket_shouldReturnFalse() throws Exception {
-		assertFalse(this.resourceLoader
+		assertThat(this.resourceLoader
 				.getResource(
 						S3_PREFIX + "dummy-bucket-does-not-really-exist/dummy-file.txt")
-				.exists());
+				.exists()).isFalse();
 	}
 
 	// Cleans up the bucket. Because if the bucket is not cleaned up, then the bucket will

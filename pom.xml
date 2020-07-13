@@ -65,6 +65,7 @@
 		<module>spring-cloud-starter-aws-messaging</module>
 		<module>spring-cloud-starter-aws-parameter-store-config</module>
 		<module>spring-cloud-starter-aws-secrets-manager-config</module>
+		<module>spring-cloud-aws-integration-test</module>
 		<module>docs</module>
 	</modules>
 
@@ -147,6 +148,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
 						<argLine>-Xms512m -Xmx512m</argLine>
+						<excludedGroups>aws-integration-test</excludedGroups>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -197,17 +199,6 @@
 	</reporting>
 
 	<profiles>
-		<profile>
-			<id>integration-test</id>
-			<activation>
-				<property>
-					<name>els.config.dir</name>
-				</property>
-			</activation>
-			<modules>
-				<module>spring-cloud-aws-integration-test</module>
-			</modules>
-		</profile>
 		<profile>
 			<id>spring</id>
 			<repositories>
@@ -280,6 +271,21 @@
 					<artifactId>javax.activation-api</artifactId>
 				</dependency>
 			</dependencies>
+		</profile>
+		<profile>
+			<id>aws-integration-tests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration combine.self="override">
+							<groups>aws-integration-test</groups>
+							<excludedGroups/>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 

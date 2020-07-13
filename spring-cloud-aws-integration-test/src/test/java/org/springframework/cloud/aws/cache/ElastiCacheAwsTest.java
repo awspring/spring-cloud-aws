@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.support.profile.AmazonWebserviceProfileValueSource;
 import org.springframework.cloud.aws.support.profile.IfAmazonWebserviceEnvironment;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ProfileValueSourceConfiguration(AmazonWebserviceProfileValueSource.class)
+@AWSIntegration
 public abstract class ElastiCacheAwsTest {
 
 	@SuppressWarnings("SpringJavaAutowiringInspection")
@@ -47,16 +49,16 @@ public abstract class ElastiCacheAwsTest {
 		this.cachingService.deleteCacheKey("foo");
 		this.cachingService.deleteCacheKey("bar");
 
-		assertEquals(0, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(0);
 
-		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveMethod("foo")).isEqualTo("FOO");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(1);
 
-		assertEquals("FOO", this.cachingService.expensiveMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveMethod("foo")).isEqualTo("FOO");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(1);
 
-		assertEquals("BAR", this.cachingService.expensiveMethod("bar"));
-		assertEquals(2, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveMethod("bar")).isEqualTo("BAR");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(2);
 	}
 
 	@Test
@@ -65,16 +67,16 @@ public abstract class ElastiCacheAwsTest {
 		this.cachingService.deleteRedisCacheKey("foo");
 		this.cachingService.deleteRedisCacheKey("bar");
 
-		assertEquals(0, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(0);
 
-		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveRedisMethod("foo")).isEqualTo("FOO");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(1);
 
-		assertEquals("FOO", this.cachingService.expensiveRedisMethod("foo"));
-		assertEquals(1, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveRedisMethod("foo")).isEqualTo("FOO");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(1);
 
-		assertEquals("BAR", this.cachingService.expensiveRedisMethod("bar"));
-		assertEquals(2, this.cachingService.getInvocationCount().get());
+		assertThat(this.cachingService.expensiveRedisMethod("bar")).isEqualTo("BAR");
+		assertThat(this.cachingService.getInvocationCount().get()).isEqualTo(2);
 	}
 
 }

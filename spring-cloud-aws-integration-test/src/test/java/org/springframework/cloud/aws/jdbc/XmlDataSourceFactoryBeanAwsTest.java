@@ -16,35 +16,25 @@
 
 package org.springframework.cloud.aws.jdbc;
 
-import java.util.Date;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.AWSIntegration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * AWS backed integration test for the datasource feature of the jdbc module
- *
  * @author Agim Emruli
- * @since 1.0
  */
-@ExtendWith(SpringExtension.class)
-@AWSIntegration
-abstract class DataSourceFactoryBeanAwsTest {
+@ContextConfiguration
+class XmlDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
-	@Autowired
-	private DatabaseService databaseService;
+	@Value("#{dbTags['aws:cloudformation:logical-id']}")
+	private String dbLogicalName;
 
 	@Test
-	void testWriteAndReadWithReadReplicaEnabled() throws Exception {
-		Date lastAccessDatabase = this.databaseService.updateLastAccessDatabase();
-		Date checkDatabase = this.databaseService.getLastUpdate(lastAccessDatabase);
-		assertThat(checkDatabase.getTime()).isEqualTo(lastAccessDatabase.getTime());
+	public void testDatabaseInstanceUserProperties() throws Exception {
+		assertThat(this.dbLogicalName).isEqualTo("RdsSingleMicroInstance");
 	}
 
 }

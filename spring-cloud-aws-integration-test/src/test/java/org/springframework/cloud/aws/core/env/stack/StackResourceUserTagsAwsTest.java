@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package org.springframework.cloud.aws.core.env.stack;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.support.TestStackEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Agim Emruli
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
+@AWSIntegration
 public class StackResourceUserTagsAwsTest {
 
 	@Value("#{stackTags['tag1']}")
@@ -46,8 +49,8 @@ public class StackResourceUserTagsAwsTest {
 	void getObject_retrieveAttributesOfStackStartedByTestEnvironment_returnsStackUserTags()
 			throws Exception {
 		if (this.testStackEnvironment.isStackCreatedAutomatically()) {
-			Assertions.assertEquals("value1", this.stackTag1);
-			Assertions.assertEquals("value2", this.stackTag2);
+			assertThat(this.stackTag1).isEqualTo("value1");
+			assertThat(this.stackTag2).isEqualTo("value2");
 		}
 	}
 

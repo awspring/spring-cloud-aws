@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,7 @@ import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplat
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Alain Sahli
@@ -64,10 +63,12 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 				new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
-		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		assertEquals("Agim", this.notificationReceiver.getMessage().getFirstName());
-		assertEquals("Emruli", this.notificationReceiver.getMessage().getLastName());
-		assertEquals(subject, this.notificationReceiver.getSubject());
+		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.notificationReceiver.getMessage().getFirstName())
+				.isEqualTo("Agim");
+		assertThat(this.notificationReceiver.getMessage().getLastName())
+				.isEqualTo("Emruli");
+		assertThat(this.notificationReceiver.getSubject()).isEqualTo(subject);
 	}
 
 	@Test
@@ -83,10 +84,12 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 				.sendNotification(new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
-		assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
-		assertEquals("Agim", this.notificationReceiver.getMessage().getFirstName());
-		assertEquals("Emruli", this.notificationReceiver.getMessage().getLastName());
-		assertEquals(subject, this.notificationReceiver.getSubject());
+		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.notificationReceiver.getMessage().getFirstName())
+				.isEqualTo("Agim");
+		assertThat(this.notificationReceiver.getMessage().getLastName())
+				.isEqualTo("Emruli");
+		assertThat(this.notificationReceiver.getSubject()).isEqualTo(subject);
 	}
 
 	@RuntimeUse
