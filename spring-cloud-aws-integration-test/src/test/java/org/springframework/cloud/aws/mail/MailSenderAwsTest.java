@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package org.springframework.cloud.aws.mail;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -32,7 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Test that uses the Amazon Simple Mail service to send mail.
  * <p>
  * <br>
- * Note:</br>
+ * Note:<br>
  * This test is a fire and forget test as the amazon simple mail service does not provide
  * timely feedback if a message is send or not. Using the
  * {@link com.amazonaws.services.simpleemail.AmazonSimpleEmailService} method to get the
@@ -45,6 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Agim Emruli
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@Category(AWSIntegration.class)
 public abstract class MailSenderAwsTest {
 
 	@Autowired

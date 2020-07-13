@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,12 @@ public class TestStackEnvironment
 	private static final String EC2_INSTANCE_NAME = "UserTagAndUserDataInstance";
 
 	private static final String TEMPLATE_PATH = "IntegrationTestStack.yaml";
+
 	private final AmazonCloudFormation amazonCloudFormationClient;
+
 	@Value("${rdsPassword}")
 	private String rdsPassword;
+
 	private DescribeStackResourcesResult stackResources;
 
 	private boolean stackCreatedByThisInstance;

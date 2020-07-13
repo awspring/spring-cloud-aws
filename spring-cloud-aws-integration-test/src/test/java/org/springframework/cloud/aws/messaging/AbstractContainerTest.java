@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.experimental.categories.Category;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.AWSIntegration;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 
 /**
  * @author Alain Sahli
  */
+@Category(AWSIntegration.class)
 abstract class AbstractContainerTest {
 
 	@Autowired

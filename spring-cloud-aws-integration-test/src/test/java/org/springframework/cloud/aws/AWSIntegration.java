@@ -14,27 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc;
-
-import org.junit.Test;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.ContextConfiguration;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package org.springframework.cloud.aws;
 
 /**
- * @author Agim Emruli
+ * Used to identify and filter tests that are run against an AWS Account.
+ * </p>
+ * Due to the need for a real account in these tests they are not run by default.
+ *
+ * @author Darren Forsythe
  */
-@ContextConfiguration
-public class XmlDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
-
-	@Value("#{dbTags['aws:cloudformation:logical-id']}")
-	private String dbLogicalName;
-
-	@Test
-	public void testDatabaseInstanceUserProperties() throws Exception {
-		assertThat(this.dbLogicalName).isEqualTo("RdsSingleMicroInstance");
-	}
+public interface AWSIntegration {
 
 }
