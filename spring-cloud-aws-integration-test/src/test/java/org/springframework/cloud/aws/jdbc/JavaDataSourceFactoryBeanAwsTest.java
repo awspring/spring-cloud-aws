@@ -26,7 +26,8 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * @author Agim Emruli
  */
-@ContextConfiguration(classes = JavaDataSourceFactoryBeanAwsTest.JavaDataSourceFactoryBeanAwsTestConfig.class)
+@ContextConfiguration(
+		classes = JavaDataSourceFactoryBeanAwsTest.JavaDataSourceFactoryBeanAwsTestConfig.class)
 public class JavaDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 	@Configuration
