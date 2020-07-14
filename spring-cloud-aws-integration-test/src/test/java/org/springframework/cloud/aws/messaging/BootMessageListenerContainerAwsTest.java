@@ -31,7 +31,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Alain Sahli
  */
 @SpringBootTest(
-		classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
+		classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
 	@Configuration

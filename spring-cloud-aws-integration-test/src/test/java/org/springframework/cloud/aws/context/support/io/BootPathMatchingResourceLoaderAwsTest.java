@@ -26,7 +26,10 @@ import org.springframework.context.annotation.PropertySource;
  * @author Agim Emruli
  */
 @SpringBootTest(
-		classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
+		classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 class BootPathMatchingResourceLoaderAwsTest extends PathMatchingResourceLoaderAwsTest {
 
 	@SpringBootApplication

@@ -23,7 +23,10 @@ import org.springframework.context.annotation.PropertySource;
 /**
  * @author Agim Emruli
  */
-@SpringBootTest(classes = BootElastiCacheAwsTest.BootElastiCacheAwsTestConfig.class)
+@SpringBootTest(classes = BootElastiCacheAwsTest.BootElastiCacheAwsTestConfig.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 class BootElastiCacheAwsTest extends ElastiCacheAwsTest {
 
 	@SpringBootApplication

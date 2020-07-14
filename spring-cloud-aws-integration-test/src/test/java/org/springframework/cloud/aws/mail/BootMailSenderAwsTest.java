@@ -27,7 +27,10 @@ import org.springframework.core.io.Resource;
 /**
  * @author Agim Emruli
  */
-@SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class)
+@SpringBootTest(classes = BootMailSenderAwsTest.BootMailSenderAwsTestConfig.class,
+		properties = {
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 class BootMailSenderAwsTest extends MailSenderAwsTest {
 
 	@SpringBootApplication

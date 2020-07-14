@@ -63,7 +63,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 				new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.notificationReceiver.getMessage().getFirstName())
 				.isEqualTo("Agim");
 		assertThat(this.notificationReceiver.getMessage().getLastName())
@@ -84,7 +84,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 				.sendNotification(new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.notificationReceiver.getMessage().getFirstName())
 				.isEqualTo("Agim");
 		assertThat(this.notificationReceiver.getMessage().getLastName())

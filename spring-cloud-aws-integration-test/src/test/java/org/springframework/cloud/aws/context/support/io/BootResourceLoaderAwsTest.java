@@ -27,7 +27,9 @@ import org.springframework.context.annotation.PropertySource;
  */
 @SpringBootTest(classes = BootResourceLoaderAwsTest.BootResourceLoaderAwsTestConfig.class,
 		properties = { "cloud.aws.loader.corePoolSize=10",
-				"cloud.aws.loader.queueCapacity=0" })
+				"cloud.aws.loader.queueCapacity=0",
+				"cloud.aws.credentials.access-key=${aws-integration-tests.accessKey}",
+				"cloud.aws.credentials.secret-key=${aws-integration-tests.secretKey}" })
 class BootResourceLoaderAwsTest extends ResourceLoaderAwsTest {
 
 	@SpringBootApplication
