@@ -54,7 +54,7 @@ public class QueueMessageHandlerFactory {
 
 	private ResourceIdResolver resourceIdResolver;
 
-	private SqsMessageDeletionPolicy sqsMessageDeletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE;
+	private SqsMessageDeletionPolicy sqsMessageDeletionPolicy;
 
 	private BeanFactory beanFactory;
 

@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
+@Deprecated
 public class SnsConfiguration {
 
 	private final AWSCredentialsProvider awsCredentialsProvider;

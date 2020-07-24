@@ -43,6 +43,7 @@ import org.springframework.util.CollectionUtils;
  */
 @Configuration
 @Import(ContextDefaultConfigurationRegistrar.class)
+@Deprecated
 public class SqsConfiguration {
 
 	private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;

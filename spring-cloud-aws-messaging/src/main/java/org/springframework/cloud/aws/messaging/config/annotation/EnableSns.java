@@ -27,10 +27,12 @@ import org.springframework.context.annotation.Import;
  * @author Alain Sahli
  * @author Agim Emruli
  * @since 1.0
+ * @deprecated use auto-configuration instead
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import({ SnsConfiguration.class, SnsWebConfiguration.class })
+@Deprecated
 public @interface EnableSns {
 
 }

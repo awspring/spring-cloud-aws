@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Lazy;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnMissingAmazonClient(AmazonSQS.class)
+@Deprecated
 public class SqsClientConfiguration {
 
 	private final AWSCredentialsProvider awsCredentialsProvider;

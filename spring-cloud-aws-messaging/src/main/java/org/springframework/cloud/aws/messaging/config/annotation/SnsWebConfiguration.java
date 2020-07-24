@@ -33,6 +33,7 @@ import static org.springframework.cloud.aws.messaging.endpoint.config.Notificati
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
+@Deprecated
 public class SnsWebConfiguration {
 
 	@Bean

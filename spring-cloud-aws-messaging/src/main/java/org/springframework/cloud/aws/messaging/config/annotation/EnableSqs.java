@@ -26,10 +26,12 @@ import org.springframework.context.annotation.Import;
 /**
  * @author Alain Sahli
  * @since 1.0
+ * @deprecated use auto-configuration instead
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import({ SqsClientConfiguration.class, SqsConfiguration.class })
+@Deprecated
 public @interface EnableSqs {
 
 }

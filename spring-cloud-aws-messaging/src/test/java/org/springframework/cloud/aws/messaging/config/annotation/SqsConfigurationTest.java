@@ -354,6 +354,7 @@ class SqsConfigurationTest {
 					Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
 			factory.setAmazonSqs(CUSTOM_AMAZON_SQS);
 			factory.setResourceIdResolver(CUSTOM_RESOURCE_ID_RESOLVER);
+			factory.setSqsMessageDeletionPolicy(SqsMessageDeletionPolicy.NO_REDRIVE);
 
 			return factory;
 		}
