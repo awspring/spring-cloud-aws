@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.aws.context.support.io;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ProtocolResolver;
+import org.springframework.core.io.ResourceLoader;
 
 /**
  * Configurer that register the {@link SimpleStorageProtocolResolver} to the resource
@@ -30,16 +35,22 @@ import org.springframework.core.io.ProtocolResolver;
  *
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
 public class SimpleStorageProtocolResolverConfigurer
-		implements ApplicationContextAware, Ordered {
+		implements BeanFactoryPostProcessor, Ordered, ResourceLoaderAware {
 
-	private final ProtocolResolver resourceLoader;
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(SimpleStorageProtocolResolverConfigurer.class);
+
+	private final ProtocolResolver protocolResolver;
+
+	private ResourceLoader resourceLoader;
 
 	public SimpleStorageProtocolResolverConfigurer(
 			SimpleStorageProtocolResolver simpleStorageProtocolResolver) {
-		this.resourceLoader = simpleStorageProtocolResolver;
+		this.protocolResolver = simpleStorageProtocolResolver;
 	}
 
 	@Override
@@ -48,12 +59,21 @@ public class SimpleStorageProtocolResolverConfigurer
 	}
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext)
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
 			throws BeansException {
-		if (applicationContext instanceof ConfigurableApplicationContext) {
-			ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
-			configurableApplicationContext.addProtocolResolver(this.resourceLoader);
+		if (DefaultResourceLoader.class.isAssignableFrom(resourceLoader.getClass())) {
+			((DefaultResourceLoader) resourceLoader)
+					.addProtocolResolver(this.protocolResolver);
 		}
+		else {
+			LOGGER.warn("The provided delegate resource loader is not an implementation "
+					+ "of DefaultResourceLoader. Custom Protocol using s3:// prefix will not be enabled.");
+		}
+	}
+
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
 	}
 
 }
