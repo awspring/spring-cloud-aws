@@ -4,7 +4,6 @@ Manual changes to this file will be lost when it is generated again.
 Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
-
 = Spring Cloud for Amazon Web Services
 
 Spring Cloud for Amazon Web Services, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
@@ -115,7 +114,7 @@ configuration settings will automatically execute the integration tests.
 To build with the integration tests you must execute
 
 -----------------------------------------------------------------------------------------------------
-mvn verify -Dels.config.dir=/Users/foo/config/dir
+mvn verify -Dels.config.dir=/Users/foo/config/dir -DrdsPassword=<password from access.properties file>
 (on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
 -----------------------------------------------------------------------------------------------------
 
