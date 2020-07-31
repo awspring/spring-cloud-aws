@@ -7,12 +7,14 @@
 |aws.paramstore.name |  | Alternative to spring.application.name to use in looking up values in AWS Parameter Store.
 |aws.paramstore.prefix | /config | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
 |aws.paramstore.profile-separator | _ | 
+|aws.paramstore.region |  | If region value is not null or empty it will be used in creation of AWSSimpleSystemsManagement.
 |aws.secretsmanager.default-context | application | 
 |aws.secretsmanager.enabled | true | Is AWS Secrets Manager support enabled.
 |aws.secretsmanager.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
 |aws.secretsmanager.name |  | Alternative to spring.application.name to use in looking up values in AWS Secrets Manager.
 |aws.secretsmanager.prefix | /secret | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
 |aws.secretsmanager.profile-separator | _ | 
+|aws.secretsmanager.region |  | If region value is not null or empty it will be used in creation of AWSSecretsManager.
 |cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
 |cloud.aws.credentials.instance-profile | true | Configures an instance profile credentials provider with no further configuration.
 |cloud.aws.credentials.profile-name |  | The AWS profile name.
