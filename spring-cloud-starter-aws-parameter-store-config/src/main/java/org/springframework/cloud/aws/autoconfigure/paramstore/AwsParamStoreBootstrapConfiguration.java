@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.autoconfigure.paramstore;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.util.StringUtils;
@@ -62,7 +61,7 @@ public class AwsParamStoreBootstrapConfiguration {
 				.standard().withClientConfiguration(
 						SpringCloudClientConfiguration.getClientConfiguration());
 		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion())
-				? builder.withRegion(Regions.DEFAULT_REGION).build()
+				? builder.build()
 				: builder.withRegion(awsParamStoreProperties.getRegion()).build();
 	}
 
