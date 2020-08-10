@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.autoconfigure.secretsmanager;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.util.StringUtils;
@@ -61,7 +60,7 @@ public class AwsSecretsManagerBootstrapConfiguration {
 				.withClientConfiguration(
 						SpringCloudClientConfiguration.getClientConfiguration());
 		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion())
-				? builder.withRegion(Regions.DEFAULT_REGION).build()
+				? builder.build()
 				: builder.withRegion(awsSecretsManagerProperties.getRegion()).build();
 	}
 
