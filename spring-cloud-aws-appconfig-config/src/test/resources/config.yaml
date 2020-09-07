@@ -1,0 +1,6 @@
+spring:
+  application.name: my-app
+  main:
+    webflux.base-path: /my-controller
+
+server.port: 8081

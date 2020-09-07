@@ -1,0 +1,10 @@
+{
+  "spring": {
+    "application": {
+      "name": "my-app"
+    }
+  },
+  "server": {
+    "port": 8089
+  }
+}
