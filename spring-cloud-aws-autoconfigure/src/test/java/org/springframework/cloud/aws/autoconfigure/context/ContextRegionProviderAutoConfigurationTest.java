@@ -22,8 +22,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils;
 import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
+import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,6 +71,36 @@ class ContextRegionProviderAutoConfigurationTest {
 					assertThat(regionProvider.getRegion())
 							.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 				});
+	}
+
+	@Test
+	void customRegionConfigured() {
+		this.contextRunner.withUserConfiguration(CustomRegionProviderConfiguration.class)
+				.run((context) -> {
+					RegionProvider regionProvider = context.getBean(RegionProvider.class);
+					assertThat(regionProvider).isNotNull()
+							.isInstanceOf(CustomRegionProvider.class);
+				});
+
+	}
+
+	@Configuration
+	static class CustomRegionProviderConfiguration {
+
+		@Bean(name = ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME)
+		public RegionProvider customRegionProvider() {
+			return new CustomRegionProvider();
+		}
+
+	}
+
+	static class CustomRegionProvider implements RegionProvider {
+
+		@Override
+		public Region getRegion() {
+			return null;
+		}
+
 	}
 
 }

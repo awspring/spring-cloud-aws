@@ -16,15 +16,21 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.aws.autoconfigure.context.properties.AwsRegionProperties;
+import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.cloud.aws.core.region.StaticRegionProvider;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotationMetadata;
 
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
 
@@ -37,19 +43,49 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  * @author Petromir Dzhunev
  * @author Maciej Walkowiak
  */
+// @checkstyle:off
 @Configuration(proxyBeanMethods = false)
+@Import(ContextRegionProviderAutoConfiguration.Registrar.class)
 @EnableConfigurationProperties(AwsRegionProperties.class)
 public class ContextRegionProviderAutoConfiguration {
 
-	@ConditionalOnMissingBean(name = REGION_PROVIDER_BEAN_NAME)
-	@Bean(name = REGION_PROVIDER_BEAN_NAME)
-	RegionProvider regionProvider(AwsRegionProperties properties) {
-		if (StringUtils.hasText(properties.getStatic())) {
-			return new StaticRegionProvider(properties.getStatic());
+	static class Registrar implements EnvironmentAware, ImportBeanDefinitionRegistrar {
+
+		private Environment environment;
+
+		@Override
+		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+				BeanDefinitionRegistry registry) {
+			// Do not register region provider if already existing
+			if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
+				registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME,
+						createRegionProviderBeanDefinition(awsRegionProperties()));
+				AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(
+						registry, REGION_PROVIDER_BEAN_NAME);
+			}
 		}
-		else {
-			return new DefaultAwsRegionProviderChainDelegate();
+
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = environment;
 		}
+
+		private BeanDefinition createRegionProviderBeanDefinition(
+				AwsRegionProperties properties) {
+			return properties.isStatic() ? BeanDefinitionBuilder
+					.genericBeanDefinition(StaticRegionProvider.class)
+					.addConstructorArgValue(properties.getStatic()).getBeanDefinition()
+					: BeanDefinitionBuilder
+							.genericBeanDefinition(
+									DefaultAwsRegionProviderChainDelegate.class)
+							.getBeanDefinition();
+		}
+
+		private AwsRegionProperties awsRegionProperties() {
+			return Binder.get(this.environment).bindOrCreate(AwsRegionProperties.PREFIX,
+					AwsRegionProperties.class);
+		}
+
 	}
 
 }

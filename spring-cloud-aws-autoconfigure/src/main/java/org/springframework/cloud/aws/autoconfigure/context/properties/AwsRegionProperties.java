@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.context.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
 /**
  * Properties related to AWS region configuration.
@@ -26,8 +27,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.0.2
  * @see org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
  */
-@ConfigurationProperties(prefix = "cloud.aws.region")
+@ConfigurationProperties(prefix = AwsRegionProperties.PREFIX)
 public class AwsRegionProperties {
+
+	/**
+	 * The prefix used for AWS region related properties.
+	 */
+	public static final String PREFIX = "cloud.aws.region";
 
 	/**
 	 * Configures a static region for the application. Possible regions are (currently)
@@ -39,6 +45,10 @@ public class AwsRegionProperties {
 
 	public String getStatic() {
 		return this.staticRegion;
+	}
+
+	public boolean isStatic() {
+		return StringUtils.hasText(this.staticRegion);
 	}
 
 	public void setStatic(String staticRegion) {

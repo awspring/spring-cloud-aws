@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 import java.io.IOException;
 import java.util.List;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -31,10 +32,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
 
 /**
  * Tests for {@link ContextCredentialsAutoConfiguration}.
@@ -171,6 +175,44 @@ class ContextCredentialsAutoConfigurationTest {
 					assertThat(provider.getCredentials().getAWSSecretKey())
 							.isEqualTo("testSecretKey");
 				});
+	}
+
+	@Test
+	void credentialsProvider_customCredentialsConfigured_customCredentialsAreUsed() {
+		// @checkstyle:on
+		this.contextRunner
+				.withUserConfiguration(CustomCredentialsProviderConfiguration.class)
+				.run((context) -> {
+					AWSCredentialsProvider awsCredentialsProvider = context
+							.getBean(AWSCredentialsProvider.class);
+					assertThat(awsCredentialsProvider).isNotNull()
+							.isInstanceOf(CustomAWSCredentialsProvider.class);
+				});
+
+	}
+
+	@Configuration
+	static class CustomCredentialsProviderConfiguration {
+
+		@Bean(name = CREDENTIALS_PROVIDER_BEAN_NAME)
+		public AWSCredentialsProvider customAwsCredentialsProvider() {
+			return new CustomAWSCredentialsProvider();
+		}
+
+	}
+
+	static class CustomAWSCredentialsProvider implements AWSCredentialsProvider {
+
+		@Override
+		public AWSCredentials getCredentials() {
+			return null;
+		}
+
+		@Override
+		public void refresh() {
+
+		}
+
 	}
 
 }

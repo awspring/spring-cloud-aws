@@ -25,8 +25,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.0.2
  * @see org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration
  */
-@ConfigurationProperties(prefix = "cloud.aws.credentials")
+@ConfigurationProperties(prefix = AwsCredentialsProperties.PREFIX)
 public class AwsCredentialsProperties {
+
+	/**
+	 * The prefix used for AWS credentials related properties.
+	 */
+	public static final String PREFIX = "cloud.aws.credentials";
 
 	/**
 	 * The access key to be used with a static provider.

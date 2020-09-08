@@ -64,12 +64,7 @@ resources takes time and costs money, because every instance creation is
 charged with a one hour usage. Therefore Spring Cloud AWS does not
 execute the integration tests by default.
 
-In order to execute the integration tests you have to create two
-configuration files that configure the necessary parameters to build the
-environment.
-
-Please create a new file named access.properties. This file must contain
-three properties named accessKey,secretKey and rdsPassword. These two
+In order to run integration tests you must prepare three properties named accessKey,secretKey and rdsPassword. These two
 properties accessKey and secretKey are account/user specific and should
 never be shared to anyone. To retrieve these settings you have to open
 your account inside the AWS console and retrieve them through the
@@ -80,36 +75,14 @@ itself. The last password rdsPassword is used to access the database
 inside the integration tests. This password has a minimum length of 8
 characters.
 
-An example file will look like this
-
--------------------------------------------
-cloud.aws.credentials.accessKey=ilaugsjdlkahgsdlaksdhg
-cloud.aws.credentials.secretKey=aöksjdhöadjs,höalsdhjköalsdjhasd+
-rdsPassword=someVerySecretPassword
--------------------------------------------
-
-Also you have to create another file named mail.properties which will
-provide the sender and recipient mail address to test the
+Also you must prepare the sender and recipient mail addresses to test the
 https://aws.amazon.com/ses/[Amazon Simple E-Mail Service]. These two
 addresses must be verified for the Amazon SES Service.
-
-An example file will have the following contents
-
-----------------------------
-senderAddress=foo@bar.com
-recipientAddress=baz@buz.com
-----------------------------
-
-After creating both files and storing them outside the project (or
-inside the project, they are ignored in git) you have to provide the
-configuration directory when running the build. Providing these
-configuration settings will automatically execute the integration tests.
 
 To build with the integration tests you must execute
 
 -----------------------------------------------------------------------------------------------------
-mvn verify -Dels.config.dir=/Users/foo/config/dir
-(on windows you will also need a leading slash before the drive letter e.g. /C:/users/foo/config/dir)
+mvn verify -Daws-integration-tests.access-key=<access key>  -Daws-integration-tests.secret-key=<secret key> -DrdsPassword=<rds password> -DsenderAddress=<sender address> -DrecipientAddress=<recipient address>
 -----------------------------------------------------------------------------------------------------
 
 The integration test will create an
@@ -121,7 +94,6 @@ there are no unnecessary costs.
 = Costs of integration tests
 The costs for one integration test run should not be more than 0.40 $
 per hour (excl. VAT).
-
 
 = Developing using Amazon Web Services
 
