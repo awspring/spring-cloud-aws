@@ -61,7 +61,6 @@ public class ContextResourceLoaderConfiguration {
 		protected BeanDefinition getProtocolResolver(BeanDefinitionHolder client) {
 			BeanDefinitionBuilder resolver = BeanDefinitionBuilder
 					.rootBeanDefinition(SimpleStorageProtocolResolver.class);
-			resolver.addConstructorArgReference(client.getBeanName());
 
 			BeanDefinition taskExecutor = getTaskExecutorDefinition();
 			if (taskExecutor != null) {

@@ -199,6 +199,10 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 				this.taskExecutor);
 	}
 
+	public AmazonS3 getAmazonS3() {
+		return amazonS3;
+	}
+
 	private ObjectMetadata getObjectMetadata() {
 		if (this.objectMetadata == null) {
 			try {
