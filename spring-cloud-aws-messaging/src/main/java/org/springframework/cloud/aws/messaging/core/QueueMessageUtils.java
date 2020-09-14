@@ -112,8 +112,8 @@ public final class QueueMessageUtils {
 				messageHeaders.put(MessageHeaders.ID,
 						UUID.fromString(messageAttribute.getValue().getStringValue()));
 			}
-			else if (MessageAttributeDataTypes.STRING
-					.equals(messageAttribute.getValue().getDataType())) {
+			else if (messageAttribute.getValue().getDataType()
+					.startsWith(MessageAttributeDataTypes.STRING)) {
 				messageHeaders.put(messageAttribute.getKey(),
 						messageAttribute.getValue().getStringValue());
 			}
@@ -122,8 +122,8 @@ public final class QueueMessageUtils {
 				messageHeaders.put(messageAttribute.getKey(),
 						getNumberValue(messageAttribute.getValue()));
 			}
-			else if (MessageAttributeDataTypes.BINARY
-					.equals(messageAttribute.getValue().getDataType())) {
+			else if (messageAttribute.getValue().getDataType()
+					.startsWith(MessageAttributeDataTypes.BINARY)) {
 				messageHeaders.put(messageAttribute.getKey(),
 						messageAttribute.getValue().getBinaryValue());
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,12 @@
 package org.springframework.cloud.aws.messaging.core;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import com.amazonaws.services.sqs.model.Message;
@@ -31,8 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link QueueMessageUtils}.
  *
  * @author Maciej Walkowiak
+ * @author Wojciech Mąka
  */
 class QueueMessageUtilsTest {
+
+	public static Charset charset = StandardCharsets.UTF_8;
+
+	public static CharsetEncoder encoder = charset.newEncoder();
 
 	@ParameterizedTest
 	@MethodSource("validArguments")
@@ -67,6 +78,54 @@ class QueueMessageUtilsTest {
 				Arguments.of("3.4", "Number.double", 3.4d),
 				Arguments.of("3.4", "Number.Double", 3.4d),
 				Arguments.of("3.4", "Number.java.lang.Double", 3.4d));
+	}
+
+	@ParameterizedTest
+	@MethodSource("binaryMessageAttributes")
+	void createsMessageWithBinaryMessageAttributes(String extendedType, String value,
+			ByteBuffer expected) throws CharacterCodingException {
+		final MessageAttributeValue messageAttributeValue = new MessageAttributeValue()
+				.withBinaryValue(encoder.encode(CharBuffer.wrap(value)))
+				.withDataType(extendedType);
+
+		Message message = new Message().withBody("some body")
+				.addMessageAttributesEntry("binary-attribute", messageAttributeValue);
+
+		org.springframework.messaging.Message<String> result = QueueMessageUtils
+				.createMessage(message);
+
+		assertThat(result.getHeaders().get("binary-attribute")).isEqualTo(expected);
+	}
+
+	private static Stream<Arguments> binaryMessageAttributes()
+			throws CharacterCodingException {
+		return Stream.of(
+				Arguments.of("Binary.png", "cmFuZG9t",
+						encoder.encode(CharBuffer.wrap("cmFuZG9t"))),
+				Arguments.of("Binary.png.800x600", "cmFuZG9t",
+						encoder.encode(CharBuffer.wrap("cmFuZG9t"))));
+	}
+
+	@ParameterizedTest
+	@MethodSource("stringMessageAttributes")
+	void createsMessageWithStringMessageAttributes(String extendedType, String value,
+			String expected) {
+		final MessageAttributeValue messageAttributeValue = new MessageAttributeValue()
+				.withStringValue(value).withDataType(extendedType);
+
+		Message message = new Message().withBody("some body").addMessageAttributesEntry(
+				"string-type-attribute", messageAttributeValue);
+
+		org.springframework.messaging.Message<String> result = QueueMessageUtils
+				.createMessage(message);
+
+		assertThat(result.getHeaders().get("string-type-attribute")).isEqualTo(expected);
+	}
+
+	private static Stream<Arguments> stringMessageAttributes() {
+		return Stream.of(Arguments.of("String.description", "A message", "A message"),
+				Arguments.of("String.description.moreInfo", "In the bottle",
+						"In the bottle"));
 	}
 
 }
