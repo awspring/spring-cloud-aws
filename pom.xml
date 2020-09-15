@@ -56,20 +56,20 @@
 	<modules>
 		<module>v3</module>
 		<module>spring-cloud-aws-dependencies</module>
+		<module>spring-cloud-aws-appconfig</module>
 		<module>spring-cloud-aws-core</module>
 		<module>spring-cloud-aws-context</module>
 		<module>spring-cloud-aws-jdbc</module>
 		<module>spring-cloud-aws-messaging</module>
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-aws-parameter-store-config</module>
-		<module>spring-cloud-aws-appconfig-config</module>
 		<module>spring-cloud-aws-secrets-manager-config</module>
 		<module>spring-cloud-aws-ses</module>
 		<module>spring-cloud-starter-aws</module>
+		<module>spring-cloud-starter-aws-appconfig</module>
 		<module>spring-cloud-starter-aws-jdbc</module>
 		<module>spring-cloud-starter-aws-messaging</module>
 		<module>spring-cloud-starter-aws-parameter-store-config</module>
-		<module>spring-cloud-starter-aws-appconfig-config</module>
 		<module>spring-cloud-starter-aws-secrets-manager-config</module>
 		<module>spring-cloud-starter-aws-ses</module>
 		<module>spring-cloud-aws-integration-test</module>

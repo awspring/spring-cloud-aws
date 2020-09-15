@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2018 the original author or authors.
+  ~ Copyright 2013-2020 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -25,28 +24,39 @@
 		<version>2.3.0.BUILD-SNAPSHOT</version>
 	</parent>
 
-    <artifactId>spring-cloud-starter-aws-appconfig</artifactId>
-	<name>Spring Cloud AWS AppConfig Configuration Starter</name>
-	<description>Spring Cloud AWS AppConfig Configuration Starter</description>
-	<url>https://projects.spring.io/spring-cloud</url>
-	<organization>
-		<name>Pivotal Software, Inc.</name>
-		<url>https://www.spring.io</url>
-	</organization>
-	<properties>
-		<main.basedir>${basedir}/../..</main.basedir>
-	</properties>
+	<artifactId>spring-cloud-aws-appconfig</artifactId>
+
+	<name>Spring Cloud AWS AppConfig Configuration</name>
+	<description>Spring Cloud AWS AppConfig Configuration</description>
+
 
 	<dependencies>
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-appconfig</artifactId>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-context</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-appconfig</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
+
 
 </project>
