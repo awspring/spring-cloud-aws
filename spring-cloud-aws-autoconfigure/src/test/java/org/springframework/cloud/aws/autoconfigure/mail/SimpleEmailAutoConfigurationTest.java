@@ -25,10 +25,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MailSenderAutoConfigurationTest {
+class SimpleEmailAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(MailSenderAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(SimpleEmailAutoConfiguration.class));
 
 	@Test
 	public void mailSender_MailSenderWithJava_configuresJavaMailSender() {

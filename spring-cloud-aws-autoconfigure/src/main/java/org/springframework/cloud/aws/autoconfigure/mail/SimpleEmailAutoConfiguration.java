@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.mail;
 
+import javax.mail.Session;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
@@ -26,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
@@ -43,18 +46,17 @@ import org.springframework.mail.javamail.JavaMailSender;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter(org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration.class)
-@ConditionalOnClass(name = { "org.springframework.mail.MailSender",
-		"com.amazonaws.services.simpleemail.AmazonSimpleEmailService" })
+@AutoConfigureAfter(MailSenderAutoConfiguration.class)
+@ConditionalOnClass({ AmazonSimpleEmailService.class, MailSender.class })
 @ConditionalOnMissingBean(MailSender.class)
 @Import(ContextCredentialsAutoConfiguration.class)
 @ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true",
 		matchIfMissing = true)
-public class MailSenderAutoConfiguration {
+public class SimpleEmailAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
-	public MailSenderAutoConfiguration(ObjectProvider<RegionProvider> regionProvider) {
+	public SimpleEmailAutoConfiguration(ObjectProvider<RegionProvider> regionProvider) {
 		this.regionProvider = regionProvider.getIfAvailable();
 	}
 
@@ -75,7 +77,7 @@ public class MailSenderAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnClass(name = "javax.mail.Session")
+	@ConditionalOnClass(Session.class)
 	public JavaMailSender javaMailSender(
 			AmazonSimpleEmailService amazonSimpleEmailService) {
 		return new SimpleEmailServiceJavaMailSender(amazonSimpleEmailService);
