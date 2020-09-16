@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.aws.autoconfigure.mail;
 
-import java.lang.reflect.Field;
-
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.jupiter.api.Test;
@@ -26,7 +24,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,12 +44,8 @@ class SimpleEmailAutoConfigurationTest {
 			AmazonSimpleEmailServiceClient client = context
 					.getBean(AmazonSimpleEmailServiceClient.class);
 
-			Field regionField = ReflectionUtils.findField(client.getClass(),
-					"signingRegion");
-			ReflectionUtils.makeAccessible(regionField);
-			Object regionValue = ReflectionUtils.getField(regionField, client);
-
-			assertThat(regionValue).isEqualTo(Regions.DEFAULT_REGION.getName());
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.DEFAULT_REGION.getName());
 		});
 	}
 
@@ -67,12 +61,8 @@ class SimpleEmailAutoConfigurationTest {
 					AmazonSimpleEmailServiceClient client = context
 							.getBean(AmazonSimpleEmailServiceClient.class);
 
-					Field regionField = ReflectionUtils.findField(client.getClass(),
-							"signingRegion");
-					ReflectionUtils.makeAccessible(regionField);
-					Object regionValue = ReflectionUtils.getField(regionField, client);
-
-					assertThat(regionValue).isEqualTo(Regions.US_EAST_1.getName());
+					Object region = ReflectionTestUtils.getField(client, "signingRegion");
+					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
 				});
 	}
 
