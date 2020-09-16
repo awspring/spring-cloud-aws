@@ -29,10 +29,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender;
 import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender;
 import org.springframework.context.annotation.Bean;
@@ -50,14 +52,18 @@ import org.springframework.mail.javamail.JavaMailSender;
 @ConditionalOnClass({ AmazonSimpleEmailService.class, MailSender.class })
 @ConditionalOnMissingBean(MailSender.class)
 @Import(ContextCredentialsAutoConfiguration.class)
+@EnableConfigurationProperties(SimpleEmailProperties.class)
 @ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true",
 		matchIfMissing = true)
 public class SimpleEmailAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
-	public SimpleEmailAutoConfiguration(ObjectProvider<RegionProvider> regionProvider) {
-		this.regionProvider = regionProvider.getIfAvailable();
+	public SimpleEmailAutoConfiguration(ObjectProvider<RegionProvider> regionProvider,
+			SimpleEmailProperties properties) {
+		this.regionProvider = properties.getRegion() == null
+				? regionProvider.getIfAvailable()
+				: new StaticRegionProvider(properties.getRegion());
 	}
 
 	@Bean
