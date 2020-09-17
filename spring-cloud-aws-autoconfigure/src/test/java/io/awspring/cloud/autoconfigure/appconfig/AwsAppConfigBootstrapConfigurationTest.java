@@ -18,55 +18,48 @@ package io.awspring.cloud.autoconfigure.appconfig;
 
 import java.lang.reflect.Method;
 
-import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.services.appconfig.AmazonAppConfig;
 import com.amazonaws.services.appconfig.AmazonAppConfigClient;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AwsAppConfigBootstrapConfigurationTest {
+class AwsAppConfigBootstrapConfigurationTest {
 
-	AwsAppConfigBootstrapConfiguration bootstrapConfig = new AwsAppConfigBootstrapConfiguration();
+	private ApplicationContextRunner runner = new ApplicationContextRunner()
+			.withUserConfiguration(AwsAppConfigBootstrapConfiguration.class);
+
+	private static String[] properties = new String[] { "aws.appconfig.region=us-east-2",
+			"aws.appconfig.account-id=1234567", "aws.appconfig.application=demo",
+			"aws.appconfig.environment=dev" };
 
 	@Test
 	void testWithStaticRegion() {
-		String region = "us-east-2";
-		AmazonAppConfigClient appConfigClient = createAppConfigAsync(region);
-
-		Method signingRegionMethod = ReflectionUtils.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
-
+		Method signingRegionMethod = ReflectionUtils
+				.findMethod(AmazonAppConfigClient.class, "getSigningRegion");
 		signingRegionMethod.setAccessible(true);
 
-		String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod, appConfigClient);
+		runner.withPropertyValues(properties).run(context -> {
+			AmazonAppConfig appConfig = context.getBean(AmazonAppConfig.class);
 
-		assertThat(signedRegion).isEqualTo(region);
+			assertThat(appConfig).isNotNull();
+
+			assertThat(ReflectionUtils.invokeMethod(signingRegionMethod, appConfig))
+					.isEqualTo("us-east-2");
+		});
 	}
 
 	@Test
 	void testUserAgent() {
-		String region = "us-east-2";
-		AmazonAppConfigClient appConfigClient = createAppConfigAsync(region);
-
-		Assertions.assertThat(appConfigClient.getClientConfiguration().getUserAgentSuffix())
-				.startsWith("spring-cloud-aws/");
-	}
-
-	private AmazonAppConfigClient createAppConfigAsync(String region) {
-		AwsAppConfigProperties awsAppConfigProperties = new AwsAppConfigProperties();
-		awsAppConfigProperties.setRegion(region);
-
-		Method appConfigAsync = ReflectionUtils.findMethod(AwsAppConfigBootstrapConfiguration.class, "appConfigClient",
-				AwsAppConfigProperties.class);
-
-		appConfigAsync.setAccessible(true);
-
-		AmazonAppConfigClient appConfigClient = (AmazonAppConfigClient) ReflectionUtils.invokeMethod(appConfigAsync,
-				bootstrapConfig, awsAppConfigProperties);
-
-		return appConfigClient;
+		runner.withPropertyValues(properties)
+				.run(context -> assertThat(context.getBean(AmazonAppConfig.class))
+						.isNotNull().extracting(AmazonAppConfigClient.class::cast)
+						.extracting(appconfig -> appconfig.getClientConfiguration()
+								.getUserAgentSuffix())
+						.asString().startsWith("spring-cloud-aws/"));
 	}
 
 }
