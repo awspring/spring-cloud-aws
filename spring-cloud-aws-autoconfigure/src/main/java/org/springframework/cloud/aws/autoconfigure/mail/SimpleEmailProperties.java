@@ -19,11 +19,16 @@ package org.springframework.cloud.aws.autoconfigure.mail;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * Configuration properties for AWS Simple Email Service.
+ *
  * @author Eddú Meléndez
  */
 @ConfigurationProperties(prefix = "cloud.aws.mail")
 public class SimpleEmailProperties {
 
+	/**
+	 * Overrides the default region.
+	 */
 	private String region;
 
 	public String getRegion() {
