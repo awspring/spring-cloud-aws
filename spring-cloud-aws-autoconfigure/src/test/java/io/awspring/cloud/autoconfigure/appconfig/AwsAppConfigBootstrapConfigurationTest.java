@@ -16,50 +16,44 @@
 
 package io.awspring.cloud.autoconfigure.appconfig;
 
-import java.lang.reflect.Method;
-
 import com.amazonaws.services.appconfig.AmazonAppConfig;
 import com.amazonaws.services.appconfig.AmazonAppConfigClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AwsAppConfigBootstrapConfigurationTest {
 
-	private ApplicationContextRunner runner = new ApplicationContextRunner()
+	private final ApplicationContextRunner runner = new ApplicationContextRunner()
 			.withUserConfiguration(AwsAppConfigBootstrapConfiguration.class);
 
-	private static String[] properties = new String[] { "aws.appconfig.region=us-east-2",
-			"aws.appconfig.account-id=1234567", "aws.appconfig.application=demo",
-			"aws.appconfig.environment=dev" };
+	private static final String[] properties = new String[] { "spring.cloud.aws.appconfig.region=us-east-2",
+			"spring.cloud.aws.appconfig.account-id=1234567", "spring.cloud.aws.appconfig.application=demo",
+			"spring.cloud.aws.appconfig.environment=dev" };
 
 	@Test
 	void testWithStaticRegion() {
-		Method signingRegionMethod = ReflectionUtils
-				.findMethod(AmazonAppConfigClient.class, "getSigningRegion");
-		signingRegionMethod.setAccessible(true);
 
 		runner.withPropertyValues(properties).run(context -> {
 			AmazonAppConfig appConfig = context.getBean(AmazonAppConfig.class);
 
 			assertThat(appConfig).isNotNull();
 
-			assertThat(ReflectionUtils.invokeMethod(signingRegionMethod, appConfig))
-					.isEqualTo("us-east-2");
+			Object region = ReflectionTestUtils.getField(appConfig, "signingRegion");
+			assertThat("us-east-2").isEqualTo(region);
 		});
 	}
 
 	@Test
 	void testUserAgent() {
 		runner.withPropertyValues(properties)
-				.run(context -> assertThat(context.getBean(AmazonAppConfig.class))
-						.isNotNull().extracting(AmazonAppConfigClient.class::cast)
-						.extracting(appconfig -> appconfig.getClientConfiguration()
-								.getUserAgentSuffix())
-						.asString().startsWith("spring-cloud-aws/"));
+				.run(context -> assertThat(context.getBean(AmazonAppConfig.class)).isNotNull()
+						.extracting(AmazonAppConfigClient.class::cast)
+						.extracting(appconfig -> appconfig.getClientConfiguration().getUserAgentSuffix()).asString()
+						.startsWith("spring-cloud-aws/"));
 	}
 
 }

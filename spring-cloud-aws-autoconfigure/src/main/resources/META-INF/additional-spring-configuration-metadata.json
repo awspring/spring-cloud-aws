@@ -79,6 +79,12 @@
       "name": "spring.cloud.aws.ses.enabled",
       "description": "Enables Simple Email Service integration.",
       "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "spring.cloud.aws.appconfig.enabled",
+      "description": "Enables AppConfig integration.",
+      "type": "java.lang.Boolean"
     }
   ]
 }

@@ -24,13 +24,8 @@ import org.springframework.validation.Validator;
 /**
  * @author jarpz
  */
-@ConfigurationProperties(AwsAppConfigProperties.CONFIG_PREFIX)
+@ConfigurationProperties(prefix = "spring.cloud.aws.appconfig")
 public class AwsAppConfigProperties implements Validator {
-
-	/**
-	 * Configuration prefix.
-	 */
-	public static final String CONFIG_PREFIX = "aws.appconfig";
 
 	private String accountId;
 

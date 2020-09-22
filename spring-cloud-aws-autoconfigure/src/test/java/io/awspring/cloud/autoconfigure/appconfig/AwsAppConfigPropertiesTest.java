@@ -31,11 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author jarpz
  */
-public class AwsAppConfigPropertiesTest {
+class AwsAppConfigPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsAppConfigProperties properties, String field, String errorCode) {
+	void validationFails(AwsAppConfigProperties properties, String field, String errorCode) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 
 		properties.validate(properties, errors);
@@ -45,18 +45,14 @@ public class AwsAppConfigPropertiesTest {
 	}
 
 	private static Stream<Arguments> invalidProperties() {
-		return Stream.of(
-				Arguments.of(new AwsAppConfigPropertiesBuilder().withAccountId("").build(), "accountId", "NotEmpty"),
-				Arguments.of(new AwsAppConfigPropertiesBuilder().withApplication("").build(), "application",
-						"NotEmpty"),
-				Arguments.of(new AwsAppConfigPropertiesBuilder().withEnvironment("").build(), "environment",
-						"NotEmpty"));
+		return Stream.of(Arguments.of(buildProperties("", null, null, null), "accountId", "NotEmpty"),
+				Arguments.of(buildProperties(null, "", null, null), "application", "NotEmpty"),
+				Arguments.of(buildProperties(null, null, null, ""), "environment", "NotEmpty"));
 	}
 
 	@Test
 	void validationSucceeds() {
-		AwsAppConfigProperties properties = new AwsAppConfigPropertiesBuilder().withAccountId("12345678")
-				.withApplication("my-project").withConfigurationProfile("my-app").withEnvironment("dev").build();
+		AwsAppConfigProperties properties = buildProperties("12345678", "my-project", "my-app", "dev");
 
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 		properties.validate(properties, errors);
@@ -64,49 +60,14 @@ public class AwsAppConfigPropertiesTest {
 		assertThat(errors.getAllErrors()).isEmpty();
 	}
 
-	private static class AwsAppConfigPropertiesBuilder {
-
-		private AwsAppConfigProperties properties = new AwsAppConfigProperties();
-
-		AwsAppConfigPropertiesBuilder withAccountId(String accountId) {
-			properties.setAccountId(accountId);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withApplication(String application) {
-			properties.setApplication(application);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withConfigurationProfile(String configurationProfile) {
-			properties.setConfigurationProfile(configurationProfile);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withEnvironment(String environment) {
-			properties.setEnvironment(environment);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withConfigurationVersion(String version) {
-			properties.setConfigurationVersion(version);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withFailFast(boolean failFast) {
-			properties.setFailFast(failFast);
-			return this;
-		}
-
-		AwsAppConfigPropertiesBuilder withRegion(String region) {
-			properties.setRegion(region);
-			return this;
-		}
-
-		private AwsAppConfigProperties build() {
-			return properties;
-		}
-
+	private static AwsAppConfigProperties buildProperties(String accountId, String application,
+			String configurationProfile, String environment) {
+		AwsAppConfigProperties properties = new AwsAppConfigProperties();
+		properties.setAccountId(accountId);
+		properties.setApplication(application);
+		properties.setConfigurationProfile(configurationProfile);
+		properties.setEnvironment(environment);
+		return properties;
 	}
 
 }
