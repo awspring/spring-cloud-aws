@@ -22,6 +22,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -45,6 +46,7 @@ import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientCo
  *
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  */
 class SnsAutoConfigurationTest {
 
@@ -126,6 +128,16 @@ class SnsAutoConfigurationTest {
 							.toString()).isEqualTo(
 									"https://" + Region.getRegion(Regions.EU_WEST_1)
 											.getServiceEndpoint("sns"));
+				});
+	}
+
+	@Test
+	void enableSnsWithSpecificRegion() {
+		this.contextRunner.withPropertyValues("cloud.aws.sns.region:us-east-1")
+				.run(context -> {
+					AmazonSNSClient client = context.getBean(AmazonSNSClient.class);
+					Object region = ReflectionTestUtils.getField(client, "signingRegion");
+					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
 				});
 	}
 

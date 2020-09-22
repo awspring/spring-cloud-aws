@@ -26,9 +26,11 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -46,48 +48,40 @@ import static org.springframework.cloud.aws.messaging.endpoint.config.Notificati
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(AmazonSNS.class)
+@EnableConfigurationProperties(SnsProperties.class)
 @ConditionalOnProperty(name = "cloud.aws.sns.enabled", havingValue = "true",
 		matchIfMissing = true)
 public class SnsAutoConfiguration {
 
-	@Configuration(proxyBeanMethods = false)
-	static class SnsConfiguration {
+	private final AWSCredentialsProvider awsCredentialsProvider;
 
-		private final AWSCredentialsProvider awsCredentialsProvider;
+	private final RegionProvider regionProvider;
 
-		private final RegionProvider regionProvider;
-
-		SnsConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
-				ObjectProvider<RegionProvider> regionProvider) {
-			this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
-			this.regionProvider = regionProvider.getIfAvailable();
-		}
-
-		@ConditionalOnMissingAmazonClient(AmazonSNS.class)
-		@Bean
-		public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
-			return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
-					this.awsCredentialsProvider, this.regionProvider);
-		}
-
+	SnsAutoConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
+			ObjectProvider<RegionProvider> regionProvider, SnsProperties properties) {
+		this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
+		this.regionProvider = properties.getRegion() == null
+				? regionProvider.getIfAvailable()
+				: new StaticRegionProvider(properties.getRegion());
 	}
 
-	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
+	@Bean
+	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
+		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
+				this.awsCredentialsProvider, this.regionProvider);
+	}
+
+	@Bean
 	@ConditionalOnClass(WebMvcConfigurer.class)
-	static class SnsWebConfiguration {
-
-		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
-			return new WebMvcConfigurer() {
-				@Override
-				public void addArgumentResolvers(
-						List<HandlerMethodArgumentResolver> resolvers) {
-					resolvers
-							.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
-				}
-			};
-		}
-
+	public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addArgumentResolvers(
+					List<HandlerMethodArgumentResolver> resolvers) {
+				resolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
+			}
+		};
 	}
 
 }
