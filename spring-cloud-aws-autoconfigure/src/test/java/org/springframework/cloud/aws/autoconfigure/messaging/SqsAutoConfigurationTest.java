@@ -64,6 +64,7 @@ import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientCo
  * @author Maciej Walkowiak
  * @author Matej Nedic
  * @author Mete Alpaslan Katırcıoğlu
+ * @author Eddú Meléndez
  */
 class SqsAutoConfigurationTest {
 
@@ -338,6 +339,20 @@ class SqsAutoConfigurationTest {
 							.toString()).isEqualTo(
 									"https://" + Region.getRegion(Regions.EU_WEST_1)
 											.getServiceEndpoint("sqs"));
+				});
+	}
+
+	@Test
+	void enableSqsWithSpecificRegion() {
+		this.contextRunner.withPropertyValues("cloud.aws.sqs.region:us-east-1")
+				.run(context -> {
+					AmazonSQSBufferedAsyncClient bufferedAmazonSqsClient = context
+							.getBean(AmazonSQSBufferedAsyncClient.class);
+					AmazonSQSAsyncClient client = (AmazonSQSAsyncClient) ReflectionTestUtils
+							.getField(bufferedAmazonSqsClient, "realSQS");
+
+					Object region = ReflectionTestUtils.getField(client, "signingRegion");
+					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
 				});
 	}
 

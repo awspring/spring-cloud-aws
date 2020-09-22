@@ -37,6 +37,7 @@ import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmaz
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.core.region.RegionProvider;
+import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
@@ -70,9 +71,11 @@ public class SqsAutoConfiguration {
 
 		SqsClientConfiguration(
 				ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
-				ObjectProvider<RegionProvider> regionProvider) {
+				ObjectProvider<RegionProvider> regionProvider, SqsProperties properties) {
 			this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
-			this.regionProvider = regionProvider.getIfAvailable();
+			this.regionProvider = properties.getRegion() == null
+					? regionProvider.getIfAvailable()
+					: new StaticRegionProvider(properties.getRegion());
 		}
 
 		@Lazy
@@ -102,8 +105,6 @@ public class SqsAutoConfiguration {
 
 		private final ObjectMapper objectMapper;
 
-		private final SqsProperties sqsProperties;
-
 		SqsConfiguration(
 				ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
 				ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory,
@@ -121,7 +122,6 @@ public class SqsAutoConfiguration {
 			this.mappingJackson2MessageConverter = mappingJackson2MessageConverter
 					.getIfAvailable();
 			this.objectMapper = objectMapper.getIfAvailable();
-			this.sqsProperties = sqsProperties;
 		}
 
 		private static QueueMessageHandlerFactory createQueueMessageHandlerFactory(

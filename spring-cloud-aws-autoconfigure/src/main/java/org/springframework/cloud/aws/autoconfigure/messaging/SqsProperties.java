@@ -26,6 +26,7 @@ import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
  * Properties related to SQS integration.
  *
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  */
 @ConfigurationProperties("cloud.aws.sqs")
 public class SqsProperties {
@@ -39,6 +40,11 @@ public class SqsProperties {
 	 * Properties related to {@link QueueMessageHandler}.
 	 */
 	private HandlerProperties handler = new HandlerProperties();
+
+	/**
+	 * Overrides the default region.
+	 */
+	private String region;
 
 	public ListenerProperties getListener() {
 		return listener;
@@ -54,6 +60,14 @@ public class SqsProperties {
 
 	public void setHandler(HandlerProperties handler) {
 		this.handler = handler;
+	}
+
+	public String getRegion() {
+		return this.region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
 	}
 
 	public static class ListenerProperties {
