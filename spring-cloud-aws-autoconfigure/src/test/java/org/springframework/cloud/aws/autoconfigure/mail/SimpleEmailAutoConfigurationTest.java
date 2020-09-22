@@ -16,12 +16,15 @@
 
 package org.springframework.cloud.aws.autoconfigure.mail;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,13 +34,36 @@ class SimpleEmailAutoConfigurationTest {
 			.withConfiguration(AutoConfigurations.of(SimpleEmailAutoConfiguration.class));
 
 	@Test
-	public void mailSender_MailSenderWithJava_configuresJavaMailSender() {
+	void mailSender_MailSenderWithJava_configuresJavaMailSender() {
 		this.contextRunner.run(context -> {
 			assertThat(context.getBean(MailSender.class)).isNotNull();
 			assertThat(context.getBean(JavaMailSender.class)).isNotNull();
 			assertThat(context.getBean(JavaMailSender.class))
 					.isSameAs(context.getBean(MailSender.class));
+
+			AmazonSimpleEmailServiceClient client = context
+					.getBean(AmazonSimpleEmailServiceClient.class);
+
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.DEFAULT_REGION.getName());
 		});
+	}
+
+	@Test
+	void enableAutoConfigurationWithSpecificRegion() {
+		this.contextRunner.withPropertyValues("cloud.aws.mail.region:us-east-1")
+				.run(context -> {
+					assertThat(context.getBean(MailSender.class)).isNotNull();
+					assertThat(context.getBean(JavaMailSender.class)).isNotNull();
+					assertThat(context.getBean(JavaMailSender.class))
+							.isSameAs(context.getBean(MailSender.class));
+
+					AmazonSimpleEmailServiceClient client = context
+							.getBean(AmazonSimpleEmailServiceClient.class);
+
+					Object region = ReflectionTestUtils.getField(client, "signingRegion");
+					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+				});
 	}
 
 	@Test
