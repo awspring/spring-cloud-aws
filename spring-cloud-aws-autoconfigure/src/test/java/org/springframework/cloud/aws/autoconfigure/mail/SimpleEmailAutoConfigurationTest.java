@@ -21,6 +21,7 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -63,6 +64,17 @@ class SimpleEmailAutoConfigurationTest {
 
 					Object region = ReflectionTestUtils.getField(client, "signingRegion");
 					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+				});
+	}
+
+	@Test
+	void mailSenderWithSimpleEmail() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader("javax.mail.Session"))
+				.run(context -> {
+					assertThat(context.getBean(MailSender.class)).isNotNull();
+					assertThat(context.getBean("simpleMailSender")).isNotNull();
+					assertThat(context.getBean("simpleMailSender"))
+							.isSameAs(context.getBean(MailSender.class));
 				});
 	}
 
