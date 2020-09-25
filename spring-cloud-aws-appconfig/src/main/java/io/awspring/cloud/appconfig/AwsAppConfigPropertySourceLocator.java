@@ -28,7 +28,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.util.ReflectionUtils;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static org.springframework.util.Assert.hasText;
 
 /**
  * @author jarpz
@@ -72,9 +72,11 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 
 		String appName = configurationProfile;
 		if (isNull(appName)) {
-			appName = requireNonNull(env.getProperty("spring.application.name"),
-					"configurationProfile should not be empty or null.");
+			appName = env.getProperty("spring.application.name");
 		}
+
+		hasText(appName,
+				"configurationProfile or spring.application.name should not be empty or null.");
 
 		CompositePropertySource composite = new CompositePropertySource("aws-app-config");
 
