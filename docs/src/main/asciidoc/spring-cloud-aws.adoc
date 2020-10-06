@@ -138,6 +138,14 @@ This warning message can be hidden by setting `ERROR` logging level on `com.amaz
 ----
 logging.level.com.amazonaws.util.EC2MetadataUtils=error
 ----
+
+If `ContextInstanceDataAutoConfiguration` is enabled, but application is not running in EC2 environment, AWS SDK logs a warning message with an exception which adds potentially unnecessary noise to application logs.
+This warning message can be hidden by setting `ERROR` logging level on `com.amazonaws.internal.InstanceMetadataServiceResourceFetcher` class.
+
+[source,indent=0]
+----
+logging.level.com.amazonaws.internal.InstanceMetadataServiceResourceFetcher=error
+----
 ====
 
 ==== SDK credentials configuration
