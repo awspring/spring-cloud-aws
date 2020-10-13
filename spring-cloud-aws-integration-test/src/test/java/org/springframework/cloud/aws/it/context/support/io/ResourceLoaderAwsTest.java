@@ -125,7 +125,7 @@ abstract class ResourceLoaderAwsTest {
 		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 		Resource resource = this.resourceLoader
 				.getResource(S3_PREFIX + bucketName + "/testUploadFileWithMoreThenFiveMegabytes");
-		assertThat(WritableResource.class.isInstance(resource)).isTrue();
+		assertThat(resource).isInstanceOf(WritableResource.class);
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
 		for (int i = 0; i < (1024 * 1024 * 6); i++) {
@@ -139,7 +139,7 @@ abstract class ResourceLoaderAwsTest {
 	void testUploadBigFileAndCompareChecksum() throws IOException, NoSuchAlgorithmException {
 		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
-		assertThat(WritableResource.class.isInstance(resource)).isTrue();
+		assertThat(resource).isInstanceOf(WritableResource.class);
 
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();

@@ -52,8 +52,8 @@ class ContextResourceLoaderConfigurationTest {
 		assertThat(DefaultResourceLoader.class.isInstance(bean.getResourceLoader())).isTrue();
 
 		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean.getResourceLoader();
-		assertThat(SimpleStorageProtocolResolver.class
-				.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
+		assertThat(defaultResourceLoader.getProtocolResolvers().iterator().next())
+				.isInstanceOf(SimpleStorageProtocolResolver.class);
 	}
 
 	@EnableContextResourceLoader

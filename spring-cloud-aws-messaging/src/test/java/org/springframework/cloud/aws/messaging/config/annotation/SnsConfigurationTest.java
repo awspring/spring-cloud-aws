@@ -64,7 +64,7 @@ class SnsConfigurationTest {
 		assertThat(requestMappingHandlerAdapter.getCustomArgumentResolvers().size()).isEqualTo(1);
 		HandlerMethodArgumentResolver argumentResolver = requestMappingHandlerAdapter.getCustomArgumentResolvers()
 				.get(0);
-		assertThat(HandlerMethodArgumentResolverComposite.class.isInstance(argumentResolver)).isTrue();
+		assertThat(argumentResolver).isInstanceOf(HandlerMethodArgumentResolverComposite.class);
 
 		HandlerMethodArgumentResolverComposite compositeArgumentResolver;
 		compositeArgumentResolver = (HandlerMethodArgumentResolverComposite) argumentResolver;

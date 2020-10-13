@@ -92,8 +92,7 @@ class MessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		DestinationResolver<String> destinationResolver = container.getDestinationResolver();
-		assertThat(destinationResolver).isNotNull();
-		assertThat(CachingDestinationResolverProxy.class.isInstance(destinationResolver)).isTrue();
+		assertThat(destinationResolver).isNotNull().isInstanceOf(CachingDestinationResolverProxy.class);
 	}
 
 	@Test

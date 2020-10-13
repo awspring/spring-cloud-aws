@@ -52,8 +52,7 @@ class CredentialsProviderFactoryBeanTest {
 		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
 
 		// Assert
-		assertThat(credentialsProvider).isNotNull();
-		assertThat(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider)).isTrue();
+		assertThat(credentialsProvider).isNotNull().isInstanceOf(DefaultAWSCredentialsProviderChain.class);
 	}
 
 	@Test

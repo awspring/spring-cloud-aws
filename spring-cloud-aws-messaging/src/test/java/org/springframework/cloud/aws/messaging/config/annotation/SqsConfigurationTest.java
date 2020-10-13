@@ -73,7 +73,7 @@ class SqsConfigurationTest {
 		// Assert
 		assertThat(container.isRunning()).isTrue();
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
-		assertThat(QueueMessageHandler.class.isInstance(queueMessageHandler)).isTrue();
+		assertThat(queueMessageHandler).isInstanceOf(QueueMessageHandler.class);
 
 		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler.getCustomReturnValueHandlers()
 				.get(0);
@@ -243,8 +243,8 @@ class SqsConfigurationTest {
 				.getBean(AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(bufferedAmazonSqsClient, "realSQS");
-		assertThat(DefaultAWSCredentialsProviderChain.class
-				.isInstance(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"))).isTrue();
+		assertThat(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"))
+				.isInstanceOf(DefaultAWSCredentialsProviderChain.class);
 	}
 
 	@Test

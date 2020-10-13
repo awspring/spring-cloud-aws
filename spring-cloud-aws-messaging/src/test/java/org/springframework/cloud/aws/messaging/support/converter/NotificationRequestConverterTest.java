@@ -61,7 +61,7 @@ class NotificationRequestConverterTest {
 				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
-		assertThat(NotificationRequestConverter.NotificationRequest.class.isInstance(notificationRequest)).isTrue();
+		assertThat(notificationRequest).isInstanceOf(NotificationRequestConverter.NotificationRequest.class);
 		assertThat(((NotificationRequestConverter.NotificationRequest) notificationRequest).getSubject())
 				.isEqualTo("Hello");
 		assertThat(((NotificationRequestConverter.NotificationRequest) notificationRequest).getMessage())
@@ -81,7 +81,7 @@ class NotificationRequestConverterTest {
 				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
-		assertThat(NotificationRequestConverter.NotificationRequest.class.isInstance(notificationRequest)).isTrue();
+		assertThat(notificationRequest).isInstanceOf(NotificationRequestConverter.NotificationRequest.class);
 		assertThat(((NotificationRequestConverter.NotificationRequest) notificationRequest).getMessage())
 				.isEqualTo("World");
 	}

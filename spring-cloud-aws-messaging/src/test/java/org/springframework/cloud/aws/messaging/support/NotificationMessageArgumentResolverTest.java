@@ -115,7 +115,7 @@ class NotificationMessageArgumentResolverTest {
 		Object result = notificationMessageArgumentResolver.resolveArgument(methodParameter, message);
 
 		// Assert
-		assertThat(String.class.isInstance(result)).isTrue();
+		assertThat(result).isInstanceOf(String.class);
 		assertThat(result).isEqualTo("Hello World!");
 	}
 

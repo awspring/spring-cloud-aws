@@ -75,8 +75,8 @@ class AwsParamStoreBootstrapConfigurationTest {
 	@Test
 	void testUserAgent() {
 		this.contextRunner.withPropertyValues("aws.paramstore.region:us-east-2").run(context -> {
-			context.getBean(AWSSimpleSystemsManagementClient.class).getClientConfiguration().getUserAgentPrefix()
-					.startsWith("spring-cloud-aws/");
+			assertThat(context.getBean(AWSSimpleSystemsManagementClient.class).getClientConfiguration()
+					.getUserAgentSuffix()).startsWith("spring-cloud-aws/");
 		});
 
 	}

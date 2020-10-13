@@ -553,8 +553,7 @@ class QueueMessageChannelTest {
 
 		// Assert
 		Object idMessageHeader = receivedMessage.getHeaders().get(MessageHeaders.ID);
-		assertThat(UUID.class.isInstance(idMessageHeader)).isTrue();
-		assertThat(idMessageHeader).isEqualTo(uuid);
+		assertThat(idMessageHeader).isInstanceOf(UUID.class).isEqualTo(uuid);
 	}
 
 	@Test
