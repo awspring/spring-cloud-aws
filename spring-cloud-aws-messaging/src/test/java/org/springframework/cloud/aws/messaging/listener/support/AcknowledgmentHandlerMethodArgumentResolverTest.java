@@ -30,19 +30,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AcknowledgmentHandlerMethodArgumentResolverTest {
 
 	@Test
-	void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException()
-			throws Exception {
+	void resolveArgument_messageWithNoAcknowledgmentHeader_throwIllegalArgumentException() throws Exception {
 		// Arrange
 		AcknowledgmentHandlerMethodArgumentResolver acknowledgmentHandlerMethodArgumentResolver;
-		acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver(
-				"Acknowledgment");
+		acknowledgmentHandlerMethodArgumentResolver = new AcknowledgmentHandlerMethodArgumentResolver("Acknowledgment");
 		Message<String> message = MessageBuilder.withPayload("no content").build();
 
 		// Act
-		assertThatThrownBy(() -> acknowledgmentHandlerMethodArgumentResolver
-				.resolveArgument(null, message))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("Acknowledgment");
+		assertThatThrownBy(() -> acknowledgmentHandlerMethodArgumentResolver.resolveArgument(null, message))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Acknowledgment");
 	}
 
 }

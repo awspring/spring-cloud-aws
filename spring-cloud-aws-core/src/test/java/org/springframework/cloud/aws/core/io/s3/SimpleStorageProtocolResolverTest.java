@@ -48,8 +48,7 @@ class SimpleStorageProtocolResolverTest {
 		resourceLoader.addProtocolResolver(new SimpleStorageProtocolResolver(amazonS3));
 
 		ObjectMetadata metadata = new ObjectMetadata();
-		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class)))
-				.thenReturn(metadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object/";
 		Resource resource = resourceLoader.getResource(resourceName);
@@ -73,17 +72,14 @@ class SimpleStorageProtocolResolverTest {
 	void testGetResourceWithVersionId() {
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		SimpleStorageProtocolResolver resourceLoader = new SimpleStorageProtocolResolver(
-				amazonS3);
+		SimpleStorageProtocolResolver resourceLoader = new SimpleStorageProtocolResolver(amazonS3);
 
 		ObjectMetadata metadata = new ObjectMetadata();
 
-		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class)))
-				.thenReturn(metadata);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(metadata);
 
 		String resourceName = "s3://bucket/object^versionIdValue";
-		Resource resource = resourceLoader.resolve(resourceName,
-				new DefaultResourceLoader());
+		Resource resource = resourceLoader.resolve(resourceName, new DefaultResourceLoader());
 		assertThat(resource).isNotNull();
 	}
 
@@ -99,8 +95,7 @@ class SimpleStorageProtocolResolverTest {
 
 		assertThat(resourceLoader.getResource("s3://bucket/object")).isNotNull();
 
-		assertThat(resourceLoader.getResource("s3://prefix.bucket/object.suffix"))
-				.isNotNull();
+		assertThat(resourceLoader.getResource("s3://prefix.bucket/object.suffix")).isNotNull();
 
 		verify(amazonS3, times(0)).getObjectMetadata("bucket", "object");
 	}

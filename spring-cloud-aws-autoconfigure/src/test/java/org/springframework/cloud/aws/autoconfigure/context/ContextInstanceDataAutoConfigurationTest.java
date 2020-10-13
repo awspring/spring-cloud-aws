@@ -40,8 +40,7 @@ class ContextInstanceDataAutoConfigurationTest {
 
 	@BeforeEach
 	void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
-				"isCloudEnvironment");
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
 		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);
@@ -55,12 +54,10 @@ class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment()
-			throws Exception {
+	void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
 		this.context = new AnnotationConfigApplicationContext();
@@ -70,20 +67,16 @@ class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertThat(this.context
-				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"))
-						.isTrue();
+		assertThat(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor")).isTrue();
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
 
 	@Test
-	void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment()
-			throws Exception {
+	void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler(null));
 
 		this.context = new AnnotationConfigApplicationContext();
@@ -93,9 +86,7 @@ class ContextInstanceDataAutoConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		assertThat(this.context
-				.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor"))
-						.isFalse();
+		assertThat(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor")).isFalse();
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -105,8 +96,7 @@ class ContextInstanceDataAutoConfigurationTest {
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b;c:d"));
@@ -130,16 +120,14 @@ class ContextInstanceDataAutoConfigurationTest {
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
 		this.context = new AnnotationConfigApplicationContext();
 
-		TestPropertyValues.of("cloud.aws.instance.data.valueSeparator:=")
-				.applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.instance.data.valueSeparator:=").applyTo(this.context);
 
 		this.context.register(ContextInstanceDataAutoConfiguration.class);
 
@@ -159,16 +147,14 @@ class ContextInstanceDataAutoConfigurationTest {
 			throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
 
 		this.context = new AnnotationConfigApplicationContext();
 
-		TestPropertyValues.of("cloud.aws.instance.data.attributeSeparator:/")
-				.applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.instance.data.attributeSeparator:/").applyTo(this.context);
 
 		this.context.register(ContextInstanceDataAutoConfiguration.class);
 

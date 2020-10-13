@@ -207,8 +207,7 @@ public class SimpleMessageListenerContainerFactory {
 			simpleMessageListenerContainer.setTaskExecutor(this.taskExecutor);
 		}
 		if (this.maxNumberOfMessages != null) {
-			simpleMessageListenerContainer
-					.setMaxNumberOfMessages(this.maxNumberOfMessages);
+			simpleMessageListenerContainer.setMaxNumberOfMessages(this.maxNumberOfMessages);
 		}
 		if (this.visibilityTimeout != null) {
 			simpleMessageListenerContainer.setVisibilityTimeout(this.visibilityTimeout);
@@ -223,8 +222,7 @@ public class SimpleMessageListenerContainerFactory {
 			simpleMessageListenerContainer.setResourceIdResolver(this.resourceIdResolver);
 		}
 		if (this.destinationResolver != null) {
-			simpleMessageListenerContainer
-					.setDestinationResolver(this.destinationResolver);
+			simpleMessageListenerContainer.setDestinationResolver(this.destinationResolver);
 		}
 		if (this.backOffTime != null) {
 			simpleMessageListenerContainer.setBackOffTime(this.backOffTime);

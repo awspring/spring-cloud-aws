@@ -45,8 +45,7 @@ class OnMissingAmazonClientConditionTest {
 	void condition_withNonMatchingCase_shouldNotCreateBeanFoo() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-				ConfigWithDummyS3Client.class,
-				ConfigWithMissingAmazonClientCondition.class);
+				ConfigWithDummyS3Client.class, ConfigWithMissingAmazonClientCondition.class);
 
 		// Assert
 		assertThat(applicationContext.containsBean("foo")).isFalse();

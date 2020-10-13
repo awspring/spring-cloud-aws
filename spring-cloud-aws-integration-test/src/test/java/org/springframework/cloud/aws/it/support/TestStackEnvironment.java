@@ -44,8 +44,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  *
  */
-public class TestStackEnvironment
-		implements InitializingBean, DisposableBean, InstanceIdProvider {
+public class TestStackEnvironment implements InitializingBean, DisposableBean, InstanceIdProvider {
 
 	public static final String DEFAULT_STACK_NAME = "IntegrationTestStack";
 
@@ -83,23 +82,21 @@ public class TestStackEnvironment
 		return getByLogicalId(EC2_INSTANCE_NAME);
 	}
 
-	private DescribeStackResourcesResult getStackResources(String stackName)
-			throws InterruptedException, IOException {
+	private DescribeStackResourcesResult getStackResources(String stackName) throws InterruptedException, IOException {
 		try {
 			DescribeStacksResult describeStacksResult = this.amazonCloudFormationClient
 					.describeStacks(new DescribeStacksRequest().withStackName(stackName));
 			for (Stack stack : describeStacksResult.getStacks()) {
 				if (isAvailable(stack)) {
-					return this.amazonCloudFormationClient
-							.describeStackResources(new DescribeStackResourcesRequest()
-									.withStackName(stack.getStackName()));
+					return this.amazonCloudFormationClient.describeStackResources(
+							new DescribeStackResourcesRequest().withStackName(stack.getStackName()));
 				}
 				if (isError(stack)) {
 					if (this.stackCreatedByThisInstance) {
 						throw new IllegalArgumentException("Could not create stack");
 					}
-					this.amazonCloudFormationClient.deleteStack(
-							new DeleteStackRequest().withStackName(stack.getStackName()));
+					this.amazonCloudFormationClient
+							.deleteStack(new DeleteStackRequest().withStackName(stack.getStackName()));
 					return getStackResources(stackName);
 				}
 				if (isInProgress(stack)) {
@@ -110,14 +107,12 @@ public class TestStackEnvironment
 			}
 		}
 		catch (AmazonClientException e) {
-			String templateBody = FileCopyUtils.copyToString(new InputStreamReader(
-					new ClassPathResource(TEMPLATE_PATH).getInputStream()));
-			this.amazonCloudFormationClient.createStack(new CreateStackRequest()
-					.withTemplateBody(templateBody).withOnFailure(OnFailure.DELETE)
-					.withStackName(stackName)
-					.withTags(new Tag().withKey("tag1").withValue("value1"))
-					.withParameters(new Parameter().withParameterKey("RdsPassword")
-							.withParameterValue(this.rdsPassword)));
+			String templateBody = FileCopyUtils
+					.copyToString(new InputStreamReader(new ClassPathResource(TEMPLATE_PATH).getInputStream()));
+			this.amazonCloudFormationClient.createStack(new CreateStackRequest().withTemplateBody(templateBody)
+					.withOnFailure(OnFailure.DELETE).withStackName(stackName)
+					.withTags(new Tag().withKey("tag1").withValue("value1")).withParameters(
+							new Parameter().withParameterKey("RdsPassword").withParameterValue(this.rdsPassword)));
 			this.stackCreatedByThisInstance = true;
 		}
 
@@ -134,8 +129,7 @@ public class TestStackEnvironment
 	}
 
 	private boolean isAvailable(Stack stack) {
-		return stack.getStackStatus().endsWith("_COMPLETE")
-				&& !"DELETE_COMPLETE".equals(stack.getStackStatus());
+		return stack.getStackStatus().endsWith("_COMPLETE") && !"DELETE_COMPLETE".equals(stack.getStackStatus());
 	}
 
 	private boolean isError(Stack stack) {
@@ -145,8 +139,7 @@ public class TestStackEnvironment
 	@Override
 	public void destroy() throws Exception {
 		if (this.stackCreatedByThisInstance) {
-			this.amazonCloudFormationClient.deleteStack(
-					new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
+			this.amazonCloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(DEFAULT_STACK_NAME));
 		}
 	}
 

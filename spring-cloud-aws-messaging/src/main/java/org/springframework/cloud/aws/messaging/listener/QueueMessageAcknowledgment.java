@@ -34,8 +34,7 @@ public class QueueMessageAcknowledgment implements Acknowledgment {
 
 	private final String receiptHandle;
 
-	public QueueMessageAcknowledgment(AmazonSQSAsync amazonSqsAsync, String queueUrl,
-			String receiptHandle) {
+	public QueueMessageAcknowledgment(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
 		this.amazonSqsAsync = amazonSqsAsync;
 		this.queueUrl = queueUrl;
 		this.receiptHandle = receiptHandle;
@@ -43,8 +42,7 @@ public class QueueMessageAcknowledgment implements Acknowledgment {
 
 	@Override
 	public Future<?> acknowledge() {
-		return this.amazonSqsAsync.deleteMessageAsync(
-				new DeleteMessageRequest(this.queueUrl, this.receiptHandle),
+		return this.amazonSqsAsync.deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, this.receiptHandle),
 				new DeleteMessageHandler(this.receiptHandle));
 	}
 

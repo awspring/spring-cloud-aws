@@ -29,8 +29,7 @@ import static org.mockito.Mockito.mock;
 class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 
 	@Test
-	void getObjectType_defaultConfiguration_returnsHandlerMethodArgumentResolverType()
-			throws Exception {
+	void getObjectType_defaultConfiguration_returnsHandlerMethodArgumentResolverType() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
@@ -44,8 +43,7 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	}
 
 	@Test
-	void getObject_withDefaultConfiguration_createCompositeResolverWithAllDelegatedResolvers()
-			throws Exception {
+	void getObject_withDefaultConfiguration_createCompositeResolverWithAllDelegatedResolvers() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
@@ -57,17 +55,14 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 
 		// Assert
 		assertThat(argumentResolver).isNotNull();
-		assertThat(((HandlerMethodArgumentResolverComposite) argumentResolver)
-				.getResolvers().size()).isEqualTo(3);
+		assertThat(((HandlerMethodArgumentResolverComposite) argumentResolver).getResolvers().size()).isEqualTo(3);
 	}
 
 	@Test
 	void createInstance_withNullSnsClient_reportsError() throws Exception {
 		// Assert
-		assertThatThrownBy(
-				() -> new NotificationHandlerMethodArgumentResolverFactoryBean(null))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("not be null");
+		assertThatThrownBy(() -> new NotificationHandlerMethodArgumentResolverFactoryBean(null))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not be null");
 
 	}
 

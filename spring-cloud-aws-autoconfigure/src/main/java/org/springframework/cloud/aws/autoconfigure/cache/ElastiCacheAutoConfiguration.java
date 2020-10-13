@@ -52,11 +52,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  * @author Maciej Walkowiak
  */
 @Configuration(proxyBeanMethods = false)
-@Import({ ContextCredentialsAutoConfiguration.class,
-		ContextDefaultConfigurationRegistrar.class })
+@Import({ ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class })
 @ConditionalOnClass(com.amazonaws.services.elasticache.AmazonElastiCache.class)
-@ConditionalOnProperty(name = "cloud.aws.elasticache.enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = "cloud.aws.elasticache.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(ElastiCacheProperties.class)
 public class ElastiCacheAutoConfiguration {
 
@@ -73,8 +71,7 @@ public class ElastiCacheAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(AmazonElastiCache.class)
 	public AmazonWebserviceClientFactoryBean<AmazonElastiCacheClient> amazonElastiCache(
-			ObjectProvider<RegionProvider> regionProvider,
-			ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
+			ObjectProvider<RegionProvider> regionProvider, ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonElastiCacheClient.class,
 				credentialsProvider.getIfAvailable(), regionProvider.getIfAvailable());
 	}
@@ -88,16 +85,15 @@ public class ElastiCacheAutoConfiguration {
 					this.properties.getCacheNames(), cacheFactories);
 		}
 		else {
-			return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver,
-					getConfiguredCachesInStack(), cacheFactories);
+			return new ElastiCacheCacheConfigurer(amazonElastiCache, resourceIdResolver, getConfiguredCachesInStack(),
+					cacheFactories);
 		}
 	}
 
 	@Bean
 	@ConditionalOnClass(RedisConnectionFactory.class)
 	public RedisCacheFactory redisCacheFactory() {
-		return new RedisCacheFactory(this.properties.getExpiryTimePerCache(),
-				this.properties.getDefaultExpiration());
+		return new RedisCacheFactory(this.properties.getExpiryTimePerCache(), this.properties.getDefaultExpiration());
 	}
 
 	@Bean

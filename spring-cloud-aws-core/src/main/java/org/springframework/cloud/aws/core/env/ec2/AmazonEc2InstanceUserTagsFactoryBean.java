@@ -32,8 +32,7 @@ import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceUserTagsFactoryBean
-		extends AbstractFactoryBean<Map<String, String>> {
+public class AmazonEc2InstanceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
 	private final AmazonEC2 amazonEc2;
 
@@ -44,8 +43,7 @@ public class AmazonEc2InstanceUserTagsFactoryBean
 		this(amazonEc2, new AmazonEc2InstanceIdProvider());
 	}
 
-	public AmazonEc2InstanceUserTagsFactoryBean(AmazonEC2 amazonEc2,
-			InstanceIdProvider idProvider) {
+	public AmazonEc2InstanceUserTagsFactoryBean(AmazonEC2 amazonEc2, InstanceIdProvider idProvider) {
 		this.amazonEc2 = amazonEc2;
 		this.idProvider = idProvider;
 	}
@@ -58,15 +56,9 @@ public class AmazonEc2InstanceUserTagsFactoryBean
 	@Override
 	protected Map<String, String> createInstance() throws Exception {
 		LinkedHashMap<String, String> properties = new LinkedHashMap<>();
-		DescribeTagsResult tags = this.amazonEc2
-				.describeTags(
-						new DescribeTagsRequest()
-								.withFilters(
-										new Filter("resource-id",
-												Collections.singletonList(this.idProvider
-														.getCurrentInstanceId())),
-										new Filter("resource-type",
-												Collections.singletonList("instance"))));
+		DescribeTagsResult tags = this.amazonEc2.describeTags(new DescribeTagsRequest().withFilters(
+				new Filter("resource-id", Collections.singletonList(this.idProvider.getCurrentInstanceId())),
+				new Filter("resource-type", Collections.singletonList("instance"))));
 		for (TagDescription tag : tags.getTags()) {
 			properties.put(tag.getKey(), tag.getValue());
 		}

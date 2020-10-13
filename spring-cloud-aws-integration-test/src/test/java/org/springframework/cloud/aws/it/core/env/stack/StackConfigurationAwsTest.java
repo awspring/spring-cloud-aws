@@ -46,8 +46,7 @@ abstract class StackConfigurationAwsTest {
 		// Arrange
 
 		// Act
-		Collection<StackResource> resourcesByType = this.stackResourceFactory
-				.resourcesByType("AWS::EC2::Instance");
+		Collection<StackResource> resourcesByType = this.stackResourceFactory.resourcesByType("AWS::EC2::Instance");
 
 		// Assert
 		assertThat(resourcesByType.size()).isEqualTo(1);
@@ -62,8 +61,7 @@ abstract class StackConfigurationAwsTest {
 		// Arrange
 
 		// Act
-		String physicalResourceId = this.stackResourceFactory
-				.lookupPhysicalResourceId("UserTagAndUserDataInstance");
+		String physicalResourceId = this.stackResourceFactory.lookupPhysicalResourceId("UserTagAndUserDataInstance");
 
 		// Assert
 		assertThat(physicalResourceId).isNotNull();
@@ -71,21 +69,18 @@ abstract class StackConfigurationAwsTest {
 	}
 
 	@Test
-	void getAllResources_withConfiguredStack_returnsNonEmptyResourceList()
-			throws Exception {
+	void getAllResources_withConfiguredStack_returnsNonEmptyResourceList() throws Exception {
 		// Arrange
 
 		// Act
-		Collection<StackResource> allResources = this.stackResourceFactory
-				.getAllResources();
+		Collection<StackResource> allResources = this.stackResourceFactory.getAllResources();
 
 		// Assert
 		assertThat(allResources.isEmpty()).isFalse();
 	}
 
 	@Test
-	void getStackName_withManuallyConfiguredStackName_returnsManuallyConfiguredStackName()
-			throws Exception {
+	void getStackName_withManuallyConfiguredStackName_returnsManuallyConfiguredStackName() throws Exception {
 		// Arrange
 
 		// Act

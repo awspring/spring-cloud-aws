@@ -58,13 +58,11 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 	static void setupHttpServer() throws Exception {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 		httpServer = HttpServer.create(address, -1);
-		httpServer.createContext("/latest/user-data", new StringWritingHttpHandler(
-				"key1:value1;key2:value2;key3:value3".getBytes()));
-		httpServer.createContext("/latest/meta-data/instance-id",
-				new StringWritingHttpHandler("i123456".getBytes()));
+		httpServer.createContext("/latest/user-data",
+				new StringWritingHttpHandler("key1:value1;key2:value2;key3:value3".getBytes()));
+		httpServer.createContext("/latest/meta-data/instance-id", new StringWritingHttpHandler("i123456".getBytes()));
 		httpServer.start();
-		overwriteMetadataEndpointUrl(
-				"http://" + address.getHostName() + ":" + address.getPort());
+		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
 		restContextInstanceDataCondition();
 	}
 
@@ -76,21 +74,17 @@ public abstract class AmazonEc2InstanceDataPropertySourceAwsTest {
 		resetMetadataEndpointUrlOverwrite();
 	}
 
-	private static void overwriteMetadataEndpointUrl(
-			String localMetadataServiceEndpointUrl) {
-		System.setProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
+	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
 				localMetadataServiceEndpointUrl);
 	}
 
 	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 
 	private static void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
-				"isCloudEnvironment");
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
 		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);

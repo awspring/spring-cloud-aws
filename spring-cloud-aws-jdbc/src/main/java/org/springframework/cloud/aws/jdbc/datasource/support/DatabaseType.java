@@ -45,8 +45,7 @@ public enum DatabaseType {
 				return databaseType;
 			}
 		}
-		throw new IllegalStateException(
-				"No database type found for engine:'" + engineName + "'");
+		throw new IllegalStateException("No database type found for engine:'" + engineName + "'");
 	}
 
 }

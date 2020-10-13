@@ -33,15 +33,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class IfAmazonWebserviceEnvironmentCondition implements ExecutionCondition {
 
 	@Override
-	public ConditionEvaluationResult evaluateExecutionCondition(
-			ExtensionContext context) {
+	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
 		Environment env = SpringExtension.getApplicationContext(context).getEnvironment();
 		if (env.acceptsProfiles(Profiles.of("amazon-webservice-region-available"))) {
 			return ConditionEvaluationResult.enabled(null);
 		}
 		else {
-			return ConditionEvaluationResult
-					.disabled("profile 'amazon-webservice-region-available' not enabled");
+			return ConditionEvaluationResult.disabled("profile 'amazon-webservice-region-available' not enabled");
 		}
 	}
 

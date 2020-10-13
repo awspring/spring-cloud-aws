@@ -64,138 +64,114 @@ import static org.mockito.Mockito.withSettings;
 class SqsConfigurationTest {
 
 	@Test
-	void configuration_withMinimalBeans_shouldStartSqsListenerContainer()
-			throws Exception {
+	void configuration_withMinimalBeans_shouldStartSqsListenerContainer() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				MinimalConfiguration.class);
-		SimpleMessageListenerContainer container = applicationContext
-				.getBean(SimpleMessageListenerContainer.class);
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
 
 		// Assert
 		assertThat(container.isRunning()).isTrue();
-		QueueMessageHandler queueMessageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		assertThat(QueueMessageHandler.class.isInstance(queueMessageHandler)).isTrue();
 
-		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler
-				.getCustomReturnValueHandlers().get(0);
+		HandlerMethodReturnValueHandler sendToReturnValueHandler = queueMessageHandler.getCustomReturnValueHandlers()
+				.get(0);
 		QueueMessagingTemplate messagingTemplate = (QueueMessagingTemplate) ReflectionTestUtils
 				.getField(sendToReturnValueHandler, "messageTemplate");
 		AmazonSQSBufferedAsyncClient amazonBufferedSqsClient = (AmazonSQSBufferedAsyncClient) ReflectionTestUtils
 				.getField(messagingTemplate, "amazonSqs");
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(amazonBufferedSqsClient, "realSQS");
-		assertThat(
-				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"))
-						.isNotNull();
+		assertThat(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider")).isNotNull();
 	}
 
 	@Test
-	void configuration_withCustomAmazonClient_shouldBeUsedByTheContainer()
-			throws Exception {
+	void configuration_withCustomAmazonClient_shouldBeUsedByTheContainer() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithCustomAmazonClient.class);
 
 		// Assert
 		AmazonSQSAsync amazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
-		assertThat(amazonSqsClient)
-				.isEqualTo(ConfigurationWithCustomAmazonClient.CUSTOM_SQS_CLIENT);
+		assertThat(amazonSqsClient).isEqualTo(ConfigurationWithCustomAmazonClient.CUSTOM_SQS_CLIENT);
 	}
 
 	@Test
-	void messageHandler_withFactoryConfiguration_shouldUseCustomValues()
-			throws Exception {
+	void messageHandler_withFactoryConfiguration_shouldUseCustomValues() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithCustomizedMessageHandler.class);
-		QueueMessageHandler messageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertThat(messageHandler.getCustomArgumentResolvers().size()).isEqualTo(1);
-		assertThat(messageHandler.getCustomArgumentResolvers().get(0)).isEqualTo(
-				ConfigurationWithCustomizedMessageHandler.CUSTOM_ARGUMENT_RESOLVER);
+		assertThat(messageHandler.getCustomArgumentResolvers().get(0))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandler.CUSTOM_ARGUMENT_RESOLVER);
 
 		assertThat(messageHandler.getCustomReturnValueHandlers().size()).isEqualTo(2);
-		assertThat(messageHandler.getCustomReturnValueHandlers().get(0)).isEqualTo(
-				ConfigurationWithCustomizedMessageHandler.CUSTOM_RETURN_VALUE_HANDLER);
+		assertThat(messageHandler.getCustomReturnValueHandlers().get(0))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandler.CUSTOM_RETURN_VALUE_HANDLER);
 
-		Object sqsMessageDeletionPolicy = ReflectionTestUtils.getField(messageHandler,
-				"sqsMessageDeletionPolicy");
-		assertThat(sqsMessageDeletionPolicy)
-				.isEqualTo(SqsMessageDeletionPolicy.NO_REDRIVE);
+		Object sqsMessageDeletionPolicy = ReflectionTestUtils.getField(messageHandler, "sqsMessageDeletionPolicy");
+		assertThat(sqsMessageDeletionPolicy).isEqualTo(SqsMessageDeletionPolicy.NO_REDRIVE);
 
-		Object sendToMessageTemplate = ReflectionTestUtils.getField(
-				messageHandler.getReturnValueHandlers().get(1), "messageTemplate");
+		Object sendToMessageTemplate = ReflectionTestUtils.getField(messageHandler.getReturnValueHandlers().get(1),
+				"messageTemplate");
 		assertThat(ReflectionTestUtils.getField(sendToMessageTemplate, "amazonSqs"))
 				.isEqualTo(ConfigurationWithCustomizedMessageHandler.CUSTOM_AMAZON_SQS);
 
-		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate,
-				"destinationResolver");
-		Object targetDestinationResolver = ReflectionTestUtils
-				.getField(destinationResolver, "targetDestinationResolver");
-		assertThat(ReflectionTestUtils.getField(targetDestinationResolver,
-				"resourceIdResolver")).isEqualTo(
-						ConfigurationWithCustomizedMessageHandler.CUSTOM_RESOURCE_ID_RESOLVER);
+		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate, "destinationResolver");
+		Object targetDestinationResolver = ReflectionTestUtils.getField(destinationResolver,
+				"targetDestinationResolver");
+		assertThat(ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandler.CUSTOM_RESOURCE_ID_RESOLVER);
 	}
 
 	@Test
-	void messageHandler_withFactoryConfiguration_shouldUseGlobalDeletionPolicy()
-			throws Exception {
+	void messageHandler_withFactoryConfiguration_shouldUseGlobalDeletionPolicy() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.class);
-		QueueMessageHandler messageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler messageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertThat(messageHandler.getCustomArgumentResolvers().size()).isEqualTo(1);
-		assertThat(messageHandler.getCustomArgumentResolvers().get(0)).isEqualTo(
-				ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_ARGUMENT_RESOLVER);
+		assertThat(messageHandler.getCustomArgumentResolvers().get(0))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_ARGUMENT_RESOLVER);
 
 		assertThat(messageHandler.getCustomReturnValueHandlers().size()).isEqualTo(2);
-		assertThat(messageHandler.getCustomReturnValueHandlers().get(0)).isEqualTo(
-				ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_RETURN_VALUE_HANDLER);
+		assertThat(messageHandler.getCustomReturnValueHandlers().get(0))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_RETURN_VALUE_HANDLER);
 
-		Object sqsMessageDeletionPolicy = ReflectionTestUtils.getField(messageHandler,
-				"sqsMessageDeletionPolicy");
-		assertThat(sqsMessageDeletionPolicy)
-				.isEqualTo(SqsMessageDeletionPolicy.ON_SUCCESS);
+		Object sqsMessageDeletionPolicy = ReflectionTestUtils.getField(messageHandler, "sqsMessageDeletionPolicy");
+		assertThat(sqsMessageDeletionPolicy).isEqualTo(SqsMessageDeletionPolicy.ON_SUCCESS);
 
-		Object sendToMessageTemplate = ReflectionTestUtils.getField(
-				messageHandler.getReturnValueHandlers().get(1), "messageTemplate");
+		Object sendToMessageTemplate = ReflectionTestUtils.getField(messageHandler.getReturnValueHandlers().get(1),
+				"messageTemplate");
 		assertThat(ReflectionTestUtils.getField(sendToMessageTemplate, "amazonSqs"))
-				.isEqualTo(
-						ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_AMAZON_SQS);
+				.isEqualTo(ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_AMAZON_SQS);
 
-		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate,
-				"destinationResolver");
-		Object targetDestinationResolver = ReflectionTestUtils
-				.getField(destinationResolver, "targetDestinationResolver");
-		assertThat(ReflectionTestUtils.getField(targetDestinationResolver,
-				"resourceIdResolver")).isEqualTo(
-						ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_RESOURCE_ID_RESOLVER);
+		Object destinationResolver = ReflectionTestUtils.getField(sendToMessageTemplate, "destinationResolver");
+		Object targetDestinationResolver = ReflectionTestUtils.getField(destinationResolver,
+				"targetDestinationResolver");
+		assertThat(ReflectionTestUtils.getField(targetDestinationResolver, "resourceIdResolver"))
+				.isEqualTo(ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy.CUSTOM_RESOURCE_ID_RESOLVER);
 	}
 
 	@Test
-	void configuration_withCustomConfigurationFactory_shouldBeUsedToCreateTheContainer()
-			throws Exception {
+	void configuration_withCustomConfigurationFactory_shouldBeUsedToCreateTheContainer() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithCustomContainerFactory.class);
-		SimpleMessageListenerContainer container = applicationContext
-				.getBean(SimpleMessageListenerContainer.class);
+		SimpleMessageListenerContainer container = applicationContext.getBean(SimpleMessageListenerContainer.class);
 
 		// Assert
 		assertThat(ReflectionTestUtils.getField(container, "amazonSqs"))
 				.isEqualTo(ConfigurationWithCustomContainerFactory.AMAZON_SQS);
-		assertThat(container.isAutoStartup())
-				.isEqualTo(ConfigurationWithCustomContainerFactory.AUTO_STARTUP);
+		assertThat(container.isAutoStartup()).isEqualTo(ConfigurationWithCustomContainerFactory.AUTO_STARTUP);
 		assertThat(ReflectionTestUtils.getField(container, "maxNumberOfMessages"))
-				.isEqualTo(
-						ConfigurationWithCustomContainerFactory.MAX_NUMBER_OF_MESSAGES);
+				.isEqualTo(ConfigurationWithCustomContainerFactory.MAX_NUMBER_OF_MESSAGES);
 		assertThat(ReflectionTestUtils.getField(container, "messageHandler"))
 				.isEqualTo(ConfigurationWithCustomContainerFactory.MESSAGE_HANDLER);
 		assertThat(ReflectionTestUtils.getField(container, "resourceIdResolver"))
@@ -208,28 +184,22 @@ class SqsConfigurationTest {
 				.isEqualTo(ConfigurationWithCustomContainerFactory.WAIT_TIME_OUT);
 		assertThat(ReflectionTestUtils.getField(container, "queueStopTimeout"))
 				.isEqualTo(ConfigurationWithCustomContainerFactory.QUEUE_STOP_TIME_OUT);
-		assertThat(
-				ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils
-						.getField(container, "destinationResolver")).isTrue();
-		assertThat(container.getBackOffTime())
-				.isEqualTo(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME);
+		assertThat(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils
+				.getField(container, "destinationResolver")).isTrue();
+		assertThat(container.getBackOffTime()).isEqualTo(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME);
 	}
 
 	@Test
-	void configuration_withCustomSendToMessageTemplate_shouldUseTheConfiguredTemplate()
-			throws Exception {
+	void configuration_withCustomSendToMessageTemplate_shouldUseTheConfiguredTemplate() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithCustomSendToMessageTemplate.class);
-		QueueMessageHandler queueMessageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
 		assertThat(queueMessageHandler.getReturnValueHandlers().size()).isEqualTo(1);
-		assertThat(
-				ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE == ReflectionTestUtils
-						.getField(queueMessageHandler.getReturnValueHandlers().get(0),
-								"messageTemplate")).isTrue();
+		assertThat(ConfigurationWithCustomSendToMessageTemplate.SEND_TO_MESSAGE_TEMPLATE == ReflectionTestUtils
+				.getField(queueMessageHandler.getReturnValueHandlers().get(0), "messageTemplate")).isTrue();
 	}
 
 	@Test
@@ -239,36 +209,31 @@ class SqsConfigurationTest {
 				MinimalConfiguration.class);
 		SimpleMessageListenerContainer simpleMessageListenerContainer = applicationContext
 				.getBean(SimpleMessageListenerContainer.class);
-		QueueMessageHandler queueMessageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 
 		// Assert
-		assertThat(ReflectionTestUtils.getField(simpleMessageListenerContainer,
-				"messageHandler")).isEqualTo(queueMessageHandler);
+		assertThat(ReflectionTestUtils.getField(simpleMessageListenerContainer, "messageHandler"))
+				.isEqualTo(queueMessageHandler);
 	}
 
 	@Test
-	void configuration_withObjectMapper_shouldSetObjectMapperOnQueueMessageHandler()
-			throws Exception {
+	void configuration_withObjectMapper_shouldSetObjectMapperOnQueueMessageHandler() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithObjectMapper.class);
-		QueueMessageHandler queueMessageHandler = applicationContext
-				.getBean(QueueMessageHandler.class);
+		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
 		ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
-		List<MessageConverter> converters = (List<MessageConverter>) ReflectionTestUtils
-				.getField(queueMessageHandler, "messageConverters");
+		List<MessageConverter> converters = (List<MessageConverter>) ReflectionTestUtils.getField(queueMessageHandler,
+				"messageConverters");
 		MappingJackson2MessageConverter mappingJackson2MessageConverter = (MappingJackson2MessageConverter) converters
 				.get(0);
 
 		// Assert
-		assertThat(mappingJackson2MessageConverter.getObjectMapper())
-				.isEqualTo(objectMapper);
+		assertThat(mappingJackson2MessageConverter.getObjectMapper()).isEqualTo(objectMapper);
 	}
 
 	@Test
-	void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider()
-			throws Exception {
+	void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider() throws Exception {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithMissingAwsCredentials.class);
@@ -278,9 +243,8 @@ class SqsConfigurationTest {
 				.getBean(AmazonSQSBufferedAsyncClient.class);
 		AmazonSQSAsyncClient amazonSqsClient = (AmazonSQSAsyncClient) ReflectionTestUtils
 				.getField(bufferedAmazonSqsClient, "realSQS");
-		assertThat(DefaultAWSCredentialsProviderChain.class.isInstance(
-				ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider")))
-						.isTrue();
+		assertThat(DefaultAWSCredentialsProviderChain.class
+				.isInstance(ReflectionTestUtils.getField(amazonSqsClient, "awsCredentialsProvider"))).isTrue();
 	}
 
 	@Test
@@ -288,15 +252,13 @@ class SqsConfigurationTest {
 		// Arrange & Act
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				ConfigurationWithRegionProvider.class);
-		AmazonSQSAsync bufferedAmazonSqsClient = applicationContext
-				.getBean(AmazonSQSAsync.class);
-		AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils
-				.getField(bufferedAmazonSqsClient, "realSQS");
+		AmazonSQSAsync bufferedAmazonSqsClient = applicationContext.getBean(AmazonSQSAsync.class);
+		AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(bufferedAmazonSqsClient,
+				"realSQS");
 
 		// Assert
 		assertThat(ReflectionTestUtils.getField(amazonSqs, "endpoint").toString())
-				.isEqualTo("https://"
-						+ Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"));
+				.isEqualTo("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sqs"));
 	}
 
 	@EnableSqs
@@ -314,8 +276,7 @@ class SqsConfigurationTest {
 	@Configuration(proxyBeanMethods = false)
 	static class ConfigurationWithCustomAmazonClient {
 
-		static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class,
-				withSettings().stubOnly());
+		static final AmazonSQSAsync CUSTOM_SQS_CLIENT = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
 		@Bean
 		AWSCredentialsProvider awsCredentials() {
@@ -336,22 +297,17 @@ class SqsConfigurationTest {
 		static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(
 				HandlerMethodReturnValueHandler.class);
 
-		static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(
-				HandlerMethodArgumentResolver.class);
+		static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(HandlerMethodArgumentResolver.class);
 
-		static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class,
-				withSettings().stubOnly());
+		static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
-		static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(
-				ResourceIdResolver.class);
+		static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
 		@Bean
 		QueueMessageHandlerFactory queueMessageHandlerFactory() {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
-			factory.setArgumentResolvers(
-					Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
-			factory.setReturnValueHandlers(
-					Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
+			factory.setArgumentResolvers(Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
+			factory.setReturnValueHandlers(Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
 			factory.setAmazonSqs(CUSTOM_AMAZON_SQS);
 			factory.setResourceIdResolver(CUSTOM_RESOURCE_ID_RESOLVER);
 			factory.setSqsMessageDeletionPolicy(SqsMessageDeletionPolicy.NO_REDRIVE);
@@ -363,28 +319,22 @@ class SqsConfigurationTest {
 
 	@EnableSqs
 	@Configuration(proxyBeanMethods = false)
-	static class ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy
-			extends MinimalConfiguration {
+	static class ConfigurationWithCustomizedMessageHandlerGlobalDeletionPolicy extends MinimalConfiguration {
 
 		static final HandlerMethodReturnValueHandler CUSTOM_RETURN_VALUE_HANDLER = mock(
 				HandlerMethodReturnValueHandler.class);
 
-		static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(
-				HandlerMethodArgumentResolver.class);
+		static final HandlerMethodArgumentResolver CUSTOM_ARGUMENT_RESOLVER = mock(HandlerMethodArgumentResolver.class);
 
-		static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class,
-				withSettings().stubOnly());
+		static final AmazonSQSAsync CUSTOM_AMAZON_SQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
-		static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(
-				ResourceIdResolver.class);
+		static final ResourceIdResolver CUSTOM_RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
 		@Bean
 		QueueMessageHandlerFactory queueMessageHandlerFactory() {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
-			factory.setArgumentResolvers(
-					Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
-			factory.setReturnValueHandlers(
-					Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
+			factory.setArgumentResolvers(Collections.singletonList(CUSTOM_ARGUMENT_RESOLVER));
+			factory.setReturnValueHandlers(Collections.singletonList(CUSTOM_RETURN_VALUE_HANDLER));
 			factory.setSqsMessageDeletionPolicy(SqsMessageDeletionPolicy.ON_SUCCESS);
 			factory.setAmazonSqs(CUSTOM_AMAZON_SQS);
 			factory.setResourceIdResolver(CUSTOM_RESOURCE_ID_RESOLVER);
@@ -398,8 +348,7 @@ class SqsConfigurationTest {
 	@Configuration(proxyBeanMethods = false)
 	static class ConfigurationWithCustomContainerFactory {
 
-		static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class,
-				withSettings().stubOnly());
+		static final AmazonSQSAsync AMAZON_SQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
 		static final boolean AUTO_STARTUP = true;
 
@@ -407,8 +356,7 @@ class SqsConfigurationTest {
 
 		static final QueueMessageHandler MESSAGE_HANDLER;
 
-		static final ResourceIdResolver RESOURCE_ID_RESOLVER = mock(
-				ResourceIdResolver.class);
+		static final ResourceIdResolver RESOURCE_ID_RESOLVER = mock(ResourceIdResolver.class);
 
 		static final SimpleAsyncTaskExecutor TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 

@@ -66,8 +66,7 @@ public class ReadOnlyRoutingDataSource extends AbstractRoutingDataSource {
 
 	@Override
 	protected Object determineCurrentLookupKey() {
-		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()
-				&& !this.dataSourceKeys.isEmpty()) {
+		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly() && !this.dataSourceKeys.isEmpty()) {
 			return this.dataSourceKeys.get(getRandom(this.dataSourceKeys.size()));
 		}
 

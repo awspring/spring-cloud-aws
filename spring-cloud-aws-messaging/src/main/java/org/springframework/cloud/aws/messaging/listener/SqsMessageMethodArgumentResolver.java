@@ -31,13 +31,11 @@ public class SqsMessageMethodArgumentResolver implements HandlerMethodArgumentRe
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return com.amazonaws.services.sqs.model.Message.class
-				.isAssignableFrom(parameter.getParameterType());
+		return com.amazonaws.services.sqs.model.Message.class.isAssignableFrom(parameter.getParameterType());
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message)
-			throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
 		return QueueMessageUtils.getSourceData(message);
 	}
 

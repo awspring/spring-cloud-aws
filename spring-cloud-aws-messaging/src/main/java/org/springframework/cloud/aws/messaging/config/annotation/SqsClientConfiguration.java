@@ -43,8 +43,7 @@ public class SqsClientConfiguration {
 
 	private final RegionProvider regionProvider;
 
-	public SqsClientConfiguration(
-			ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
+	public SqsClientConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
 			ObjectProvider<RegionProvider> regionProvider) {
 		this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
 		this.regionProvider = regionProvider.getIfAvailable();
@@ -54,8 +53,7 @@ public class SqsClientConfiguration {
 	@Bean(destroyMethod = "shutdown")
 	public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
 		AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-				AmazonSQSAsyncClient.class, this.awsCredentialsProvider,
-				this.regionProvider);
+				AmazonSQSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider);
 		clientFactoryBean.afterPropertiesSet();
 		return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
 	}

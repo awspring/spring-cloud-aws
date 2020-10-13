@@ -77,34 +77,26 @@ abstract class ResourceLoaderAwsTest {
 
 	@Test
 	void testUploadAndDownloadOfSmallFileWithInjectedResourceLoader() throws Exception {
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
-		uploadFileTestFile(bucketName,
-				"testUploadAndDownloadOfSmallFileWithInjectedResourceLoader",
-				"hello world");
-		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName
-				+ "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		uploadFileTestFile(bucketName, "testUploadAndDownloadOfSmallFileWithInjectedResourceLoader", "hello world");
+		Resource resource = this.resourceLoader
+				.getResource(S3_PREFIX + bucketName + "/testUploadAndDownloadOfSmallFileWithInjectedResourceLoader");
 		assertThat(resource.exists()).isTrue();
 		InputStream inputStream = resource.getInputStream();
 		assertThat(inputStream).isNotNull();
-		assertThat(
-				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")))
-						.isEqualTo("hello world");
+		assertThat(FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8"))).isEqualTo("hello world");
 		assertThat(resource.contentLength()).isEqualTo("hello world".length());
 	}
 
 	@Test
 	void testUploadFileWithRelativePath() throws Exception {
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
-		uploadFileTestFile(bucketName, "testUploadFileWithRelativePathParent",
-				"hello world");
-		Resource resource = this.resourceLoader.getResource(
-				S3_PREFIX + bucketName + "/testUploadFileWithRelativePathParent");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		uploadFileTestFile(bucketName, "testUploadFileWithRelativePathParent", "hello world");
+		Resource resource = this.resourceLoader
+				.getResource(S3_PREFIX + bucketName + "/testUploadFileWithRelativePathParent");
 		assertThat(resource.exists()).isTrue();
 
-		WritableResource childFileResource = (WritableResource) resource
-				.createRelative("child");
+		WritableResource childFileResource = (WritableResource) resource.createRelative("child");
 
 		try (OutputStream outputStream = childFileResource.getOutputStream();
 				OutputStreamWriter writer = new OutputStreamWriter(outputStream)) {
@@ -115,9 +107,7 @@ abstract class ResourceLoaderAwsTest {
 
 		InputStream inputStream = childFileResource.getInputStream();
 		assertThat(inputStream).isNotNull();
-		assertThat(
-				FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8")))
-						.isEqualTo("hello world");
+		assertThat(FileCopyUtils.copyToString(new InputStreamReader(inputStream, "UTF-8"))).isEqualTo("hello world");
 		assertThat(childFileResource.contentLength()).isEqualTo("hello world".length());
 	}
 
@@ -125,17 +115,16 @@ abstract class ResourceLoaderAwsTest {
 			throws UnsupportedEncodingException {
 		ObjectMetadata objectMetadata = new ObjectMetadata();
 		objectMetadata.setContentLength(content.length());
-		this.amazonS3.putObject(bucketName, objectKey,
-				new ByteArrayInputStream(content.getBytes("UTF-8")), objectMetadata);
+		this.amazonS3.putObject(bucketName, objectKey, new ByteArrayInputStream(content.getBytes("UTF-8")),
+				objectMetadata);
 		this.createdObjects.add(objectKey);
 	}
 
 	@Test
 	void testUploadFileWithMoreThenFiveMegabytes() throws Exception {
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
-		Resource resource = this.resourceLoader.getResource(
-				S3_PREFIX + bucketName + "/testUploadFileWithMoreThenFiveMegabytes");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		Resource resource = this.resourceLoader
+				.getResource(S3_PREFIX + bucketName + "/testUploadFileWithMoreThenFiveMegabytes");
 		assertThat(WritableResource.class.isInstance(resource)).isTrue();
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
@@ -147,18 +136,14 @@ abstract class ResourceLoaderAwsTest {
 	}
 
 	@Test
-	void testUploadBigFileAndCompareChecksum()
-			throws IOException, NoSuchAlgorithmException {
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
-		Resource resource = this.resourceLoader
-				.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
+	void testUploadBigFileAndCompareChecksum() throws IOException, NoSuchAlgorithmException {
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
+		Resource resource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
 		assertThat(WritableResource.class.isInstance(resource)).isTrue();
 
 		WritableResource writableResource = (WritableResource) resource;
 		OutputStream outputStream = writableResource.getOutputStream();
-		ClassPathResource testFileResource = new ClassPathResource("test-file.jpg",
-				getClass());
+		ClassPathResource testFileResource = new ClassPathResource("test-file.jpg", getClass());
 		InputStream inputStream = new FileInputStream(testFileResource.getFile());
 
 		MessageDigest md = MessageDigest.getInstance("MD5");
@@ -168,8 +153,7 @@ abstract class ResourceLoaderAwsTest {
 
 		byte[] originalMd5Checksum = md.digest();
 
-		Resource downloadedResource = this.resourceLoader
-				.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
+		Resource downloadedResource = this.resourceLoader.getResource(S3_PREFIX + bucketName + "/test-file.jpg");
 		InputStream downloadedInputStream = downloadedResource.getInputStream();
 
 		md.reset();
@@ -194,20 +178,15 @@ abstract class ResourceLoaderAwsTest {
 	@Test
 	void exists_withNonExistingObject_shouldReturnFalse() throws Exception {
 		// Arrange
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 
 		// Act & Assert
-		assertThat(this.resourceLoader
-				.getResource(S3_PREFIX + bucketName + "/dummy-file.txt").exists())
-						.isFalse();
+		assertThat(this.resourceLoader.getResource(S3_PREFIX + bucketName + "/dummy-file.txt").exists()).isFalse();
 	}
 
 	@Test
 	void exists_withNonExistingBucket_shouldReturnFalse() throws Exception {
-		assertThat(this.resourceLoader
-				.getResource(
-						S3_PREFIX + "dummy-bucket-does-not-really-exist/dummy-file.txt")
+		assertThat(this.resourceLoader.getResource(S3_PREFIX + "dummy-bucket-does-not-really-exist/dummy-file.txt")
 				.exists()).isFalse();
 	}
 
@@ -215,8 +194,7 @@ abstract class ResourceLoaderAwsTest {
 	// not be deleted after the test run.
 	@AfterEach
 	void tearDown() {
-		String bucketName = this.stackResourceRegistry
-				.lookupPhysicalResourceId("EmptyBucket");
+		String bucketName = this.stackResourceRegistry.lookupPhysicalResourceId("EmptyBucket");
 		for (String createdObject : this.createdObjects) {
 			this.amazonS3.deleteObject(bucketName, createdObject);
 		}

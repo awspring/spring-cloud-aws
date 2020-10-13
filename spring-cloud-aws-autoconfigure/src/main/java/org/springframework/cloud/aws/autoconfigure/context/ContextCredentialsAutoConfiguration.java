@@ -75,37 +75,30 @@ public class ContextCredentialsAutoConfiguration {
 				registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME,
 						resolveCredentialsProviderBeanDefinition(
 								resolveCredentialsProviders(awsCredentialsProperties())));
-				AmazonWebserviceClientConfigurationUtils
-						.replaceDefaultCredentialsProvider(registry,
-								CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+				AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry,
+						CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 			}
 		}
 
-		private BeanDefinition resolveCredentialsProviderBeanDefinition(
-				List<AWSCredentialsProvider> providers) {
+		private BeanDefinition resolveCredentialsProviderBeanDefinition(List<AWSCredentialsProvider> providers) {
 			return providers.isEmpty()
-					? BeanDefinitionBuilder
-							.genericBeanDefinition(
-									DefaultAWSCredentialsProviderChain.class)
+					? BeanDefinitionBuilder.genericBeanDefinition(DefaultAWSCredentialsProviderChain.class)
 							.getBeanDefinition()
-					: BeanDefinitionBuilder
-							.genericBeanDefinition(AWSCredentialsProviderChain.class)
+					: BeanDefinitionBuilder.genericBeanDefinition(AWSCredentialsProviderChain.class)
 							.addConstructorArgValue(providers).getBeanDefinition();
 		}
 
 		private AwsCredentialsProperties awsCredentialsProperties() {
-			return Binder.get(this.environment).bindOrCreate(
-					AwsCredentialsProperties.PREFIX, AwsCredentialsProperties.class);
+			return Binder.get(this.environment).bindOrCreate(AwsCredentialsProperties.PREFIX,
+					AwsCredentialsProperties.class);
 		}
 
-		private List<AWSCredentialsProvider> resolveCredentialsProviders(
-				AwsCredentialsProperties properties) {
+		private List<AWSCredentialsProvider> resolveCredentialsProviders(AwsCredentialsProperties properties) {
 			List<AWSCredentialsProvider> providers = new ArrayList<>();
 
-			if (StringUtils.hasText(properties.getAccessKey())
-					&& StringUtils.hasText(properties.getSecretKey())) {
-				providers.add(new AWSStaticCredentialsProvider(new BasicAWSCredentials(
-						properties.getAccessKey(), properties.getSecretKey())));
+			if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
+				providers.add(new AWSStaticCredentialsProvider(
+						new BasicAWSCredentials(properties.getAccessKey(), properties.getSecretKey())));
 			}
 
 			if (properties.isInstanceProfile()) {
@@ -114,8 +107,7 @@ public class ContextCredentialsAutoConfiguration {
 
 			if (properties.getProfileName() != null) {
 				providers.add(properties.getProfilePath() != null
-						? new ProfileCredentialsProvider(properties.getProfilePath(),
-								properties.getProfileName())
+						? new ProfileCredentialsProvider(properties.getProfilePath(), properties.getProfileName())
 						: new ProfileCredentialsProvider(properties.getProfileName()));
 			}
 

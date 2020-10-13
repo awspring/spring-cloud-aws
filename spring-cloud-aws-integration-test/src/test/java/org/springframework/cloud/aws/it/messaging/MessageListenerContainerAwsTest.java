@@ -63,14 +63,13 @@ abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 	private StackResourceRegistry stackResourceRegistry;
 
 	@BeforeEach
-	public void insertTotalNumberOfMessagesIntoTheLoadTestQueue()
-			throws InterruptedException {
+	public void insertTotalNumberOfMessagesIntoTheLoadTestQueue() throws InterruptedException {
 		CountDownLatch countDownLatch = new CountDownLatch(TOTAL_BATCHES);
 
 		for (int batch = 0; batch < TOTAL_BATCHES; batch++) {
-			this.taskExecutor.execute(new QueueMessageSender(
-					this.stackResourceRegistry.lookupPhysicalResourceId("LoadTestQueue"),
-					this.amazonSqsClient, countDownLatch));
+			this.taskExecutor.execute(
+					new QueueMessageSender(this.stackResourceRegistry.lookupPhysicalResourceId("LoadTestQueue"),
+							this.amazonSqsClient, countDownLatch));
 		}
 
 		countDownLatch.await();
@@ -79,9 +78,7 @@ abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 	@Test
 	void listenToAllMessagesUntilTheyAreReceivedOrTimeOut() throws Exception {
 		await().atMost(Duration.ofMinutes(5)).untilAsserted(() -> {
-			assertThat(
-					this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES))
-							.isTrue();
+			assertThat(this.messageReceiver.getCountDownLatch().await(5, TimeUnit.MINUTES)).isTrue();
 		});
 	}
 
@@ -110,8 +107,7 @@ abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 
 		private final CountDownLatch countDownLatch;
 
-		private QueueMessageSender(String queueUrl, AmazonSQS amazonSqs,
-				CountDownLatch countDownLatch) {
+		private QueueMessageSender(String queueUrl, AmazonSQS amazonSqs, CountDownLatch countDownLatch) {
 			this.queueUrl = queueUrl;
 			this.amazonSqs = amazonSqs;
 			this.countDownLatch = countDownLatch;
@@ -124,8 +120,7 @@ abstract class MessageListenerContainerAwsTest extends AbstractContainerTest {
 				messages.add(new SendMessageBatchRequestEntry(Integer.toString(i),
 						new StringBuilder().append("message_").append(i).toString()));
 			}
-			this.amazonSqs.sendMessageBatch(
-					new SendMessageBatchRequest(this.queueUrl, messages));
+			this.amazonSqs.sendMessageBatch(new SendMessageBatchRequest(this.queueUrl, messages));
 			this.countDownLatch.countDown();
 		}
 

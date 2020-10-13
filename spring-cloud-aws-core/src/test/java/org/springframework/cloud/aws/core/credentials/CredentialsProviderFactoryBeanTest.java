@@ -38,27 +38,22 @@ class CredentialsProviderFactoryBeanTest {
 
 	@Test
 	void testCreateWithNullCredentialsProvider() throws Exception {
-		assertThatThrownBy(() -> new CredentialsProviderFactoryBean(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> new CredentialsProviderFactoryBean(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("not be null");
 	}
 
 	@Test
-	void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain()
-			throws Exception {
+	void getObject_withZeroConfiguredProviders_returnsDefaultAwsCredentialsProviderChain() throws Exception {
 		// Arrange
 		CredentialsProviderFactoryBean credentialsProviderFactoryBean = new CredentialsProviderFactoryBean();
 		credentialsProviderFactoryBean.afterPropertiesSet();
 
 		// Act
-		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean
-				.getObject();
+		AWSCredentialsProvider credentialsProvider = credentialsProviderFactoryBean.getObject();
 
 		// Assert
 		assertThat(credentialsProvider).isNotNull();
-		assertThat(
-				DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider))
-						.isTrue();
+		assertThat(DefaultAWSCredentialsProviderChain.class.isInstance(credentialsProvider)).isTrue();
 	}
 
 	@Test

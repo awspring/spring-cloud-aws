@@ -66,19 +66,17 @@ public final class AmazonS3ProxyFactory {
 
 			Advised advised = (Advised) amazonS3;
 			for (Advisor advisor : advised.getAdvisors()) {
-				if (ClassUtils.isAssignableValue(SimpleStorageRedirectInterceptor.class,
-						advisor.getAdvice())) {
+				if (ClassUtils.isAssignableValue(SimpleStorageRedirectInterceptor.class, advisor.getAdvice())) {
 					return amazonS3;
 				}
 			}
 
 			try {
-				advised.addAdvice(new SimpleStorageRedirectInterceptor(
-						(AmazonS3) advised.getTargetSource().getTarget()));
+				advised.addAdvice(
+						new SimpleStorageRedirectInterceptor((AmazonS3) advised.getTargetSource().getTarget()));
 			}
 			catch (Exception e) {
-				throw new RuntimeException(
-						"Error adding advice for class amazonS3 instance", e);
+				throw new RuntimeException("Error adding advice for class amazonS3 instance", e);
 			}
 
 			return amazonS3;
@@ -103,8 +101,7 @@ public final class AmazonS3ProxyFactory {
 	 */
 	static final class SimpleStorageRedirectInterceptor implements MethodInterceptor {
 
-		private static final Logger LOGGER = LoggerFactory
-				.getLogger(SimpleStorageRedirectInterceptor.class);
+		private static final Logger LOGGER = LoggerFactory.getLogger(SimpleStorageRedirectInterceptor.class);
 
 		private final AmazonS3 amazonS3;
 
@@ -122,10 +119,9 @@ public final class AmazonS3ProxyFactory {
 			}
 			catch (AmazonS3Exception e) {
 				if (301 == e.getStatusCode()) {
-					AmazonS3 redirectClient = buildAmazonS3ForRedirectLocation(
-							this.amazonS3, e);
-					return ReflectionUtils.invokeMethod(invocation.getMethod(),
-							redirectClient, invocation.getArguments());
+					AmazonS3 redirectClient = buildAmazonS3ForRedirectLocation(this.amazonS3, e);
+					return ReflectionUtils.invokeMethod(invocation.getMethod(), redirectClient,
+							invocation.getArguments());
 				}
 				else {
 					throw e;
@@ -144,21 +140,18 @@ public final class AmazonS3ProxyFactory {
 		 * endpoint is "s3.amazonaws.com". The us-east-1 bucket is quite likely to return
 		 * the "s3.amazonaws.com" endpoint.
 		 */
-		private AmazonS3 buildAmazonS3ForRedirectLocation(AmazonS3 prototype,
-				AmazonS3Exception e) {
+		private AmazonS3 buildAmazonS3ForRedirectLocation(AmazonS3 prototype, AmazonS3Exception e) {
 			try {
 				Regions redirectRegion;
 				try {
-					redirectRegion = Regions.fromName(
-							e.getAdditionalDetails().get("x-amz-bucket-region"));
+					redirectRegion = Regions.fromName(e.getAdditionalDetails().get("x-amz-bucket-region"));
 				}
 				catch (IllegalArgumentException iae) {
 					redirectRegion = null;
 				}
 
 				return this.amazonS3ClientFactory.createClientForEndpointUrl(prototype,
-						"https://" + e.getAdditionalDetails().get("Endpoint"),
-						redirectRegion);
+						"https://" + e.getAdditionalDetails().get("Endpoint"), redirectRegion);
 			}
 			catch (Exception ex) {
 				LOGGER.error("Error getting new Amazon S3 for redirect", ex);

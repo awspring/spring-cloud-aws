@@ -32,8 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * @author Alain Sahli
  */
-@ContextConfiguration(
-		classes = JavaQueueListenerTest.JavaQueueListenerTestConfiguration.class)
+@ContextConfiguration(classes = JavaQueueListenerTest.JavaQueueListenerTestConfiguration.class)
 class JavaQueueListenerTest extends QueueListenerTest {
 
 	@Configuration
@@ -51,8 +50,7 @@ class JavaQueueListenerTest extends QueueListenerTest {
 		}
 
 		@Bean
-		public QueueMessageHandlerFactory queueMessageHandlerFactory(
-				QueueMessagingTemplate queueMessagingTemplate) {
+		public QueueMessageHandlerFactory queueMessageHandlerFactory(QueueMessagingTemplate queueMessagingTemplate) {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
 			factory.setSendToMessagingTemplate(queueMessagingTemplate);
 

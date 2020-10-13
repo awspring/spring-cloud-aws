@@ -43,8 +43,7 @@ class SimpleStorageNameUtilsTest {
 
 	@Test
 	void testIsSimpleStorageResourceNUll() throws Exception {
-		assertThatThrownBy(() -> isSimpleStorageResource(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> isSimpleStorageResource(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining(" must not be null");
 	}
 
@@ -56,42 +55,36 @@ class SimpleStorageNameUtilsTest {
 		assertThat(getBucketNameFromLocation("s3://foo/bar/baz/boo/")).isEqualTo("foo");
 		assertThat(getBucketNameFromLocation("s3://fo*/bar/baz/boo/")).isEqualTo("fo*");
 
-		assertThat(getBucketNameFromLocation("s3://foo/bar/baz/boo/^versionIdValue"))
-				.isEqualTo("foo");
+		assertThat(getBucketNameFromLocation("s3://foo/bar/baz/boo/^versionIdValue")).isEqualTo("foo");
 	}
 
 	@Test
 	void testGetBucketNameNotNull() throws Exception {
-		assertThatThrownBy(() -> getBucketNameFromLocation(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getBucketNameFromLocation(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining(" must not be null");
 	}
 
 	@Test
 	void testNonLocationForBucket() throws Exception {
-		assertThatThrownBy(() -> getBucketNameFromLocation("foo://fo*"))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getBucketNameFromLocation("foo://fo*")).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("not a valid S3 location");
 	}
 
 	@Test
 	void testNonValidBucket() throws Exception {
-		assertThatThrownBy(() -> getBucketNameFromLocation("s3://fo*"))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getBucketNameFromLocation("s3://fo*")).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("valid bucket name");
 	}
 
 	@Test
 	void testEmptyValidBucket() throws Exception {
-		assertThatThrownBy(() -> getBucketNameFromLocation("s3:///"))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getBucketNameFromLocation("s3:///")).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("valid bucket name");
 	}
 
 	@Test
 	void testGetObjectNameNull() throws Exception {
-		assertThatThrownBy(() -> getObjectNameFromLocation(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getObjectNameFromLocation(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining(" must not be null");
 	}
 
@@ -100,61 +93,48 @@ class SimpleStorageNameUtilsTest {
 		assertThat(getObjectNameFromLocation("s3://foo/bar")).isEqualTo("bar");
 		assertThat(getObjectNameFromLocation("s3://foo/ba*")).isEqualTo("ba*");
 		assertThat(getObjectNameFromLocation("s3://foo/")).isEqualTo("");
-		assertThat(getObjectNameFromLocation("s3://foo/bar^versionIdValue"))
-				.isEqualTo("bar");
+		assertThat(getObjectNameFromLocation("s3://foo/bar^versionIdValue")).isEqualTo("bar");
 
-		assertThat(getObjectNameFromLocation("s3://foo/bar/baz/boo/"))
-				.isEqualTo("bar/baz/boo");
-		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo/"))
-				.isEqualTo("bar/ba*/boo");
-		assertThat(getObjectNameFromLocation("s3://foo/bar/baz/boo.txt/"))
-				.isEqualTo("bar/baz/boo.txt");
-		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/"))
-				.isEqualTo("bar/ba*/boo.txt");
-		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue"))
-				.isEqualTo("bar/ba*/boo.txt");
+		assertThat(getObjectNameFromLocation("s3://foo/bar/baz/boo/")).isEqualTo("bar/baz/boo");
+		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo/")).isEqualTo("bar/ba*/boo");
+		assertThat(getObjectNameFromLocation("s3://foo/bar/baz/boo.txt/")).isEqualTo("bar/baz/boo.txt");
+		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/")).isEqualTo("bar/ba*/boo.txt");
+		assertThat(getObjectNameFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue")).isEqualTo("bar/ba*/boo.txt");
 	}
 
 	@Test
 	void testGetVersionIdFromLocation() throws Exception {
-		assertThat(getVersionIdFromLocation("s3://foo/bar^versionIdValue"))
-				.isEqualTo("versionIdValue");
-		assertThat(getVersionIdFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue"))
-				.isEqualTo("versionIdValue");
+		assertThat(getVersionIdFromLocation("s3://foo/bar^versionIdValue")).isEqualTo("versionIdValue");
+		assertThat(getVersionIdFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue")).isEqualTo("versionIdValue");
 	}
 
 	@Test
 	void testEmptyValidBucketForLocation() throws Exception {
-		assertThatThrownBy(() -> getObjectNameFromLocation("s3:///"))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getObjectNameFromLocation("s3:///")).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("valid bucket name");
 	}
 
 	@Test
 	void testEmptyValidBucketForLocationWithKey() throws Exception {
-		assertThatThrownBy(() -> getObjectNameFromLocation("s3:///foo"))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> getObjectNameFromLocation("s3:///foo")).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("valid bucket name");
 	}
 
 	@Test
 	void testGetLocationForObjectNameAndBucket() throws Exception {
 		assertThat(getLocationForBucketAndObject("foo", "bar")).isEqualTo("s3://foo/bar");
-		assertThat(getLocationForBucketAndObject("foo", "bar/baz"))
-				.isEqualTo("s3://foo/bar/baz");
-		assertThat(getLocationForBucketAndObject("foo", "bar/baz.txt"))
-				.isEqualTo("s3://foo/bar/baz.txt");
+		assertThat(getLocationForBucketAndObject("foo", "bar/baz")).isEqualTo("s3://foo/bar/baz");
+		assertThat(getLocationForBucketAndObject("foo", "bar/baz.txt")).isEqualTo("s3://foo/bar/baz.txt");
 	}
 
 	@Test
 	void testGetLocationForObjectNameAndBucketAndVersionId() throws Exception {
-		assertThat(
-				getLocationForBucketAndObjectAndVersionId("foo", "bar", "versionIdValue"))
-						.isEqualTo("s3://foo/bar^versionIdValue");
-		assertThat(getLocationForBucketAndObjectAndVersionId("foo", "bar/baz",
-				"versionIdValue")).isEqualTo("s3://foo/bar/baz^versionIdValue");
-		assertThat(getLocationForBucketAndObjectAndVersionId("foo", "bar/baz.txt",
-				"versionIdValue")).isEqualTo("s3://foo/bar/baz.txt^versionIdValue");
+		assertThat(getLocationForBucketAndObjectAndVersionId("foo", "bar", "versionIdValue"))
+				.isEqualTo("s3://foo/bar^versionIdValue");
+		assertThat(getLocationForBucketAndObjectAndVersionId("foo", "bar/baz", "versionIdValue"))
+				.isEqualTo("s3://foo/bar/baz^versionIdValue");
+		assertThat(getLocationForBucketAndObjectAndVersionId("foo", "bar/baz.txt", "versionIdValue"))
+				.isEqualTo("s3://foo/bar/baz.txt^versionIdValue");
 	}
 
 	@Test
@@ -162,15 +142,13 @@ class SimpleStorageNameUtilsTest {
 		assertThat(stripProtocol("s3://foo/bar")).isEqualTo("foo/bar");
 		assertThat(stripProtocol("s3://foo/bar/baz")).isEqualTo("foo/bar/baz");
 		assertThat(stripProtocol("s3://foo/bar.txt")).isEqualTo("foo/bar.txt");
-		assertThat(stripProtocol("s3://foo/bar.txt^versionIdValue"))
-				.isEqualTo("foo/bar.txt^versionIdValue");
+		assertThat(stripProtocol("s3://foo/bar.txt^versionIdValue")).isEqualTo("foo/bar.txt^versionIdValue");
 		assertThat(stripProtocol("s3://")).isEqualTo("");
 	}
 
 	@Test
 	void testStripProtocolNull() throws Exception {
-		assertThatThrownBy(() -> stripProtocol(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> stripProtocol(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining(" must not be null");
 	}
 

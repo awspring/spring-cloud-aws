@@ -31,32 +31,24 @@ class AwsParamStorePropertySourceTest {
 
 	private AWSSimpleSystemsManagement ssmClient = mock(AWSSimpleSystemsManagement.class);
 
-	private AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(
-			"/config/myservice/", ssmClient);
+	private AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource("/config/myservice/",
+			ssmClient);
 
 	@Test
 	void followsNextToken() {
-		GetParametersByPathResult firstResult = new GetParametersByPathResult()
-				.withNextToken("next").withParameters(
-						new Parameter().withName("/config/myservice/key1")
-								.withValue("value1"),
-						new Parameter().withName("/config/myservice/key2")
-								.withValue("value2"));
+		GetParametersByPathResult firstResult = new GetParametersByPathResult().withNextToken("next").withParameters(
+				new Parameter().withName("/config/myservice/key1").withValue("value1"),
+				new Parameter().withName("/config/myservice/key2").withValue("value2"));
 
-		GetParametersByPathResult nextResult = new GetParametersByPathResult()
-				.withParameters(
-						new Parameter().withName("/config/myservice/key3")
-								.withValue("value3"),
-						new Parameter().withName("/config/myservice/key4")
-								.withValue("value4"));
+		GetParametersByPathResult nextResult = new GetParametersByPathResult().withParameters(
+				new Parameter().withName("/config/myservice/key3").withValue("value3"),
+				new Parameter().withName("/config/myservice/key4").withValue("value4"));
 
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
-				.thenReturn(firstResult, nextResult);
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
 
 		propertySource.init();
 
-		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2",
-				"key3", "key4");
+		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2", "key3", "key4");
 		assertThat(propertySource.getProperty("key3")).isEqualTo("value3");
 	}
 

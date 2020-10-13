@@ -33,8 +33,7 @@ import org.springframework.util.Assert;
  * @author Agim Emruli
  * @since 1.0
  */
-public class CredentialsProviderFactoryBean
-		extends AbstractFactoryBean<AWSCredentialsProvider> {
+public class CredentialsProviderFactoryBean extends AbstractFactoryBean<AWSCredentialsProvider> {
 
 	/**
 	 * Name of the credentials provider bean.
@@ -64,8 +63,8 @@ public class CredentialsProviderFactoryBean
 			awsCredentialsProviderChain = new DefaultAWSCredentialsProviderChain();
 		}
 		else {
-			awsCredentialsProviderChain = new AWSCredentialsProviderChain(this.delegates
-					.toArray(new AWSCredentialsProvider[this.delegates.size()]));
+			awsCredentialsProviderChain = new AWSCredentialsProviderChain(
+					this.delegates.toArray(new AWSCredentialsProvider[this.delegates.size()]));
 		}
 
 		awsCredentialsProviderChain.setReuseLastProvider(false);

@@ -39,45 +39,38 @@ class NotificationSubjectHandlerMethodArgumentResolverTest {
 		// Arrange
 		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("subscriptionConfirmation.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
 		MethodParameter methodParameter = new MethodParameter(
-				ReflectionUtils.findMethod(NotificationMethods.class,
-						"subscriptionMethod", NotificationStatus.class),
+				ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class),
 				0);
 
 		// Assert
-		assertThatThrownBy(() -> resolver.resolveArgument(methodParameter, null,
-				new ServletWebRequest(servletRequest), null))
+		assertThatThrownBy(
+				() -> resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null))
 						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining(
-								"@NotificationMessage annotated parameters are only allowed");
+						.hasMessageContaining("@NotificationMessage annotated parameters are only allowed");
 	}
 
 	@Test
-	void resolveArgument_notificationMessageTypeWithSubject_reportsErrors()
-			throws Exception {
+	void resolveArgument_notificationMessageTypeWithSubject_reportsErrors() throws Exception {
 		// Arrange
 		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("notificationMessage.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
 		MethodParameter methodParameter = new MethodParameter(
-				ReflectionUtils.findMethod(NotificationMethods.class,
-						"subscriptionMethod", NotificationStatus.class),
+				ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class),
 				0);
 
 		// Act
-		Object argument = resolver.resolveArgument(methodParameter, null,
-				new ServletWebRequest(servletRequest), null);
+		Object argument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null);
 
 		// Assert
 		assertThat(argument).isEqualTo("asdasd");
@@ -87,10 +80,9 @@ class NotificationSubjectHandlerMethodArgumentResolverTest {
 	void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
 		NotificationSubjectHandlerMethodArgumentResolver resolver = new NotificationSubjectHandlerMethodArgumentResolver();
-		Method methodWithWrongParameterType = this.getClass()
-				.getDeclaredMethod("methodWithWrongParameterType", Integer.class);
-		MethodParameter methodParameter = new MethodParameter(
-				methodWithWrongParameterType, 0);
+		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType",
+				Integer.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
 
 		// Act
 		boolean supportsParameter = resolver.supportsParameter(methodParameter);

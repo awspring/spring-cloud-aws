@@ -38,8 +38,7 @@ public class AwsParamStorePropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsParamStoreProperties properties, String field,
-			String errorCode) {
+	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 
 		properties.validate(properties, errors);
@@ -50,9 +49,8 @@ public class AwsParamStorePropertiesTest {
 
 	@Test
 	void validationSucceeds() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
-				.withPrefix("/con").withDefaultContext("app").withProfileSeparator("_")
-				.build();
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
+				.withDefaultContext("app").withProfileSeparator("_").build();
 
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 		properties.validate(properties, errors);
@@ -86,18 +84,14 @@ public class AwsParamStorePropertiesTest {
 
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
-				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("").build(),
-						"prefix", "NotEmpty"),
-				Arguments.of(
-						new AwsParamStorePropertiesBuilder().withPrefix("!.").build(),
-						"prefix", "Pattern"),
-				Arguments.of(new AwsParamStorePropertiesBuilder().withDefaultContext("")
-						.build(), "defaultContext", "NotEmpty"),
-				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("")
-						.build(), "profileSeparator", "NotEmpty"),
-				Arguments.of(new AwsParamStorePropertiesBuilder()
-						.withProfileSeparator("!_").build(), "profileSeparator",
-						"Pattern"));
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withDefaultContext("").build(), "defaultContext",
+						"NotEmpty"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("").build(), "profileSeparator",
+						"NotEmpty"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("!_").build(),
+						"profileSeparator", "Pattern"));
 	}
 
 	private static class AwsParamStorePropertiesBuilder {

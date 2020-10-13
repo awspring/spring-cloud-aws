@@ -48,8 +48,7 @@ public class StackResourceUserTagsAwsTest {
 	private TestStackEnvironment testStackEnvironment;
 
 	@Test
-	void getObject_retrieveAttributesOfStackStartedByTestEnvironment_returnsStackUserTags()
-			throws Exception {
+	void getObject_retrieveAttributesOfStackStartedByTestEnvironment_returnsStackUserTags() throws Exception {
 		if (this.testStackEnvironment.isStackCreatedAutomatically()) {
 			assertThat(this.stackTag1).isEqualTo("value1");
 			assertThat(this.stackTag2).isEqualTo("value2");

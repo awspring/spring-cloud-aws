@@ -39,12 +39,10 @@ class AwsRegionPropertiesTest {
 
 	@Test
 	void staticRegionCanBeSet() {
-		assertThat(this.properties.getStatic())
-				.as("Static region value should have default of null").isNull();
+		assertThat(this.properties.getStatic()).as("Static region value should have default of null").isNull();
 
 		this.properties.setStatic(Regions.US_EAST_1.getName());
-		assertThat(this.properties.getStatic())
-				.as("Static region should have been assigned to us-east-1")
+		assertThat(this.properties.getStatic()).as("Static region should have been assigned to us-east-1")
 				.isEqualTo(Regions.US_EAST_1.getName());
 	}
 

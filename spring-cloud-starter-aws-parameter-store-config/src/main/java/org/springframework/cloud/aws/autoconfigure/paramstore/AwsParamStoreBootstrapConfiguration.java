@@ -41,27 +41,22 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsParamStoreProperties.class)
-@ConditionalOnClass({ AWSSimpleSystemsManagement.class,
-		AwsParamStorePropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled",
-		matchIfMissing = true)
+@ConditionalOnClass({ AWSSimpleSystemsManagement.class, AwsParamStorePropertySourceLocator.class })
+@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsParamStoreBootstrapConfiguration {
 
 	@Bean
-	AwsParamStorePropertySourceLocator awsParamStorePropertySourceLocator(
-			AWSSimpleSystemsManagement ssmClient, AwsParamStoreProperties properties) {
+	AwsParamStorePropertySourceLocator awsParamStorePropertySourceLocator(AWSSimpleSystemsManagement ssmClient,
+			AwsParamStoreProperties properties) {
 		return new AwsParamStorePropertySourceLocator(ssmClient, properties);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	AWSSimpleSystemsManagement ssmClient(
-			AwsParamStoreProperties awsParamStoreProperties) {
-		AWSSimpleSystemsManagementClientBuilder builder = AWSSimpleSystemsManagementClientBuilder
-				.standard().withClientConfiguration(
-						SpringCloudClientConfiguration.getClientConfiguration());
-		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion())
-				? builder.build()
+	AWSSimpleSystemsManagement ssmClient(AwsParamStoreProperties awsParamStoreProperties) {
+		AWSSimpleSystemsManagementClientBuilder builder = AWSSimpleSystemsManagementClientBuilder.standard()
+				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
+		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion()) ? builder.build()
 				: builder.withRegion(awsParamStoreProperties.getRegion()).build();
 	}
 

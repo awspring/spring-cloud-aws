@@ -38,8 +38,7 @@ import static org.awaitility.Awaitility.await;
  * @author Alain Sahli
  */
 @ExtendWith(SpringExtension.class)
-public abstract class NotificationMessagingTemplateIntegrationTest
-		extends AbstractContainerTest {
+public abstract class NotificationMessagingTemplateIntegrationTest extends AbstractContainerTest {
 
 	@Autowired
 	private NotificationMessagingTemplate notificationMessagingTemplate;
@@ -60,39 +59,33 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 		String subject = "A subject";
 
 		// Act
-		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic",
-				new TestPerson("Agim", "Emruli"), subject);
+		this.notificationMessagingTemplate.sendNotification("SqsReceivingSnsTopic", new TestPerson("Agim", "Emruli"),
+				subject);
 
 		// Assert
 		await().atMost(Duration.ofMinutes(1)).untilAsserted(() -> {
 			assertThat(this.notificationReceiver.getMessage()).isNotNull();
-			assertThat(this.notificationReceiver.getMessage().getFirstName())
-					.isEqualTo("Agim");
-			assertThat(this.notificationReceiver.getMessage().getLastName())
-					.isEqualTo("Emruli");
+			assertThat(this.notificationReceiver.getMessage().getFirstName()).isEqualTo("Agim");
+			assertThat(this.notificationReceiver.getMessage().getLastName()).isEqualTo("Emruli");
 			assertThat(this.notificationReceiver.getSubject()).isEqualTo(subject);
 		});
 	}
 
 	@Test
-	void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination()
-			throws Exception {
+	void send_validTextMessageWithoutDestination_shouldBeDeliveredToDefaultDestination() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.notificationReceiver.setCountDownLatch(countDownLatch);
 		String subject = "Hello default destination";
 
 		// Act
-		this.notificationMessagingTemplate
-				.sendNotification(new TestPerson("Agim", "Emruli"), subject);
+		this.notificationMessagingTemplate.sendNotification(new TestPerson("Agim", "Emruli"), subject);
 
 		// Assert
 		await().atMost(Duration.ofMinutes(1)).untilAsserted(() -> {
 			assertThat(this.notificationReceiver.getMessage()).isNotNull();
-			assertThat(this.notificationReceiver.getMessage().getFirstName())
-					.isEqualTo("Agim");
-			assertThat(this.notificationReceiver.getMessage().getLastName())
-					.isEqualTo("Emruli");
+			assertThat(this.notificationReceiver.getMessage().getFirstName()).isEqualTo("Agim");
+			assertThat(this.notificationReceiver.getMessage().getLastName()).isEqualTo("Emruli");
 			assertThat(this.notificationReceiver.getSubject()).isEqualTo(subject);
 		});
 	}
@@ -125,8 +118,7 @@ public abstract class NotificationMessagingTemplateIntegrationTest
 
 		@RuntimeUse
 		@SqsListener("NotificationQueue")
-		private void messageListener(@NotificationSubject String subject,
-				@NotificationMessage TestPerson message) {
+		private void messageListener(@NotificationSubject String subject, @NotificationMessage TestPerson message) {
 			this.subject = subject;
 			this.message = message;
 			this.countDownLatch.countDown();

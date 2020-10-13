@@ -53,9 +53,8 @@ class TestMemcacheServer {
 
 			// noinspection NonThreadSafeLazyInitialization
 			daemon = new MemCacheDaemon<>();
-			CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(
-					ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024,
-					1024 * 1024 * 1024);
+			CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap
+					.create(ConcurrentLinkedHashMap.EvictionPolicy.FIFO, 1024 * 1024, 1024 * 1024 * 1024);
 			daemon.setCache(new CacheImpl(storage));
 			daemon.setAddr(new InetSocketAddress(portForInstance));
 			daemon.setVerbose(true);

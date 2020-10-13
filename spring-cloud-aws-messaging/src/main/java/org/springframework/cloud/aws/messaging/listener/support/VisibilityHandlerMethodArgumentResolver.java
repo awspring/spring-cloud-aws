@@ -26,8 +26,7 @@ import org.springframework.util.ClassUtils;
  * @author Szymon Dembek
  * @since 1.3
  */
-public class VisibilityHandlerMethodArgumentResolver
-		implements HandlerMethodArgumentResolver {
+public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final String visibilityHeaderName;
 
@@ -41,13 +40,11 @@ public class VisibilityHandlerMethodArgumentResolver
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message)
-			throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
 		if (!message.getHeaders().containsKey(this.visibilityHeaderName)
 				|| message.getHeaders().get(this.visibilityHeaderName) == null) {
 			throw new IllegalArgumentException(
-					"No visibility object found for message header: '"
-							+ this.visibilityHeaderName + "'");
+					"No visibility object found for message header: '" + this.visibilityHeaderName + "'");
 		}
 		return message.getHeaders().get(this.visibilityHeaderName);
 	}

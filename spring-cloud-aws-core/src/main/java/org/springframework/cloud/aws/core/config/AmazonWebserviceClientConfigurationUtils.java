@@ -58,33 +58,29 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		// Avoid instantiation
 	}
 
-	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source,
-			BeanDefinitionRegistry registry, String serviceNameClassName,
-			String customRegionProvider, String customRegion) {
+	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source, BeanDefinitionRegistry registry,
+			String serviceNameClassName, String customRegionProvider, String customRegion) {
 
 		String beanName = getBeanName(serviceNameClassName);
 
 		if (registry.containsBeanDefinition(beanName)) {
-			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName),
-					beanName);
+			return new BeanDefinitionHolder(registry.getBeanDefinition(beanName), beanName);
 		}
 
-		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source,
-				serviceNameClassName, customRegionProvider, customRegion, registry);
+		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName,
+				customRegionProvider, customRegion, registry);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
 		return holder;
 	}
 
-	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(
-			Object source, String serviceNameClassName, String customRegionProvider,
-			String customRegion, BeanDefinitionRegistry beanDefinitionRegistry) {
+	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(Object source,
+			String serviceNameClassName, String customRegionProvider, String customRegion,
+			BeanDefinitionRegistry beanDefinitionRegistry) {
 
-		if (StringUtils.hasText(customRegionProvider)
-				&& StringUtils.hasText(customRegion)) {
-			throw new IllegalArgumentException(
-					"Only region or regionProvider can be configured, but not both");
+		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
+			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
 		}
 
 		registerCredentialsProviderIfNeeded(beanDefinitionRegistry);
@@ -116,13 +112,11 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 	public static String getBeanName(String serviceClassName) {
 		String clientClassName = ClassUtils.getShortName(serviceClassName);
-		String shortenedClassName = StringUtils.delete(clientClassName,
-				SERVICE_IMPLEMENTATION_SUFFIX);
+		String shortenedClassName = StringUtils.delete(clientClassName, SERVICE_IMPLEMENTATION_SUFFIX);
 		return Introspector.decapitalize(shortenedClassName);
 	}
 
-	public static String getRegionProviderBeanName(
-			BeanDefinitionRegistry beanDefinitionRegistry) {
+	public static String getRegionProviderBeanName(BeanDefinitionRegistry beanDefinitionRegistry) {
 		registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
 		return REGION_PROVIDER_BEAN_NAME;
 	}
@@ -135,26 +129,21 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		registry.registerAlias(customGlobalRegionProvider, REGION_PROVIDER_BEAN_NAME);
 	}
 
-	private static void registerRegionProviderBeanIfNeeded(
-			BeanDefinitionRegistry registry) {
+	private static void registerRegionProviderBeanIfNeeded(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.genericBeanDefinition(StaticRegionProvider.class);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
 			builder.addConstructorArgValue(Regions.DEFAULT_REGION.getName());
 			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME,
-					builder.getBeanDefinition());
+			registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
 		}
 	}
 
-	private static void registerCredentialsProviderIfNeeded(
-			BeanDefinitionRegistry registry) {
+	private static void registerCredentialsProviderIfNeeded(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
 					.genericBeanDefinition(CredentialsProviderFactoryBean.class);
 			builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME,
-					builder.getBeanDefinition());
+			registry.registerBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME, builder.getBeanDefinition());
 		}
 	}
 
@@ -163,8 +152,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		if (registry.containsBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME)) {
 			registry.removeBeanDefinition(CREDENTIALS_PROVIDER_BEAN_NAME);
 		}
-		registry.registerAlias(customGlobalCredentialsProvider,
-				CREDENTIALS_PROVIDER_BEAN_NAME);
+		registry.registerAlias(customGlobalCredentialsProvider, CREDENTIALS_PROVIDER_BEAN_NAME);
 	}
 
 }

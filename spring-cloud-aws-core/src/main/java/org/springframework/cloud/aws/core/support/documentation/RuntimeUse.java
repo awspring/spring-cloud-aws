@@ -30,8 +30,7 @@ import java.lang.annotation.Target;
  * @author Agim Emruli
  * @since 1.0
  */
-@Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR,
-		ElementType.FIELD })
+@Target({ ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.FIELD })
 @Retention(RetentionPolicy.SOURCE)
 public @interface RuntimeUse {
 

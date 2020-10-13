@@ -61,17 +61,14 @@ class ContextInstanceDataConfigurationTest {
 	void propertySource_enableInstanceData_propertySourceConfigured() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		// Act
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfiguration.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
 
 		// Assert
-		assertThat(this.context.getEnvironment().getProperty("instance-id"))
-				.isEqualTo("test");
+		assertThat(this.context.getEnvironment().getProperty("instance-id")).isEqualTo("test");
 		httpServer.removeContext(httpContext);
 	}
 
@@ -107,8 +104,7 @@ class ContextInstanceDataConfigurationTest {
 				new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
 		// Act
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithCustomValueSeparator.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithCustomValueSeparator.class);
 
 		// Assert
 		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
@@ -119,8 +115,7 @@ class ContextInstanceDataConfigurationTest {
 
 	@BeforeEach
 	void restContextInstanceDataCondition() throws IllegalAccessException {
-		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class,
-				"isCloudEnvironment");
+		Field field = ReflectionUtils.findField(AwsCloudEnvironmentCheckUtils.class, "isCloudEnvironment");
 		assertThat(field).isNotNull();
 		ReflectionUtils.makeAccessible(field);
 		field.set(null, null);

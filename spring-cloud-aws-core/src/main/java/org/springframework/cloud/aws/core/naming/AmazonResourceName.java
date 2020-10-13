@@ -70,9 +70,8 @@ public final class AmazonResourceName {
 
 	private final String actualResourceTypeDelimiter;
 
-	private AmazonResourceName(String partition, String service, String region,
-			String account, String resourceType, String resourceName,
-			String actualResourceTypeDelimiter) {
+	private AmazonResourceName(String partition, String service, String region, String account, String resourceType,
+			String resourceName, String actualResourceTypeDelimiter) {
 		Assert.notNull(partition, "partition must not be null");
 		Assert.notNull(service, "service must not be null");
 		Assert.notNull(resourceType, "resourceType must not be null");
@@ -89,18 +88,16 @@ public final class AmazonResourceName {
 		Assert.notNull(name, "name must not be null");
 		String[] tokens = name.split(RESOURCE_NAME_DELIMITER);
 		if (tokens.length < 6 || tokens.length > 7) {
-			throw new IllegalArgumentException(
-					"Resource name:'" + name + "' is not a valid resource identifier");
+			throw new IllegalArgumentException("Resource name:'" + name + "' is not a valid resource identifier");
 		}
 
 		if (!"arn".equals(tokens[0])) {
-			throw new IllegalArgumentException("Resource name:'" + name
-					+ "' must have an arn qualifier at the beginning");
+			throw new IllegalArgumentException(
+					"Resource name:'" + name + "' must have an arn qualifier at the beginning");
 		}
 
 		if (!("aws".equals(tokens[1]) || tokens[1].startsWith("aws-"))) {
-			throw new IllegalArgumentException(
-					"Resource name:'" + name + "' must have a valid partition name");
+			throw new IllegalArgumentException("Resource name:'" + name + "' must have a valid partition name");
 		}
 
 		String actualResourceTypeDelimiter;
@@ -117,9 +114,8 @@ public final class AmazonResourceName {
 			actualResourceTypeDelimiter = RESOURCE_NAME_DELIMITER;
 		}
 
-		return new AmazonResourceName(tokens[1], tokens[2], trimToNull(tokens[3]),
-				trimToNull(tokens[4]), trimToNull(tokens[5]), trimToNull(tokens[6]),
-				actualResourceTypeDelimiter);
+		return new AmazonResourceName(tokens[1], tokens[2], trimToNull(tokens[3]), trimToNull(tokens[4]),
+				trimToNull(tokens[5]), trimToNull(tokens[6]), actualResourceTypeDelimiter);
 	}
 
 	public static boolean isValidAmazonResourceName(String name) {
@@ -279,9 +275,8 @@ public final class AmazonResourceName {
 		}
 
 		public AmazonResourceName build() {
-			return new AmazonResourceName(this.partition, this.service, this.region,
-					this.account, this.resourceType, this.resourceName,
-					this.actualResourceTypeDelimiter);
+			return new AmazonResourceName(this.partition, this.service, this.region, this.account, this.resourceType,
+					this.resourceName, this.actualResourceTypeDelimiter);
 		}
 
 	}

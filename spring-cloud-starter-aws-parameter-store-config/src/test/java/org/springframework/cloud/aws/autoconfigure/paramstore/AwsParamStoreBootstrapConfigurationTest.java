@@ -40,54 +40,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AwsParamStoreBootstrapConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(
-					AutoConfigurations.of(AwsParamStoreBootstrapConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(AwsParamStoreBootstrapConfiguration.class));
 
 	@Test
 	void testWithStaticRegion() {
-		this.contextRunner.withPropertyValues("aws.paramstore.enabled:true",
-				"aws.paramstore.region:us-east-2").run(context -> {
-					assertThat(context)
-							.hasSingleBean(AwsParamStorePropertySourceLocator.class);
+		this.contextRunner.withPropertyValues("aws.paramstore.enabled:true", "aws.paramstore.region:us-east-2")
+				.run(context -> {
+					assertThat(context).hasSingleBean(AwsParamStorePropertySourceLocator.class);
 					assertThat(context).hasSingleBean(AWSSimpleSystemsManagement.class);
-					assertThat(context)
-							.hasSingleBean(AWSSimpleSystemsManagementClient.class);
+					assertThat(context).hasSingleBean(AWSSimpleSystemsManagementClient.class);
 					assertThat(context).hasSingleBean(AwsParamStoreProperties.class);
 
-					AwsParamStoreProperties awsParamStoreProperties = context
-							.getBean(AwsParamStoreProperties.class);
+					AwsParamStoreProperties awsParamStoreProperties = context.getBean(AwsParamStoreProperties.class);
 					AWSSimpleSystemsManagementClient awsSimpleClient = context
 							.getBean(AWSSimpleSystemsManagementClient.class);
 
-					Method signingRegionMethod = ReflectionUtils
-							.findMethod(AmazonWebServiceClient.class, "getSigningRegion");
+					Method signingRegionMethod = ReflectionUtils.findMethod(AmazonWebServiceClient.class,
+							"getSigningRegion");
 					signingRegionMethod.setAccessible(true);
-					String signedRegion = (String) ReflectionUtils
-							.invokeMethod(signingRegionMethod, awsSimpleClient);
+					String signedRegion = (String) ReflectionUtils.invokeMethod(signingRegionMethod, awsSimpleClient);
 
-					assertThat(signedRegion)
-							.isEqualTo(awsParamStoreProperties.getRegion());
+					assertThat(signedRegion).isEqualTo(awsParamStoreProperties.getRegion());
 				});
 	}
 
 	@Test
 	void testMissingAutoConfiguration() {
-		this.contextRunner.withPropertyValues("aws.paramstore.enabled:false")
-				.run(context -> {
-					assertThat(context)
-							.doesNotHaveBean(AwsParamStorePropertySourceLocator.class);
-					assertThat(context).doesNotHaveBean(AWSSimpleSystemsManagement.class);
-				});
+		this.contextRunner.withPropertyValues("aws.paramstore.enabled:false").run(context -> {
+			assertThat(context).doesNotHaveBean(AwsParamStorePropertySourceLocator.class);
+			assertThat(context).doesNotHaveBean(AWSSimpleSystemsManagement.class);
+		});
 	}
 
 	@Test
 	void testUserAgent() {
-		this.contextRunner.withPropertyValues("aws.paramstore.region:us-east-2")
-				.run(context -> {
-					context.getBean(AWSSimpleSystemsManagementClient.class)
-							.getClientConfiguration().getUserAgentPrefix()
-							.startsWith("spring-cloud-aws/");
-				});
+		this.contextRunner.withPropertyValues("aws.paramstore.region:us-east-2").run(context -> {
+			context.getBean(AWSSimpleSystemsManagementClient.class).getClientConfiguration().getUserAgentPrefix()
+					.startsWith("spring-cloud-aws/");
+		});
 
 	}
 

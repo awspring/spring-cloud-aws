@@ -34,8 +34,7 @@ public final class GlobalBeanDefinitionUtils {
 	/**
 	 * Bean name of the resource id resolver.
 	 */
-	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class
-			.getName() + ".BEAN_NAME";
+	public static final String RESOURCE_ID_RESOLVER_BEAN_NAME = ResourceIdResolver.class.getName() + ".BEAN_NAME";
 
 	private GlobalBeanDefinitionUtils() {
 		// Avoid instantiation
@@ -53,8 +52,7 @@ public final class GlobalBeanDefinitionUtils {
 	 * @return the bean name of the resource id resolver bean
 	 */
 	@SuppressWarnings("SameReturnValue")
-	public static String retrieveResourceIdResolverBeanName(
-			BeanDefinitionRegistry registry) {
+	public static String retrieveResourceIdResolverBeanName(BeanDefinitionRegistry registry) {
 		registerResourceIdResolverBeanIfNeeded(registry);
 
 		return RESOURCE_ID_RESOLVER_BEAN_NAME;
@@ -62,15 +60,12 @@ public final class GlobalBeanDefinitionUtils {
 
 	static void registerResourceIdResolverBeanIfNeeded(BeanDefinitionRegistry registry) {
 		if (!(registry.containsBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME))) {
-			registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME,
-					buildResourceIdResolverBeanDefinition());
+			registry.registerBeanDefinition(RESOURCE_ID_RESOLVER_BEAN_NAME, buildResourceIdResolverBeanDefinition());
 		}
 	}
 
 	private static BeanDefinition buildResourceIdResolverBeanDefinition() {
-		return BeanDefinitionBuilder
-				.genericBeanDefinition(
-						StackResourceRegistryDetectingResourceIdResolver.class)
+		return BeanDefinitionBuilder.genericBeanDefinition(StackResourceRegistryDetectingResourceIdResolver.class)
 				.getBeanDefinition();
 	}
 

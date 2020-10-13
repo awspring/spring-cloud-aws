@@ -57,26 +57,23 @@ public final class TestStackInstanceIdService {
 		this.instanceIdSource = instanceIdSource;
 	}
 
-	public static TestStackInstanceIdService fromStackOutputKey(String stackName,
-			String outputKey, AmazonCloudFormation amazonCloudFormationClient) {
-		return new TestStackInstanceIdService(new AmazonStackOutputBasedInstanceIdSource(
-				stackName, outputKey, amazonCloudFormationClient));
+	public static TestStackInstanceIdService fromStackOutputKey(String stackName, String outputKey,
+			AmazonCloudFormation amazonCloudFormationClient) {
+		return new TestStackInstanceIdService(
+				new AmazonStackOutputBasedInstanceIdSource(stackName, outputKey, amazonCloudFormationClient));
 	}
 
 	public static TestStackInstanceIdService fromInstanceId(String instanceId) {
 		return new TestStackInstanceIdService(new StaticInstanceIdSource(instanceId));
 	}
 
-	private static void overwriteMetadataEndpointUrl(
-			String localMetadataServiceEndpointUrl) {
-		System.setProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
+	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
 				localMetadataServiceEndpointUrl);
 	}
 
 	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 
 	private static void clearMetadataCache() {
@@ -86,15 +83,14 @@ public final class TestStackInstanceIdService {
 			metadataCacheField.set(null, new HashMap<String, String>());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException("Unable to clear metadata cache in '"
-					+ EC2MetadataUtils.class.getName() + "'", e);
+			throw new IllegalStateException(
+					"Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
 		}
 	}
 
 	public void enable() {
 		startMetadataHttpServer(this.instanceIdSource.getInstanceId());
-		overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":"
-				+ INSTANCE_ID_SERVICE_PORT);
+		overwriteMetadataEndpointUrl("http://" + INSTANCE_ID_SERVICE_HOSTNAME + ":" + INSTANCE_ID_SERVICE_PORT);
 	}
 
 	public void disable() {
@@ -105,10 +101,9 @@ public final class TestStackInstanceIdService {
 
 	private void startMetadataHttpServer(String instanceId) {
 		try {
-			this.httpServer = HttpServer.create(new InetSocketAddress(
-					INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
-			this.httpServer.createContext("/latest/meta-data/instance-id",
-					new InstanceIdHttpHandler(instanceId));
+			this.httpServer = HttpServer
+					.create(new InetSocketAddress(INSTANCE_ID_SERVICE_HOSTNAME, INSTANCE_ID_SERVICE_PORT), -1);
+			this.httpServer.createContext("/latest/meta-data/instance-id", new InstanceIdHttpHandler(instanceId));
 			this.httpServer.start();
 		}
 		catch (IOException e) {
@@ -182,8 +177,7 @@ public final class TestStackInstanceIdService {
 	 * Useful for integration testing.
 	 * </p>
 	 */
-	private static final class AmazonStackOutputBasedInstanceIdSource
-			implements InstanceIdSource {
+	private static final class AmazonStackOutputBasedInstanceIdSource implements InstanceIdSource {
 
 		private final String stackName;
 
@@ -198,17 +192,15 @@ public final class TestStackInstanceIdService {
 			this.amazonCloudFormationClient = amazonCloudFormationClient;
 		}
 
-		private static Stack getStack(DescribeStacksResult describeStacksResult,
-				String stackName) {
+		private static Stack getStack(DescribeStacksResult describeStacksResult, String stackName) {
 			for (Stack stack : describeStacksResult.getStacks()) {
 				if (stack.getStackName().equals(stackName)) {
 					return stack;
 				}
 			}
 
-			throw new IllegalStateException(
-					"No stack found with name '" + stackName + "' (available stacks: "
-							+ allStackNames(describeStacksResult) + ")");
+			throw new IllegalStateException("No stack found with name '" + stackName + "' (available stacks: "
+					+ allStackNames(describeStacksResult) + ")");
 		}
 
 		private static String getOutputValue(Stack stack, String outputKey) {
@@ -218,12 +210,11 @@ public final class TestStackInstanceIdService {
 				}
 			}
 
-			throw new IllegalStateException("No output '" + outputKey
-					+ "' defined in stack '" + stack.getStackName() + "'");
+			throw new IllegalStateException(
+					"No output '" + outputKey + "' defined in stack '" + stack.getStackName() + "'");
 		}
 
-		private static List<String> allStackNames(
-				DescribeStacksResult describeStacksResult) {
+		private static List<String> allStackNames(DescribeStacksResult describeStacksResult) {
 			List<String> allStackNames = new ArrayList<>();
 
 			for (Stack stack : describeStacksResult.getStacks()) {

@@ -22,8 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 /**
  * @author Agim Emruli
  */
-@SpringBootTest(
-		classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
+@SpringBootTest(classes = BootPathMatchingResourceLoaderAwsTest.BootPathMatchingResourceLoaderAwsTestConfig.class)
 class BootPathMatchingResourceLoaderAwsTest extends PathMatchingResourceLoaderAwsTest {
 
 	@SpringBootApplication

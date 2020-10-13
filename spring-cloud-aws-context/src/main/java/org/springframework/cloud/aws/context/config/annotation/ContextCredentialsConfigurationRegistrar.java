@@ -31,23 +31,17 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
  */
 @Configuration(proxyBeanMethods = false)
 @Deprecated
-public class ContextCredentialsConfigurationRegistrar
-		implements ImportBeanDefinitionRegistrar {
+public class ContextCredentialsConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
-			BeanDefinitionRegistry registry) {
-		AnnotationAttributes annotationAttributes = AnnotationAttributes
-				.fromMap(importingClassMetadata.getAnnotationAttributes(
-						EnableContextCredentials.class.getName(), false));
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
+				importingClassMetadata.getAnnotationAttributes(EnableContextCredentials.class.getName(), false));
 		Assert.notNull(annotationAttributes,
-				"@EnableContextCredentials is not present on importing class "
-						+ importingClassMetadata.getClassName());
+				"@EnableContextCredentials is not present on importing class " + importingClassMetadata.getClassName());
 		registerCredentialsProvider(registry, annotationAttributes.getString("accessKey"),
-				annotationAttributes.getString("secretKey"),
-				annotationAttributes.getBoolean("instanceProfile"),
-				annotationAttributes.getString("profileName"),
-				annotationAttributes.getString("profilePath"));
+				annotationAttributes.getString("secretKey"), annotationAttributes.getBoolean("instanceProfile"),
+				annotationAttributes.getString("profileName"), annotationAttributes.getString("profilePath"));
 	}
 
 }

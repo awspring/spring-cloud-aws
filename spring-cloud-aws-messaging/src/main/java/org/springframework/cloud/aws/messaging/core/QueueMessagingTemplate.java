@@ -44,8 +44,7 @@ import org.springframework.messaging.core.DestinationResolvingMessageReceivingOp
  * @author Alain Sahli
  * @since 1.0
  */
-public class QueueMessagingTemplate
-		extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel>
+public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<QueueMessageChannel>
 		implements DestinationResolvingMessageReceivingOperations<QueueMessageChannel> {
 
 	private final AmazonSQSAsync amazonSqs;
@@ -54,8 +53,7 @@ public class QueueMessagingTemplate
 		this(amazonSqs, (ResourceIdResolver) null, null);
 	}
 
-	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs,
-			ResourceIdResolver resourceIdResolver) {
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
 		this(amazonSqs, resourceIdResolver, null);
 	}
 
@@ -69,11 +67,9 @@ public class QueueMessagingTemplate
 	 * @param messageConverter A {@link MessageConverter} that is going to be added to the
 	 * composite converter.
 	 */
-	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs,
-			ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
-		this(amazonSqs,
-				new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver),
-				messageConverter);
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver,
+			MessageConverter messageConverter) {
+		this(amazonSqs, new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver), messageConverter);
 	}
 
 	/**
@@ -88,8 +84,7 @@ public class QueueMessagingTemplate
 	 * @param messageConverter A {@link MessageConverter} that is going to be added to the
 	 * composite converter.
 	 */
-	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs,
-			DestinationResolver<String> destinationResolver,
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, DestinationResolver<String> destinationResolver,
 			MessageConverter messageConverter) {
 		super(destinationResolver);
 		this.amazonSqs = amazonSqs;
@@ -97,8 +92,7 @@ public class QueueMessagingTemplate
 	}
 
 	@Override
-	protected QueueMessageChannel resolveMessageChannel(
-			String physicalResourceIdentifier) {
+	protected QueueMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new QueueMessageChannel(this.amazonSqs, physicalResourceIdentifier);
 	}
 
@@ -119,8 +113,7 @@ public class QueueMessagingTemplate
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T receiveAndConvert(QueueMessageChannel destination, Class<T> targetClass)
-			throws MessagingException {
+	public <T> T receiveAndConvert(QueueMessageChannel destination, Class<T> targetClass) throws MessagingException {
 		Message<?> message = destination.receive();
 		if (message != null) {
 			return (T) getMessageConverter().fromMessage(message, targetClass);
@@ -136,8 +129,7 @@ public class QueueMessagingTemplate
 	}
 
 	@Override
-	public <T> T receiveAndConvert(String destinationName, Class<T> targetClass)
-			throws MessagingException {
+	public <T> T receiveAndConvert(String destinationName, Class<T> targetClass) throws MessagingException {
 		QueueMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
 		return receiveAndConvert(channel, targetClass);
 	}

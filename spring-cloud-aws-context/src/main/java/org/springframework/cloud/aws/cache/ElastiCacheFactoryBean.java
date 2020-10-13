@@ -36,8 +36,7 @@ import org.springframework.cloud.aws.core.env.ResourceIdResolver;
  */
 public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ElastiCacheFactoryBean.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElastiCacheFactoryBean.class);
 
 	private final AmazonElastiCache amazonElastiCache;
 
@@ -47,17 +46,16 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
 	private final List<? extends CacheFactory> cacheFactories;
 
-	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache,
-			String cacheClusterId, ResourceIdResolver resourceIdResolver,
-			List<? extends CacheFactory> cacheFactories) {
+	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId,
+			ResourceIdResolver resourceIdResolver, List<? extends CacheFactory> cacheFactories) {
 		this.amazonElastiCache = amazonElastiCache;
 		this.resourceIdResolver = resourceIdResolver;
 		this.cacheClusterId = cacheClusterId;
 		this.cacheFactories = cacheFactories;
 	}
 
-	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache,
-			String cacheClusterId, List<CacheFactory> cacheFactories) {
+	public ElastiCacheFactoryBean(AmazonElastiCache amazonElastiCache, String cacheClusterId,
+			List<CacheFactory> cacheFactories) {
 		this(amazonElastiCache, cacheClusterId, null, cacheFactories);
 	}
 
@@ -70,10 +68,8 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 			return cacheCluster.getCacheNodes().get(0).getEndpoint();
 		}
 
-		throw new IllegalArgumentException(
-				"No Configuration Endpoint or Cache Node available to "
-						+ "receive address information for cluster:'"
-						+ cacheCluster.getCacheClusterId() + "'");
+		throw new IllegalArgumentException("No Configuration Endpoint or Cache Node available to "
+				+ "receive address information for cluster:'" + cacheCluster.getCacheClusterId() + "'");
 	}
 
 	@Override
@@ -101,14 +97,12 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
 		for (CacheFactory cacheFactory : this.cacheFactories) {
 			if (cacheFactory.isSupportingCacheArchitecture(cacheCluster.getEngine())) {
-				return cacheFactory.createCache(this.cacheClusterId,
-						configurationEndpoint.getAddress(),
+				return cacheFactory.createCache(this.cacheClusterId, configurationEndpoint.getAddress(),
 						configurationEndpoint.getPort());
 			}
 		}
 
-		throw new IllegalArgumentException(
-				"No CacheFactory configured for engine: " + cacheCluster.getEngine());
+		throw new IllegalArgumentException("No CacheFactory configured for engine: " + cacheCluster.getEngine());
 	}
 
 	@Override
@@ -120,8 +114,7 @@ public class ElastiCacheFactoryBean extends AbstractFactoryBean<Cache> {
 
 	private String getCacheClusterName() {
 		return this.resourceIdResolver != null
-				? this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId)
-				: this.cacheClusterId;
+				? this.resourceIdResolver.resolveToPhysicalResourceId(this.cacheClusterId) : this.cacheClusterId;
 	}
 
 }

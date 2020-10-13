@@ -37,8 +37,7 @@ import static org.mockito.Mockito.when;
 class AmazonEc2InstanceUserTagsFactoryBeanTest {
 
 	@Test
-	void getObject_userTagDataAvailable_objectContainsAllAvailableKeys()
-			throws Exception {
+	void getObject_userTagDataAvailable_objectContainsAllAvailableKeys() throws Exception {
 		// Arrange
 		AmazonEC2 amazonEC2 = mock(AmazonEC2.class);
 
@@ -50,10 +49,8 @@ class AmazonEc2InstanceUserTagsFactoryBeanTest {
 				new Filter("resource-type", Collections.singletonList("instance")));
 
 		DescribeTagsResult describeTagsResult = new DescribeTagsResult().withTags(
-				new TagDescription().withKey("keyA")
-						.withResourceType(ResourceType.Instance).withValue("valueA"),
-				new TagDescription().withKey("keyB")
-						.withResourceType(ResourceType.Instance).withValue("valueB"));
+				new TagDescription().withKey("keyA").withResourceType(ResourceType.Instance).withValue("valueA"),
+				new TagDescription().withKey("keyB").withResourceType(ResourceType.Instance).withValue("valueB"));
 
 		when(amazonEC2.describeTags(describeTagsRequest)).thenReturn(describeTagsResult);
 

@@ -69,8 +69,7 @@ public class SqsMessageHeaders extends MessageHeaders {
 
 	public Long getApproximateFirstReceiveTimestamp() {
 		return containsKey(SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP)
-				? Long.parseLong(Objects.requireNonNull(
-						get(SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP, String.class)))
+				? Long.parseLong(Objects.requireNonNull(get(SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP, String.class)))
 				: null;
 	}
 
@@ -80,16 +79,12 @@ public class SqsMessageHeaders extends MessageHeaders {
 
 	public Long getApproximateReceiveCount() {
 		return containsKey(SQS_APPROXIMATE_RECEIVE_COUNT)
-				? Long.parseLong(Objects
-						.requireNonNull(get(SQS_APPROXIMATE_RECEIVE_COUNT, String.class)))
-				: null;
+				? Long.parseLong(Objects.requireNonNull(get(SQS_APPROXIMATE_RECEIVE_COUNT, String.class))) : null;
 	}
 
 	private static Long getTimestamp(Map<String, Object> headers) {
 		return headers.containsKey(SQS_SENT_TIMESTAMP)
-				? Long.parseLong(
-						Objects.requireNonNull((String) headers.get(SQS_SENT_TIMESTAMP)))
-				: null;
+				? Long.parseLong(Objects.requireNonNull((String) headers.get(SQS_SENT_TIMESTAMP))) : null;
 	}
 
 	private static UUID getId(Map<String, Object> headers) {

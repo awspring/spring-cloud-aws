@@ -30,20 +30,18 @@ import org.springframework.context.annotation.Configuration;
  */
 @SpringBootTest(
 		classes = BootNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
-class BootNotificationMessagingTemplateIntegrationTest
-		extends NotificationMessagingTemplateIntegrationTest {
+class BootNotificationMessagingTemplateIntegrationTest extends NotificationMessagingTemplateIntegrationTest {
 
 	@Configuration
 	@EnableAutoConfiguration
 	protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
 
 		@Bean
-		public NotificationMessagingTemplate notificationMessagingTemplate(
-				AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(
-					amazonSns, resourceIdResolver);
-			notificationMessagingTemplate
-					.setDefaultDestinationName("SqsReceivingSnsTopic");
+		public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS amazonSns,
+				ResourceIdResolver resourceIdResolver) {
+			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns,
+					resourceIdResolver);
+			notificationMessagingTemplate.setDefaultDestinationName("SqsReceivingSnsTopic");
 			return notificationMessagingTemplate;
 		}
 

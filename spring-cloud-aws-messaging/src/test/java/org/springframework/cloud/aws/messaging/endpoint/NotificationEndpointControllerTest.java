@@ -71,20 +71,15 @@ class NotificationEndpointControllerTest {
 	void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
 			throws Exception {
 		// Arrange
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("subscriptionConfirmation.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/mySampleTopic")
-						.header("x-amz-sns-message-type", "SubscriptionConfirmation")
-						.content(subscriptionRequestJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/mySampleTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation")
+				.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription(
-				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
 				"111111111111111111111111111111111111111111111111111111"
 						+ "11111111111111111111111111111111111111111111111111111"
 						+ "111111111111111111111111111111111111111111111111111111"
@@ -95,16 +90,12 @@ class NotificationEndpointControllerTest {
 	void notification_notificationReceivedAsMessage_notificationSubjectAndMessagePassedToAnnotatedControllerMethod()
 			throws Exception {
 		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("notificationMessage.json", getClass())
-						.getInputStream());
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/mySampleTopic")
-						.header("x-amz-sns-message-type", "Notification")
-						.content(notificationJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/mySampleTopic").header("x-amz-sns-message-type", "Notification")
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
 		assertThat(this.notificationTestController.getMessage()).isEqualTo("asdasd");
@@ -112,23 +103,17 @@ class NotificationEndpointControllerTest {
 	}
 
 	@Test
-	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController()
-			throws Exception {
+	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
 		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("unsubscribeConfirmation.json", getClass())
-						.getInputStream());
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("unsubscribeConfirmation.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/mySampleTopic")
-						.header("x-amz-sns-message-type", "UnsubscribeConfirmation")
-						.content(notificationJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/mySampleTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation")
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription(
-				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
 				"2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb"
 						+ "8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d3"
 						+ "4dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf"

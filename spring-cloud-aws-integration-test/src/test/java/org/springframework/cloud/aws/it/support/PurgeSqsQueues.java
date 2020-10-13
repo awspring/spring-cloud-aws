@@ -32,8 +32,7 @@ public class PurgeSqsQueues {
 	public static void main(String[] args) {
 		AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
 
-		sqs.listQueues().getQueueUrls().stream()
-				.filter(url -> url.contains("IntegrationTestStack"))
+		sqs.listQueues().getQueueUrls().stream().filter(url -> url.contains("IntegrationTestStack"))
 				.forEach(url -> sqs.purgeQueue(new PurgeQueueRequest(url)));
 	}
 

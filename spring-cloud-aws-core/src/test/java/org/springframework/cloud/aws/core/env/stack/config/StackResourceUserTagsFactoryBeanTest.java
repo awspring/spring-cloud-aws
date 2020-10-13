@@ -41,14 +41,12 @@ class StackResourceUserTagsFactoryBeanTest {
 		StackNameProvider stackNameProvider = mock(StackNameProvider.class);
 
 		when(stackNameProvider.getStackName()).thenReturn("testStack");
-		when(cloudFormation
-				.describeStacks(new DescribeStacksRequest().withStackName("testStack")))
-						.thenReturn(new DescribeStacksResult().withStacks(new Stack()
-								.withTags(new Tag().withKey("key1").withValue("value1"),
-										new Tag().withKey("key2").withValue("value2"))));
+		when(cloudFormation.describeStacks(new DescribeStacksRequest().withStackName("testStack")))
+				.thenReturn(new DescribeStacksResult().withStacks(new Stack().withTags(
+						new Tag().withKey("key1").withValue("value1"), new Tag().withKey("key2").withValue("value2"))));
 
-		StackResourceUserTagsFactoryBean factoryBean = new StackResourceUserTagsFactoryBean(
-				cloudFormation, stackNameProvider);
+		StackResourceUserTagsFactoryBean factoryBean = new StackResourceUserTagsFactoryBean(cloudFormation,
+				stackNameProvider);
 
 		// Act
 		factoryBean.afterPropertiesSet();

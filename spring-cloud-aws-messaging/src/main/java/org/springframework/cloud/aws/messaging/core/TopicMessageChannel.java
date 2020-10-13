@@ -59,10 +59,9 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 
 	@Override
 	protected boolean sendInternal(Message<?> message, long timeout) {
-		PublishRequest publishRequest = new PublishRequest(this.topicArn,
-				message.getPayload().toString(), findNotificationSubject(message));
-		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(
-				message);
+		PublishRequest publishRequest = new PublishRequest(this.topicArn, message.getPayload().toString(),
+				findNotificationSubject(message));
+		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
 		if (!messageAttributes.isEmpty()) {
 			publishRequest.withMessageAttributes(messageAttributes);
 		}
@@ -77,56 +76,44 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 			String messageHeaderName = messageHeader.getKey();
 			Object messageHeaderValue = messageHeader.getValue();
 
-			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName)
-					&& messageHeaderValue != null) {
-				messageAttributes.put(messageHeaderName,
-						getContentTypeMessageAttribute(messageHeaderValue));
+			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
+				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
 			}
-			else if (MessageHeaders.ID.equals(messageHeaderName)
-					&& messageHeaderValue != null) {
-				messageAttributes.put(messageHeaderName,
-						getStringMessageAttribute(messageHeaderValue.toString()));
+			else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
+				messageAttributes.put(messageHeaderName, getStringMessageAttribute(messageHeaderValue.toString()));
 			}
 			else if (messageHeaderValue instanceof String) {
-				messageAttributes.put(messageHeaderName,
-						getStringMessageAttribute((String) messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof Number) {
-				messageAttributes.put(messageHeaderName,
-						getNumberMessageAttribute(messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof ByteBuffer) {
-				messageAttributes.put(messageHeaderName,
-						getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
 			}
 			else {
 				this.logger.warn(String.format(
 						"Message header with name '%s' and type '%s' cannot be sent as"
 								+ " message attribute because it is not supported by SNS.",
-						messageHeaderName, messageHeaderValue != null
-								? messageHeaderValue.getClass().getName() : ""));
+						messageHeaderName, messageHeaderValue != null ? messageHeaderValue.getClass().getName() : ""));
 			}
 		}
 
 		return messageAttributes;
 	}
 
-	private MessageAttributeValue getBinaryMessageAttribute(
-			ByteBuffer messageHeaderValue) {
+	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
 		return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.BINARY)
 				.withBinaryValue(messageHeaderValue);
 	}
 
-	private MessageAttributeValue getContentTypeMessageAttribute(
-			Object messageHeaderValue) {
+	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
 		if (messageHeaderValue instanceof MimeType) {
-			return new MessageAttributeValue()
-					.withDataType(MessageAttributeDataTypes.STRING)
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING)
 					.withStringValue(messageHeaderValue.toString());
 		}
 		else if (messageHeaderValue instanceof String) {
-			return new MessageAttributeValue()
-					.withDataType(MessageAttributeDataTypes.STRING)
+			return new MessageAttributeValue().withDataType(MessageAttributeDataTypes.STRING)
 					.withStringValue((String) messageHeaderValue);
 		}
 		return null;
@@ -138,13 +125,11 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	}
 
 	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
-		Assert.isTrue(
-				NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()),
+		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()),
 				"Only standard number types are accepted as message header.");
 
 		return new MessageAttributeValue()
-				.withDataType(MessageAttributeDataTypes.NUMBER + "."
-						+ messageHeaderValue.getClass().getName())
+				.withDataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName())
 				.withStringValue(messageHeaderValue.toString());
 	}
 

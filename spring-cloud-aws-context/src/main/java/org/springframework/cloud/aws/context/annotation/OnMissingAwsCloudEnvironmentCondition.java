@@ -23,8 +23,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Agim Emruli
  * @author Ken Krueger
  */
-public class OnMissingAwsCloudEnvironmentCondition
-		extends OnAwsCloudEnvironmentCondition {
+public class OnMissingAwsCloudEnvironmentCondition extends OnAwsCloudEnvironmentCondition {
 
 	/**
 	 * Return the opposite of whatever OnAwsCloudEnvironmentCondition does.

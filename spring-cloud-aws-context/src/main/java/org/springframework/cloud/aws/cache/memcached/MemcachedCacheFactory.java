@@ -33,8 +33,7 @@ public class MemcachedCacheFactory extends AbstractCacheFactory<MemcachedClient>
 	public MemcachedCacheFactory() {
 	}
 
-	public MemcachedCacheFactory(Map<String, Integer> expiryTimePerCache,
-			int expiryTime) {
+	public MemcachedCacheFactory(Map<String, Integer> expiryTimePerCache, int expiryTime) {
 		super(expiryTimePerCache, expiryTime);
 	}
 
@@ -44,17 +43,14 @@ public class MemcachedCacheFactory extends AbstractCacheFactory<MemcachedClient>
 	}
 
 	@Override
-	public SimpleSpringMemcached createCache(String cacheName, String host, int port)
-			throws Exception {
-		SimpleSpringMemcached springMemcached = new SimpleSpringMemcached(
-				getConnectionFactory(host, port), cacheName);
+	public SimpleSpringMemcached createCache(String cacheName, String host, int port) throws Exception {
+		SimpleSpringMemcached springMemcached = new SimpleSpringMemcached(getConnectionFactory(host, port), cacheName);
 		springMemcached.setExpiration(getExpiryTime(cacheName));
 		return springMemcached;
 	}
 
 	@Override
-	protected MemcachedClient createConnectionClient(String hostName, int port)
-			throws IOException {
+	protected MemcachedClient createConnectionClient(String hostName, int port) throws IOException {
 		return new MemcachedClient(new InetSocketAddress(hostName, port));
 	}
 

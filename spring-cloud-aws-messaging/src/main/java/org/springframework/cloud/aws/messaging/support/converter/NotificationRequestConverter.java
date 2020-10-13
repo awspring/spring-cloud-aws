@@ -50,8 +50,7 @@ public class NotificationRequestConverter implements MessageConverter {
 		this.payloadConverter = payloadConverter;
 	}
 
-	private static Map<String, Object> getMessageAttributesAsMessageHeaders(
-			JsonNode message) {
+	private static Map<String, Object> getMessageAttributesAsMessageHeaders(JsonNode message) {
 		Map<String, Object> messageHeaders = new HashMap<>();
 		Iterator<String> fieldNames = message.fieldNames();
 		while (fieldNames.hasNext()) {
@@ -59,8 +58,7 @@ public class NotificationRequestConverter implements MessageConverter {
 			String attributeValue = message.get(attributeName).get("Value").asText();
 			String attributeType = message.get(attributeName).get("Type").asText();
 			if (MessageHeaders.CONTENT_TYPE.equals(attributeName)) {
-				messageHeaders.put(MessageHeaders.CONTENT_TYPE,
-						MimeType.valueOf(attributeValue));
+				messageHeaders.put(MessageHeaders.CONTENT_TYPE, MimeType.valueOf(attributeValue));
 			}
 			else if (MessageHeaders.ID.equals(attributeName)) {
 				messageHeaders.put(MessageHeaders.ID, UUID.fromString(attributeValue));
@@ -70,12 +68,10 @@ public class NotificationRequestConverter implements MessageConverter {
 					messageHeaders.put(attributeName, attributeValue);
 				}
 				else if (attributeType.startsWith(MessageAttributeDataTypes.NUMBER)) {
-					messageHeaders.put(attributeName, QueueMessageUtils
-							.getNumberValue(attributeValue, attributeType));
+					messageHeaders.put(attributeName, QueueMessageUtils.getNumberValue(attributeValue, attributeType));
 				}
 				else if (MessageAttributeDataTypes.BINARY.equals(attributeName)) {
-					messageHeaders.put(attributeName,
-							ByteBuffer.wrap(attributeType.getBytes()));
+					messageHeaders.put(attributeName, ByteBuffer.wrap(attributeType.getBytes()));
 				}
 			}
 		}
@@ -96,19 +92,17 @@ public class NotificationRequestConverter implements MessageConverter {
 			throw new MessageConversionException("Could not read JSON", e);
 		}
 		if (!jsonNode.has("Type")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload()
-					+ "' does not contain a Type attribute", null);
+			throw new MessageConversionException(
+					"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
 		}
 
 		if (!"Notification".equals(jsonNode.get("Type").asText())) {
-			throw new MessageConversionException(
-					"Payload: '" + message.getPayload() + "' is not a valid notification",
+			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",
 					null);
 		}
 
 		if (!jsonNode.has("Message")) {
-			throw new MessageConversionException(
-					"Payload: '" + message.getPayload() + "' does not contain a message",
+			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",
 					null);
 		}
 

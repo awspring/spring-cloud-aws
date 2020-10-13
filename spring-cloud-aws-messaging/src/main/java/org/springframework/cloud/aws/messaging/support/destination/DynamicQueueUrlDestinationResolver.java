@@ -43,8 +43,7 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
 	private boolean autoCreate;
 
-	public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs,
-			ResourceIdResolver resourceIdResolver) {
+	public DynamicQueueUrlDestinationResolver(AmazonSQS amazonSqs, ResourceIdResolver resourceIdResolver) {
 		Assert.notNull(amazonSqs, "amazonSqs must not be null");
 
 		this.amazonSqs = amazonSqs;
@@ -58,8 +57,7 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 	private static boolean isValidQueueUrl(String name) {
 		try {
 			URI candidate = new URI(name);
-			return ("http".equals(candidate.getScheme())
-					|| "https".equals(candidate.getScheme()));
+			return ("http".equals(candidate.getScheme()) || "https".equals(candidate.getScheme()));
 		}
 		catch (URISyntaxException e) {
 			return false;
@@ -84,14 +82,12 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 
 		if (this.autoCreate) {
 			// Auto-create is fine to be called even if the queue exists.
-			CreateQueueResult createQueueResult = this.amazonSqs
-					.createQueue(new CreateQueueRequest(queueName));
+			CreateQueueResult createQueueResult = this.amazonSqs.createQueue(new CreateQueueRequest(queueName));
 			return createQueueResult.getQueueUrl();
 		}
 		else {
 			try {
-				GetQueueUrlResult getQueueUrlResult = this.amazonSqs
-						.getQueueUrl(new GetQueueUrlRequest(queueName));
+				GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueName));
 				return getQueueUrlResult.getQueueUrl();
 			}
 			catch (QueueDoesNotExistException e) {
@@ -100,12 +96,10 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 		}
 	}
 
-	private DestinationResolutionException toDestinationResolutionException(
-			QueueDoesNotExistException e) {
+	private DestinationResolutionException toDestinationResolutionException(QueueDoesNotExistException e) {
 		if (e.getMessage() != null && e.getMessage().contains("access")) {
 			return new DestinationResolutionException(
-					"The queue does not exist or no access to perform action sqs:GetQueueUrl.",
-					e);
+					"The queue does not exist or no access to perform action sqs:GetQueueUrl.", e);
 		}
 		else {
 			return new DestinationResolutionException("The queue does not exist.", e);

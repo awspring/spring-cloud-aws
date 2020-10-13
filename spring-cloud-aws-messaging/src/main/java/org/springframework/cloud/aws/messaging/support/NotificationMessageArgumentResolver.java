@@ -26,8 +26,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 /**
  * @author Alain Sahli
  */
-public class NotificationMessageArgumentResolver
-		implements HandlerMethodArgumentResolver {
+public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final MessageConverter converter;
 

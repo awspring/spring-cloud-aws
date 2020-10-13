@@ -30,8 +30,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 /**
  * @author Agim Emruli
  */
-public class StackResourceUserTagsFactoryBean
-		extends AbstractFactoryBean<Map<String, String>> {
+public class StackResourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
 	private final AmazonCloudFormation amazonCloudFormation;
 
@@ -52,8 +51,7 @@ public class StackResourceUserTagsFactoryBean
 	protected Map<String, String> createInstance() throws Exception {
 		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
 		DescribeStacksResult stacksResult = this.amazonCloudFormation
-				.describeStacks(new DescribeStacksRequest()
-						.withStackName(this.stackNameProvider.getStackName()));
+				.describeStacks(new DescribeStacksRequest().withStackName(this.stackNameProvider.getStackName()));
 		for (Stack stack : stacksResult.getStacks()) {
 			for (Tag tag : stack.getTags()) {
 				userTags.put(tag.getKey(), tag.getValue());

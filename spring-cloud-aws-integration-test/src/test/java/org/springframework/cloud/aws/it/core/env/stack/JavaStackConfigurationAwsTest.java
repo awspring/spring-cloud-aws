@@ -26,8 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * @author Agim Emruli
  */
-@ContextConfiguration(
-		classes = JavaStackConfigurationAwsTest.JavaStackConfigurationAwsTestConfig.class)
+@ContextConfiguration(classes = JavaStackConfigurationAwsTest.JavaStackConfigurationAwsTestConfig.class)
 class JavaStackConfigurationAwsTest extends StackConfigurationAwsTest {
 
 	@Configuration

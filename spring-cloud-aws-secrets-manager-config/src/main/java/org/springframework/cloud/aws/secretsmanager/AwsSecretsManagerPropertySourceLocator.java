@@ -55,15 +55,14 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 	private Log logger = LogFactory.getLog(getClass());
 
-	public AwsSecretsManagerPropertySourceLocator(String propertySourceName,
-			AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+	public AwsSecretsManagerPropertySourceLocator(String propertySourceName, AWSSecretsManager smClient,
+			AwsSecretsManagerProperties properties) {
 		this.propertySourceName = propertySourceName;
 		this.smClient = smClient;
 		this.properties = properties;
 	}
 
-	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient,
-			AwsSecretsManagerProperties properties) {
+	public AwsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
 		this("aws-secrets-manager", smClient, properties);
 	}
 
@@ -97,8 +96,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 		addProfiles(this.contexts, defaultContext, profiles);
 		this.contexts.add(defaultContext);
 
-		CompositePropertySource composite = new CompositePropertySource(
-				this.propertySourceName);
+		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
 
 		for (String propertySourceContext : this.contexts) {
 			try {
@@ -112,8 +110,7 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 					ReflectionUtils.rethrowRuntimeException(e);
 				}
 				else {
-					logger.warn("Unable to load AWS secret from " + propertySourceContext,
-							e);
+					logger.warn("Unable to load AWS secret from " + propertySourceContext, e);
 				}
 			}
 		}
@@ -122,14 +119,12 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 	}
 
 	private AwsSecretsManagerPropertySource create(String context) {
-		AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(
-				context, this.smClient);
+		AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(context, this.smClient);
 		propertySource.init();
 		return propertySource;
 	}
 
-	private void addProfiles(Set<String> contexts, String baseContext,
-			List<String> profiles) {
+	private void addProfiles(Set<String> contexts, String baseContext, List<String> profiles) {
 		for (String profile : profiles) {
 			contexts.add(baseContext + this.properties.getProfileSeparator() + profile);
 		}

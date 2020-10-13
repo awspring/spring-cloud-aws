@@ -54,8 +54,7 @@ class ElastiCacheAutoConfigurationTest {
 
 	private static int getExpirationFromCache(Cache cache) throws IllegalAccessException {
 		assertThat(cache instanceof SimpleSpringMemcached).isTrue();
-		Field expiration = ReflectionUtils.findField(SimpleSpringMemcached.class,
-				"expiration");
+		Field expiration = ReflectionUtils.findField(SimpleSpringMemcached.class, "expiration");
 		assertThat(expiration).isNotNull();
 		ReflectionUtils.makeAccessible(expiration);
 		return expiration.getInt(cache);
@@ -63,45 +62,36 @@ class ElastiCacheAutoConfigurationTest {
 
 	@Test
 	void cacheManager_configuredMultipleCachesWithStack_configuresCacheManager() {
-		this.contextRunner
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
-					assertThat(cacheManager.getCacheNames()
-							.contains("sampleCacheOneLogical")).isTrue();
-					assertThat(cacheManager.getCacheNames()
-							.contains("sampleCacheTwoLogical")).isTrue();
-					assertThat(cacheManager.getCacheNames()).hasSize(2);
-				});
+		this.contextRunner.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
+			CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
+			assertThat(cacheManager.getCacheNames().contains("sampleCacheOneLogical")).isTrue();
+			assertThat(cacheManager.getCacheNames().contains("sampleCacheTwoLogical")).isTrue();
+			assertThat(cacheManager.getCacheNames()).hasSize(2);
+		});
 	}
 
 	@Test
 	void cacheManager_configuredNoCachesWithNoStack_configuresNoCacheManager() {
 		this.contextRunner.run(context -> {
-			CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-					.cacheManager();
+			CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
 			assertThat(cacheManager.getCacheNames()).isEmpty();
 		});
 	}
 
 	@Test
 	public void elastiCacheIsDisabled() {
-		this.contextRunner.withPropertyValues("cloud.aws.elasticache.enabled:false").run(
-				context -> assertThat(context).doesNotHaveBean(CachingConfigurer.class));
+		this.contextRunner.withPropertyValues("cloud.aws.elasticache.enabled:false")
+				.run(context -> assertThat(context).doesNotHaveBean(CachingConfigurer.class));
 	}
 
 	@Test
 	void enableElasticache_configuredWithExplicitCluster_configuresExplicitlyConfiguredCaches() {
 		this.contextRunner
-				.withPropertyValues(
-						"cloud.aws.elasticache.clusters[0].name=sampleCacheOneLogical",
+				.withPropertyValues("cloud.aws.elasticache.clusters[0].name=sampleCacheOneLogical",
 						"cloud.aws.elasticache.clusters[1].name=sampleCacheTwoLogical")
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
+				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
 					// Assert
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
+					CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
 					assertThat(cacheManager.getCacheNames()).hasSize(2);
 					Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 					assertThat(firstCache.getName()).isNotNull();
@@ -116,15 +106,12 @@ class ElastiCacheAutoConfigurationTest {
 	@Test
 	void enableElasticache_configuredWithExplicitClusterAndExpiration_configuresExplicitlyConfiguredCachesWithCustomExpirationTimes() {
 		this.contextRunner
-				.withPropertyValues(
-						"cloud.aws.elasticache.clusters[0].name=sampleCacheOneLogical",
+				.withPropertyValues("cloud.aws.elasticache.clusters[0].name=sampleCacheOneLogical",
 						"cloud.aws.elasticache.clusters[0].expiration=23",
 						"cloud.aws.elasticache.clusters[1].name=sampleCacheTwoLogical",
 						"cloud.aws.elasticache.clusters[1].expiration=42")
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
+				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
+					CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
 					assertThat(cacheManager.getCacheNames()).hasSize(2);
 					Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 					assertThat(firstCache.getName()).isNotNull();
@@ -143,10 +130,8 @@ class ElastiCacheAutoConfigurationTest {
 						"cloud.aws.elasticache.clusters[0].name=sampleCacheOneLogical",
 						"cloud.aws.elasticache.clusters[1].name=sampleCacheTwoLogical",
 						"cloud.aws.elasticache.clusters[1].expiration=42")
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
+				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
+					CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
 					assertThat(cacheManager.getCacheNames()).hasSize(2);
 					Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 					assertThat(firstCache.getName()).isNotNull();
@@ -160,30 +145,24 @@ class ElastiCacheAutoConfigurationTest {
 
 	@Test
 	void enableElasticache_configuredWithoutExplicitCluster_configuresImplicitlyConfiguredCaches() {
-		this.contextRunner
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
-					assertThat(cacheManager.getCacheNames()).hasSize(2);
-					Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
-					assertThat(firstCache.getName()).isNotNull();
-					assertThat(getExpirationFromCache(firstCache)).isEqualTo(0);
+		this.contextRunner.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
+			CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
+			assertThat(cacheManager.getCacheNames()).hasSize(2);
+			Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
+			assertThat(firstCache.getName()).isNotNull();
+			assertThat(getExpirationFromCache(firstCache)).isEqualTo(0);
 
-					Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
-					assertThat(secondCache.getName()).isNotNull();
-					assertThat(getExpirationFromCache(secondCache)).isEqualTo(0);
-				});
+			Cache secondCache = cacheManager.getCache("sampleCacheTwoLogical");
+			assertThat(secondCache.getName()).isNotNull();
+			assertThat(getExpirationFromCache(secondCache)).isEqualTo(0);
+		});
 	}
 
 	@Test
 	void enableElasticache_configuredWithoutExplicitClusterButDefaultExpiryTime_configuresImplicitlyConfiguredCachesWithDefaultExpiryTimeOnAllCaches() {
-		this.contextRunner
-				.withPropertyValues("cloud.aws.elasticache.default-expiration=23")
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class)
-				.run(context -> {
-					CacheManager cacheManager = context.getBean(CachingConfigurer.class)
-							.cacheManager();
+		this.contextRunner.withPropertyValues("cloud.aws.elasticache.default-expiration=23")
+				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class).run(context -> {
+					CacheManager cacheManager = context.getBean(CachingConfigurer.class).cacheManager();
 					assertThat(cacheManager.getCacheNames()).hasSize(2);
 					Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 					assertThat(firstCache.getName()).isNotNull();
@@ -197,25 +176,19 @@ class ElastiCacheAutoConfigurationTest {
 
 	@Test
 	void customCachingConfigurerProvided_doesNotCreateDefaultOne() {
-		this.contextRunner
-				.withUserConfiguration(MockCacheConfigurationWithStackCaches.class,
-						CustomCacheConfigurerConfiguration.class)
-				.run(context -> {
+		this.contextRunner.withUserConfiguration(MockCacheConfigurationWithStackCaches.class,
+				CustomCacheConfigurerConfiguration.class).run(context -> {
 					assertThat(context.containsBean("cachingConfigurer")).isFalse();
-					assertThat(context.getBean("customCachingConfigurer",
-							CachingConfigurer.class)).isNotNull();
+					assertThat(context.getBean("customCachingConfigurer", CachingConfigurer.class)).isNotNull();
 				});
 	}
 
 	@Test
 	void customElastiCacheClientProvided_doesNotCreateDefaultOne() {
-		this.contextRunner
-				.withUserConfiguration(CustomElastiCacheClientConfiguration.class)
-				.run(context -> {
-					assertThat(context.containsBean("amazonElastiCache")).isFalse();
-					assertThat(context.getBean("customAmazonElastiCache",
-							AmazonElastiCache.class)).isNotNull();
-				});
+		this.contextRunner.withUserConfiguration(CustomElastiCacheClientConfiguration.class).run(context -> {
+			assertThat(context.containsBean("amazonElastiCache")).isFalse();
+			assertThat(context.getBean("customAmazonElastiCache", AmazonElastiCache.class)).isNotNull();
+		});
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -230,46 +203,27 @@ class ElastiCacheAutoConfigurationTest {
 			sampleCacheOneLogical.setShowCacheNodeInfo(true);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 
 			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest()
 					.withCacheClusterId("sampleCacheTwoLogical");
 			sampleCacheTwoLogical.setShowCacheNodeInfo(true);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
 
 		@Bean
 		ListableStackResourceFactory stackResourceFactory() {
-			ListableStackResourceFactory resourceFactory = mock(
-					ListableStackResourceFactory.class);
-			Mockito.when(
-					resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster"))
-					.thenReturn(Arrays.asList(
-							new StackResource("sampleCacheOneLogical", "sampleCacheOne",
-									"AWS::ElastiCache::CacheCluster"),
-							new StackResource("sampleCacheTwoLogical", "sampleCacheTwo",
-									"AWS::ElastiCache::CacheCluster")));
+			ListableStackResourceFactory resourceFactory = mock(ListableStackResourceFactory.class);
+			Mockito.when(resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster")).thenReturn(Arrays.asList(
+					new StackResource("sampleCacheOneLogical", "sampleCacheOne", "AWS::ElastiCache::CacheCluster"),
+					new StackResource("sampleCacheTwoLogical", "sampleCacheTwo", "AWS::ElastiCache::CacheCluster")));
 			return resourceFactory;
 		}
 

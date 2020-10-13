@@ -55,8 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  * @since 1.0
  */
-public class PathMatchingSimpleStorageResourcePatternResolver
-		implements ResourcePatternResolver {
+public class PathMatchingSimpleStorageResourcePatternResolver implements ResourcePatternResolver {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(PathMatchingSimpleStorageResourcePatternResolver.class);
@@ -98,14 +97,12 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
 		if (SimpleStorageNameUtils.isSimpleStorageResource(locationPattern)) {
-			if (this.pathMatcher
-					.isPattern(SimpleStorageNameUtils.stripProtocol(locationPattern))) {
+			if (this.pathMatcher.isPattern(SimpleStorageNameUtils.stripProtocol(locationPattern))) {
 				LOGGER.debug("Found wildcard pattern in location {}", locationPattern);
 				return findPathMatchingResources(locationPattern);
 			}
 			else {
-				return new Resource[] { this.resourcePatternResolverDelegate
-						.getResource(locationPattern) };
+				return new Resource[] { this.resourcePatternResolverDelegate.getResource(locationPattern) };
 			}
 		}
 		else {
@@ -116,15 +113,12 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 	protected Resource[] findPathMatchingResources(String locationPattern) {
 		// Separate the bucket and key patterns as each one uses a different aws API for
 		// resolving.
-		String bucketPattern = SimpleStorageNameUtils
-				.getBucketNameFromLocation(locationPattern);
-		String keyPattern = SimpleStorageNameUtils
-				.getObjectNameFromLocation(locationPattern);
+		String bucketPattern = SimpleStorageNameUtils.getBucketNameFromLocation(locationPattern);
+		String keyPattern = SimpleStorageNameUtils.getObjectNameFromLocation(locationPattern);
 		Set<Resource> resources;
 		if (this.pathMatcher.isPattern(bucketPattern)) {
 			List<String> matchingBuckets = findMatchingBuckets(bucketPattern);
-			LOGGER.debug("Found wildcard in bucket name {} buckets found are {}",
-					bucketPattern, matchingBuckets);
+			LOGGER.debug("Found wildcard in bucket name {} buckets found are {}", bucketPattern, matchingBuckets);
 
 			// If the '**' wildcard is used in the bucket name, one have to inspect all
 			// objects in the bucket. Therefore the keyPattern is prefixed with '**/' so
@@ -138,29 +132,24 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 
 		}
 		else {
-			LOGGER.debug("No wildcard in bucket name {} using single bucket name",
-					bucketPattern);
-			resources = findPathMatchingKeys(keyPattern,
-					Collections.singletonList(bucketPattern));
+			LOGGER.debug("No wildcard in bucket name {} using single bucket name", bucketPattern);
+			resources = findPathMatchingKeys(keyPattern, Collections.singletonList(bucketPattern));
 		}
 
 		return resources.toArray(new Resource[resources.size()]);
 	}
 
-	private Set<Resource> findPathMatchingKeys(String keyPattern,
-			List<String> matchingBuckets) {
+	private Set<Resource> findPathMatchingKeys(String keyPattern, List<String> matchingBuckets) {
 		Set<Resource> resources = new HashSet<>();
 		if (this.pathMatcher.isPattern(keyPattern)) {
 			for (String bucketName : matchingBuckets) {
-				findPathMatchingKeyInBucket(bucketName, resources,
-						getValidPrefix(keyPattern), keyPattern);
+				findPathMatchingKeyInBucket(bucketName, resources, getValidPrefix(keyPattern), keyPattern);
 			}
 		}
 		else {
 			for (String matchingBucket : matchingBuckets) {
 				Resource resource = this.resourcePatternResolverDelegate
-						.getResource(SimpleStorageNameUtils.getLocationForBucketAndObject(
-								matchingBucket, keyPattern));
+						.getResource(SimpleStorageNameUtils.getLocationForBucketAndObject(matchingBucket, keyPattern));
 				if (resource.exists()) {
 					resources.add(resource);
 				}
@@ -175,12 +164,11 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 		int index = Math.min(starIndex == -1 ? keyPattern.length() : starIndex,
 				markIndex == -1 ? keyPattern.length() : markIndex);
 		String beforeIndex = keyPattern.substring(0, index);
-		return beforeIndex.contains("/")
-				? beforeIndex.substring(0, beforeIndex.lastIndexOf('/') + 1) : null;
+		return beforeIndex.contains("/") ? beforeIndex.substring(0, beforeIndex.lastIndexOf('/') + 1) : null;
 	}
 
-	private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources,
-			String prefix, String keyPattern) {
+	private void findPathMatchingKeyInBucket(String bucketName, Set<Resource> resources, String prefix,
+			String keyPattern) {
 		String remainingPatternPart = getRemainingPatternPart(keyPattern, prefix);
 		if (remainingPatternPart != null && remainingPatternPart.startsWith("**")) {
 			findAllResourcesThatMatches(bucketName, resources, prefix, keyPattern);
@@ -190,10 +178,9 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 		}
 	}
 
-	private void findAllResourcesThatMatches(String bucketName, Set<Resource> resources,
-			String prefix, String keyPattern) {
-		ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-				.withBucketName(bucketName).withPrefix(prefix);
+	private void findAllResourcesThatMatches(String bucketName, Set<Resource> resources, String prefix,
+			String keyPattern) {
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix);
 		ObjectListing objectListing = null;
 
 		do {
@@ -204,8 +191,8 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 				else {
 					objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
 				}
-				Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName,
-						keyPattern, objectListing.getObjectSummaries());
+				Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, keyPattern,
+						objectListing.getObjectSummaries());
 				if (!newResources.isEmpty()) {
 					resources.addAll(newResources);
 				}
@@ -230,10 +217,10 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 	 * @param prefix bucket prefix
 	 * @param keyPattern pattern for key
 	 */
-	private void findProgressivelyWithPartialMatch(String bucketName,
-			Set<Resource> resources, String prefix, String keyPattern) {
-		ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-				.withBucketName(bucketName).withDelimiter("/").withPrefix(prefix);
+	private void findProgressivelyWithPartialMatch(String bucketName, Set<Resource> resources, String prefix,
+			String keyPattern) {
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withDelimiter("/")
+				.withPrefix(prefix);
 		ObjectListing objectListing = null;
 
 		do {
@@ -244,16 +231,15 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 				objectListing = this.amazonS3.listNextBatchOfObjects(objectListing);
 			}
 
-			Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName,
-					keyPattern, objectListing.getObjectSummaries());
+			Set<Resource> newResources = getResourcesFromObjectSummaries(bucketName, keyPattern,
+					objectListing.getObjectSummaries());
 			if (!newResources.isEmpty()) {
 				resources.addAll(newResources);
 			}
 
 			for (String commonPrefix : objectListing.getCommonPrefixes()) {
 				if (isKeyPathMatchesPartially(keyPattern, commonPrefix)) {
-					findPathMatchingKeyInBucket(bucketName, resources, commonPrefix,
-							keyPattern);
+					findPathMatchingKeyInBucket(bucketName, resources, commonPrefix, keyPattern);
 				}
 			}
 		}
@@ -270,8 +256,7 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 		int numberOfSlashes = StringUtils.countOccurrencesOf(keyPath, "/");
 		int indexOfNthSlash = getIndexOfNthOccurrence(keyPattern, "/", numberOfSlashes);
 		if (indexOfNthSlash != -1) {
-			return this.pathMatcher.match(keyPattern.substring(0, indexOfNthSlash),
-					keyPath);
+			return this.pathMatcher.match(keyPattern.substring(0, indexOfNthSlash), keyPath);
 		}
 		else {
 			return false;
@@ -294,15 +279,13 @@ public class PathMatchingSimpleStorageResourcePatternResolver
 		return result;
 	}
 
-	private Set<Resource> getResourcesFromObjectSummaries(String bucketName,
-			String keyPattern, List<S3ObjectSummary> objectSummaries) {
+	private Set<Resource> getResourcesFromObjectSummaries(String bucketName, String keyPattern,
+			List<S3ObjectSummary> objectSummaries) {
 		Set<Resource> resources = new HashSet<>();
 		for (S3ObjectSummary objectSummary : objectSummaries) {
-			String keyPath = SimpleStorageNameUtils
-					.getLocationForBucketAndObject(bucketName, objectSummary.getKey());
+			String keyPath = SimpleStorageNameUtils.getLocationForBucketAndObject(bucketName, objectSummary.getKey());
 			if (this.pathMatcher.match(keyPattern, objectSummary.getKey())) {
-				Resource resource = this.resourcePatternResolverDelegate
-						.getResource(keyPath);
+				Resource resource = this.resourcePatternResolverDelegate.getResource(keyPath);
 				resources.add(resource);
 			}
 		}

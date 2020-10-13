@@ -34,8 +34,7 @@ import org.springframework.core.task.TaskExecutor;
  * @author Alain Sahli
  * @since 1.0
  */
-public class SimpleStorageProtocolResolver
-		implements ProtocolResolver, InitializingBean, BeanFactoryAware {
+public class SimpleStorageProtocolResolver implements ProtocolResolver, InitializingBean, BeanFactoryAware {
 
 	private AmazonS3 amazonS3;
 
@@ -76,8 +75,7 @@ public class SimpleStorageProtocolResolver
 		if (SimpleStorageNameUtils.isSimpleStorageResource(location)) {
 			return new SimpleStorageResource(this.getAmazonS3(),
 					SimpleStorageNameUtils.getBucketNameFromLocation(location),
-					SimpleStorageNameUtils.getObjectNameFromLocation(location),
-					this.taskExecutor,
+					SimpleStorageNameUtils.getObjectNameFromLocation(location), this.taskExecutor,
 					SimpleStorageNameUtils.getVersionIdFromLocation(location));
 		}
 		else {
@@ -87,8 +85,7 @@ public class SimpleStorageProtocolResolver
 
 	public AmazonS3 getAmazonS3() {
 		if (this.amazonS3 == null) {
-			this.amazonS3 = AmazonS3ProxyFactory
-					.createProxy(this.beanFactory.getBean(AmazonS3.class));
+			this.amazonS3 = AmazonS3ProxyFactory.createProxy(this.beanFactory.getBean(AmazonS3.class));
 		}
 		return this.amazonS3;
 	}

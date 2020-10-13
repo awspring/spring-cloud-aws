@@ -42,14 +42,12 @@ public class AwsSecretsManagerProperties implements Validator {
 	/**
 	 * Pattern used for prefix validation.
 	 */
-	private static final Pattern PREFIX_PATTERN = Pattern
-			.compile("(/[a-zA-Z0-9.\\-_]+)*");
+	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/[a-zA-Z0-9.\\-_]+)*");
 
 	/**
 	 * Pattern used for profileSeparator validation.
 	 */
-	private static final Pattern PROFILE_SEPARATOR_PATTERN = Pattern
-			.compile("[a-zA-Z0-9.\\-_/\\\\]+");
+	private static final Pattern PROFILE_SEPARATOR_PATTERN = Pattern.compile("[a-zA-Z0-9.\\-_/\\\\]+");
 
 	/**
 	 * Prefix indicating first level for every property. Value must start with a forward
@@ -89,29 +87,23 @@ public class AwsSecretsManagerProperties implements Validator {
 		AwsSecretsManagerProperties properties = (AwsSecretsManagerProperties) target;
 
 		if (StringUtils.isEmpty(properties.getPrefix())) {
-			errors.rejectValue("prefix", "NotEmpty",
-					"prefix should not be empty or null.");
+			errors.rejectValue("prefix", "NotEmpty", "prefix should not be empty or null.");
 		}
 
 		if (StringUtils.isEmpty(properties.getDefaultContext())) {
-			errors.rejectValue("defaultContext", "NotEmpty",
-					"defaultContext should not be empty or null.");
+			errors.rejectValue("defaultContext", "NotEmpty", "defaultContext should not be empty or null.");
 		}
 
 		if (StringUtils.isEmpty(properties.getProfileSeparator())) {
-			errors.rejectValue("profileSeparator", "NotEmpty",
-					"profileSeparator should not be empty or null.");
+			errors.rejectValue("profileSeparator", "NotEmpty", "profileSeparator should not be empty or null.");
 		}
 
 		if (!PREFIX_PATTERN.matcher(properties.getPrefix()).matches()) {
-			errors.rejectValue("prefix", "Pattern",
-					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+			errors.rejectValue("prefix", "Pattern", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
-		if (!PROFILE_SEPARATOR_PATTERN.matcher(properties.getProfileSeparator())
-				.matches()) {
+		if (!PROFILE_SEPARATOR_PATTERN.matcher(properties.getProfileSeparator()).matches()) {
 			errors.rejectValue("profileSeparator", "Pattern",
-					"The profileSeparator must have pattern of:  "
-							+ PROFILE_SEPARATOR_PATTERN.toString());
+					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
 	}
 

@@ -41,16 +41,14 @@ import org.springframework.util.MimeType;
  */
 public class ObjectMessageConverter extends AbstractMessageConverter {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ObjectMessageConverter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ObjectMessageConverter.class);
 
 	private static final String DEFAULT_ENCODING = "UTF-8";
 
 	private final Charset encoding;
 
 	public ObjectMessageConverter(String encoding) {
-		super(new MimeType("application", "x-java-serialized-object",
-				Charset.forName(encoding)));
+		super(new MimeType("application", "x-java-serialized-object", Charset.forName(encoding)));
 		this.encoding = Charset.forName(encoding);
 	}
 
@@ -65,15 +63,12 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass,
-			Object conversionHint) {
+	public Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		String messagePayload = message.getPayload().toString();
 		byte[] rawContent = messagePayload.getBytes(this.encoding);
 		if (!(Base64.isBase64(rawContent))) {
-			throw new MessageConversionException(
-					"Error converting payload '" + messagePayload
-							+ "' because it is not a valid base64 encoded stream!",
-					null);
+			throw new MessageConversionException("Error converting payload '" + messagePayload
+					+ "' because it is not a valid base64 encoded stream!", null);
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(rawContent);
 		Base64InputStream base64InputStream = new Base64InputStream(byteArrayInputStream);
@@ -85,12 +80,10 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 		}
 		catch (ClassNotFoundException e) {
 			throw new MessageConversionException(
-					"Error loading class from message payload, make sure class is in classpath!",
-					e);
+					"Error loading class from message payload, make sure class is in classpath!", e);
 		}
 		catch (IOException e) {
-			throw new MessageConversionException(
-					"Error reading payload from binary representation", e);
+			throw new MessageConversionException("Error reading payload from binary representation", e);
 		}
 		finally {
 			if (objectInputStream != null) {
@@ -98,9 +91,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 					objectInputStream.close();
 				}
 				catch (IOException e) {
-					LOGGER.warn(
-							"Error closing object output stream while reading message payload",
-							e);
+					LOGGER.warn("Error closing object output stream while reading message payload", e);
 				}
 			}
 		}
@@ -110,16 +101,13 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public Object convertToInternal(Object payload, MessageHeaders headers,
-			Object conversionHint) {
+	public Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
 		if (!(payload instanceof Serializable)) {
-			throw new IllegalArgumentException(
-					"Can't convert payload, it must be of type Serializable");
+			throw new IllegalArgumentException("Can't convert payload, it must be of type Serializable");
 		}
 
 		ByteArrayOutputStream content = new ByteArrayOutputStream();
-		Base64OutputStream base64OutputStream = new Base64OutputStream(content, true, 0,
-				null);
+		Base64OutputStream base64OutputStream = new Base64OutputStream(content, true, 0, null);
 		ObjectOutputStream objectOutputStream = null;
 		try {
 			objectOutputStream = new ObjectOutputStream(base64OutputStream);
@@ -127,8 +115,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 			objectOutputStream.flush();
 		}
 		catch (IOException e) {
-			throw new MessageConversionException(
-					"Error converting payload into binary representation", e);
+			throw new MessageConversionException("Error converting payload into binary representation", e);
 		}
 		finally {
 			if (objectOutputStream != null) {
@@ -136,9 +123,7 @@ public class ObjectMessageConverter extends AbstractMessageConverter {
 					objectOutputStream.close();
 				}
 				catch (IOException e) {
-					LOGGER.warn(
-							"Error closing object output stream while writing message payload",
-							e);
+					LOGGER.warn("Error closing object output stream while writing message payload", e);
 				}
 			}
 		}

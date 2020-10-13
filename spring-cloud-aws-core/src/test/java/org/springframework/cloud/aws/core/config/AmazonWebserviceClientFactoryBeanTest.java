@@ -49,8 +49,7 @@ class AmazonWebserviceClientFactoryBeanTest {
 	}
 
 	@Test
-	void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider()
-			throws Exception {
+	void getObject_withRegionProvider_returnsClientWithRegionReturnedByProvider() throws Exception {
 
 		// Arrange
 		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
@@ -81,8 +80,7 @@ class AmazonWebserviceClientFactoryBeanTest {
 		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
 
 		// Assert
-		assertThat(webserviceClient.getClientConfiguration().getUserAgentSuffix())
-				.startsWith("spring-cloud-aws/");
+		assertThat(webserviceClient.getClientConfiguration().getUserAgentSuffix()).startsWith("spring-cloud-aws/");
 
 	}
 

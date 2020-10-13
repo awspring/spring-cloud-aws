@@ -35,16 +35,12 @@ import static org.springframework.cloud.aws.context.config.support.ContextConfig
 public class ContextInstanceDataConfiguration implements ImportBeanDefinitionRegistrar {
 
 	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
-			BeanDefinitionRegistry registry) {
-		AnnotationAttributes annotationAttributes = AnnotationAttributes
-				.fromMap(importingClassMetadata.getAnnotationAttributes(
-						EnableContextInstanceData.class.getName(), false));
-		Assert.notNull(annotationAttributes,
-				"@EnableContextInstanceData is not present on importing class "
-						+ importingClassMetadata.getClassName());
-		registerInstanceDataPropertySource(registry,
-				annotationAttributes.getString("valueSeparator"),
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		AnnotationAttributes annotationAttributes = AnnotationAttributes.fromMap(
+				importingClassMetadata.getAnnotationAttributes(EnableContextInstanceData.class.getName(), false));
+		Assert.notNull(annotationAttributes, "@EnableContextInstanceData is not present on importing class "
+				+ importingClassMetadata.getClassName());
+		registerInstanceDataPropertySource(registry, annotationAttributes.getString("valueSeparator"),
 				annotationAttributes.getString("attributeSeparator"));
 	}
 

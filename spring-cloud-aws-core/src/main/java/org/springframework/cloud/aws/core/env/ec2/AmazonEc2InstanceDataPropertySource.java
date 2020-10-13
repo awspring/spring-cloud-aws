@@ -37,11 +37,9 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  */
-public class AmazonEc2InstanceDataPropertySource
-		extends EnumerablePropertySource<Object> {
+public class AmazonEc2InstanceDataPropertySource extends EnumerablePropertySource<Object> {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(AmazonEc2InstanceDataPropertySource.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AmazonEc2InstanceDataPropertySource.class);
 
 	private static final String EC2_METADATA_ROOT = "/latest/meta-data";
 
@@ -56,14 +54,13 @@ public class AmazonEc2InstanceDataPropertySource
 		// Load all known properties from the classpath. This is not meant
 		// to be changed by external developers.
 		try {
-			ClassPathResource resource = new ClassPathResource(
-					DEFAULT_KNOWN_PROPERTIES_PATH,
+			ClassPathResource resource = new ClassPathResource(DEFAULT_KNOWN_PROPERTIES_PATH,
 					AmazonEc2InstanceDataPropertySource.class);
 			KNOWN_PROPERTY_NAMES = PropertiesLoaderUtils.loadProperties(resource);
 		}
 		catch (IOException ex) {
-			throw new IllegalStateException("Could not load '"
-					+ DEFAULT_KNOWN_PROPERTIES_PATH + "': " + ex.getMessage());
+			throw new IllegalStateException(
+					"Could not load '" + DEFAULT_KNOWN_PROPERTIES_PATH + "': " + ex.getMessage());
 		}
 	}
 
@@ -108,9 +105,7 @@ public class AmazonEc2InstanceDataPropertySource
 			// Suppress exception if we are not able to contact the service,
 			// because that is quite often the case if we run in unit tests outside the
 			// environment.
-			LOGGER.warn(
-					"Error getting instance meta-data with name '{}' error message is '{}'",
-					name, e.getMessage());
+			LOGGER.warn("Error getting instance meta-data with name '{}' error message is '{}'", name, e.getMessage());
 			return null;
 		}
 	}
@@ -126,17 +121,14 @@ public class AmazonEc2InstanceDataPropertySource
 				// Suppress exception if we are not able to contact the service,
 				// because that is quite often the case if we run in unit tests outside
 				// the environment.
-				LOGGER.warn("Error getting instance user-data error message is '{}'",
-						e.getMessage());
+				LOGGER.warn("Error getting instance user-data error message is '{}'", e.getMessage());
 			}
 			if (StringUtils.hasText(userData)) {
-				String[] userDataAttributes = userData
-						.split(this.userDataAttributeSeparator);
+				String[] userDataAttributes = userData.split(this.userDataAttributeSeparator);
 				for (String userDataAttribute : userDataAttributes) {
-					String[] userDataAttributesParts = StringUtils
-							.split(userDataAttribute, this.userDataValueSeparator);
-					if (userDataAttributesParts != null
-							&& userDataAttributesParts.length > 0) {
+					String[] userDataAttributesParts = StringUtils.split(userDataAttribute,
+							this.userDataValueSeparator);
+					if (userDataAttributesParts != null && userDataAttributesParts.length > 0) {
 						String key = userDataAttributesParts[0];
 
 						String value = null;

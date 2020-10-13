@@ -43,8 +43,7 @@ import org.springframework.core.Constants;
  * @author Agim Emruli
  * @since 1.0
  */
-public class TomcatJdbcDataSourceFactory extends PoolProperties
-		implements DataSourceFactory {
+public class TomcatJdbcDataSourceFactory extends PoolProperties implements DataSourceFactory {
 
 	private static final String PREFIX_ISOLATION = "TRANSACTION_";
 
@@ -75,30 +74,26 @@ public class TomcatJdbcDataSourceFactory extends PoolProperties
 			throw new IllegalArgumentException("Isolation name must not be null");
 		}
 		Constants constants = new Constants(Connection.class);
-		setDefaultTransactionIsolation(
-				constants.asNumber(PREFIX_ISOLATION + constantName).intValue());
+		setDefaultTransactionIsolation(constants.asNumber(PREFIX_ISOLATION + constantName).intValue());
 	}
 
-	public void setDatabasePlatformSupport(
-			DatabasePlatformSupport databasePlatformSupport) {
+	public void setDatabasePlatformSupport(DatabasePlatformSupport databasePlatformSupport) {
 		this.databasePlatformSupport = databasePlatformSupport;
 	}
 
 	@Override
-	public org.apache.tomcat.jdbc.pool.DataSource createDataSource(
-			DataSourceInformation dataSourceInformation) {
+	public org.apache.tomcat.jdbc.pool.DataSource createDataSource(DataSourceInformation dataSourceInformation) {
 		// create a method scoped instance
 		PoolConfiguration configurationToUse = new PoolProperties();
 
 		// copy all general properties
 		BeanUtils.copyProperties(this, configurationToUse);
 
-		configurationToUse.setDriverClassName(this.databasePlatformSupport
-				.getDriverClassNameForDatabase(dataSourceInformation.getDatabaseType()));
+		configurationToUse.setDriverClassName(
+				this.databasePlatformSupport.getDriverClassNameForDatabase(dataSourceInformation.getDatabaseType()));
 		configurationToUse.setUrl(this.databasePlatformSupport.getDatabaseUrlForDatabase(
-				dataSourceInformation.getDatabaseType(),
-				dataSourceInformation.getHostName(), dataSourceInformation.getPort(),
-				dataSourceInformation.getDatabaseName()));
+				dataSourceInformation.getDatabaseType(), dataSourceInformation.getHostName(),
+				dataSourceInformation.getPort(), dataSourceInformation.getDatabaseName()));
 		configurationToUse.setUsername(dataSourceInformation.getUserName());
 		configurationToUse.setPassword(dataSourceInformation.getPassword());
 

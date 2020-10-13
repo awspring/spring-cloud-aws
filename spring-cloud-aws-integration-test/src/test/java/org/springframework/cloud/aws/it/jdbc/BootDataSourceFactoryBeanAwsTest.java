@@ -29,8 +29,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 /**
  * @author Agim Emruli
  */
-@SpringBootTest(
-		classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
+@SpringBootTest(classes = BootDataSourceFactoryBeanAwsTest.BootDataSourceFactoryBeanAwsTestConfig.class)
 class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 	@Autowired
@@ -38,8 +37,7 @@ class BootDataSourceFactoryBeanAwsTest extends DataSourceFactoryBeanAwsTest {
 
 	@Test
 	public void usesAutoConfiguration() {
-		assertThat(applicationContext.getBean(AmazonRdsDatabaseAutoConfiguration.class))
-				.isNotNull();
+		assertThat(applicationContext.getBean(AmazonRdsDatabaseAutoConfiguration.class)).isNotNull();
 	}
 
 	@SpringBootApplication

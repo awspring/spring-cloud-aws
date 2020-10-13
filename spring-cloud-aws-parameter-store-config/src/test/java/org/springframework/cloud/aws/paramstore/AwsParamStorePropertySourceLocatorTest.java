@@ -45,16 +45,14 @@ public class AwsParamStorePropertySourceLocatorTest {
 
 	@Test
 	void contextExpectedToHave2Elements() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
-				.withDefaultContext("application").withName("application").build();
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
+				.withName("application").build();
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
-				.thenReturn(firstResult, nextResult);
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(
-				ssmClient, properties);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
 		env.setActiveProfiles("test");
 		locator.locate(env);
 
@@ -63,16 +61,14 @@ public class AwsParamStorePropertySourceLocatorTest {
 
 	@Test
 	void contextExpectedToHave4Elements() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
-				.withDefaultContext("application").withName("messaging-service").build();
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
+				.withName("messaging-service").build();
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
-				.thenReturn(firstResult, nextResult);
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(
-				ssmClient, properties);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
 		env.setActiveProfiles("test");
 		locator.locate(env);
 
@@ -81,23 +77,20 @@ public class AwsParamStorePropertySourceLocatorTest {
 
 	@Test
 	void contextSpecificOrderExpected() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder()
-				.withDefaultContext("application").withName("messaging-service").build();
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
+				.withName("messaging-service").build();
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
-				.thenReturn(firstResult, nextResult);
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(
-				ssmClient, properties);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
 		env.setActiveProfiles("test");
 		locator.locate(env);
 
 		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
 
-		assertThat(contextToBeTested.get(0))
-				.isEqualTo("application/messaging-service_test/");
+		assertThat(contextToBeTested.get(0)).isEqualTo("application/messaging-service_test/");
 		assertThat(contextToBeTested.get(1)).isEqualTo("application/messaging-service/");
 		assertThat(contextToBeTested.get(2)).isEqualTo("application/application_test/");
 		assertThat(contextToBeTested.get(3)).isEqualTo("application/application/");

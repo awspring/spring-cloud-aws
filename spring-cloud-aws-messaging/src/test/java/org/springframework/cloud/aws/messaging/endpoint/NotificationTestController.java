@@ -52,8 +52,7 @@ class NotificationTestController {
 	}
 
 	@NotificationMessageMapping
-	void handleNotificationMessage(@NotificationSubject String subject,
-			@NotificationMessage String message) {
+	void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
 		this.subject = subject;
 		this.message = message;
 	}

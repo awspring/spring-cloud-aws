@@ -83,8 +83,7 @@ class RdbmsRetryOperationsInterceptorTest {
 			RdbmsRetryOperationsInterceptor operationsInterceptor = new RdbmsRetryOperationsInterceptor();
 			MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
-			assertThatThrownBy(() -> operationsInterceptor.invoke(methodInvocation))
-					.isInstanceOf(RetryException.class)
+			assertThatThrownBy(() -> operationsInterceptor.invoke(methodInvocation)).isInstanceOf(RetryException.class)
 					.hasMessageContaining("An active transaction was found");
 		}
 		finally {

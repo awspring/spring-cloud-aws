@@ -44,8 +44,7 @@ public class StaticRegionProvider implements RegionProvider {
 			this.configuredRegion = Region.getRegion(Regions.fromName(configuredRegion));
 		}
 		catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException(
-					"The region '" + configuredRegion + "' is not a valid region!", e);
+			throw new IllegalArgumentException("The region '" + configuredRegion + "' is not a valid region!", e);
 		}
 	}
 

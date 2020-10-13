@@ -46,18 +46,15 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	private final List<HttpMessageConverter<?>> messageConverter;
 
 	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new MappingJackson2HttpMessageConverter(),
-				new StringHttpMessageConverter()));
+		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
 	}
 
-	public NotificationMessageHandlerMethodArgumentResolver(
-			List<HttpMessageConverter<?>> messageConverter) {
+	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
 		this.messageConverter = messageConverter;
 	}
 
 	private static MediaType getMediaType(JsonNode content) {
-		JsonNode contentTypeNode = content.findPath("MessageAttributes")
-				.findPath("contentType");
+		JsonNode contentTypeNode = content.findPath("MessageAttributes").findPath("contentType");
 		if (contentTypeNode.isObject()) {
 			String contentType = contentTypeNode.findPath("Value").asText();
 			if (StringUtils.hasText(contentType)) {
@@ -75,8 +72,8 @@ public class NotificationMessageHandlerMethodArgumentResolver
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object doResolveArgumentFromNotificationMessage(JsonNode content,
-			HttpInputMessage request, Class<?> parameterType) {
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
+			Class<?> parameterType) {
 		if (!"Notification".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException(
 					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
@@ -89,14 +86,11 @@ public class NotificationMessageHandlerMethodArgumentResolver
 			if (converter.canRead(parameterType, mediaType)) {
 				try {
 					return converter.read((Class) parameterType,
-							new ByteArrayHttpInputMessage(messageContent, mediaType,
-									request));
+							new ByteArrayHttpInputMessage(messageContent, mediaType, request));
 				}
 				catch (Exception e) {
 					throw new HttpMessageNotReadableException(
-							"Error converting notification message with payload:"
-									+ messageContent,
-							e);
+							"Error converting notification message with payload:" + messageContent, e);
 				}
 			}
 		}
@@ -113,8 +107,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 
 		private final HttpInputMessage request;
 
-		private ByteArrayHttpInputMessage(String content, MediaType mediaType,
-				HttpInputMessage request) {
+		private ByteArrayHttpInputMessage(String content, MediaType mediaType, HttpInputMessage request) {
 			this.content = content;
 			this.mediaType = mediaType;
 			this.request = request;

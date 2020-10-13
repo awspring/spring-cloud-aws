@@ -45,31 +45,26 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object resolveArgument(MethodParameter parameter,
-			ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-			WebDataBinderFactory binderFactory) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 		Assert.notNull(parameter, "Parameter must not be null");
-		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
-				RequestAttributes.SCOPE_REQUEST) == null) {
+		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
 			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
-					this.messageConverter.read(JsonNode.class,
-							createInputMessage(webRequest)),
+					this.messageConverter.read(JsonNode.class, createInputMessage(webRequest)),
 					RequestAttributes.SCOPE_REQUEST);
 		}
 
-		JsonNode content = (JsonNode) webRequest.getAttribute(
-				NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
-		return doResolveArgumentFromNotificationMessage(content,
-				createInputMessage(webRequest), parameter.getParameterType());
+		JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
+				RequestAttributes.SCOPE_REQUEST);
+		return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest),
+				parameter.getParameterType());
 	}
 
-	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content,
-			HttpInputMessage request, Class<?> parameterType);
+	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
+			Class<?> parameterType);
 
-	private HttpInputMessage createInputMessage(NativeWebRequest webRequest)
-			throws IOException {
-		HttpServletRequest servletRequest = webRequest
-				.getNativeRequest(HttpServletRequest.class);
+	private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
+		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		return new ServletServerHttpRequest(servletRequest);
 	}
 

@@ -52,10 +52,8 @@ public class SimpleStorageProtocolResolverConfigurerIntegrationTest {
 	private ResourceLoader resourceLoader;
 
 	@Test
-	public void configurationClassAnnotatedResourceResolvesToS3Resource()
-			throws Exception {
-		assertThat(((Advised) resource).getTargetSource().getTarget())
-				.isInstanceOf(SimpleStorageResource.class);
+	public void configurationClassAnnotatedResourceResolvesToS3Resource() throws Exception {
+		assertThat(((Advised) resource).getTargetSource().getTarget()).isInstanceOf(SimpleStorageResource.class);
 	}
 
 	@Test
@@ -65,8 +63,7 @@ public class SimpleStorageProtocolResolverConfigurerIntegrationTest {
 
 	@Test
 	public void resourceLoadedResourceIsS3Resource() {
-		assertThat(resourceLoader.getResource("s3://foo/bar.txt"))
-				.isInstanceOf(SimpleStorageResource.class);
+		assertThat(resourceLoader.getResource("s3://foo/bar.txt")).isInstanceOf(SimpleStorageResource.class);
 	}
 
 	@Configuration

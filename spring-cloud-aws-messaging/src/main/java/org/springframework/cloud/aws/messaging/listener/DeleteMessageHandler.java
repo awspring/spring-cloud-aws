@@ -27,11 +27,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Mete Alpaslan Katırcıoğlu
  */
-class DeleteMessageHandler
-		implements AsyncHandler<DeleteMessageRequest, DeleteMessageResult> {
+class DeleteMessageHandler implements AsyncHandler<DeleteMessageRequest, DeleteMessageResult> {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(DeleteMessageHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeleteMessageHandler.class);
 
 	private final String receiptHandle;
 
@@ -41,15 +39,12 @@ class DeleteMessageHandler
 
 	@Override
 	public void onError(Exception exception) {
-		logger.warn("An exception occurred while deleting '{}' receiptHandle",
-				receiptHandle, exception);
+		logger.warn("An exception occurred while deleting '{}' receiptHandle", receiptHandle, exception);
 	}
 
 	@Override
-	public void onSuccess(DeleteMessageRequest request,
-			DeleteMessageResult deleteMessageResult) {
-		logger.trace("'{}' receiptHandle is deleted successfully",
-				request.getReceiptHandle());
+	public void onSuccess(DeleteMessageRequest request, DeleteMessageResult deleteMessageResult) {
+		logger.trace("'{}' receiptHandle is deleted successfully", request.getReceiptHandle());
 	}
 
 }

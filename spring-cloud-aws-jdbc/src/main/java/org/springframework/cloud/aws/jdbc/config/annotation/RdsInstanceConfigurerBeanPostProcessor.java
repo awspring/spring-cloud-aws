@@ -30,25 +30,21 @@ import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
  *
  * @author Agim Emruli
  */
-public class RdsInstanceConfigurerBeanPostProcessor
-		implements BeanPostProcessor, BeanFactoryAware {
+public class RdsInstanceConfigurerBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
 	private RdsInstanceConfigurer rdsInstanceConfigurer;
 
 	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName)
-			throws BeansException {
-		if (bean instanceof AmazonRdsDataSourceFactoryBean
-				&& this.rdsInstanceConfigurer != null) {
-			((AmazonRdsDataSourceFactoryBean) bean).setDataSourceFactory(
-					this.rdsInstanceConfigurer.getDataSourceFactory());
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (bean instanceof AmazonRdsDataSourceFactoryBean && this.rdsInstanceConfigurer != null) {
+			((AmazonRdsDataSourceFactoryBean) bean)
+					.setDataSourceFactory(this.rdsInstanceConfigurer.getDataSourceFactory());
 		}
 		return bean;
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName)
-			throws BeansException {
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
@@ -63,8 +59,7 @@ public class RdsInstanceConfigurerBeanPostProcessor
 			}
 
 			if (configurer.size() > 1) {
-				throw new IllegalStateException(
-						"Only one RdsInstanceConfigurer may exist");
+				throw new IllegalStateException("Only one RdsInstanceConfigurer may exist");
 			}
 
 			this.rdsInstanceConfigurer = configurer.iterator().next();

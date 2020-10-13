@@ -34,8 +34,7 @@ import org.springframework.cloud.aws.core.naming.AmazonResourceName;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsDataSourceUserTagsFactoryBean
-		extends AbstractFactoryBean<Map<String, String>> {
+public class AmazonRdsDataSourceUserTagsFactoryBean extends AbstractFactoryBean<Map<String, String>> {
 
 	private final AmazonRDS amazonRds;
 
@@ -47,8 +46,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBean
 
 	private Region region;
 
-	public AmazonRdsDataSourceUserTagsFactoryBean(AmazonRDS amazonRds,
-			String dbInstanceIdentifier, AmazonIdentityManagement identityManagement) {
+	public AmazonRdsDataSourceUserTagsFactoryBean(AmazonRDS amazonRds, String dbInstanceIdentifier,
+			AmazonIdentityManagement identityManagement) {
 		this.amazonRds = amazonRds;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
 		this.identityManagement = identityManagement;
@@ -63,8 +62,7 @@ public class AmazonRdsDataSourceUserTagsFactoryBean
 	protected Map<String, String> createInstance() throws Exception {
 		LinkedHashMap<String, String> userTags = new LinkedHashMap<>();
 		ListTagsForResourceResult tagsForResource = this.amazonRds
-				.listTagsForResource(new ListTagsForResourceRequest()
-						.withResourceName(getDbInstanceResourceName()));
+				.listTagsForResource(new ListTagsForResourceRequest().withResourceName(getDbInstanceResourceName()));
 		for (Tag tag : tagsForResource.getTagList()) {
 			userTags.put(tag.getKey(), tag.getValue());
 		}
@@ -76,8 +74,8 @@ public class AmazonRdsDataSourceUserTagsFactoryBean
 	}
 
 	private String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver
-				.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
+		return this.resourceIdResolver != null
+				? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
 				: this.dbInstanceIdentifier;
 	}
 
@@ -101,11 +99,9 @@ public class AmazonRdsDataSourceUserTagsFactoryBean
 	private String getDbInstanceResourceName() {
 		String userArn = this.identityManagement.getUser().getUser().getArn();
 		AmazonResourceName userResourceName = AmazonResourceName.fromString(userArn);
-		AmazonResourceName dbResourceArn = new AmazonResourceName.Builder()
-				.withService("rds").withRegion(getRegion())
+		AmazonResourceName dbResourceArn = new AmazonResourceName.Builder().withService("rds").withRegion(getRegion())
 				.withAccount(userResourceName.getAccount()).withResourceType("db")
-				.withResourceName(getDbInstanceIdentifier())
-				.withResourceTypeDelimiter(":").build();
+				.withResourceName(getDbInstanceIdentifier()).withResourceTypeDelimiter(":").build();
 		return dbResourceArn.toString();
 	}
 

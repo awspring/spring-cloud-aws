@@ -41,56 +41,49 @@ class AwsCredentialsPropertiesTest {
 
 	@Test
 	void accessKeyCanBeSet() {
-		assertThat(this.properties.getAccessKey())
-				.as("Access key default value expected to be null").isNull();
+		assertThat(this.properties.getAccessKey()).as("Access key default value expected to be null").isNull();
 
 		String newAccessKey = UUID.randomUUID().toString();
 		this.properties.setAccessKey(newAccessKey);
-		assertThat(this.properties.getAccessKey())
-				.as("Access key should have been assigned").isEqualTo(newAccessKey);
+		assertThat(this.properties.getAccessKey()).as("Access key should have been assigned").isEqualTo(newAccessKey);
 	}
 
 	@Test
 	void secretKeyCanBeSet() {
-		assertThat(this.properties.getSecretKey())
-				.as("Secret key default value expected to be null").isNull();
+		assertThat(this.properties.getSecretKey()).as("Secret key default value expected to be null").isNull();
 
 		String newSecretKey = UUID.randomUUID().toString();
 		this.properties.setSecretKey(newSecretKey);
-		assertThat(this.properties.getSecretKey())
-				.as("Secret key should have been assigned").isEqualTo(newSecretKey);
+		assertThat(this.properties.getSecretKey()).as("Secret key should have been assigned").isEqualTo(newSecretKey);
 	}
 
 	@Test
 	void instanceProfileCanBeSet() {
-		assertThat(this.properties.isInstanceProfile())
-				.as("Instance profile default expected to be false").isFalse();
+		assertThat(this.properties.isInstanceProfile()).as("Instance profile default expected to be false").isFalse();
 
 		this.properties.setInstanceProfile(true);
-		assertThat(this.properties.isInstanceProfile())
-				.as("Instance profile should have been assigned").isTrue();
+		assertThat(this.properties.isInstanceProfile()).as("Instance profile should have been assigned").isTrue();
 	}
 
 	@Test
 	void profileNameCanBeSet() {
-		assertThat(this.properties.getProfileName())
-				.as("Default profile name is not expected to be set").isEqualTo(null);
+		assertThat(this.properties.getProfileName()).as("Default profile name is not expected to be set")
+				.isEqualTo(null);
 
 		String newProfileName = UUID.randomUUID().toString();
 		this.properties.setProfileName(newProfileName);
-		assertThat(this.properties.getProfileName())
-				.as("Profile name should have been assigned").isEqualTo(newProfileName);
+		assertThat(this.properties.getProfileName()).as("Profile name should have been assigned")
+				.isEqualTo(newProfileName);
 	}
 
 	@Test
 	void profilePathCanBeSet() {
-		assertThat(this.properties.getProfilePath())
-				.as("Profile path default value expected to be null").isNull();
+		assertThat(this.properties.getProfilePath()).as("Profile path default value expected to be null").isNull();
 
 		String newProfilePath = UUID.randomUUID().toString();
 		this.properties.setProfilePath(newProfilePath);
-		assertThat(this.properties.getProfilePath())
-				.as("Profile path should have been assigned").isEqualTo(newProfilePath);
+		assertThat(this.properties.getProfilePath()).as("Profile path should have been assigned")
+				.isEqualTo(newProfilePath);
 	}
 
 }

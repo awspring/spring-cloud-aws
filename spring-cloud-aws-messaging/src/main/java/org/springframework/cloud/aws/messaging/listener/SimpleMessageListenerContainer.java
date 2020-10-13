@@ -117,8 +117,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		}
 
 		initializeRunningStateByQueue();
-		this.scheduledFutureByQueue = new ConcurrentHashMap<>(
-				getRegisteredQueues().size());
+		this.scheduledFutureByQueue = new ConcurrentHashMap<>(getRegisteredQueues().size());
 	}
 
 	private void initializeRunningStateByQueue() {
@@ -142,8 +141,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	private void notifyRunningQueuesToStop() {
-		for (Map.Entry<String, Boolean> runningStateByQueue : this.runningStateByQueue
-				.entrySet()) {
+		for (Map.Entry<String, Boolean> runningStateByQueue : this.runningStateByQueue.entrySet()) {
 			if (runningStateByQueue.getValue()) {
 				stopQueue(runningStateByQueue.getKey());
 			}
@@ -151,19 +149,16 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	private void waitForRunningQueuesToStop() {
-		for (Map.Entry<String, Boolean> queueRunningState : this.runningStateByQueue
-				.entrySet()) {
+		for (Map.Entry<String, Boolean> queueRunningState : this.runningStateByQueue.entrySet()) {
 			String logicalQueueName = queueRunningState.getKey();
-			Future<?> queueSpinningThread = this.scheduledFutureByQueue
-					.get(logicalQueueName);
+			Future<?> queueSpinningThread = this.scheduledFutureByQueue.get(logicalQueueName);
 
 			if (queueSpinningThread != null) {
 				try {
 					queueSpinningThread.get(getQueueStopTimeout(), TimeUnit.MILLISECONDS);
 				}
 				catch (ExecutionException | TimeoutException e) {
-					getLogger().warn("An exception occurred while stopping queue '"
-							+ logicalQueueName + "'", e);
+					getLogger().warn("An exception occurred while stopping queue '" + logicalQueueName + "'", e);
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -193,18 +188,15 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	protected AsyncTaskExecutor createDefaultTaskExecutor() {
 		String beanName = getBeanName();
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setThreadNamePrefix(
-				beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
+		threadPoolTaskExecutor.setThreadNamePrefix(beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
 		int spinningThreads = this.getRegisteredQueues().size();
 
 		if (spinningThreads > 0) {
-			threadPoolTaskExecutor
-					.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
+			threadPoolTaskExecutor.setCorePoolSize(spinningThreads * DEFAULT_WORKER_THREADS);
 
-			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null
-					? getMaxNumberOfMessages() : DEFAULT_MAX_NUMBER_OF_MESSAGES;
-			threadPoolTaskExecutor
-					.setMaxPoolSize(spinningThreads * (maxNumberOfMessagePerBatch + 1));
+			int maxNumberOfMessagePerBatch = getMaxNumberOfMessages() != null ? getMaxNumberOfMessages()
+					: DEFAULT_MAX_NUMBER_OF_MESSAGES;
+			threadPoolTaskExecutor.setMaxPoolSize(spinningThreads * (maxNumberOfMessagePerBatch + 1));
 		}
 
 		// No use of a thread pool executor queue to avoid retaining message to long in
@@ -217,14 +209,12 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	private void scheduleMessageListeners() {
-		for (Map.Entry<String, QueueAttributes> registeredQueue : getRegisteredQueues()
-				.entrySet()) {
+		for (Map.Entry<String, QueueAttributes> registeredQueue : getRegisteredQueues().entrySet()) {
 			startQueue(registeredQueue.getKey(), registeredQueue.getValue());
 		}
 	}
 
-	protected void executeMessage(
-			org.springframework.messaging.Message<String> stringMessage) {
+	protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 		getMessageHandler().handleMessage(stringMessage);
 	}
 
@@ -249,8 +239,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			Thread.currentThread().interrupt();
 		}
 		catch (ExecutionException | TimeoutException e) {
-			getLogger().warn("Error stopping queue with name: '" + logicalQueueName + "'",
-					e);
+			getLogger().warn("Error stopping queue with name: '" + logicalQueueName + "'", e);
 		}
 	}
 
@@ -264,8 +253,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 		Assert.isTrue(this.runningStateByQueue.containsKey(logicalQueueName),
 				"Queue with name '" + logicalQueueName + "' does not exist");
 
-		QueueAttributes queueAttributes = this.getRegisteredQueues()
-				.get(logicalQueueName);
+		QueueAttributes queueAttributes = this.getRegisteredQueues().get(logicalQueueName);
 		startQueue(logicalQueueName, queueAttributes);
 	}
 
@@ -282,14 +270,12 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	protected void startQueue(String queueName, QueueAttributes queueAttributes) {
-		if (this.runningStateByQueue.containsKey(queueName)
-				&& this.runningStateByQueue.get(queueName)) {
+		if (this.runningStateByQueue.containsKey(queueName) && this.runningStateByQueue.get(queueName)) {
 			return;
 		}
 
 		this.runningStateByQueue.put(queueName, true);
-		Future<?> future = getTaskExecutor()
-				.submit(new AsynchronousMessageListener(queueName, queueAttributes));
+		Future<?> future = getTaskExecutor().submit(new AsynchronousMessageListener(queueName, queueAttributes));
 		this.scheduledFutureByQueue.put(queueName, future);
 	}
 
@@ -322,8 +308,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private final String logicalQueueName;
 
-		private AsynchronousMessageListener(String logicalQueueName,
-				QueueAttributes queueAttributes) {
+		private AsynchronousMessageListener(String logicalQueueName, QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
 			this.queueAttributes = queueAttributes;
 		}
@@ -333,16 +318,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			while (isQueueRunning()) {
 				try {
 					ReceiveMessageResult receiveMessageResult = getAmazonSqs()
-							.receiveMessage(
-									this.queueAttributes.getReceiveMessageRequest());
-					CountDownLatch messageBatchLatch = new CountDownLatch(
-							receiveMessageResult.getMessages().size());
+							.receiveMessage(this.queueAttributes.getReceiveMessageRequest());
+					CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 					for (Message message : receiveMessageResult.getMessages()) {
 						if (isQueueRunning()) {
-							MessageExecutor messageExecutor = new MessageExecutor(
-									this.logicalQueueName, message, this.queueAttributes);
-							getTaskExecutor().execute(new SignalExecutingRunnable(
-									messageBatchLatch, messageExecutor));
+							MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message,
+									this.queueAttributes);
+							getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
 						}
 						else {
 							messageBatchLatch.countDown();
@@ -356,10 +338,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					}
 				}
 				catch (Exception e) {
-					getLogger().warn(
-							"An Exception occurred while polling queue '{}'. The failing operation will be "
-									+ "retried in {} milliseconds",
-							this.logicalQueueName, getBackOffTime(), e);
+					getLogger().warn("An Exception occurred while polling queue '{}'. The failing operation will be "
+							+ "retried in {} milliseconds", this.logicalQueueName, getBackOffTime(), e);
 					try {
 						// noinspection BusyWait
 						Thread.sleep(getBackOffTime());
@@ -370,19 +350,16 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				}
 			}
 
-			SimpleMessageListenerContainer.this.scheduledFutureByQueue
-					.remove(this.logicalQueueName);
+			SimpleMessageListenerContainer.this.scheduledFutureByQueue.remove(this.logicalQueueName);
 		}
 
 		private boolean isQueueRunning() {
-			if (SimpleMessageListenerContainer.this.runningStateByQueue
-					.containsKey(this.logicalQueueName)) {
-				return SimpleMessageListenerContainer.this.runningStateByQueue
-						.get(this.logicalQueueName);
+			if (SimpleMessageListenerContainer.this.runningStateByQueue.containsKey(this.logicalQueueName)) {
+				return SimpleMessageListenerContainer.this.runningStateByQueue.get(this.logicalQueueName);
 			}
 			else {
-				getLogger().warn("Stopped queue '" + this.logicalQueueName
-						+ "' because it was not listed as running queue.");
+				getLogger().warn(
+						"Stopped queue '" + this.logicalQueueName + "' because it was not listed as running queue.");
 				return false;
 			}
 		}
@@ -401,8 +378,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private final SqsMessageDeletionPolicy deletionPolicy;
 
-		private MessageExecutor(String logicalQueueName, Message message,
-				QueueAttributes queueAttributes) {
+		private MessageExecutor(String logicalQueueName, Message message, QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
 			this.message = message;
 			this.queueUrl = queueAttributes.getReceiveMessageRequest().getQueueUrl();
@@ -433,33 +409,28 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private void applyDeletionPolicyOnError(String receiptHandle) {
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS
-					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE
-							&& !this.hasRedrivePolicy)) {
+					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE && !this.hasRedrivePolicy)) {
 				deleteMessage(receiptHandle);
 			}
 		}
 
 		private void deleteMessage(String receiptHandle) {
-			getAmazonSqs().deleteMessageAsync(
-					new DeleteMessageRequest(this.queueUrl, receiptHandle),
+			getAmazonSqs().deleteMessageAsync(new DeleteMessageRequest(this.queueUrl, receiptHandle),
 					new DeleteMessageHandler(receiptHandle));
 		}
 
 		private org.springframework.messaging.Message<String> getMessageForExecution() {
 			HashMap<String, Object> additionalHeaders = new HashMap<>();
-			additionalHeaders.put(QueueMessageHandler.LOGICAL_RESOURCE_ID,
-					this.logicalQueueName);
+			additionalHeaders.put(QueueMessageHandler.LOGICAL_RESOURCE_ID, this.logicalQueueName);
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.NEVER) {
 				String receiptHandle = this.message.getReceiptHandle();
 				QueueMessageAcknowledgment acknowledgment = new QueueMessageAcknowledgment(
-						SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl,
-						receiptHandle);
+						SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, receiptHandle);
 				additionalHeaders.put(QueueMessageHandler.ACKNOWLEDGMENT, acknowledgment);
 			}
 			additionalHeaders.put(QueueMessageHandler.VISIBILITY,
-					new QueueMessageVisibility(
-							SimpleMessageListenerContainer.this.getAmazonSqs(),
-							this.queueUrl, this.message.getReceiptHandle()));
+					new QueueMessageVisibility(SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl,
+							this.message.getReceiptHandle()));
 
 			return createMessage(this.message, additionalHeaders);
 		}

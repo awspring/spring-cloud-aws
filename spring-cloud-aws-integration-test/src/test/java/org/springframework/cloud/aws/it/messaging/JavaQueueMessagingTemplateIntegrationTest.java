@@ -33,8 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(
 		classes = JavaQueueMessagingTemplateIntegrationTest.QueueMessagingTemplateIntegrationTestConfiguration.class)
-class JavaQueueMessagingTemplateIntegrationTest
-		extends QueueMessagingTemplateIntegrationTest {
+class JavaQueueMessagingTemplateIntegrationTest extends QueueMessagingTemplateIntegrationTest {
 
 	@Configuration
 	@EnableSqs
@@ -42,20 +41,18 @@ class JavaQueueMessagingTemplateIntegrationTest
 	protected static class QueueMessagingTemplateIntegrationTestConfiguration {
 
 		@Bean
-		public QueueMessagingTemplate defaultQueueMessagingTemplate(
-				AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
-					amazonSqs, resourceIdResolver);
+		public QueueMessagingTemplate defaultQueueMessagingTemplate(AmazonSQSAsync amazonSqs,
+				ResourceIdResolver resourceIdResolver) {
+			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 			queueMessagingTemplate.setDefaultDestinationName("JsonQueue");
 
 			return queueMessagingTemplate;
 		}
 
 		@Bean
-		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(
-				AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
-					amazonSqs, resourceIdResolver);
+		public QueueMessagingTemplate queueMessagingTemplateWithCustomConverter(AmazonSQSAsync amazonSqs,
+				ResourceIdResolver resourceIdResolver) {
+			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 			queueMessagingTemplate.setDefaultDestinationName("StreamQueue");
 			queueMessagingTemplate.setMessageConverter(new ObjectMessageConverter());
 

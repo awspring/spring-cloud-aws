@@ -41,15 +41,13 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsSecretsManagerProperties.class)
-@ConditionalOnClass({ AWSSecretsManager.class,
-		AwsSecretsManagerPropertySourceLocator.class })
-@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX,
-		name = "enabled", matchIfMissing = true)
+@ConditionalOnClass({ AWSSecretsManager.class, AwsSecretsManagerPropertySourceLocator.class })
+@ConditionalOnProperty(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsSecretsManagerBootstrapConfiguration {
 
 	@Bean
-	AwsSecretsManagerPropertySourceLocator awsSecretsManagerPropertySourceLocator(
-			AWSSecretsManager smClient, AwsSecretsManagerProperties properties) {
+	AwsSecretsManagerPropertySourceLocator awsSecretsManagerPropertySourceLocator(AWSSecretsManager smClient,
+			AwsSecretsManagerProperties properties) {
 		return new AwsSecretsManagerPropertySourceLocator(smClient, properties);
 	}
 
@@ -57,10 +55,8 @@ public class AwsSecretsManagerBootstrapConfiguration {
 	@ConditionalOnMissingBean
 	AWSSecretsManager smClient(AwsSecretsManagerProperties awsSecretsManagerProperties) {
 		AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard()
-				.withClientConfiguration(
-						SpringCloudClientConfiguration.getClientConfiguration());
-		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion())
-				? builder.build()
+				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
+		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion()) ? builder.build()
 				: builder.withRegion(awsSecretsManagerProperties.getRegion()).build();
 	}
 

@@ -67,8 +67,7 @@ public class ElastiCacheProperties {
 	}
 
 	public List<String> getCacheNames() {
-		return this.getClusters().stream().map(Cluster::getName)
-				.collect(Collectors.toList());
+		return this.getClusters().stream().map(Cluster::getName).collect(Collectors.toList());
 	}
 
 	public Map<String, Integer> getExpiryTimePerCache() {

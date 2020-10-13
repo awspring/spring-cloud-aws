@@ -38,9 +38,8 @@ public class AwsSecretsManagerPropertiesTest {
 
 	@Test
 	void validationSucceeds() {
-		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder()
-				.withPrefix("/sec").withDefaultContext("app").withProfileSeparator("_")
-				.build();
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec")
+				.withDefaultContext("app").withProfileSeparator("_").build();
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 		properties.validate(properties, errors);
 		assertThat(errors.getAllErrors()).isEmpty();
@@ -48,8 +47,7 @@ public class AwsSecretsManagerPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsSecretsManagerProperties properties, String field,
-			String errorCode) {
+	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 
 		properties.validate(properties, errors);
@@ -84,20 +82,13 @@ public class AwsSecretsManagerPropertiesTest {
 
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
-				Arguments.of(
-						new AwsSecretsManagerPropertiesBuilder().withPrefix("").build(),
-						"prefix", "NotEmpty"),
-				Arguments.of(
-						new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(),
-						"prefix", "Pattern"),
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder()
-						.withDefaultContext("").build(), "defaultContext", "NotEmpty"),
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder()
-						.withProfileSeparator("").build(), "profileSeparator",
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withDefaultContext("").build(), "defaultContext",
 						"NotEmpty"),
-				Arguments.of(
-						new AwsSecretsManagerPropertiesBuilder()
-								.withProfileSeparator("!_").build(),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withProfileSeparator("").build(),
+						"profileSeparator", "NotEmpty"),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withProfileSeparator("!_").build(),
 						"profileSeparator", "Pattern"));
 	}
 

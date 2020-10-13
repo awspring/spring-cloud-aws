@@ -33,8 +33,7 @@ class NotificationMethods {
 	}
 
 	@NotificationMessageMapping
-	void handleMethod(@NotificationSubject String subject,
-			@NotificationMessage String message) {
+	void handleMethod(@NotificationSubject String subject, @NotificationMessage String message) {
 
 	}
 

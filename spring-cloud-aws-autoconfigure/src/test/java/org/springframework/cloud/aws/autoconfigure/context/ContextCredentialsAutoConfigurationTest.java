@@ -49,8 +49,7 @@ import static org.springframework.cloud.aws.core.credentials.CredentialsProvider
 class ContextCredentialsAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(
-					AutoConfigurations.of(ContextCredentialsAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(ContextCredentialsAutoConfiguration.class));
 
 	// @checkstyle:off
 	@Test
@@ -60,25 +59,21 @@ class ContextCredentialsAutoConfigurationTest {
 			AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 					AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
 					AWSCredentialsProvider.class);
-			assertThat(awsCredentialsProvider).isNotNull()
-					.isInstanceOf(DefaultAWSCredentialsProviderChain.class);
+			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(DefaultAWSCredentialsProviderChain.class);
 		});
 
 	}
 
 	@Test
 	void credentialsProvider_propertyToUseDefaultIsSet_configuresDefaultAwsCredentialsProvider() {
-		this.contextRunner
-				.withPropertyValues(
-						"cloud.aws.credentials.use-default-aws-credentials-chain:true")
+		this.contextRunner.withPropertyValues("cloud.aws.credentials.use-default-aws-credentials-chain:true")
 				.run((context -> {
 					AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 							AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
 							AWSCredentialsProvider.class);
 					assertThat(awsCredentialsProvider).isNotNull();
 
-					assertThat(awsCredentialsProvider)
-							.isInstanceOf(DefaultAWSCredentialsProviderChain.class);
+					assertThat(awsCredentialsProvider).isInstanceOf(DefaultAWSCredentialsProviderChain.class);
 				}));
 	}
 
@@ -86,19 +81,14 @@ class ContextCredentialsAutoConfigurationTest {
 	@Test
 	void credentialsProvider_accessKeyAndSecretKeyConfigured_configuresStaticCredentialsProviderWithAccessAndSecretKey() {
 		// @checkstyle:on
-		this.contextRunner.withPropertyValues(
-				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
-				"cloud.aws.credentials.accessKey:foo",
-				"cloud.aws.credentials.secretKey:bar").run((context) -> {
+		this.contextRunner.withPropertyValues("cloud.aws.credentials.use-default-aws-credentials-chain:false",
+				"cloud.aws.credentials.accessKey:foo", "cloud.aws.credentials.secretKey:bar").run((context) -> {
 					AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 							AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
 							AWSCredentialsProviderChain.class);
 					assertThat(awsCredentialsProvider).isNotNull();
-					assertThat(
-							awsCredentialsProvider.getCredentials().getAWSAccessKeyId())
-									.isEqualTo("foo");
-					assertThat(awsCredentialsProvider.getCredentials().getAWSSecretKey())
-							.isEqualTo("bar");
+					assertThat(awsCredentialsProvider.getCredentials().getAWSAccessKeyId()).isEqualTo("foo");
+					assertThat(awsCredentialsProvider.getCredentials().getAWSSecretKey()).isEqualTo("bar");
 
 					@SuppressWarnings("unchecked")
 					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
@@ -110,8 +100,7 @@ class ContextCredentialsAutoConfigurationTest {
 
 	@Test
 	void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
-		this.contextRunner.withPropertyValues(
-				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
+		this.contextRunner.withPropertyValues("cloud.aws.credentials.use-default-aws-credentials-chain:false",
 				"cloud.aws.credentials.instance-profile:true").run((context) -> {
 					AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 							AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
@@ -121,15 +110,14 @@ class ContextCredentialsAutoConfigurationTest {
 					@SuppressWarnings("unchecked")
 					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
-					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(
-							EC2ContainerCredentialsProviderWrapper.class);
+					assertThat(credentialsProviders).hasSize(1)
+							.hasOnlyElementsOfType(EC2ContainerCredentialsProviderWrapper.class);
 				});
 	}
 
 	@Test
 	void credentialsProvider_profileNameConfigured_configuresProfileCredentialsProvider() {
-		this.contextRunner.withPropertyValues(
-				"cloud.aws.credentials.use-default-aws-credentials-chain:false",
+		this.contextRunner.withPropertyValues("cloud.aws.credentials.use-default-aws-credentials-chain:false",
 				"cloud.aws.credentials.profile-name:test").run((context) -> {
 					AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 							AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
@@ -139,23 +127,19 @@ class ContextCredentialsAutoConfigurationTest {
 					@SuppressWarnings("unchecked")
 					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
-					assertThat(credentialsProviders).hasSize(1)
-							.hasOnlyElementsOfType(ProfileCredentialsProvider.class);
-					assertThat(ReflectionTestUtils.getField(credentialsProviders.get(0),
-							"profileName")).isEqualTo("test");
+					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class);
+					assertThat(ReflectionTestUtils.getField(credentialsProviders.get(0), "profileName"))
+							.isEqualTo("test");
 				});
 	}
 
 	@Test
-	void credentialsProvider_profileNameAndPathConfigured_configuresProfileCredentialsProvider()
-			throws IOException {
-		this.contextRunner
-				.withPropertyValues(
-						"cloud.aws.credentials.use-default-aws-credentials-chain:false",
-						"cloud.aws.credentials.profileName:customProfile",
-						"cloud.aws.credentials.profilePath:" + new ClassPathResource(
-								getClass().getSimpleName() + "-profile", getClass())
-										.getFile().getAbsolutePath())
+	void credentialsProvider_profileNameAndPathConfigured_configuresProfileCredentialsProvider() throws IOException {
+		this.contextRunner.withPropertyValues("cloud.aws.credentials.use-default-aws-credentials-chain:false",
+				"cloud.aws.credentials.profileName:customProfile",
+				"cloud.aws.credentials.profilePath:"
+						+ new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile()
+								.getAbsolutePath())
 				.run((context) -> {
 					AWSCredentialsProvider awsCredentialsProvider = context.getBean(
 							AmazonWebserviceClientConfigurationUtils.CREDENTIALS_PROVIDER_BEAN_NAME,
@@ -165,29 +149,21 @@ class ContextCredentialsAutoConfigurationTest {
 					@SuppressWarnings("unchecked")
 					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
-					assertThat(credentialsProviders).hasSize(1)
-							.hasOnlyElementsOfType(ProfileCredentialsProvider.class);
+					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class);
 
-					ProfileCredentialsProvider provider = (ProfileCredentialsProvider) credentialsProviders
-							.get(0);
-					assertThat(provider.getCredentials().getAWSAccessKeyId())
-							.isEqualTo("testAccessKey");
-					assertThat(provider.getCredentials().getAWSSecretKey())
-							.isEqualTo("testSecretKey");
+					ProfileCredentialsProvider provider = (ProfileCredentialsProvider) credentialsProviders.get(0);
+					assertThat(provider.getCredentials().getAWSAccessKeyId()).isEqualTo("testAccessKey");
+					assertThat(provider.getCredentials().getAWSSecretKey()).isEqualTo("testSecretKey");
 				});
 	}
 
 	@Test
 	void credentialsProvider_customCredentialsConfigured_customCredentialsAreUsed() {
 		// @checkstyle:on
-		this.contextRunner
-				.withUserConfiguration(CustomCredentialsProviderConfiguration.class)
-				.run((context) -> {
-					AWSCredentialsProvider awsCredentialsProvider = context
-							.getBean(AWSCredentialsProvider.class);
-					assertThat(awsCredentialsProvider).isNotNull()
-							.isInstanceOf(CustomAWSCredentialsProvider.class);
-				});
+		this.contextRunner.withUserConfiguration(CustomCredentialsProviderConfiguration.class).run((context) -> {
+			AWSCredentialsProvider awsCredentialsProvider = context.getBean(AWSCredentialsProvider.class);
+			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(CustomAWSCredentialsProvider.class);
+		});
 
 	}
 

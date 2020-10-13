@@ -52,8 +52,7 @@ class ComplexNotificationTestController {
 	}
 
 	@NotificationMessageMapping
-	void handleNotificationMessage(@NotificationSubject String subject,
-			@NotificationMessage Person message) {
+	void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage Person message) {
 		this.subject = subject;
 		this.message = message;
 	}

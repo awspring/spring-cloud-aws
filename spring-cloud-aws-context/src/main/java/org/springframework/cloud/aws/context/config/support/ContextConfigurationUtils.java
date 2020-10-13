@@ -56,50 +56,42 @@ public final class ContextConfigurationUtils {
 	private ContextConfigurationUtils() {
 	}
 
-	public static void registerRegionProvider(BeanDefinitionRegistry registry,
-			boolean autoDetect, boolean useDefaultRegionChain, String configuredRegion) {
+	public static void registerRegionProvider(BeanDefinitionRegistry registry, boolean autoDetect,
+			boolean useDefaultRegionChain, String configuredRegion) {
 		if (autoDetect && StringUtils.hasText(configuredRegion)) {
-			throw new IllegalArgumentException(
-					"No region must be configured if autoDetect is defined as true");
+			throw new IllegalArgumentException("No region must be configured if autoDetect is defined as true");
 		}
 
 		AbstractBeanDefinition beanDefinition;
 
 		if (autoDetect) {
-			beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(
-					useDefaultRegionChain ? DefaultAwsRegionProviderChainDelegate.class
-							: Ec2MetadataRegionProvider.class)
+			beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(useDefaultRegionChain
+					? DefaultAwsRegionProviderChainDelegate.class : Ec2MetadataRegionProvider.class)
 					.getBeanDefinition();
 		}
 		else if (StringUtils.hasText(configuredRegion)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.genericBeanDefinition(StaticRegionProvider.class);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class);
 			builder.addConstructorArgValue(configuredRegion);
 			beanDefinition = builder.getBeanDefinition();
 		}
 		else {
-			throw new IllegalArgumentException(
-					"Region must be manually configured or autoDetect enabled");
+			throw new IllegalArgumentException("Region must be manually configured or autoDetect enabled");
 		}
 
-		BeanDefinitionReaderUtils.registerBeanDefinition(
-				new BeanDefinitionHolder(beanDefinition, REGION_PROVIDER_BEAN_NAME),
-				registry);
-		AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry,
-				REGION_PROVIDER_BEAN_NAME);
+		BeanDefinitionReaderUtils
+				.registerBeanDefinition(new BeanDefinitionHolder(beanDefinition, REGION_PROVIDER_BEAN_NAME), registry);
+		AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry, REGION_PROVIDER_BEAN_NAME);
 	}
 
-	public static void registerCredentialsProvider(BeanDefinitionRegistry registry,
-			String accessKey, String secretKey, boolean instanceProfile,
-			String profileName, String profilePath) {
+	public static void registerCredentialsProvider(BeanDefinitionRegistry registry, String accessKey, String secretKey,
+			boolean instanceProfile, String profileName, String profilePath) {
 		BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(CredentialsProviderFactoryBean.class);
 
 		ManagedList<BeanDefinition> awsCredentialsProviders = new ManagedList<>();
 
 		if (StringUtils.hasText(accessKey)) {
-			BeanDefinitionBuilder credentials = BeanDefinitionBuilder
-					.rootBeanDefinition(BasicAWSCredentials.class);
+			BeanDefinitionBuilder credentials = BeanDefinitionBuilder.rootBeanDefinition(BasicAWSCredentials.class);
 			credentials.addConstructorArgValue(accessKey);
 			credentials.addConstructorArgValue(secretKey);
 
@@ -112,8 +104,7 @@ public final class ContextConfigurationUtils {
 
 		if (instanceProfile) {
 			awsCredentialsProviders.add(BeanDefinitionBuilder
-					.rootBeanDefinition(EC2ContainerCredentialsProviderWrapper.class)
-					.getBeanDefinition());
+					.rootBeanDefinition(EC2ContainerCredentialsProviderWrapper.class).getBeanDefinition());
 		}
 
 		if (StringUtils.hasText(profileName)) {
@@ -129,23 +120,20 @@ public final class ContextConfigurationUtils {
 
 		factoryBeanBuilder.addConstructorArgValue(awsCredentialsProviders);
 
-		registry.registerBeanDefinition(
-				CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME,
+		registry.registerBeanDefinition(CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME,
 				factoryBeanBuilder.getBeanDefinition());
 
-		AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(
-				registry, CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
+		AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider(registry,
+				CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 	}
 
-	public static void registerInstanceDataPropertySource(BeanDefinitionRegistry registry,
-			String valueSeparator, String attributeSeparator) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(POST_PROCESSOR_CLASS_NAME);
+	public static void registerInstanceDataPropertySource(BeanDefinitionRegistry registry, String valueSeparator,
+			String attributeSeparator) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(POST_PROCESSOR_CLASS_NAME);
 		builder.addPropertyValue("valueSeparator", valueSeparator);
 		builder.addPropertyValue("attributeSeparator", attributeSeparator);
 
-		registry.registerBeanDefinition(POST_PROCESSOR_BEAN_NAME,
-				builder.getBeanDefinition());
+		registry.registerBeanDefinition(POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
 	}
 
 }

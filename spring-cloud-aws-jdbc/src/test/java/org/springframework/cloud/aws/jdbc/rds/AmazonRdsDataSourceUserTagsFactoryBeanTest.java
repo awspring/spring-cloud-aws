@@ -47,20 +47,17 @@ class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
-		AmazonIdentityManagement amazonIdentityManagement = mock(
-				AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(
-				amazonRds, "test", amazonIdentityManagement);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds,
+				"test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
 
-		when(resourceIdResolver.resolveToPhysicalResourceId("test"))
-				.thenReturn("stack-test");
-		when(amazonIdentityManagement.getUser()).thenReturn(
-				new GetUserResult().withUser(new User("/", "aemruli", "123456789012",
-						"arn:aws:iam::1234567890:user/aemruli", new Date())));
-		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest()
-				.withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test")))
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(
+				new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(
+				new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test")))
 						.thenReturn(new ListTagsForResourceResult().withTagList(
 								new Tag().withKey("key1").withValue("value1"),
 								new Tag().withKey("key2").withValue("value2")));
@@ -79,21 +76,18 @@ class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
-		AmazonIdentityManagement amazonIdentityManagement = mock(
-				AmazonIdentityManagement.class);
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(
-				amazonRds, "test", amazonIdentityManagement);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds,
+				"test", amazonIdentityManagement);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setResourceIdResolver(resourceIdResolver);
 		factoryBean.setRegion(Region.getRegion(Regions.EU_WEST_1));
 
-		when(resourceIdResolver.resolveToPhysicalResourceId("test"))
-				.thenReturn("stack-test");
-		when(amazonIdentityManagement.getUser()).thenReturn(
-				new GetUserResult().withUser(new User("/", "aemruli", "123456789012",
-						"arn:aws:iam::1234567890:user/aemruli", new Date())));
-		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest()
-				.withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test")))
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("stack-test");
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(
+				new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(
+				new ListTagsForResourceRequest().withResourceName("arn:aws:rds:eu-west-1:1234567890:db:stack-test")))
 						.thenReturn(new ListTagsForResourceResult());
 
 		// Act
@@ -105,21 +99,18 @@ class AmazonRdsDataSourceUserTagsFactoryBeanTest {
 	}
 
 	@Test
-	void getObject_instanceWithTagsAndNoResourceIdResolverAndDefaultRegion_mapWithTagsReturned()
-			throws Exception {
+	void getObject_instanceWithTagsAndNoResourceIdResolverAndDefaultRegion_mapWithTagsReturned() throws Exception {
 		// Arrange
 		AmazonRDS amazonRds = mock(AmazonRDS.class);
-		AmazonIdentityManagement amazonIdentityManagement = mock(
-				AmazonIdentityManagement.class);
+		AmazonIdentityManagement amazonIdentityManagement = mock(AmazonIdentityManagement.class);
 
-		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(
-				amazonRds, "test", amazonIdentityManagement);
+		AmazonRdsDataSourceUserTagsFactoryBean factoryBean = new AmazonRdsDataSourceUserTagsFactoryBean(amazonRds,
+				"test", amazonIdentityManagement);
 
-		when(amazonIdentityManagement.getUser()).thenReturn(
-				new GetUserResult().withUser(new User("/", "aemruli", "123456789012",
-						"arn:aws:iam::1234567890:user/aemruli", new Date())));
-		when(amazonRds.listTagsForResource(new ListTagsForResourceRequest()
-				.withResourceName("arn:aws:rds:us-west-2:1234567890:db:test")))
+		when(amazonIdentityManagement.getUser()).thenReturn(new GetUserResult().withUser(
+				new User("/", "aemruli", "123456789012", "arn:aws:iam::1234567890:user/aemruli", new Date())));
+		when(amazonRds.listTagsForResource(
+				new ListTagsForResourceRequest().withResourceName("arn:aws:rds:us-west-2:1234567890:db:test")))
 						.thenReturn(new ListTagsForResourceResult().withTagList(
 								new Tag().withKey("key1").withValue("value1"),
 								new Tag().withKey("key2").withValue("value2")));

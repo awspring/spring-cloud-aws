@@ -23,8 +23,8 @@ import com.amazonaws.client.builder.AwsSyncClientBuilder;
 /**
  * @author Agim Emruli
  */
-public final class AmazonTestWebserviceClientBuilder extends
-		AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
+public final class AmazonTestWebserviceClientBuilder
+		extends AwsSyncClientBuilder<AmazonTestWebserviceClientBuilder, AmazonTestWebserviceClient> {
 
 	private AmazonTestWebserviceClientBuilder() {
 		super(new ClientConfigurationFactory());

@@ -33,15 +33,13 @@ import org.springframework.util.Assert;
  * @author Alain Sahli
  * @author Agim Emruli
  */
-public class SendToHandlerMethodReturnValueHandler
-		implements HandlerMethodReturnValueHandler, BeanFactoryAware {
+public class SendToHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler, BeanFactoryAware {
 
 	private final DestinationResolvingMessageSendingOperations<?> messageTemplate;
 
 	private BeanFactory beanFactory;
 
-	public SendToHandlerMethodReturnValueHandler(
-			DestinationResolvingMessageSendingOperations<?> messageTemplate) {
+	public SendToHandlerMethodReturnValueHandler(DestinationResolvingMessageSendingOperations<?> messageTemplate) {
 		this.messageTemplate = messageTemplate;
 	}
 
@@ -52,15 +50,12 @@ public class SendToHandlerMethodReturnValueHandler
 
 	@SuppressWarnings("ConstantConditions")
 	@Override
-	public void handleReturnValue(Object returnValue, MethodParameter returnType,
-			Message<?> message) throws Exception {
-		Assert.state(this.messageTemplate != null,
-				"A messageTemplate must be set to handle the return value.");
+	public void handleReturnValue(Object returnValue, MethodParameter returnType, Message<?> message) throws Exception {
+		Assert.state(this.messageTemplate != null, "A messageTemplate must be set to handle the return value.");
 
 		if (returnValue != null) {
 			if (getDestinationName(returnType) != null) {
-				this.messageTemplate.convertAndSend(getDestinationName(returnType),
-						returnValue);
+				this.messageTemplate.convertAndSend(getDestinationName(returnType), returnValue);
 			}
 			else {
 				this.messageTemplate.convertAndSend(returnValue);
@@ -81,8 +76,7 @@ public class SendToHandlerMethodReturnValueHandler
 		ConfigurableBeanFactory configurableBeanFactory = (ConfigurableBeanFactory) this.beanFactory;
 
 		String placeholdersResolved = configurableBeanFactory.resolveEmbeddedValue(name);
-		BeanExpressionResolver exprResolver = configurableBeanFactory
-				.getBeanExpressionResolver();
+		BeanExpressionResolver exprResolver = configurableBeanFactory.getBeanExpressionResolver();
 		if (exprResolver == null) {
 			return name;
 		}

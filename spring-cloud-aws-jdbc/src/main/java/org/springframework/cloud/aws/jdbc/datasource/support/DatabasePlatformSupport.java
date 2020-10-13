@@ -56,7 +56,6 @@ public interface DatabasePlatformSupport {
 	 * @return - A fully constructed and valid url for the datasource to connect to the
 	 * database platform.
 	 */
-	String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port,
-			String databaseName);
+	String getDatabaseUrlForDatabase(DatabaseType databaseType, String hostname, int port, String databaseName);
 
 }

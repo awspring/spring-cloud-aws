@@ -47,16 +47,13 @@ public class IntegrationTestConfig {
 	}
 
 	@Bean
-	public TestStackEnvironment testStackEnvironment(
-			AmazonCloudFormation amazonCloudFormation) {
+	public TestStackEnvironment testStackEnvironment(AmazonCloudFormation amazonCloudFormation) {
 		return new TestStackEnvironment(amazonCloudFormation);
 	}
 
 	@Bean
-	public TestStackInstanceIdService testStackInstanceIdService(
-			AmazonCloudFormation amazonCloudFormation) {
-		return TestStackInstanceIdService.fromStackOutputKey(
-				TestStackEnvironment.DEFAULT_STACK_NAME,
+	public TestStackInstanceIdService testStackInstanceIdService(AmazonCloudFormation amazonCloudFormation) {
+		return TestStackInstanceIdService.fromStackOutputKey(TestStackEnvironment.DEFAULT_STACK_NAME,
 				TestStackEnvironment.INSTANCE_ID_STACK_OUTPUT_KEY, amazonCloudFormation);
 	}
 

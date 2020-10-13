@@ -64,8 +64,8 @@ class SqlRetryPolicyTest {
 		SqlRetryPolicy sqlRetryPolicy = new SqlRetryPolicy();
 		RetryContextSupport retryContext = new RetryContextSupport(null);
 
-		retryContext.registerThrowable(new TransactionSystemException(
-				"Could not commit JDBC transaction", new SQLTransientException("foo")));
+		retryContext.registerThrowable(
+				new TransactionSystemException("Could not commit JDBC transaction", new SQLTransientException("foo")));
 		assertThat(sqlRetryPolicy.canRetry(retryContext)).isTrue();
 	}
 

@@ -51,8 +51,8 @@ class AmazonS3ProxyFactoryTest {
 
 		Advised advised = (Advised) proxy;
 		assertThat(advised.getAdvisors().length).isEqualTo(1);
-		assertThat(advised.getAdvisors()[0].getAdvice()).isInstanceOf(
-				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
+		assertThat(advised.getAdvisors()[0].getAdvice())
+				.isInstanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
 		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget())).isFalse();
 	}
 
@@ -61,14 +61,13 @@ class AmazonS3ProxyFactoryTest {
 
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 
-		AmazonS3 proxy = AmazonS3ProxyFactory
-				.createProxy(AmazonS3ProxyFactory.createProxy(amazonS3));
+		AmazonS3 proxy = AmazonS3ProxyFactory.createProxy(AmazonS3ProxyFactory.createProxy(amazonS3));
 		assertThat(AopUtils.isAopProxy(proxy)).isTrue();
 
 		Advised advised = (Advised) proxy;
 		assertThat(advised.getAdvisors().length).isEqualTo(1);
-		assertThat(advised.getAdvisors()[0].getAdvice()).isInstanceOf(
-				AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
+		assertThat(advised.getAdvisors()[0].getAdvice())
+				.isInstanceOf(AmazonS3ProxyFactory.SimpleStorageRedirectInterceptor.class);
 		assertThat(AopUtils.isAopProxy(advised.getTargetSource().getTarget())).isFalse();
 	}
 
@@ -81,8 +80,7 @@ class AmazonS3ProxyFactoryTest {
 		assertThat(AmazonS3.class.isAssignableFrom(proxy1.getClass())).isTrue();
 		assertThat(AmazonS3Client.class.isAssignableFrom(proxy1.getClass())).isFalse();
 
-		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard()
-				.withRegion(Regions.DEFAULT_REGION).build();
+		AmazonS3 amazonS3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
 		AmazonS3 proxy2 = AmazonS3ProxyFactory.createProxy(amazonS3Client);
 
 		assertThat(AmazonS3.class.isAssignableFrom(proxy2.getClass())).isTrue();

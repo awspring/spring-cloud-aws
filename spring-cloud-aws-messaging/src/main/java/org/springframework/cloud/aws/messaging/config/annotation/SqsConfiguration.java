@@ -58,34 +58,28 @@ public class SqsConfiguration {
 
 	private final ObjectMapper objectMapper;
 
-	public SqsConfiguration(
-			ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
-			ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory,
-			BeanFactory beanFactory,
+	public SqsConfiguration(ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
+			ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory, BeanFactory beanFactory,
 			ObjectProvider<ResourceIdResolver> resourceIdResolver,
 			ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter,
 			ObjectProvider<ObjectMapper> objectMapper) {
 		this.simpleMessageListenerContainerFactory = simpleMessageListenerContainerFactory
 				.getIfAvailable(SimpleMessageListenerContainerFactory::new);
-		this.queueMessageHandlerFactory = queueMessageHandlerFactory
-				.getIfAvailable(QueueMessageHandlerFactory::new);
+		this.queueMessageHandlerFactory = queueMessageHandlerFactory.getIfAvailable(QueueMessageHandlerFactory::new);
 		this.beanFactory = beanFactory;
 		this.resourceIdResolver = resourceIdResolver.getIfAvailable();
-		this.mappingJackson2MessageConverter = mappingJackson2MessageConverter
-				.getIfAvailable();
+		this.mappingJackson2MessageConverter = mappingJackson2MessageConverter.getIfAvailable();
 		this.objectMapper = objectMapper.getIfAvailable();
 	}
 
 	@Bean
-	public SimpleMessageListenerContainer simpleMessageListenerContainer(
-			AmazonSQSAsync amazonSqs) {
+	public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
 		if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
 			this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
 		}
 		if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null
 				&& this.resourceIdResolver != null) {
-			this.simpleMessageListenerContainerFactory
-					.setResourceIdResolver(this.resourceIdResolver);
+			this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
 		}
 
 		SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory
@@ -109,11 +103,9 @@ public class SqsConfiguration {
 			this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
 		}
 
-		if (CollectionUtils
-				.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
+		if (CollectionUtils.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
 				&& this.mappingJackson2MessageConverter != null) {
-			this.queueMessageHandlerFactory.setMessageConverters(
-					Arrays.asList(this.mappingJackson2MessageConverter));
+			this.queueMessageHandlerFactory.setMessageConverters(Arrays.asList(this.mappingJackson2MessageConverter));
 		}
 
 		this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);

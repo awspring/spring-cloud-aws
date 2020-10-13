@@ -174,8 +174,7 @@ public class SqsProperties {
 			return defaultDeletionPolicy;
 		}
 
-		public void setDefaultDeletionPolicy(
-				SqsMessageDeletionPolicy defaultDeletionPolicy) {
+		public void setDefaultDeletionPolicy(SqsMessageDeletionPolicy defaultDeletionPolicy) {
 			this.defaultDeletionPolicy = defaultDeletionPolicy;
 		}
 

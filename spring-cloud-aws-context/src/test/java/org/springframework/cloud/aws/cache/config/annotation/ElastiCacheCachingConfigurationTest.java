@@ -48,8 +48,7 @@ class ElastiCacheCachingConfigurationTest {
 
 	private static int getExpirationFromCache(Cache cache) throws IllegalAccessException {
 		assertThat(cache instanceof SimpleSpringMemcached).isTrue();
-		Field expiration = ReflectionUtils.findField(SimpleSpringMemcached.class,
-				"expiration");
+		Field expiration = ReflectionUtils.findField(SimpleSpringMemcached.class, "expiration");
 		assertThat(expiration).isNotNull();
 		ReflectionUtils.makeAccessible(expiration);
 		return expiration.getInt(cache);
@@ -63,8 +62,7 @@ class ElastiCacheCachingConfigurationTest {
 	}
 
 	@Test
-	void enableElasticache_configuredWithExplicitCluster_configuresExplicitlyConfiguredCaches()
-			throws Exception {
+	void enableElasticache_configuredWithExplicitCluster_configuresExplicitlyConfiguredCaches() throws Exception {
 		// Arrange
 
 		// Act
@@ -72,8 +70,7 @@ class ElastiCacheCachingConfigurationTest {
 				ApplicationConfigurationWithExplicitStackConfiguration.class);
 
 		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
 		assertThat(firstCache.getName()).isNotNull();
@@ -96,8 +93,7 @@ class ElastiCacheCachingConfigurationTest {
 				ApplicationConfigurationWithExplicitStackConfigurationAndExpiryTime.class);
 
 		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
 		assertThat(firstCache.getName()).isNotNull();
@@ -120,8 +116,7 @@ class ElastiCacheCachingConfigurationTest {
 				ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime.class);
 
 		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("firstCache");
 		assertThat(firstCache.getName()).isNotNull();
@@ -133,8 +128,7 @@ class ElastiCacheCachingConfigurationTest {
 	}
 
 	@Test
-	void enableElasticache_configuredWithoutExplicitCluster_configuresImplicitlyConfiguredCaches()
-			throws Exception {
+	void enableElasticache_configuredWithoutExplicitCluster_configuresImplicitlyConfiguredCaches() throws Exception {
 		// Arrange
 
 		// Act
@@ -142,8 +136,7 @@ class ElastiCacheCachingConfigurationTest {
 				ApplicationConfigurationWithNoExplicitStackConfiguration.class);
 
 		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 		assertThat(firstCache.getName()).isNotNull();
@@ -166,8 +159,7 @@ class ElastiCacheCachingConfigurationTest {
 				ApplicationConfigurationWithNoExplicitStackConfigurationAndDefaultExpiration.class);
 
 		// Assert
-		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class)
-				.cacheManager();
+		CacheManager cacheManager = this.context.getBean(CachingConfigurer.class).cacheManager();
 		assertThat(cacheManager.getCacheNames().size()).isEqualTo(2);
 		Cache firstCache = cacheManager.getCache("sampleCacheOneLogical");
 		assertThat(firstCache.getName()).isNotNull();
@@ -178,8 +170,7 @@ class ElastiCacheCachingConfigurationTest {
 		assertThat(getExpirationFromCache(secondCache)).isEqualTo(23);
 	}
 
-	@EnableElastiCache({ @CacheClusterConfig(name = "firstCache"),
-			@CacheClusterConfig(name = "secondCache") })
+	@EnableElastiCache({ @CacheClusterConfig(name = "firstCache"), @CacheClusterConfig(name = "secondCache") })
 	static class ApplicationConfigurationWithExplicitStackConfiguration {
 
 		@Bean
@@ -189,25 +180,16 @@ class ElastiCacheCachingConfigurationTest {
 			DescribeCacheClustersRequest describeCacheClustersRequest = new DescribeCacheClustersRequest()
 					.withCacheClusterId("firstCache");
 			describeCacheClustersRequest.setShowCacheNodeInfo(true);
-			Mockito.when(
-					amazonElastiCache.describeCacheClusters(describeCacheClustersRequest))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+			Mockito.when(amazonElastiCache.describeCacheClusters(describeCacheClustersRequest))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest()
 					.withCacheClusterId("secondCache");
 			secondCache.setShowCacheNodeInfo(true);
-			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).thenReturn(
-					new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-							.withConfigurationEndpoint(new Endpoint()
-									.withAddress("localhost").withPort(port))
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
 							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
@@ -226,29 +208,25 @@ class ElastiCacheCachingConfigurationTest {
 					.withCacheClusterId("firstCache");
 			firstCache.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache)).thenReturn(
-					new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-							.withConfigurationEndpoint(new Endpoint()
-									.withAddress("localhost").withPort(port))
+			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
 							.withEngine("memcached")));
 			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest()
 					.withCacheClusterId("secondCache");
 			secondCache.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).thenReturn(
-					new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-							.withConfigurationEndpoint(new Endpoint()
-									.withAddress("localhost").withPort(port))
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
 							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
 
 	}
 
-	@EnableElastiCache(
-			value = { @CacheClusterConfig(name = "firstCache"),
-					@CacheClusterConfig(name = "secondCache", expiration = 42) },
-			defaultExpiration = 12)
+	@EnableElastiCache(value = { @CacheClusterConfig(name = "firstCache"),
+			@CacheClusterConfig(name = "secondCache", expiration = 42) }, defaultExpiration = 12)
 	static class ApplicationConfigurationWithExplicitStackConfigurationAndMixedExpiryTime {
 
 		@Bean
@@ -259,19 +237,17 @@ class ElastiCacheCachingConfigurationTest {
 					.withCacheClusterId("firstCache");
 			firstCache.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache)).thenReturn(
-					new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-							.withConfigurationEndpoint(new Endpoint()
-									.withAddress("localhost").withPort(port))
+			Mockito.when(amazonElastiCache.describeCacheClusters(firstCache))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
 							.withEngine("memcached")));
 			DescribeCacheClustersRequest secondCache = new DescribeCacheClustersRequest()
 					.withCacheClusterId("secondCache");
 			secondCache.setShowCacheNodeInfo(true);
 
-			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache)).thenReturn(
-					new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-							.withConfigurationEndpoint(new Endpoint()
-									.withAddress("localhost").withPort(port))
+			Mockito.when(amazonElastiCache.describeCacheClusters(secondCache))
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
 							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
@@ -290,46 +266,27 @@ class ElastiCacheCachingConfigurationTest {
 			sampleCacheOneLogical.setShowCacheNodeInfo(Boolean.TRUE);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 
 			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest()
 					.withCacheClusterId("sampleCacheTwoLogical");
 			sampleCacheTwoLogical.setShowCacheNodeInfo(Boolean.TRUE);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
 
 		@Bean
 		ListableStackResourceFactory stackResourceFactory() {
-			ListableStackResourceFactory resourceFactory = Mockito
-					.mock(ListableStackResourceFactory.class);
-			Mockito.when(
-					resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster"))
-					.thenReturn(Arrays.asList(
-							new StackResource("sampleCacheOneLogical", "sampleCacheOne",
-									"AWS::ElastiCache::CacheCluster"),
-							new StackResource("sampleCacheTwoLogical", "sampleCacheTwo",
-									"AWS::ElastiCache::CacheCluster")));
+			ListableStackResourceFactory resourceFactory = Mockito.mock(ListableStackResourceFactory.class);
+			Mockito.when(resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster")).thenReturn(Arrays.asList(
+					new StackResource("sampleCacheOneLogical", "sampleCacheOne", "AWS::ElastiCache::CacheCluster"),
+					new StackResource("sampleCacheTwoLogical", "sampleCacheTwo", "AWS::ElastiCache::CacheCluster")));
 			return resourceFactory;
 		}
 
@@ -347,46 +304,27 @@ class ElastiCacheCachingConfigurationTest {
 			sampleCacheOneLogical.setShowCacheNodeInfo(Boolean.TRUE);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheOneLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 
 			DescribeCacheClustersRequest sampleCacheTwoLogical = new DescribeCacheClustersRequest()
 					.withCacheClusterId("sampleCacheTwoLogical");
 			sampleCacheTwoLogical.setShowCacheNodeInfo(Boolean.TRUE);
 
 			Mockito.when(amazonElastiCache.describeCacheClusters(sampleCacheTwoLogical))
-					.thenReturn(
-							new DescribeCacheClustersResult()
-									.withCacheClusters(
-											new CacheCluster()
-													.withConfigurationEndpoint(
-															new Endpoint()
-																	.withAddress(
-																			"localhost")
-																	.withPort(port))
-													.withEngine("memcached")));
+					.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+							.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(port))
+							.withEngine("memcached")));
 			return amazonElastiCache;
 		}
 
 		@Bean
 		ListableStackResourceFactory stackResourceFactory() {
-			ListableStackResourceFactory resourceFactory = Mockito
-					.mock(ListableStackResourceFactory.class);
-			Mockito.when(
-					resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster"))
-					.thenReturn(Arrays.asList(
-							new StackResource("sampleCacheOneLogical", "sampleCacheOne",
-									"AWS::ElastiCache::CacheCluster"),
-							new StackResource("sampleCacheTwoLogical", "sampleCacheTwo",
-									"AWS::ElastiCache::CacheCluster")));
+			ListableStackResourceFactory resourceFactory = Mockito.mock(ListableStackResourceFactory.class);
+			Mockito.when(resourceFactory.resourcesByType("AWS::ElastiCache::CacheCluster")).thenReturn(Arrays.asList(
+					new StackResource("sampleCacheOneLogical", "sampleCacheOne", "AWS::ElastiCache::CacheCluster"),
+					new StackResource("sampleCacheTwoLogical", "sampleCacheTwo", "AWS::ElastiCache::CacheCluster")));
 			return resourceFactory;
 		}
 

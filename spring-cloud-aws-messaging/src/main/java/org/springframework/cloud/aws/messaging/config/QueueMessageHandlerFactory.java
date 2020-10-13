@@ -62,13 +62,11 @@ public class QueueMessageHandlerFactory {
 
 	private ObjectMapper objectMapper;
 
-	public void setArgumentResolvers(
-			List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public void setArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		this.argumentResolvers = argumentResolvers;
 	}
 
-	public void setReturnValueHandlers(
-			List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+	public void setReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
 		this.returnValueHandlers = returnValueHandlers;
 	}
 
@@ -80,8 +78,7 @@ public class QueueMessageHandlerFactory {
 	 * {@link DestinationResolvingMessageSendingOperations} template for sending return
 	 * values of handler methods.
 	 */
-	public void setSendToMessagingTemplate(
-			DestinationResolvingMessageSendingOperations<?> sendToMessagingTemplate) {
+	public void setSendToMessagingTemplate(DestinationResolvingMessageSendingOperations<?> sendToMessagingTemplate) {
 		this.sendToMessagingTemplate = sendToMessagingTemplate;
 	}
 
@@ -114,8 +111,7 @@ public class QueueMessageHandlerFactory {
 	 * as global default value only if SqsMessageDeletionPolicy is omitted
 	 * from @SqsListener annotation. Should not be null.
 	 */
-	public void setSqsMessageDeletionPolicy(
-			final SqsMessageDeletionPolicy sqsMessageDeletionPolicy) {
+	public void setSqsMessageDeletionPolicy(final SqsMessageDeletionPolicy sqsMessageDeletionPolicy) {
 		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy;
 	}
 
@@ -153,18 +149,16 @@ public class QueueMessageHandlerFactory {
 
 	public QueueMessageHandler createQueueMessageHandler() {
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(
-				CollectionUtils.isEmpty(this.messageConverters) ? Arrays.asList(
-						getDefaultMappingJackson2MessageConverter(this.objectMapper))
+				CollectionUtils.isEmpty(this.messageConverters)
+						? Arrays.asList(getDefaultMappingJackson2MessageConverter(this.objectMapper))
 						: this.messageConverters,
 				this.sqsMessageDeletionPolicy);
 
 		if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
-			queueMessageHandler.getCustomArgumentResolvers()
-					.addAll(this.argumentResolvers);
+			queueMessageHandler.getCustomArgumentResolvers().addAll(this.argumentResolvers);
 		}
 		if (!CollectionUtils.isEmpty(this.returnValueHandlers)) {
-			queueMessageHandler.getCustomReturnValueHandlers()
-					.addAll(this.returnValueHandlers);
+			queueMessageHandler.getCustomReturnValueHandlers().addAll(this.returnValueHandlers);
 		}
 
 		SendToHandlerMethodReturnValueHandler sendToHandlerMethodReturnValueHandler;
@@ -174,19 +168,17 @@ public class QueueMessageHandlerFactory {
 		}
 		else {
 			sendToHandlerMethodReturnValueHandler = new SendToHandlerMethodReturnValueHandler(
-					getDefaultSendToQueueMessagingTemplate(this.amazonSqs,
-							this.resourceIdResolver));
+					getDefaultSendToQueueMessagingTemplate(this.amazonSqs, this.resourceIdResolver));
 
 		}
 		sendToHandlerMethodReturnValueHandler.setBeanFactory(this.beanFactory);
-		queueMessageHandler.getCustomReturnValueHandlers()
-				.add(sendToHandlerMethodReturnValueHandler);
+		queueMessageHandler.getCustomReturnValueHandlers().add(sendToHandlerMethodReturnValueHandler);
 
 		return queueMessageHandler;
 	}
 
-	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(
-			AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
+	private QueueMessagingTemplate getDefaultSendToQueueMessagingTemplate(AmazonSQSAsync amazonSqs,
+			ResourceIdResolver resourceIdResolver) {
 		return new QueueMessagingTemplate(amazonSqs, resourceIdResolver,
 				getDefaultMappingJackson2MessageConverter(this.objectMapper));
 	}
@@ -205,8 +197,7 @@ public class QueueMessageHandlerFactory {
 		this.messageConverters = messageConverters;
 	}
 
-	private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter(
-			ObjectMapper objectMapper) {
+	private MappingJackson2MessageConverter getDefaultMappingJackson2MessageConverter(ObjectMapper objectMapper) {
 		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);
 		jacksonMessageConverter.setStrictContentTypeMatch(true);

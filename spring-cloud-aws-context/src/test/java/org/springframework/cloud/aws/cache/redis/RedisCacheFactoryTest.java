@@ -28,17 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisCacheFactoryTest {
 
 	@Test
-	void createCache_withMockedRedisConnectionFactory_createsAndDestroysConnectionFactory()
-			throws Exception {
+	void createCache_withMockedRedisConnectionFactory_createsAndDestroysConnectionFactory() throws Exception {
 		// Arrange
-		RedisConnectionFactory connectionFactory = Mockito.mock(
-				RedisConnectionFactory.class,
+		RedisConnectionFactory connectionFactory = Mockito.mock(RedisConnectionFactory.class,
 				Mockito.withSettings().extraInterfaces(DisposableBean.class));
 		RedisCacheFactory redisCacheFactory = new RedisCacheFactory() {
 
 			@Override
-			protected RedisConnectionFactory createConnectionClient(String hostName,
-					int port) {
+			protected RedisConnectionFactory createConnectionClient(String hostName, int port) {
 				assertThat(hostName).isEqualTo("someHost");
 				assertThat(port).isEqualTo(4711);
 				return connectionFactory;

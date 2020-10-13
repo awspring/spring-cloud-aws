@@ -34,8 +34,7 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
  *
  * @author Agim Emruli
  */
-public class AmazonRdsReadReplicaAwareDataSourceFactoryBean
-		extends AmazonRdsDataSourceFactoryBean {
+public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDataSourceFactoryBean {
 
 	/**
 	 * Constructor which retrieves all mandatory objects to allow the object to be
@@ -49,8 +48,8 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean
 	 * @param password - The password used to connect to the datasource. For security
 	 * reasons the password is not available in the
 	 */
-	public AmazonRdsReadReplicaAwareDataSourceFactoryBean(AmazonRDS amazonRDS,
-			String dbInstanceIdentifier, String password) {
+	public AmazonRdsReadReplicaAwareDataSourceFactoryBean(AmazonRDS amazonRDS, String dbInstanceIdentifier,
+			String password) {
 		super(amazonRDS, dbInstanceIdentifier, password);
 	}
 
@@ -78,8 +77,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean
 			return super.createInstance();
 		}
 
-		HashMap<Object, Object> replicaMap = new HashMap<>(
-				dbInstance.getReadReplicaDBInstanceIdentifiers().size());
+		HashMap<Object, Object> replicaMap = new HashMap<>(dbInstance.getReadReplicaDBInstanceIdentifiers().size());
 
 		for (String replicaName : dbInstance.getReadReplicaDBInstanceIdentifiers()) {
 			replicaMap.put(replicaName, createDataSourceInstance(replicaName));
@@ -88,8 +86,7 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean
 		// Create the data source
 		ReadOnlyRoutingDataSource dataSource = new ReadOnlyRoutingDataSource();
 		dataSource.setTargetDataSources(replicaMap);
-		dataSource.setDefaultTargetDataSource(
-				createDataSourceInstance(getDbInstanceIdentifier()));
+		dataSource.setDefaultTargetDataSource(createDataSourceInstance(getDbInstanceIdentifier()));
 
 		// Initialize the class
 		dataSource.afterPropertiesSet();
@@ -100,11 +97,9 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean
 	@Override
 	protected void destroyInstance(DataSource instance) throws Exception {
 		if (instance instanceof LazyConnectionDataSourceProxy) {
-			DataSource targetDataSource = ((LazyConnectionDataSourceProxy) instance)
-					.getTargetDataSource();
+			DataSource targetDataSource = ((LazyConnectionDataSourceProxy) instance).getTargetDataSource();
 			if (targetDataSource instanceof ReadOnlyRoutingDataSource) {
-				List<Object> dataSources = ((ReadOnlyRoutingDataSource) targetDataSource)
-						.getDataSources();
+				List<Object> dataSources = ((ReadOnlyRoutingDataSource) targetDataSource).getDataSources();
 				for (Object candidate : dataSources) {
 					if (candidate instanceof DataSource) {
 						super.destroyInstance(instance);

@@ -30,8 +30,8 @@ public class OnMissingAmazonClientCondition implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(
-				ConditionalOnMissingAmazonClient.class.getName(), true);
+		MultiValueMap<String, Object> attributes = metadata
+				.getAllAnnotationAttributes(ConditionalOnMissingAmazonClient.class.getName(), true);
 
 		for (Object amazonClientClass : attributes.get("value")) {
 			if (isAmazonClientMissing(context, (String) amazonClientClass)) {
@@ -42,10 +42,8 @@ public class OnMissingAmazonClientCondition implements Condition {
 		return false;
 	}
 
-	private boolean isAmazonClientMissing(ConditionContext context,
-			String amazonClientClass) {
-		String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils
-				.getBeanName(amazonClientClass);
+	private boolean isAmazonClientMissing(ConditionContext context, String amazonClientClass) {
+		String amazonClientBeanName = AmazonWebserviceClientConfigurationUtils.getBeanName(amazonClientClass);
 		return !context.getBeanFactory().containsBean(amazonClientBeanName)
 				&& !context.getRegistry().containsBeanDefinition(amazonClientBeanName);
 	}

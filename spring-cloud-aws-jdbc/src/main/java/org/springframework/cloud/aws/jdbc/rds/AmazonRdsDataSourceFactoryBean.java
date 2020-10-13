@@ -74,8 +74,7 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	 * reasons the password is not available in the metadata (in contrast to the user) so
 	 * it must be provided in order to connect to the database with JDBC.
 	 */
-	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRds,
-			String dbInstanceIdentifier, String password) {
+	public AmazonRdsDataSourceFactoryBean(AmazonRDS amazonRds, String dbInstanceIdentifier, String password) {
 		this.amazonRds = amazonRds;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
 		this.password = password;
@@ -164,35 +163,29 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 		DBInstance instance;
 		try {
 			DescribeDBInstancesResult describeDBInstancesResult = this.amazonRds
-					.describeDBInstances(new DescribeDBInstancesRequest()
-							.withDBInstanceIdentifier(identifier));
+					.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(identifier));
 			instance = describeDBInstancesResult.getDBInstances().get(0);
 		}
 		catch (DBInstanceNotFoundException e) {
 			throw new IllegalStateException(MessageFormat.format(
-					"No database instance with id:''{0}'' found. Please specify a valid db instance",
-					identifier));
+					"No database instance with id:''{0}'' found. Please specify a valid db instance", identifier));
 		}
 		return instance;
 	}
 
 	protected String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver
-				.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
+		return this.resourceIdResolver != null
+				? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
 				: this.dbInstanceIdentifier;
 	}
 
 	private DataSourceInformation fromRdsInstance(DBInstance dbInstance) {
 		Assert.notNull(dbInstance, "DbInstance must not be null");
-		Assert.notNull(dbInstance.getEndpoint(),
-				"The database instance has no endpoint available!");
+		Assert.notNull(dbInstance.getEndpoint(), "The database instance has no endpoint available!");
 		return new DataSourceInformation(DatabaseType.fromEngine(dbInstance.getEngine()),
 				dbInstance.getEndpoint().getAddress(), dbInstance.getEndpoint().getPort(),
-				StringUtils.hasText(this.databaseName) ? this.databaseName
-						: dbInstance.getDBName(),
-				StringUtils.hasText(this.username) ? this.username
-						: dbInstance.getMasterUsername(),
-				this.password);
+				StringUtils.hasText(this.databaseName) ? this.databaseName : dbInstance.getDBName(),
+				StringUtils.hasText(this.username) ? this.username : dbInstance.getMasterUsername(), this.password);
 	}
 
 }

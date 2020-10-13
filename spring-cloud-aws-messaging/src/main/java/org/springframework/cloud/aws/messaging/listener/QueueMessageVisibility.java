@@ -33,8 +33,7 @@ public class QueueMessageVisibility implements Visibility {
 
 	private final String receiptHandle;
 
-	public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl,
-			String receiptHandle) {
+	public QueueMessageVisibility(AmazonSQSAsync amazonSqsAsync, String queueUrl, String receiptHandle) {
 		this.amazonSqsAsync = amazonSqsAsync;
 		this.queueUrl = queueUrl;
 		this.receiptHandle = receiptHandle;
@@ -42,10 +41,8 @@ public class QueueMessageVisibility implements Visibility {
 
 	@Override
 	public Future<?> extend(int seconds) {
-		return this.amazonSqsAsync
-				.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
-						.withQueueUrl(this.queueUrl).withReceiptHandle(this.receiptHandle)
-						.withVisibilityTimeout(seconds));
+		return this.amazonSqsAsync.changeMessageVisibilityAsync(new ChangeMessageVisibilityRequest()
+				.withQueueUrl(this.queueUrl).withReceiptHandle(this.receiptHandle).withVisibilityTimeout(seconds));
 	}
 
 }

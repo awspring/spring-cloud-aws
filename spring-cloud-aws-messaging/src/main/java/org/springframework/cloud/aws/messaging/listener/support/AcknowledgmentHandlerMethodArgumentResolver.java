@@ -26,8 +26,7 @@ import org.springframework.util.ClassUtils;
  * @author Alain Sahli
  * @since 1.1
  */
-public class AcknowledgmentHandlerMethodArgumentResolver
-		implements HandlerMethodArgumentResolver {
+public class AcknowledgmentHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final String acknowledgmentHeaderName;
 
@@ -37,18 +36,15 @@ public class AcknowledgmentHandlerMethodArgumentResolver
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return ClassUtils.isAssignable(Acknowledgment.class,
-				parameter.getParameterType());
+		return ClassUtils.isAssignable(Acknowledgment.class, parameter.getParameterType());
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message)
-			throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
 		if (!message.getHeaders().containsKey(this.acknowledgmentHeaderName)
 				|| message.getHeaders().get(this.acknowledgmentHeaderName) == null) {
 			throw new IllegalArgumentException(
-					"No acknowledgment object found for message header: '"
-							+ this.acknowledgmentHeaderName + "'");
+					"No acknowledgment object found for message header: '" + this.acknowledgmentHeaderName + "'");
 		}
 		return message.getHeaders().get(this.acknowledgmentHeaderName);
 	}

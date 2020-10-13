@@ -81,8 +81,7 @@ public class AmazonRdsDatabaseProperties {
 		private boolean readReplicaSupport = false;
 
 		public boolean hasRequiredPropertiesSet() {
-			return !StringUtils.isEmpty(this.getDbInstanceIdentifier())
-					&& !StringUtils.isEmpty(this.getPassword());
+			return !StringUtils.isEmpty(this.getDbInstanceIdentifier()) && !StringUtils.isEmpty(this.getPassword());
 		}
 
 		public String getDbInstanceIdentifier() {
@@ -139,8 +138,8 @@ public class AmazonRdsDatabaseProperties {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(this.dbInstanceIdentifier, this.username,
-					this.databaseName, this.password, this.readReplicaSupport);
+			return Objects.hash(this.dbInstanceIdentifier, this.username, this.databaseName, this.password,
+					this.readReplicaSupport);
 		}
 
 	}

@@ -25,15 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MemcachedCacheFactoryTest {
 
 	@Test
-	void createCache_withLocalMemCachedClient_createSimpleSpringMemcached()
-			throws Exception {
+	void createCache_withLocalMemCachedClient_createSimpleSpringMemcached() throws Exception {
 		// Arrange
 		int memCachedPort = TestMemcacheServer.startServer();
 		MemcachedCacheFactory cacheFactory = new MemcachedCacheFactory();
 
 		// Act
-		SimpleSpringMemcached cache = cacheFactory.createCache("test", "localhost",
-				memCachedPort);
+		SimpleSpringMemcached cache = cacheFactory.createCache("test", "localhost", memCachedPort);
 
 		// Assert
 		assertThat(cache).isNotNull();
@@ -47,16 +45,14 @@ class MemcachedCacheFactoryTest {
 	}
 
 	@Test
-	void createCache_WithExpiryTime_createSimpleSpringMemcachedWithExpiryTime()
-			throws Exception {
+	void createCache_WithExpiryTime_createSimpleSpringMemcachedWithExpiryTime() throws Exception {
 		// Arrange
 		int memCachedPort = TestMemcacheServer.startServer();
 		MemcachedCacheFactory cacheFactory = new MemcachedCacheFactory();
 		cacheFactory.setExpiryTime(1);
 
 		// Act
-		SimpleSpringMemcached cache = cacheFactory.createCache("test", "localhost",
-				memCachedPort);
+		SimpleSpringMemcached cache = cacheFactory.createCache("test", "localhost", memCachedPort);
 
 		// Assert
 		assertThat(cache).isNotNull();

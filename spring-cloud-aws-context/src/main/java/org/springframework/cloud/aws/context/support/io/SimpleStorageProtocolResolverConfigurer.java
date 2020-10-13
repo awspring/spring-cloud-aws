@@ -38,18 +38,15 @@ import org.springframework.core.io.ResourceLoader;
  * @author Maciej Walkowiak
  * @since 1.0
  */
-public class SimpleStorageProtocolResolverConfigurer
-		implements BeanFactoryPostProcessor, Ordered, ResourceLoaderAware {
+public class SimpleStorageProtocolResolverConfigurer implements BeanFactoryPostProcessor, Ordered, ResourceLoaderAware {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(SimpleStorageProtocolResolverConfigurer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleStorageProtocolResolverConfigurer.class);
 
 	private final ProtocolResolver protocolResolver;
 
 	private ResourceLoader resourceLoader;
 
-	public SimpleStorageProtocolResolverConfigurer(
-			SimpleStorageProtocolResolver simpleStorageProtocolResolver) {
+	public SimpleStorageProtocolResolverConfigurer(SimpleStorageProtocolResolver simpleStorageProtocolResolver) {
 		this.protocolResolver = simpleStorageProtocolResolver;
 	}
 
@@ -59,11 +56,9 @@ public class SimpleStorageProtocolResolverConfigurer
 	}
 
 	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
-			throws BeansException {
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (DefaultResourceLoader.class.isAssignableFrom(resourceLoader.getClass())) {
-			((DefaultResourceLoader) resourceLoader)
-					.addProtocolResolver(this.protocolResolver);
+			((DefaultResourceLoader) resourceLoader).addProtocolResolver(this.protocolResolver);
 		}
 		else {
 			LOGGER.warn("The provided delegate resource loader is not an implementation "

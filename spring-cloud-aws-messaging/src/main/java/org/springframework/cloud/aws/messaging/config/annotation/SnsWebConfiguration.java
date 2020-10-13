@@ -40,10 +40,8 @@ public class SnsWebConfiguration {
 	public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
 		return new WebMvcConfigurer() {
 			@Override
-			public void addArgumentResolvers(
-					List<HandlerMethodArgumentResolver> argumentResolvers) {
-				argumentResolvers
-						.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
+			public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+				argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
 			}
 		};
 	}

@@ -104,36 +104,30 @@ class SimpleMessageListenerContainerTest {
 		logContext.getLogger(SimpleMessageListenerContainer.class).setLevel(level);
 	}
 
-	private static void mockReceiveMessage(AmazonSQSAsync sqs, String queueUrl,
-			String messageContent, String receiptHandle) {
-		when(sqs.receiveMessage(new ReceiveMessageRequest(queueUrl)
-				.withAttributeNames("All").withMessageAttributeNames("All")
-				.withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+	private static void mockReceiveMessage(AmazonSQSAsync sqs, String queueUrl, String messageContent,
+			String receiptHandle) {
+		when(sqs.receiveMessage(new ReceiveMessageRequest(queueUrl).withAttributeNames("All")
+				.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
 						.thenReturn(
 								new ReceiveMessageResult().withMessages(
-										new Message().withBody(messageContent)
-												.withReceiptHandle(receiptHandle)),
+										new Message().withBody(messageContent).withReceiptHandle(receiptHandle)),
 								new ReceiveMessageResult());
 	}
 
-	private static void mockGetQueueAttributesWithRedrivePolicy(AmazonSQSAsync sqs,
-			String queueUrl) {
-		when(sqs.getQueueAttributes(new GetQueueAttributesRequest(queueUrl)
-				.withAttributeNames(QueueAttributeName.RedrivePolicy)))
+	private static void mockGetQueueAttributesWithRedrivePolicy(AmazonSQSAsync sqs, String queueUrl) {
+		when(sqs.getQueueAttributes(
+				new GetQueueAttributesRequest(queueUrl).withAttributeNames(QueueAttributeName.RedrivePolicy)))
 						.thenReturn(new GetQueueAttributesResult().addAttributesEntry(
-								QueueAttributeName.RedrivePolicy.toString(),
-								"{\"some\": \"JSON\"}"));
+								QueueAttributeName.RedrivePolicy.toString(), "{\"some\": \"JSON\"}"));
 	}
 
-	private static void mockGetQueueAttributesWithEmptyResult(AmazonSQSAsync sqs,
-			String queueUrl) {
-		when(sqs.getQueueAttributes(new GetQueueAttributesRequest(queueUrl)
-				.withAttributeNames(QueueAttributeName.RedrivePolicy)))
+	private static void mockGetQueueAttributesWithEmptyResult(AmazonSQSAsync sqs, String queueUrl) {
+		when(sqs.getQueueAttributes(
+				new GetQueueAttributesRequest(queueUrl).withAttributeNames(QueueAttributeName.RedrivePolicy)))
 						.thenReturn(new GetQueueAttributesResult());
 	}
 
-	private static void mockGetQueueUrl(AmazonSQSAsync sqs, String queueName,
-			String queueUrl) {
+	private static void mockGetQueueUrl(AmazonSQSAsync sqs, String queueName, String queueUrl) {
 		when(sqs.getQueueUrl(new GetQueueUrlRequest(queueName)))
 				.thenReturn(new GetQueueUrlResult().withQueueUrl(queueUrl));
 	}
@@ -152,8 +146,7 @@ class SimpleMessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 
-		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
-				.getTaskExecutor();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
 		assertThat(taskExecutor).isNotNull();
 		assertThat(taskExecutor.getThreadNamePrefix())
 				.isEqualTo(SimpleMessageListenerContainer.class.getSimpleName() + "-");
@@ -168,8 +161,7 @@ class SimpleMessageListenerContainerTest {
 		container.setBeanName("testContainerName");
 		container.afterPropertiesSet();
 
-		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
-				.getTaskExecutor();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
 		assertThat(taskExecutor).isNotNull();
 		assertThat(taskExecutor.getThreadNamePrefix()).isEqualTo("testContainerName-");
 	}
@@ -179,8 +171,7 @@ class SimpleMessageListenerContainerTest {
 		int testedMaxNumberOfMessages = 10;
 
 		Map<QueueMessageHandler.MappingInformation, HandlerMethod> messageHandlerMethods = Collections
-				.singletonMap(new QueueMessageHandler.MappingInformation(
-						Collections.singleton("testQueue"),
+				.singletonMap(new QueueMessageHandler.MappingInformation(Collections.singleton("testQueue"),
 						SqsMessageDeletionPolicy.ALWAYS), null);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -200,11 +191,9 @@ class SimpleMessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 
-		int expectedPoolMaxSize = messageHandlerMethods.size()
-				* (testedMaxNumberOfMessages + 1);
+		int expectedPoolMaxSize = messageHandlerMethods.size() * (testedMaxNumberOfMessages + 1);
 
-		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container
-				.getTaskExecutor();
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) container.getTaskExecutor();
 		assertThat(taskExecutor).isNotNull();
 		assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(expectedPoolMaxSize);
 	}
@@ -234,37 +223,31 @@ class SimpleMessageListenerContainerTest {
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
 			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message)
-					throws MessagingException {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				countDownLatch.countDown();
 				assertThat(message.getPayload()).isEqualTo("messageContent");
 			}
 		};
 		container.setMessageHandler(messageHandler);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 		messageHandler.setApplicationContext(applicationContext);
 		container.setBeanName("testContainerName");
 		messageHandler.afterPropertiesSet();
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"http://testSimpleReceiveMessage.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"http://testSimpleReceiveMessage.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "http://testSimpleReceiveMessage.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "http://testSimpleReceiveMessage.amazonaws.com");
 
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(
-				new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+				new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
+						.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
 								.thenReturn(new ReceiveMessageResult().withMessages(
 										new Message().withBody("messageContent"),
 										new Message().withBody("messageContent")))
 								.thenReturn(new ReceiveMessageResult());
-		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class)))
-				.thenReturn(new GetQueueAttributesResult());
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
 
@@ -285,25 +268,22 @@ class SimpleMessageListenerContainerTest {
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
 			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message)
-					throws MessagingException {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				fail("Should not have been called");
 			}
 		};
 		container.setMessageHandler(messageHandler);
 		container.setBeanName("testContainerName");
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"http://testContainerDoesNotProcessMessageAfterBeingStopped.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "http://testContainerDoesNotProcessMessageAfterBeingStopped.amazonaws.com");
 
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"http://testContainerDoesNotProcessMessageAfterBeingStopped.amazonaws.com")))
+		when(sqs.receiveMessage(
+				new ReceiveMessageRequest("http://testContainerDoesNotProcessMessageAfterBeingStopped.amazonaws.com")))
 						.thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
 							container.stop();
-							return new ReceiveMessageResult()
-									.withMessages(new Message().withBody("test"));
+							return new ReceiveMessageResult().withMessages(new Message().withBody("test"));
 						});
 
 		container.start();
@@ -315,8 +295,7 @@ class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -327,13 +306,10 @@ class SimpleMessageListenerContainerTest {
 		QueueMessageHandler messageHandler = new QueueMessageHandler();
 		container.setMessageHandler(messageHandler);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
-		applicationContext.registerSingleton("anotherTestMessageListener",
-				AnotherTestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"https://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "https://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs,
 				"https://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com");
 		mockGetQueueUrl(sqs, "anotherTestQueue",
@@ -345,44 +321,38 @@ class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"https://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
-								.thenReturn(new ReceiveMessageResult().withMessages(
-										new Message().withBody("messageContent")))
+		when(sqs.receiveMessage(
+				new ReceiveMessageRequest("https://listener_withMultipleMessageHandlers_shouldBeCalled.amazonaws.com")
+						.withAttributeNames("All").withMessageAttributeNames("All").withMaxNumberOfMessages(10)
+						.withWaitTimeSeconds(20))).thenReturn(
+								new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")))
 								.thenReturn(new ReceiveMessageResult());
 		when(sqs.receiveMessage(new ReceiveMessageRequest(
 				"https://listener_withMultipleMessageHandlers_shouldBeCalled.another.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
-								.thenReturn(new ReceiveMessageResult().withMessages(
-										new Message().withBody("anotherMessageContent")))
+						.withAttributeNames("All").withMessageAttributeNames("All").withMaxNumberOfMessages(10)
+						.withWaitTimeSeconds(20)))
+								.thenReturn(new ReceiveMessageResult()
+										.withMessages(new Message().withBody("anotherMessageContent")))
 								.thenReturn(new ReceiveMessageResult());
-		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class)))
-				.thenReturn(new GetQueueAttributesResult());
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
 
 		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
-		assertThat(applicationContext.getBean(TestMessageListener.class).getMessage())
-				.isEqualTo("messageContent");
-		assertThat(
-				applicationContext.getBean(AnotherTestMessageListener.class).getMessage())
-						.isEqualTo("anotherMessageContent");
+		assertThat(applicationContext.getBean(TestMessageListener.class).getMessage()).isEqualTo("messageContent");
+		assertThat(applicationContext.getBean(AnotherTestMessageListener.class).getMessage())
+				.isEqualTo("anotherMessageContent");
 	}
 
 	@Test
-	void messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders()
-			throws Exception {
+	void messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -395,8 +365,7 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
 				"https://messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders.amazonaws.com");
@@ -409,21 +378,16 @@ class SimpleMessageListenerContainerTest {
 
 		when(sqs.receiveMessage(new ReceiveMessageRequest(
 				"https://messageExecutor_withMessageWithAttributes_shouldPassThemAsHeaders.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20))).thenReturn(
-								new ReceiveMessageResult().withMessages(new Message()
-										.withBody("messageContent")
-										.withAttributes(new HashMap<String, String>() {
-											{
-												put("SenderId", "ID");
-												put("SentTimestamp", "1000");
-												put("ApproximateFirstReceiveTimestamp",
-														"2000");
-											}
-										})))
-								.thenReturn(new ReceiveMessageResult());
-		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class)))
-				.thenReturn(new GetQueueAttributesResult());
+						.withAttributeNames("All").withMessageAttributeNames("All").withMaxNumberOfMessages(10)
+						.withWaitTimeSeconds(20))).thenReturn(new ReceiveMessageResult().withMessages(
+								new Message().withBody("messageContent").withAttributes(new HashMap<String, String>() {
+									{
+										put("SenderId", "ID");
+										put("SentTimestamp", "1000");
+										put("ApproximateFirstReceiveTimestamp", "2000");
+									}
+								}))).thenReturn(new ReceiveMessageResult());
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		// Act
 		container.start();
@@ -433,18 +397,15 @@ class SimpleMessageListenerContainerTest {
 		container.stop();
 
 		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
-		assertThat(this.stringMessageCaptor.getValue().getHeaders().get("SenderId"))
-				.isEqualTo("ID");
-		assertThat(this.stringMessageCaptor.getValue().getHeaders().getTimestamp())
-				.isEqualTo(1000L);
-		assertThat(this.stringMessageCaptor.getValue().getHeaders()
-				.get("ApproximateFirstReceiveTimestamp")).isEqualTo("2000");
+		assertThat(this.stringMessageCaptor.getValue().getHeaders().get("SenderId")).isEqualTo("ID");
+		assertThat(this.stringMessageCaptor.getValue().getHeaders().getTimestamp()).isEqualTo(1000L);
+		assertThat(this.stringMessageCaptor.getValue().getHeaders().get("ApproximateFirstReceiveTimestamp"))
+				.isEqualTo("2000");
 
 	}
 
 	@Test
-	void doDestroy_whenContainerCallsDestroy_DestroysDefaultTaskExecutor()
-			throws Exception {
+	void doDestroy_whenContainerCallsDestroy_DestroysDefaultTaskExecutor() throws Exception {
 		// Arrange
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -458,8 +419,8 @@ class SimpleMessageListenerContainerTest {
 		simpleMessageListenerContainer.destroy();
 
 		// Assert
-		assertThat(((ThreadPoolTaskExecutor) simpleMessageListenerContainer
-				.getTaskExecutor()).getThreadPoolExecutor().isTerminated()).isTrue();
+		assertThat(((ThreadPoolTaskExecutor) simpleMessageListenerContainer.getTaskExecutor()).getThreadPoolExecutor()
+				.isTerminated()).isTrue();
 	}
 
 	@Test
@@ -475,21 +436,19 @@ class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		// Assert
-		assertThat(((ThreadPoolTaskExecutor) container.getTaskExecutor())
-				.getThreadPoolExecutor().isTerminated()).isFalse();
+		assertThat(((ThreadPoolTaskExecutor) container.getTaskExecutor()).getThreadPoolExecutor().isTerminated())
+				.isFalse();
 		container.stop();
 	}
 
 	@Test
-	void messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader()
-			throws Exception {
+	void messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -502,8 +461,7 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
 				"https://messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader.amazonaws.com");
@@ -517,21 +475,15 @@ class SimpleMessageListenerContainerTest {
 		MimeType mimeType = new MimeType("text", "plain", Charset.forName("UTF-8"));
 		when(sqs.receiveMessage(new ReceiveMessageRequest(
 				"https://messageExecutor_messageWithMimeTypeMessageAttribute_shouldSetItAsHeader.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20))).thenReturn(
-								new ReceiveMessageResult().withMessages(new Message()
-										.withBody("messageContent")
-										.withAttributes(Collections
-												.singletonMap("SenderId", "ID"))
-										.withMessageAttributes(Collections
-												.singletonMap(MessageHeaders.CONTENT_TYPE,
-														new MessageAttributeValue()
-																.withDataType("String")
-																.withStringValue(mimeType
-																		.toString())))))
+						.withAttributeNames("All").withMessageAttributeNames("All").withMaxNumberOfMessages(10)
+						.withWaitTimeSeconds(20))).thenReturn(
+								new ReceiveMessageResult().withMessages(new Message().withBody("messageContent")
+										.withAttributes(Collections.singletonMap("SenderId", "ID"))
+										.withMessageAttributes(Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
+												new MessageAttributeValue().withDataType("String")
+														.withStringValue(mimeType.toString())))))
 								.thenReturn(new ReceiveMessageResult());
-		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class)))
-				.thenReturn(new GetQueueAttributesResult());
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		// Act
 		container.start();
@@ -541,8 +493,8 @@ class SimpleMessageListenerContainerTest {
 		container.stop();
 
 		verify(messageHandler).handleMessage(this.stringMessageCaptor.capture());
-		assertThat(this.stringMessageCaptor.getValue().getHeaders()
-				.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(mimeType);
+		assertThat(this.stringMessageCaptor.getValue().getHeaders().get(MessageHeaders.CONTENT_TYPE))
+				.isEqualTo(mimeType);
 	}
 
 	@Test
@@ -560,15 +512,13 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void executeMessage_successfulExecution_shouldRemoveMessageFromQueue()
-			throws Exception {
+	void executeMessage_successfulExecution_shouldRemoveMessageFromQueue() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -581,8 +531,7 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
 		mockGetQueueUrl(sqs, "testQueue",
 				"https://executeMessage_successfulExecution_shouldRemoveMessageFromQueue.amazonaws.com");
@@ -593,8 +542,7 @@ class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs,
-				"https://executeMessage_successfulExecution_shouldRemoveMessageFromQueue.amazonaws.com",
+		mockReceiveMessage(sqs, "https://executeMessage_successfulExecution_shouldRemoveMessageFromQueue.amazonaws.com",
 				"messageContent", "ReceiptHandle");
 
 		// Act
@@ -616,8 +564,7 @@ class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -633,31 +580,21 @@ class SimpleMessageListenerContainerTest {
 		applicationContext.registerSingleton("testMessageListener",
 				TestMessageListenerThatThrowsAnExceptionWithAllDeletionPolicy.class);
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com")
-								.withAttributeNames("All").withMaxNumberOfMessages(10)
-								.withWaitTimeSeconds(20)
-								.withMessageAttributeNames("All")))
-										.thenReturn(
-												new ReceiveMessageResult()
-														.withMessages(new Message()
-																.withBody(
-																		"messageContent")
-																.withReceiptHandle(
-																		"ReceiptHandle")),
-												new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com").withAttributeNames("All")
+						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20).withMessageAttributeNames("All")))
+								.thenReturn(new ReceiveMessageResult().withMessages(
+										new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+										new ReceiveMessageResult());
 
 		// Act
 		container.start();
@@ -665,10 +602,11 @@ class SimpleMessageListenerContainerTest {
 		// Assert
 		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com",
-				"ReceiptHandle")), any(AsyncHandler.class));
+		verify(sqs, times(1))
+				.deleteMessageAsync(eq(new DeleteMessageRequest(
+						"https://executeMessage_executionThrowsExceptionAnd"
+								+ "QueueHasAllDeletionPolicy_shouldRemoveMessageFromQueue.amazonaws.com",
+						"ReceiptHandle")), any(AsyncHandler.class));
 	}
 
 	@Test
@@ -679,8 +617,7 @@ class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -696,31 +633,21 @@ class SimpleMessageListenerContainerTest {
 		Class clazz = TestMessageListenerThatThrowsAnExceptionWithAllExceptOnRedriveDeletionPolicy.class;
 		applicationContext.registerSingleton("testMessageListener", clazz);
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
-		mockGetQueueAttributesWithRedrivePolicy(sqs,
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
+		mockGetQueueAttributesWithRedrivePolicy(sqs, "https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		when(sqs.receiveMessage(new ReceiveMessageRequest(
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com")
-								.withAttributeNames("All").withMaxNumberOfMessages(10)
-								.withWaitTimeSeconds(20)
-								.withMessageAttributeNames("All")))
-										.thenReturn(
-												new ReceiveMessageResult()
-														.withMessages(new Message()
-																.withBody(
-																		"messageContent")
-																.withReceiptHandle(
-																		"ReceiptHandle")),
-												new ReceiveMessageResult());
+		when(sqs.receiveMessage(new ReceiveMessageRequest("https://executeMessage_executionThrowsExceptionAnd"
+				+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com").withAttributeNames("All")
+						.withMaxNumberOfMessages(10).withWaitTimeSeconds(20).withMessageAttributeNames("All")))
+								.thenReturn(new ReceiveMessageResult().withMessages(
+										new Message().withBody("messageContent").withReceiptHandle("ReceiptHandle")),
+										new ReceiveMessageResult());
 
 		// Act
 		container.start();
@@ -728,10 +655,11 @@ class SimpleMessageListenerContainerTest {
 		// Assert
 		assertThat(countDownLatch.await(2L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://executeMessage_executionThrowsExceptionAnd"
-						+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com",
-				"ReceiptHandle")), any(AsyncHandler.class));
+		verify(sqs, never())
+				.deleteMessageAsync(eq(new DeleteMessageRequest(
+						"https://executeMessage_executionThrowsExceptionAnd"
+								+ "QueueHasRedrivePolicy_shouldNotRemoveMessageFromQueue.amazonaws.com",
+						"ReceiptHandle")), any(AsyncHandler.class));
 	}
 
 	@Test
@@ -753,26 +681,22 @@ class SimpleMessageListenerContainerTest {
 		Level previous = disableLogging();
 
 		AmazonSQSAsync amazonSqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
-		when(amazonSqs.receiveMessage(any(ReceiveMessageRequest.class)))
-				.thenThrow(new RuntimeException("Boom!"))
-				.thenReturn(new ReceiveMessageResult().withMessages(
-						new Message().withBody("messageContent"),
+		when(amazonSqs.receiveMessage(any(ReceiveMessageRequest.class))).thenThrow(new RuntimeException("Boom!"))
+				.thenReturn(new ReceiveMessageResult().withMessages(new Message().withBody("messageContent"),
 						new Message().withBody("messageContent")));
 
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
 			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message)
-					throws MessagingException {
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				countDownLatch.countDown();
 				assertThat(message.getPayload()).isEqualTo("messageContent");
 			}
 		};
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 		messageHandler.setApplicationContext(applicationContext);
 
 		mockGetQueueUrl(amazonSqs, "testQueue",
@@ -806,8 +730,7 @@ class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -820,22 +743,20 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testListener",
-				TestMessageListenerWithManualDeletionPolicy.class);
+		applicationContext.registerSingleton("testListener", TestMessageListenerWithManualDeletionPolicy.class);
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "https://receiveMessage_withMessageListenerMethodAnd"
+				+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://receiveMessage_withMessageListenerMethodAnd"
+				+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs, "https://receiveMessage_withMessageListenerMethodAnd"
-				+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+		mockReceiveMessage(sqs,
+				"https://receiveMessage_withMessageListenerMethodAnd"
+						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
 				"messageContent", "ReceiptHandle");
 
 		// Act
@@ -843,19 +764,20 @@ class SimpleMessageListenerContainerTest {
 
 		// Assert
 		countDownLatch.await(1L, TimeUnit.SECONDS);
-		verify(sqs, never()).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
-				"ReceiptHandle")), any(AsyncHandler.class));
+		verify(sqs, never())
+				.deleteMessageAsync(eq(new DeleteMessageRequest(
+						"https://receiveMessage_withMessageListenerMethodAnd"
+								+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+						"ReceiptHandle")), any(AsyncHandler.class));
 		TestMessageListenerWithManualDeletionPolicy testMessageListenerWithManualDeletionPolicy = applicationContext
 				.getBean(TestMessageListenerWithManualDeletionPolicy.class);
-		testMessageListenerWithManualDeletionPolicy.getCountDownLatch().await(1L,
-				TimeUnit.SECONDS);
+		testMessageListenerWithManualDeletionPolicy.getCountDownLatch().await(1L, TimeUnit.SECONDS);
 		testMessageListenerWithManualDeletionPolicy.acknowledge();
-		verify(sqs, times(1)).deleteMessageAsync(eq(new DeleteMessageRequest(
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
-				"ReceiptHandle")), any(AsyncHandler.class));
+		verify(sqs, times(1))
+				.deleteMessageAsync(eq(new DeleteMessageRequest(
+						"https://receiveMessage_withMessageListenerMethodAnd"
+								+ "NeverDeletionPolicy_waitsForAcknowledgmentBeforeDeletion.amazonaws.com",
+						"ReceiptHandle")), any(AsyncHandler.class));
 		container.stop();
 	}
 
@@ -867,8 +789,7 @@ class SimpleMessageListenerContainerTest {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
 
 			@Override
-			protected void executeMessage(
-					org.springframework.messaging.Message<String> stringMessage) {
+			protected void executeMessage(org.springframework.messaging.Message<String> stringMessage) {
 				countDownLatch.countDown();
 				super.executeMessage(stringMessage);
 			}
@@ -881,22 +802,20 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testListener",
-				TestMessageListenerWithVisibilityProlong.class);
+		applicationContext.registerSingleton("testListener", TestMessageListenerWithVisibilityProlong.class);
 
-		mockGetQueueUrl(sqs, "testQueue",
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://receiveMessage_withMessageListenerMethodAnd"
-						+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+		mockGetQueueUrl(sqs, "testQueue", "https://receiveMessage_withMessageListenerMethodAnd"
+				+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://receiveMessage_withMessageListenerMethodAnd"
+				+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com");
 
 		messageHandler.setApplicationContext(applicationContext);
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs, "https://receiveMessage_withMessageListenerMethodAnd"
-				+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
+		mockReceiveMessage(sqs,
+				"https://receiveMessage_withMessageListenerMethodAnd"
+						+ "VisibilityProlonging_callsChangeMessageVisibility.amazonaws.com",
 				"messageContent", "ReceiptHandle");
 
 		// Act
@@ -904,12 +823,10 @@ class SimpleMessageListenerContainerTest {
 
 		// Assert
 		countDownLatch.await(1L, TimeUnit.SECONDS);
-		verify(sqs, never())
-				.changeMessageVisibilityAsync(any(ChangeMessageVisibilityRequest.class));
+		verify(sqs, never()).changeMessageVisibilityAsync(any(ChangeMessageVisibilityRequest.class));
 		TestMessageListenerWithVisibilityProlong testMessageListenerWithVisibilityProlong = applicationContext
 				.getBean(TestMessageListenerWithVisibilityProlong.class);
-		testMessageListenerWithVisibilityProlong.getCountDownLatch().await(1L,
-				TimeUnit.SECONDS);
+		testMessageListenerWithVisibilityProlong.getCountDownLatch().await(1L, TimeUnit.SECONDS);
 		testMessageListenerWithVisibilityProlong.extend(5);
 		verify(sqs, times(1))
 				.changeMessageVisibilityAsync(eq(new ChangeMessageVisibilityRequest(
@@ -920,8 +837,7 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void executeMessage_withDifferentDeletionPolicies_shouldActAccordingly()
-			throws Exception {
+	void executeMessage_withDifferentDeletionPolicies_shouldActAccordingly() throws Exception {
 		// Arrange
 		Level previous = disableLogging();
 
@@ -933,27 +849,20 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testListener",
-				TestMessageListenerWithAllPossibleDeletionPolicies.class);
+		applicationContext.registerSingleton("testListener", TestMessageListenerWithAllPossibleDeletionPolicies.class);
 
 		mockGetQueueUrl(sqs, "alwaysSuccess", "https://alwaysSuccess.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "https://alwaysSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "alwaysError", "https://alwaysError.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "https://alwaysError.amazonaws.com");
-		mockGetQueueUrl(sqs, "onSuccessSuccess",
-				"https://onSuccessSuccess.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://onSuccessSuccess.amazonaws.com");
+		mockGetQueueUrl(sqs, "onSuccessSuccess", "https://onSuccessSuccess.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://onSuccessSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "onSuccessError", "https://onSuccessError.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://onSuccessError.amazonaws.com");
-		mockGetQueueUrl(sqs, "noRedriveSuccess",
-				"https://noRedriveSuccess.amazonaws.com");
-		mockGetQueueAttributesWithRedrivePolicy(sqs,
-				"https://noRedriveSuccess.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://onSuccessError.amazonaws.com");
+		mockGetQueueUrl(sqs, "noRedriveSuccess", "https://noRedriveSuccess.amazonaws.com");
+		mockGetQueueAttributesWithRedrivePolicy(sqs, "https://noRedriveSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "noRedriveError", "https://noRedriveError.amazonaws.com");
-		mockGetQueueAttributesWithRedrivePolicy(sqs,
-				"https://noRedriveError.amazonaws.com");
+		mockGetQueueAttributesWithRedrivePolicy(sqs, "https://noRedriveError.amazonaws.com");
 		mockGetQueueUrl(sqs, "neverSuccess", "https://neverSuccess.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "https://neverSuccess.amazonaws.com");
 		mockGetQueueUrl(sqs, "neverError", "https://neverError.amazonaws.com");
@@ -963,20 +872,13 @@ class SimpleMessageListenerContainerTest {
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 
-		mockReceiveMessage(sqs, "https://alwaysSuccess.amazonaws.com", "foo",
-				"alwaysSuccess");
-		mockReceiveMessage(sqs, "https://alwaysError.amazonaws.com", "foo",
-				"alwaysError");
-		mockReceiveMessage(sqs, "https://onSuccessSuccess.amazonaws.com", "foo",
-				"onSuccessSuccess");
-		mockReceiveMessage(sqs, "https://onSuccessError.amazonaws.com", "foo",
-				"onSuccessError");
-		mockReceiveMessage(sqs, "https://noRedriveSuccess.amazonaws.com", "foo",
-				"noRedriveSuccess");
-		mockReceiveMessage(sqs, "https://noRedriveError.amazonaws.com", "foo",
-				"noRedriveError");
-		mockReceiveMessage(sqs, "https://neverSuccess.amazonaws.com", "foo",
-				"neverSuccess");
+		mockReceiveMessage(sqs, "https://alwaysSuccess.amazonaws.com", "foo", "alwaysSuccess");
+		mockReceiveMessage(sqs, "https://alwaysError.amazonaws.com", "foo", "alwaysError");
+		mockReceiveMessage(sqs, "https://onSuccessSuccess.amazonaws.com", "foo", "onSuccessSuccess");
+		mockReceiveMessage(sqs, "https://onSuccessError.amazonaws.com", "foo", "onSuccessError");
+		mockReceiveMessage(sqs, "https://noRedriveSuccess.amazonaws.com", "foo", "noRedriveSuccess");
+		mockReceiveMessage(sqs, "https://noRedriveError.amazonaws.com", "foo", "noRedriveError");
+		mockReceiveMessage(sqs, "https://neverSuccess.amazonaws.com", "foo", "neverSuccess");
 		mockReceiveMessage(sqs, "https://neverError.amazonaws.com", "foo", "neverError");
 
 		// Act
@@ -988,36 +890,28 @@ class SimpleMessageListenerContainerTest {
 		assertThat(bean.getCountdownLatch().await(1L, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		verify(sqs, times(1)).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://alwaysSuccess.amazonaws.com",
-						"alwaysSuccess")),
+				eq(new DeleteMessageRequest("https://alwaysSuccess.amazonaws.com", "alwaysSuccess")),
 				any(AsyncHandler.class));
 		verify(sqs, times(1)).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://alwaysError.amazonaws.com",
-						"alwaysError")),
+				eq(new DeleteMessageRequest("https://alwaysError.amazonaws.com", "alwaysError")),
 				any(AsyncHandler.class));
 		verify(sqs, times(1)).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://onSuccessSuccess.amazonaws.com",
-						"onSuccessSuccess")),
+				eq(new DeleteMessageRequest("https://onSuccessSuccess.amazonaws.com", "onSuccessSuccess")),
 				any(AsyncHandler.class));
 		verify(sqs, never()).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://onSuccessError.amazonaws.com",
-						"onSuccessError")),
+				eq(new DeleteMessageRequest("https://onSuccessError.amazonaws.com", "onSuccessError")),
 				any(AsyncHandler.class));
 		verify(sqs, times(1)).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://noRedriveSuccess.amazonaws.com",
-						"noRedriveSuccess")),
+				eq(new DeleteMessageRequest("https://noRedriveSuccess.amazonaws.com", "noRedriveSuccess")),
 				any(AsyncHandler.class));
 		verify(sqs, never()).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://noRedriveError.amazonaws.com",
-						"noRedriveError")),
+				eq(new DeleteMessageRequest("https://noRedriveError.amazonaws.com", "noRedriveError")),
 				any(AsyncHandler.class));
 		verify(sqs, never()).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://neverSuccess.amazonaws.com",
-						"neverSuccess")),
+				eq(new DeleteMessageRequest("https://neverSuccess.amazonaws.com", "neverSuccess")),
 				any(AsyncHandler.class));
 		verify(sqs, never()).deleteMessageAsync(
-				eq(new DeleteMessageRequest("https://neverError.amazonaws.com",
-						"neverError")),
+				eq(new DeleteMessageRequest("https://neverError.amazonaws.com", "neverError")),
 				any(AsyncHandler.class));
 
 		setLogLevel(previous);
@@ -1027,10 +921,8 @@ class SimpleMessageListenerContainerTest {
 	void stop_withALogicalQueueName_mustStopOnlyTheSpecifiedQueue() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
-		applicationContext.registerSingleton("anotherTestMessageListener",
-				AnotherTestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -1050,8 +942,7 @@ class SimpleMessageListenerContainerTest {
 		mockGetQueueAttributesWithEmptyResult(sqs,
 				"https://stop_withALogicalQueueName_mustStopOnlyTheSpecifiedQueue.another.amazonaws.com");
 
-		when(sqs.receiveMessage(any(ReceiveMessageRequest.class)))
-				.thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(new ReceiveMessageResult());
 
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
@@ -1074,14 +965,11 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void stopAndStart_withContainerHavingARunningQueue_shouldRestartTheSpecifiedQueue()
-			throws Exception {
+	void stopAndStart_withContainerHavingARunningQueue_shouldRestartTheSpecifiedQueue() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
-		applicationContext.registerSingleton("anotherTestMessageListener",
-				AnotherTestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		MockAmazonSqsAsyncClient sqs = new MockAmazonSqsAsyncClient();
@@ -1110,10 +998,8 @@ class SimpleMessageListenerContainerTest {
 		assertThat(container.isRunning("testQueue")).isTrue();
 		assertThat(container.isRunning("anotherTestQueue")).isTrue();
 
-		TestMessageListener testMessageListener = applicationContext
-				.getBean(TestMessageListener.class);
-		boolean await = testMessageListener.getCountDownLatch().await(1,
-				TimeUnit.SECONDS);
+		TestMessageListener testMessageListener = applicationContext.getBean(TestMessageListener.class);
+		boolean await = testMessageListener.getCountDownLatch().await(1, TimeUnit.SECONDS);
 		assertThat(await).isTrue();
 		assertThat(testMessageListener.getMessage()).isEqualTo("Hello");
 		container.stop();
@@ -1131,8 +1017,8 @@ class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		// Assert
-		assertThatThrownBy(() -> container.stop("foo"))
-				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("foo");
+		assertThatThrownBy(() -> container.stop("foo")).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("foo");
 	}
 
 	@Test
@@ -1145,23 +1031,20 @@ class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		// Assert
-		assertThatThrownBy(() -> container.start("bar"))
-				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("bar");
+		assertThatThrownBy(() -> container.start("bar")).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("bar");
 	}
 
 	@Test
-	void start_withAQueueNameThatIsAlreadyRunning_shouldNotStartTheQueueAgainAndIgnoreTheCall()
-			throws Exception {
+	void start_withAQueueNameThatIsAlreadyRunning_shouldNotStartTheQueueAgainAndIgnoreTheCall() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 
-		when(sqs.receiveMessage(any(ReceiveMessageRequest.class)))
-				.thenReturn(new ReceiveMessageResult());
+		when(sqs.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(new ReceiveMessageResult());
 
 		container.setAmazonSqs(sqs);
 		container.setBackOffTime(0);
@@ -1191,12 +1074,10 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void stop_withAQueueNameThatIsNotRunning_shouldNotStopTheQueueAgainAndIgnoreTheCall()
-			throws Exception {
+	void stop_withAQueueNameThatIsNotRunning_shouldNotStopTheQueueAgainAndIgnoreTheCall() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -1227,12 +1108,10 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void setQueueStopTimeout_withNotDefaultTimeout_mustBeUsedWhenStoppingAQueue()
-			throws Exception {
+	void setQueueStopTimeout_withNotDefaultTimeout_mustBeUsedWhenStoppingAQueue() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("longRunningListenerMethod",
-				LongRunningListenerMethod.class);
+		applicationContext.registerSingleton("longRunningListenerMethod", LongRunningListenerMethod.class);
 
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
@@ -1249,14 +1128,13 @@ class SimpleMessageListenerContainerTest {
 		mockGetQueueAttributesWithEmptyResult(sqs,
 				"https://setQueueStopTimeout_withNotDefaultTimeout_mustBeUsedWhenStoppingAQueue.amazonaws.com");
 		mockReceiveMessage(sqs,
-				"https://setQueueStopTimeout_withNotDefaultTimeout_mustBeUsedWhenStoppingAQueue.amazonaws.com",
-				"Hello", "ReceiptHandle");
+				"https://setQueueStopTimeout_withNotDefaultTimeout_mustBeUsedWhenStoppingAQueue.amazonaws.com", "Hello",
+				"ReceiptHandle");
 
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
 		container.start();
-		applicationContext.getBean(LongRunningListenerMethod.class).getCountDownLatch()
-				.await(1, TimeUnit.SECONDS);
+		applicationContext.getBean(LongRunningListenerMethod.class).getCountDownLatch().await(1, TimeUnit.SECONDS);
 		StopWatch stopWatch = new StopWatch();
 
 		// Act
@@ -1267,24 +1145,18 @@ class SimpleMessageListenerContainerTest {
 		// Assert
 		assertThat(container.getQueueStopTimeout()).isEqualTo(100);
 		assertThat(stopWatch.getTotalTimeMillis() >= container.getQueueStopTimeout())
-				.as("stop must last at least the defined queue stop timeout (> 100ms)")
-				.isTrue();
-		assertThat(stopWatch
-				.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME)
-						.as("stop must last less than the listener method (< 20000ms)")
-						.isTrue();
+				.as("stop must last at least the defined queue stop timeout (> 100ms)").isTrue();
+		assertThat(stopWatch.getTotalTimeMillis() < LongRunningListenerMethod.LISTENER_METHOD_WAIT_TIME)
+				.as("stop must last less than the listener method (< 20000ms)").isTrue();
 		container.stop();
 	}
 
 	@Test
-	void stop_withContainerHavingMultipleQueuesRunning_shouldStopQueuesInParallel()
-			throws Exception {
+	void stop_withContainerHavingMultipleQueuesRunning_shouldStopQueuesInParallel() throws Exception {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("testMessageListener",
-				TestMessageListener.class);
-		applicationContext.registerSingleton("anotherTestMessageListener",
-				AnotherTestMessageListener.class);
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		applicationContext.registerSingleton("anotherTestMessageListener", AnotherTestMessageListener.class);
 
 		CountDownLatch testQueueCountdownLatch = new CountDownLatch(1);
 		CountDownLatch anotherTestQueueCountdownLatch = new CountDownLatch(1);
@@ -1315,32 +1187,25 @@ class SimpleMessageListenerContainerTest {
 		container.setMessageHandler(messageHandler);
 
 		mockGetQueueUrl(sqs, "testQueue", "http://testQueue.amazonaws.com");
-		mockGetQueueUrl(sqs, "anotherTestQueue",
-				"https://anotherTestQueue.amazonaws.com");
+		mockGetQueueUrl(sqs, "anotherTestQueue", "https://anotherTestQueue.amazonaws.com");
 		mockGetQueueAttributesWithEmptyResult(sqs, "http://testQueue.amazonaws.com");
-		mockGetQueueAttributesWithEmptyResult(sqs,
-				"https://anotherTestQueue.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "https://anotherTestQueue.amazonaws.com");
 
-		when(sqs.receiveMessage(
-				new ReceiveMessageRequest("http://testQueue.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10)))
-								.thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
-									spinningThreadsStarted.countDown();
-									testQueueCountdownLatch.await(1, TimeUnit.SECONDS);
-									throw new OverLimitException("Boom");
-								});
+		when(sqs.receiveMessage(new ReceiveMessageRequest("http://testQueue.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames("All").withMaxNumberOfMessages(10)))
+						.thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
+							spinningThreadsStarted.countDown();
+							testQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+							throw new OverLimitException("Boom");
+						});
 
-		when(sqs.receiveMessage(
-				new ReceiveMessageRequest("https://anotherTestQueue.amazonaws.com")
-						.withAttributeNames("All").withMessageAttributeNames("All")
-						.withMaxNumberOfMessages(10)))
-								.thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
-									spinningThreadsStarted.countDown();
-									anotherTestQueueCountdownLatch.await(1,
-											TimeUnit.SECONDS);
-									throw new OverLimitException("Boom");
-								});
+		when(sqs.receiveMessage(new ReceiveMessageRequest("https://anotherTestQueue.amazonaws.com")
+				.withAttributeNames("All").withMessageAttributeNames("All").withMaxNumberOfMessages(10)))
+						.thenAnswer((Answer<ReceiveMessageResult>) invocation -> {
+							spinningThreadsStarted.countDown();
+							anotherTestQueueCountdownLatch.await(1, TimeUnit.SECONDS);
+							throw new OverLimitException("Boom");
+						});
 
 		messageHandler.afterPropertiesSet();
 		container.afterPropertiesSet();
@@ -1355,14 +1220,12 @@ class SimpleMessageListenerContainerTest {
 
 		// Assert
 		assertThat(stopWatch.getTotalTimeMillis() < 200)
-				.as("Stop time must be shorter than stopping one queue after the other")
-				.isTrue();
+				.as("Stop time must be shorter than stopping one queue after the other").isTrue();
 	}
 
 	// This class is needed because it does not seem to work when using mockito to mock
 	// those requests
-	private static final class MockAmazonSqsAsyncClient
-			extends AmazonSQSBufferedAsyncClient {
+	private static final class MockAmazonSqsAsyncClient extends AmazonSQSBufferedAsyncClient {
 
 		private volatile boolean receiveMessageEnabled;
 
@@ -1371,27 +1234,24 @@ class SimpleMessageListenerContainerTest {
 		}
 
 		@Override
-		public GetQueueUrlResult getQueueUrl(GetQueueUrlRequest getQueueUrlRequest)
-				throws AmazonClientException {
-			return new GetQueueUrlResult().withQueueUrl(
-					"http://" + getQueueUrlRequest.getQueueName() + ".amazonaws.com");
+		public GetQueueUrlResult getQueueUrl(GetQueueUrlRequest getQueueUrlRequest) throws AmazonClientException {
+			return new GetQueueUrlResult()
+					.withQueueUrl("http://" + getQueueUrlRequest.getQueueName() + ".amazonaws.com");
 		}
 
 		@Override
-		public GetQueueAttributesResult getQueueAttributes(
-				GetQueueAttributesRequest getQueueAttributesRequest)
+		public GetQueueAttributesResult getQueueAttributes(GetQueueAttributesRequest getQueueAttributesRequest)
 				throws AmazonClientException {
 			return new GetQueueAttributesResult();
 		}
 
 		@Override
-		public ReceiveMessageResult receiveMessage(
-				ReceiveMessageRequest receiveMessageRequest)
+		public ReceiveMessageResult receiveMessage(ReceiveMessageRequest receiveMessageRequest)
 				throws AmazonClientException {
-			if ("http://testQueue.amazonaws.com".equals(
-					receiveMessageRequest.getQueueUrl()) && this.receiveMessageEnabled) {
-				return new ReceiveMessageResult().withMessages(new Message()
-						.withBody("Hello").withReceiptHandle("ReceiptHandle"));
+			if ("http://testQueue.amazonaws.com".equals(receiveMessageRequest.getQueueUrl())
+					&& this.receiveMessageEnabled) {
+				return new ReceiveMessageResult()
+						.withMessages(new Message().withBody("Hello").withReceiptHandle("ReceiptHandle"));
 			}
 			else {
 				return new ReceiveMessageResult();
@@ -1465,8 +1325,7 @@ class SimpleMessageListenerContainerTest {
 	private static class TestMessageListenerThatThrowsAnExceptionWithAllExceptOnRedriveDeletionPolicy {
 
 		@SuppressWarnings("UnusedDeclaration")
-		@SqsListener(value = "testQueue",
-				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void handleMessage(String message) {
 			throw new RuntimeException();
 		}
@@ -1486,11 +1345,9 @@ class SimpleMessageListenerContainerTest {
 
 		@Bean
 		AmazonSQSAsync amazonSQS() {
-			AmazonSQSAsync mockAmazonSQS = mock(AmazonSQSAsync.class,
-					withSettings().stubOnly());
+			AmazonSQSAsync mockAmazonSQS = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 			mockGetQueueUrl(mockAmazonSQS, "testQueue", "http://testQueue.amazonaws.com");
-			when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class)))
-					.thenReturn(new ReceiveMessageResult());
+			when(mockAmazonSQS.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(new ReceiveMessageResult());
 			when(mockAmazonSQS.getQueueAttributes(any(GetQueueAttributesRequest.class)))
 					.thenReturn(new GetQueueAttributesResult());
 			return mockAmazonSQS;
@@ -1505,8 +1362,7 @@ class SimpleMessageListenerContainerTest {
 		private Visibility visibility;
 
 		@RuntimeUse
-		@SqsListener(value = "testQueue",
-				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "testQueue", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void manualSuccess(String message, Visibility visibility) {
 			this.visibility = visibility;
 			this.countDownLatch.countDown();
@@ -1550,60 +1406,52 @@ class SimpleMessageListenerContainerTest {
 		private final CountDownLatch countdownLatch = new CountDownLatch(8);
 
 		@RuntimeUse
-		@SqsListener(value = "alwaysSuccess",
-				deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
+		@SqsListener(value = "alwaysSuccess", deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
 		private void alwaysSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "alwaysError",
-				deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
+		@SqsListener(value = "alwaysError", deletionPolicy = SqsMessageDeletionPolicy.ALWAYS)
 		private void alwaysError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "onSuccessSuccess",
-				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "onSuccessSuccess", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void onSuccessSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "onSuccessError",
-				deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+		@SqsListener(value = "onSuccessError", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
 		private void onSuccessError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "noRedriveSuccess",
-				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "noRedriveSuccess", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void noRedriveSuccess(String message) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "noRedriveError",
-				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "noRedriveError", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		private void noRedriveError(String message) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "neverSuccess",
-				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "neverSuccess", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		private void neverSuccess(String message, Acknowledgment acknowledgment) {
 			this.countdownLatch.countDown();
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "neverError",
-				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "neverError", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		private void neverError(String message, Acknowledgment acknowledgment) {
 			this.countdownLatch.countDown();
 			throw new RuntimeException("BOOM!");

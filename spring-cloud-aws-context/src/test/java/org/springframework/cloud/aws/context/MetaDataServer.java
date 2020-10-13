@@ -51,8 +51,7 @@ public final class MetaDataServer {
 			InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 			httpServer = HttpServer.create(address, -1);
 			httpServer.start();
-			overwriteMetadataEndpointUrl(
-					"http://" + address.getHostName() + ":" + address.getPort());
+			overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
 		}
 
 		return httpServer;
@@ -67,16 +66,13 @@ public final class MetaDataServer {
 		resetMetaDataCache();
 	}
 
-	private static void overwriteMetadataEndpointUrl(
-			String localMetadataServiceEndpointUrl) {
-		System.setProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
+	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
 				localMetadataServiceEndpointUrl);
 	}
 
 	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 
 	private static void resetMetaDataCache() {
@@ -86,8 +82,8 @@ public final class MetaDataServer {
 			metadataCacheField.set(null, new HashMap<String, String>());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException("Unable to clear metadata cache in '"
-					+ EC2MetadataUtils.class.getName() + "'", e);
+			throw new IllegalStateException(
+					"Unable to clear metadata cache in '" + EC2MetadataUtils.class.getName() + "'", e);
 		}
 	}
 

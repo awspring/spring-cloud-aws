@@ -38,37 +38,32 @@ class AwsS3ResourceLoaderPropertiesTest {
 
 	@Test
 	void corePoolSizeCanBeSet() {
-		assertThat(this.properties.getCorePoolSize())
-				.as("Default value of the core size should be one").isEqualTo(1);
+		assertThat(this.properties.getCorePoolSize()).as("Default value of the core size should be one").isEqualTo(1);
 
 		int newSize = 138;
 		this.properties.setCorePoolSize(newSize);
-		assertThat(this.properties.getCorePoolSize())
-				.as("Core size should have been reset").isEqualTo(newSize);
+		assertThat(this.properties.getCorePoolSize()).as("Core size should have been reset").isEqualTo(newSize);
 	}
 
 	@Test
 	void maxPoolSizeCanBeSet() {
 		assertThat(this.properties.getMaxPoolSize())
-				.as("Default value of the max pool size should be integer max value")
-				.isEqualTo(Integer.MAX_VALUE);
+				.as("Default value of the max pool size should be integer max value").isEqualTo(Integer.MAX_VALUE);
 
 		int newSize = 11;
 		this.properties.setMaxPoolSize(newSize);
-		assertThat(this.properties.getMaxPoolSize())
-				.as("Max pool size should have been reset").isEqualTo(newSize);
+		assertThat(this.properties.getMaxPoolSize()).as("Max pool size should have been reset").isEqualTo(newSize);
 	}
 
 	@Test
 	void queueCapacityCanBeSet() {
-		assertThat(this.properties.getQueueCapacity()).as(
-				"Default value of the queue capacity size should be integer max value")
+		assertThat(this.properties.getQueueCapacity())
+				.as("Default value of the queue capacity size should be integer max value")
 				.isEqualTo(Integer.MAX_VALUE);
 
 		int newSize = 11;
 		this.properties.setQueueCapacity(newSize);
-		assertThat(this.properties.getQueueCapacity())
-				.as("Queue capacity should have been reset").isEqualTo(newSize);
+		assertThat(this.properties.getQueueCapacity()).as("Queue capacity should have been reset").isEqualTo(newSize);
 	}
 
 }

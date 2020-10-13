@@ -47,32 +47,25 @@ class ContextRegionConfigurationRegistrarTest {
 	}
 
 	@Test
-	void regionProvider_withConfiguredRegion_staticRegionProviderConfigured()
-			throws Exception {
+	void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() throws Exception {
 		// Arrange
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithStaticRegionProvider.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithStaticRegionProvider.class);
 
 		// Act
-		StaticRegionProvider staticRegionProvider = this.context
-				.getBean(StaticRegionProvider.class);
+		StaticRegionProvider staticRegionProvider = this.context.getBean(StaticRegionProvider.class);
 
 		// Assert
 		assertThat(staticRegionProvider).isNotNull();
-		assertThat(staticRegionProvider.getRegion())
-				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
+		assertThat(staticRegionProvider.getRegion()).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
-	void regionProvider_withAutoDetectedRegion_dynamicRegionProviderConfigured()
-			throws Exception {
+	void regionProvider_withAutoDetectedRegion_dynamicRegionProviderConfigured() throws Exception {
 		// Arrange
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithDynamicRegionProvider.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithDynamicRegionProvider.class);
 
 		// Act
-		Ec2MetadataRegionProvider staticRegionProvider = this.context
-				.getBean(Ec2MetadataRegionProvider.class);
+		Ec2MetadataRegionProvider staticRegionProvider = this.context.getBean(Ec2MetadataRegionProvider.class);
 
 		// Assert
 		assertThat(staticRegionProvider).isNotNull();
@@ -82,55 +75,47 @@ class ContextRegionConfigurationRegistrarTest {
 	void regionProvider_withAutoDetectedRegionAndDefaultChain_defaulAwsChainRegionProviderConfigured()
 			throws Exception {
 		// Arrange
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithDynamicRegionProvider.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithDynamicRegionProvider.class);
 
 		// Act
-		Ec2MetadataRegionProvider staticRegionProvider = this.context
-				.getBean(Ec2MetadataRegionProvider.class);
+		Ec2MetadataRegionProvider staticRegionProvider = this.context.getBean(Ec2MetadataRegionProvider.class);
 
 		// Assert
 		assertThat(staticRegionProvider).isNotNull();
 	}
 
 	@Test
-	void regionProvider_withExpressionConfiguredRegion_staticRegionProviderConfigured()
-			throws Exception {
+	void regionProvider_withExpressionConfiguredRegion_staticRegionProviderConfigured() throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource(
-				"test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
+		this.context.getEnvironment().getPropertySources().addLast(
+				new MapPropertySource("test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
 		this.context.register(ApplicationConfigurationWithExpressionRegion.class);
 
 		// Act
 		this.context.refresh();
-		StaticRegionProvider staticRegionProvider = this.context
-				.getBean(StaticRegionProvider.class);
+		StaticRegionProvider staticRegionProvider = this.context.getBean(StaticRegionProvider.class);
 
 		// Assert
 		assertThat(staticRegionProvider).isNotNull();
-		assertThat(staticRegionProvider.getRegion())
-				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
+		assertThat(staticRegionProvider.getRegion()).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
-	void regionProvider_withPlaceHolderConfiguredRegion_staticRegionProviderConfigured()
-			throws Exception {
+	void regionProvider_withPlaceHolderConfiguredRegion_staticRegionProviderConfigured() throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
-		this.context.getEnvironment().getPropertySources().addLast(new MapPropertySource(
-				"test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
+		this.context.getEnvironment().getPropertySources().addLast(
+				new MapPropertySource("test", Collections.singletonMap("region", Regions.EU_WEST_1.getName())));
 		this.context.register(ApplicationConfigurationWithPlaceHolderRegion.class);
 
 		// Act
 		this.context.refresh();
-		StaticRegionProvider staticRegionProvider = this.context
-				.getBean(StaticRegionProvider.class);
+		StaticRegionProvider staticRegionProvider = this.context.getBean(StaticRegionProvider.class);
 
 		// Assert
 		assertThat(staticRegionProvider).isNotNull();
-		assertThat(staticRegionProvider.getRegion())
-				.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
+		assertThat(staticRegionProvider.getRegion()).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
 	}
 
 	@Test
@@ -141,9 +126,8 @@ class ContextRegionConfigurationRegistrarTest {
 		this.context.register(ApplicationConfigurationWithNoRegion.class);
 
 		// Assert
-		assertThatThrownBy(() -> this.context.refresh())
-				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-						"Region must be manually configured or autoDetect enabled");
+		assertThatThrownBy(() -> this.context.refresh()).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Region must be manually configured or autoDetect enabled");
 
 	}
 
@@ -155,18 +139,15 @@ class ContextRegionConfigurationRegistrarTest {
 		this.context.register(ApplicationConfigurationWithAutoDetectionAndRegion.class);
 
 		// Assert
-		assertThatThrownBy(() -> this.context.refresh())
-				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-						"No region must be configured if autoDetect is defined as true");
+		assertThatThrownBy(() -> this.context.refresh()).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("No region must be configured if autoDetect is defined as true");
 	}
 
 	@Test
 	void regionProvider_withConfiguredWrongRegion_reportsError() throws Exception {
 
-		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithWrongRegion.class))
-						.isInstanceOf(BeanCreationException.class)
-						.hasMessageContaining("not a valid region");
+		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(ApplicationConfigurationWithWrongRegion.class))
+				.isInstanceOf(BeanCreationException.class).hasMessageContaining("not a valid region");
 	}
 
 	@Configuration(proxyBeanMethods = false)

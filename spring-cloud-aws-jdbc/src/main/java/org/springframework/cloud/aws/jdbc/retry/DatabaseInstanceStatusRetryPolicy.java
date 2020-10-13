@@ -53,8 +53,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	 */
 	private static final String DB_INSTANCE_ATTRIBUTE_NAME = "DbInstanceIdentifier";
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(DatabaseInstanceStatusRetryPolicy.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseInstanceStatusRetryPolicy.class);
 
 	/**
 	 * Database instance identifier which should be checked.
@@ -75,8 +74,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	 * @param dbInstanceIdentifier - database instance for which this class should check
 	 * the state.
 	 */
-	public DatabaseInstanceStatusRetryPolicy(AmazonRDS amazonRDS,
-			String dbInstanceIdentifier) {
+	public DatabaseInstanceStatusRetryPolicy(AmazonRDS amazonRDS, String dbInstanceIdentifier) {
 		Assert.notNull(amazonRDS, "amazonRDS must not be null.");
 		this.amazonRDS = amazonRDS;
 		this.dbInstanceIdentifier = dbInstanceIdentifier;
@@ -112,8 +110,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 		RetryContextSupport context = new RetryContextSupport(parent);
 		context.setAttribute(DB_INSTANCE_ATTRIBUTE_NAME, getDbInstanceIdentifier());
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Starting RetryContext for database instance with identifier {}",
-					getDbInstanceIdentifier());
+			LOGGER.trace("Starting RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
 		}
 		return context;
 	}
@@ -122,8 +119,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	public void close(RetryContext context) {
 		context.removeAttribute(DB_INSTANCE_ATTRIBUTE_NAME);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Closing RetryContext for database instance with identifier {}",
-					getDbInstanceIdentifier());
+			LOGGER.trace("Closing RetryContext for database instance with identifier {}", getDbInstanceIdentifier());
 		}
 	}
 
@@ -131,17 +127,15 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	public void registerThrowable(RetryContext context, Throwable throwable) {
 		((RetryContextSupport) context).registerThrowable(throwable);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Registered Throwable of Type {} for RetryContext",
-					throwable.getClass().getName());
+			LOGGER.trace("Registered Throwable of Type {} for RetryContext", throwable.getClass().getName());
 		}
 	}
 
 	private boolean isDatabaseAvailable(RetryContext context) {
 		DescribeDBInstancesResult describeDBInstancesResult;
 		try {
-			describeDBInstancesResult = this.amazonRDS.describeDBInstances(
-					new DescribeDBInstancesRequest().withDBInstanceIdentifier(
-							(String) context.getAttribute(DB_INSTANCE_ATTRIBUTE_NAME)));
+			describeDBInstancesResult = this.amazonRDS.describeDBInstances(new DescribeDBInstancesRequest()
+					.withDBInstanceIdentifier((String) context.getAttribute(DB_INSTANCE_ATTRIBUTE_NAME)));
 		}
 		catch (DBInstanceNotFoundException e) {
 			LOGGER.warn(
@@ -153,8 +147,7 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 
 		if (describeDBInstancesResult.getDBInstances().size() == 1) {
 			DBInstance dbInstance = describeDBInstancesResult.getDBInstances().get(0);
-			InstanceStatus instanceStatus = InstanceStatus
-					.fromDatabaseStatus(dbInstance.getDBInstanceStatus());
+			InstanceStatus instanceStatus = InstanceStatus.fromDatabaseStatus(dbInstance.getDBInstanceStatus());
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Status of database to be retried is {}", instanceStatus);
 			}
@@ -167,8 +160,8 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	}
 
 	private String getDbInstanceIdentifier() {
-		return this.resourceIdResolver != null ? this.resourceIdResolver
-				.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
+		return this.resourceIdResolver != null
+				? this.resourceIdResolver.resolveToPhysicalResourceId(this.dbInstanceIdentifier)
 				: this.dbInstanceIdentifier;
 	}
 

@@ -33,14 +33,11 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withNullEndpoint_throwsIllegalArgumentException() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
-				.withRegion(Regions.DEFAULT_REGION).build();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
 
 		// Assert
-		assertThatThrownBy(
-				() -> amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, null))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("Endpoint Url must not be null");
+		assertThatThrownBy(() -> amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, null))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Endpoint Url must not be null");
 
 	}
 
@@ -50,9 +47,8 @@ class AmazonS3ClientFactoryTest {
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
 
 		// Assert
-		assertThatThrownBy(() -> amazonS3ClientFactory.createClientForEndpointUrl(null,
-				"https://s3.amazonaws.com")).isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("AmazonS3 must not be null");
+		assertThatThrownBy(() -> amazonS3ClientFactory.createClientForEndpointUrl(null, "https://s3.amazonaws.com"))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("AmazonS3 must not be null");
 
 	}
 
@@ -60,12 +56,10 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withDefaultRegionUrl_createClientForDefaultRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
-				.withRegion(Regions.EU_CENTRAL_1).build();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build();
 
 		// Act
-		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
-				"https://s3.amazonaws.com");
+		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, "https://s3.amazonaws.com");
 
 		// Prepare
 		assertThat(newClient.getRegionName()).isEqualTo(Regions.DEFAULT_REGION.getName());
@@ -75,12 +69,11 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withProvidedBucketRegion_createClientForDefaultRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard()
-				.withRegion(Regions.EU_CENTRAL_1).build();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build();
 
 		// Act
-		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
-				"https://s3.amazonaws.com", Regions.US_EAST_1);
+		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3, "https://s3.amazonaws.com",
+				Regions.US_EAST_1);
 
 		// Prepare
 		assertThat(newClient.getRegionName()).isEqualTo(Regions.US_EAST_1.getName());
@@ -90,8 +83,7 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withCustomRegionUrl_createClientForCustomRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1)
-				.build();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build();
 
 		// Act
 		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
@@ -105,8 +97,8 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withProxiedClient_createClientForCustomRegion() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ProxyFactory.createProxy(
-				AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build());
+		AmazonS3 amazonS3 = AmazonS3ProxyFactory
+				.createProxy(AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build());
 
 		// Act
 		AmazonS3 newClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
@@ -120,11 +112,10 @@ class AmazonS3ClientFactoryTest {
 	void createClientForEndpointUrl_withCustomRegionUrlAndCachedClient_returnsCachedClient() {
 		// Arrange
 		AmazonS3ClientFactory amazonS3ClientFactory = new AmazonS3ClientFactory();
-		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1)
-				.build();
+		AmazonS3 amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build();
 
-		AmazonS3 existingClient = amazonS3ClientFactory.createClientForEndpointUrl(
-				amazonS3, "https://myBucket.s3.eu-central-1.amazonaws.com");
+		AmazonS3 existingClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,
+				"https://myBucket.s3.eu-central-1.amazonaws.com");
 
 		// Act
 		AmazonS3 cachedClient = amazonS3ClientFactory.createClientForEndpointUrl(amazonS3,

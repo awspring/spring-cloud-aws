@@ -53,16 +53,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 @ConditionalOnMissingBean(MailSender.class)
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableConfigurationProperties(SimpleEmailProperties.class)
-@ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true", matchIfMissing = true)
 public class SimpleEmailAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
 	public SimpleEmailAutoConfiguration(ObjectProvider<RegionProvider> regionProvider,
 			SimpleEmailProperties properties) {
-		this.regionProvider = properties.getRegion() == null
-				? regionProvider.getIfAvailable()
+		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
 	}
 
@@ -70,22 +68,19 @@ public class SimpleEmailAutoConfiguration {
 	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
 	public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService(
 			AWSCredentialsProvider credentialsProvider) {
-		return new AmazonWebserviceClientFactoryBean<>(
-				AmazonSimpleEmailServiceClient.class, credentialsProvider,
+		return new AmazonWebserviceClientFactoryBean<>(AmazonSimpleEmailServiceClient.class, credentialsProvider,
 				this.regionProvider);
 	}
 
 	@Bean
 	@ConditionalOnMissingClass("javax.mail.Session")
-	public MailSender simpleMailSender(
-			AmazonSimpleEmailService amazonSimpleEmailService) {
+	public MailSender simpleMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
 		return new SimpleEmailServiceMailSender(amazonSimpleEmailService);
 	}
 
 	@Bean
 	@ConditionalOnClass(Session.class)
-	public JavaMailSender javaMailSender(
-			AmazonSimpleEmailService amazonSimpleEmailService) {
+	public JavaMailSender javaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
 		return new SimpleEmailServiceJavaMailSender(amazonSimpleEmailService);
 	}
 

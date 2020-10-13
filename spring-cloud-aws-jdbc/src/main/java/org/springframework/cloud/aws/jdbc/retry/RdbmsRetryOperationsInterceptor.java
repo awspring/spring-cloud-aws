@@ -38,8 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 public class RdbmsRetryOperationsInterceptor extends RetryOperationsInterceptor {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(RdbmsRetryOperationsInterceptor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RdbmsRetryOperationsInterceptor.class);
 
 	/**
 	 * Checks that there is no current transaction active. This should never happen as

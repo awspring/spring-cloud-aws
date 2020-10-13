@@ -56,8 +56,7 @@ public class ContextStackConfiguration implements ImportAware {
 	private final AmazonEC2 amazonEc2;
 
 	public ContextStackConfiguration(ObjectProvider<RegionProvider> regionProvider,
-			ObjectProvider<AWSCredentialsProvider> credentialsProvider,
-			ObjectProvider<AmazonEC2> amazonEc2) {
+			ObjectProvider<AWSCredentialsProvider> credentialsProvider, ObjectProvider<AmazonEC2> amazonEc2) {
 		this.regionProvider = regionProvider.getIfAvailable();
 		this.credentialsProvider = credentialsProvider.getIfAvailable();
 		this.amazonEc2 = amazonEc2.getIfAvailable();
@@ -66,11 +65,9 @@ public class ContextStackConfiguration implements ImportAware {
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.annotationAttributes = AnnotationAttributes
-				.fromMap(importMetadata.getAnnotationAttributes(
-						EnableStackConfiguration.class.getName(), false));
+				.fromMap(importMetadata.getAnnotationAttributes(EnableStackConfiguration.class.getName(), false));
 		Assert.notNull(this.annotationAttributes,
-				"@EnableStackConfiguration is not present on importing class "
-						+ importMetadata.getClassName());
+				"@EnableStackConfiguration is not present on importing class " + importMetadata.getClassName());
 	}
 
 	@Bean
@@ -78,21 +75,19 @@ public class ContextStackConfiguration implements ImportAware {
 			AmazonCloudFormation amazonCloudFormation) {
 		if (StringUtils.hasText(this.annotationAttributes.getString("stackName"))) {
 			return new StackResourceRegistryFactoryBean(amazonCloudFormation,
-					new StaticStackNameProvider(
-							this.annotationAttributes.getString("stackName")));
+					new StaticStackNameProvider(this.annotationAttributes.getString("stackName")));
 		}
 		else {
 			return new StackResourceRegistryFactoryBean(amazonCloudFormation,
-					new AutoDetectingStackNameProvider(amazonCloudFormation,
-							this.amazonEc2));
+					new AutoDetectingStackNameProvider(amazonCloudFormation, this.amazonEc2));
 		}
 	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
 	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class,
-				this.credentialsProvider, this.regionProvider);
+		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class, this.credentialsProvider,
+				this.regionProvider);
 	}
 
 }

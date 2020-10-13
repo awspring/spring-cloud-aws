@@ -35,47 +35,39 @@ class MapBasedDatabasePlatformSupportTest {
 
 	@Test
 	void testGetDriverClassNameForDatabase() throws Exception {
-		assertThat(new SimpleDatabasePlatformSupport()
-				.getDriverClassNameForDatabase(DatabaseType.MYSQL))
-						.isEqualTo("com.mysql.jdbc.Driver");
+		assertThat(new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.MYSQL))
+				.isEqualTo("com.mysql.jdbc.Driver");
 	}
 
 	@Test
 	void testGetDriverNonConfiguredDatabasePlatform() throws Exception {
-		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport()
-				.getDriverClassNameForDatabase(DatabaseType.ORACLE))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("No driver");
+		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(DatabaseType.ORACLE))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("No driver");
 	}
 
 	@Test
 	void testNullDriver() throws Exception {
-		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport()
-				.getDriverClassNameForDatabase(null))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("must not be null");
+		assertThatThrownBy(() -> new SimpleDatabasePlatformSupport().getDriverClassNameForDatabase(null))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("must not be null");
 	}
 
 	@Test
 	void testGetDatabaseUrlForDatabase() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
-		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
-				DatabaseType.MYSQL, "localhost", 3306, "testDb");
+		String url = simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL, "localhost", 3306,
+				"testDb");
 		assertThat(url).isEqualTo("jdbc:mysql://localhost:3306/testDb");
 	}
 
 	@Test
 	void testGetDatabaseUrlWrongHostName() throws Exception {
 		SimpleDatabasePlatformSupport simpleDatabasePlatformSupport = new SimpleDatabasePlatformSupport();
-		assertThatThrownBy(() -> simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(
-				DatabaseType.MYSQL, "localhost<", 3306, "testDb"))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining(
-								"Error constructing URI from Host:'localhost<'");
+		assertThatThrownBy(() -> simpleDatabasePlatformSupport.getDatabaseUrlForDatabase(DatabaseType.MYSQL,
+				"localhost<", 3306, "testDb")).isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("Error constructing URI from Host:'localhost<'");
 	}
 
-	private static class SimpleDatabasePlatformSupport
-			extends MapBasedDatabasePlatformSupport {
+	private static class SimpleDatabasePlatformSupport extends MapBasedDatabasePlatformSupport {
 
 		@Override
 		protected Map<DatabaseType, String> getDriverClassNameMappings() {

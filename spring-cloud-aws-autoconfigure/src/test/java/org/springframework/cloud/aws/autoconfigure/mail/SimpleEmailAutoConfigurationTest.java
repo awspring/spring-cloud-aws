@@ -39,11 +39,9 @@ class SimpleEmailAutoConfigurationTest {
 		this.contextRunner.run(context -> {
 			assertThat(context.getBean(MailSender.class)).isNotNull();
 			assertThat(context.getBean(JavaMailSender.class)).isNotNull();
-			assertThat(context.getBean(JavaMailSender.class))
-					.isSameAs(context.getBean(MailSender.class));
+			assertThat(context.getBean(JavaMailSender.class)).isSameAs(context.getBean(MailSender.class));
 
-			AmazonSimpleEmailServiceClient client = context
-					.getBean(AmazonSimpleEmailServiceClient.class);
+			AmazonSimpleEmailServiceClient client = context.getBean(AmazonSimpleEmailServiceClient.class);
 
 			Object region = ReflectionTestUtils.getField(client, "signingRegion");
 			assertThat(region).isEqualTo(Regions.DEFAULT_REGION.getName());
@@ -52,39 +50,33 @@ class SimpleEmailAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationWithSpecificRegion() {
-		this.contextRunner.withPropertyValues("cloud.aws.mail.region:us-east-1")
-				.run(context -> {
-					assertThat(context.getBean(MailSender.class)).isNotNull();
-					assertThat(context.getBean(JavaMailSender.class)).isNotNull();
-					assertThat(context.getBean(JavaMailSender.class))
-							.isSameAs(context.getBean(MailSender.class));
+		this.contextRunner.withPropertyValues("cloud.aws.mail.region:us-east-1").run(context -> {
+			assertThat(context.getBean(MailSender.class)).isNotNull();
+			assertThat(context.getBean(JavaMailSender.class)).isNotNull();
+			assertThat(context.getBean(JavaMailSender.class)).isSameAs(context.getBean(MailSender.class));
 
-					AmazonSimpleEmailServiceClient client = context
-							.getBean(AmazonSimpleEmailServiceClient.class);
+			AmazonSimpleEmailServiceClient client = context.getBean(AmazonSimpleEmailServiceClient.class);
 
-					Object region = ReflectionTestUtils.getField(client, "signingRegion");
-					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
-				});
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+		});
 	}
 
 	@Test
 	void mailSenderWithSimpleEmail() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader("javax.mail.Session"))
-				.run(context -> {
-					assertThat(context.getBean(MailSender.class)).isNotNull();
-					assertThat(context.getBean("simpleMailSender")).isNotNull();
-					assertThat(context.getBean("simpleMailSender"))
-							.isSameAs(context.getBean(MailSender.class));
-				});
+		this.contextRunner.withClassLoader(new FilteredClassLoader("javax.mail.Session")).run(context -> {
+			assertThat(context.getBean(MailSender.class)).isNotNull();
+			assertThat(context.getBean("simpleMailSender")).isNotNull();
+			assertThat(context.getBean("simpleMailSender")).isSameAs(context.getBean(MailSender.class));
+		});
 	}
 
 	@Test
 	void mailIsDisabled() {
-		this.contextRunner.withPropertyValues("cloud.aws.mail.enabled:false")
-				.run(context -> {
-					assertThat(context).doesNotHaveBean(MailSender.class);
-					assertThat(context).doesNotHaveBean(JavaMailSender.class);
-				});
+		this.contextRunner.withPropertyValues("cloud.aws.mail.enabled:false").run(context -> {
+			assertThat(context).doesNotHaveBean(MailSender.class);
+			assertThat(context).doesNotHaveBean(JavaMailSender.class);
+		});
 	}
 
 }

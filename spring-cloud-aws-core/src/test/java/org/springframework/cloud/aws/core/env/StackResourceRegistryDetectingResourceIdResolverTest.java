@@ -31,18 +31,15 @@ import static org.mockito.Mockito.when;
 
 class StackResourceRegistryDetectingResourceIdResolverTest {
 
-	private static ListableBeanFactory makeListableBeanFactory(
-			StackResourceRegistry... stackResourceRegistries) {
+	private static ListableBeanFactory makeListableBeanFactory(StackResourceRegistry... stackResourceRegistries) {
 		Map<String, StackResourceRegistry> stackResourceRegistryMap = new HashMap<>();
 
 		for (StackResourceRegistry stackResourceRegistry : stackResourceRegistries) {
-			stackResourceRegistryMap.put(String.valueOf(stackResourceRegistry.hashCode()),
-					stackResourceRegistry);
+			stackResourceRegistryMap.put(String.valueOf(stackResourceRegistry.hashCode()), stackResourceRegistry);
 		}
 
 		ListableBeanFactory listableBeanFactory = mock(ListableBeanFactory.class);
-		when(listableBeanFactory.getBeansOfType(StackResourceRegistry.class))
-				.thenReturn(stackResourceRegistryMap);
+		when(listableBeanFactory.getBeansOfType(StackResourceRegistry.class)).thenReturn(stackResourceRegistryMap);
 
 		return listableBeanFactory;
 	}
@@ -51,11 +48,10 @@ class StackResourceRegistryDetectingResourceIdResolverTest {
 		return makeStackResourceRegistry(null, null);
 	}
 
-	private static StackResourceRegistry makeStackResourceRegistry(
-			String logicalResourceId, String physicalResourceId) {
+	private static StackResourceRegistry makeStackResourceRegistry(String logicalResourceId,
+			String physicalResourceId) {
 		StackResourceRegistry stackResourceRegistry = mock(StackResourceRegistry.class);
-		when(stackResourceRegistry.lookupPhysicalResourceId(logicalResourceId))
-				.thenReturn(physicalResourceId);
+		when(stackResourceRegistry.lookupPhysicalResourceId(logicalResourceId)).thenReturn(physicalResourceId);
 
 		return stackResourceRegistry;
 	}
@@ -72,8 +68,7 @@ class StackResourceRegistryDetectingResourceIdResolverTest {
 		resourceIdResolver.afterPropertiesSet();
 
 		// Act
-		String physicalResourceId = resourceIdResolver
-				.resolveToPhysicalResourceId("logicalResourceId");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
 		assertThat(physicalResourceId).isEqualTo("logicalResourceId");
@@ -87,13 +82,11 @@ class StackResourceRegistryDetectingResourceIdResolverTest {
 		// Arrange
 		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
 		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-		resourceIdResolver
-				.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
+		resourceIdResolver.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry()));
 		resourceIdResolver.afterPropertiesSet();
 
 		// Act
-		String physicalResourceId = resourceIdResolver
-				.resolveToPhysicalResourceId("logicalResourceId");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
 		assertThat(physicalResourceId).isEqualTo("logicalResourceId");
@@ -107,13 +100,12 @@ class StackResourceRegistryDetectingResourceIdResolverTest {
 		// Arrange
 		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
 		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
-				makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
+		resourceIdResolver.setBeanFactory(
+				makeListableBeanFactory(makeStackResourceRegistry("logicalResourceId", "physicalResourceId")));
 		resourceIdResolver.afterPropertiesSet();
 
 		// Act
-		String physicalResourceId = resourceIdResolver
-				.resolveToPhysicalResourceId("logicalResourceId");
+		String physicalResourceId = resourceIdResolver.resolveToPhysicalResourceId("logicalResourceId");
 
 		// Assert
 		assertThat(physicalResourceId).isEqualTo("physicalResourceId");
@@ -121,18 +113,16 @@ class StackResourceRegistryDetectingResourceIdResolverTest {
 
 	// @checkstyle:off
 	@Test
-	void createInstance_multipleStackResourceRegistriesAvailable_throwsException()
-			throws Exception {
+	void createInstance_multipleStackResourceRegistriesAvailable_throwsException() throws Exception {
 		// @checkstyle:on
 		// Arrange
 		StackResourceRegistryDetectingResourceIdResolver resourceIdResolver;
 		resourceIdResolver = new StackResourceRegistryDetectingResourceIdResolver();
-		resourceIdResolver.setBeanFactory(makeListableBeanFactory(
-				makeStackResourceRegistry(), makeStackResourceRegistry()));
+		resourceIdResolver
+				.setBeanFactory(makeListableBeanFactory(makeStackResourceRegistry(), makeStackResourceRegistry()));
 
 		// Assert
-		assertThatThrownBy(resourceIdResolver::afterPropertiesSet)
-				.isInstanceOf(IllegalStateException.class)
+		assertThatThrownBy(resourceIdResolver::afterPropertiesSet).isInstanceOf(IllegalStateException.class)
 				.hasMessage("Multiple stack resource registries found");
 	}
 

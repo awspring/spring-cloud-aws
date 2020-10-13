@@ -33,8 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(
 		classes = JavaNotificationMessagingTemplateIntegrationTest.NotificationMessagingTemplateIntegrationTestConfiguration.class)
-class JavaNotificationMessagingTemplateIntegrationTest
-		extends NotificationMessagingTemplateIntegrationTest {
+class JavaNotificationMessagingTemplateIntegrationTest extends NotificationMessagingTemplateIntegrationTest {
 
 	@Configuration
 	@EnableSqs
@@ -43,12 +42,11 @@ class JavaNotificationMessagingTemplateIntegrationTest
 	protected static class NotificationMessagingTemplateIntegrationTestConfiguration {
 
 		@Bean
-		public NotificationMessagingTemplate notificationMessagingTemplate(
-				AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
-			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(
-					amazonSns, resourceIdResolver);
-			notificationMessagingTemplate
-					.setDefaultDestinationName("SqsReceivingSnsTopic");
+		public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS amazonSns,
+				ResourceIdResolver resourceIdResolver) {
+			NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns,
+					resourceIdResolver);
+			notificationMessagingTemplate.setDefaultDestinationName("SqsReceivingSnsTopic");
 			return notificationMessagingTemplate;
 		}
 

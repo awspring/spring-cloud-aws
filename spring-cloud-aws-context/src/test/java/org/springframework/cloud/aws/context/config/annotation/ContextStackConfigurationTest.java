@@ -52,22 +52,19 @@ class ContextStackConfigurationTest {
 	}
 
 	@Test
-	void stackRegistry_noStackNameConfigured_returnsAutoConfiguredStackRegistry()
-			throws Exception {
+	void stackRegistry_noStackNameConfigured_returnsAutoConfiguredStackRegistry() throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ApplicationConfigurationWithEmptyStackName.class);
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext httpContext = httpServer.createContext(
-				"/latest/meta-data/instance-id",
+		HttpContext httpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("test"));
 
 		// Act
 		this.context.refresh();
 
 		// Assert
-		StackResourceRegistry stackResourceRegistry = this.context
-				.getBean(StackResourceRegistry.class);
+		StackResourceRegistry stackResourceRegistry = this.context.getBean(StackResourceRegistry.class);
 		assertThat(stackResourceRegistry).isNotNull();
 		assertThat(stackResourceRegistry.getStackName()).isEqualTo("testStack");
 
@@ -75,8 +72,7 @@ class ContextStackConfigurationTest {
 	}
 
 	@Test
-	void stackRegistry_stackNameConfigured_returnsConfiguredStackRegistryForName()
-			throws Exception {
+	void stackRegistry_stackNameConfigured_returnsConfiguredStackRegistryForName() throws Exception {
 		// Arrange
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ManualConfigurationStackRegistryTestConfiguration.class);
@@ -85,8 +81,7 @@ class ContextStackConfigurationTest {
 		this.context.refresh();
 
 		// Assert
-		StackResourceRegistry stackResourceRegistry = this.context
-				.getBean(StackResourceRegistry.class);
+		StackResourceRegistry stackResourceRegistry = this.context.getBean(StackResourceRegistry.class);
 		assertThat(stackResourceRegistry).isNotNull();
 		assertThat(stackResourceRegistry.getStackName()).isEqualTo("manualStackName");
 	}
@@ -97,16 +92,14 @@ class ContextStackConfigurationTest {
 
 		@Bean
 		AmazonCloudFormation amazonCloudFormation() {
-			AmazonCloudFormation amazonCloudFormation = Mockito
-					.mock(AmazonCloudFormation.class);
-			Mockito.when(amazonCloudFormation.describeStackResources(
-					new DescribeStackResourcesRequest().withPhysicalResourceId("test")))
-					.thenReturn(new DescribeStackResourcesResult().withStackResources(
-							new StackResource().withStackName("testStack")));
-			Mockito.when(amazonCloudFormation.listStackResources(
-					new ListStackResourcesRequest().withStackName("testStack")))
-					.thenReturn(new ListStackResourcesResult()
-							.withStackResourceSummaries(Collections.emptyList()));
+			AmazonCloudFormation amazonCloudFormation = Mockito.mock(AmazonCloudFormation.class);
+			Mockito.when(amazonCloudFormation
+					.describeStackResources(new DescribeStackResourcesRequest().withPhysicalResourceId("test")))
+					.thenReturn(new DescribeStackResourcesResult()
+							.withStackResources(new StackResource().withStackName("testStack")));
+			Mockito.when(
+					amazonCloudFormation.listStackResources(new ListStackResourcesRequest().withStackName("testStack")))
+					.thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
 			return amazonCloudFormation;
 		}
 
@@ -118,12 +111,10 @@ class ContextStackConfigurationTest {
 
 		@Bean
 		AmazonCloudFormation amazonCloudFormation() {
-			AmazonCloudFormation amazonCloudFormation = Mockito
-					.mock(AmazonCloudFormation.class);
-			Mockito.when(amazonCloudFormation.listStackResources(
-					new ListStackResourcesRequest().withStackName("manualStackName")))
-					.thenReturn(new ListStackResourcesResult()
-							.withStackResourceSummaries(Collections.emptyList()));
+			AmazonCloudFormation amazonCloudFormation = Mockito.mock(AmazonCloudFormation.class);
+			Mockito.when(amazonCloudFormation
+					.listStackResources(new ListStackResourcesRequest().withStackName("manualStackName")))
+					.thenReturn(new ListStackResourcesResult().withStackResourceSummaries(Collections.emptyList()));
 			return amazonCloudFormation;
 		}
 

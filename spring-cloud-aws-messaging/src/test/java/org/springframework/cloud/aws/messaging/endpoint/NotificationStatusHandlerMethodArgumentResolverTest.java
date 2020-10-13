@@ -41,58 +41,50 @@ class NotificationStatusHandlerMethodArgumentResolverTest {
 		NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(
 				amazonSns);
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("notificationMessage.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("notificationMessage.json", getClass()).getInputStream());
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
 		MethodParameter methodParameter = new MethodParameter(
-				ReflectionUtils.findMethod(NotificationMethods.class,
-						"subscriptionMethod", NotificationStatus.class),
+				ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class),
 				0);
 
 		// Assert
-		assertThatThrownBy(() -> resolver.resolveArgument(methodParameter, null,
-				new ServletWebRequest(servletRequest), null))
+		assertThatThrownBy(
+				() -> resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null))
 						.isInstanceOf(IllegalArgumentException.class)
 						.hasMessageContaining("NotificationStatus is only available");
 
 	}
 
 	@Test
-	void resolveArgument_subscriptionRequest_createsValidSubscriptionStatus()
-			throws Exception {
+	void resolveArgument_subscriptionRequest_createsValidSubscriptionStatus() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		NotificationStatusHandlerMethodArgumentResolver resolver = new NotificationStatusHandlerMethodArgumentResolver(
 				amazonSns);
 
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("subscriptionConfirmation.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 		servletRequest.setContent(subscriptionRequestJsonContent);
 
 		MethodParameter methodParameter = new MethodParameter(
-				ReflectionUtils.findMethod(NotificationMethods.class,
-						"subscriptionMethod", NotificationStatus.class),
+				ReflectionUtils.findMethod(NotificationMethods.class, "subscriptionMethod", NotificationStatus.class),
 				0);
 
 		// Act
-		Object resolvedArgument = resolver.resolveArgument(methodParameter, null,
-				new ServletWebRequest(servletRequest), null);
+		Object resolvedArgument = resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest),
+				null);
 
 		// Assert
 		assertThat(resolvedArgument instanceof NotificationStatus).isTrue();
 		((NotificationStatus) resolvedArgument).confirmSubscription();
-		verify(amazonSns, times(1)).confirmSubscription(
-				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
-				"1111111111111111111111111111111111111111111111"
-						+ "1111111111111111111111111111111111111111111"
-						+ "1111111111111111111111111111111111111111111"
-						+ "1111111111111111111111111111111111111111111"
+		verify(amazonSns, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+				"1111111111111111111111111111111111111111111111" + "1111111111111111111111111111111111111111111"
+						+ "1111111111111111111111111111111111111111111" + "1111111111111111111111111111111111111111111"
 						+ "11111111111111111111111111111111111");
 	}
 

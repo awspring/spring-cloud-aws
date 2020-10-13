@@ -42,18 +42,15 @@ class ElastiCacheFactoryBeanTest {
 		// Arrange
 		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
 
-		DescribeCacheClustersRequest testCache = new DescribeCacheClustersRequest()
-				.withCacheClusterId("testCache");
+		DescribeCacheClustersRequest testCache = new DescribeCacheClustersRequest().withCacheClusterId("testCache");
 		testCache.setShowCacheNodeInfo(true);
 
-		when(amazonElastiCache.describeCacheClusters(testCache)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-						.withConfigurationEndpoint(
-								new Endpoint().withAddress("localhost").withPort(45678))
+		when(amazonElastiCache.describeCacheClusters(testCache))
+				.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+						.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(45678))
 						.withCacheClusterStatus("available").withEngine("memcached")));
-		ElastiCacheFactoryBean elasticCacheFactoryBean = new ElastiCacheFactoryBean(
-				amazonElastiCache, "testCache", Collections.singletonList(
-						new TestCacheFactory("testCache", "localhost", 45678)));
+		ElastiCacheFactoryBean elasticCacheFactoryBean = new ElastiCacheFactoryBean(amazonElastiCache, "testCache",
+				Collections.singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
 
 		// Act
 		elasticCacheFactoryBean.afterPropertiesSet();
@@ -68,24 +65,20 @@ class ElastiCacheFactoryBeanTest {
 			throws Exception {
 		// Arrange
 		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
-		DescribeCacheClustersRequest testCache = new DescribeCacheClustersRequest()
-				.withCacheClusterId("testCache");
+		DescribeCacheClustersRequest testCache = new DescribeCacheClustersRequest().withCacheClusterId("testCache");
 		testCache.setShowCacheNodeInfo(true);
 
-		when(amazonElastiCache.describeCacheClusters(testCache)).thenReturn(
-				new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
-						.withConfigurationEndpoint(
-								new Endpoint().withAddress("localhost").withPort(45678))
+		when(amazonElastiCache.describeCacheClusters(testCache))
+				.thenReturn(new DescribeCacheClustersResult().withCacheClusters(new CacheCluster()
+						.withConfigurationEndpoint(new Endpoint().withAddress("localhost").withPort(45678))
 						.withCacheClusterStatus("available").withEngine("memcached")));
 
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
-		when(resourceIdResolver.resolveToPhysicalResourceId("test"))
-				.thenReturn("testCache");
+		when(resourceIdResolver.resolveToPhysicalResourceId("test")).thenReturn("testCache");
 
-		ElastiCacheFactoryBean elastiCacheFactoryBean = new ElastiCacheFactoryBean(
-				amazonElastiCache, "test", resourceIdResolver,
-				Collections.<CacheFactory>singletonList(
-						new TestCacheFactory("test", "localhost", 45678)));
+		ElastiCacheFactoryBean elastiCacheFactoryBean = new ElastiCacheFactoryBean(amazonElastiCache, "test",
+				resourceIdResolver,
+				Collections.<CacheFactory>singletonList(new TestCacheFactory("test", "localhost", 45678)));
 
 		// Act
 		elastiCacheFactoryBean.afterPropertiesSet();
@@ -99,23 +92,18 @@ class ElastiCacheFactoryBeanTest {
 	void getObject_clusterWithRedisEngineConfigured_reportsError() throws Exception {
 		// Arrange
 		AmazonElastiCache amazonElastiCache = mock(AmazonElastiCacheClient.class);
-		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest()
-				.withCacheClusterId("memcached");
+		DescribeCacheClustersRequest memcached = new DescribeCacheClustersRequest().withCacheClusterId("memcached");
 		memcached.setShowCacheNodeInfo(true);
 
-		when(amazonElastiCache.describeCacheClusters(memcached))
-				.thenReturn(new DescribeCacheClustersResult().withCacheClusters(
-						new CacheCluster().withEngine("redis").withCacheNodes(
-								new CacheNode().withEndpoint(new Endpoint()
-										.withAddress("localhost").withPort(45678)))));
+		when(amazonElastiCache.describeCacheClusters(memcached)).thenReturn(new DescribeCacheClustersResult()
+				.withCacheClusters(new CacheCluster().withEngine("redis").withCacheNodes(
+						new CacheNode().withEndpoint(new Endpoint().withAddress("localhost").withPort(45678)))));
 
-		ElastiCacheFactoryBean elastiCacheFactoryBean = new ElastiCacheFactoryBean(
-				amazonElastiCache, "memcached", Collections.singletonList(
-						new TestCacheFactory("testCache", "localhost", 45678)));
+		ElastiCacheFactoryBean elastiCacheFactoryBean = new ElastiCacheFactoryBean(amazonElastiCache, "memcached",
+				Collections.singletonList(new TestCacheFactory("testCache", "localhost", 45678)));
 
 		// Assert
-		assertThatThrownBy(elastiCacheFactoryBean::afterPropertiesSet)
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(elastiCacheFactoryBean::afterPropertiesSet).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("engine");
 	}
 
@@ -127,8 +115,7 @@ class ElastiCacheFactoryBeanTest {
 
 		private final int expectedPort;
 
-		private TestCacheFactory(String expectedCacheName, String expectedHostName,
-				int expectedPort) {
+		private TestCacheFactory(String expectedCacheName, String expectedHostName, int expectedPort) {
 			this.expectedCacheName = expectedCacheName;
 			this.expectedHostName = expectedHostName;
 			this.expectedPort = expectedPort;

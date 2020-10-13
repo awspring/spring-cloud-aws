@@ -59,22 +59,14 @@ public class AmazonEc2InstanceUserTagsFactoryBeanAwsTest {
 
 	@Test
 	void testGetUserProperties() throws Exception {
-		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
-				"#{instanceData['tag1']}",
-				new BeanExpressionContext(this.context.getBeanFactory(), null)))
-						.isEqualTo("tagv1");
-		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
-				"#{instanceData['tag2']}",
-				new BeanExpressionContext(this.context.getBeanFactory(), null)))
-						.isEqualTo("tagv2");
-		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
-				"#{instanceData['tag3']}",
-				new BeanExpressionContext(this.context.getBeanFactory(), null)))
-						.isEqualTo("tagv3");
-		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate(
-				"#{instanceData['tag4']}",
-				new BeanExpressionContext(this.context.getBeanFactory(), null)))
-						.isEqualTo("tagv4");
+		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate("#{instanceData['tag1']}",
+				new BeanExpressionContext(this.context.getBeanFactory(), null))).isEqualTo("tagv1");
+		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate("#{instanceData['tag2']}",
+				new BeanExpressionContext(this.context.getBeanFactory(), null))).isEqualTo("tagv2");
+		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate("#{instanceData['tag3']}",
+				new BeanExpressionContext(this.context.getBeanFactory(), null))).isEqualTo("tagv3");
+		assertThat(this.context.getBeanFactory().getBeanExpressionResolver().evaluate("#{instanceData['tag4']}",
+				new BeanExpressionContext(this.context.getBeanFactory(), null))).isEqualTo("tagv4");
 	}
 
 }

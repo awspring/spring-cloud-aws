@@ -51,8 +51,7 @@ class AmazonEc2InstanceDataPropertySourceTest {
 		InetSocketAddress address = new InetSocketAddress(HTTP_SERVER_TEST_PORT);
 		httpServer = HttpServer.create(address, -1);
 		httpServer.start();
-		overwriteMetadataEndpointUrl(
-				"http://" + address.getHostName() + ":" + address.getPort());
+		overwriteMetadataEndpointUrl("http://" + address.getHostName() + ":" + address.getPort());
 	}
 
 	@AfterAll
@@ -63,34 +62,28 @@ class AmazonEc2InstanceDataPropertySourceTest {
 		resetMetadataEndpointUrlOverwrite();
 	}
 
-	private static void overwriteMetadataEndpointUrl(
-			String localMetadataServiceEndpointUrl) {
-		System.setProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
+	private static void overwriteMetadataEndpointUrl(String localMetadataServiceEndpointUrl) {
+		System.setProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY,
 				localMetadataServiceEndpointUrl);
 	}
 
 	private static void resetMetadataEndpointUrlOverwrite() {
-		System.clearProperty(
-				SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
+		System.clearProperty(SDKGlobalConfiguration.EC2_METADATA_SERVICE_OVERRIDE_SYSTEM_PROPERTY);
 	}
 
 	@Test
-	void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys()
-			throws Exception {
+	void getProperty_userDataWithDefaultFormatting_ReturnsUserDataKeys() throws Exception {
 		// Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(
-				"keyA:valueA;keyB:valueB".getBytes("UTF-8")));
+		httpServer.createContext("/latest/user-data/",
+				new StringWritingHttpHandler("keyA:valueA;keyB:valueB".getBytes("UTF-8")));
 
 		// Act
 		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource(
 				"test");
 
 		// Assert
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA"))
-				.isEqualTo("valueA");
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB"))
-				.isEqualTo("valueB");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA")).isEqualTo("valueA");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB")).isEqualTo("valueB");
 
 		httpServer.removeContext("/latest/user-data/");
 	}
@@ -98,8 +91,8 @@ class AmazonEc2InstanceDataPropertySourceTest {
 	@Test
 	void getProperty_userDataWithCustomFormatting_ReturnsUserDataKeys() throws Exception {
 		// Arrange
-		httpServer.createContext("/latest/user-data/", new StringWritingHttpHandler(
-				"keyA=valueD,keyB=valueE".getBytes("UTF-8")));
+		httpServer.createContext("/latest/user-data/",
+				new StringWritingHttpHandler("keyA=valueD,keyB=valueE".getBytes("UTF-8")));
 
 		// Act
 		AmazonEc2InstanceDataPropertySource amazonEc2InstanceDataPropertySource = new AmazonEc2InstanceDataPropertySource(
@@ -109,10 +102,8 @@ class AmazonEc2InstanceDataPropertySourceTest {
 		amazonEc2InstanceDataPropertySource.setUserDataValueSeparator("=");
 
 		// Assert
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA"))
-				.isEqualTo("valueD");
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB"))
-				.isEqualTo("valueE");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyA")).isEqualTo("valueD");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("keyB")).isEqualTo("valueE");
 
 		httpServer.removeContext("/latest/user-data/");
 	}
@@ -128,15 +119,13 @@ class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("instance-id"))
-				.isEqualTo("i1234567");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("instance-id")).isEqualTo("i1234567");
 
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}
 
 	@Test
-	void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue()
-			throws Exception {
+	void getProperty_knownAttributeWithSubAttribute_returnsAttributeValue() throws Exception {
 		// Arrange
 		httpServer.createContext("/latest/meta-data/services/domain",
 				new StringWritingHttpHandler("amazonaws.com".getBytes("UTF-8")));
@@ -146,8 +135,7 @@ class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertThat(amazonEc2InstanceDataPropertySource.getProperty("services/domain"))
-				.isEqualTo("amazonaws.com");
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("services/domain")).isEqualTo("amazonaws.com");
 
 		httpServer.removeContext("/latest/meta-data/services/domain");
 	}
@@ -163,9 +151,7 @@ class AmazonEc2InstanceDataPropertySourceTest {
 				"test");
 
 		// Assert
-		assertThat(
-				amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute"))
-						.isNull();
+		assertThat(amazonEc2InstanceDataPropertySource.getProperty("non-existing-attribute")).isNull();
 
 		httpServer.removeContext("/latest/meta-data/instance-id");
 	}

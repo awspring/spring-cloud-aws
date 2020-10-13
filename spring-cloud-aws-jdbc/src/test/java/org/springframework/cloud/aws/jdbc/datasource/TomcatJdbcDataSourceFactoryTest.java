@@ -49,10 +49,9 @@ class TomcatJdbcDataSourceFactoryTest {
 	void testCreateWithDefaultSettings() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(
-				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
-		DataSource dataSource = tomcatJdbcDataSourceFactory
-				.createDataSource(dataSourceInformation);
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306,
+				"test", "user", "password");
+		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		assertThat(dataSource).isNotNull();
 
 		assertThat(dataSource.getDriverClassName()).isEqualTo("com.mysql.jdbc.Driver");
@@ -64,30 +63,27 @@ class TomcatJdbcDataSourceFactoryTest {
 	void testWithCustomDatabasePlatformSupport() throws Exception {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 
-		tomcatJdbcDataSourceFactory
-				.setDatabasePlatformSupport(new MapBasedDatabasePlatformSupport() {
+		tomcatJdbcDataSourceFactory.setDatabasePlatformSupport(new MapBasedDatabasePlatformSupport() {
 
-					@Override
-					protected Map<DatabaseType, String> getDriverClassNameMappings() {
-						return Collections.singletonMap(DatabaseType.MYSQL,
-								"com.mysql.driver");
-					}
+			@Override
+			protected Map<DatabaseType, String> getDriverClassNameMappings() {
+				return Collections.singletonMap(DatabaseType.MYSQL, "com.mysql.driver");
+			}
 
-					@Override
-					protected Map<DatabaseType, String> getSchemeNames() {
-						return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:sql");
-					}
+			@Override
+			protected Map<DatabaseType, String> getSchemeNames() {
+				return Collections.singletonMap(DatabaseType.MYSQL, "jdbc:sql");
+			}
 
-					@Override
-					protected Map<DatabaseType, String> getAuthenticationInfo() {
-						return Collections.emptyMap();
-					}
-				});
+			@Override
+			protected Map<DatabaseType, String> getAuthenticationInfo() {
+				return Collections.emptyMap();
+			}
+		});
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(
-				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
-		DataSource dataSource = tomcatJdbcDataSourceFactory
-				.createDataSource(dataSourceInformation);
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306,
+				"test", "user", "password");
+		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		assertThat(dataSource).isNotNull();
 
 		assertThat(dataSource.getDriverClassName()).isEqualTo("com.mysql.driver");
@@ -100,10 +96,9 @@ class TomcatJdbcDataSourceFactoryTest {
 		TomcatJdbcDataSourceFactory tomcatJdbcDataSourceFactory = new TomcatJdbcDataSourceFactory();
 		tomcatJdbcDataSourceFactory.setInitialSize(0);
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(
-				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
-		DataSource dataSource = tomcatJdbcDataSourceFactory
-				.createDataSource(dataSourceInformation);
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306,
+				"test", "user", "password");
+		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 		assertThat(dataSource).isNotNull();
 
 		ConnectionPool pool = dataSource.createPool();
@@ -128,8 +123,7 @@ class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setDbProperties(new Properties());
 		tomcatJdbcDataSourceFactory.setDefaultAutoCommit(true);
 		tomcatJdbcDataSourceFactory.setDefaultReadOnly(false);
-		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolation(
-				TransactionDefinition.ISOLATION_READ_COMMITTED);
+		tomcatJdbcDataSourceFactory.setDefaultTransactionIsolation(TransactionDefinition.ISOLATION_READ_COMMITTED);
 		tomcatJdbcDataSourceFactory.setDefaultCatalog("myCatalog");
 		tomcatJdbcDataSourceFactory.setConnectionProperties("foo=bar");
 		tomcatJdbcDataSourceFactory.setInitialSize(11);
@@ -167,21 +161,16 @@ class TomcatJdbcDataSourceFactoryTest {
 		tomcatJdbcDataSourceFactory.setLogValidationErrors(true);
 		tomcatJdbcDataSourceFactory.setPropagateInterruptState(true);
 
-		DataSourceInformation dataSourceInformation = new DataSourceInformation(
-				DatabaseType.MYSQL, "localhost", 3306, "test", "user", "password");
-		DataSource dataSource = tomcatJdbcDataSourceFactory
-				.createDataSource(dataSourceInformation);
+		DataSourceInformation dataSourceInformation = new DataSourceInformation(DatabaseType.MYSQL, "localhost", 3306,
+				"test", "user", "password");
+		DataSource dataSource = tomcatJdbcDataSourceFactory.createDataSource(dataSourceInformation);
 
-		BeanWrapper source = PropertyAccessorFactory
-				.forBeanPropertyAccess(tomcatJdbcDataSourceFactory);
-		BeanWrapper target = PropertyAccessorFactory
-				.forBeanPropertyAccess(dataSource.getPoolProperties());
-		List<String> ignoredProperties = Arrays.asList("driverClassName", "url",
-				"username", "password");
+		BeanWrapper source = PropertyAccessorFactory.forBeanPropertyAccess(tomcatJdbcDataSourceFactory);
+		BeanWrapper target = PropertyAccessorFactory.forBeanPropertyAccess(dataSource.getPoolProperties());
+		List<String> ignoredProperties = Arrays.asList("driverClassName", "url", "username", "password");
 
 		for (PropertyDescriptor propertyDescriptor : source.getPropertyDescriptors()) {
-			if (propertyDescriptor.getWriteMethod() != null
-					&& target.isReadableProperty(propertyDescriptor.getName())
+			if (propertyDescriptor.getWriteMethod() != null && target.isReadableProperty(propertyDescriptor.getName())
 					&& !ignoredProperties.contains(propertyDescriptor.getName())) {
 				assertThat(target.getPropertyValue(propertyDescriptor.getName()))
 						.isEqualTo(source.getPropertyValue(propertyDescriptor.getName()));

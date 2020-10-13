@@ -71,20 +71,15 @@ class ComplexNotificationEndpointControllerTest {
 	void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
 			throws Exception {
 		// Arrange
-		byte[] subscriptionRequestJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("subscriptionConfirmation.json", getClass())
-						.getInputStream());
+		byte[] subscriptionRequestJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("subscriptionConfirmation.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/myComplexTopic")
-						.header("x-amz-sns-message-type", "SubscriptionConfirmation")
-						.content(subscriptionRequestJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation")
+				.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription(
-				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
 				"111111111111111111111111111111111111111111111111111111"
 						+ "1111111111111111111111111111111111111111111111111111"
 						+ "1111111111111111111111111111111111111111111111111111"
@@ -98,48 +93,34 @@ class ComplexNotificationEndpointControllerTest {
 		// @checkstyle:on
 		// Arrange
 		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("notificationMessage-complexObject.json",
-						getClass()).getInputStream());
+				new ClassPathResource("notificationMessage-complexObject.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/myComplexTopic")
-						.header("x-amz-sns-message-type", "Notification")
-						.content(notificationJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
-		assertThat(this.notificationTestController.getMessage().getFirstName())
-				.isEqualTo("Agim");
-		assertThat(this.notificationTestController.getMessage().getLastName())
-				.isEqualTo("Emruli");
-		assertThat(this.notificationTestController.getSubject())
-				.isEqualTo("Notification Subject");
+		assertThat(this.notificationTestController.getMessage().getFirstName()).isEqualTo("Agim");
+		assertThat(this.notificationTestController.getMessage().getLastName()).isEqualTo("Emruli");
+		assertThat(this.notificationTestController.getSubject()).isEqualTo("Notification Subject");
 	}
 
 	@Test
-	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController()
-			throws Exception {
+	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
 		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				new ClassPathResource("unsubscribeConfirmation.json", getClass())
-						.getInputStream());
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("unsubscribeConfirmation.json", getClass()).getInputStream());
 
 		// Act
-		this.mockMvc
-				.perform(post("/myComplexTopic")
-						.header("x-amz-sns-message-type", "UnsubscribeConfirmation")
-						.content(notificationJsonContent))
-				.andExpect(status().isNoContent());
+		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation")
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
-		verify(this.amazonSnsMock, times(1)).confirmSubscription(
-				"arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
+		verify(this.amazonSnsMock, times(1)).confirmSubscription("arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
 				"2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb86"
 						+ "07743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dc"
 						+ "a3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf546"
-						+ "05e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f4"
-						+ "0bddfb45");
+						+ "05e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f4" + "0bddfb45");
 	}
 
 	@EnableWebMvc

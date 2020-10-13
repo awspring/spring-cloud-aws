@@ -30,16 +30,15 @@ class AwsSecretsManagerPropertySourceTest {
 
 	private AWSSecretsManager smClient = mock(AWSSecretsManager.class);
 
-	private AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(
-			"/config/myservice", smClient);
+	private AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource("/config/myservice",
+			smClient);
 
 	@Test
 	void shouldParseSecretValue() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult();
 		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
 
-		when(smClient.getSecretValue(any(GetSecretValueRequest.class)))
-				.thenReturn(secretValueResult);
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
 
 		propertySource.init();
 

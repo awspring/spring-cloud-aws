@@ -37,8 +37,7 @@ public final class SpringCloudClientConfiguration {
 	}
 
 	public static ClientConfiguration getClientConfiguration() {
-		return PredefinedClientConfigurations.defaultConfig()
-				.withUserAgentSuffix(getUserAgent());
+		return PredefinedClientConfigurations.defaultConfig().withUserAgentSuffix(getUserAgent());
 	}
 
 }

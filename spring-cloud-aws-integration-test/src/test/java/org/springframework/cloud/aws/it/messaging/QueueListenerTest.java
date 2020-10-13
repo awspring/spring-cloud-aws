@@ -54,8 +54,7 @@ import static org.awaitility.Awaitility.await;
  * @author Alain Sahli
  * @since 1.0
  */
-@SuppressWarnings({ "AbstractClassWithoutAbstractMethods",
-		"SpringJavaAutowiringInspection" })
+@SuppressWarnings({ "AbstractClassWithoutAbstractMethods", "SpringJavaAutowiringInspection" })
 @ExtendWith(SpringExtension.class)
 abstract class QueueListenerTest extends AbstractContainerTest {
 
@@ -82,12 +81,11 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 		String payload = randomString();
 
 		// Act
-		this.queueMessagingTemplate.send("QueueListenerTest",
-				MessageBuilder.withPayload(payload).build());
+		this.queueMessagingTemplate.send("QueueListenerTest", MessageBuilder.withPayload(payload).build());
 
 		// Assert
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> this.messageListener.getReceivedMessages().contains(payload));
+		await().atMost(Duration.ofSeconds(30))
+				.until(() -> this.messageListener.getReceivedMessages().contains(payload));
 	}
 
 	@Test
@@ -101,8 +99,8 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("QueueListenerTest", payload);
 
 		// Assert
-		await().atMost(Duration.ofSeconds(15)).until(
-				() -> this.messageListener.getReceivedMessages().contains(payload));
+		await().atMost(Duration.ofSeconds(15))
+				.until(() -> this.messageListener.getReceivedMessages().contains(payload));
 	}
 
 	@Test
@@ -118,17 +116,17 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 
 		// Assert
 		await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
-			assertThat(this.messageListenerWithSendTo.getReceivedMessages())
-					.contains(payload);
-			assertThat(this.messageListener.getReceivedMessages())
-					.contains(payload.toUpperCase()); // messageListenerWithSendTo
-														// converts to upper case
+			assertThat(this.messageListenerWithSendTo.getReceivedMessages()).contains(payload);
+			assertThat(this.messageListener.getReceivedMessages()).contains(payload.toUpperCase()); // messageListenerWithSendTo
+																									// converts
+																									// to
+																									// upper
+																									// case
 		});
 	}
 
 	@Test
-	void receiveMessage_withArgumentAnnotatedWithHeaderOrHeaders_shouldReceiveHeaderValues()
-			throws Exception {
+	void receiveMessage_withArgumentAnnotatedWithHeaderOrHeaders_shouldReceiveHeaderValues() throws Exception {
 		// Arrange
 		this.messageListener.setCountDownLatch(new CountDownLatch(1));
 		this.messageListener.getReceivedMessages().clear();
@@ -138,27 +136,21 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 		int numberValue = 123456;
 		String stringValue = "String value";
 		this.queueMessagingTemplate.send("QueueListenerTest",
-				MessageBuilder.withPayload("Is the header received?")
-						.setHeader("stringHeader", stringValue)
-						.setHeader("numberHeader", numberValue)
-						.setHeader("binaryHeader", binaryValue).build());
+				MessageBuilder.withPayload("Is the header received?").setHeader("stringHeader", stringValue)
+						.setHeader("numberHeader", numberValue).setHeader("binaryHeader", binaryValue).build());
 
 		// Assert
 		await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
 			assertThat(this.messageListener.getSenderId()).isNotNull();
 			assertThat(this.messageListener.getAllHeaders()).isNotNull();
-			assertThat(this.messageListener.getAllHeaders().get("stringHeader"))
-					.isEqualTo(stringValue);
-			assertThat(this.messageListener.getAllHeaders().get("numberHeader"))
-					.isEqualTo(numberValue);
-			assertThat(this.messageListener.getAllHeaders().get("binaryHeader"))
-					.isEqualTo(binaryValue);
+			assertThat(this.messageListener.getAllHeaders().get("stringHeader")).isEqualTo(stringValue);
+			assertThat(this.messageListener.getAllHeaders().get("numberHeader")).isEqualTo(numberValue);
+			assertThat(this.messageListener.getAllHeaders().get("binaryHeader")).isEqualTo(binaryValue);
 		});
 	}
 
 	@Test
-	void redrivePolicy_withMessageMappingThrowingAnException_messageShouldAppearInDeadLetterQueue()
-			throws Exception {
+	void redrivePolicy_withMessageMappingThrowingAnException_messageShouldAppearInDeadLetterQueue() throws Exception {
 		// Arrange
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		this.redrivePolicyTestListener.setCountDownLatch(countDownLatch);
@@ -167,20 +159,17 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 		this.queueMessagingTemplate.convertAndSend("QueueWithRedrivePolicy", "Hello");
 
 		// Assert
-		await().atMost(Duration.ofSeconds(30))
-				.until(() -> countDownLatch.getCount() == 0);
+		await().atMost(Duration.ofSeconds(30)).until(() -> countDownLatch.getCount() == 0);
 	}
 
 	@RepeatedTest(10) // just to make sure that it does not fail
-	void manualDeletion_withAcknowledgmentCalled_shouldSucceedAndDeleteMessage()
-			throws Exception {
+	void manualDeletion_withAcknowledgmentCalled_shouldSucceedAndDeleteMessage() throws Exception {
 		// Act
 		this.queueMessagingTemplate.convertAndSend("ManualDeletionQueue", "Message");
 
 		// Assert
 		await().atMost(Duration.ofSeconds(15))
-				.until(() -> this.manualDeletionPolicyTestListener.getCountDownLatch()
-						.getCount() == 0);
+				.until(() -> this.manualDeletionPolicyTestListener.getCountDownLatch().getCount() == 0);
 	}
 
 	private static String randomString() {
@@ -189,8 +178,7 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 
 	public static class MessageListener {
 
-		private static final Logger LOGGER = LoggerFactory
-				.getLogger(MessageListener.class);
+		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
 
 		private final List<String> receivedMessages = new ArrayList<>();
 
@@ -210,16 +198,14 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 
 		@RuntimeUse
 		@SqsListener("QueueListenerTest")
-		public void receiveMessage(String message,
-				@Header(value = "SenderId", required = false) String senderId,
+		public void receiveMessage(String message, @Header(value = "SenderId", required = false) String senderId,
 				@Headers Map<String, Object> allHeaders, SqsMessageHeaders asSqsHeaders) {
 			LOGGER.debug("Received message with content {}", message);
 			this.receivedMessages.add(message);
 			this.senderId = senderId;
 			this.allHeaders = allHeaders;
 			this.approximateReceiveCount = asSqsHeaders.getApproximateReceiveCount();
-			this.approximateFirstReceiveTimestamp = asSqsHeaders
-					.getApproximateFirstReceiveTimestamp();
+			this.approximateFirstReceiveTimestamp = asSqsHeaders.getApproximateFirstReceiveTimestamp();
 			this.timestamp = asSqsHeaders.getTimestamp();
 			this.sentTimestamp = asSqsHeaders.getSentTimestamp();
 			this.getCountDownLatch().countDown();
@@ -265,8 +251,7 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 
 	public static class MessageListenerWithSendTo {
 
-		private static final Logger LOGGER = LoggerFactory
-				.getLogger(MessageListener.class);
+		private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
 
 		private final List<String> receivedMessages = new ArrayList<>();
 
@@ -294,8 +279,7 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 		}
 
 		@RuntimeUse
-		@SqsListener(value = "QueueWithRedrivePolicy",
-				deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
+		@SqsListener(value = "QueueWithRedrivePolicy", deletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE)
 		public void receiveThrowingException(String message) {
 			throw new RuntimeException();
 		}
@@ -318,8 +302,7 @@ abstract class QueueListenerTest extends AbstractContainerTest {
 
 		private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		@SqsListener(value = "ManualDeletionQueue",
-				deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+		@SqsListener(value = "ManualDeletionQueue", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 		public void receive(String message, Acknowledgment acknowledgment)
 				throws ExecutionException, InterruptedException {
 			acknowledgment.acknowledge().get();

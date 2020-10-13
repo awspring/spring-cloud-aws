@@ -32,25 +32,21 @@ import static org.mockito.Mockito.mock;
 class AmazonEc2InstanceDataPropertySourcePostProcessorTest {
 
 	@Test
-	void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource()
-			throws Exception {
+	void postProcessBeanFactory_withConfigurableEnvironment_registersPropertySource() throws Exception {
 		// Arrange
 		StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-		staticApplicationContext.registerSingleton("process",
-				AmazonEc2InstanceDataPropertySourcePostProcessor.class);
+		staticApplicationContext.registerSingleton("process", AmazonEc2InstanceDataPropertySourcePostProcessor.class);
 
 		// Act
 		staticApplicationContext.refresh();
 
 		// Assert
-		assertThat(staticApplicationContext.getEnvironment().getPropertySources().get(
-				AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME))
-						.isNotNull();
+		assertThat(staticApplicationContext.getEnvironment().getPropertySources()
+				.get(AmazonEc2InstanceDataPropertySourcePostProcessor.INSTANCE_DATA_PROPERTY_SOURCE_NAME)).isNotNull();
 	}
 
 	@Test
-	void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration()
-			throws Exception {
+	void postProcessBeanFactory_withNonConfigurableEnvironment_skipsRegistration() throws Exception {
 		// Arrange
 		ConfigurableListableBeanFactory staticApplicationContext = new DefaultListableBeanFactory();
 		AmazonEc2InstanceDataPropertySourcePostProcessor processor = new AmazonEc2InstanceDataPropertySourcePostProcessor();

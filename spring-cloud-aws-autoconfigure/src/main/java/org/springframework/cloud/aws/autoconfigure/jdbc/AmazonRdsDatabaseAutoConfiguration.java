@@ -56,8 +56,7 @@ import org.springframework.util.Assert;
 @Import(AmazonRdsDatabaseAutoConfiguration.Registrar.class)
 @ConditionalOnClass(name = { "com.amazonaws.services.rds.AmazonRDSClient" })
 @ConditionalOnMissingBean(AmazonRdsInstanceConfiguration.class)
-@ConditionalOnProperty(name = "cloud.aws.rds.enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = "cloud.aws.rds.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AmazonRdsDatabaseProperties.class)
 public class AmazonRdsDatabaseAutoConfiguration {
 
@@ -71,63 +70,49 @@ public class AmazonRdsDatabaseAutoConfiguration {
 	/**
 	 * Registrar for Amazon RDS.
 	 */
-	public static class Registrar
-			implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
 		private ConfigurableEnvironment environment;
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
-			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils
-					.registerAmazonWebserviceClient(this, registry,
-							"com.amazonaws.services.rds.AmazonRDSClient", null, null)
-					.getBeanName();
+			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(
+					this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
 
-			rdsDatabaseProperties().getInstances().stream()
-					.filter(RdsInstance::hasRequiredPropertiesSet)
-					.forEach(instance -> registerDatasource(registry,
-							amazonRdsClientBeanName, instance));
+			rdsDatabaseProperties().getInstances().stream().filter(RdsInstance::hasRequiredPropertiesSet)
+					.forEach(instance -> registerDatasource(registry, amazonRdsClientBeanName, instance));
 		}
 
 		private AmazonRdsDatabaseProperties rdsDatabaseProperties() {
-			return Binder.get(this.environment).bindOrCreate(
-					AmazonRdsDatabaseProperties.PREFIX,
+			return Binder.get(this.environment).bindOrCreate(AmazonRdsDatabaseProperties.PREFIX,
 					AmazonRdsDatabaseProperties.class);
 		}
 
-		private static void registerDatasource(BeanDefinitionRegistry registry,
-				String amazonRdsClientBeanName, RdsInstance instance) {
-			BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(instance.isReadReplicaSupport()
-							? AmazonRdsReadReplicaAwareDataSourceFactoryBean.class
+		private static void registerDatasource(BeanDefinitionRegistry registry, String amazonRdsClientBeanName,
+				RdsInstance instance) {
+			BeanDefinitionBuilder datasourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					instance.isReadReplicaSupport() ? AmazonRdsReadReplicaAwareDataSourceFactoryBean.class
 							: AmazonRdsDataSourceFactoryBean.class);
 
 			// Constructor (mandatory) args
 			datasourceBuilder.addConstructorArgReference(amazonRdsClientBeanName);
-			Assert.hasText(instance.getDbInstanceIdentifier(),
-					"The dbInstanceIdentifier can't be empty.");
+			Assert.hasText(instance.getDbInstanceIdentifier(), "The dbInstanceIdentifier can't be empty.");
 			datasourceBuilder.addConstructorArgValue(instance.getDbInstanceIdentifier());
 			Assert.hasText(instance.getPassword(), "The password can't be empty.");
 			datasourceBuilder.addConstructorArgValue(instance.getPassword());
 
 			// optional args
 			datasourceBuilder.addPropertyValue("username", instance.getUsername());
-			datasourceBuilder.addPropertyValue("databaseName",
-					instance.getDatabaseName());
+			datasourceBuilder.addPropertyValue("databaseName", instance.getDatabaseName());
 
-			String resourceResolverBeanName = GlobalBeanDefinitionUtils
-					.retrieveResourceIdResolverBeanName(registry);
-			datasourceBuilder.addPropertyReference("resourceIdResolver",
-					resourceResolverBeanName);
+			String resourceResolverBeanName = GlobalBeanDefinitionUtils.retrieveResourceIdResolverBeanName(registry);
+			datasourceBuilder.addPropertyReference("resourceIdResolver", resourceResolverBeanName);
 
 			datasourceBuilder.addPropertyValue("dataSourceFactory",
-					BeanDefinitionBuilder
-							.rootBeanDefinition(TomcatJdbcDataSourceFactory.class)
-							.getBeanDefinition());
+					BeanDefinitionBuilder.rootBeanDefinition(TomcatJdbcDataSourceFactory.class).getBeanDefinition());
 
-			registry.registerBeanDefinition(instance.getDbInstanceIdentifier(),
-					datasourceBuilder.getBeanDefinition());
+			registry.registerBeanDefinition(instance.getDbInstanceIdentifier(), datasourceBuilder.getBeanDefinition());
 		}
 
 		@Override

@@ -29,8 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Alain Sahli
  */
-@SpringBootTest(
-		classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
+@SpringBootTest(classes = BootMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
 	@Configuration
@@ -51,8 +50,7 @@ class BootMessageListenerContainerAwsTest extends MessageListenerContainerAwsTes
 			threadPoolTaskExecutor.setCorePoolSize(10);
 			threadPoolTaskExecutor.setMaxPoolSize(200);
 			threadPoolTaskExecutor.setQueueCapacity(0);
-			threadPoolTaskExecutor.setRejectedExecutionHandler(
-					new ThreadPoolExecutor.CallerRunsPolicy());
+			threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
 			return threadPoolTaskExecutor;
 		}

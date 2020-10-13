@@ -50,8 +50,8 @@ public class SnsConfiguration {
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
 	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class,
-				this.awsCredentialsProvider, this.regionProvider);
+		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class, this.awsCredentialsProvider,
+				this.regionProvider);
 	}
 
 }

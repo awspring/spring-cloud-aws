@@ -42,15 +42,13 @@ import org.springframework.util.StringUtils;
  * @author Agim Emruli
  */
 @RuntimeUse
-public class StackResourceRegistryFactoryBean
-		extends AbstractFactoryBean<ListableStackResourceFactory> {
+public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<ListableStackResourceFactory> {
 
 	private final AmazonCloudFormation amazonCloudFormationClient;
 
 	private final StackNameProvider stackNameProvider;
 
-	public StackResourceRegistryFactoryBean(
-			AmazonCloudFormation amazonCloudFormationClient,
+	public StackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormationClient,
 			StackNameProvider stackNameProvider) {
 		this.amazonCloudFormationClient = amazonCloudFormationClient;
 		this.stackNameProvider = stackNameProvider;
@@ -64,26 +62,21 @@ public class StackResourceRegistryFactoryBean
 	@Override
 	protected ListableStackResourceFactory createInstance() {
 		String stackName = this.stackNameProvider.getStackName();
-		return new StaticStackResourceRegistry(stackName,
-				getResourceMappings("", stackName));
+		return new StaticStackResourceRegistry(stackName, getResourceMappings("", stackName));
 	}
 
-	private Map<String, StackResource> getResourceMappings(String prefix,
-			String stackName) {
+	private Map<String, StackResource> getResourceMappings(String prefix, String stackName) {
 
-		List<StackResourceSummary> stackResourceSummaries = getStackResourceSummaries(
-				stackName);
+		List<StackResourceSummary> stackResourceSummaries = getStackResourceSummaries(stackName);
 
-		Map<String, StackResource> current = convertToStackResourceMappings(prefix,
-				stackResourceSummaries);
+		Map<String, StackResource> current = convertToStackResourceMappings(prefix, stackResourceSummaries);
 		Map<String, StackResource> stackResourceMappings = new HashMap<>(current);
 
 		for (Map.Entry<String, StackResource> e : current.entrySet()) {
 			StackResource resource = e.getValue();
 
 			if ("AWS::CloudFormation::Stack".equals(resource.getType())) {
-				stackResourceMappings.putAll(
-						getResourceMappings(e.getKey(), resource.getPhysicalId()));
+				stackResourceMappings.putAll(getResourceMappings(e.getKey(), resource.getPhysicalId()));
 			}
 		}
 
@@ -92,18 +85,15 @@ public class StackResourceRegistryFactoryBean
 
 	private List<StackResourceSummary> getStackResourceSummaries(String stackName) {
 		ListStackResourcesResult listStackResourcesResult = this.amazonCloudFormationClient
-				.listStackResources(
-						new ListStackResourcesRequest().withStackName(stackName));
+				.listStackResources(new ListStackResourcesRequest().withStackName(stackName));
 		if (!StringUtils.hasText(listStackResourcesResult.getNextToken())) {
 			return listStackResourcesResult.getStackResourceSummaries();
 		}
 		else {
-			List<StackResourceSummary> result = new ArrayList<>(
-					listStackResourcesResult.getStackResourceSummaries());
+			List<StackResourceSummary> result = new ArrayList<>(listStackResourcesResult.getStackResourceSummaries());
 			while (StringUtils.hasText(listStackResourcesResult.getNextToken())) {
 				listStackResourcesResult = this.amazonCloudFormationClient
-						.listStackResources(new ListStackResourcesRequest()
-								.withStackName(stackName)
+						.listStackResources(new ListStackResourcesRequest().withStackName(stackName)
 								.withNextToken(listStackResourcesResult.getNextToken()));
 				result.addAll(listStackResourcesResult.getStackResourceSummaries());
 			}
@@ -116,35 +106,29 @@ public class StackResourceRegistryFactoryBean
 		Map<String, StackResource> stackResourceMappings = new HashMap<>();
 
 		for (StackResourceSummary stackResourceSummary : stackResourceSummaries) {
-			String logicalResourceId = toNestedResourceId(prefix,
-					stackResourceSummary.getLogicalResourceId());
-			stackResourceMappings.put(logicalResourceId,
-					new StackResource(logicalResourceId,
-							stackResourceSummary.getPhysicalResourceId(),
-							stackResourceSummary.getResourceType()));
+			String logicalResourceId = toNestedResourceId(prefix, stackResourceSummary.getLogicalResourceId());
+			stackResourceMappings.put(logicalResourceId, new StackResource(logicalResourceId,
+					stackResourceSummary.getPhysicalResourceId(), stackResourceSummary.getResourceType()));
 		}
 
 		return stackResourceMappings;
 	}
 
 	private String toNestedResourceId(String prefix, String logicalResourceId) {
-		return StringUtils.isEmpty(prefix) ? logicalResourceId
-				: prefix + "." + logicalResourceId;
+		return StringUtils.isEmpty(prefix) ? logicalResourceId : prefix + "." + logicalResourceId;
 	}
 
 	/**
 	 * Stack resource registry containing a static mapping of logical resource ids to
 	 * physical resource ids.
 	 */
-	private static final class StaticStackResourceRegistry
-			implements ListableStackResourceFactory {
+	private static final class StaticStackResourceRegistry implements ListableStackResourceFactory {
 
 		private final String stackName;
 
 		private final Map<String, StackResource> stackResourceByLogicalId;
 
-		private StaticStackResourceRegistry(String stackName,
-				Map<String, StackResource> stackResourceByLogicalId) {
+		private StaticStackResourceRegistry(String stackName, Map<String, StackResource> stackResourceByLogicalId) {
 			this.stackName = stackName;
 			this.stackResourceByLogicalId = stackResourceByLogicalId;
 		}
@@ -157,15 +141,13 @@ public class StackResourceRegistryFactoryBean
 		@Override
 		public String lookupPhysicalResourceId(String logicalResourceId) {
 			if (this.stackResourceByLogicalId.containsKey(logicalResourceId)) {
-				return this.stackResourceByLogicalId.get(logicalResourceId)
-						.getPhysicalId();
+				return this.stackResourceByLogicalId.get(logicalResourceId).getPhysicalId();
 			}
 			else if (!logicalResourceId.contains(".")) {
 				String prefix = "." + logicalResourceId;
 
 				String physicalId = null;
-				for (Map.Entry<String, StackResource> entry : this.stackResourceByLogicalId
-						.entrySet()) {
+				for (Map.Entry<String, StackResource> entry : this.stackResourceByLogicalId.entrySet()) {
 					if (entry.getKey() != null && entry.getKey().endsWith(prefix)) {
 						if (physicalId == null) {
 							physicalId = entry.getValue().getPhysicalId();

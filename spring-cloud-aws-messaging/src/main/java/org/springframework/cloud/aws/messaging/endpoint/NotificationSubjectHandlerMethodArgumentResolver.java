@@ -36,8 +36,8 @@ public class NotificationSubjectHandlerMethodArgumentResolver
 	}
 
 	@Override
-	protected Object doResolveArgumentFromNotificationMessage(JsonNode content,
-			HttpInputMessage request, Class<?> parameterType) {
+	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
+			Class<?> parameterType) {
 		if (!"Notification".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException(
 					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");

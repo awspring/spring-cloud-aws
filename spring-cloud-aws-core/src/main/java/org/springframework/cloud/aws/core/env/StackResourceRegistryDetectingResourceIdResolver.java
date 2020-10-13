@@ -44,8 +44,7 @@ public class StackResourceRegistryDetectingResourceIdResolver
 
 	private ListableBeanFactory beanFactory;
 
-	private static StackResourceRegistry findSingleOptionalStackResourceRegistry(
-			ListableBeanFactory beanFactory) {
+	private static StackResourceRegistry findSingleOptionalStackResourceRegistry(ListableBeanFactory beanFactory) {
 		Collection<StackResourceRegistry> stackResourceRegistries = beanFactory
 				.getBeansOfType(StackResourceRegistry.class).values();
 
@@ -73,8 +72,7 @@ public class StackResourceRegistryDetectingResourceIdResolver
 	@Override
 	public String resolveToPhysicalResourceId(String logicalResourceId) {
 		if (this.stackResourceRegistry != null) {
-			String physicalResourceId = this.stackResourceRegistry
-					.lookupPhysicalResourceId(logicalResourceId);
+			String physicalResourceId = this.stackResourceRegistry.lookupPhysicalResourceId(logicalResourceId);
 
 			if (physicalResourceId != null) {
 				return physicalResourceId;
@@ -87,8 +85,8 @@ public class StackResourceRegistryDetectingResourceIdResolver
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (!(beanFactory instanceof ListableBeanFactory)) {
-			throw new IllegalStateException("Bean factory must be of type '"
-					+ ListableBeanFactory.class.getName() + "'");
+			throw new IllegalStateException(
+					"Bean factory must be of type '" + ListableBeanFactory.class.getName() + "'");
 		}
 
 		this.beanFactory = (ListableBeanFactory) beanFactory;
@@ -96,8 +94,7 @@ public class StackResourceRegistryDetectingResourceIdResolver
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.stackResourceRegistry = findSingleOptionalStackResourceRegistry(
-				this.beanFactory);
+		this.stackResourceRegistry = findSingleOptionalStackResourceRegistry(this.beanFactory);
 	}
 
 }

@@ -38,8 +38,7 @@ public abstract class AbstractCacheFactory<T> implements CacheFactory, Disposabl
 	protected AbstractCacheFactory() {
 	}
 
-	protected AbstractCacheFactory(Map<String, Integer> expiryTimePerCache,
-			int expiryTime) {
+	protected AbstractCacheFactory(Map<String, Integer> expiryTimePerCache, int expiryTime) {
 		this.setExpiryTimePerCache(expiryTimePerCache);
 		this.setExpiryTime(expiryTime);
 	}
@@ -68,8 +67,7 @@ public abstract class AbstractCacheFactory<T> implements CacheFactory, Disposabl
 		}
 	}
 
-	protected abstract T createConnectionClient(String hostName, int port)
-			throws IOException;
+	protected abstract T createConnectionClient(String hostName, int port) throws IOException;
 
 	protected int getExpiryTime() {
 		return this.expiryTime;
@@ -85,8 +83,7 @@ public abstract class AbstractCacheFactory<T> implements CacheFactory, Disposabl
 
 	@SuppressWarnings("UnusedParameters")
 	protected int getExpiryTime(String cacheName) {
-		if (this.expiryTimePerCache.containsKey(cacheName)
-				&& this.expiryTimePerCache.get(cacheName) != null
+		if (this.expiryTimePerCache.containsKey(cacheName) && this.expiryTimePerCache.get(cacheName) != null
 				&& this.expiryTimePerCache.get(cacheName) != 0) {
 			return this.expiryTimePerCache.get(cacheName);
 		}

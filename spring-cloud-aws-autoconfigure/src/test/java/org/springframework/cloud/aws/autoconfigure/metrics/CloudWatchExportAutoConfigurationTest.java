@@ -41,73 +41,57 @@ class CloudWatchExportAutoConfigurationTest {
 	private MockEnvironment env;
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(
-					AutoConfigurations.of(CloudWatchExportAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(CloudWatchExportAutoConfiguration.class));
 
 	@Test
 	void testWithoutSettingAnyConfigProperties() {
-		this.contextRunner.run(context -> assertThat(
-				context.getBeansOfType(CloudWatchMeterRegistry.class).isEmpty())
-						.isTrue());
+		this.contextRunner
+				.run(context -> assertThat(context.getBeansOfType(CloudWatchMeterRegistry.class).isEmpty()).isTrue());
 	}
 
 	@Test
 	void enableAutoConfigurationSettingNamespace() {
-		this.contextRunner
-				.withPropertyValues("management.metrics.export.cloudwatch.namespace:test")
-				.run(context -> {
-					CloudWatchMeterRegistry metricsExporter = context
-							.getBean(CloudWatchMeterRegistry.class);
-					assertThat(metricsExporter).isNotNull();
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test").run(context -> {
+			CloudWatchMeterRegistry metricsExporter = context.getBean(CloudWatchMeterRegistry.class);
+			assertThat(metricsExporter).isNotNull();
 
-					CloudWatchConfig cloudWatchConfig = context
-							.getBean(CloudWatchConfig.class);
-					assertThat(cloudWatchConfig).isNotNull();
+			CloudWatchConfig cloudWatchConfig = context.getBean(CloudWatchConfig.class);
+			assertThat(cloudWatchConfig).isNotNull();
 
-					Clock clock = context.getBean(Clock.class);
-					assertThat(clock).isNotNull();
+			Clock clock = context.getBean(Clock.class);
+			assertThat(clock).isNotNull();
 
-					CloudWatchProperties cloudWatchProperties = context
-							.getBean(CloudWatchProperties.class);
-					assertThat(cloudWatchProperties).isNotNull();
+			CloudWatchProperties cloudWatchProperties = context.getBean(CloudWatchProperties.class);
+			assertThat(cloudWatchProperties).isNotNull();
 
-					assertThat(cloudWatchProperties.getNamespace())
-							.isEqualTo(cloudWatchConfig.namespace());
+			assertThat(cloudWatchProperties.getNamespace()).isEqualTo(cloudWatchConfig.namespace());
 
-					AmazonCloudWatchAsyncClient client = context
-							.getBean(AmazonCloudWatchAsyncClient.class);
+			AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
 
-					Object region = ReflectionTestUtils.getField(client, "signingRegion");
-					assertThat(region).isEqualTo(Regions.DEFAULT_REGION.getName());
-				});
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.DEFAULT_REGION.getName());
+		});
 	}
 
 	@Test
 	void enableAutoConfigurationWithSpecificRegion() {
-		this.contextRunner
-				.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
-						"management.metrics.export.cloudwatch.region:us-east-1")
-				.run(context -> {
-					CloudWatchMeterRegistry metricsExporter = context
-							.getBean(CloudWatchMeterRegistry.class);
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+				"management.metrics.export.cloudwatch.region:us-east-1").run(context -> {
+					CloudWatchMeterRegistry metricsExporter = context.getBean(CloudWatchMeterRegistry.class);
 					assertThat(metricsExporter).isNotNull();
 
-					CloudWatchConfig cloudWatchConfig = context
-							.getBean(CloudWatchConfig.class);
+					CloudWatchConfig cloudWatchConfig = context.getBean(CloudWatchConfig.class);
 					assertThat(cloudWatchConfig).isNotNull();
 
 					Clock clock = context.getBean(Clock.class);
 					assertThat(clock).isNotNull();
 
-					CloudWatchProperties cloudWatchProperties = context
-							.getBean(CloudWatchProperties.class);
+					CloudWatchProperties cloudWatchProperties = context.getBean(CloudWatchProperties.class);
 					assertThat(cloudWatchProperties).isNotNull();
 
-					assertThat(cloudWatchProperties.getNamespace())
-							.isEqualTo(cloudWatchConfig.namespace());
+					assertThat(cloudWatchProperties.getNamespace()).isEqualTo(cloudWatchConfig.namespace());
 
-					AmazonCloudWatchAsyncClient client = context
-							.getBean(AmazonCloudWatchAsyncClient.class);
+					AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
 
 					Object region = ReflectionTestUtils.getField(client, "signingRegion");
 					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());

@@ -37,8 +37,7 @@ class CloudWatchPropertiesTest {
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
 				CloudWatchPropertiesConfiguration.class);
 
-		CloudWatchProperties cloudWatchProperties = applicationContext
-				.getBean(CloudWatchProperties.class);
+		CloudWatchProperties cloudWatchProperties = applicationContext.getBean(CloudWatchProperties.class);
 		assertThat(cloudWatchProperties.getNamespace()).isEqualTo("");
 		assertThat(cloudWatchProperties.getBatchSize()).isEqualTo(20);
 	}
@@ -55,8 +54,7 @@ class CloudWatchPropertiesTest {
 		applicationContext.register(CloudWatchPropertiesConfiguration.class);
 		applicationContext.refresh();
 
-		CloudWatchProperties cloudWatchProperties = applicationContext
-				.getBean(CloudWatchProperties.class);
+		CloudWatchProperties cloudWatchProperties = applicationContext.getBean(CloudWatchProperties.class);
 		assertThat(cloudWatchProperties.getNamespace()).isEqualTo("test");
 		assertThat(cloudWatchProperties.getBatchSize()).isEqualTo(5);
 	}

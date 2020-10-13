@@ -47,12 +47,10 @@ import org.springframework.context.annotation.Import;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
-@Import({ ContextCredentialsAutoConfiguration.class,
-		ContextDefaultConfigurationRegistrar.class })
+@Import({ ContextCredentialsAutoConfiguration.class, ContextDefaultConfigurationRegistrar.class })
 @ConditionalOnClass(name = "com.amazonaws.services.cloudformation.AmazonCloudFormation")
 @EnableConfigurationProperties(AwsStackProperties.class)
-@ConditionalOnProperty(name = "cloud.aws.stack.enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = "cloud.aws.stack.enabled", havingValue = "true", matchIfMissing = true)
 public class ContextStackAutoConfiguration {
 
 	private final AwsStackProperties properties;
@@ -70,30 +68,24 @@ public class ContextStackAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = "cloud.aws.stack.auto", havingValue = "true",
-			matchIfMissing = true)
-	public StackNameProvider autoDetectingStackNameProvider(
-			AmazonCloudFormation amazonCloudFormation,
+	@ConditionalOnProperty(name = "cloud.aws.stack.auto", havingValue = "true", matchIfMissing = true)
+	public StackNameProvider autoDetectingStackNameProvider(AmazonCloudFormation amazonCloudFormation,
 			ObjectProvider<AmazonEC2> amazonEC2) {
-		return new AutoDetectingStackNameProvider(amazonCloudFormation,
-				amazonEC2.getIfAvailable());
+		return new AutoDetectingStackNameProvider(amazonCloudFormation, amazonEC2.getIfAvailable());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(StackResourceRegistry.class)
 	@ConditionalOnBean(StackNameProvider.class)
-	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(
-			AmazonCloudFormation amazonCloudFormation,
+	public StackResourceRegistryFactoryBean stackResourceRegistryFactoryBean(AmazonCloudFormation amazonCloudFormation,
 			StackNameProvider stackNameProvider) {
-		return new StackResourceRegistryFactoryBean(amazonCloudFormation,
-				stackNameProvider);
+		return new StackResourceRegistryFactoryBean(amazonCloudFormation, stackNameProvider);
 	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudFormation.class)
 	public AmazonWebserviceClientFactoryBean<AmazonCloudFormationClient> amazonCloudFormation(
-			ObjectProvider<RegionProvider> regionProvider,
-			ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
+			ObjectProvider<RegionProvider> regionProvider, ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudFormationClient.class,
 				credentialsProvider.getIfAvailable(), regionProvider.getIfAvailable());
 	}

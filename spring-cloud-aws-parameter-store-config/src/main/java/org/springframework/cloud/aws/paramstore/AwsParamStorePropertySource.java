@@ -36,25 +36,22 @@ import org.springframework.core.env.EnumerablePropertySource;
  * @author Joris Kuipers
  * @since 2.0.0
  */
-public class AwsParamStorePropertySource
-		extends EnumerablePropertySource<AWSSimpleSystemsManagement> {
+public class AwsParamStorePropertySource extends EnumerablePropertySource<AWSSimpleSystemsManagement> {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(AwsParamStorePropertySource.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AwsParamStorePropertySource.class);
 
 	private String context;
 
 	private Map<String, Object> properties = new LinkedHashMap<>();
 
-	public AwsParamStorePropertySource(String context,
-			AWSSimpleSystemsManagement ssmClient) {
+	public AwsParamStorePropertySource(String context, AWSSimpleSystemsManagement ssmClient) {
 		super(context, ssmClient);
 		this.context = context;
 	}
 
 	public void init() {
-		GetParametersByPathRequest paramsRequest = new GetParametersByPathRequest()
-				.withPath(context).withRecursive(true).withWithDecryption(true);
+		GetParametersByPathRequest paramsRequest = new GetParametersByPathRequest().withPath(context)
+				.withRecursive(true).withWithDecryption(true);
 		getParameters(paramsRequest);
 	}
 
@@ -70,12 +67,10 @@ public class AwsParamStorePropertySource
 	}
 
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
-		GetParametersByPathResult paramsResult = source
-				.getParametersByPath(paramsRequest);
+		GetParametersByPathResult paramsResult = source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.getParameters()) {
 			String key = parameter.getName().replace(context, "").replace('/', '.');
-			LOGGER.debug("Populating property retrieved from AWS Parameter Store: {}",
-					key);
+			LOGGER.debug("Populating property retrieved from AWS Parameter Store: {}", key);
 			properties.put(key, parameter.getValue());
 		}
 		if (paramsResult.getNextToken() != null) {

@@ -38,8 +38,7 @@ public class ContextInstanceDataAutoConfiguration {
 	/**
 	 * Registrar for additional environment setup.
 	 */
-	public static class Registrar
-			implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
 		private Environment environment;
 
@@ -47,10 +46,8 @@ public class ContextInstanceDataAutoConfiguration {
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
 			registerInstanceDataPropertySource(registry,
-					this.environment
-							.getProperty("cloud.aws.instance.data.valueSeparator"),
-					this.environment
-							.getProperty("cloud.aws.instance.data.attributeSeparator"));
+					this.environment.getProperty("cloud.aws.instance.data.valueSeparator"),
+					this.environment.getProperty("cloud.aws.instance.data.attributeSeparator"));
 		}
 
 		@Override

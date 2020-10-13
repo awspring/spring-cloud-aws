@@ -30,19 +30,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class VisibilityHandlerMethodArgumentResolverTest {
 
 	@Test
-	void resolveArgument_messageWithNoVisibilityHeader_throwIllegalArgumentException()
-			throws Exception {
+	void resolveArgument_messageWithNoVisibilityHeader_throwIllegalArgumentException() throws Exception {
 		// Arrange
 		VisibilityHandlerMethodArgumentResolver visibilityHandlerMethodArgumentResolver;
-		visibilityHandlerMethodArgumentResolver = new VisibilityHandlerMethodArgumentResolver(
-				"Visibility");
+		visibilityHandlerMethodArgumentResolver = new VisibilityHandlerMethodArgumentResolver("Visibility");
 		Message<String> message = MessageBuilder.withPayload("no content").build();
 
 		// Assert
-		assertThatThrownBy(() -> visibilityHandlerMethodArgumentResolver
-				.resolveArgument(null, message))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("Visibility");
+		assertThatThrownBy(() -> visibilityHandlerMethodArgumentResolver.resolveArgument(null, message))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Visibility");
 	}
 
 }

@@ -80,8 +80,7 @@ abstract class MailSenderAwsTest {
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 			helper.addTo(this.recipientAddress);
 			helper.setFrom(this.senderAddress);
-			helper.addAttachment("test.txt",
-					new ByteArrayResource("attachment content".getBytes("UTF-8")));
+			helper.addAttachment("test.txt", new ByteArrayResource("attachment content".getBytes("UTF-8")));
 			helper.setSubject("test subject with attachment");
 			helper.setText("mime body", false);
 		});

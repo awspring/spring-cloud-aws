@@ -34,19 +34,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationMessageArgumentResolverTest {
 
 	@Test
-	void supportsParameter_withNotificationMessageMethodParameter_shouldReturnTrue()
-			throws Exception {
+	void supportsParameter_withNotificationMessageMethodParameter_shouldReturnTrue() throws Exception {
 		// Arrange
 		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(
 				new StringMessageConverter());
 		Method methodWithNotificationMessageArgument = this.getClass()
 				.getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
-		MethodParameter methodParameter = new MethodParameter(
-				methodWithNotificationMessageArgument, 0);
+		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 
 		// Act
-		boolean result = notificationMessageArgumentResolver
-				.supportsParameter(methodParameter);
+		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
 
 		// Assert
 		assertThat(result).isTrue();
@@ -54,8 +51,7 @@ class NotificationMessageArgumentResolverTest {
 
 	@SuppressWarnings("EmptyMethod")
 	@RuntimeUse
-	private void methodWithNotificationMessageArgument(
-			@NotificationMessage String message) {
+	private void methodWithNotificationMessageArgument(@NotificationMessage String message) {
 	}
 
 	@Test
@@ -63,14 +59,12 @@ class NotificationMessageArgumentResolverTest {
 		// Arrange
 		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(
 				new StringMessageConverter());
-		Method methodWithMissingAnnotation = this.getClass()
-				.getDeclaredMethod("methodWithMissingAnnotation", String.class);
-		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation,
-				0);
+		Method methodWithMissingAnnotation = this.getClass().getDeclaredMethod("methodWithMissingAnnotation",
+				String.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation, 0);
 
 		// Act
-		boolean result = notificationMessageArgumentResolver
-				.supportsParameter(methodParameter);
+		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
 
 		// Assert
 		assertThat(result).isFalse();
@@ -82,19 +76,16 @@ class NotificationMessageArgumentResolverTest {
 	}
 
 	@Test
-	void supportsParameter_withNonStringParameterType_shouldReturnTrue()
-			throws Exception {
+	void supportsParameter_withNonStringParameterType_shouldReturnTrue() throws Exception {
 		// Arrange
 		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(
 				new StringMessageConverter());
-		Method methodWithWrongParameterType = this.getClass()
-				.getDeclaredMethod("methodWithWrongParameterType", Long.class);
-		MethodParameter methodParameter = new MethodParameter(
-				methodWithWrongParameterType, 0);
+		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType",
+				Long.class);
+		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
 
 		// Act
-		boolean result = notificationMessageArgumentResolver
-				.supportsParameter(methodParameter);
+		boolean result = notificationMessageArgumentResolver.supportsParameter(methodParameter);
 
 		// Assert
 		assertThat(result).isTrue();
@@ -106,15 +97,13 @@ class NotificationMessageArgumentResolverTest {
 	}
 
 	@Test
-	void resolveArgument_withValidMessagePayload_shouldReturnNotificationMessage()
-			throws Exception {
+	void resolveArgument_withValidMessagePayload_shouldReturnNotificationMessage() throws Exception {
 		// Arrange
 		NotificationMessageArgumentResolver notificationMessageArgumentResolver = new NotificationMessageArgumentResolver(
 				new StringMessageConverter());
 		Method methodWithNotificationMessageArgument = this.getClass()
 				.getDeclaredMethod("methodWithNotificationMessageArgument", String.class);
-		MethodParameter methodParameter = new MethodParameter(
-				methodWithNotificationMessageArgument, 0);
+		MethodParameter methodParameter = new MethodParameter(methodWithNotificationMessageArgument, 0);
 
 		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
 		jsonObject.put("Type", "Notification");
@@ -123,8 +112,7 @@ class NotificationMessageArgumentResolverTest {
 		Message<String> message = MessageBuilder.withPayload(payload).build();
 
 		// Act
-		Object result = notificationMessageArgumentResolver
-				.resolveArgument(methodParameter, message);
+		Object result = notificationMessageArgumentResolver.resolveArgument(methodParameter, message);
 
 		// Assert
 		assertThat(String.class.isInstance(result)).isTrue();

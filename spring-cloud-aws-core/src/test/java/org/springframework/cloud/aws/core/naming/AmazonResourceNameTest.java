@@ -37,8 +37,7 @@ class AmazonResourceNameTest {
 
 	@Test
 	void testNameIsNull() {
-		assertThatThrownBy(() -> fromString(null))
-				.isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> fromString(null)).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("name must not be null");
 	}
 
@@ -52,14 +51,12 @@ class AmazonResourceNameTest {
 	@Test
 	void testWithoutAwsQualifier() {
 		assertThatThrownBy(() -> fromString("arn:axs:iam::123456789012:David"))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("must have a valid partition name");
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("must have a valid partition name");
 	}
 
 	@Test
 	void testWithCustomPartitionName() {
-		AmazonResourceName resourceName = fromString(
-				"arn:aws-cn:iam::123456789012:David");
+		AmazonResourceName resourceName = fromString("arn:aws-cn:iam::123456789012:David");
 		assertThat(resourceName.getPartition()).isEqualTo("aws-cn");
 	}
 
@@ -84,8 +81,7 @@ class AmazonResourceNameTest {
 		builder.withResourceType("table");
 		builder.withResourceName("books_table");
 		builder.withResourceTypeDelimiter("/");
-		assertThat(builder.build().toString())
-				.isEqualTo("arn:aws:dynamodb:us-east-1:123456789012:table/books_table");
+		assertThat(builder.build().toString()).isEqualTo("arn:aws:dynamodb:us-east-1:123456789012:table/books_table");
 	}
 
 	@Test
@@ -96,8 +92,8 @@ class AmazonResourceNameTest {
 		builder.withResourceType("solutionstack");
 		builder.withResourceName("32bit Amazon Linux running Tomcat 7");
 		builder.withResourceTypeDelimiter("/");
-		assertThat(builder.build().toString()).isEqualTo(
-				"arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7");
+		assertThat(builder.build().toString())
+				.isEqualTo("arn:aws:elasticbeanstalk:us-east-1::solutionstack/32bit Amazon Linux running Tomcat 7");
 	}
 
 	@Test
@@ -108,8 +104,7 @@ class AmazonResourceNameTest {
 		assertThat(resourceName.getRegion()).isEqualTo("us-east-1");
 		assertThat(resourceName.getAccount()).isNull();
 		assertThat(resourceName.getResourceType()).isEqualTo("solutionstack");
-		assertThat(resourceName.getResourceName())
-				.isEqualTo("32bit Amazon Linux running Tomcat 7");
+		assertThat(resourceName.getResourceName()).isEqualTo("32bit Amazon Linux running Tomcat 7");
 		assertThat(resourceName.toString()).isEqualTo(arn);
 	}
 
@@ -169,8 +164,7 @@ class AmazonResourceNameTest {
 		assertThat(resourceName.getRegion()).isEqualTo("us-east-1");
 		assertThat(resourceName.getAccount()).isEqualTo("123456789012");
 		assertThat(resourceName.getResourceType()).isEqualTo("my_corporate_topic");
-		assertThat(resourceName.getResourceName())
-				.isEqualTo("02034b43-fefa-4e07-a5eb-3be56f8c54ce");
+		assertThat(resourceName.getResourceName()).isEqualTo("02034b43-fefa-4e07-a5eb-3be56f8c54ce");
 		assertThat(resourceName.toString()).isEqualTo(arn);
 	}
 
@@ -194,8 +188,7 @@ class AmazonResourceNameTest {
 		assertThat(resourceName.getRegion()).isEqualTo("us-gov-east-1");
 		assertThat(resourceName.getAccount()).isEqualTo("123456789012");
 		assertThat(resourceName.getResourceType()).isEqualTo("my_corporate_topic");
-		assertThat(resourceName.getResourceName())
-				.isEqualTo("02034b43-fefa-4e07-a5eb-3be56f8c54ce");
+		assertThat(resourceName.getResourceName()).isEqualTo("02034b43-fefa-4e07-a5eb-3be56f8c54ce");
 		assertThat(resourceName.toString()).isEqualTo(arn);
 	}
 

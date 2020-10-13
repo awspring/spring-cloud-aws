@@ -46,8 +46,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Agim Emruli
  * @author Eddú Meléndez
  */
-public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
-		extends AbstractFactoryBean<T> {
+public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient> extends AbstractFactoryBean<T> {
 
 	private final Class<? extends AmazonWebServiceClient> clientClass;
 
@@ -59,14 +58,13 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 	private ExecutorService executor;
 
-	public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
-			AWSCredentialsProvider credentialsProvider) {
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider) {
 		this.clientClass = clientClass;
 		this.credentialsProvider = credentialsProvider;
 	}
 
-	public AmazonWebserviceClientFactoryBean(Class<T> clientClass,
-			AWSCredentialsProvider credentialsProvider, RegionProvider regionProvider) {
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider,
+			RegionProvider regionProvider) {
 		this(clientClass, credentialsProvider);
 		setRegionProvider(regionProvider);
 	}
@@ -81,23 +79,19 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 	protected T createInstance() throws Exception {
 
 		String builderName = this.clientClass.getName() + "Builder";
-		Class<?> className = ClassUtils.resolveClassName(builderName,
-				ClassUtils.getDefaultClassLoader());
+		Class<?> className = ClassUtils.resolveClassName(builderName, ClassUtils.getDefaultClassLoader());
 
 		Method method = ClassUtils.getStaticMethod(className, "standard");
-		Assert.notNull(method, "Could not find standard() method in class:'"
-				+ className.getName() + "'");
+		Assert.notNull(method, "Could not find standard() method in class:'" + className.getName() + "'");
 
-		AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils
-				.invokeMethod(method, null);
+		AwsClientBuilder<?, T> builder = (AwsClientBuilder<?, T>) ReflectionUtils.invokeMethod(method, null);
 
 		if (this.executor != null) {
 			AwsAsyncClientBuilder<?, T> asyncBuilder = (AwsAsyncClientBuilder<?, T>) builder;
 			asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
 		}
 
-		builder.withClientConfiguration(
-				SpringCloudClientConfiguration.getClientConfiguration());
+		builder.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
 
 		if (this.credentialsProvider != null) {
 			builder.withCredentials(this.credentialsProvider);

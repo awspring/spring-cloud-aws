@@ -53,12 +53,10 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration(proxyBeanMethods = false)
 @Import(ContextCredentialsAutoConfiguration.class)
-@AutoConfigureBefore({ CompositeMeterRegistryAutoConfiguration.class,
-		SimpleMetricsExportAutoConfiguration.class })
+@AutoConfigureBefore({ CompositeMeterRegistryAutoConfiguration.class, SimpleMetricsExportAutoConfiguration.class })
 @AutoConfigureAfter(MetricsAutoConfiguration.class)
 @EnableConfigurationProperties(CloudWatchProperties.class)
-@ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch",
-		name = "namespace")
+@ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch", name = "namespace")
 @ConditionalOnClass({ CloudWatchMeterRegistry.class, RegionProvider.class })
 public class CloudWatchExportAutoConfiguration {
 
@@ -67,27 +65,24 @@ public class CloudWatchExportAutoConfiguration {
 	private final RegionProvider regionProvider;
 
 	public CloudWatchExportAutoConfiguration(AWSCredentialsProvider credentialsProvider,
-			ObjectProvider<RegionProvider> regionProvider,
-			CloudWatchProperties properties) {
+			ObjectProvider<RegionProvider> regionProvider, CloudWatchProperties properties) {
 		this.credentialsProvider = credentialsProvider;
-		this.regionProvider = properties.getRegion() == null
-				? regionProvider.getIfAvailable()
+		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled",
-			matchIfMissing = true)
-	public CloudWatchMeterRegistry cloudWatchMeterRegistry(CloudWatchConfig config,
-			Clock clock, AmazonCloudWatchAsync client) {
+	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled", matchIfMissing = true)
+	public CloudWatchMeterRegistry cloudWatchMeterRegistry(CloudWatchConfig config, Clock clock,
+			AmazonCloudWatchAsync client) {
 		return new CloudWatchMeterRegistry(config, clock, client);
 	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
 	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class,
-				this.credentialsProvider, this.regionProvider);
+		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class, this.credentialsProvider,
+				this.regionProvider);
 	}
 
 	@Bean

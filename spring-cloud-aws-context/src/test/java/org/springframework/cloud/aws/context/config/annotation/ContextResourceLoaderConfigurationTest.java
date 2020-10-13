@@ -42,21 +42,18 @@ class ContextResourceLoaderConfigurationTest {
 	@Test
 	void regionProvider_withConfiguredRegion_staticRegionProviderConfigured() {
 		// Arrange
-		this.context = new AnnotationConfigApplicationContext(
-				ApplicationConfigurationWithResourceLoader.class);
+		this.context = new AnnotationConfigApplicationContext(ApplicationConfigurationWithResourceLoader.class);
 
 		// Act
 		ApplicationBean bean = this.context.getBean(ApplicationBean.class);
 
 		// Assert
 		assertThat(bean.getResourceLoader()).isNotNull();
-		assertThat(DefaultResourceLoader.class.isInstance(bean.getResourceLoader()))
-				.isTrue();
+		assertThat(DefaultResourceLoader.class.isInstance(bean.getResourceLoader())).isTrue();
 
-		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean
-				.getResourceLoader();
-		assertThat(SimpleStorageProtocolResolver.class.isInstance(
-				defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
+		DefaultResourceLoader defaultResourceLoader = (DefaultResourceLoader) bean.getResourceLoader();
+		assertThat(SimpleStorageProtocolResolver.class
+				.isInstance(defaultResourceLoader.getProtocolResolvers().iterator().next())).isTrue();
 	}
 
 	@EnableContextResourceLoader

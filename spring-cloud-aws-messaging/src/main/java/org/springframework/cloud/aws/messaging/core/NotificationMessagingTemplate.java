@@ -30,8 +30,7 @@ import org.springframework.messaging.core.DestinationResolver;
  * @author Alain Sahli
  * @since 1.0
  */
-public class NotificationMessagingTemplate
-		extends AbstractMessageChannelMessagingSendingTemplate<TopicMessageChannel> {
+public class NotificationMessagingTemplate extends AbstractMessageChannelMessagingSendingTemplate<TopicMessageChannel> {
 
 	private final AmazonSNS amazonSns;
 
@@ -39,20 +38,18 @@ public class NotificationMessagingTemplate
 		this(amazonSns, (ResourceIdResolver) null, null);
 	}
 
-	public NotificationMessagingTemplate(AmazonSNS amazonSns,
-			ResourceIdResolver resourceIdResolver) {
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver) {
 		this(amazonSns, resourceIdResolver, null);
 	}
 
-	public NotificationMessagingTemplate(AmazonSNS amazonSns,
-			ResourceIdResolver resourceIdResolver, MessageConverter messageConverter) {
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, ResourceIdResolver resourceIdResolver,
+			MessageConverter messageConverter) {
 		super(new DynamicTopicDestinationResolver(amazonSns, resourceIdResolver));
 		this.amazonSns = amazonSns;
 		initMessageConverter(messageConverter);
 	}
 
-	public NotificationMessagingTemplate(AmazonSNS amazonSns,
-			DestinationResolver<String> destinationResolver,
+	public NotificationMessagingTemplate(AmazonSNS amazonSns, DestinationResolver<String> destinationResolver,
 			MessageConverter messageConverter) {
 		super(destinationResolver);
 		this.amazonSns = amazonSns;
@@ -60,8 +57,7 @@ public class NotificationMessagingTemplate
 	}
 
 	@Override
-	protected TopicMessageChannel resolveMessageChannel(
-			String physicalResourceIdentifier) {
+	protected TopicMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {
 		return new TopicMessageChannel(this.amazonSns, physicalResourceIdentifier);
 	}
 
@@ -76,8 +72,8 @@ public class NotificationMessagingTemplate
 	 * @param subject The subject to send
 	 */
 	public void sendNotification(String destinationName, Object message, String subject) {
-		this.convertAndSend(destinationName, message, Collections
-				.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+		this.convertAndSend(destinationName, message,
+				Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
 	/**
@@ -90,8 +86,8 @@ public class NotificationMessagingTemplate
 	 * @param subject The subject to send
 	 */
 	public void sendNotification(Object message, String subject) {
-		this.convertAndSend(getRequiredDefaultDestination(), message, Collections
-				.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+		this.convertAndSend(getRequiredDefaultDestination(), message,
+				Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
 }

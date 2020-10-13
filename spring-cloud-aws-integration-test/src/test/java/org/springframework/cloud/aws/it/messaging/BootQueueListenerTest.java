@@ -53,10 +53,8 @@ class BootQueueListenerTest extends QueueListenerTest {
 
 		@Bean
 		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs,
-				ResourceIdResolver resourceIdResolver,
-				QueueMessageHandlerFactory factory) {
-			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(
-					amazonSqs, resourceIdResolver);
+				ResourceIdResolver resourceIdResolver, QueueMessageHandlerFactory factory) {
+			QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
 			factory.setSendToMessagingTemplate(queueMessagingTemplate);
 
 			return queueMessagingTemplate;

@@ -104,8 +104,7 @@ public class SqlRetryPolicy implements RetryPolicy {
 		if (candidate == null) {
 			return true;
 		}
-		return context.getRetryCount() <= this.maxNumberOfRetries
-				&& isRetryAbleException(candidate);
+		return context.getRetryCount() <= this.maxNumberOfRetries && isRetryAbleException(candidate);
 	}
 
 	@Override
@@ -127,8 +126,7 @@ public class SqlRetryPolicy implements RetryPolicy {
 		boolean retryAble = this.binaryExceptionClassifier.classify(throwable);
 		if (!retryAble) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Retry on Exception: {} not possible trying cause",
-						throwable.getClass().getName());
+				LOGGER.trace("Retry on Exception: {} not possible trying cause", throwable.getClass().getName());
 			}
 			if (throwable.getCause() != null) {
 				return isRetryAbleException(throwable.getCause());
@@ -137,8 +135,7 @@ public class SqlRetryPolicy implements RetryPolicy {
 		}
 		else {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Retry possible due to exception class {}",
-						throwable.getClass().getName());
+				LOGGER.trace("Retry possible due to exception class {}", throwable.getClass().getName());
 			}
 			return true;
 		}

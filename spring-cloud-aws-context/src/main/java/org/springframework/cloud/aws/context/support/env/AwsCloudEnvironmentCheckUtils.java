@@ -34,8 +34,7 @@ public final class AwsCloudEnvironmentCheckUtils {
 	public static boolean isRunningOnCloudEnvironment() {
 		if (isCloudEnvironment == null) {
 			try {
-				isCloudEnvironment = EC2MetadataUtils
-						.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
+				isCloudEnvironment = EC2MetadataUtils.getData(EC2_METADATA_ROOT + "/instance-id", 1) != null;
 			}
 			catch (AmazonClientException e) {
 				isCloudEnvironment = false;

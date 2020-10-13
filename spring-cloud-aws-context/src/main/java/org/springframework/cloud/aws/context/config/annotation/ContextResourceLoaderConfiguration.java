@@ -46,16 +46,14 @@ public class ContextResourceLoaderConfiguration {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
-			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils
-					.registerAmazonWebserviceClient(this, registry,
-							AmazonS3Client.class.getName(), null, null);
+			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this,
+					registry, AmazonS3Client.class.getName(), null, null);
 
 			BeanDefinitionBuilder configurer = BeanDefinitionBuilder
 					.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);
 			configurer.addConstructorArgValue(getProtocolResolver(client));
 
-			BeanDefinitionReaderUtils
-					.registerWithGeneratedName(configurer.getBeanDefinition(), registry);
+			BeanDefinitionReaderUtils.registerWithGeneratedName(configurer.getBeanDefinition(), registry);
 		}
 
 		protected BeanDefinition getProtocolResolver(BeanDefinitionHolder client) {

@@ -48,8 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@see https://github.com/spring-cloud/spring-cloud-aws/issues/640} -
  * {@see https://github.com/spring-cloud/spring-cloud-aws/issues/348}
  */
-@SpringBootTest(classes = CustomS3ClientTest.Config.class,
-		properties = { "s3.access=xxx", "s3.secret=yyy" })
+@SpringBootTest(classes = CustomS3ClientTest.Config.class, properties = { "s3.access=xxx", "s3.secret=yyy" })
 public class CustomS3ClientTest {
 
 	@Autowired
@@ -103,11 +102,9 @@ public class CustomS3ClientTest {
 		@Primary
 		public AmazonS3 customAmazonS3(S3Properties s3Properties) {
 			AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(
-					new BasicAWSCredentials(s3Properties.getAccess(),
-							s3Properties.getSecret()));
+					new BasicAWSCredentials(s3Properties.getAccess(), s3Properties.getSecret()));
 
-			return AmazonS3ClientBuilder.standard().withCredentials(credentialsProvider)
-					.build();
+			return AmazonS3ClientBuilder.standard().withCredentials(credentialsProvider).build();
 		}
 
 	}

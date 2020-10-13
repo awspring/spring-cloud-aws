@@ -60,8 +60,8 @@ public class ContextRegionProviderAutoConfiguration {
 			if (!registry.containsBeanDefinition(REGION_PROVIDER_BEAN_NAME)) {
 				registry.registerBeanDefinition(REGION_PROVIDER_BEAN_NAME,
 						createRegionProviderBeanDefinition(awsRegionProperties()));
-				AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(
-						registry, REGION_PROVIDER_BEAN_NAME);
+				AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider(registry,
+						REGION_PROVIDER_BEAN_NAME);
 			}
 		}
 
@@ -70,20 +70,16 @@ public class ContextRegionProviderAutoConfiguration {
 			this.environment = environment;
 		}
 
-		private BeanDefinition createRegionProviderBeanDefinition(
-				AwsRegionProperties properties) {
-			return properties.isStatic() ? BeanDefinitionBuilder
-					.genericBeanDefinition(StaticRegionProvider.class)
-					.addConstructorArgValue(properties.getStatic()).getBeanDefinition()
-					: BeanDefinitionBuilder
-							.genericBeanDefinition(
-									DefaultAwsRegionProviderChainDelegate.class)
+		private BeanDefinition createRegionProviderBeanDefinition(AwsRegionProperties properties) {
+			return properties.isStatic()
+					? BeanDefinitionBuilder.genericBeanDefinition(StaticRegionProvider.class)
+							.addConstructorArgValue(properties.getStatic()).getBeanDefinition()
+					: BeanDefinitionBuilder.genericBeanDefinition(DefaultAwsRegionProviderChainDelegate.class)
 							.getBeanDefinition();
 		}
 
 		private AwsRegionProperties awsRegionProperties() {
-			return Binder.get(this.environment).bindOrCreate(AwsRegionProperties.PREFIX,
-					AwsRegionProperties.class);
+			return Binder.get(this.environment).bindOrCreate(AwsRegionProperties.PREFIX, AwsRegionProperties.class);
 		}
 
 	}

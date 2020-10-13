@@ -31,8 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * @author Alain Sahli
  */
-@ContextConfiguration(
-		classes = JavaMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
+@ContextConfiguration(classes = JavaMessageListenerContainerAwsTest.MessageListenerContainerAwsTestConfiguration.class)
 class JavaMessageListenerContainerAwsTest extends MessageListenerContainerAwsTest {
 
 	@Configuration
@@ -54,8 +53,7 @@ class JavaMessageListenerContainerAwsTest extends MessageListenerContainerAwsTes
 			threadPoolTaskExecutor.setCorePoolSize(10);
 			threadPoolTaskExecutor.setMaxPoolSize(200);
 			threadPoolTaskExecutor.setQueueCapacity(0);
-			threadPoolTaskExecutor.setRejectedExecutionHandler(
-					new ThreadPoolExecutor.CallerRunsPolicy());
+			threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
 			return threadPoolTaskExecutor;
 		}

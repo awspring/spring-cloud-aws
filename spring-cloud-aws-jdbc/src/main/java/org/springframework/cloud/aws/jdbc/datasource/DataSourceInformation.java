@@ -61,8 +61,8 @@ public final class DataSourceInformation {
 	 * @param userName - The username used to connect to the database
 	 * @param password - The password used to connect to the database
 	 */
-	public DataSourceInformation(DatabaseType databaseType, String hostName, Integer port,
-			String databaseName, String userName, String password) {
+	public DataSourceInformation(DatabaseType databaseType, String hostName, Integer port, String databaseName,
+			String userName, String password) {
 		Assert.notNull(databaseType, "DatabaseType must not be null");
 		Assert.notNull(hostName, "Hostname must not be null");
 		Assert.notNull(port, "Port must not be null");

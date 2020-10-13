@@ -45,9 +45,8 @@ class ContextResourceLoaderAutoConfigurationTest {
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.register(ContextResourceLoaderAutoConfiguration.class);
 
-		TestPropertyValues.of("cloud.aws.loader.corePoolSize:10",
-				"cloud.aws.loader.maxPoolSize:20", "cloud.aws.loader.queueCapacity:0")
-				.applyTo(this.context);
+		TestPropertyValues.of("cloud.aws.loader.corePoolSize:10", "cloud.aws.loader.maxPoolSize:20",
+				"cloud.aws.loader.queueCapacity:0").applyTo(this.context);
 
 		// Act
 		this.context.refresh();
@@ -61,8 +60,7 @@ class ContextResourceLoaderAutoConfigurationTest {
 
 		assertThat(taskExecutor.getCorePoolSize()).isEqualTo(10);
 		assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(20);
-		assertThat(ReflectionTestUtils.getField(taskExecutor, "queueCapacity"))
-				.isEqualTo(0);
+		assertThat(ReflectionTestUtils.getField(taskExecutor, "queueCapacity")).isEqualTo(0);
 	}
 
 	@Test
@@ -78,8 +76,8 @@ class ContextResourceLoaderAutoConfigurationTest {
 		// Assert
 		SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context
 				.getProtocolResolvers().iterator().next();
-		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils
-				.getField(simpleStorageProtocolResolver, "taskExecutor");
+		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver,
+				"taskExecutor");
 		assertThat(taskExecutor).isNotNull();
 	}
 

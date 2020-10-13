@@ -56,8 +56,7 @@ import org.springframework.util.CollectionUtils;
 @ConditionalOnClass(SimpleMessageListenerContainer.class)
 @ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "cloud.aws.sqs.enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = "cloud.aws.sqs.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(SqsProperties.class)
 public class SqsAutoConfiguration {
 
@@ -69,12 +68,10 @@ public class SqsAutoConfiguration {
 
 		private final RegionProvider regionProvider;
 
-		SqsClientConfiguration(
-				ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
+		SqsClientConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
 				ObjectProvider<RegionProvider> regionProvider, SqsProperties properties) {
 			this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
-			this.regionProvider = properties.getRegion() == null
-					? regionProvider.getIfAvailable()
+			this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 					: new StaticRegionProvider(properties.getRegion());
 		}
 
@@ -82,8 +79,7 @@ public class SqsAutoConfiguration {
 		@Bean(destroyMethod = "shutdown")
 		public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
 			AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-					AmazonSQSAsyncClient.class, this.awsCredentialsProvider,
-					this.regionProvider);
+					AmazonSQSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider);
 			clientFactoryBean.afterPropertiesSet();
 			return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
 		}
@@ -105,27 +101,22 @@ public class SqsAutoConfiguration {
 
 		private final ObjectMapper objectMapper;
 
-		SqsConfiguration(
-				ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
-				ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory,
-				BeanFactory beanFactory,
+		SqsConfiguration(ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
+				ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory, BeanFactory beanFactory,
 				ObjectProvider<ResourceIdResolver> resourceIdResolver,
 				ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter,
 				ObjectProvider<ObjectMapper> objectMapper, SqsProperties sqsProperties) {
 			this.simpleMessageListenerContainerFactory = simpleMessageListenerContainerFactory
-					.getIfAvailable(() -> createSimpleMessageListenerContainerFactory(
-							sqsProperties));
-			this.queueMessageHandlerFactory = queueMessageHandlerFactory.getIfAvailable(
-					() -> createQueueMessageHandlerFactory(sqsProperties));
+					.getIfAvailable(() -> createSimpleMessageListenerContainerFactory(sqsProperties));
+			this.queueMessageHandlerFactory = queueMessageHandlerFactory
+					.getIfAvailable(() -> createQueueMessageHandlerFactory(sqsProperties));
 			this.beanFactory = beanFactory;
 			this.resourceIdResolver = resourceIdResolver.getIfAvailable();
-			this.mappingJackson2MessageConverter = mappingJackson2MessageConverter
-					.getIfAvailable();
+			this.mappingJackson2MessageConverter = mappingJackson2MessageConverter.getIfAvailable();
 			this.objectMapper = objectMapper.getIfAvailable();
 		}
 
-		private static QueueMessageHandlerFactory createQueueMessageHandlerFactory(
-				SqsProperties sqsProperties) {
+		private static QueueMessageHandlerFactory createQueueMessageHandlerFactory(SqsProperties sqsProperties) {
 			QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
 
 			Optional.ofNullable(sqsProperties.getHandler().getDefaultDeletionPolicy())
@@ -138,47 +129,40 @@ public class SqsAutoConfiguration {
 				SqsProperties sqsProperties) {
 			SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
 
-			Optional.ofNullable(sqsProperties.getListener().getBackOffTime())
-					.ifPresent(factory::setBackOffTime);
+			Optional.ofNullable(sqsProperties.getListener().getBackOffTime()).ifPresent(factory::setBackOffTime);
 			Optional.ofNullable(sqsProperties.getListener().getMaxNumberOfMessages())
 					.ifPresent(factory::setMaxNumberOfMessages);
 			Optional.ofNullable(sqsProperties.getListener().getQueueStopTimeout())
 					.ifPresent(factory::setQueueStopTimeout);
 			Optional.ofNullable(sqsProperties.getListener().getVisibilityTimeout())
 					.ifPresent(factory::setVisibilityTimeout);
-			Optional.ofNullable(sqsProperties.getListener().getWaitTimeout())
-					.ifPresent(factory::setWaitTimeOut);
+			Optional.ofNullable(sqsProperties.getListener().getWaitTimeout()).ifPresent(factory::setWaitTimeOut);
 			factory.setAutoStartup(sqsProperties.getListener().isAutoStartup());
 
 			return factory;
 		}
 
 		@Bean
-		public SimpleMessageListenerContainer simpleMessageListenerContainer(
-				AmazonSQSAsync amazonSqs) {
+		public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
 			if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
 				this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
 			}
 			if (this.simpleMessageListenerContainerFactory.getResourceIdResolver() == null
 					&& this.resourceIdResolver != null) {
-				this.simpleMessageListenerContainerFactory
-						.setResourceIdResolver(this.resourceIdResolver);
+				this.simpleMessageListenerContainerFactory.setResourceIdResolver(this.resourceIdResolver);
 			}
 
 			SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory
 					.createSimpleMessageListenerContainer();
 
-			simpleMessageListenerContainer
-					.setMessageHandler(queueMessageHandler(amazonSqs));
+			simpleMessageListenerContainer.setMessageHandler(queueMessageHandler(amazonSqs));
 			return simpleMessageListenerContainer;
 		}
 
 		@Bean
 		public QueueMessageHandler queueMessageHandler(AmazonSQSAsync amazonSqs) {
-			if (this.simpleMessageListenerContainerFactory
-					.getQueueMessageHandler() != null) {
-				return this.simpleMessageListenerContainerFactory
-						.getQueueMessageHandler();
+			if (this.simpleMessageListenerContainerFactory.getQueueMessageHandler() != null) {
+				return this.simpleMessageListenerContainerFactory.getQueueMessageHandler();
 			}
 			else {
 				return getMessageHandler(amazonSqs);
@@ -190,11 +174,10 @@ public class SqsAutoConfiguration {
 				this.queueMessageHandlerFactory.setAmazonSqs(amazonSqs);
 			}
 
-			if (CollectionUtils
-					.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
+			if (CollectionUtils.isEmpty(this.queueMessageHandlerFactory.getMessageConverters())
 					&& this.mappingJackson2MessageConverter != null) {
-				this.queueMessageHandlerFactory.setMessageConverters(
-						Arrays.asList(this.mappingJackson2MessageConverter));
+				this.queueMessageHandlerFactory
+						.setMessageConverters(Arrays.asList(this.mappingJackson2MessageConverter));
 			}
 
 			this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);

@@ -27,8 +27,7 @@ import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.
  * @author Dawid Kublik
  * @since 2.0.0
  */
-class CloudWatchPropertiesConfigAdapter
-		extends StepRegistryPropertiesConfigAdapter<CloudWatchProperties>
+class CloudWatchPropertiesConfigAdapter extends StepRegistryPropertiesConfigAdapter<CloudWatchProperties>
 		implements CloudWatchConfig {
 
 	CloudWatchPropertiesConfigAdapter(CloudWatchProperties properties) {

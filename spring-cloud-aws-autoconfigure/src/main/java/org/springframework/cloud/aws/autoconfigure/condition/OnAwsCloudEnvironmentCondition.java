@@ -34,8 +34,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class OnAwsCloudEnvironmentCondition extends SpringBootCondition {
 
 	@Override
-	public ConditionOutcome getMatchOutcome(ConditionContext context,
-			AnnotatedTypeMetadata metadata) {
+	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		if (AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment()) {
 			return ConditionOutcome.match();
 		}

@@ -34,16 +34,13 @@ public class SqsHeadersMethodArgumentResolver extends HeadersMethodArgumentResol
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return super.supportsParameter(parameter)
-				|| SqsMessageHeaders.class == parameter.getParameterType();
+		return super.supportsParameter(parameter) || SqsMessageHeaders.class == parameter.getParameterType();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message)
-			throws Exception {
-		final Object resolvedParameter = Objects
-				.requireNonNull(super.resolveArgument(parameter, message));
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+		final Object resolvedParameter = Objects.requireNonNull(super.resolveArgument(parameter, message));
 		if (Map.class.isAssignableFrom(resolvedParameter.getClass())
 				&& SqsMessageHeaders.class != resolvedParameter.getClass()) {
 			return new SqsMessageHeaders((Map<String, Object>) resolvedParameter);

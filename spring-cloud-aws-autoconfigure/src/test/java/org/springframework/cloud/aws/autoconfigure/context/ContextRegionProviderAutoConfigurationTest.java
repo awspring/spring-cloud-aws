@@ -41,46 +41,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ContextRegionProviderAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(
-					AutoConfigurations.of(ContextRegionProviderAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(ContextRegionProviderAutoConfiguration.class));
 
 	@Test
 	void autoDetectionConfigured_noConfigurationProvided_DefaultAwsRegionProviderChainDelegateConfigured() {
 		this.contextRunner.run((context) -> {
-			assertThat(context.getBean(DefaultAwsRegionProviderChainDelegate.class))
-					.isNotNull();
+			assertThat(context.getBean(DefaultAwsRegionProviderChainDelegate.class)).isNotNull();
 		});
 	}
 
 	@Test
 	void autoDetectionConfigured_emptyStaticRegionConfigured_DefaultAwsRegionProviderChainDelegateConfigured() {
-		this.contextRunner.withPropertyValues("cloud.aws.region.static:")
-				.run((context) -> {
-					assertThat(
-							context.getBean(DefaultAwsRegionProviderChainDelegate.class))
-									.isNotNull();
-				});
+		this.contextRunner.withPropertyValues("cloud.aws.region.static:").run((context) -> {
+			assertThat(context.getBean(DefaultAwsRegionProviderChainDelegate.class)).isNotNull();
+		});
 	}
 
 	@Test
 	void staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() {
-		this.contextRunner.withPropertyValues("cloud.aws.region.static:eu-west-1")
-				.run((context) -> {
-					StaticRegionProvider regionProvider = context
-							.getBean(StaticRegionProvider.class);
-					assertThat(regionProvider.getRegion())
-							.isEqualTo(Region.getRegion(Regions.EU_WEST_1));
-				});
+		this.contextRunner.withPropertyValues("cloud.aws.region.static:eu-west-1").run((context) -> {
+			StaticRegionProvider regionProvider = context.getBean(StaticRegionProvider.class);
+			assertThat(regionProvider.getRegion()).isEqualTo(Region.getRegion(Regions.EU_WEST_1));
+		});
 	}
 
 	@Test
 	void customRegionConfigured() {
-		this.contextRunner.withUserConfiguration(CustomRegionProviderConfiguration.class)
-				.run((context) -> {
-					RegionProvider regionProvider = context.getBean(RegionProvider.class);
-					assertThat(regionProvider).isNotNull()
-							.isInstanceOf(CustomRegionProvider.class);
-				});
+		this.contextRunner.withUserConfiguration(CustomRegionProviderConfiguration.class).run((context) -> {
+			RegionProvider regionProvider = context.getBean(RegionProvider.class);
+			assertThat(regionProvider).isNotNull().isInstanceOf(CustomRegionProvider.class);
+		});
 
 	}
 

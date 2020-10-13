@@ -41,8 +41,7 @@ class ObjectMessageConverterTest {
 
 	private static MessageHeaders getMessageHeaders(String charsetName) {
 		return new MessageHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
-				new MimeType("application", "x-java-serialized-object",
-						Charset.forName(charsetName))));
+				new MimeType("application", "x-java-serialized-object", Charset.forName(charsetName))));
 	}
 
 	@Test
@@ -50,12 +49,10 @@ class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter();
-		Message<?> message = messageConverter.toMessage(sourceMessage,
-				getMessageHeaders("UTF-8"));
-		assertThat(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8")))
-				.isTrue();
-		MySerializableClass result = (MySerializableClass) messageConverter
-				.fromMessage(message, MySerializableClass.class);
+		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("UTF-8"));
+		assertThat(Base64.isBase64(message.getPayload().toString().getBytes("UTF-8"))).isTrue();
+		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message,
+				MySerializableClass.class);
 		assertThat(result.getContent()).isEqualTo(content);
 	}
 
@@ -64,13 +61,10 @@ class ObjectMessageConverterTest {
 		String content = "stringwithspecialcharsöäü€a8";
 		MySerializableClass sourceMessage = new MySerializableClass(content);
 		MessageConverter messageConverter = new ObjectMessageConverter("ISO-8859-1");
-		Message<?> message = messageConverter.toMessage(sourceMessage,
-				getMessageHeaders("ISO-8859-1"));
-		assertThat(
-				Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1")))
-						.isTrue();
-		MySerializableClass result = (MySerializableClass) messageConverter
-				.fromMessage(message, MySerializableClass.class);
+		Message<?> message = messageConverter.toMessage(sourceMessage, getMessageHeaders("ISO-8859-1"));
+		assertThat(Base64.isBase64(message.getPayload().toString().getBytes("ISO-8859-1"))).isTrue();
+		MySerializableClass result = (MySerializableClass) messageConverter.fromMessage(message,
+				MySerializableClass.class);
 		assertThat(result.getContent()).isEqualTo(content);
 	}
 
@@ -84,19 +78,16 @@ class ObjectMessageConverterTest {
 	void testPayloadIsNotAValidBase64Payload() throws Exception {
 
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		assertThatThrownBy(() -> messageConverter
-				.fromMessage(MessageBuilder.withPayload("test€").build(), null))
-						.isInstanceOf(MessageConversionException.class)
-						.hasMessageContaining("not a valid base64 encoded stream");
+		assertThatThrownBy(() -> messageConverter.fromMessage(MessageBuilder.withPayload("test€").build(), null))
+				.isInstanceOf(MessageConversionException.class)
+				.hasMessageContaining("not a valid base64 encoded stream");
 	}
 
 	@Test
 	void testPayloadIsNotAValidObjectStream() throws Exception {
 		ObjectMessageConverter messageConverter = new ObjectMessageConverter();
-		assertThatThrownBy(() -> messageConverter
-				.fromMessage(MessageBuilder.withPayload("someStream").build(), null))
-						.isInstanceOf(MessageConversionException.class)
-						.hasMessageContaining("Error reading payload");
+		assertThatThrownBy(() -> messageConverter.fromMessage(MessageBuilder.withPayload("someStream").build(), null))
+				.isInstanceOf(MessageConversionException.class).hasMessageContaining("Error reading payload");
 	}
 
 	private static final class MySerializableClass implements Serializable {

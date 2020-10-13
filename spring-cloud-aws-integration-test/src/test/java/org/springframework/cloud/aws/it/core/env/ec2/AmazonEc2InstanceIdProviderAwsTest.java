@@ -35,8 +35,7 @@ public class AmazonEc2InstanceIdProviderAwsTest {
 
 	@BeforeEach
 	void enableInstanceIdMetadataService() {
-		this.testStackInstanceIdService = TestStackInstanceIdService
-				.fromInstanceId("i-abcdefg");
+		this.testStackInstanceIdService = TestStackInstanceIdService.fromInstanceId("i-abcdefg");
 		this.testStackInstanceIdService.enable();
 	}
 

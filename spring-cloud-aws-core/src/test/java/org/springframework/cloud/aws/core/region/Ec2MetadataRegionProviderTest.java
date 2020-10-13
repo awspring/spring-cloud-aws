@@ -58,9 +58,8 @@ class Ec2MetadataRegionProviderTest {
 		};
 
 		// Assert
-		assertThatThrownBy(regionProvider::getRegion)
-				.isInstanceOf(IllegalStateException.class).hasMessageContaining(
-						"There is no EC2 meta data available, because the application is not running in the EC2 environment");
+		assertThatThrownBy(regionProvider::getRegion).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+				"There is no EC2 meta data available, because the application is not running in the EC2 environment");
 
 	}
 
