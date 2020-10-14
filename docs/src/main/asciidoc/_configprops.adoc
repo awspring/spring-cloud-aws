@@ -25,8 +25,8 @@
 |cloud.aws.loader.queue-capacity |  | The maximum queue capacity for backed up S3 requests. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setQueueCapacity(int)
 |cloud.aws.mail.region || The specific region for SES integration.
 |cloud.aws.region.static |  |
-|cloud.aws.sqs.region || The specific region for SQS integration.
 |cloud.aws.sns.region || The specific region for SNS integration.
+|cloud.aws.sqs.region || The specific region for SQS integration.
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
 
