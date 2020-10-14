@@ -28,6 +28,7 @@
 "component: sqs":
   - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/messaging/Sqs*.java
 "status: waiting-for-triage":
+  - ./*
   - ./**/*
 "type: documentation": docs/**/*
 "type: dependency-upgrade":
