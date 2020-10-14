@@ -1,0 +1,35 @@
+"component: cloudwatch":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/metrics/*
+"component: core":
+  - spring-cloud-aws-core/*
+  - spring-cloud-aws-core/**/*
+"component: elasticache":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/cache/*
+"component: parameter-store":
+  - spring-cloud-aws-parameter-store-config/*
+  - spring-cloud-aws-parameter-store-config/**/*
+  - spring-cloud-starter-aws-parameter-store-config/*
+  - spring-cloud-starter-aws-parameter-store-config/**/*
+"component: rds":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/jdbc/*
+  - spring-cloud-starter-aws-jdbc/*
+  - spring-cloud-starter-aws-jdbc/**/*
+"component: s3":
+  - spring-cloud-aws-core/src/*/java/org/springframework/cloud/aws/core/io/s3/*
+"component: secrets-manager":
+  - spring-cloud-aws-secrets-manager-config/*
+  - spring-cloud-aws-secrets-manager-config/**/*
+  - spring-cloud-starter-aws-secrets-manager-config/*
+  - spring-cloud-starter-aws-secrets-manager-config/**/*
+"component: ses":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/mail/*
+"component: sns":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/messaging/Sns*.java
+"component: sqs":
+  - spring-cloud-aws-autoconfigure/src/*/java/org/springframework/cloud/aws/autoconfigure/messaging/Sqs*.java
+"status: waiting-for-triage":
+  - ./**/*
+"type: documentation": docs/**/*
+"type: dependency-upgrade":
+  - pom.xml
+  - spring-cloud-aws-dependencies/pom.xml
