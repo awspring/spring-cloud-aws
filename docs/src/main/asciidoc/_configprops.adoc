@@ -7,12 +7,14 @@
 |aws.paramstore.name |  | Alternative to spring.application.name to use in looking up values in AWS Parameter Store.
 |aws.paramstore.prefix | /config | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
 |aws.paramstore.profile-separator | _ | 
-|aws.secretsmanager.default-context | application | 
+|aws.paramstore.region |  | The specific region for Parameter Store integration.
+|aws.secretsmanager.default-context | application |
 |aws.secretsmanager.enabled | true | Is AWS Secrets Manager support enabled.
 |aws.secretsmanager.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
 |aws.secretsmanager.name |  | Alternative to spring.application.name to use in looking up values in AWS Secrets Manager.
 |aws.secretsmanager.prefix | /secret | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
 |aws.secretsmanager.profile-separator | _ | 
+|aws.secretsmanager.region |  | The specific region for Secrets Manager integration.
 |cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
 |cloud.aws.credentials.instance-profile | false | Configures an instance profile credentials provider with no further configuration.
 |cloud.aws.credentials.profile-name |  | The AWS profile name.
@@ -21,7 +23,10 @@
 |cloud.aws.loader.core-pool-size | 1 | The core pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setCorePoolSize(int)
 |cloud.aws.loader.max-pool-size |  | The maximum pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setMaxPoolSize(int)
 |cloud.aws.loader.queue-capacity |  | The maximum queue capacity for backed up S3 requests. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setQueueCapacity(int)
-|cloud.aws.region.static |  | 
+|cloud.aws.mail.region || The specific region for SES integration.
+|cloud.aws.region.static |  |
+|cloud.aws.sqs.region || The specific region for SQS integration.
+|cloud.aws.sns.region || The specific region for SNS integration.
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
 
