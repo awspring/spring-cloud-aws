@@ -7,6 +7,11 @@ assignees: ''
 
 ---
 
+**Type**: Bug
+
+**Component**:
+<!-- Choose "CloudWatch", "ElastiCache", "Parameter Store", "RDS", "S3", "Secrets Manager", "SES", "SNS", "SQS" -->
+
 **Describe the bug**
 Please provide details of the problem, including the version of Spring Cloud that you
 are using. 
