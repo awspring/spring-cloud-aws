@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +36,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.WebUtils;
 
 /**
  * @author Agim Emruli
@@ -120,7 +120,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 
 		private Charset getCharset() {
 			return this.mediaType.getCharset() != null ? this.mediaType.getCharset()
-					: Charset.forName(WebUtils.DEFAULT_CHARACTER_ENCODING);
+					: Charset.forName(StandardCharsets.UTF_8.name());
 		}
 
 		@Override

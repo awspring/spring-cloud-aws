@@ -105,6 +105,26 @@ class ComplexNotificationEndpointControllerTest {
 		assertThat(this.notificationTestController.getSubject()).isEqualTo("Notification Subject");
 	}
 
+	// @checkstyle:off
+	@Test
+	void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod_Check_UTF8()
+			throws Exception {
+		// @checkstyle:on
+		// Arrange
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(new ClassPathResource("notificationMessage-complexObject-UTF-8-Check.json", getClass())
+						.getInputStream());
+
+		// Act
+		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
+
+		// Assert
+		assertThat(this.notificationTestController.getMessage().getFirstName()).isEqualTo("الْحُرُوف");
+		assertThat(this.notificationTestController.getMessage().getLastName()).isEqualTo("口廿竹十火");
+		assertThat(this.notificationTestController.getSubject()).isEqualTo("Notification Subject");
+	}
+
 	@Test
 	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
 		// Arrange
