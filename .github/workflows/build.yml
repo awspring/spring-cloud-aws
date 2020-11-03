@@ -24,7 +24,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Download ${{ matrix.version }}
-        uses: sdkman/sdkman-action@v1-preview-2
+        uses: sdkman/sdkman-action@master
         id: sdkman
         with:
           candidate: java
