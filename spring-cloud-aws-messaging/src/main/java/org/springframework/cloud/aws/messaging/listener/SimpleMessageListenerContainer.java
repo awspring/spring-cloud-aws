@@ -270,13 +270,23 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	}
 
 	protected void startQueue(String queueName, QueueAttributes queueAttributes) {
-		if (this.runningStateByQueue.containsKey(queueName) && this.runningStateByQueue.get(queueName)) {
+		if (isQueueRunning(queueName)) {
 			return;
 		}
 
 		this.runningStateByQueue.put(queueName, true);
 		Future<?> future = getTaskExecutor().submit(new AsynchronousMessageListener(queueName, queueAttributes));
 		this.scheduledFutureByQueue.put(queueName, future);
+	}
+
+	protected boolean isQueueRunning(String logicalQueueName) {
+		if (this.runningStateByQueue.containsKey(logicalQueueName)) {
+			return this.runningStateByQueue.get(logicalQueueName);
+		}
+		else {
+			getLogger().warn("Stopped queue '" + logicalQueueName + "' because it was not listed as running queue.");
+			return false;
+		}
 	}
 
 	private static final class SignalExecutingRunnable implements Runnable {
@@ -315,13 +325,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		@Override
 		public void run() {
-			while (isQueueRunning()) {
+			while (isQueueRunning(this.logicalQueueName)) {
 				try {
 					ReceiveMessageResult receiveMessageResult = getAmazonSqs()
 							.receiveMessage(this.queueAttributes.getReceiveMessageRequest());
 					CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
 					for (Message message : receiveMessageResult.getMessages()) {
-						if (isQueueRunning()) {
+						if (isQueueRunning(this.logicalQueueName)) {
 							MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message,
 									this.queueAttributes);
 							getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
@@ -351,17 +361,6 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			}
 
 			SimpleMessageListenerContainer.this.scheduledFutureByQueue.remove(this.logicalQueueName);
-		}
-
-		private boolean isQueueRunning() {
-			if (SimpleMessageListenerContainer.this.runningStateByQueue.containsKey(this.logicalQueueName)) {
-				return SimpleMessageListenerContainer.this.runningStateByQueue.get(this.logicalQueueName);
-			}
-			else {
-				getLogger().warn(
-						"Stopped queue '" + this.logicalQueueName + "' because it was not listed as running queue.");
-				return false;
-			}
 		}
 
 	}
