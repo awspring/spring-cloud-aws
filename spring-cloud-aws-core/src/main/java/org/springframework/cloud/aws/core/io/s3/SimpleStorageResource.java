@@ -76,6 +76,8 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	private final String versionId;
 
+	private final String contentType;
+
 	private final AmazonS3 amazonS3;
 
 	private final TaskExecutor taskExecutor;
@@ -83,16 +85,17 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	private volatile ObjectMetadata objectMetadata;
 
 	public SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor) {
-		this(amazonS3, bucketName, objectName, taskExecutor, null);
+		this(amazonS3, bucketName, objectName, taskExecutor, null, null);
 	}
 
 	public SimpleStorageResource(AmazonS3 amazonS3, String bucketName, String objectName, TaskExecutor taskExecutor,
-			String versionId) {
+			String versionId, String contentType) {
 		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.taskExecutor = taskExecutor;
 		this.versionId = versionId;
+		this.contentType = contentType;
 	}
 
 	@Override
@@ -286,6 +289,9 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 				MessageDigest messageDigest = MessageDigest.getInstance("MD5");
 				String md5Digest = BinaryUtils.toBase64(messageDigest.digest(content));
 				objectMetadata.setContentMD5(md5Digest);
+				if (SimpleStorageResource.this.contentType != null) {
+					objectMetadata.setContentType(SimpleStorageResource.this.contentType);
+				}
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new IllegalStateException(
@@ -325,9 +331,15 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 		private void initiateMultiPartIfNeeded() {
 			if (this.multiPartUploadResult == null) {
+
+				ObjectMetadata metadata = new ObjectMetadata();
+				if (SimpleStorageResource.this.contentType != null) {
+					metadata.setContentType(SimpleStorageResource.this.contentType);
+				}
+
 				this.multiPartUploadResult = SimpleStorageResource.this.amazonS3.initiateMultipartUpload(
 						new InitiateMultipartUploadRequest(SimpleStorageResource.this.bucketName,
-								SimpleStorageResource.this.objectName));
+								SimpleStorageResource.this.objectName, metadata));
 			}
 		}
 

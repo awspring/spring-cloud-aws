@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getBucketNameFromLocation;
+import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getContentTypeFromLocation;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObject;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObjectAndVersionId;
 import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getObjectNameFromLocation;
@@ -106,6 +107,14 @@ class SimpleStorageNameUtilsTest {
 	void testGetVersionIdFromLocation() throws Exception {
 		assertThat(getVersionIdFromLocation("s3://foo/bar^versionIdValue")).isEqualTo("versionIdValue");
 		assertThat(getVersionIdFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue")).isEqualTo("versionIdValue");
+	}
+
+	@Test
+	public void testGetContentTypeFromLocation() {
+		assertThat(getContentTypeFromLocation("s3://foo/bar")).isEqualTo(null);
+		assertThat(getContentTypeFromLocation("s3://foo/bar^versionIdValue")).isEqualTo(null);
+		assertThat(getContentTypeFromLocation("s3://foo/bar/baz/boo.txt")).isEqualTo("text/plain");
+		assertThat(getContentTypeFromLocation("s3://foo/bar/ba*/boo.txt/^versionIdValue")).isEqualTo("text/plain");
 	}
 
 	@Test

@@ -76,7 +76,8 @@ public class SimpleStorageProtocolResolver implements ProtocolResolver, Initiali
 			return new SimpleStorageResource(this.getAmazonS3(),
 					SimpleStorageNameUtils.getBucketNameFromLocation(location),
 					SimpleStorageNameUtils.getObjectNameFromLocation(location), this.taskExecutor,
-					SimpleStorageNameUtils.getVersionIdFromLocation(location));
+					SimpleStorageNameUtils.getVersionIdFromLocation(location),
+					SimpleStorageNameUtils.getContentTypeFromLocation(location));
 		}
 		else {
 			return null;

@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.aws.core.io.s3;
 
+import java.net.URLConnection;
+
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Utility class that provides utility method to work with s3 storage resources.
@@ -95,6 +98,14 @@ final class SimpleStorageNameUtils {
 		}
 
 		return location.substring(++objectNameEndIndex, location.length());
+	}
+
+	static String getContentTypeFromLocation(String location) {
+		String objectName = getObjectNameFromLocation(location);
+		if (!StringUtils.isEmpty(objectName)) {
+			return URLConnection.guessContentTypeFromName(objectName);
+		}
+		return null;
 	}
 
 	static String getLocationForBucketAndObject(String bucketName, String objectName) {

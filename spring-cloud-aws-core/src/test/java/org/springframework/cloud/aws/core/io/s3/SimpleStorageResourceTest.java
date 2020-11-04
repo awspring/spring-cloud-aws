@@ -24,16 +24,20 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
+import java.util.Random;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.Region;
 import com.amazonaws.services.s3.model.S3Object;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.core.task.SyncTaskExecutor;
@@ -42,8 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Agim Emruli
@@ -263,20 +266,74 @@ class SimpleStorageResourceTest {
 				new SyncTaskExecutor());
 		String messageContext = "myFileContent";
 		when(amazonS3.putObject(eq("bucketName"), eq("objectName"), any(InputStream.class), any(ObjectMetadata.class)))
-				.thenAnswer((Answer<PutObjectResult>) invocation -> {
-					assertThat(invocation.getArguments()[0]).isEqualTo("bucketName");
-					assertThat(invocation.getArguments()[1]).isEqualTo("objectName");
-					byte[] content = new byte[messageContext.length()];
-					assertThat(((InputStream) invocation.getArguments()[2]).read(content)).isEqualTo(content.length);
-					assertThat(new String(content)).isEqualTo(messageContext);
-					return new PutObjectResult();
-				});
+				.thenReturn(new PutObjectResult());
 		OutputStream outputStream = simpleStorageResource.getOutputStream();
 
 		// Act
 		outputStream.write(messageContext.getBytes());
 		outputStream.flush();
 		outputStream.close();
+
+		// Assert
+		ArgumentCaptor<InputStream> inputStreamArgumentCaptor = ArgumentCaptor.forClass(InputStream.class);
+		ArgumentCaptor<ObjectMetadata> objectMetadataArgumentCaptor = ArgumentCaptor.forClass(ObjectMetadata.class);
+		verify(amazonS3).putObject(eq("bucketName"), eq("objectName"), inputStreamArgumentCaptor.capture(),
+				objectMetadataArgumentCaptor.capture());
+		byte[] content = new byte[messageContext.length()];
+		assertThat(inputStreamArgumentCaptor.getValue().read(content)).isEqualTo(content.length);
+		assertThat(new String(content)).isEqualTo(messageContext);
+		assertThat(objectMetadataArgumentCaptor.getValue().getContentType()).isNull();
+	}
+
+	@Test
+	public void writeFile_simpleUpload_setsContentType() throws Exception {
+		// Arrange
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucketName", "objectName",
+				new SyncTaskExecutor(), null, "text/plain");
+		String messageContext = "myFileContent";
+		when(amazonS3.putObject(eq("bucketName"), eq("objectName"), any(InputStream.class), any(ObjectMetadata.class)))
+				.thenReturn(new PutObjectResult());
+		OutputStream outputStream = simpleStorageResource.getOutputStream();
+
+		// Act
+		outputStream.write(messageContext.getBytes());
+		outputStream.flush();
+		outputStream.close();
+
+		// Assert
+
+		ArgumentCaptor<ObjectMetadata> objectMetadataArgumentCaptor = ArgumentCaptor.forClass(ObjectMetadata.class);
+		verify(amazonS3).putObject(eq("bucketName"), eq("objectName"), any(InputStream.class),
+				objectMetadataArgumentCaptor.capture());
+		assertThat(objectMetadataArgumentCaptor.getValue().getContentType()).isEqualTo("text/plain");
+	}
+
+	@Test
+	public void writeFile_multipartUpload_setsContentType() throws Exception {
+		// Arrange
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucketName", "objectName",
+				new SyncTaskExecutor(), null, "text/plain");
+
+		byte[] messageContext = new byte[(1024 * 1024 * 5) + 1];
+		new Random().nextBytes(messageContext);
+
+		when(amazonS3.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
+				.thenAnswer((Answer<InitiateMultipartUploadResult>) invocation -> {
+					assertThat(((InitiateMultipartUploadRequest) invocation.getArguments()[0]).getBucketName())
+							.isEqualTo("bucketName");
+					assertThat(((InitiateMultipartUploadRequest) invocation.getArguments()[0]).getKey())
+							.isEqualTo("objectName");
+					assertThat(((InitiateMultipartUploadRequest) invocation.getArguments()[0]).getObjectMetadata()
+							.getContentType()).isEqualTo("text/plain");
+					return new InitiateMultipartUploadResult();
+				});
+		OutputStream outputStream = simpleStorageResource.getOutputStream();
+
+		// Act
+		outputStream.write(messageContext);
+		outputStream.flush();
 
 		// Assert
 	}
