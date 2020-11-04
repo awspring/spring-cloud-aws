@@ -33,6 +33,9 @@
 		<main.basedir>${basedir}/..</main.basedir>
 		<configprops.inclusionPattern>cloud.aws.*|aws.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
+		<generated-docs-multipage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/html</generated-docs-multipage-output.dir>
+		<generated-docs-singlepage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/htmlsingle</generated-docs-singlepage-output.dir>
+		<generated-docs-pdf-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/pdf</generated-docs-pdf-output.dir>
 	</properties>
 	<dependencies>
 		<dependency>

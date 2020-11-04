@@ -1,0 +1,33 @@
+name: Build and upload docs
+
+on:
+  push:
+    branches:
+      - 3.0.x
+      - 2.3.x
+      - 2.2.x
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build docs
+        run: ./mvnw -pl docs clean package -Pdocs
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
+        run: |
+          aws s3 sync --delete --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"
