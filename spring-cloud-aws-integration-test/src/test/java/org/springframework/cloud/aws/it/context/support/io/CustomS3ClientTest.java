@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.support.io;
+package org.springframework.cloud.aws.it.context.support.io;
 
 import javax.annotation.PostConstruct;
 

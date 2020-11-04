@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright 2013-2019 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/messaging"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/messaging"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+				schemaLocation="https://www.springframework.org/schema/tool/spring-tool.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+				schemaLocation="https://www.springframework.org/schema/beans/spring-beans.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd"/>
+
+	<xsd:element name="annotation-driven-queue-listener">
+		<xsd:annotation>
+			<xsd:documentation>
+				Scans the classes annotated with
+				org.springframework.cloud.aws.messaging.config.annotation.QueueListener
+				and
+				registers them as endpoints for receiving messages from SQS.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:all minOccurs="0">
+				<xsd:element name="argument-resolvers" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Configures HandlerMethodArgumentResolver types to support
+							custom queue messaging method argument types.
+							Using this option does not override the built-in support for
+							resolving handler method arguments.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element ref="beans:bean" minOccurs="1"
+										 maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>
+										The HandlerMethodArgumentResolver bean definition.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+
+				<xsd:element name="return-value-handlers" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Configures HandlerMethodReturnValueHandler types to support
+							custom queue messaging method return value handling.
+							Using this option does not override the built-in support for
+							handling return values.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element ref="beans:bean" minOccurs="1"
+										 maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>
+										The HandlerMethodReturnValueHandler bean
+										definition.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:all>
+			<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.core.task.TaskExecutor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Configures the TaskExecutor which is used to poll messages and
+						execute them
+						by calling the handler methods. If no TaskExecutor is set, a
+						default one is created.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-sqs" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="com.amazonaws.services.sqs.AmazonSQSAsync"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Sets the AmazonSQSAsync that is going to be used by the container
+						to interact with the messaging
+						(SQS) API.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-messages" type="xsd:nonNegativeInteger">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configure the maximum number of messages that should be retrieved
+						during one poll to the Amazon SQS system. This
+						number must be a positive, non-zero number that has a maximum
+						number of 10. Values higher then 10 are currently
+						not supported by the queueing system.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="visibility-timeout" type="xsd:nonNegativeInteger">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configures the duration (in seconds) that the received messages
+						are hidden from
+						subsequent poll requests after being retrieved from the system.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="wait-time-out" type="xsd:nonNegativeInteger">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Configures the wait timeout that the poll request will wait for new message to arrive if the are currently no
+						messages on the queue. Higher values will reduce poll request to the system significantly. The value should
+						be between 1 and 20. For more information read the
+						<a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:boolean">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configures if this container should be automatically started. The
+						default value is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-to-message-template" type="xsd:string"
+						   use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to a bean that implements the
+						org.springframework.messaging.core.MessageSendingOperations
+						interface.
+						This message template will be used to send return values of
+						methods annotated with @SendTo.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.messaging.core.MessageSendingOperations"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="destination-resolver" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to a bean that implements the
+						org.springframework.messaging.core.DestinationResolver interface.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.messaging.core.DestinationResolver"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="delete-message-on-exception" type="xsd:boolean"
+						   use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines if a message must be deleted or not if the handler method
+						throws an exception and the exception handler
+						method is called. By default this value is set to true which means
+						that the message is deleted to avoid
+						poison messages. If this value is set to false it is the
+						responsibility of the exception handler method to delete
+						the message. The exception handler method can inject the message
+						headers with
+						org.springframework.messaging.handler.annotation.Headers
+						in order to get the receipt handle.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="back-off-time" type="xsd:long" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The number of milliseconds the polling thread must wait before
+						trying to recover when an error occurs
+						(e.g. connection timeout). Default value is 10000 milliseconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="queue-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a
+				org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="amazon-sqs" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="com.amazonaws.services.sqs.AmazonSQSAsync"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="message-converter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.messaging.converter.MessageConverter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="default-destination" type="xsd:string"/>
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-messaging-template">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a
+				org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="amazon-sns" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="com.amazonaws.services.sns.AmazonSNS"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="default-destination" type="xsd:string"/>
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-argument-resolver">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a HandlerMethodArgumentResolver to be used in Spring MVC to
+				support Notification endpoints in
+				Spring MVC. The configured bean must be registered as an custom argument
+				resolver in Spring MVC
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports
+						type="org.springframework.web.method.support.HandlerMethodArgumentResolver"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+					<xsd:attribute name="amazon-sns" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="com.amazonaws.services.sns.AmazonSNS"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="sqs-async-client">
+		<xsd:annotation>
+			<xsd:documentation>Configures an SQS client instance, with the configuration
+				parameter specified.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.core.task.TaskExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="buffered" type="xsd:boolean" default="true"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright 2013-2019 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/cache"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/cache"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+				schemaLocation="https://www.springframework.org/schema/beans/spring-beans.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+				schemaLocation="https://www.springframework.org/schema/tool/spring-tool.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd"/>
+
+	<xsd:element name="cache-manager">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a cache manager based on SpyMemcached that uses the AWS
+				ElastiCache service.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="cache-ref" type="cacheRefType" minOccurs="0"/>
+				<xsd:element name="cache-cluster" type="cacheClusterType" minOccurs="0"/>
+			</xsd:choice>
+			<xsd:attribute name="id" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The id of the cache manager
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="abstractCacheConfiguration" abstract="true">
+		<xsd:attribute name="expiration" type="xsd:int" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines optionally the expiration time in seconds of a cache entry.
+					Otherwise an expiration of '0'
+					is assumed
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="cacheClusterType">
+		<xsd:complexContent>
+			<xsd:extension base="abstractCacheConfiguration">
+				<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+				<xsd:attribute name="name" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>
+							Defines the cache cluster name
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="amazon-elasti-cache" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Reference to an externally configured
+							com.amazonaws.services.elasticache.AmazonElastiCache
+							instance
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type
+									type="com.amazonaws.services.elasticache.AmazonElastiCache"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="cacheRefType">
+		<xsd:attribute name="ref" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					A reference to a bean that implements the
+					org.springframework.cache.Cache interface.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.cache.Cache"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+</xsd:schema>

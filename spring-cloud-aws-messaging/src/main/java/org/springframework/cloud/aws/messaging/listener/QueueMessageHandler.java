@@ -84,6 +84,10 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy;
 	}
 
+	public QueueMessageHandler(List<MessageConverter> messageConverters) {
+		this(messageConverters, SqsMessageDeletionPolicy.NO_REDRIVE);
+	}
+
 	public QueueMessageHandler() {
 		this.messageConverters = Collections.emptyList();
 		this.sqsMessageDeletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE;
