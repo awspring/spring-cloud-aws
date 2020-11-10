@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
-import org.junit.jupiter.api.AfterEach;
+import com.amazonaws.services.s3.AmazonS3Client;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
+import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,55 +32,53 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ContextResourceLoaderAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
-
-	@AfterEach
-	void tearDown() {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(ContextResourceLoaderAutoConfiguration.class));
 
 	@Test
 	void createResourceLoader_withCustomTaskExecutorSettings_executorConfigured() {
 		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextResourceLoaderAutoConfiguration.class);
+		this.contextRunner.withPropertyValues("cloud.aws.loader.corePoolSize:10", "cloud.aws.loader.maxPoolSize:20",
+				"cloud.aws.loader.queueCapacity:0").run(context -> {
+					assertThat(context).hasSingleBean(AwsS3ResourceLoaderProperties.class);
+					assertThat(context).hasSingleBean(AmazonS3Client.class);
 
-		TestPropertyValues.of("cloud.aws.loader.corePoolSize:10", "cloud.aws.loader.maxPoolSize:20",
-				"cloud.aws.loader.queueCapacity:0").applyTo(this.context);
+					SimpleStorageProtocolResolverConfigurer simpleStorageProtocolResolverConfigurer = context
+							.getBean(SimpleStorageProtocolResolverConfigurer.class);
 
-		// Act
-		this.context.refresh();
+					SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) ReflectionTestUtils
+							.getField(simpleStorageProtocolResolverConfigurer, "protocolResolver");
 
-		// Assert
-		SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context
-				.getProtocolResolvers().iterator().next();
-		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils
-				.getField(simpleStorageProtocolResolver, "taskExecutor");
-		assertThat(taskExecutor).isNotNull();
+					ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) ReflectionTestUtils
+							.getField(simpleStorageProtocolResolver, "taskExecutor");
 
-		assertThat(taskExecutor.getCorePoolSize()).isEqualTo(10);
-		assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(20);
-		assertThat(ReflectionTestUtils.getField(taskExecutor, "queueCapacity")).isEqualTo(0);
+					assertThat(taskExecutor).isNotNull();
+
+					assertThat(taskExecutor.getCorePoolSize()).isEqualTo(10);
+					assertThat(taskExecutor.getMaxPoolSize()).isEqualTo(20);
+					assertThat(ReflectionTestUtils.getField(taskExecutor, "queueCapacity")).isEqualTo(0);
+				});
 	}
 
 	@Test
 	void createResourceLoader_withoutExecutorSettings_executorConfigured() {
 
-		// Arrange
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextResourceLoaderAutoConfiguration.class);
+		this.contextRunner.withPropertyValues().run(context -> {
+			assertThat(context).hasSingleBean(AwsS3ResourceLoaderProperties.class);
+			assertThat(context).hasSingleBean(AmazonS3Client.class);
 
-		// Act
-		this.context.refresh();
+			SimpleStorageProtocolResolverConfigurer simpleStorageProtocolResolverConfigurer = context
+					.getBean(SimpleStorageProtocolResolverConfigurer.class);
 
-		// Assert
-		SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) this.context
-				.getProtocolResolvers().iterator().next();
-		SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils.getField(simpleStorageProtocolResolver,
-				"taskExecutor");
-		assertThat(taskExecutor).isNotNull();
+			SimpleStorageProtocolResolver simpleStorageProtocolResolver = (SimpleStorageProtocolResolver) ReflectionTestUtils
+					.getField(simpleStorageProtocolResolverConfigurer, "protocolResolver");
+
+			SyncTaskExecutor taskExecutor = (SyncTaskExecutor) ReflectionTestUtils
+					.getField(simpleStorageProtocolResolver, "taskExecutor");
+
+			assertThat(taskExecutor).isNotNull();
+		});
+
 	}
 
 }

@@ -20,13 +20,13 @@ import java.lang.reflect.Field;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor;
 import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ContextInstanceDataAutoConfigurationTest {
 
-	private AnnotationConfigApplicationContext context;
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(ContextInstanceDataAutoConfiguration.class));
 
 	@BeforeEach
 	void restContextInstanceDataCondition() throws IllegalAccessException {
@@ -46,13 +47,6 @@ class ContextInstanceDataAutoConfigurationTest {
 		field.set(null, null);
 	}
 
-	@AfterEach
-	void tearDown() throws Exception {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
-
 	@Test
 	void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment() throws Exception {
 		// Arrange
@@ -60,14 +54,8 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor")).isTrue();
+		this.contextRunner.run(
+				context -> assertThat(context).hasSingleBean(AmazonEc2InstanceDataPropertySourcePostProcessor.class));
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -79,14 +67,8 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
 				new MetaDataServer.HttpResponseWriterHandler(null));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.containsBean("AmazonEc2InstanceDataPropertySourcePostProcessor")).isFalse();
+		this.contextRunner.run(context -> assertThat(context)
+				.doesNotHaveBean((AmazonEc2InstanceDataPropertySourcePostProcessor.class)));
 
 		httpServer.removeContext(instanceIdHttpContext);
 	}
@@ -101,15 +83,10 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b;c:d"));
 
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
-		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
+		this.contextRunner.run(context -> {
+			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
+			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
+		});
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
@@ -125,18 +102,10 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
-		this.context = new AnnotationConfigApplicationContext();
-
-		TestPropertyValues.of("cloud.aws.instance.data.valueSeparator:=").applyTo(this.context);
-
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
-		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
+		this.contextRunner.withPropertyValues("cloud.aws.instance.data.valueSeparator:=").run(context -> {
+			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
+			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
+		});
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
@@ -152,18 +121,10 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
 
-		this.context = new AnnotationConfigApplicationContext();
-
-		TestPropertyValues.of("cloud.aws.instance.data.attributeSeparator:/").applyTo(this.context);
-
-		this.context.register(ContextInstanceDataAutoConfiguration.class);
-
-		// Act
-		this.context.refresh();
-
-		// Assert
-		assertThat(this.context.getEnvironment().getProperty("a")).isEqualTo("b");
-		assertThat(this.context.getEnvironment().getProperty("c")).isEqualTo("d");
+		this.contextRunner.withPropertyValues("cloud.aws.instance.data.attributeSeparator:/").run(context -> {
+			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
+			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
+		});
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
