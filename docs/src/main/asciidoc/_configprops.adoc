@@ -3,6 +3,7 @@
 
 |aws.paramstore.default-context | application | 
 |aws.paramstore.enabled | true | Is AWS Parameter Store support enabled.
+|aws.paramstore.endpoint |  | Overrides the default endpoint.
 |aws.paramstore.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
 |aws.paramstore.name |  | Alternative to spring.application.name to use in looking up values in AWS Parameter Store.
 |aws.paramstore.prefix | /config | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
@@ -10,6 +11,7 @@
 |aws.paramstore.region |  | If region value is not null or empty it will be used in creation of AWSSimpleSystemsManagement.
 |aws.secretsmanager.default-context | application | 
 |aws.secretsmanager.enabled | true | Is AWS Secrets Manager support enabled.
+|aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |aws.secretsmanager.fail-fast | true | Throw exceptions during config lookup if true, otherwise, log warnings.
 |aws.secretsmanager.name |  | Alternative to spring.application.name to use in looking up values in AWS Secrets Manager.
 |aws.secretsmanager.prefix | /secret | Prefix indicating first level for every property. Value must start with a forward slash followed by a valid path segment or be empty. Defaults to "/config".
@@ -29,12 +31,19 @@
 |cloud.aws.loader.max-pool-size |  | The maximum pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setMaxPoolSize(int)
 |cloud.aws.loader.queue-capacity |  | The maximum queue capacity for backed up S3 requests. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setQueueCapacity(int)
 |cloud.aws.mail.enabled | true | Enables Mail integration.
-|cloud.aws.mail.region |  | Overrides the default region.
+|cloud.aws.mail.endpoint |  | 
+|cloud.aws.mail.region |  | 
 |cloud.aws.rds.enabled | true | Enables RDS integration.
+|cloud.aws.rds.endpoint |  | 
 |cloud.aws.rds.instances |  | List of RdsInstances.
+|cloud.aws.rds.region |  | 
+|cloud.aws.s3.endpoint |  | Overrides the default endpoint.
+|cloud.aws.s3.region |  | Overrides the default region.
 |cloud.aws.sns.enabled | true | Enables SNS integration.
-|cloud.aws.sns.region |  | Overrides the default region.
+|cloud.aws.sns.endpoint |  | 
+|cloud.aws.sns.region |  | 
 |cloud.aws.sqs.enabled | true | Enables SQS integration.
+|cloud.aws.sqs.endpoint |  | 
 |cloud.aws.sqs.handler.default-deletion-policy |  | Configures global deletion policy used if deletion policy is not explicitly set on {@link SqsListener}.
 |cloud.aws.sqs.listener.auto-startup | true | Configures if this container should be automatically started.
 |cloud.aws.sqs.listener.back-off-time |  | The number of milliseconds the polling thread must wait before trying to recover when an error occurs (e.g. connection timeout).
@@ -42,7 +51,7 @@
 |cloud.aws.sqs.listener.queue-stop-timeout |  | The queue stop timeout that waits for a queue to stop before interrupting the running thread.
 |cloud.aws.sqs.listener.visibility-timeout |  | The duration (in seconds) that the received messages are hidden from subsequent poll requests after being retrieved from the system.
 |cloud.aws.sqs.listener.wait-timeout | 20 | The wait timeout that the poll request will wait for new message to arrive if the are currently no messages on the queue. Higher values will reduce poll request to the system significantly. The value should be between 1 and 20. For more information read the <a href= "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
-|cloud.aws.sqs.region |  | Overrides the default region.
+|cloud.aws.sqs.region |  | 
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.enabled | true | Enables Stack integration.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.

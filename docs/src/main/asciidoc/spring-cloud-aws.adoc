@@ -371,6 +371,18 @@ eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east
 configured with own region meta data
 |===
 
+===== Configuring endpoints
+For each integrated AWS service you can configure Spring Cloud AWS to use a custom endpoint using configuration properties. For example:
+
+[source,properties,indent=0]
+----
+cloud.aws.s3.endpoint=http://localhost:4566
+cloud.aws.sqs.endpoint=http://localhost:4566
+cloud.aws.rds.endpoint=http://localhost:4566
+----
+
+Using custom endpoint can be especially useful when using https://github.com/localstack/localstack[Localstack] in integration tests or integrating with AWS compatible 3rd party services like https://min.io/[MinIO].
+
 == Cloud environment
 Applications often need environment specific configuration information, especially in changing environments like in the
 Amazon cloud environment. Spring Cloud AWS provides a support to retrieve and use environment specific data inside the

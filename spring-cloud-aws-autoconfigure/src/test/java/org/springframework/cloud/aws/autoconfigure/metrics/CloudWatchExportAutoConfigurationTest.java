@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.metrics;
 
+import java.net.URI;
+
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
 import io.micrometer.cloudwatch.CloudWatchConfig;
@@ -25,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +36,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Dawid Kublik
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  */
 class CloudWatchExportAutoConfigurationTest {
-
-	private MockEnvironment env;
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(CloudWatchExportAutoConfiguration.class));
@@ -95,6 +95,21 @@ class CloudWatchExportAutoConfigurationTest {
 
 					Object region = ReflectionTestUtils.getField(client, "signingRegion");
 					assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+				});
+	}
+
+	@Test
+	void enableAutoConfigurationWithCustomEndpoint() {
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+				"management.metrics.export.cloudwatch.endpoint:http://localhost:8090").run(context -> {
+					AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
+
+					Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+					assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+					Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client,
+							"isEndpointOverridden");
+					assertThat(isEndpointOverridden).isTrue();
 				});
 	}
 

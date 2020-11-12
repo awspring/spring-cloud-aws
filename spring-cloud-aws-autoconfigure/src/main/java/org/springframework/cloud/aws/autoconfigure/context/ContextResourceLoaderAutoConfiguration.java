@@ -22,11 +22,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
 import org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -56,20 +54,13 @@ public class ContextResourceLoaderAutoConfiguration {
 	/**
 	 * Sets additional properties for the task executor definition.
 	 */
-	public static class Registrar extends ContextResourceLoaderConfiguration.Registrar implements EnvironmentAware {
+	public static class Registrar extends ContextResourceLoaderConfiguration.Registrar {
 
 		private static final String CORE_POOL_SIZE_PROPERTY_NAME = "corePoolSize";
 
 		private static final String MAX_POOL_SIZE_PROPERTY_NAME = "maxPoolSize";
 
 		private static final String QUEUE_CAPACITY_PROPERTY_NAME = "queueCapacity";
-
-		private Environment environment;
-
-		@Override
-		public void setEnvironment(Environment environment) {
-			this.environment = environment;
-		}
 
 		@Override
 		protected BeanDefinition getTaskExecutorDefinition() {

@@ -77,10 +77,13 @@ public class AmazonRdsDatabaseAutoConfiguration {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
-			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(
-					this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null, null).getBeanName();
-
-			rdsDatabaseProperties().getInstances().stream().filter(RdsInstance::hasRequiredPropertiesSet)
+			AmazonRdsDatabaseProperties properties = rdsDatabaseProperties();
+			String endpoint = properties.getEndpoint() != null ? properties.getEndpoint().toString() : null;
+			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils
+					.registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null,
+							properties.getRegion(), endpoint)
+					.getBeanName();
+			properties.getInstances().stream().filter(RdsInstance::hasRequiredPropertiesSet)
 					.forEach(instance -> registerDatasource(registry, amazonRdsClientBeanName, instance));
 		}
 

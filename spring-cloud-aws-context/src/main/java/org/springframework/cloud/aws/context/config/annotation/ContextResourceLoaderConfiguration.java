@@ -26,9 +26,11 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
@@ -41,13 +43,21 @@ public class ContextResourceLoaderConfiguration {
 	/**
 	 * Registrar for Amazon webservice client.
 	 */
-	public static class Registrar implements ImportBeanDefinitionRegistrar {
+	public static class Registrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+
+		protected Environment environment;
+
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = environment;
+		}
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
 			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this,
-					registry, AmazonS3Client.class.getName(), null, null);
+					registry, AmazonS3Client.class.getName(), null, this.environment.getProperty("cloud.aws.s3.region"),
+					this.environment.getProperty("cloud.aws.s3.endpoint"));
 
 			BeanDefinitionBuilder configurer = BeanDefinitionBuilder
 					.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);

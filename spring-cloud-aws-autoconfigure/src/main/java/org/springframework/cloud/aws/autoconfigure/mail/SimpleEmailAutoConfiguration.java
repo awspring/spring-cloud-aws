@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.mail;
 
+import java.util.Optional;
+
 import javax.mail.Session;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -67,9 +69,11 @@ public class SimpleEmailAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
 	public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService(
-			AWSCredentialsProvider credentialsProvider) {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonSimpleEmailServiceClient.class, credentialsProvider,
-				this.regionProvider);
+			AWSCredentialsProvider credentialsProvider, SimpleEmailProperties properties) {
+		AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonSimpleEmailServiceClient.class, credentialsProvider, this.regionProvider);
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
+		return clientFactoryBean;
 	}
 
 	@Bean

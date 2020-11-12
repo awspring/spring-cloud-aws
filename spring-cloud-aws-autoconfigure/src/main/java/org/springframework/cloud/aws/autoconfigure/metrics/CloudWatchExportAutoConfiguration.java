@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.metrics;
 
+import java.util.Optional;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
@@ -80,9 +82,12 @@ public class CloudWatchExportAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonCloudWatchAsync.class)
-	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonCloudWatchAsyncClient.class, this.credentialsProvider,
-				this.regionProvider);
+	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(
+			CloudWatchProperties properties) {
+		AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonCloudWatchAsyncClient.class, this.credentialsProvider, this.regionProvider);
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
+		return clientFactoryBean;
 	}
 
 	@Bean

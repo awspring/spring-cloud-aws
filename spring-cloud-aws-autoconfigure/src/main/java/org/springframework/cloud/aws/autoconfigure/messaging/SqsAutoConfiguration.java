@@ -68,11 +68,14 @@ public class SqsAutoConfiguration {
 
 		private final RegionProvider regionProvider;
 
+		private final SqsProperties properties;
+
 		SqsClientConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
 				ObjectProvider<RegionProvider> regionProvider, SqsProperties properties) {
 			this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
 			this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 					: new StaticRegionProvider(properties.getRegion());
+			this.properties = properties;
 		}
 
 		@Lazy
@@ -80,6 +83,7 @@ public class SqsAutoConfiguration {
 		public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
 			AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
 					AmazonSQSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider);
+			Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 			clientFactoryBean.afterPropertiesSet();
 			return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());
 		}

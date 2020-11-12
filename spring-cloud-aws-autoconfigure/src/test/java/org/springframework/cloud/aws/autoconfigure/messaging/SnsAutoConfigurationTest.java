@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.messaging;
 
+import java.net.URI;
 import java.util.List;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -131,6 +132,19 @@ class SnsAutoConfigurationTest {
 			AmazonSNSClient client = context.getBean(AmazonSNSClient.class);
 			Object region = ReflectionTestUtils.getField(client, "signingRegion");
 			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+		});
+	}
+
+	@Test
+	void enableSqsWithCustomEndpoint() {
+		this.contextRunner.withPropertyValues("cloud.aws.sns.endpoint:http://localhost:8090").run(context -> {
+			AmazonSNSClient client = context.getBean(AmazonSNSClient.class);
+
+			Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(isEndpointOverridden).isTrue();
 		});
 	}
 

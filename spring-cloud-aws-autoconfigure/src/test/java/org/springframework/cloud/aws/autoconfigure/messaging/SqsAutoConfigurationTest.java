@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.messaging;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -292,6 +293,21 @@ class SqsAutoConfigurationTest {
 
 			Object region = ReflectionTestUtils.getField(client, "signingRegion");
 			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+		});
+	}
+
+	@Test
+	void enableSqsWithCustomEndpoint() {
+		this.contextRunner.withPropertyValues("cloud.aws.sqs.endpoint:http://localhost:8090").run(context -> {
+			AmazonSQSBufferedAsyncClient bufferedAmazonSqsClient = context.getBean(AmazonSQSBufferedAsyncClient.class);
+			AmazonSQSAsyncClient client = (AmazonSQSAsyncClient) ReflectionTestUtils.getField(bufferedAmazonSqsClient,
+					"realSQS");
+
+			Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(isEndpointOverridden).isTrue();
 		});
 	}
 

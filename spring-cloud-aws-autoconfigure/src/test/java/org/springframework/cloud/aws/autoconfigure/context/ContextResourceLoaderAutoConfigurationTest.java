@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.aws.autoconfigure.context;
 
+import java.net.URI;
+
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +83,27 @@ class ContextResourceLoaderAutoConfigurationTest {
 			assertThat(taskExecutor).isNotNull();
 		});
 
+	}
+
+	@Test
+	void enableS3withCustomEndpoint() {
+		this.contextRunner.withPropertyValues("cloud.aws.s3.endpoint:http://localhost:8090").run((context) -> {
+			AmazonS3 client = context.getBean(AmazonS3.class);
+			Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(isEndpointOverridden).isTrue();
+		});
+	}
+
+	@Test
+	void enableS3withSpecificRegion() {
+		this.contextRunner.withPropertyValues("cloud.aws.s3.region:us-east-1").run((context) -> {
+			AmazonS3 client = context.getBean(AmazonS3.class);
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+		});
 	}
 
 }

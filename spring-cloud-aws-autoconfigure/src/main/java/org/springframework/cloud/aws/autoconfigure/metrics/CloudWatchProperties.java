@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.autoconfigure.metrics;
 
+import java.net.URI;
+
 import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.StepRegistryProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -44,6 +46,11 @@ public class CloudWatchProperties extends StepRegistryProperties {
 	 */
 	private String region;
 
+	/**
+	 * Overrides the default endpoint.
+	 */
+	private URI endpoint;
+
 	public CloudWatchProperties() {
 		setBatchSize(DEFAULT_BATCH_SIZE);
 	}
@@ -62,6 +69,14 @@ public class CloudWatchProperties extends StepRegistryProperties {
 
 	public void setRegion(String region) {
 		this.region = region;
+	}
+
+	public URI getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(URI endpoint) {
+		this.endpoint = endpoint;
 	}
 
 }

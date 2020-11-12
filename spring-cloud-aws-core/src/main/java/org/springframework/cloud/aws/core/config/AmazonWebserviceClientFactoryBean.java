@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.config;
 
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 import com.amazonaws.AmazonWebServiceClient;
@@ -58,6 +59,8 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 	private ExecutorService executor;
 
+	private URI customEndpoint;
+
 	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider) {
 		this.clientClass = clientClass;
 		this.credentialsProvider = credentialsProvider;
@@ -97,14 +100,20 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			builder.withCredentials(this.credentialsProvider);
 		}
 
-		if (this.customRegion != null) {
-			builder.withRegion(this.customRegion.getName());
-		}
-		else if (this.regionProvider != null) {
-			builder.withRegion(this.regionProvider.getRegion().getName());
+		if (this.customEndpoint != null) {
+			builder.withEndpointConfiguration(
+					new AwsClientBuilder.EndpointConfiguration(this.customEndpoint.toString(), null));
 		}
 		else {
-			builder.withRegion(Regions.DEFAULT_REGION);
+			if (this.customRegion != null) {
+				builder.withRegion(this.customRegion.getName());
+			}
+			else if (this.regionProvider != null) {
+				builder.withRegion(this.regionProvider.getRegion().getName());
+			}
+			else {
+				builder.withRegion(Regions.DEFAULT_REGION);
+			}
 		}
 		return builder.build();
 	}
@@ -115,6 +124,10 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 	public void setCustomRegion(String customRegionName) {
 		this.customRegion = RegionUtils.getRegion(customRegionName);
+	}
+
+	public void setCustomEndpoint(URI customEndpoint) {
+		this.customEndpoint = customEndpoint;
 	}
 
 	public void setExecutor(ExecutorService executor) {

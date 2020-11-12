@@ -47,6 +47,16 @@
       "name": "cloud.aws.stack.enabled",
       "description": "Enables Stack integration.",
       "type": "java.lang.Boolean"
-    }
+    },
+	{
+	  "name": "cloud.aws.s3.region",
+	  "description": "Overrides the default region.",
+	  "type": "java.lang.String"
+	},
+	{
+	  "name": "cloud.aws.s3.endpoint",
+	  "description": "Overrides the default endpoint.",
+	  "type": "java.lang.String"
+	}
   ]
 }

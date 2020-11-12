@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.messaging;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -65,9 +66,11 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
-	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS() {
-		return new AmazonWebserviceClientFactoryBean<>(AmazonSNSClient.class, this.awsCredentialsProvider,
-				this.regionProvider);
+	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS(SnsProperties properties) {
+		AmazonWebserviceClientFactoryBean<AmazonSNSClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonSNSClient.class, this.awsCredentialsProvider, this.regionProvider);
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
+		return clientFactoryBean;
 	}
 
 	@Bean

@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.messaging;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.core.config.AwsClientProperties;
 import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
@@ -29,7 +30,7 @@ import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
  * @author Eddú Meléndez
  */
 @ConfigurationProperties("cloud.aws.sqs")
-public class SqsProperties {
+public class SqsProperties extends AwsClientProperties {
 
 	/**
 	 * Properties related to {@link SimpleMessageListenerContainer}.
@@ -40,11 +41,6 @@ public class SqsProperties {
 	 * Properties related to {@link QueueMessageHandler}.
 	 */
 	private HandlerProperties handler = new HandlerProperties();
-
-	/**
-	 * Overrides the default region.
-	 */
-	private String region;
 
 	public ListenerProperties getListener() {
 		return listener;
@@ -60,14 +56,6 @@ public class SqsProperties {
 
 	public void setHandler(HandlerProperties handler) {
 		this.handler = handler;
-	}
-
-	public String getRegion() {
-		return this.region;
-	}
-
-	public void setRegion(String region) {
-		this.region = region;
 	}
 
 	public static class ListenerProperties {

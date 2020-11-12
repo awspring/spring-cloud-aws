@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.paramstore;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.util.StringUtils;
@@ -53,11 +54,18 @@ public class AwsParamStoreBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	AWSSimpleSystemsManagement ssmClient(AwsParamStoreProperties awsParamStoreProperties) {
+	AWSSimpleSystemsManagement ssmClient(AwsParamStoreProperties properties) {
 		AWSSimpleSystemsManagementClientBuilder builder = AWSSimpleSystemsManagementClientBuilder.standard()
 				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
-		return StringUtils.isNullOrEmpty(awsParamStoreProperties.getRegion()) ? builder.build()
-				: builder.withRegion(awsParamStoreProperties.getRegion()).build();
+		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
+			builder.withRegion(properties.getRegion());
+		}
+		if (properties.getEndpoint() != null) {
+			AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
+					properties.getEndpoint().toString(), null);
+			builder.withEndpointConfiguration(endpointConfiguration);
+		}
+		return builder.build();
 	}
 
 }

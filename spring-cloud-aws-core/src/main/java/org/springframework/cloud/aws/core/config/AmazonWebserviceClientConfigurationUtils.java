@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.core.config;
 
 import java.beans.Introspector;
+import java.net.URI;
 
 import com.amazonaws.regions.Regions;
 
@@ -60,6 +61,12 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source, BeanDefinitionRegistry registry,
 			String serviceNameClassName, String customRegionProvider, String customRegion) {
+		return registerAmazonWebserviceClient(source, registry, serviceNameClassName, customRegionProvider,
+				customRegion, null);
+	}
+
+	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source, BeanDefinitionRegistry registry,
+			String serviceNameClassName, String customRegionProvider, String customRegion, String customEndpoint) {
 
 		String beanName = getBeanName(serviceNameClassName);
 
@@ -68,7 +75,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		}
 
 		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName,
-				customRegionProvider, customRegion, registry);
+				customRegionProvider, customRegion, customEndpoint, registry);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
@@ -76,7 +83,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	}
 
 	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(Object source,
-			String serviceNameClassName, String customRegionProvider, String customRegion,
+			String serviceNameClassName, String customRegionProvider, String customRegion, String customEndpoint,
 			BeanDefinitionRegistry beanDefinitionRegistry) {
 
 		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
@@ -96,7 +103,10 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		builder.getRawBeanDefinition().setSource(source);
 
 		// Configure region properties (either custom region provider or custom region)
-		if (StringUtils.hasText(customRegionProvider)) {
+		if (StringUtils.hasText(customEndpoint)) {
+			builder.addPropertyValue("customEndpoint", URI.create(customEndpoint));
+		}
+		else if (StringUtils.hasText(customRegionProvider)) {
 			builder.addPropertyReference("regionProvider", customRegionProvider);
 		}
 		else if (StringUtils.hasText(customRegion)) {

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.autoconfigure.secretsmanager;
 
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.util.StringUtils;
@@ -53,11 +54,18 @@ public class AwsSecretsManagerBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	AWSSecretsManager smClient(AwsSecretsManagerProperties awsSecretsManagerProperties) {
+	AWSSecretsManager smClient(AwsSecretsManagerProperties properties) {
 		AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard()
 				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
-		return StringUtils.isNullOrEmpty(awsSecretsManagerProperties.getRegion()) ? builder.build()
-				: builder.withRegion(awsSecretsManagerProperties.getRegion()).build();
+		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
+			builder.withRegion(properties.getRegion());
+		}
+		if (properties.getEndpoint() != null) {
+			EndpointConfiguration endpointConfiguration = new EndpointConfiguration(properties.getEndpoint().toString(),
+					null);
+			builder.withEndpointConfiguration(endpointConfiguration);
+		}
+		return builder.build();
 	}
 
 }

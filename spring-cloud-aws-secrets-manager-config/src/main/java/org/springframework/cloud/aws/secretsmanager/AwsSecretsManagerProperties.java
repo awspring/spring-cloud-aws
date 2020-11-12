@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.aws.secretsmanager;
 
+import java.net.URI;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -67,6 +68,11 @@ public class AwsSecretsManagerProperties implements Validator {
 	 * AWSSecretsManager.
 	 */
 	private String region;
+
+	/**
+	 * Overrides the default endpoint.
+	 */
+	private URI endpoint;
 
 	/**
 	 * Alternative to spring.application.name to use in looking up values in AWS Secrets
@@ -161,6 +167,14 @@ public class AwsSecretsManagerProperties implements Validator {
 
 	public void setRegion(final String region) {
 		this.region = region;
+	}
+
+	public URI getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(URI endpoint) {
+		this.endpoint = endpoint;
 	}
 
 }

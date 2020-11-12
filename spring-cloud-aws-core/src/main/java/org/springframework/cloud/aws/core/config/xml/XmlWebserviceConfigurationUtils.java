@@ -57,7 +57,7 @@ public final class XmlWebserviceConfigurationUtils {
 		try {
 			return getAmazonWebserviceClientBeanDefinition(source, serviceClassName,
 					element.getAttribute(REGION_PROVIDER_ATTRIBUTE_NAME), element.getAttribute(REGION_ATTRIBUTE_NAME),
-					parserContext.getRegistry());
+					null, parserContext.getRegistry());
 		}
 		catch (Exception e) {
 			parserContext.getReaderContext().error(e.getMessage(), source, e);

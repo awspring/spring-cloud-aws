@@ -14,17 +14,41 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.messaging;
+package org.springframework.cloud.aws.core.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.core.config.AwsClientProperties;
+import java.net.URI;
 
 /**
- * Configuration properties for AWS Simple Notification Service.
+ * Base properties for AWS Service client.
  *
- * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  */
-@ConfigurationProperties(prefix = "cloud.aws.sns")
-public class SnsProperties extends AwsClientProperties {
+public abstract class AwsClientProperties {
+
+	/**
+	 * Overrides the default endpoint.
+	 */
+	private URI endpoint;
+
+	/**
+	 * Overrides the default region.
+	 */
+	private String region;
+
+	public URI getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(URI endpoint) {
+		this.endpoint = endpoint;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
 
 }

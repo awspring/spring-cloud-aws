@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.aws.autoconfigure.jdbc;
 
+import java.net.URI;
+
 import javax.sql.DataSource;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBInstance;
@@ -34,6 +37,7 @@ import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -45,7 +49,6 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 
 	@Test
 	public void registersRdsInstanceConfigurer() {
-		// Arrange
 		this.contextRunner.withUserConfiguration(ApplicationConfigurationWithoutReadReplica.class)
 				.withUserConfiguration(CustomRdsInstanceConfigurer.class)
 				.withPropertyValues("cloud.aws.rds.instances[0].dbInstanceIdentifier:test",
@@ -139,6 +142,29 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 					assertThat(context).doesNotHaveBean(DataSource.class);
 					assertThat(context).doesNotHaveBean(AmazonRdsDataSourceFactoryBean.class);
 				});
+	}
+
+	@Test
+	void enableRdsWithSpecificRegion() {
+		this.contextRunner.withPropertyValues("cloud.aws.rds.region:us-east-1").run(context -> {
+			AmazonRDSClient client = context.getBean(AmazonRDSClient.class);
+
+			Object region = ReflectionTestUtils.getField(client, "signingRegion");
+			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+		});
+	}
+
+	@Test
+	void enableRdsWithCustomEndpoint() {
+		this.contextRunner.withPropertyValues("cloud.aws.rds.endpoint:http://localhost:8090").run(context -> {
+			AmazonRDSClient client = context.getBean(AmazonRDSClient.class);
+
+			Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(isEndpointOverridden).isTrue();
+		});
 	}
 
 	static class ApplicationConfigurationWithoutReadReplica {

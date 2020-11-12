@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.core.config.AwsClientProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.StringUtils;
 
@@ -31,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration
  */
 @ConfigurationProperties(prefix = AmazonRdsDatabaseProperties.PREFIX)
-public class AmazonRdsDatabaseProperties {
+public class AmazonRdsDatabaseProperties extends AwsClientProperties {
 
 	static final String PREFIX = "cloud.aws.rds";
 

@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.paramstore;
 
 import java.lang.reflect.Method;
+import java.net.URI;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
@@ -27,6 +28,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
 import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocator;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +64,18 @@ class AwsParamStoreBootstrapConfigurationTest {
 
 					assertThat(signedRegion).isEqualTo(awsParamStoreProperties.getRegion());
 				});
+	}
+
+	@Test
+	void testWithCustomEndpoint() {
+		contextRunner.withPropertyValues("aws.paramstore.endpoint:http://localhost:8090").run((context) -> {
+			AWSSimpleSystemsManagementClient client = context.getBean(AWSSimpleSystemsManagementClient.class);
+			Object endpoint = ReflectionTestUtils.getField(client, "endpoint");
+			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
+
+			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(isEndpointOverridden).isTrue();
+		});
 	}
 
 	@Test
