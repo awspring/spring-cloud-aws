@@ -1,0 +1,270 @@
+=== SQS support
+Amazon SQS is a hosted messaging service on the Amazon Web Service platform that provides point-to-point communication
+with queues. Compared to JMS or other message services Amazon SQS has several features and limitations that should be
+taken into consideration.
+
+* Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
+Spring Cloud AWS  has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
+* Amazon SQS has no transaction support, so messages might therefore be retrieved twice. Application have to be written in
+an idempotent way so that they can receive a message twice.
+* Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
+
+==== Sending a message
+The `QueueMessagingTemplate` contains many convenience methods to send a message. There are send methods that specify the
+destination using a `QueueMessageChannel` object and those that specify the destination using a string which is going to
+be resolved against the SQS API. The send method that takes no destination argument uses the default destination.
+
+[source,java,index=0]
+----
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class SqsQueueSender {
+
+	private final QueueMessagingTemplate queueMessagingTemplate;
+
+	@Autowired
+	public SqsQueueSender(AmazonSQSAsync amazonSQSAsync) {
+		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSQSAsync);
+	}
+
+	public void send(String message) {
+		this.queueMessagingTemplate.send("physicalQueueName", MessageBuilder.withPayload(message).build());
+	}
+}
+----
+
+This example uses the `MessageBuilder` class to create a message with a string payload. The `QueueMessagingTemplate` is
+constructed by passing a reference to the `AmazonSQSAsync` client. The destination in the send method is a string value that
+must match the queue name defined on AWS. This value will be resolved at runtime by the Amazon SQS client. Optionally
+a `ResourceIdResolver` implementation can be passed to the `QueueMessagingTemplate` constructor to resolve resources by
+logical name when running inside a CloudFormation stack (see <<Managing cloud environments>> for more information about
+resource name resolution).
+
+With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML configuration file.
+
+[source,xml,indent=0]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/cloud/aws/context
+		http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
+		http://www.springframework.org/schema/cloud/aws/messaging
+	   	http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging">
+
+	<aws-context:context-credentials>
+		<aws-context:instance-profile-credentials />
+	</aws-context:context-credentials>
+
+	<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
+
+</beans>
+----
+
+In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQSAsync` client
+is automatically created and passed to the template's constructor based on the provided credentials. If the
+application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor (see
+<<Managing cloud environments>> for more information about resource name resolution).
+
+===== Using message converters
+In order to facilitate the sending of domain model objects, the `QueueMessagingTemplate` has various send methods that
+take a Java object as an argument for a message’s data content. The overloaded methods `convertAndSend()` and
+`receiveAndConvert()` in `QueueMessagingTemplate` delegate the conversion process to an instance of the `MessageConverter`
+interface. This interface defines a simple contract to convert between Java objects and SQS messages. The default
+implementation `SimpleMessageConverter` simply unwraps the message payload as long as it matches the target type. By
+using the converter, you and your application code can focus on the business object that is being sent or received via
+SQS and not be concerned with the details of how it is represented as an SQS message.
+
+[NOTE]
+====
+As SQS is only able to send `String` payloads the default converter `SimpleMessageConverter` should only be used
+to send `String` payloads. For more complex objects a custom converter should be used like the one created by the
+messaging namespace handler.
+====
+
+It is recommended to use the XML messaging namespace to create `QueueMessagingTemplate` as it will set a more
+sophisticated `MessageConverter` that converts objects into JSON when Jackson is on the classpath.
+
+[source,xml,indent=0]
+----
+<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
+----
+
+[source,java,indent=0]
+----
+this.queueMessagingTemplate.convertAndSend("queueName", new Person("John, "Doe"));
+----
+
+In this example a `QueueMessagingTemplate` is created using the messaging namespace. The `convertAndSend` method
+converts the payload `Person` using the configured `MessageConverter` and sends the message.
+
+==== Receiving a message
+There are two ways for receiving SQS messages, either use the `receive` methods of the `QueueMessagingTemplate` or with
+annotation-driven listener endpoints. The latter is by far the more convenient way to receive messages.
+
+[source,java,indent=0]
+----
+Person person = this.queueMessagingTemplate.receiveAndConvert("queueName", Person.class);
+----
+
+In this example the `QueueMessagingTemplate` will get one message from the SQS queue and convert it to the target class
+passed as argument.
+
+==== Annotation-driven listener endpoints
+Annotation-driven listener endpoints are the easiest way for listening on SQS messages. Simply annotate methods with
+`MessageMapping` and the `QueueMessageHandler` will route the messages to the annotated methods.
+
+[source,xml,indent=0]
+----
+<aws-messaging:annotation-driven-queue-listener />
+----
+
+[source,java,indent=0]
+----
+@SqsListener("queueName")
+public void queueListener(Person person) {
+	// ...
+}
+----
+
+In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
+annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
+
+In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
+annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
+containing all headers.
+
+Only the link:https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_Message.html[standard
+message attributes] sent with an SQS message are fully supported.
+Custom message attributes are handled as if custom type label (everything after '.' in type name) wasn't present in attribute key.
+It is silently omitted during conversion, but still can be accessed as long as original message is present in 'sourceData' header.
+
+In addition to the provided argument resolvers, custom ones can be registered on the
+`aws-messaging:annotation-driven-queue-listener` element using the `aws-messaging:argument-resolvers` attribute (see example below).
+
+[source,xml,indent=0]
+----
+<aws-messaging:annotation-driven-queue-listener>
+	<aws-messaging:argument-resolvers>
+		<bean class="org.custom.CustomArgumentResolver" />
+	</aws-messaging:argument-resolvers>
+</aws-messaging:annotation-driven-queue-listener>
+----
+
+By default the `SimpleMessageListenerContainer` creates a `ThreadPoolTaskExecutor` with computed values for the core and
+max pool sizes. The core pool size is set to twice the number of queues and the max pool size is obtained by multiplying
+the number of queues by the value of the `maxNumberOfMessages` field. If these default values do not meet the need of
+the application, a custom task executor can be set with the `task-executor` attribute (see example below).
+
+[source,xml,indent=0]
+----
+<aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
+----
+
+===== Message reply
+Message listener methods can be annotated with `@SendTo` to send their return value to another channel. The
+`SendToHandlerMethodReturnValueHandler` uses the defined messaging template set on the
+`aws-messaging:annotation-driven-queue-listener` element to send the return value. The messaging template must implement
+the `DestinationResolvingMessageSendingOperations` interface.
+
+[source,xml,indent=0]
+----
+<aws-messaging:annotation-driven-queue-listener send-to-message-template="queueMessagingTemplate"/>
+----
+
+[source,java,indent=0]
+----
+@SqsListener("treeQueue")
+@SendTo("leafsQueue")
+public List<Leaf> extractLeafs(Tree tree) {
+	// ...
+}
+----
+
+In this example the `extractLeafs` method will receive messages coming from the `treeQueue` and then return a
+`List` of ``Leaf``s which is going to be sent to the `leafsQueue`. Note that on the
+`aws-messaging:annotation-driven-queue-listener` XML element there is an attribute `send-to-message-template`
+that specifies `QueueMessagingTemplate` as the messaging template to be used to send the return value of the message
+listener method.
+
+===== Handling Exceptions
+
+Exception thrown inside `@SqsListener` annotated methods can be handled by methods annotated with `@MessageExceptionHandler`.
+
+[source,java,indent=0]
+----
+import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyMessageHandler {
+
+	@SqsListener("queueName")
+	void handle(String message) {
+		...
+		throw new MyException("something went wrong");
+	}
+
+	@MessageExceptionHandler(MyException.class)
+	void handleException(MyException e) {
+		...
+	}
+}
+----
+
+==== The SimpleMessageListenerContainerFactory
+The `SimpleMessageListenerContainer` can also be configured with Java by creating a bean of type `SimpleMessageListenerContainerFactory`.
+
+[source,java,indent=0]
+----
+@Bean
+public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(AmazonSQSAsync amazonSqs) {
+	SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+	factory.setAmazonSqs(amazonSqs);
+	factory.setAutoStartup(false);
+	factory.setMaxNumberOfMessages(5);
+	// ...
+
+	return factory;
+}
+----
+
+==== Consuming AWS Event messages with Amazon SQS
+It is also possible to receive AWS generated event messages with the SQS message listeners. Because
+AWS messages does not contain the mime-type header, the Jackson message converter has to be configured
+with the `strictContentTypeMatch` property false to also parse message without the proper mime type.
+
+The next code shows the configuration of the message converter using the `QueueMessageHandlerFactory`
+and re-configuring the `MappingJackson2MessageConverter`
+
+[source,java,indent=0]
+----
+@Bean
+public QueueMessageHandlerFactory queueMessageHandlerFactory() {
+	QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
+	MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+
+	//set strict content type match to false
+	messageConverter.setStrictContentTypeMatch(false);
+	factory.setArgumentResolvers(Collections.<HandlerMethodArgumentResolver>singletonList(new PayloadArgumentResolver(messageConverter)));
+	return factory;
+}
+----
+
+With the configuration above, it is possible to receive event notification for S3 buckets (and also other
+event notifications like elastic transcoder messages) inside `@SqsListener` annotated methods s shown below.
+
+[source,java,indent=0]
+----
+@SqsListener("testQueue")
+public void receive(S3EventNotification s3EventNotificationRecord) {
+	S3EventNotification.S3Entity s3Entity = s3EventNotificationRecord.getRecords().get(0).getS3();
+}
+----

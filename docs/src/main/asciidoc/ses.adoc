@@ -1,0 +1,151 @@
+== Sending mails
+Spring has a built-in support to send e-mails based on the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API]
+to avoid any static method calls while using the Java Mail API and thus supporting the testability of an application.
+Spring Cloud AWS supports the https://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
+
+As a result Spring Cloud AWS users can decide to use the Spring Cloud AWS implementation of the Amazon SES service or
+use the standard Java Mail API based implementation that sends e-mails via SMTP to Amazon SES.
+
+[TIP]
+====
+It is preferred to use the Spring Cloud AWS implementation instead of SMTP mainly for performance reasons.
+Spring Cloud AWS uses one API call to send a mail message, while the SMTP protocol makes multiple requests (EHLO, MAIL FROM, RCPT TO, DATA, QUIT)
+until it sends an e-mail.
+====
+
+=== Configuring the mail sender
+Spring Cloud AWS provides an XML element to configure a Spring `org.springframework.mail.MailSender` implementation for the
+client to be used. The default mail sender works without a Java Mail dependency and is capable of sending messages without
+attachments as simple mail messages. A configuration with the necessary elements will look like this:
+
+
+[source,xml,indent=0]
+----
+<beans xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
+   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/mail
+      http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
+
+	<aws-context:context-credentials>
+	  ..
+	</aws-context:context-credentials>
+
+	<aws-context:context-region region="eu-west-1" />
+
+	<aws-mail:mail-sender id="testSender" />
+
+</beans>
+----
+
+=== Sending simple mails
+Application developers can inject the `MailSender` into their application code and directly send simple text based e-mail
+messages. The sample below demonstrates the creation of a simple mail message.
+
+[source,java,indent=0]
+----
+public class MailSendingService {
+
+	private MailSender mailSender;
+
+	@Autowired
+	public MailSendingService(MailSender mailSender) {
+		this.mailSender = mailSender;
+	}
+
+	public void sendMailMessage() {
+		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+		simpleMailMessage.setFrom("foo@bar.com");
+		simpleMailMessage.setTo("bar@baz.com");
+		simpleMailMessage.setSubject("test subject");
+		simpleMailMessage.setText("test content");
+		this.mailSender.send(simpleMailMessage);
+	}
+}
+----
+
+
+=== Sending attachments
+Sending attachments with e-mail requires MIME messages to be created and sent. In order to create MIME messages,
+the Java Mail dependency is required and has to be included in the classpath. Spring Cloud AWS will detect the
+dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows to create and
+build MIME messages and send them. A dependency configuration for the Java Mail API is the only change in the configuration
+which is shown below.
+
+[source,xml,indent=0]
+----
+<dependency>
+	<groupId>javax.mail</groupId>
+	<artifactId>mailapi</artifactId>
+	<version>1.4.1</version>
+	<exclusions>
+		<!-- exclusion because we are running on Java 1.7 that includes the activation API by default-->
+		<exclusion>
+			<artifactId>activation</artifactId>
+			<groupId>javax.activation</groupId>
+		</exclusion>
+	</exclusions>
+</dependency>
+----
+
+[NOTE]
+====
+Even though there is a dependency to the Java Mail API there is still the Amazon SES API used underneath to send mail
+messages. There is no https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-smtp.html[SMTP setup] required
+on the Amazon AWS side.
+====
+
+Sending the mail requires the application developer to use the `JavaMailSender` to send an e-mail as shown in the example
+below.
+
+[source,java,indent=0]
+----
+public class MailSendingService {
+
+	private JavaMailSender mailSender;
+
+   	@Autowired
+	public MailSendingService(JavaMailSender mailSender) {
+		this.mailSender = mailSender;
+	}
+
+	public void sendMailMessage() {
+		this.mailSender.send(new MimeMessagePreparator() {
+
+   			@Override
+   			public void prepare(MimeMessage mimeMessage) throws Exception {
+   				MimeMessageHelper helper =
+   					new MimeMessageHelper(mimeMessage, true, "UTF-8");
+   				helper.addTo("foo@bar.com");
+   				helper.setFrom("bar@baz.com");
+   				helper.addAttachment("test.txt", ...);
+   				helper.setSubject("test subject with attachment");
+   				helper.setText("mime body", false);
+   			}
+   		});
+	}
+}
+----
+
+=== Configuring regions
+Amazon SES is not available in all https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html[regions] of the
+Amazon Web Services cloud. Therefore an application hosted and operated in a region that does not support the mail
+service will produce an error while using the mail service. Therefore the region must be overridden for the mail
+sender configuration. The example below shows a typical combination of a region (EU-CENTRAL-1) that does not provide
+an SES service where the client is overridden to use a valid region (EU-WEST-1).
+
+[source,xml,indent=0]
+----
+<beans ...>
+
+ <aws-context:context-region region="eu-central-1" />
+ <aws-mail:mail-sender id="testSender" region="eu-west-1"/>
+
+</beans>
+----
+
+=== Authenticating e-mails
+To avoid any spam attacks on the Amazon SES mail service, applications without production access must
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each
+e-mail receiver otherwise the mail sender will throw a `com.amazonaws.services.simpleemail.model.MessageRejectedException`.
+
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
+and will disable the need for mail address verification.
