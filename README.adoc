@@ -4,6 +4,7 @@ Manual changes to this file will be lost when it is generated again.
 Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
+
 = Spring Cloud for Amazon Web Services
 
 Spring Cloud for Amazon Web Services, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
@@ -88,7 +89,7 @@ addresses must be verified for the Amazon SES Service.
 To build with the integration tests you must execute
 
 -----------------------------------------------------------------------------------------------------
-mvn verify -Dcloud.aws.credentials.access-key=<access key>  -Dcloud.aws.credentials.secret-key=<secret key> -DrdsPassword=<rds password> -DsenderAddress=<sender address> -DrecipientAddress=<recipient address>
+mvn verify -Daws-integration-tests.access-key=<access key>  -Daws-integration-tests.secret-key=<secret key> -DrdsPassword=<rds password> -DsenderAddress=<sender address> -DrecipientAddress=<recipient address>
 -----------------------------------------------------------------------------------------------------
 
 The integration test will create an
@@ -100,7 +101,6 @@ there are no unnecessary costs.
 = Costs of integration tests
 The costs for one integration test run should not be more than 0.40 $
 per hour (excl. VAT).
-
 
 = Developing using Amazon Web Services
 
