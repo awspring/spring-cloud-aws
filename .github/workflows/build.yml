@@ -13,7 +13,7 @@ jobs:
     name: "Test with ${{ matrix.version }}"
     strategy:
       matrix:
-        version: [ 8.0.272.hs-adpt ]
+        version: [ 8.0.275.hs-adpt ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
