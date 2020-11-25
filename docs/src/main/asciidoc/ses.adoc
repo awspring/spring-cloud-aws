@@ -142,6 +142,21 @@ an SES service where the client is overridden to use a valid region (EU-WEST-1).
 </beans>
 ----
 
+Since 2.3, if using spring-boot, the existing auto-configuration offers a specific configuration property to set the
+region for the SES client.
+
+[source,properties,indent=0]
+----
+cloud.aws.mail.region=eu-west-1
+----
+
+Also, there is a new starter `spring-cloud-starter-aws-ses` and it offers a specific configuration property.
+
+[source,properties,indent=0]
+----
+spring.cloud.aws.ses.region=eu-west-1
+----
+
 === Authenticating e-mails
 To avoid any spam attacks on the Amazon SES mail service, applications without production access must
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each

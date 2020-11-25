@@ -6,6 +6,7 @@ org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoCon
 org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.mail.SimpleEmailAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.mail.SesAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.messaging.SqsAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.messaging.SnsAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration,\

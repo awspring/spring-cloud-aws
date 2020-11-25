@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.simplemail;
+package org.springframework.cloud.aws.ses;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
  * text body.
  *
  * @author Agim Emruli
- * @deprecated Use `spring-cloud-starter-aws-ses`
+ * @author Eddú Meléndez
  */
 public class SimpleEmailServiceMailSender implements MailSender, DisposableBean {
 

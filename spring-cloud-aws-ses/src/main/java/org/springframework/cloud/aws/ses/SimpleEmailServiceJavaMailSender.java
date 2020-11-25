@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.simplemail;
+package org.springframework.cloud.aws.ses;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,8 +55,8 @@ import org.springframework.util.ClassUtils;
  * also allows the use of attachment and other mime parts inside mail messages.
  *
  * @author Agim Emruli
+ * @author Eddú Meléndez
  * @since 1.0
- * @deprecated Use `spring-cloud-starter-aws-ses`
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
 

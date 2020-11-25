@@ -55,5 +55,6 @@
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.enabled | true | Enables Stack integration.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
+|spring.cloud.aws.ses.region || The specific region for SES integration.
 
 |===

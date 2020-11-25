@@ -40,7 +40,11 @@
       "defaultValue": true,
       "name": "cloud.aws.mail.enabled",
       "description": "Enables Mail integration.",
-      "type": "java.lang.Boolean"
+      "type": "java.lang.Boolean",
+      "deprecation": {
+        "level": "warning",
+        "replacement": "spring.cloud.aws.ses.enabled"
+      }
     },
     {
       "defaultValue": true,
@@ -62,6 +66,12 @@
       "defaultValue": true,
       "name": "spring.cloud.aws.security.cognito.enabled",
       "description": "Enables Cognito integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": true,
+      "name": "spring.cloud.aws.ses.enabled",
+      "description": "Enables Simple Email Service integration.",
       "type": "java.lang.Boolean"
     }
   ]
