@@ -57,6 +57,12 @@
 	  "name": "cloud.aws.s3.endpoint",
 	  "description": "Overrides the default endpoint.",
 	  "type": "java.lang.String"
-	}
+	},
+    {
+      "defaultValue": true,
+      "name": "spring.cloud.aws.security.cognito.enabled",
+      "description": "Enables Cognito integration.",
+      "type": "java.lang.Boolean"
+    }
   ]
 }

@@ -9,4 +9,5 @@ org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.messaging.SqsAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.messaging.SnsAutoConfiguration,\
 org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration,\
-org.springframework.cloud.aws.autoconfigure.metrics.CloudWatchExportAutoConfiguration
+org.springframework.cloud.aws.autoconfigure.metrics.CloudWatchExportAutoConfiguration,\
+org.springframework.cloud.aws.autoconfigure.security.CognitoAuthenticationAutoConfiguration
