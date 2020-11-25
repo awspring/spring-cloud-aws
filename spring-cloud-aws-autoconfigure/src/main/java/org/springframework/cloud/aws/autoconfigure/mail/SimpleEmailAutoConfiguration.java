@@ -48,6 +48,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 /**
  * @author Agim Emruli
  * @author Eddú Meléndez
+ * @deprecated Use `spring-cloud-starter-aws-ses`
  */
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(MailSenderAutoConfiguration.class)
@@ -56,6 +57,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 @Import(ContextCredentialsAutoConfiguration.class)
 @EnableConfigurationProperties(SimpleEmailProperties.class)
 @ConditionalOnProperty(name = "cloud.aws.mail.enabled", havingValue = "true", matchIfMissing = true)
+@Deprecated
 public class SimpleEmailAutoConfiguration {
 
 	private final RegionProvider regionProvider;
