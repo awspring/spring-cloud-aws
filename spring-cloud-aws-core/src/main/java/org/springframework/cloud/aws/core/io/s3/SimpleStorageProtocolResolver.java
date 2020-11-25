@@ -50,11 +50,7 @@ public class SimpleStorageProtocolResolver implements ProtocolResolver, Initiali
 	public SimpleStorageProtocolResolver() {
 	}
 
-	/**
-	 * Used only for testing.
-	 * @param amazonS3 - the Amazon S3 client.
-	 */
-	SimpleStorageProtocolResolver(AmazonS3 amazonS3) {
+	public SimpleStorageProtocolResolver(AmazonS3 amazonS3) {
 		this.amazonS3 = AmazonS3ProxyFactory.createProxy(amazonS3);
 	}
 
