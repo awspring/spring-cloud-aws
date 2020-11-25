@@ -15,6 +15,18 @@ template file and creates all resources with their _physical name_. The applicat
 with the _logical name_ defined in the template. Spring Cloud AWS resolves all _logical names_ into the respective
 _physical name_ for the application developer.
 
+=== Dependencies
+
+To enable CloudFormation support in Spring Cloud AWS you must add following dependency that will trigger `ContextStackAutoConfiguration`:
+
+[source,xml,indent=0]
+----
+<dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk-cloudformation</artifactId>
+</dependency>
+----
+
 === Automatic CloudFormation configuration
 If the application runs inside a stack (because the underlying EC2 instance has been bootstrapped within the stack), then
 Spring Cloud AWS will automatically detect the stack and resolve all resources from the stack. Application developers

@@ -53,6 +53,7 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-cloudformation</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>

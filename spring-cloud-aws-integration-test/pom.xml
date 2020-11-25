@@ -127,6 +127,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-cloudformation</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
 			<artifactId>elasticache-java-cluster-client</artifactId>
 			<scope>test</scope>
 		</dependency>
