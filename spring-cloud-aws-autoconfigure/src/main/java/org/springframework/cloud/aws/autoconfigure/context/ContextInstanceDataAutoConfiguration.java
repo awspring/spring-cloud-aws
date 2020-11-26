@@ -17,6 +17,7 @@
 package org.springframework.cloud.aws.autoconfigure.context;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +29,13 @@ import org.springframework.core.type.AnnotationMetadata;
 import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerInstanceDataPropertySource;
 
 /**
+ * Enables passing EC2 instance metadata into Spring
+ * {@link org.springframework.context.annotation.PropertySource}.
+ *
  * @author Agim Emruli
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(name = "cloud.aws.instance.data.enabled", havingValue = "true")
 @ConditionalOnAwsCloudEnvironment
 @Import(ContextInstanceDataAutoConfiguration.Registrar.class)
 public class ContextInstanceDataAutoConfiguration {

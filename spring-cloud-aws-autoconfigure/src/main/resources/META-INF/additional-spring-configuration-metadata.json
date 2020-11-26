@@ -63,6 +63,12 @@
 	  "type": "java.lang.String"
 	},
     {
+	  "defaultValue": false,
+	  "name": "cloud.aws.instance.data.enabled",
+	  "description": "Enables Instance Data integration.",
+	  "type": "java.lang.Boolean"
+    },
+    {
       "defaultValue": true,
       "name": "spring.cloud.aws.security.cognito.enabled",
       "description": "Enables Cognito integration.",

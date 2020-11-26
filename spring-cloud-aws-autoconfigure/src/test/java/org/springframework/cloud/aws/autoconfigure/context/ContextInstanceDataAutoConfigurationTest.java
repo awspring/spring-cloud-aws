@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -48,34 +49,7 @@ class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	void placeHolder_noExplicitConfiguration_createInstanceDataResolverForAwsEnvironment() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
-				new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
-
-		this.contextRunner.run(
-				context -> assertThat(context).hasSingleBean(AmazonEc2InstanceDataPropertySourcePostProcessor.class));
-
-		httpServer.removeContext(instanceIdHttpContext);
-	}
-
-	@Test
-	void placeHolder_noExplicitConfiguration_missingInstanceDataResolverForNotAwsEnvironment() throws Exception {
-		// Arrange
-		HttpServer httpServer = MetaDataServer.setupHttpServer();
-		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
-				new MetaDataServer.HttpResponseWriterHandler(null));
-
-		this.contextRunner.run(context -> assertThat(context)
-				.doesNotHaveBean((AmazonEc2InstanceDataPropertySourcePostProcessor.class)));
-
-		httpServer.removeContext(instanceIdHttpContext);
-	}
-
-	@Test
-	void placeHolder_noExplicitConfiguration_createInstanceDataResolverThatResolvesWithDefaultAttributes()
-			throws Exception {
+	void createInstanceDataResolverThatResolvesWithDefaultAttributes() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
@@ -83,7 +57,7 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b;c:d"));
 
-		this.contextRunner.run(context -> {
+		contextRunner.withPropertyValues("cloud.aws.instance.data.enabled:true").run(context -> {
 			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
 			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
 		});
@@ -93,8 +67,7 @@ class ContextInstanceDataAutoConfigurationTest {
 	}
 
 	@Test
-	void placeHolder_customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator()
-			throws Exception {
+	void customValueSeparator_createInstanceDataResolverThatResolvesWithCustomValueSeparator() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
@@ -102,18 +75,19 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a=b;c=d"));
 
-		this.contextRunner.withPropertyValues("cloud.aws.instance.data.valueSeparator:=").run(context -> {
-			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
-			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
-		});
+		contextRunner
+				.withPropertyValues("cloud.aws.instance.data.enabled:true", "cloud.aws.instance.data.valueSeparator:=")
+				.run(context -> {
+					assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
+					assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
+				});
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
 	}
 
 	@Test
-	void placeHolder_customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute()
-			throws Exception {
+	void customAttributeSeparator_createInstanceDataResolverThatResolvesWithCustomAttribute() throws Exception {
 		// Arrange
 		HttpServer httpServer = MetaDataServer.setupHttpServer();
 		HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
@@ -121,13 +95,71 @@ class ContextInstanceDataAutoConfigurationTest {
 		HttpContext userDataHttpContext = httpServer.createContext("/latest/user-data",
 				new MetaDataServer.HttpResponseWriterHandler("a:b/c:d"));
 
-		this.contextRunner.withPropertyValues("cloud.aws.instance.data.attributeSeparator:/").run(context -> {
-			assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
-			assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
-		});
+		contextRunner.withPropertyValues("cloud.aws.instance.data.enabled:true",
+				"cloud.aws.instance.data.attributeSeparator:/").run(context -> {
+					assertThat(context.getEnvironment().getProperty("a")).isEqualTo("b");
+					assertThat(context.getEnvironment().getProperty("c")).isEqualTo("d");
+				});
 
 		httpServer.removeContext(instanceIdHttpContext);
 		httpServer.removeContext(userDataHttpContext);
+	}
+
+	@Nested
+	class EnabledProperty {
+
+		@Test
+		void enabled_createInstanceDataResolverForAwsEnvironment() throws Exception {
+			// Arrange
+			HttpServer httpServer = MetaDataServer.setupHttpServer();
+			HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
+					new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+
+			contextRunner.withPropertyValues("cloud.aws.instance.data.enabled:true").run(context -> assertThat(context)
+					.hasSingleBean(AmazonEc2InstanceDataPropertySourcePostProcessor.class));
+
+			httpServer.removeContext(instanceIdHttpContext);
+		}
+
+		@Test
+		void enabled_missingInstanceDataResolverForNotAwsEnvironment() throws Exception {
+			// Arrange
+			HttpServer httpServer = MetaDataServer.setupHttpServer();
+			HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
+					new MetaDataServer.HttpResponseWriterHandler(null));
+
+			contextRunner.withPropertyValues("cloud.aws.instance.data.enabled:false").run(context -> assertThat(context)
+					.doesNotHaveBean((AmazonEc2InstanceDataPropertySourcePostProcessor.class)));
+
+			httpServer.removeContext(instanceIdHttpContext);
+		}
+
+		@Test
+		void disabled_missingInstanceDataResolverForAwsEnvironment() throws Exception {
+			// Arrange
+			HttpServer httpServer = MetaDataServer.setupHttpServer();
+			HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
+					new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+
+			contextRunner.withPropertyValues("cloud.aws.instance.data.enabled:false").run(context -> assertThat(context)
+					.doesNotHaveBean(AmazonEc2InstanceDataPropertySourcePostProcessor.class));
+
+			httpServer.removeContext(instanceIdHttpContext);
+		}
+
+		@Test
+		void notPresent_missingInstanceDataResolverForAwsEnvironment() throws Exception {
+			// Arrange
+			HttpServer httpServer = MetaDataServer.setupHttpServer();
+			HttpContext instanceIdHttpContext = httpServer.createContext("/latest/meta-data/instance-id",
+					new MetaDataServer.HttpResponseWriterHandler("testInstanceId"));
+
+			contextRunner.run(context -> assertThat(context)
+					.doesNotHaveBean(AmazonEc2InstanceDataPropertySourcePostProcessor.class));
+
+			httpServer.removeContext(instanceIdHttpContext);
+		}
+
 	}
 
 }

@@ -27,6 +27,7 @@
 |cloud.aws.elasticache.default-expiration | 0 | Configures the default expiration time in seconds if there is no custom expiration time configuration with a {@link Cluster} configuration for the cache. The expiration time is implementation specific (e.g. Redis or Memcached) and could therefore differ in the behaviour based on the cache implementation.
 |cloud.aws.elasticache.enabled | true | Enables ElastiCache integration.
 |cloud.aws.elasticache.expiry-time-per-cache |  | 
+|cloud.aws.instance.data.enabled | false | Enables Instance Data integration.
 |cloud.aws.loader.core-pool-size | 1 | The core pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setCorePoolSize(int)
 |cloud.aws.loader.max-pool-size |  | The maximum pool size of the Task Executor used for parallel S3 interaction. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setMaxPoolSize(int)
 |cloud.aws.loader.queue-capacity |  | The maximum queue capacity for backed up S3 requests. @see org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor#setQueueCapacity(int)
@@ -55,6 +56,5 @@
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.enabled | true | Enables Stack integration.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
-|spring.cloud.aws.ses.region || The specific region for SES integration.
 
 |===
