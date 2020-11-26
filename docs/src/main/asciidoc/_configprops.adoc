@@ -56,5 +56,12 @@
 |cloud.aws.stack.auto | true | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.enabled | true | Enables Stack integration.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
+|spring.cloud.aws.security.cognito.algorithm | RS256 | Encryption algorithm used to sign the JWK token.
+|spring.cloud.aws.security.cognito.app-client-id |  | Non-dynamic audience string to validate.
+|spring.cloud.aws.security.cognito.enabled | true | Enables Cognito integration.
+|spring.cloud.aws.security.cognito.region |  | 
+|spring.cloud.aws.security.cognito.user-pool-id |  | 
+|spring.cloud.aws.ses.enabled | true | Enables Simple Email Service integration.
+|spring.cloud.aws.ses.region |  | Overrides the default region.
 
 |===
