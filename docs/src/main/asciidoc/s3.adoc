@@ -6,7 +6,11 @@ to load and write resources with the resource loader and the `s3` protocol.
 The resource loader is part of the context module, therefore no additional dependencies are necessary to use the resource
 handling support.
 
-=== Configuring the resource loader
+=== Configuring the resource loader with Spring Boot
+
+Resource loader is enabled by default when `spring-cloud-starter-aws` is added as the dependency.
+
+=== Configuring the resource loader with XML
 Spring Cloud AWS does not modify the default resource loader unless it encounters an explicit configuration with an XML namespace element.
 The configuration consists of one element for the whole application context that is shown below:
 
@@ -106,13 +110,15 @@ This example shows the use of the `transferManager` within an application to upl
 
 [source,java,indent=0]
 ----
-public class SimpleResourceLoadingBean {
+public class SimpleResourceUploadingBean {
 
 	@Autowired
 	private AmazonS3 amazonS3;
 
 	public void withTransferManager() {
-		TransferManager transferManager = new TransferManager(this.amazonS3);
+		TransferManager transferManager = TransferManagerBuilder.standard()
+		                                                        .withS3Client(this.amazonS3)
+		                                                        .build();
 		transferManager.upload("myBucket","filename",new File("someFile"));
 	}
 }
@@ -190,5 +196,47 @@ public class SimpleResourceLoadingBean {
 		Resource resource = this.loader.
 			getResource("s3://" + sampleBucketName + "/test");
 	}
+}
+----
+
+=== IAM Permissions
+red
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Downloading files
+| `s3:GetObject`
+
+| Searching files
+| `s3:ListObjects`
+
+| Uploading files
+| `s3:PutObject`
+|===
+
+Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo/*"
+        }
+    ]
 }
 ----
