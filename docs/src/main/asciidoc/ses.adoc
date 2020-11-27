@@ -164,3 +164,35 @@ e-mail receiver otherwise the mail sender will throw a `com.amazonaws.services.s
 
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
 and will disable the need for mail address verification.
+
+=== IAM Permissions
+red
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Send e-mail without attachment
+| `ses:SendEmail`
+
+| Send e-mail with attachment
+| `ses:SendRawEmail`
+
+|===
+
+Sample IAM policy granting access to SES:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+            ],
+            "Resource": "arn:aws:ses:your:arn"
+        }
+    ]
+}
