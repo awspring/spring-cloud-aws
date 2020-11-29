@@ -23,7 +23,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build docs
-        run: ./mvnw -pl docs clean package -Pdocs
+        run: ./mvnw clean package -Pdocs,spring -DskipTests=true
       - name: Upload to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
