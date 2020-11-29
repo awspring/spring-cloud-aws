@@ -166,7 +166,6 @@ https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.
 and will disable the need for mail address verification.
 
 === IAM Permissions
-red
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]
@@ -196,3 +195,4 @@ Sample IAM policy granting access to SES:
         }
     ]
 }
+----
