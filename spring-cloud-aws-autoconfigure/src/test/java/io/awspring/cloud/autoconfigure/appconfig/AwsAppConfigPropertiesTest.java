@@ -45,8 +45,7 @@ class AwsAppConfigPropertiesTest {
 	}
 
 	private static Stream<Arguments> invalidProperties() {
-		return Stream.of(Arguments.of(buildProperties("", null, null, null), "accountId", "NotEmpty"),
-				Arguments.of(buildProperties(null, "", null, null), "application", "NotEmpty"),
+		return Stream.of(Arguments.of(buildProperties(null, "", null, null), "application", "NotEmpty"),
 				Arguments.of(buildProperties(null, null, null, ""), "environment", "NotEmpty"));
 	}
 
@@ -60,10 +59,10 @@ class AwsAppConfigPropertiesTest {
 		assertThat(errors.getAllErrors()).isEmpty();
 	}
 
-	private static AwsAppConfigProperties buildProperties(String accountId, String application,
+	private static AwsAppConfigProperties buildProperties(String clientId, String application,
 			String configurationProfile, String environment) {
 		AwsAppConfigProperties properties = new AwsAppConfigProperties();
-		properties.setAccountId(accountId);
+		properties.setClientId(clientId);
 		properties.setApplication(application);
 		properties.setConfigurationProfile(configurationProfile);
 		properties.setEnvironment(environment);

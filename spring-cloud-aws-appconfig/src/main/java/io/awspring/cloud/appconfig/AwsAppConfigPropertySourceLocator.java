@@ -16,6 +16,8 @@
 
 package io.awspring.cloud.appconfig;
 
+import java.util.Arrays;
+
 import com.amazonaws.services.appconfig.AmazonAppConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +39,7 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 
 	private final AmazonAppConfig appConfigClient;
 
-	private final String accountId;
+	private final String clientId;
 
 	private final String application;
 
@@ -51,10 +53,10 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 
 	private static final Log logger = LogFactory.getLog(AwsAppConfigPropertySourceLocator.class);
 
-	public AwsAppConfigPropertySourceLocator(AmazonAppConfig appConfigClient, String accountId, String application,
+	public AwsAppConfigPropertySourceLocator(AmazonAppConfig appConfigClient, String clientId, String application,
 			String configurationProfile, String environment, String configurationVersion, boolean failFast) {
 		this.appConfigClient = appConfigClient;
-		this.accountId = accountId;
+		this.clientId = clientId;
 		this.application = application;
 		this.configurationProfile = configurationProfile;
 		this.environment = environment;
@@ -74,14 +76,18 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 		if (isNull(appName)) {
 			appName = env.getProperty("spring.application.name");
 		}
+		String profile = this.environment;
+		if (isNull(profile)) {
+			profile = Arrays.stream(env.getActiveProfiles()).findFirst().orElse("default");
+		}
 
-		hasText(appName,
-				"configurationProfile or spring.application.name should not be empty or null.");
+		hasText(appName, "configurationProfile or spring.application.name should not be empty or null.");
+		hasText(profile, "environment or profiles should not be empty or null ");
 
 		CompositePropertySource composite = new CompositePropertySource("aws-app-config");
 
 		try {
-			composite.addPropertySource(create(appName));
+			composite.addPropertySource(create(appName, profile));
 		}
 		catch (Exception ex) {
 			if (failFast) {
@@ -97,9 +103,9 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 		return composite;
 	}
 
-	private AwsAppConfigPropertySource create(String appName) {
-		AwsAppConfigPropertySource propertySource = new AwsAppConfigPropertySource(appName, accountId, application,
-				environment, configurationVersion, appConfigClient);
+	private AwsAppConfigPropertySource create(String appName, String profile) {
+		AwsAppConfigPropertySource propertySource = new AwsAppConfigPropertySource(appName, clientId, application,
+				profile, configurationVersion, appConfigClient);
 		propertySource.init();
 
 		return propertySource;

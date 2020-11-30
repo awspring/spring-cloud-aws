@@ -46,7 +46,7 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 
 	private static final String SUPPORTED_TYPE_YAML = "application/x-yaml";
 
-	private final String accountId;
+	private final String clientId;
 
 	private final String application;
 
@@ -56,17 +56,17 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 
 	private Properties properties;
 
-	public AwsAppConfigPropertySource(String name, String accountId, String application, String environment,
+	public AwsAppConfigPropertySource(String name, String clientId, String application, String environment,
 			String configurationVersion, AmazonAppConfig appConfigClient) {
 		super(name, appConfigClient);
-		this.accountId = accountId;
+		this.clientId = clientId;
 		this.application = application;
 		this.configurationVersion = configurationVersion;
 		this.environment = environment;
 	}
 
 	public void init() {
-		GetConfigurationRequest request = new GetConfigurationRequest().withClientId(accountId)
+		GetConfigurationRequest request = new GetConfigurationRequest().withClientId(clientId)
 				.withApplication(application).withConfiguration(name)
 				.withClientConfigurationVersion(configurationVersion).withEnvironment(environment);
 

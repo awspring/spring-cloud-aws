@@ -17,6 +17,7 @@
 package io.awspring.cloud.autoconfigure.appconfig;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import com.amazonaws.services.appconfig.AmazonAppConfigAsync;
 import com.amazonaws.services.appconfig.AmazonAppConfigClient;
@@ -32,6 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * @author jarpz
@@ -55,9 +57,13 @@ public class AwsAppConfigBootstrapConfiguration {
 
 	@Bean
 	AwsAppConfigPropertySourceLocator awsAppConfigPropertySourceLocator(AmazonAppConfigClient appConfigClient) {
-		return new AwsAppConfigPropertySourceLocator(appConfigClient, properties.getAccountId(),
-				properties.getApplication(), properties.getConfigurationProfile(), properties.getEnvironment(),
-				properties.getConfigurationVersion(), properties.isFailFast());
+
+		String clientId = StringUtils.isEmpty(properties.getClientId()) ? UUID.randomUUID().toString()
+				: properties.getClientId();
+
+		return new AwsAppConfigPropertySourceLocator(appConfigClient, clientId, properties.getApplication(),
+				properties.getConfigurationProfile(), properties.getEnvironment(), properties.getConfigurationVersion(),
+				properties.isFailFast());
 	}
 
 	@Bean

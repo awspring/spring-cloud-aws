@@ -27,7 +27,7 @@ import org.springframework.validation.Validator;
 @ConfigurationProperties(prefix = "spring.cloud.aws.appconfig")
 public class AwsAppConfigProperties implements Validator {
 
-	private String accountId;
+	private String clientId;
 
 	private String application;
 
@@ -50,10 +50,6 @@ public class AwsAppConfigProperties implements Validator {
 	public void validate(Object target, Errors errors) {
 		AwsAppConfigProperties properties = (AwsAppConfigProperties) target;
 
-		if (StringUtils.isEmpty(properties.getAccountId())) {
-			errors.rejectValue("accountId", "NotEmpty", "account-id should not be empty or null.");
-		}
-
 		if (StringUtils.isEmpty(properties.getApplication())) {
 			errors.rejectValue("application", "NotEmpty", "application should not be empty or null.");
 		}
@@ -63,8 +59,8 @@ public class AwsAppConfigProperties implements Validator {
 		}
 	}
 
-	public String getAccountId() {
-		return accountId;
+	public String getClientId() {
+		return clientId;
 	}
 
 	public String getApplication() {
@@ -91,8 +87,8 @@ public class AwsAppConfigProperties implements Validator {
 		return failFast;
 	}
 
-	public void setAccountId(String accountId) {
-		this.accountId = accountId;
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 
 	public void setApplication(String application) {
