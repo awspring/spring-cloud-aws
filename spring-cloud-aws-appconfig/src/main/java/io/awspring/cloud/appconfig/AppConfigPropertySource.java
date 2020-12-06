@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,8 @@ package io.awspring.cloud.appconfig;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -35,12 +33,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * @author jarpz
+ * @author Eddú Meléndez
  */
-public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonAppConfig> {
+public class AppConfigPropertySource extends EnumerablePropertySource<AmazonAppConfig> {
 
 	private static final String SUPPORTED_TYPE_JSON = "application/json";
 
@@ -56,7 +56,7 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 
 	private Properties properties;
 
-	public AwsAppConfigPropertySource(String name, String clientId, String application, String environment,
+	public AppConfigPropertySource(String name, String clientId, String application, String environment,
 			String configurationVersion, AmazonAppConfig appConfigClient) {
 		super(name, appConfigClient);
 		this.clientId = clientId;
@@ -66,28 +66,28 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 	}
 
 	public void init() {
-		GetConfigurationRequest request = new GetConfigurationRequest().withClientId(clientId)
-				.withApplication(application).withConfiguration(name)
-				.withClientConfigurationVersion(configurationVersion).withEnvironment(environment);
+		GetConfigurationRequest request = new GetConfigurationRequest().withClientId(this.clientId)
+				.withApplication(this.application).withConfiguration(this.name)
+				.withClientConfigurationVersion(this.configurationVersion).withEnvironment(this.environment);
 
 		getAppConfig(request);
 	}
 
 	@Override
 	public String[] getPropertyNames() {
-		Set<String> strings = properties.stringPropertyNames();
+		Set<String> strings = this.properties.stringPropertyNames();
 		return strings.toArray(new String[strings.size()]);
 	}
 
 	@Override
 	public Object getProperty(String name) {
-		return properties.get(name);
+		return this.properties.get(name);
 	}
 
 	private void getAppConfig(GetConfigurationRequest request) {
 		GetConfigurationResult result = this.source.getConfiguration(request);
 
-		logger.trace(String.format("loading file: %s/%s/%s/%s", application, name, environment,
+		logger.trace(String.format("loading file: %s/%s/%s/%s", this.application, this.name, this.environment,
 				result.getConfigurationVersion()));
 
 		switch (result.getContentType()) {
@@ -107,7 +107,7 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 
 		bean.setResources(new ByteArrayResource(byteBuffer.array()));
 
-		properties = bean.getObject();
+		this.properties = bean.getObject();
 	}
 
 	private void processJsonContent(ByteBuffer byteBuffer) {
@@ -115,12 +115,13 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 			Map<String, Object> map = new ObjectMapper().readValue(byteBuffer.array(),
 					new TypeReference<Map<String, Object>>() {
 					});
+			if (!map.isEmpty()) {
+				Map<String, Object> result = new LinkedHashMap<>();
+				flatten(null, result, map);
 
-			Map<String, Object> result = new LinkedHashMap<>();
-			this.flatten(null, result, map);
-
-			properties = new Properties();
-			properties.putAll(result);
+				this.properties = new Properties();
+				this.properties.putAll(result);
+			}
 		}
 		catch (IOException ex) {
 			ReflectionUtils.rethrowRuntimeException(ex);
@@ -131,21 +132,28 @@ public class AwsAppConfigPropertySource extends EnumerablePropertySource<AmazonA
 	 * flatten json structure.
 	 */
 	private void flatten(String prefix, Map<String, Object> result, Map<String, Object> map) {
-		String namePrefix = Objects.nonNull(prefix) ? prefix + "." : "";
+		String namePrefix = prefix != null ? prefix + "." : "";
 
-		map.forEach((key, value) -> this.extract(namePrefix + key, result, value));
+		map.forEach((key, value) -> extract(namePrefix + key, result, value));
 	}
 
 	private void extract(String name, Map<String, Object> result, Object value) {
 		if (value instanceof Map) {
-			this.flatten(name, result, (Map) value);
+			if (CollectionUtils.isEmpty((Map<?, ?>) value)) {
+				result.put(name, value);
+				return;
+			}
+			flatten(name, result, (Map<String, Object>) value);
 		}
 		else if (value instanceof Collection) {
+			if (CollectionUtils.isEmpty((Collection<?>) value)) {
+				result.put(name, value);
+				return;
+			}
 			int index = 0;
-
-			for (Iterator it = ((Collection) value).iterator(); it.hasNext(); ++index) {
-				Object object = it.next();
+			for (Object object : (Collection<Object>) value) {
 				this.extract(name + "[" + index + "]", result, object);
+				index++;
 			}
 		}
 		else {

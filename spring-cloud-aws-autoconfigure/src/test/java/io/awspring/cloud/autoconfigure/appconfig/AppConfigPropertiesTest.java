@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author jarpz
  */
-class AwsAppConfigPropertiesTest {
+class AppConfigPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	void validationFails(AwsAppConfigProperties properties, String field, String errorCode) {
+	void validationFails(AppConfigProperties properties, String field, String errorCode) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 
 		properties.validate(properties, errors);
@@ -51,7 +51,7 @@ class AwsAppConfigPropertiesTest {
 
 	@Test
 	void validationSucceeds() {
-		AwsAppConfigProperties properties = buildProperties("12345678", "my-project", "my-app", "dev");
+		AppConfigProperties properties = buildProperties("12345678", "my-project", "my-app", "dev");
 
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 		properties.validate(properties, errors);
@@ -59,9 +59,9 @@ class AwsAppConfigPropertiesTest {
 		assertThat(errors.getAllErrors()).isEmpty();
 	}
 
-	private static AwsAppConfigProperties buildProperties(String clientId, String application,
-			String configurationProfile, String environment) {
-		AwsAppConfigProperties properties = new AwsAppConfigProperties();
+	private static AppConfigProperties buildProperties(String clientId, String application, String configurationProfile,
+			String environment) {
+		AppConfigProperties properties = new AppConfigProperties();
 		properties.setClientId(clientId);
 		properties.setApplication(application);
 		properties.setConfigurationProfile(configurationProfile);

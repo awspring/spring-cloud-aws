@@ -1,5 +1,5 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.aws.autoconfigure.appconfig.AwsAppConfigBootstrapConfiguration
+org.springframework.cloud.aws.autoconfigure.appconfig.AppConfigBootstrapConfiguration
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.awspring.cloud.autoconfigure.context.ContextInstanceDataAutoConfiguration,\

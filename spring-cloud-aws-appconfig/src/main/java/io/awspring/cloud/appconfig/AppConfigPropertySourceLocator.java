@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package io.awspring.cloud.appconfig;
 
-import java.util.Arrays;
-
 import com.amazonaws.services.appconfig.AmazonAppConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,13 +27,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.ReflectionUtils;
 
-import static java.util.Objects.isNull;
-import static org.springframework.util.Assert.hasText;
-
 /**
  * @author jarpz
+ * @author Eddú Meléndez
  */
-public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator {
+public class AppConfigPropertySourceLocator implements PropertySourceLocator {
 
 	private final AmazonAppConfig appConfigClient;
 
@@ -51,9 +47,9 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 
 	private final boolean failFast;
 
-	private static final Log logger = LogFactory.getLog(AwsAppConfigPropertySourceLocator.class);
+	private static final Log logger = LogFactory.getLog(AppConfigPropertySourceLocator.class);
 
-	public AwsAppConfigPropertySourceLocator(AmazonAppConfig appConfigClient, String clientId, String application,
+	public AppConfigPropertySourceLocator(AmazonAppConfig appConfigClient, String clientId, String application,
 			String configurationProfile, String environment, String configurationVersion, boolean failFast) {
 		this.appConfigClient = appConfigClient;
 		this.clientId = clientId;
@@ -70,42 +66,28 @@ public class AwsAppConfigPropertySourceLocator implements PropertySourceLocator 
 			return null;
 		}
 
-		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-
-		String appName = configurationProfile;
-		if (isNull(appName)) {
-			appName = env.getProperty("spring.application.name");
-		}
-		String profile = this.environment;
-		if (isNull(profile)) {
-			profile = Arrays.stream(env.getActiveProfiles()).findFirst().orElse("default");
-		}
-
-		hasText(appName, "configurationProfile or spring.application.name should not be empty or null.");
-		hasText(profile, "environment or profiles should not be empty or null ");
-
 		CompositePropertySource composite = new CompositePropertySource("aws-app-config");
 
 		try {
-			composite.addPropertySource(create(appName, profile));
+			composite.addPropertySource(create(this.configurationProfile));
 		}
 		catch (Exception ex) {
-			if (failFast) {
+			if (this.failFast) {
 				logger.error("Fail fast is set and there was an error reading configuration from AWS AppConfig: {}",
 						ex);
 				ReflectionUtils.rethrowRuntimeException(ex);
 			}
 			else {
-				logger.warn("Unable to load AWS AppConfig from " + appName, ex);
+				logger.warn("Unable to load AWS AppConfig from " + this.configurationProfile, ex);
 			}
 		}
 
 		return composite;
 	}
 
-	private AwsAppConfigPropertySource create(String appName, String profile) {
-		AwsAppConfigPropertySource propertySource = new AwsAppConfigPropertySource(appName, clientId, application,
-				profile, configurationVersion, appConfigClient);
+	private AppConfigPropertySource create(String configurationProfile) {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(configurationProfile, this.clientId,
+				this.application, this.environment, this.configurationVersion, this.appConfigClient);
 		propertySource.init();
 
 		return propertySource;

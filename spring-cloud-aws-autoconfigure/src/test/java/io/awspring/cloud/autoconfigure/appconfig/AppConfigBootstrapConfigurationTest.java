@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,18 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class AwsAppConfigBootstrapConfigurationTest {
+class AppConfigBootstrapConfigurationTest {
 
-	private final ApplicationContextRunner runner = new ApplicationContextRunner()
-			.withUserConfiguration(AwsAppConfigBootstrapConfiguration.class);
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withUserConfiguration(AppConfigBootstrapConfiguration.class);
 
-	private static final String[] properties = new String[] { "spring.cloud.aws.appconfig.region=us-east-2",
-			"spring.cloud.aws.appconfig.account-id=1234567", "spring.cloud.aws.appconfig.application=demo",
+	private final String[] properties = new String[] { "spring.cloud.aws.appconfig.region=us-east-2",
+			"spring.cloud.aws.appconfig.client-id=1234567", "spring.cloud.aws.appconfig.application=demo",
 			"spring.cloud.aws.appconfig.environment=dev" };
 
 	@Test
 	void testWithStaticRegion() {
-
-		runner.withPropertyValues(properties).run(context -> {
+		this.contextRunner.withPropertyValues(this.properties).run(context -> {
 			AmazonAppConfig appConfig = context.getBean(AmazonAppConfig.class);
 
 			assertThat(appConfig).isNotNull();
@@ -49,7 +48,7 @@ class AwsAppConfigBootstrapConfigurationTest {
 
 	@Test
 	void testUserAgent() {
-		runner.withPropertyValues(properties)
+		this.contextRunner.withPropertyValues(this.properties)
 				.run(context -> assertThat(context.getBean(AmazonAppConfig.class)).isNotNull()
 						.extracting(AmazonAppConfigClient.class::cast)
 						.extracting(appconfig -> appconfig.getClientConfiguration().getUserAgentSuffix()).asString()

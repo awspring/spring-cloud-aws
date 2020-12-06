@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AwsAppConfigPropertySourceLocatorTest {
+class AppConfigPropertySourceLocatorTest {
 
 	private AmazonAppConfig appConfigClient = mock(AmazonAppConfig.class);
 
@@ -49,12 +49,12 @@ public class AwsAppConfigPropertySourceLocatorTest {
 		result.setContentType("application/x-yaml");
 		result.setContent(content);
 
-		when(appConfigClient.getConfiguration(any())).thenReturn(result);
+		when(this.appConfigClient.getConfiguration(any())).thenReturn(result);
 
-		AwsAppConfigPropertySourceLocator locator = new AwsAppConfigPropertySourceLocator(appConfigClient, "123456789",
+		AppConfigPropertySourceLocator locator = new AppConfigPropertySourceLocator(this.appConfigClient, "123456789",
 				"my-project", "api-my", "dev", null, false);
 
-		env.setActiveProfiles("test");
+		this.env.setActiveProfiles("test");
 
 		PropertySource<?> propertySource = locator.locate(env);
 
@@ -70,12 +70,12 @@ public class AwsAppConfigPropertySourceLocatorTest {
 		result.setContentType("application/json");
 		result.setContent(content);
 
-		when(appConfigClient.getConfiguration(any())).thenReturn(result);
+		when(this.appConfigClient.getConfiguration(any())).thenReturn(result);
 
-		AwsAppConfigPropertySourceLocator locator = new AwsAppConfigPropertySourceLocator(appConfigClient, "123456789",
+		AppConfigPropertySourceLocator locator = new AppConfigPropertySourceLocator(this.appConfigClient, "123456789",
 				"my-project", "api-my", "dev", null, false);
 
-		env.setActiveProfiles("test");
+		this.env.setActiveProfiles("test");
 
 		PropertySource<?> propertySource = locator.locate(env);
 
@@ -88,14 +88,14 @@ public class AwsAppConfigPropertySourceLocatorTest {
 		result.setConfigurationVersion("1");
 		result.setContentType("application/json");
 
-		when(appConfigClient.getConfiguration(any())).thenThrow(new RuntimeException("connection error"));
+		when(this.appConfigClient.getConfiguration(any())).thenThrow(new RuntimeException("connection error"));
 
-		AwsAppConfigPropertySourceLocator locator = new AwsAppConfigPropertySourceLocator(appConfigClient, "123456789",
+		AppConfigPropertySourceLocator locator = new AppConfigPropertySourceLocator(this.appConfigClient, "123456789",
 				"my-project", "api-my", "dev", null, true);
 
-		env.setActiveProfiles("test");
+		this.env.setActiveProfiles("test");
 
-		assertThatThrownBy(() -> locator.locate(env)).hasMessage("connection error");
+		assertThatThrownBy(() -> locator.locate(this.env)).hasMessage("connection error");
 	}
 
 	@Test
@@ -104,14 +104,14 @@ public class AwsAppConfigPropertySourceLocatorTest {
 		result.setConfigurationVersion("1");
 		result.setContentType("application/json");
 
-		when(appConfigClient.getConfiguration(any())).thenThrow(new RuntimeException("connection error"));
+		when(this.appConfigClient.getConfiguration(any())).thenThrow(new RuntimeException("connection error"));
 
-		AwsAppConfigPropertySourceLocator locator = new AwsAppConfigPropertySourceLocator(appConfigClient, "123456789",
+		AppConfigPropertySourceLocator locator = new AppConfigPropertySourceLocator(this.appConfigClient, "123456789",
 				"my-project", "api-my", "dev", null, false);
 
-		env.setActiveProfiles("test");
+		this.env.setActiveProfiles("test");
 
-		assertThatCode(() -> locator.locate(env)).doesNotThrowAnyException();
+		assertThatCode(() -> locator.locate(this.env)).doesNotThrowAnyException();
 	}
 
 }

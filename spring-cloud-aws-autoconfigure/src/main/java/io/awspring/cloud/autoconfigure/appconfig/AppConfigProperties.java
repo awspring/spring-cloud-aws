@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,32 +23,54 @@ import org.springframework.validation.Validator;
 
 /**
  * @author jarpz
+ * @author Eddú Meléndez
  */
 @ConfigurationProperties(prefix = "spring.cloud.aws.appconfig")
-public class AwsAppConfigProperties implements Validator {
+public class AppConfigProperties implements Validator {
 
-	private String clientId;
-
+	/**
+	 * Application name or application id.
+	 */
 	private String application;
 
+	/**
+	 * Environment name or environment id.
+	 */
 	private String environment;
 
+	/**
+	 * Configuration name or configuration id.
+	 */
 	private String configurationProfile;
 
+	/**
+	 * Configuration version to receive.
+	 */
 	private String configurationVersion;
 
+	/**
+	 * Id to identify the client for the configurations.
+	 */
+	private String clientId;
+
+	/**
+	 * Overrides the default region.
+	 */
 	private String region;
 
+	/**
+	 * Throw exceptions during config lookup if true, otherwise, log warnings.
+	 */
 	private boolean failFast;
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return AwsAppConfigProperties.class.isAssignableFrom(clazz);
+		return AppConfigProperties.class.isAssignableFrom(clazz);
 	}
 
 	@Override
 	public void validate(Object target, Errors errors) {
-		AwsAppConfigProperties properties = (AwsAppConfigProperties) target;
+		AppConfigProperties properties = (AppConfigProperties) target;
 
 		if (StringUtils.isEmpty(properties.getApplication())) {
 			errors.rejectValue("application", "NotEmpty", "application should not be empty or null.");
@@ -59,56 +81,56 @@ public class AwsAppConfigProperties implements Validator {
 		}
 	}
 
-	public String getClientId() {
-		return clientId;
-	}
-
 	public String getApplication() {
 		return application;
-	}
-
-	public String getEnvironment() {
-		return environment;
-	}
-
-	public String getConfigurationProfile() {
-		return configurationProfile;
-	}
-
-	public String getConfigurationVersion() {
-		return configurationVersion;
-	}
-
-	public String getRegion() {
-		return region;
-	}
-
-	public boolean isFailFast() {
-		return failFast;
-	}
-
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
 	}
 
 	public void setApplication(String application) {
 		this.application = application;
 	}
 
+	public String getEnvironment() {
+		return environment;
+	}
+
 	public void setEnvironment(String environment) {
 		this.environment = environment;
+	}
+
+	public String getConfigurationProfile() {
+		return configurationProfile;
 	}
 
 	public void setConfigurationProfile(String configurationProfile) {
 		this.configurationProfile = configurationProfile;
 	}
 
+	public String getConfigurationVersion() {
+		return configurationVersion;
+	}
+
 	public void setConfigurationVersion(String configurationVersion) {
 		this.configurationVersion = configurationVersion;
 	}
 
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
 	public void setRegion(String region) {
 		this.region = region;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
 	}
 
 	public void setFailFast(boolean failFast) {
