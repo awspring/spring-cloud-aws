@@ -115,7 +115,7 @@ public class StackResourceRegistryFactoryBean extends AbstractFactoryBean<Listab
 	}
 
 	private String toNestedResourceId(String prefix, String logicalResourceId) {
-		return StringUtils.isEmpty(prefix) ? logicalResourceId : prefix + "." + logicalResourceId;
+		return StringUtils.hasLength(prefix) ? prefix + "." + logicalResourceId : logicalResourceId;
 	}
 
 	/**

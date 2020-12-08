@@ -107,10 +107,10 @@ class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitio
 		String stackName = element.getAttribute(STACK_NAME_ATTRIBUTE_NAME);
 
 		builder.addConstructorArgReference(amazonCloudFormationClientBeanName);
-		AbstractBeanDefinition stackNameProviderBeanDefinition = StringUtils.isEmpty(stackName)
-				? buildAutoDetectingStackNameProviderBeanDefinition(amazonCloudFormationClientBeanName,
-						amazonEc2ClientBeanName)
-				: buildStaticStackNameProviderBeanDefinition(stackName);
+		AbstractBeanDefinition stackNameProviderBeanDefinition = StringUtils.hasLength(stackName)
+				? buildStaticStackNameProviderBeanDefinition(stackName)
+				: buildAutoDetectingStackNameProviderBeanDefinition(amazonCloudFormationClientBeanName,
+						amazonEc2ClientBeanName);
 		builder.addConstructorArgValue(stackNameProviderBeanDefinition);
 
 		buildAndRegisterStackUserTagsIfNeeded(element, parserContext, amazonCloudFormationClientBeanName,

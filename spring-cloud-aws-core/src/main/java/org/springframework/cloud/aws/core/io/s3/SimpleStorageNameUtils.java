@@ -102,7 +102,7 @@ final class SimpleStorageNameUtils {
 
 	static String getContentTypeFromLocation(String location) {
 		String objectName = getObjectNameFromLocation(location);
-		if (!StringUtils.isEmpty(objectName)) {
+		if (StringUtils.hasLength(objectName)) {
 			return URLConnection.guessContentTypeFromName(objectName);
 		}
 		return null;

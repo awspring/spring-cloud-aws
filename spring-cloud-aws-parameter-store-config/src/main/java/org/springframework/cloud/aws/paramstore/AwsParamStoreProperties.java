@@ -92,15 +92,15 @@ public class AwsParamStoreProperties implements Validator {
 	public void validate(Object target, Errors errors) {
 		AwsParamStoreProperties properties = (AwsParamStoreProperties) target;
 
-		if (StringUtils.isEmpty(properties.getPrefix())) {
+		if (!StringUtils.hasLength(properties.getPrefix())) {
 			errors.rejectValue("prefix", "NotEmpty", "prefix should not be empty or null.");
 		}
 
-		if (StringUtils.isEmpty(properties.getDefaultContext())) {
+		if (!StringUtils.hasLength(properties.getDefaultContext())) {
 			errors.rejectValue("defaultContext", "NotEmpty", "defaultContext should not be empty or null.");
 		}
 
-		if (StringUtils.isEmpty(properties.getProfileSeparator())) {
+		if (!StringUtils.hasLength(properties.getProfileSeparator())) {
 			errors.rejectValue("profileSeparator", "NotEmpty", "profileSeparator should not be empty or null.");
 		}
 

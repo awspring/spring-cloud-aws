@@ -82,7 +82,7 @@ public class AmazonRdsDatabaseProperties extends AwsClientProperties {
 		private boolean readReplicaSupport = false;
 
 		public boolean hasRequiredPropertiesSet() {
-			return !StringUtils.isEmpty(this.getDbInstanceIdentifier()) && !StringUtils.isEmpty(this.getPassword());
+			return StringUtils.hasLength(this.getDbInstanceIdentifier()) && StringUtils.hasLength(this.getPassword());
 		}
 
 		public String getDbInstanceIdentifier() {
