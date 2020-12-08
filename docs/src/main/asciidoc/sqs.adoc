@@ -268,3 +268,41 @@ public void receive(S3EventNotification s3EventNotificationRecord) {
 	S3EventNotification.S3Entity s3Entity = s3EventNotificationRecord.getRecords().get(0).getS3();
 }
 ----
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Send message to Queue
+| `sqs:SendMessage`
+
+| Receive message from queue
+| `sqs:ReceiveMessage`
+
+| Delete message from queue
+| `sqs:DeleteMessage`
+
+| To use sqsListener with SimpleMessageListenerContainerFactory you will need to add as well
+| `sqs:GetQueueAttributes`
+
+|===
+
+Sample IAM policy granting access to SQS:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sqs:DeleteMessage",
+                "sqs:ReceiveMessage",
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes"
+            ],
+            "Resource": "yourARN"
+        }
+----
