@@ -76,6 +76,10 @@ dots, dashes, forward slashes, backward slashes and underscores next to alphanum
 |`aws.paramstore.enabled`
 |`true`
 |Can be used to disable the Parameter Store Configuration support even though the auto-configuration is on the classpath.
+
+|`aws.paramstore.region`
+|`eu-central-1`
+|Can be used to configure region AWSSimpleSystemsManagementClients.
 |===
 
 [TIP]
@@ -88,3 +92,29 @@ turn on `DEBUG` logging on `org.springframework.cloud.aws.paramstore.AwsParamSto
 logging.level.org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource=debug
 ----
 ====
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Get parameter from specific path
+| `ssm:GetParametersByPath`
+
+|===
+
+Sample IAM policy granting access to Parameter Store:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "ssm:GetParametersByPath",
+            "Resource": "yourArn"
+        }
+    ]
+}
+----
