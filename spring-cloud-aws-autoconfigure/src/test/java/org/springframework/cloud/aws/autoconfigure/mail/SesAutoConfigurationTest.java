@@ -17,7 +17,6 @@
 package org.springframework.cloud.aws.autoconfigure.mail;
 
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.jupiter.api.Test;
 
