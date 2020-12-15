@@ -25,9 +25,12 @@ import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathR
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySources.AwsParameterPropertySourceNotFoundException;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,6 +39,7 @@ import static org.mockito.Mockito.when;
  * Unit test for {@link AwsParamStorePropertySourceLocator}.
  *
  * @author Matej Nedic
+ * @author Eddú Meléndez
  */
 public class AwsParamStorePropertySourceLocatorTest {
 
@@ -45,48 +49,54 @@ public class AwsParamStorePropertySourceLocatorTest {
 
 	@Test
 	void contextExpectedToHave2Elements() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
-				.withName("application").build();
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setPrefix("application");
+		properties.setName("application");
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
+		when(this.ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult,
+				nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
-		env.setActiveProfiles("test");
-		locator.locate(env);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(this.ssmClient, properties);
+		this.env.setActiveProfiles("test");
+		locator.locate(this.env);
 
 		assertThat(locator.getContexts()).hasSize(2);
 	}
 
 	@Test
 	void contextExpectedToHave4Elements() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
-				.withName("messaging-service").build();
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setPrefix("application");
+		properties.setName("messaging-service");
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
+		when(this.ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult,
+				nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
-		env.setActiveProfiles("test");
-		locator.locate(env);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(this.ssmClient, properties);
+		this.env.setActiveProfiles("test");
+		locator.locate(this.env);
 
 		assertThat(locator.getContexts()).hasSize(4);
 	}
 
 	@Test
 	void contextSpecificOrderExpected() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withDefaultContext("application")
-				.withName("messaging-service").build();
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setPrefix("application");
+		properties.setName("messaging-service");
 
 		GetParametersByPathResult firstResult = getFirstResult();
 		GetParametersByPathResult nextResult = getNextResult();
-		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult, nextResult);
+		when(this.ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(firstResult,
+				nextResult);
 
-		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(ssmClient, properties);
-		env.setActiveProfiles("test");
-		locator.locate(env);
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(this.ssmClient, properties);
+		this.env.setActiveProfiles("test");
+		locator.locate(this.env);
 
 		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
 
@@ -94,6 +104,28 @@ public class AwsParamStorePropertySourceLocatorTest {
 		assertThat(contextToBeTested.get(1)).isEqualTo("application/messaging-service/");
 		assertThat(contextToBeTested.get(2)).isEqualTo("application/application_test/");
 		assertThat(contextToBeTested.get(3)).isEqualTo("application/application/");
+	}
+
+	@Test
+	void whenFailFastIsTrueAndParameterDoesNotExistThrowsException() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setFailFast(true);
+
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(this.ssmClient, properties);
+		assertThatThrownBy(() -> locator.locate(this.env))
+				.isInstanceOf(AwsParameterPropertySourceNotFoundException.class);
+	}
+
+	@Test
+	void whenFailFastIsFalseAndParameterDoesNotExistReturnsEmptyPropertySource() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setFailFast(false);
+
+		AwsParamStorePropertySourceLocator locator = new AwsParamStorePropertySourceLocator(this.ssmClient, properties);
+
+		CompositePropertySource result = (CompositePropertySource) locator.locate(this.env);
+
+		assertThat(result.getPropertySources()).isEmpty();
 	}
 
 	private static GetParametersByPathResult getNextResult() {
@@ -106,29 +138,6 @@ public class AwsParamStorePropertySourceLocatorTest {
 		return new GetParametersByPathResult().withParameters(
 				new Parameter().withName("/config/myservice/key3").withValue("value3"),
 				new Parameter().withName("/config/myservice/key4").withValue("value4"));
-	}
-
-	private static final class AwsParamStorePropertiesBuilder {
-
-		private final AwsParamStoreProperties properties = new AwsParamStoreProperties();
-
-		private AwsParamStorePropertiesBuilder() {
-		}
-
-		public AwsParamStorePropertiesBuilder withDefaultContext(String defaultContext) {
-			this.properties.setPrefix(defaultContext);
-			return this;
-		}
-
-		public AwsParamStorePropertiesBuilder withName(String name) {
-			this.properties.setName(name);
-			return this;
-		}
-
-		public AwsParamStoreProperties build() {
-			return this.properties;
-		}
-
 	}
 
 }

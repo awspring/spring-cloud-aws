@@ -93,6 +93,22 @@ logging.level.org.springframework.cloud.aws.paramstore.AwsParamStorePropertySour
 ----
 ====
 
+In `spring-cloud` `2020.0.0` (aka Ilford), the bootstrap phase is no longer enabled by default. In order
+enable it you need an additional dependency:
+
+[source,xml,indent=0]
+----
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-bootstrap</artifactId>
+  <version>{spring-cloud-version}</version>
+</dependency>
+----
+
+However, starting at `spring-cloud-aws` `2.3`, allows import default aws' parameterstore keys
+(`spring.config.import=aws-parameterstore:`) or individual keys
+(`spring.config.import=aws-parameterstore:config-key;other-config-key`)
+
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 

@@ -31,7 +31,6 @@ import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Builds a {@link CompositePropertySource} with various
@@ -43,6 +42,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Joris Kuipers
  * @author Matej Nedic
+ * @author Eddú Meléndez
  * @since 2.0.0
  */
 public class AwsParamStorePropertySourceLocator implements PropertySourceLocator {
@@ -73,56 +73,22 @@ public class AwsParamStorePropertySourceLocator implements PropertySourceLocator
 
 		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
-		String appName = properties.getName();
-
-		if (appName == null) {
-			appName = env.getProperty("spring.application.name");
-		}
+		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(this.properties, this.logger);
 
 		List<String> profiles = Arrays.asList(env.getActiveProfiles());
-
-		String prefix = this.properties.getPrefix();
-
-		String appContext = prefix + "/" + appName;
-		addProfiles(this.contexts, appContext, profiles);
-		this.contexts.add(appContext + "/");
-
-		String defaultContext = prefix + "/" + this.properties.getDefaultContext();
-		addProfiles(this.contexts, defaultContext, profiles);
-		this.contexts.add(defaultContext + "/");
+		this.contexts.addAll(sources.getAutomaticContexts(profiles));
 
 		CompositePropertySource composite = new CompositePropertySource("aws-param-store");
 
 		for (String propertySourceContext : this.contexts) {
-			try {
-				composite.addPropertySource(create(propertySourceContext));
-			}
-			catch (Exception e) {
-				if (this.properties.isFailFast()) {
-					logger.error(
-							"Fail fast is set and there was an error reading configuration from AWS Parameter Store:\n"
-									+ e.getMessage());
-					ReflectionUtils.rethrowRuntimeException(e);
-				}
-				else {
-					logger.warn("Unable to load AWS config from " + propertySourceContext, e);
-				}
+			PropertySource<AWSSimpleSystemsManagement> propertySource = sources
+					.createPropertySource(propertySourceContext, !this.properties.isFailFast(), this.ssmClient);
+			if (propertySource != null) {
+				composite.addPropertySource(propertySource);
 			}
 		}
 
 		return composite;
-	}
-
-	private AwsParamStorePropertySource create(String context) {
-		AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(context, this.ssmClient);
-		propertySource.init();
-		return propertySource;
-	}
-
-	private void addProfiles(Set<String> contexts, String baseContext, List<String> profiles) {
-		for (String profile : profiles) {
-			contexts.add(baseContext + this.properties.getProfileSeparator() + profile + "/");
-		}
 	}
 
 }

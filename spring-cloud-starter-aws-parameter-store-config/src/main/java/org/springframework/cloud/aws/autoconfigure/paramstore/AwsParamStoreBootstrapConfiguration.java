@@ -30,6 +30,7 @@ import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
 import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Spring Cloud Bootstrap Configuration for setting up an
@@ -46,15 +47,28 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsParamStoreBootstrapConfiguration {
 
+	private final Environment environment;
+
+	public AwsParamStoreBootstrapConfiguration(Environment environment) {
+		this.environment = environment;
+	}
+
 	@Bean
 	AwsParamStorePropertySourceLocator awsParamStorePropertySourceLocator(AWSSimpleSystemsManagement ssmClient,
 			AwsParamStoreProperties properties) {
+		if (StringUtils.isNullOrEmpty(properties.getName())) {
+			properties.setName(this.environment.getProperty("spring.application.name"));
+		}
 		return new AwsParamStorePropertySourceLocator(ssmClient, properties);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	AWSSimpleSystemsManagement ssmClient(AwsParamStoreProperties properties) {
+		return createSimpleSystemManagementClient(properties);
+	}
+
+	public static AWSSimpleSystemsManagement createSimpleSystemManagementClient(AwsParamStoreProperties properties) {
 		AWSSimpleSystemsManagementClientBuilder builder = AWSSimpleSystemsManagementClientBuilder.standard()
 				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
 		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
