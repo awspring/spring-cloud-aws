@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.BootstrapRegistry;
@@ -68,7 +69,7 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 	}
 
 	private AwsSecretsManagerConfigDataLocationResolver createResolver() {
-		return new AwsSecretsManagerConfigDataLocationResolver() {
+		return new AwsSecretsManagerConfigDataLocationResolver(LogFactory.getLog("any")) {
 			@Override
 			public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
 				// do nothing

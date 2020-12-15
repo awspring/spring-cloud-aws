@@ -64,8 +64,18 @@ public class AwsSecretsManagerPropertySources {
 		}
 	}
 
+	/**
+	 * Creates property source for given context.
+	 * @param context property source context equivalent to the secret name
+	 * @param optional if creating context should fail with exception if secret cannot be
+	 * loaded
+	 * @param client Secret Manager client
+	 * @return a property source or null if secret could not be loaded and optional is set
+	 * to true
+	 */
 	public AwsSecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			AWSSecretsManager client) {
+		log.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
 			AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(context, client);
 			propertySource.init();
@@ -73,11 +83,11 @@ public class AwsSecretsManagerPropertySources {
 			// TODO: howto call close when /refresh
 		}
 		catch (Exception e) {
-			if (this.properties.isFailFast() || !optional) {
+			if (!optional) {
 				throw new AwsSecretsManagerPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS secret from " + context, e);
+				log.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;

@@ -27,7 +27,10 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
 import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySource;
 
 /**
+ * Loads config data from AWS Secret Manager.
+ *
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  * @since 2.3.0
  */
 public class AwsSecretsManagerConfigDataLoader implements ConfigDataLoader<AwsSecretsManagerConfigDataResource> {
@@ -38,7 +41,12 @@ public class AwsSecretsManagerConfigDataLoader implements ConfigDataLoader<AwsSe
 			AWSSecretsManager ssm = context.getBootstrapContext().get(AWSSecretsManager.class);
 			AwsSecretsManagerPropertySource propertySource = resource.getPropertySources()
 					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
-			return new ConfigData(Collections.singletonList(propertySource));
+			if (propertySource != null) {
+				return new ConfigData(Collections.singletonList(propertySource));
+			}
+			else {
+				return null;
+			}
 		}
 		catch (Exception e) {
 			throw new ConfigDataResourceNotFoundException(resource, e);

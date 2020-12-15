@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.secretsmanager;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +24,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -32,28 +32,32 @@ import org.springframework.core.env.EnumerablePropertySource;
 
 /**
  * Retrieves secret value under the given context / path from the AWS Secrets Manager
- * using the provided SM client.
+ * using the provided Secrets Manager client.
  *
  * @author Fabio Maia
+ * @author Maciej Walkowiak
  * @since 2.0.0
  */
 public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AWSSecretsManager> {
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
-	private String context;
+	private final String context;
 
-	private Map<String, Object> properties = new LinkedHashMap<>();
+	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public AwsSecretsManagerPropertySource(String context, AWSSecretsManager smClient) {
 		super(context, smClient);
 		this.context = context;
 	}
 
+	/**
+	 * Loads properties from the Secrets Manager secret.
+	 * @throws ResourceNotFoundException if specified secret does not exist in the
+	 * database.
+	 */
 	public void init() {
-		GetSecretValueRequest secretValueRequest = new GetSecretValueRequest();
-		secretValueRequest.setSecretId(context);
-		readSecretValue(secretValueRequest);
+		readSecretValue(new GetSecretValueRequest().withSecretId(context));
 	}
 
 	@Override
@@ -78,10 +82,7 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 				properties.put(secretEntry.getKey(), secretEntry.getValue());
 			}
 		}
-		catch (ResourceNotFoundException e) {
-			logger.debug("AWS secret not found from " + secretValueRequest.getSecretId());
-		}
-		catch (IOException e) {
+		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}

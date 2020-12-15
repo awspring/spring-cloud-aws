@@ -38,6 +38,9 @@ import org.springframework.core.env.PropertySource;
  * name and default context permutations. Mostly copied from Spring Cloud Consul's config
  * support.
  *
+ * Note: this class is used only by legacy Spring Cloud Bootstrap phase based config
+ * loading.
+ *
  * @author Fabio Maia
  * @author Matej Nedic
  * @author Eddú Meléndez
@@ -86,9 +89,11 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
 
 		for (String propertySourceContext : this.contexts) {
-			PropertySource<AWSSecretsManager> propertySource = sources.createPropertySource(propertySourceContext, true,
-					this.smClient);
-			composite.addPropertySource(propertySource);
+			PropertySource<AWSSecretsManager> propertySource = sources.createPropertySource(propertySourceContext,
+					!this.properties.isFailFast(), this.smClient);
+			if (propertySource != null) {
+				composite.addPropertySource(propertySource);
+			}
 		}
 
 		return composite;

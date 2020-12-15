@@ -23,7 +23,10 @@ import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySou
 import org.springframework.core.style.ToStringCreator;
 
 /**
+ * Config data resource for AWS Secret Manager integration.
+ *
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  * @since 2.3.0
  */
 public class AwsSecretsManagerConfigDataResource extends ConfigDataResource {
@@ -41,10 +44,18 @@ public class AwsSecretsManagerConfigDataResource extends ConfigDataResource {
 		this.propertySources = propertySources;
 	}
 
+	/**
+	 * Returns context which is equal to Secret Manager secret name.
+	 * @return the context
+	 */
 	public String getContext() {
 		return this.context;
 	}
 
+	/**
+	 * If application startup should fail when secret cannot be loaded or does not exist.
+	 * @return is optional
+	 */
 	public boolean isOptional() {
 		return this.optional;
 	}
