@@ -16,17 +16,22 @@
 
 package org.springframework.cloud.aws.autoconfigure.mail;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class SesAutoConfigurationTest {
 
@@ -95,6 +100,81 @@ class SesAutoConfigurationTest {
 					assertThat(context).hasSingleBean(MailSender.class);
 					assertThat(context).hasSingleBean(JavaMailSender.class);
 				});
+	}
+
+	@Test
+	void configuration_withGlobalClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalClientConfiguration.class).run((context) -> {
+			AmazonSimpleEmailServiceClient client = context.getBean(AmazonSimpleEmailServiceClient.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
+		});
+	}
+
+	@Test
+	void configuration_withSesClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithSesClientConfiguration.class).run((context) -> {
+			AmazonSimpleEmailServiceClient client = context.getBean(AmazonSimpleEmailServiceClient.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("ses");
+		});
+	}
+
+	@Test
+	void configuration_withGlobalAndSesClientConfigurations_shouldUseSqsConfigurationForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalAndSesClientConfiguration.class)
+				.run((context) -> {
+					AmazonSimpleEmailServiceClient client = context.getBean(AmazonSimpleEmailServiceClient.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("ses");
+				});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalClientConfiguration {
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithSesClientConfiguration {
+
+		@Bean
+		ClientConfiguration sesClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("ses");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalAndSesClientConfiguration {
+
+		@Bean
+		ClientConfiguration sesClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("ses");
+		}
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
 	}
 
 }

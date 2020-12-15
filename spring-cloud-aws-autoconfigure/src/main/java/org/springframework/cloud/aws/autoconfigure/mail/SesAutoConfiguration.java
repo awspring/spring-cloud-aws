@@ -18,11 +18,13 @@ package org.springframework.cloud.aws.autoconfigure.mail;
 
 import javax.mail.Session;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -45,6 +47,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for AWS Simple Email Service
  * support.
@@ -66,18 +70,24 @@ public class SesAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
+	private final ClientConfiguration clientConfiguration;
+
 	public SesAutoConfiguration(ObjectProvider<RegionProvider> regionProvider,
-			ObjectProvider<AWSCredentialsProvider> credentialsProvider, SesProperties properties) {
+			ObjectProvider<AWSCredentialsProvider> credentialsProvider,
+			@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+			@Qualifier("sesClientConfiguration") ObjectProvider<ClientConfiguration> sesClientConfiguration,
+			SesProperties properties) {
 		this.credentialsProvider = credentialsProvider.getIfAvailable();
 		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
+		this.clientConfiguration = sesClientConfiguration.getIfAvailable(globalClientConfiguration::getIfAvailable);
 	}
 
 	@Bean
 	@ConditionalOnMissingAmazonClient(AmazonSimpleEmailService.class)
 	public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService() {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonSimpleEmailServiceClient.class, this.credentialsProvider,
-				this.regionProvider);
+				this.regionProvider, this.clientConfiguration);
 	}
 
 	@Bean

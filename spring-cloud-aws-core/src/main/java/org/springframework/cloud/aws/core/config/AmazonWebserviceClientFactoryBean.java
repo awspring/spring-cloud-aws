@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsAsyncClientBuilder;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -61,6 +62,8 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 	private URI customEndpoint;
 
+	private ClientConfiguration clientConfiguration;
+
 	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider) {
 		this.clientClass = clientClass;
 		this.credentialsProvider = credentialsProvider;
@@ -70,6 +73,13 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			RegionProvider regionProvider) {
 		this(clientClass, credentialsProvider);
 		setRegionProvider(regionProvider);
+	}
+
+	public AmazonWebserviceClientFactoryBean(Class<T> clientClass, AWSCredentialsProvider credentialsProvider,
+			RegionProvider regionProvider, ClientConfiguration clientConfiguration) {
+		this(clientClass, credentialsProvider);
+		setRegionProvider(regionProvider);
+		setClientConfiguration(clientConfiguration);
 	}
 
 	@Override
@@ -94,7 +104,7 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			asyncBuilder.withExecutorFactory((ExecutorFactory) () -> this.executor);
 		}
 
-		builder.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration());
+		builder.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration(clientConfiguration));
 
 		if (this.credentialsProvider != null) {
 			builder.withCredentials(this.credentialsProvider);
@@ -132,6 +142,10 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 	public void setExecutor(ExecutorService executor) {
 		this.executor = executor;
+	}
+
+	public void setClientConfiguration(ClientConfiguration clientConfiguration) {
+		this.clientConfiguration = clientConfiguration;
 	}
 
 	@Override

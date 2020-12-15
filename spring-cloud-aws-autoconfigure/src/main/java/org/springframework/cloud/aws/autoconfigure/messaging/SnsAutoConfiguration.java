@@ -19,11 +19,13 @@ package org.springframework.cloud.aws.autoconfigure.messaging;
 import java.util.List;
 import java.util.Optional;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,6 +39,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
@@ -57,18 +60,23 @@ public class SnsAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
+	private final ClientConfiguration clientConfiguration;
+
 	SnsAutoConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
-			ObjectProvider<RegionProvider> regionProvider, SnsProperties properties) {
+			ObjectProvider<RegionProvider> regionProvider, SnsProperties properties,
+			@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+			@Qualifier("snsClientConfiguration") ObjectProvider<ClientConfiguration> snsClientConfiguration) {
 		this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
 		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
+		this.clientConfiguration = snsClientConfiguration.getIfAvailable(globalClientConfiguration::getIfAvailable);
 	}
 
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
 	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS(SnsProperties properties) {
 		AmazonWebserviceClientFactoryBean<AmazonSNSClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-				AmazonSNSClient.class, this.awsCredentialsProvider, this.regionProvider);
+				AmazonSNSClient.class, this.awsCredentialsProvider, this.regionProvider, this.clientConfiguration);
 		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 		return clientFactoryBean;
 	}

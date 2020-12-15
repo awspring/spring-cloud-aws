@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.context;
 
 import java.net.URI;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -28,11 +29,14 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
 import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
 import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class ContextResourceLoaderAutoConfigurationTest {
 
@@ -104,6 +108,81 @@ class ContextResourceLoaderAutoConfigurationTest {
 			Object region = ReflectionTestUtils.getField(client, "signingRegion");
 			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
 		});
+	}
+
+	@Test
+	void configuration_withGlobalClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalClientConfiguration.class).run((context) -> {
+			AmazonS3 client = context.getBean(AmazonS3.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
+		});
+	}
+
+	@Test
+	void configuration_withS3ClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithS3ClientConfiguration.class).run((context) -> {
+			AmazonS3 client = context.getBean(AmazonS3.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("s3");
+		});
+	}
+
+	@Test
+	void configuration_withGlobalAndS3ClientConfigurations_shouldUseSqsConfigurationForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalAndS3ClientConfiguration.class)
+				.run((context) -> {
+					AmazonS3 client = context.getBean(AmazonS3.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("s3");
+				});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalClientConfiguration {
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithS3ClientConfiguration {
+
+		@Bean
+		ClientConfiguration s3ClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("s3");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalAndS3ClientConfiguration {
+
+		@Bean
+		ClientConfiguration s3ClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("s3");
+		}
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
 	}
 
 }

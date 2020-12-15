@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
@@ -56,6 +57,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
 
 /**
@@ -277,6 +279,52 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Test
+	void configuration_withGlobalClientConfiguration_shouldUseItForClient() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalClientConfiguration.class).run((context) -> {
+			AmazonSQSAsync bufferedAmazonSqsClient = context.getBean(AmazonSQSAsync.class);
+			AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils
+					.getField(bufferedAmazonSqsClient, "realSQS");
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(amazonSqs,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
+		});
+	}
+
+	@Test
+	void configuration_withSqsClientConfiguration_shouldUseItForClient() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithSqsClientConfiguration.class).run((context) -> {
+			AmazonSQSAsync bufferedAmazonSqsClient = context.getBean(AmazonSQSAsync.class);
+			AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils
+					.getField(bufferedAmazonSqsClient, "realSQS");
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(amazonSqs,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("sqs");
+		});
+	}
+
+	@Test
+	void configuration_withGlobalAndSqsClientConfigurations_shouldUseSqsConfigurationForClient() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalAndSqsClientConfiguration.class)
+				.run((context) -> {
+					AmazonSQSAsync bufferedAmazonSqsClient = context.getBean(AmazonSQSAsync.class);
+					AmazonSQSAsyncClient amazonSqs = (AmazonSQSAsyncClient) ReflectionTestUtils
+							.getField(bufferedAmazonSqsClient, "realSQS");
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils
+							.getField(amazonSqs, "clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("sqs");
+				});
+	}
+
+	@Test
 	void disableSqs() {
 		this.contextRunner.withPropertyValues("cloud.aws.sqs.enabled:false").run(context -> {
 			assertThat(context).doesNotHaveBean(AmazonSQSAsync.class);
@@ -457,6 +505,41 @@ class SqsAutoConfigurationTest {
 		@Bean(name = REGION_PROVIDER_BEAN_NAME)
 		RegionProvider regionProvider() {
 			return new StaticRegionProvider("eu-west-1");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalClientConfiguration {
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithSqsClientConfiguration {
+
+		@Bean
+		ClientConfiguration sqsClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("sqs");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalAndSqsClientConfiguration {
+
+		@Bean
+		ClientConfiguration sqsClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("sqs");
+		}
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
 		}
 
 	}

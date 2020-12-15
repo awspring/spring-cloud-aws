@@ -20,11 +20,13 @@ import java.util.Optional;
 
 import javax.mail.Session;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,6 +47,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+
 /**
  * @author Agim Emruli
  * @author Eddú Meléndez
@@ -62,10 +66,15 @@ public class SimpleEmailAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
+	private final ClientConfiguration clientConfiguration;
+
 	public SimpleEmailAutoConfiguration(ObjectProvider<RegionProvider> regionProvider,
+			@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+			@Qualifier("sesClientConfiguration") ObjectProvider<ClientConfiguration> sesClientConfiguration,
 			SimpleEmailProperties properties) {
 		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
+		this.clientConfiguration = sesClientConfiguration.getIfAvailable(globalClientConfiguration::getIfAvailable);
 	}
 
 	@Bean
@@ -73,7 +82,8 @@ public class SimpleEmailAutoConfiguration {
 	public AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> amazonSimpleEmailService(
 			AWSCredentialsProvider credentialsProvider, SimpleEmailProperties properties) {
 		AmazonWebserviceClientFactoryBean<AmazonSimpleEmailServiceClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-				AmazonSimpleEmailServiceClient.class, credentialsProvider, this.regionProvider);
+				AmazonSimpleEmailServiceClient.class, credentialsProvider, this.regionProvider,
+				this.clientConfiguration);
 		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 		return clientFactoryBean;
 	}

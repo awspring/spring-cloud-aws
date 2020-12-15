@@ -20,6 +20,7 @@ import java.net.URI;
 
 import javax.sql.DataSource;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -37,10 +38,12 @@ import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class AmazonRdsDatabaseAutoConfigurationTest {
 
@@ -167,6 +170,46 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 		});
 	}
 
+	@Test
+	void configuration_withGlobalClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalClientConfiguration.class).run((context) -> {
+			AmazonRDSClient client = context.getBean(AmazonRDSClient.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
+		});
+	}
+
+	@Test
+	void configuration_withSqsClientConfiguration_shouldUseItForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithRdsClientConfiguration.class).run((context) -> {
+			AmazonRDSClient client = context.getBean(AmazonRDSClient.class);
+
+			// Assert
+			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			assertThat(clientConfiguration.getProxyHost()).isEqualTo("rds");
+		});
+	}
+
+	@Test
+	void configuration_withGlobalAndSqsClientConfigurations_shouldUseSqsConfigurationForClient() {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithGlobalAndRdsClientConfiguration.class)
+				.run((context) -> {
+					AmazonRDSClient client = context.getBean(AmazonRDSClient.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("rds");
+				});
+	}
+
 	static class ApplicationConfigurationWithoutReadReplica {
 
 		@Bean
@@ -234,6 +277,41 @@ class AmazonRdsDatabaseAutoConfigurationTest {
 				dataSourceFactory.setValidationQuery("SELECT 1 FROM TEST");
 				return dataSourceFactory;
 			};
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalClientConfiguration {
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithRdsClientConfiguration {
+
+		@Bean
+		ClientConfiguration rdsClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("rds");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalAndRdsClientConfiguration {
+
+		@Bean
+		ClientConfiguration rdsClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("rds");
+		}
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
 		}
 
 	}

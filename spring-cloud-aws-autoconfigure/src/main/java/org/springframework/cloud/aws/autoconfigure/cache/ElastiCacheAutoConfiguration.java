@@ -19,12 +19,14 @@ package org.springframework.cloud.aws.autoconfigure.cache;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
 import net.spy.memcached.MemcachedClient;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -46,6 +48,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+
 /**
  * @author Agim Emruli
  * @author Eddú Meléndez
@@ -62,10 +66,16 @@ public class ElastiCacheAutoConfiguration {
 
 	private final ListableStackResourceFactory stackResourceFactory;
 
+	private final ClientConfiguration clientConfiguration;
+
 	public ElastiCacheAutoConfiguration(ElastiCacheProperties properties,
-			ObjectProvider<ListableStackResourceFactory> stackResourceFactory) {
+			ObjectProvider<ListableStackResourceFactory> stackResourceFactory,
+			@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+			@Qualifier("elastiCacheClientConfiguration") ObjectProvider<ClientConfiguration> elastiCacheClientConfiguration) {
 		this.properties = properties;
 		this.stackResourceFactory = stackResourceFactory.getIfAvailable();
+		this.clientConfiguration = elastiCacheClientConfiguration
+				.getIfAvailable(globalClientConfiguration::getIfAvailable);
 	}
 
 	@Bean
@@ -73,7 +83,7 @@ public class ElastiCacheAutoConfiguration {
 	public AmazonWebserviceClientFactoryBean<AmazonElastiCacheClient> amazonElastiCache(
 			ObjectProvider<RegionProvider> regionProvider, ObjectProvider<AWSCredentialsProvider> credentialsProvider) {
 		return new AmazonWebserviceClientFactoryBean<>(AmazonElastiCacheClient.class,
-				credentialsProvider.getIfAvailable(), regionProvider.getIfAvailable());
+				credentialsProvider.getIfAvailable(), regionProvider.getIfAvailable(), clientConfiguration);
 	}
 
 	@Bean

@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.metrics;
 
 import java.net.URI;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
 import io.micrometer.cloudwatch.CloudWatchConfig;
@@ -27,9 +28,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 /**
  * Test for the {@link CloudWatchExportAutoConfiguration}.
@@ -111,6 +115,83 @@ class CloudWatchExportAutoConfigurationTest {
 							"isEndpointOverridden");
 					assertThat(isEndpointOverridden).isTrue();
 				});
+	}
+
+	@Test
+	void configuration_withGlobalClientConfiguration_shouldUseItForClient() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test")
+				.withUserConfiguration(ConfigurationWithGlobalClientConfiguration.class).run((context) -> {
+					AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
+				});
+	}
+
+	@Test
+	void configuration_withCloudWatchClientConfiguration_shouldUseItForClient() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test")
+				.withUserConfiguration(ConfigurationWithCloudWatchClientConfiguration.class).run((context) -> {
+					AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("cloudWatch");
+				});
+	}
+
+	@Test
+	void configuration_withGlobalAndCloudWatchClientConfigurations_shouldUseCloudWatchConfigurationForClient() {
+		// Arrange & Act
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test")
+				.withUserConfiguration(ConfigurationWithGlobalAndCloudWatchClientConfiguration.class).run((context) -> {
+					AmazonCloudWatchAsyncClient client = context.getBean(AmazonCloudWatchAsyncClient.class);
+
+					// Assert
+					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(client,
+							"clientConfiguration");
+					assertThat(clientConfiguration.getProxyHost()).isEqualTo("cloudWatch");
+				});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalClientConfiguration {
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithCloudWatchClientConfiguration {
+
+		@Bean
+		ClientConfiguration cloudWatchClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("cloudWatch");
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithGlobalAndCloudWatchClientConfiguration {
+
+		@Bean
+		ClientConfiguration cloudWatchClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("cloudWatch");
+		}
+
+		@Bean(name = GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)
+		ClientConfiguration globalClientConfiguration() {
+			return new ClientConfiguration().withProxyHost("global");
+		}
+
 	}
 
 }

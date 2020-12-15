@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Maciej Walkowiak
  */
 public final class AmazonWebserviceClientConfigurationUtils {
 
@@ -43,6 +44,8 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	 */
 	// @checkstyle:off
 	public static final String REGION_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME";
+
+	public static final String GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME = "com.amazonaws.ClientConfiguration.BEAN_NAME";
 
 	// @checkstyle:on
 
@@ -62,11 +65,12 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source, BeanDefinitionRegistry registry,
 			String serviceNameClassName, String customRegionProvider, String customRegion) {
 		return registerAmazonWebserviceClient(source, registry, serviceNameClassName, customRegionProvider,
-				customRegion, null);
+				customRegion, null, null);
 	}
 
 	public static BeanDefinitionHolder registerAmazonWebserviceClient(Object source, BeanDefinitionRegistry registry,
-			String serviceNameClassName, String customRegionProvider, String customRegion, String customEndpoint) {
+			String serviceNameClassName, String customRegionProvider, String customRegion, String customEndpoint,
+			String clientConfigurationBeanName) {
 
 		String beanName = getBeanName(serviceNameClassName);
 
@@ -75,7 +79,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		}
 
 		BeanDefinition definition = getAmazonWebserviceClientBeanDefinition(source, serviceNameClassName,
-				customRegionProvider, customRegion, customEndpoint, registry);
+				customRegionProvider, customRegion, customEndpoint, registry, clientConfigurationBeanName);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, beanName);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 
@@ -84,7 +88,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 
 	public static AbstractBeanDefinition getAmazonWebserviceClientBeanDefinition(Object source,
 			String serviceNameClassName, String customRegionProvider, String customRegion, String customEndpoint,
-			BeanDefinitionRegistry beanDefinitionRegistry) {
+			BeanDefinitionRegistry beanDefinitionRegistry, String clientConfigurationBeanName) {
 
 		if (StringUtils.hasText(customRegionProvider) && StringUtils.hasText(customRegion)) {
 			throw new IllegalArgumentException("Only region or regionProvider can be configured, but not both");
@@ -115,6 +119,15 @@ public final class AmazonWebserviceClientConfigurationUtils {
 		else {
 			registerRegionProviderBeanIfNeeded(beanDefinitionRegistry);
 			builder.addPropertyReference("regionProvider", REGION_PROVIDER_BEAN_NAME);
+		}
+
+		// configure client configuration
+		if (clientConfigurationBeanName != null
+				&& beanDefinitionRegistry.containsBeanDefinition(clientConfigurationBeanName)) {
+			builder.addPropertyReference("clientConfiguration", clientConfigurationBeanName);
+		}
+		else if (beanDefinitionRegistry.containsBeanDefinition(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME)) {
+			builder.addPropertyReference("clientConfiguration", GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME);
 		}
 
 		return builder.getBeanDefinition();

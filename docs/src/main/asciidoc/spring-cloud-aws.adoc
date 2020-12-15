@@ -383,6 +383,72 @@ cloud.aws.rds.endpoint=http://localhost:4566
 
 Using custom endpoint can be especially useful when using https://github.com/localstack/localstack[Localstack] in integration tests or integrating with AWS compatible 3rd party services like https://min.io/[MinIO].
 
+===== Configuring client configuration
+
+For some AWS service integrations you can configure Spring Cloud AWS to use custom `ClientConfiguration`.
+
+To override the default `ClientConfiguration` used by all integrations, create a bean of type `ClientConfiguration` with a name `com.amazonaws.ClientConfiguration.BEAN_NAME`.
+
+[source,java,indent=0]
+----
+@Configuration
+class CustomAwsConfiguration {
+
+    @Bean(name = "com.amazonaws.ClientConfiguration.BEAN_NAME")
+	ClientConfiguration clientConfiguration() {
+		ClientConfiguration clientConfiguration= new ClientConfiguration();
+		clientConfiguration.setProxyHost(proxyHost);
+		clientConfiguration.setProxyPort(proxyPort);
+		clientConfiguration.setProxyUsername(proxyUserName);
+		clientConfiguration.setProxyPassword(proxyPassword);
+		return clientConfiguration;
+	}
+}
+----
+
+It's also possible to provide `ClientConfiguration` for particular integration by defining a bean of type `ClientConfiguration` and a name specific to the integration:
+
+[cols="2"]
+|===
+| SQS
+| `sqsClientConfiguration`
+
+| SNS
+| `snsClientConfiguration`
+
+| SES
+| `sesClientConfiguration`
+
+| RDS
+| `rdsClientConfiguration`
+
+| ElastiCache
+| `elastiCacheClientConfiguration`
+
+| CloudWatch
+| `cloudWatchClientConfiguration`
+
+|===
+
+For example:
+
+[source,java,indent=0]
+----
+@Configuration
+class CustomSqsConfiguration {
+
+    @Bean
+    ClientConfiguration sqsClientConfiguration() {
+        ClientConfiguration clientConfiguration= new ClientConfiguration();
+		clientConfiguration.setProxyHost(proxyHost);
+		clientConfiguration.setProxyPort(proxyPort);
+		clientConfiguration.setProxyUsername(proxyUserName);
+		clientConfiguration.setProxyPassword(proxyPassword);
+		return clientConfiguration;
+    }
+}
+----
+
 == Cloud environment
 Applications often need environment specific configuration information, especially in changing environments like in the
 Amazon cloud environment. Spring Cloud AWS provides a support to retrieve and use environment specific data inside the

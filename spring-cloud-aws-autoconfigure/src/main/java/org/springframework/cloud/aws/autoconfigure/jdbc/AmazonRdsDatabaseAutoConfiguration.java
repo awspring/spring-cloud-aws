@@ -81,7 +81,7 @@ public class AmazonRdsDatabaseAutoConfiguration {
 			String endpoint = properties.getEndpoint() != null ? properties.getEndpoint().toString() : null;
 			String amazonRdsClientBeanName = AmazonWebserviceClientConfigurationUtils
 					.registerAmazonWebserviceClient(this, registry, "com.amazonaws.services.rds.AmazonRDSClient", null,
-							properties.getRegion(), endpoint)
+							properties.getRegion(), endpoint, "rdsClientConfiguration")
 					.getBeanName();
 			properties.getInstances().stream().filter(RdsInstance::hasRequiredPropertiesSet)
 					.forEach(instance -> registerDatasource(registry, amazonRdsClientBeanName, instance));

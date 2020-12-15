@@ -19,6 +19,7 @@ package org.springframework.cloud.aws.autoconfigure.messaging;
 import java.util.Arrays;
 import java.util.Optional;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -47,6 +49,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.util.CollectionUtils;
+
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
@@ -70,19 +74,25 @@ public class SqsAutoConfiguration {
 
 		private final SqsProperties properties;
 
+		private final ClientConfiguration clientConfiguration;
+
 		SqsClientConfiguration(ObjectProvider<AWSCredentialsProvider> awsCredentialsProvider,
-				ObjectProvider<RegionProvider> regionProvider, SqsProperties properties) {
+				ObjectProvider<RegionProvider> regionProvider, SqsProperties properties,
+				@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+				@Qualifier("sqsClientConfiguration") ObjectProvider<ClientConfiguration> sqsClientConfiguration) {
 			this.awsCredentialsProvider = awsCredentialsProvider.getIfAvailable();
 			this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 					: new StaticRegionProvider(properties.getRegion());
 			this.properties = properties;
+			this.clientConfiguration = sqsClientConfiguration.getIfAvailable(globalClientConfiguration::getIfAvailable);
 		}
 
 		@Lazy
 		@Bean(destroyMethod = "shutdown")
 		public AmazonSQSBufferedAsyncClient amazonSQS() throws Exception {
 			AmazonWebserviceClientFactoryBean<AmazonSQSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-					AmazonSQSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider);
+					AmazonSQSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider,
+					this.clientConfiguration);
 			Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 			clientFactoryBean.afterPropertiesSet();
 			return new AmazonSQSBufferedAsyncClient(clientFactoryBean.getObject());

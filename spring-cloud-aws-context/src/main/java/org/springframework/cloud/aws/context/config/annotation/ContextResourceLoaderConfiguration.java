@@ -57,7 +57,7 @@ public class ContextResourceLoaderConfiguration {
 				BeanDefinitionRegistry registry) {
 			BeanDefinitionHolder client = AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient(this,
 					registry, AmazonS3Client.class.getName(), null, this.environment.getProperty("cloud.aws.s3.region"),
-					this.environment.getProperty("cloud.aws.s3.endpoint"));
+					this.environment.getProperty("cloud.aws.s3.endpoint"), "s3ClientConfiguration");
 
 			BeanDefinitionBuilder configurer = BeanDefinitionBuilder
 					.genericBeanDefinition(SimpleStorageProtocolResolverConfigurer.class);

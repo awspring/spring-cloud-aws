@@ -18,6 +18,7 @@ package org.springframework.cloud.aws.autoconfigure.metrics;
 
 import java.util.Optional;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClient;
@@ -26,6 +27,7 @@ import io.micrometer.cloudwatch.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
@@ -43,6 +45,8 @@ import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 /**
  * Configuration for exporting metrics to CloudWatch.
@@ -66,11 +70,17 @@ public class CloudWatchExportAutoConfiguration {
 
 	private final RegionProvider regionProvider;
 
+	private final ClientConfiguration clientConfiguration;
+
 	public CloudWatchExportAutoConfiguration(AWSCredentialsProvider credentialsProvider,
-			ObjectProvider<RegionProvider> regionProvider, CloudWatchProperties properties) {
+			ObjectProvider<RegionProvider> regionProvider, CloudWatchProperties properties,
+			@Qualifier(GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME) ObjectProvider<ClientConfiguration> globalClientConfiguration,
+			@Qualifier("cloudWatchClientConfiguration") ObjectProvider<ClientConfiguration> cloudWatchClientConfiguration) {
 		this.credentialsProvider = credentialsProvider;
 		this.regionProvider = properties.getRegion() == null ? regionProvider.getIfAvailable()
 				: new StaticRegionProvider(properties.getRegion());
+		this.clientConfiguration = cloudWatchClientConfiguration
+				.getIfAvailable(globalClientConfiguration::getIfAvailable);
 	}
 
 	@Bean
@@ -85,7 +95,8 @@ public class CloudWatchExportAutoConfiguration {
 	public AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> amazonCloudWatchAsync(
 			CloudWatchProperties properties) {
 		AmazonWebserviceClientFactoryBean<AmazonCloudWatchAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-				AmazonCloudWatchAsyncClient.class, this.credentialsProvider, this.regionProvider);
+				AmazonCloudWatchAsyncClient.class, this.credentialsProvider, this.regionProvider,
+				this.clientConfiguration);
 		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 		return clientFactoryBean;
 	}
