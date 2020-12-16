@@ -383,3 +383,28 @@ public class SampleService {
 The database tag `aws:cloudformation:aws:cloudformation:stack-name` is a default tag that is created if the
 database is configured using CloudFormation.
 ====
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Describe database instances
+| `rds:DescribeDBInstances`
+
+|===
+
+Sample IAM policy granting access to RDS:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "rds:DescribeDBInstances",
+            "Resource": "db-arn"
+        },
+}
+----
