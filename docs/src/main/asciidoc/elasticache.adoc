@@ -200,3 +200,31 @@ The cache cluster can then be used with the name `CacheCluster` inside the appli
 
 With the configuration above the application can be deployed with multiple stacks on different environments
 without any configuration change inside the application.
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| To configure to ElastiCache you will need:
+| `elasticache:DescribeCacheClusters`
+
+
+
+|===
+
+Sample IAM policy granting access to ElastiCache:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "elasticache:DescribeCacheClusters",
+            "Resource": "yourArn"
+        }
+    ]
+}
+----
