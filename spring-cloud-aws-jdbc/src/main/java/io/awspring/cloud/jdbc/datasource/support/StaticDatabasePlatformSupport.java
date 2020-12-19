@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource.support;
+package io.awspring.cloud.jdbc.datasource.support;
 
 import java.util.Collections;
 import java.util.HashMap;

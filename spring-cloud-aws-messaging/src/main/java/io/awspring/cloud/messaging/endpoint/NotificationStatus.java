@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
 /**
  * @author Agim Emruli

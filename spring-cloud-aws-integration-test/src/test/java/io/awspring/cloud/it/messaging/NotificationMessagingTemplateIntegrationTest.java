@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
+import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;

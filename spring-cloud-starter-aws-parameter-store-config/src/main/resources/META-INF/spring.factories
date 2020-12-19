@@ -1,10 +1,10 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.aws.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration
+io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration
 
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
-org.springframework.cloud.aws.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolver
+io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-org.springframework.cloud.aws.autoconfigure.paramstore.AwsParamStoreConfigDataLoader
+io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreConfigDataLoader

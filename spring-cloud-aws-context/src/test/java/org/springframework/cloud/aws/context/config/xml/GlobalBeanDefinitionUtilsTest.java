@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

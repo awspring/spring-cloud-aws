@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.cache;
+package io.awspring.cloud.it.cache;
 
 import org.springframework.test.context.ContextConfiguration;
 

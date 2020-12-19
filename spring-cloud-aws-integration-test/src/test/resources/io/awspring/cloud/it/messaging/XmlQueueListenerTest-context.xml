@@ -35,12 +35,12 @@
 	<aws-messaging:queue-messaging-template id="queueMessagingTemplate"/>
 
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.QueueListenerTest$MessageListener"/>
+		class="io.awspring.cloud.it.messaging.QueueListenerTest$MessageListener"/>
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.QueueListenerTest$MessageListenerWithSendTo"/>
+		class="io.awspring.cloud.it.messaging.QueueListenerTest$MessageListenerWithSendTo"/>
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.QueueListenerTest$RedrivePolicyTestListener"/>
+		class="io.awspring.cloud.it.messaging.QueueListenerTest$RedrivePolicyTestListener"/>
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.QueueListenerTest$ManualDeletionPolicyTestListener"/>
+		class="io.awspring.cloud.it.messaging.QueueListenerTest$ManualDeletionPolicyTestListener"/>
 
 </beans>

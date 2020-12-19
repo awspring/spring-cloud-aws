@@ -28,6 +28,6 @@
 
 	<aws-context:context-instance-data/>
 
-	<bean class="org.springframework.cloud.aws.it.core.env.ec2.SimpleConfigurationBean"/>
+	<bean class="io.awspring.cloud.it.core.env.ec2.SimpleConfigurationBean"/>
 
 </beans>

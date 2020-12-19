@@ -1,10 +1,10 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.aws.autoconfigure.secretsmanager.AwsSecretsManagerBootstrapConfiguration
+io.awspring.cloud.autoconfigure.secretsmanager.AwsSecretsManagerBootstrapConfiguration
 
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
-org.springframework.cloud.aws.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLocationResolver
+io.awspring.cloud.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-org.springframework.cloud.aws.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLoader
+io.awspring.cloud.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLoader

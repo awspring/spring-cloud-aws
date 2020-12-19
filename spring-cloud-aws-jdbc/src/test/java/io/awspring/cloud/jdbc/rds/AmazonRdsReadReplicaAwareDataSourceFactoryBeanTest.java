@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package io.awspring.cloud.jdbc.rds;
 
 import java.sql.Connection;
 
@@ -25,12 +25,12 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import io.awspring.cloud.jdbc.datasource.DataSourceFactory;
+import io.awspring.cloud.jdbc.datasource.DataSourceInformation;
+import io.awspring.cloud.jdbc.datasource.ReadOnlyRoutingDataSource;
+import io.awspring.cloud.jdbc.datasource.support.DatabaseType;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
-import org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource;
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 import static org.assertj.core.api.Assertions.assertThat;

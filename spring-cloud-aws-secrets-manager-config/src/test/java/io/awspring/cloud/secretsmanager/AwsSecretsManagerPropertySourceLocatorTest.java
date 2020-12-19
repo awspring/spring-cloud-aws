@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.secretsmanager;
+package io.awspring.cloud.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +23,9 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySources.AwsSecretsManagerPropertySourceNotFoundException;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySources.AwsSecretsManagerPropertySourceNotFoundException;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;

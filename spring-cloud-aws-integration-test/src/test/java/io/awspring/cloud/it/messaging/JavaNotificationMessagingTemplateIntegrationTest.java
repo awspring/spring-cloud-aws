@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.it.IntegrationTestConfig;
+import io.awspring.cloud.messaging.config.annotation.EnableSns;
+import io.awspring.cloud.messaging.config.annotation.EnableSqs;
+import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.it.IntegrationTestConfig;
-import org.springframework.cloud.aws.messaging.config.annotation.EnableSns;
-import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

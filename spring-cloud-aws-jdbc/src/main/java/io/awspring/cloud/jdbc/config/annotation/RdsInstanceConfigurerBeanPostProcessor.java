@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.annotation;
+package io.awspring.cloud.jdbc.config.annotation;
 
 import java.util.Collection;
+
+import io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
 
 /**
  * Bean post processor for RDS instance configurer.

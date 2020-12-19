@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.mail;
+package io.awspring.cloud.it.mail;
 
 import org.springframework.test.context.ContextConfiguration;
 

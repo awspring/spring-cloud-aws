@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package io.awspring.cloud.jdbc.rds;
 
 import java.util.Date;
 import java.util.Map;
@@ -28,9 +28,8 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package io.awspring.cloud.jdbc.rds;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,14 +23,14 @@ import javax.sql.DataSource;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.DBInstance;
+import io.awspring.cloud.jdbc.datasource.ReadOnlyRoutingDataSource;
 
-import org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 /**
- * {@link org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean} sub-class
- * that is capable to handle amazon rds read-replicas. This is especially useful in case
- * of read-heavy applications to leverage read-replica instance for all read-accesses.
+ * {@link io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean} sub-class that is
+ * capable to handle amazon rds read-replicas. This is especially useful in case of
+ * read-heavy applications to leverage read-replica instance for all read-accesses.
  *
  * @author Agim Emruli
  */
@@ -54,12 +54,11 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 	}
 
 	/**
-	 * Constructs a
-	 * {@link org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource}
+	 * Constructs a {@link io.awspring.cloud.jdbc.datasource.ReadOnlyRoutingDataSource}
 	 * data source that contains the regular data source as a default, and all
 	 * read-replicas as additional data source. The
-	 * {@link org.springframework.cloud.aws.jdbc.datasource.ReadOnlyRoutingDataSource} is
-	 * additionally wrapped with a
+	 * {@link io.awspring.cloud.jdbc.datasource.ReadOnlyRoutingDataSource} is additionally
+	 * wrapped with a
 	 * {@link org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy}, because
 	 * the read-only flag is only available after the transactional context has been
 	 * established. This is only the case if the physical connection is requested after

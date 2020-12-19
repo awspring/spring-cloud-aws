@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support;
+package io.awspring.cloud.messaging.support;
 
 import java.lang.reflect.Method;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.StringMessageConverter;

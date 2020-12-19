@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config;
+package io.awspring.cloud.context.config;
 
 import org.junit.jupiter.api.Test;
 

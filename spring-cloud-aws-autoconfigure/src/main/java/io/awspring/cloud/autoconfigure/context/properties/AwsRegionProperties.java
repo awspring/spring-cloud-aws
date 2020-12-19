@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context.properties;
+package io.awspring.cloud.autoconfigure.context.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
  * @author Tom Gianos
  * @author Maciej Walkowiak
  * @since 2.0.2
- * @see org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
+ * @see io.awspring.cloud.autoconfigure.context.ContextRegionProviderAutoConfiguration
  */
 @ConfigurationProperties(prefix = AwsRegionProperties.PREFIX)
 public class AwsRegionProperties {

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.util.Collections;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import io.awspring.cloud.paramstore.AwsParamStorePropertySource;
 
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource;
 
 /**
  * @author Eddú Meléndez

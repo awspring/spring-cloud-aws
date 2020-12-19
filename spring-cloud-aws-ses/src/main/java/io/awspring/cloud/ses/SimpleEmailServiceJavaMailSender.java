@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.ses;
+package io.awspring.cloud.ses;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

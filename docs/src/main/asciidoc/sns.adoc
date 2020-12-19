@@ -26,7 +26,7 @@ type by the SNS API.
 ----
 import com.amazonaws.services.sns.AmazonSNS;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
+import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
 
 public class SnsNotificationSender {
 

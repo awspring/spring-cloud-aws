@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

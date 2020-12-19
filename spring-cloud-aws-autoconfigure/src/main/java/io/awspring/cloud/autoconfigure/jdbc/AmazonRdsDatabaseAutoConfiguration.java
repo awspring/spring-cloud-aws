@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.jdbc;
+package io.awspring.cloud.autoconfigure.jdbc;
+
+import io.awspring.cloud.autoconfigure.jdbc.AmazonRdsDatabaseProperties.RdsInstance;
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.jdbc.config.annotation.AmazonRdsInstanceConfiguration;
+import io.awspring.cloud.jdbc.config.annotation.RdsInstanceConfigurerBeanPostProcessor;
+import io.awspring.cloud.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import io.awspring.cloud.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -25,14 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseProperties.RdsInstance;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.config.annotation.AmazonRdsInstanceConfiguration;
-import org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurerBeanPostProcessor;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

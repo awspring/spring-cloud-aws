@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.stack;
+package io.awspring.cloud.it.core.env.stack;
 
+import io.awspring.cloud.it.AWSIntegration;
+import io.awspring.cloud.it.support.TestStackEnvironment;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.aws.it.AWSIntegration;
-import org.springframework.cloud.aws.it.support.TestStackEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 

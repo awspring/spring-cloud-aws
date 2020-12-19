@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.ses;
+package io.awspring.cloud.ses;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
+import io.awspring.cloud.mail.simplemail.SimpleEmailServiceMailSender;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 
-import org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -43,8 +43,7 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendSimpleMailWithMinimalProperties() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
-		org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender mailSender = new org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender(
-				emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 
@@ -65,8 +64,7 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendSimpleMailWithCCandBCC() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
-		org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender mailSender = new org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender(
-				emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 		simpleMailMessage.setBcc("bcc@domain.com");
@@ -89,8 +87,7 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendMultipleMails() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
-		org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender mailSender = new org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender(
-				emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
 		when(emailService.sendEmail(request.capture())).thenReturn(new SendEmailResult().withMessageId("123"));
@@ -102,8 +99,7 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendMultipleMailsWithExceptionWhileSending() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
-		org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender mailSender = new org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender(
-				emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage firstMessage = createSimpleMailMessage();
 		firstMessage.setBcc("bcc@domain.com");
@@ -127,8 +123,7 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testShutDownOfResources() throws Exception {
 		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
-		org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(
-				emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		mailSender.destroy();
 		verify(emailService, times(1)).shutdown();

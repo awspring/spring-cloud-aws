@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context.properties;
+package io.awspring.cloud.autoconfigure.context.properties;
 
 /**
  * Properties related to S3 client behavior within the application
@@ -22,7 +22,7 @@ package org.springframework.cloud.aws.autoconfigure.context.properties;
  *
  * @author Tom Gianos
  * @since 2.0.2
- * @see org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration
+ * @see io.awspring.cloud.autoconfigure.context.ContextResourceLoaderAutoConfiguration
  */
 public class AwsS3ResourceLoaderProperties {
 

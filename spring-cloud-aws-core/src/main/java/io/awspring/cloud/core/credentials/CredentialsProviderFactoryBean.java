@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.credentials;
+package io.awspring.cloud.core.credentials;
 
 import java.util.Collections;
 import java.util.List;

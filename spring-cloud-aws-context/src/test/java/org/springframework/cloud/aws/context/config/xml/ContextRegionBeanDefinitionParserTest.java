@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import io.awspring.cloud.core.region.Ec2MetadataRegionProvider;
+import io.awspring.cloud.core.region.RegionProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;

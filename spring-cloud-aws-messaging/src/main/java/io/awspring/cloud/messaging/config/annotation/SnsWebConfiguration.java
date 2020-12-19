@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.annotation;
+package io.awspring.cloud.messaging.config.annotation;
 
 import java.util.List;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.context.annotation.ConditionalOnClass;
 
-import org.springframework.cloud.aws.context.annotation.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
+import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
  * @author Agim Emruli

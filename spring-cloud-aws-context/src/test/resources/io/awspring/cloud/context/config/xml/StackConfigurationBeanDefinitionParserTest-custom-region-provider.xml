@@ -17,23 +17,22 @@
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
-	   xmlns:aws-mail="http://www.springframework.org/schema/cloud/aws/mail"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
-	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
-	   					   http://www.springframework.org/schema/cloud/aws/mail
-	   					   http://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd">
-
-	<bean id="myRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-		<constructor-arg name="configuredRegion" value="ap-southeast-2"/>
-	</bean>
-
-	<aws-mail:mail-sender id="test" region-provider="myRegionProvider"/>
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
 	<aws-context:context-credentials>
-		<aws-context:simple-credentials access-key="test" secret-key="abc"/>
+		<aws-context:instance-profile-credentials/>
 	</aws-context:context-credentials>
+
+	<bean id="myCustomRegionProvider"
+		  class="io.awspring.cloud.core.region.StaticRegionProvider">
+		<constructor-arg value="ap-southeast-2"/>
+	</bean>
+
+	<aws-context:stack-configuration stack-name="test"
+									 region-provider="myCustomRegionProvider"/>
+
 </beans>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -29,10 +29,10 @@ import com.amazonaws.client.builder.ExecutorFactory;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.core.region.RegionProvider;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;

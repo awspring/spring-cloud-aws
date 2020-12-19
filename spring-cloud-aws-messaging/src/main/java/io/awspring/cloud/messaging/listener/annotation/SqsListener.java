@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener.annotation;
+package io.awspring.cloud.messaging.listener.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -22,7 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
+import io.awspring.cloud.messaging.listener.SqsMessageDeletionPolicy;
+
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
@@ -49,9 +50,9 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * <li>{@link org.springframework.messaging.MessageHeaders} arguments for getting access
  * to all headers.</li>
  * <li>{@link org.springframework.messaging.support.MessageHeaderAccessor}</li>
- * <li>{@link org.springframework.cloud.aws.messaging.listener.Acknowledgment} to be able
- * to acknowledge the reception of a message an trigger the deletion of it. This argument
- * is only available when using the deletion policy
+ * <li>{@link io.awspring.cloud.messaging.listener.Acknowledgment} to be able to
+ * acknowledge the reception of a message an trigger the deletion of it. This argument is
+ * only available when using the deletion policy
  * {@link SqsMessageDeletionPolicy#NEVER}.</li>
  * </ul>
  * <p>

@@ -48,7 +48,7 @@
 		<property name="backOffPeriod" value="12"/>
 	</bean>
 
-	<bean class="org.springframework.cloud.aws.it.jdbc.SimpleDatabaseService"/>
+	<bean class="io.awspring.cloud.it.jdbc.SimpleDatabaseService"/>
 
 	<tx:annotation-driven/>
 

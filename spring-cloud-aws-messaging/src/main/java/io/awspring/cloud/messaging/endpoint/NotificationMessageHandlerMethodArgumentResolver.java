@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,8 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
 
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;

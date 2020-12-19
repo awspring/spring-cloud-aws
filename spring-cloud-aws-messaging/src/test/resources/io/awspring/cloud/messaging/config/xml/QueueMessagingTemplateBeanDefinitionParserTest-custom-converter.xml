@@ -31,7 +31,7 @@
 	</aws-context:context-credentials>
 
 	<bean id="myCustomConverter"
-		  class="org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter"/>
+		  class="io.awspring.cloud.messaging.support.converter.ObjectMessageConverter"/>
 	<aws-messaging:queue-messaging-template id="queueMessagingTemplate"
 											message-converter="myCustomConverter"/>
 

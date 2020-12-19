@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.config.xml;
+package io.awspring.cloud.mail.config.xml;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -27,8 +27,8 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.springframework.util.ReflectionUtils.findField;
 import static org.springframework.util.ReflectionUtils.makeAccessible;
 

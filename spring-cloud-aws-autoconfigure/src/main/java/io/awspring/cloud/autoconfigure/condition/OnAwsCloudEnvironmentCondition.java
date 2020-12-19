@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.condition;
+package io.awspring.cloud.autoconfigure.condition;
+
+import io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils;
 
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
-import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;

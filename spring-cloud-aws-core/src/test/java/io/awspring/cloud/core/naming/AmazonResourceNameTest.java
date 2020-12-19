@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.naming;
+package io.awspring.cloud.core.naming;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import org.junit.jupiter.api.Test;
 
+import static io.awspring.cloud.core.naming.AmazonResourceName.Builder;
+import static io.awspring.cloud.core.naming.AmazonResourceName.fromString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.Builder;
-import static org.springframework.cloud.aws.core.naming.AmazonResourceName.fromString;
 
 /**
  * Test for {@link AmazonResourceName} class. The examples are taken from the aws

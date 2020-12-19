@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.annotation;
+package io.awspring.cloud.context.config.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,10 +26,10 @@ import com.amazonaws.regions.AwsRegionProviderChain;
 import org.springframework.context.annotation.Import;
 
 /**
- * Configures a {@link org.springframework.cloud.aws.core.region.RegionProvider} instance
- * for the application context. The region provider will be used for all Amazon Web
- * Service clients that are created inside the application context (by the Spring Cloud
- * AWS classes). A region can be either manually configured
+ * Configures a {@link io.awspring.cloud.core.region.RegionProvider} instance for the
+ * application context. The region provider will be used for all Amazon Web Service
+ * clients that are created inside the application context (by the Spring Cloud AWS
+ * classes). A region can be either manually configured
  * {@link EnableContextRegion#region()} with a constant expression, dynamic expression
  * (using a SpEL expression) or a place holder. If the application context is running
  * inside a EC2 instance The region can also be dynamically retrieved from the EC2

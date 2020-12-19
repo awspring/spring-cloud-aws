@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.awspring.cloud.core.credentials.CredentialsProviderFactoryBean;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -28,11 +29,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultCredentialsProvider;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation which

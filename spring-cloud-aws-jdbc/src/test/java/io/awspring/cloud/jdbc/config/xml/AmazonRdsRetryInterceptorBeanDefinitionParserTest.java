@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
 
 import java.util.List;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 

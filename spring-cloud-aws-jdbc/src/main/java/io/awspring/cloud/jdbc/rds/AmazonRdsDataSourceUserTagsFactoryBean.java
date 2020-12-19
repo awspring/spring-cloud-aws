@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package io.awspring.cloud.jdbc.rds;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,10 +26,10 @@ import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.naming.AmazonResourceName;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.naming.AmazonResourceName;
 
 /**
  * @author Agim Emruli

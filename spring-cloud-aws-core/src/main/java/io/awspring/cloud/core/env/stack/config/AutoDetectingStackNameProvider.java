@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack.config;
+package io.awspring.cloud.core.env.stack.config;
 
 import java.util.Collections;
 
@@ -25,10 +25,10 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
+import io.awspring.cloud.core.env.ec2.AmazonEc2InstanceIdProvider;
+import io.awspring.cloud.core.env.ec2.InstanceIdProvider;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceIdProvider;
-import org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider;
 import org.springframework.util.Assert;
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.support.documentation;
+package io.awspring.cloud.core.support.documentation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

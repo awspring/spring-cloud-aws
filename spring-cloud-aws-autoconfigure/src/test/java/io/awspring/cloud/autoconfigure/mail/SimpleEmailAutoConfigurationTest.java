@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.mail;
+package io.awspring.cloud.autoconfigure.mail;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
@@ -30,8 +30,8 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class SimpleEmailAutoConfigurationTest {
 

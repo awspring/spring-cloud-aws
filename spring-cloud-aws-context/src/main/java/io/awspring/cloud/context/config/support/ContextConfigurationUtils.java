@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.support;
+package io.awspring.cloud.context.config.support;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.core.credentials.CredentialsProviderFactoryBean;
+import io.awspring.cloud.core.region.DefaultAwsRegionProviderChainDelegate;
+import io.awspring.cloud.core.region.Ec2MetadataRegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -28,11 +33,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
-import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.util.StringUtils;
 
 /**
@@ -48,7 +48,7 @@ public final class ContextConfigurationUtils {
 	public static final String REGION_PROVIDER_BEAN_NAME = "regionProvider";
 
 	// @checkstyle:off
-	private static final String POST_PROCESSOR_CLASS_NAME = "org.springframework.cloud.aws.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor";
+	private static final String POST_PROCESSOR_CLASS_NAME = "io.awspring.cloud.context.config.AmazonEc2InstanceDataPropertySourcePostProcessor";
 
 	// @checkstyle:on
 	private static final String POST_PROCESSOR_BEAN_NAME = "AmazonEc2InstanceDataPropertySourcePostProcessor";

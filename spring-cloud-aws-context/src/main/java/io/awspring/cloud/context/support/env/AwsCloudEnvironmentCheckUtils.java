@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.support.env;
+package io.awspring.cloud.context.support.env;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.util.EC2MetadataUtils;

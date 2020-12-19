@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.io.s3;
+package io.awspring.cloud.core.io.s3;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -86,12 +86,12 @@ class PathMatchingSimpleStorageResourcePatternResolverTest {
 		ResourcePatternResolver resourceLoader = getResourceLoader(amazonS3);
 
 		Resource[] resources = resourceLoader.getResources(
-				"classpath*:org/springframework/cloud/aws/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
+				"classpath*:io/awspring/cloud/core/io/s3/PathMatchingSimpleStorageResourcePatternResolverTest.class");
 		assertThat(resources.length).isEqualTo(1);
 		assertThat(resources[0].exists()).as("load without wildcards").isTrue();
 
 		Resource[] resourcesWithFileNameWildcard = resourceLoader
-				.getResources("classpath*:org/**/PathMatchingSimpleStorageResourcePatternResolverTes?.class");
+				.getResources("classpath*:io/**/PathMatchingSimpleStorageResourcePatternResolverTes?.class");
 		assertThat(resourcesWithFileNameWildcard.length).isEqualTo(1);
 		assertThat(resourcesWithFileNameWildcard[0].exists()).as("load with wildcards").isTrue();
 	}

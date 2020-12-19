@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config.xml;
+package io.awspring.cloud.core.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -23,8 +23,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getAmazonWebserviceClientBeanDefinition;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.getAmazonWebserviceClientBeanDefinition;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.registerAmazonWebserviceClient;
 
 /**
  * @author Agim Emruli

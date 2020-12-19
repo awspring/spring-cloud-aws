@@ -17,22 +17,24 @@
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:task="http://www.springframework.org/schema/task"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
-	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
+	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
+	   					   http://www.springframework.org/schema/task
+	   					   https://www.springframework.org/schema/task/spring-task.xsd">
 
 	<aws-context:context-credentials>
-		<aws-context:instance-profile-credentials/>
+		<aws-context:simple-credentials access-key="first" secret-key="first"/>
 	</aws-context:context-credentials>
 
-	<bean id="myCustomRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-		<constructor-arg value="ap-southeast-2"/>
-	</bean>
+	<aws-context:context-resource-loader task-executor="taskExecutor"/>
 
-	<aws-context:stack-configuration stack-name="test"
-									 region-provider="myCustomRegionProvider"/>
+	<task:executor id="taskExecutor" pool-size="10" rejection-policy="CALLER_RUNS"
+				   queue-capacity="0"/>
 
+	<bean
+		class="io.awspring.cloud.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
 </beans>

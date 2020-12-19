@@ -45,7 +45,7 @@
 							  testOnReturn="true" testWhileIdle="true"
 							  timeBetweenEvictionRunsMillis="4000"
 							  validationQuery="SELECT 1"
-							  validatorClassName="org.springframework.cloud.aws.jdbc.config.xml.SampleValidator"/>
+							  validatorClassName="io.awspring.cloud.jdbc.config.xml.SampleValidator"/>
 	</jdbc:data-source>
 
 </beans>

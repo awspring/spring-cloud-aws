@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
+import io.awspring.cloud.core.env.stack.config.StackResourceUserTagsFactoryBean;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -24,12 +25,11 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.core.env.stack.config.StackResourceUserTagsFactoryBean;
 import org.springframework.util.StringUtils;
 
+import static io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils.registerResourceIdResolverBeanIfNeeded;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
-import static org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils.registerResourceIdResolverBeanIfNeeded;
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <aws-context:stack-configuration />} element.
@@ -41,13 +41,13 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 class StackConfigurationBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
 
 	// @checkstyle:off
-	private static final String STACK_RESOURCE_REGISTRY_FACTORY_BEAN_CLASS_NAME = "org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean";
+	private static final String STACK_RESOURCE_REGISTRY_FACTORY_BEAN_CLASS_NAME = "io.awspring.cloud.core.env.stack.config.StackResourceRegistryFactoryBean";
 
-	private static final String STATIC_STACK_NAME_PROVIDER_CLASS_NAME = "org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider";
+	private static final String STATIC_STACK_NAME_PROVIDER_CLASS_NAME = "io.awspring.cloud.core.env.stack.config.StaticStackNameProvider";
 
-	private static final String AUTO_DETECTING_STACK_NAME_PROVIDER_CLASS_NAME = "org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider";
+	private static final String AUTO_DETECTING_STACK_NAME_PROVIDER_CLASS_NAME = "io.awspring.cloud.core.env.stack.config.AutoDetectingStackNameProvider";
 
-	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceIdProvider";
+	private static final String INSTANCE_ID_PROVIDER_CLASS_NAME = "io.awspring.cloud.core.env.ec2.AmazonEc2InstanceIdProvider";
 
 	private static final String CLOUD_FORMATION_CLIENT_CLASS_NAME = "com.amazonaws.services.cloudformation.AmazonCloudFormationClient";
 

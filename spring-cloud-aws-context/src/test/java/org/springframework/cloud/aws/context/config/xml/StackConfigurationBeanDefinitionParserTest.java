@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -31,24 +31,24 @@ import com.amazonaws.services.cloudformation.model.StackResource;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import io.awspring.cloud.context.MetaDataServer;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.cloud.aws.context.MetaDataServer;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 
 /**
  * @author Agim Emruli
@@ -200,7 +200,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 		// Act
 		StackResourceRegistry autoDetectingStackNameProviderBasedStackResourceRegistry = applicationContext.getBean(
-				"org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean#0",
+				"io.awspring.cloud.core.env.stack.config.StackResourceRegistryFactoryBean#0",
 				StackResourceRegistry.class);
 
 		// Assert

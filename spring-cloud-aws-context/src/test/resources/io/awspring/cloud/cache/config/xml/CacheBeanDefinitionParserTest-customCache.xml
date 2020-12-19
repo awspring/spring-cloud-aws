@@ -30,7 +30,7 @@
 
 
 	<bean id="memc"
-		  class="org.springframework.cloud.aws.cache.memcached.SimpleSpringMemcached">
+		  class="io.awspring.cloud.cache.memcached.SimpleSpringMemcached">
 		<constructor-arg name="cacheName" value="memc"/>
 		<constructor-arg>
 			<bean class="net.spy.memcached.MemcachedClient">

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache;
+package io.awspring.cloud.cache;
 
 import org.springframework.cache.Cache;
 

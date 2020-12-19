@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support;
+package io.awspring.cloud.messaging.support;
 
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
-import org.springframework.cloud.aws.messaging.support.converter.NotificationRequestConverter;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
+import io.awspring.cloud.messaging.support.converter.NotificationRequestConverter;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;

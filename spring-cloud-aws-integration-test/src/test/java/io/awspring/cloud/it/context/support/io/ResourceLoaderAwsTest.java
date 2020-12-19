@@ -18,7 +18,7 @@
 // Checkstyle is disabled because in test 'testUploadBigFileAndCompareChecksum'
 // there is a needed while loop without a statement inside.
 
-package org.springframework.cloud.aws.it.context.support.io;
+package io.awspring.cloud.it.context.support.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -36,13 +36,13 @@ import java.util.List;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
+import io.awspring.cloud.it.AWSIntegration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.cloud.aws.it.AWSIntegration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;

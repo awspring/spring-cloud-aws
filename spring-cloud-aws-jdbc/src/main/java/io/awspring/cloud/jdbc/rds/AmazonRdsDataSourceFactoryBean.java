@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.rds;
+package io.awspring.cloud.jdbc.rds;
 
 import java.text.MessageFormat;
 
@@ -25,13 +25,13 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.jdbc.datasource.DataSourceFactory;
+import io.awspring.cloud.jdbc.datasource.DataSourceInformation;
+import io.awspring.cloud.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import io.awspring.cloud.jdbc.datasource.support.DatabaseType;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceInformation;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -112,9 +112,8 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 	}
 
 	/**
-	 * Configures an optional
-	 * {@link org.springframework.cloud.aws.core.env.ResourceIdResolver} used to resolve a
-	 * logical name to a physical one.
+	 * Configures an optional {@link io.awspring.cloud.core.env.ResourceIdResolver} used
+	 * to resolve a logical name to a physical one.
 	 * @param resourceIdResolver - the resourceIdResolver instance, might be null or not
 	 * called at all
 	 */

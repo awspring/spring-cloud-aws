@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.ec2;
+package io.awspring.cloud.it.core.env.ec2;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,14 +25,14 @@ import com.amazonaws.SDKGlobalConfiguration;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils;
+import io.awspring.cloud.it.AWSIntegration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
-import org.springframework.cloud.aws.it.AWSIntegration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;

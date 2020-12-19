@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.secretsmanager;
+package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import java.util.Collections;
 import java.util.List;

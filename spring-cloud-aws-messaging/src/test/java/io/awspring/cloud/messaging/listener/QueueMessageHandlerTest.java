@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -33,6 +33,13 @@ import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
+import io.awspring.cloud.messaging.core.MessageAttributeDataTypes;
+import io.awspring.cloud.messaging.core.QueueMessageUtils;
+import io.awspring.cloud.messaging.core.SqsMessageHeaders;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,13 +55,6 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
-import org.springframework.cloud.aws.messaging.core.MessageAttributeDataTypes;
-import org.springframework.cloud.aws.messaging.core.QueueMessageUtils;
-import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.StaticApplicationContext;
@@ -558,7 +558,7 @@ class QueueMessageHandlerTest {
 		assertThat(loggingEvent.getLevel()).isSameAs(Level.WARN);
 		assertThat(loggingEvent.getMessage().contains("receive")).isTrue();
 		assertThat(loggingEvent.getMessage()
-				.contains("org.springframework.cloud.aws.messaging.listener.QueueMessageHandlerTest$SqsListener"
+				.contains("io.awspring.cloud.messaging.listener.QueueMessageHandlerTest$SqsListener"
 						+ "DeletionPolicyNeverNoAcknowledgment")).isTrue();
 	}
 

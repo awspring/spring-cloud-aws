@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
+
+import io.awspring.cloud.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.aws.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -26,7 +27,7 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 
-import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.registerInstanceDataPropertySource;
+import static io.awspring.cloud.context.config.support.ContextConfigurationUtils.registerInstanceDataPropertySource;
 
 /**
  * Enables passing EC2 instance metadata into Spring

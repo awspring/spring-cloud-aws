@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,16 +26,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
+import io.awspring.cloud.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
+import io.awspring.cloud.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
+import io.awspring.cloud.messaging.support.NotificationMessageArgumentResolver;
+import io.awspring.cloud.messaging.support.NotificationSubjectArgumentResolver;
+import io.awspring.cloud.messaging.support.SqsHeadersMethodArgumentResolver;
+import io.awspring.cloud.messaging.support.converter.ObjectMessageConverter;
+
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
-import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.support.NotificationMessageArgumentResolver;
-import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
-import org.springframework.cloud.aws.messaging.support.SqsHeadersMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.support.converter.ObjectMessageConverter;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.Message;

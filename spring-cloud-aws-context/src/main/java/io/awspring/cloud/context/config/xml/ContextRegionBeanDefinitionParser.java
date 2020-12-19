@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.replaceDefaultRegionProvider;
 
 /**
  * Context region provider bean definition parser.
@@ -80,13 +80,13 @@ public class ContextRegionBeanDefinitionParser extends AbstractBeanDefinitionPar
 		}
 		else if (StringUtils.hasText(element.getAttribute("region"))) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.genericBeanDefinition("org.springframework.cloud.aws.core.region.StaticRegionProvider");
+					.genericBeanDefinition("io.awspring.cloud.core.region.StaticRegionProvider");
 			builder.addConstructorArgValue(element.getAttribute("region"));
 			return builder.getBeanDefinition();
 		}
 		else if (isAutoDetect(element)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.genericBeanDefinition("org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider");
+					.genericBeanDefinition("io.awspring.cloud.core.region.Ec2MetadataRegionProvider");
 			return builder.getBeanDefinition();
 		}
 		return null;

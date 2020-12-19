@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.ec2;
+package io.awspring.cloud.it.core.env.ec2;
 
 import java.io.IOException;
 
+import io.awspring.cloud.core.env.ec2.AmazonEc2InstanceIdProvider;
+import io.awspring.cloud.it.AWSIntegration;
+import io.awspring.cloud.it.support.TestStackInstanceIdService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceIdProvider;
-import org.springframework.cloud.aws.it.AWSIntegration;
-import org.springframework.cloud.aws.it.support.TestStackInstanceIdService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

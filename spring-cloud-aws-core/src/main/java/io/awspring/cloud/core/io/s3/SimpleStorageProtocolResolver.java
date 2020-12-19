@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.io.s3;
+package io.awspring.cloud.core.io.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;

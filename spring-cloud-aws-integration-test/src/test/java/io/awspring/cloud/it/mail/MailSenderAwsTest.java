@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.mail;
+package io.awspring.cloud.it.mail;
 
+import io.awspring.cloud.it.AWSIntegration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.aws.it.AWSIntegration;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;

@@ -18,7 +18,7 @@
 // Checkstyle is disabled because in test 'testUploadBigFileAndCompareChecksum'
 // there is a needed while loop without a statement inside.
 
-package org.springframework.cloud.aws.it.context.support.io;
+package io.awspring.cloud.it.context.support.io;
 
 import org.springframework.test.context.ContextConfiguration;
 

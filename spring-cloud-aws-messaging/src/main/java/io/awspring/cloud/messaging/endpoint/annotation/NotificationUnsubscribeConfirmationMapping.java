@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint.annotation;
+package io.awspring.cloud.messaging.endpoint.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,12 +29,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * using the Spring Controller model. This annotation configures a method to receive
  * notification unsubscriptions if the user does not want that a controller receives any
  * further notification. An annotated
- * {@link org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping}
- * will receive a
- * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus} parameter
- * and can either receive the unsubscribe message without any further action or
+ * {@link io.awspring.cloud.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping}
+ * will receive a {@link io.awspring.cloud.messaging.endpoint.NotificationStatus}
+ * parameter and can either receive the unsubscribe message without any further action or
  * re-subscribe using the
- * {@link org.springframework.cloud.aws.messaging.endpoint.NotificationStatus#confirmSubscription()}
+ * {@link io.awspring.cloud.messaging.endpoint.NotificationStatus#confirmSubscription()}
  * method.
  *
  * A notification controller will be mapped to a particular url inside the application

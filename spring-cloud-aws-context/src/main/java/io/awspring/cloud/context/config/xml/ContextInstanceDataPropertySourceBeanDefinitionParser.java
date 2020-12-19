@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
+import io.awspring.cloud.context.config.support.ContextConfigurationUtils;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -24,11 +25,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment;
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils.isRunningOnCloudEnvironment;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
@@ -37,7 +37,7 @@ import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigu
 class ContextInstanceDataPropertySourceBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
 	// @checkstyle:off
-	private static final String USER_TAGS_BEAN_CLASS_NAME = "org.springframework.cloud.aws.core.env.ec2.AmazonEc2InstanceUserTagsFactoryBean";
+	private static final String USER_TAGS_BEAN_CLASS_NAME = "io.awspring.cloud.core.env.ec2.AmazonEc2InstanceUserTagsFactoryBean";
 
 	// @checkstyle:on
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.cache;
+package io.awspring.cloud.autoconfigure.cache;
 
 import java.net.InetSocketAddress;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.annotation;
+package io.awspring.cloud.cache.config.annotation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,20 +24,20 @@ import java.util.Map;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
+import io.awspring.cloud.cache.CacheFactory;
+import io.awspring.cloud.cache.memcached.MemcachedCacheFactory;
+import io.awspring.cloud.cache.redis.RedisCacheFactory;
+import io.awspring.cloud.context.annotation.ConditionalOnClass;
+import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
+import io.awspring.cloud.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.stack.ListableStackResourceFactory;
+import io.awspring.cloud.core.env.stack.StackResource;
+import io.awspring.cloud.core.region.RegionProvider;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.annotation.CachingConfigurer;
-import org.springframework.cloud.aws.cache.CacheFactory;
-import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
-import org.springframework.cloud.aws.cache.redis.RedisCacheFactory;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnClass;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

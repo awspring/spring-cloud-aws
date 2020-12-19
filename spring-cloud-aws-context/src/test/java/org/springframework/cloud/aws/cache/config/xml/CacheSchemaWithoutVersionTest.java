@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.xml;
+package io.awspring.cloud.cache.config.xml;
 
 import org.junit.jupiter.api.Test;
 

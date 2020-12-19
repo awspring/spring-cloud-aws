@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.support;
+package io.awspring.cloud.it.support;
 
 import java.io.IOException;
 import java.io.OutputStream;

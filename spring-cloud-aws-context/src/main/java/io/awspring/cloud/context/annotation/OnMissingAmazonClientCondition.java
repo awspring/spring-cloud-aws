@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package io.awspring.cloud.context.annotation;
 
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;

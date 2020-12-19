@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener.support;
+package io.awspring.cloud.messaging.listener.support;
 
-import org.springframework.cloud.aws.messaging.listener.Visibility;
+import io.awspring.cloud.messaging.listener.Visibility;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.ec2;
+package io.awspring.cloud.it.core.env.ec2;
 
 import org.springframework.beans.factory.annotation.Value;
 

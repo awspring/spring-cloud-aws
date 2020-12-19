@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,11 +22,11 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.awspring.cloud.it.AWSIntegration;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.cloud.aws.it.AWSIntegration;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;

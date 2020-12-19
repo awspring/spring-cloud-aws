@@ -33,6 +33,6 @@
 												   default-destination="SqsReceivingSnsTopic"/>
 
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.NotificationMessagingTemplateIntegrationTest$NotificationReceiver"/>
+		class="io.awspring.cloud.it.messaging.NotificationMessagingTemplateIntegrationTest$NotificationReceiver"/>
 
 </beans>

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.retry;
+package io.awspring.cloud.jdbc.retry;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 /**
  * Enumeration that holds all possible Amazon RDS database instance states. Used by client

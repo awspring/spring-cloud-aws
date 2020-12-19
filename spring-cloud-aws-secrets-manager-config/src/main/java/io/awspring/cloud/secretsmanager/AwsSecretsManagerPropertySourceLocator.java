@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.secretsmanager;
+package io.awspring.cloud.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;

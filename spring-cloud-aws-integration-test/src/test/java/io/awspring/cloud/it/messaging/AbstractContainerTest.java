@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.awspring.cloud.it.AWSIntegration;
+import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.it.AWSIntegration;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 
 /**
  * @author Alain Sahli

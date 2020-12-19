@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package io.awspring.cloud.context.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -39,7 +39,7 @@ public @interface ConditionalOnMissingAmazonClient {
 	 *
 	 * <b>IMPORTANT</b>: This condition does not verify the presence of a client, based on
 	 * the type, but based on the default name as computed in
-	 * {@link org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
+	 * {@link io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils#getBeanName}.
 	 * @return Amazon client class
 	 */
 	Class<?> value();

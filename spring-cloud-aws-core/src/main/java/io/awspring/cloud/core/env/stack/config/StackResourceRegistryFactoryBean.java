@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack.config;
+package io.awspring.cloud.core.env.stack.config;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,17 +26,17 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import io.awspring.cloud.core.env.stack.ListableStackResourceFactory;
+import io.awspring.cloud.core.env.stack.StackResource;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 import org.springframework.util.StringUtils;
 
 /**
  * Exposes a fully populated
- * {@link org.springframework.cloud.aws.core.env.stack.StackResourceRegistry} instance
- * representing the resources of the specified stack.
+ * {@link io.awspring.cloud.core.env.stack.StackResourceRegistry} instance representing
+ * the resources of the specified stack.
  *
  * @author Christian Stettler
  * @author Agim Emruli

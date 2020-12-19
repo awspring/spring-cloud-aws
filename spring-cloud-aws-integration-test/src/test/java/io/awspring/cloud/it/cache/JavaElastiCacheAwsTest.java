@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.cache;
+package io.awspring.cloud.it.cache;
+
+import io.awspring.cloud.cache.config.annotation.CacheClusterConfig;
+import io.awspring.cloud.cache.config.annotation.EnableElastiCache;
+import io.awspring.cloud.it.IntegrationTestConfig;
 
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig;
-import org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache;
-import org.springframework.cloud.aws.it.IntegrationTestConfig;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;

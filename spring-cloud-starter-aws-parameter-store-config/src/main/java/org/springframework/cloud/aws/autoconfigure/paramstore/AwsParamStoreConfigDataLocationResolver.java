@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import io.awspring.cloud.paramstore.AwsParamStoreProperties;
+import io.awspring.cloud.paramstore.AwsParamStorePropertySources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,8 +37,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySources;
 import org.springframework.util.StringUtils;
 
 /**

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.jdbc;
+package io.awspring.cloud.it.jdbc;
+
+import io.awspring.cloud.it.IntegrationTestConfig;
+import io.awspring.cloud.jdbc.config.annotation.EnableRdsInstance;
 
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.aws.it.IntegrationTestConfig;
-import org.springframework.cloud.aws.jdbc.config.annotation.EnableRdsInstance;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;

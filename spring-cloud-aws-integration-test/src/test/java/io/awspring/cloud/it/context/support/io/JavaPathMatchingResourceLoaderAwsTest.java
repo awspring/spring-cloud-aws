@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.context.support.io;
+package io.awspring.cloud.it.context.support.io;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableContextResourceLoader;
-import org.springframework.cloud.aws.it.IntegrationTestConfig;
+import io.awspring.cloud.context.config.annotation.EnableContextResourceLoader;
+import io.awspring.cloud.it.IntegrationTestConfig;
+
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 

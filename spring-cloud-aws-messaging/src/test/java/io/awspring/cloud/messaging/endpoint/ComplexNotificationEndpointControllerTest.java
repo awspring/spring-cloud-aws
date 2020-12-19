@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.messaging.config.annotation.EnableSns;
+import io.awspring.cloud.messaging.endpoint.ComplexNotificationEndpointControllerTest.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.messaging.config.annotation.EnableSns;
-import org.springframework.cloud.aws.messaging.endpoint.ComplexNotificationEndpointControllerTest.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;

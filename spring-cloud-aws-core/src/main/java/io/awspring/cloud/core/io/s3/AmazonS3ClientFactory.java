@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.io.s3;
+package io.awspring.cloud.core.io.s3;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -27,10 +27,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 

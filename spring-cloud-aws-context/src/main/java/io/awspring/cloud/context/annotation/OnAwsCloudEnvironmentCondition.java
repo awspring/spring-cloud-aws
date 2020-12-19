@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package io.awspring.cloud.context.annotation;
 
-import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
+import io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils;
+
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
+
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
  * {@link org.springframework.beans.factory.xml.NamespaceHandler} implementation for the

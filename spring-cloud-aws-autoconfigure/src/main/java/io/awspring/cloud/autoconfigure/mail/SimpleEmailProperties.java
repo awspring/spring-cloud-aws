@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.mail;
+package io.awspring.cloud.autoconfigure.mail;
+
+import io.awspring.cloud.core.config.AwsClientProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.core.config.AwsClientProperties;
 
 /**
  * Configuration properties for AWS Simple Email Service.

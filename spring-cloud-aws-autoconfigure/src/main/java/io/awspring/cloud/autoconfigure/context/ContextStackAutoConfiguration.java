@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
+import io.awspring.cloud.autoconfigure.context.properties.AwsStackProperties;
+import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
+import io.awspring.cloud.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
+import io.awspring.cloud.core.env.stack.config.AutoDetectingStackNameProvider;
+import io.awspring.cloud.core.env.stack.config.StackNameProvider;
+import io.awspring.cloud.core.env.stack.config.StackResourceRegistryFactoryBean;
+import io.awspring.cloud.core.env.stack.config.StaticStackNameProvider;
+import io.awspring.cloud.core.region.RegionProvider;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -27,16 +37,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.aws.autoconfigure.context.properties.AwsStackProperties;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
-import org.springframework.cloud.aws.core.env.stack.config.StackNameProvider;
-import org.springframework.cloud.aws.core.env.stack.config.StackResourceRegistryFactoryBean;
-import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

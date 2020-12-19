@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.annotation;
+package io.awspring.cloud.jdbc.config.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

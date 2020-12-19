@@ -158,7 +158,7 @@ Resolving resources throughout all buckets can be very time consuming depending 
 CloudFormation also allows to create buckets during stack creation. These buckets will typically have a generated name
 that must be used as the bucket name. In order to allow application developers to define _static_ names inside their
 configuration, Spring Cloud AWS provides support to resolve the generated bucket names.
-Application developers can use the `org.springframework.cloud.aws.core.env.ResourceIdResolver` interface to resolve the
+Application developers can use the `io.awspring.cloud.core.env.ResourceIdResolver` interface to resolve the
 physical names that are generated based on the logical names.
 
 The next example shows a bucket definition inside a CloudFormation stack template. The bucket will be created with a name

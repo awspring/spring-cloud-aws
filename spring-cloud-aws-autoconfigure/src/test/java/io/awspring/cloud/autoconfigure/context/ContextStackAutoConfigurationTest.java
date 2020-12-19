@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -27,6 +27,12 @@ import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResource;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
+import io.awspring.cloud.core.env.stack.config.AutoDetectingStackNameProvider;
+import io.awspring.cloud.core.env.stack.config.StackNameProvider;
+import io.awspring.cloud.core.env.stack.config.StaticStackNameProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,12 +40,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.cloud.aws.core.env.stack.config.AutoDetectingStackNameProvider;
-import org.springframework.cloud.aws.core.env.stack.config.StackNameProvider;
-import org.springframework.cloud.aws.core.env.stack.config.StaticStackNameProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;

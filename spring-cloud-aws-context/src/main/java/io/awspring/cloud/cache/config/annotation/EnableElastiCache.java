@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.annotation;
+package io.awspring.cloud.cache.config.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,9 +37,9 @@ import org.springframework.context.annotation.Import;
  * names.
  *
  * If there is no
- * {@link org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache#value()}
- * ()} attribute configured, then all caches inside a stack (if the application is running
- * in one stack) will be used.
+ * {@link io.awspring.cloud.cache.config.annotation.EnableElastiCache#value()} ()}
+ * attribute configured, then all caches inside a stack (if the application is running in
+ * one stack) will be used.
  *
  * @author Agim Emruli
  * @deprecated use auto-configuration
@@ -54,11 +54,10 @@ public @interface EnableElastiCache {
 	/**
 	 * Configures the cache clusters for the caching configuration. Support one or
 	 * multiple caches
-	 * {@link org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig}
-	 * configurations with their physical cache name (as configured in the ElastiCache
-	 * service) or their logical cache name if the caches are configured inside a stack
-	 * and
-	 * {@link org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration}
+	 * {@link io.awspring.cloud.cache.config.annotation.CacheClusterConfig} configurations
+	 * with their physical cache name (as configured in the ElastiCache service) or their
+	 * logical cache name if the caches are configured inside a stack and
+	 * {@link io.awspring.cloud.context.config.annotation.EnableStackConfiguration}
 	 * annotation is used inside the application.
 	 *
 	 * The CacheClusterConfig annotation also configures cache specific attributes like
@@ -94,9 +93,9 @@ public @interface EnableElastiCache {
 	/**
 	 * Configures the default expiration time in seconds if there is no custom expiration
 	 * time configuration with a
-	 * {@link org.springframework.cloud.aws.cache.config.annotation.CacheClusterConfig}
-	 * configuration for the cache. The expiration time is implementation specific (e.g.
-	 * Redis or Memcached) and could therefore differ in the behaviour based on the cache
+	 * {@link io.awspring.cloud.cache.config.annotation.CacheClusterConfig} configuration
+	 * for the cache. The expiration time is implementation specific (e.g. Redis or
+	 * Memcached) and could therefore differ in the behaviour based on the cache
 	 * implementation.
 	 * @return - the default expiration time for all caches that do not contain a specific
 	 * expiration time on cache level

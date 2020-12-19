@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.ec2;
+package io.awspring.cloud.it.core.env.ec2;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableContextInstanceData;
+import io.awspring.cloud.context.config.annotation.EnableContextInstanceData;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;

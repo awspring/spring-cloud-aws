@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.memcached;
+package io.awspring.cloud.cache.memcached;
 
 import net.spy.memcached.MemcachedClientIF;
 import org.junit.jupiter.api.Test;

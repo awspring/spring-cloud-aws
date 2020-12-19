@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
 
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
+import io.awspring.cloud.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
+import io.awspring.cloud.jdbc.retry.RdbmsRetryOperationsInterceptor;
+import io.awspring.cloud.jdbc.retry.SqlRetryPolicy;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -23,14 +27,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.jdbc.retry.DatabaseInstanceStatusRetryPolicy;
-import org.springframework.cloud.aws.jdbc.retry.RdbmsRetryOperationsInterceptor;
-import org.springframework.cloud.aws.jdbc.retry.SqlRetryPolicy;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} implementation for

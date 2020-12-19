@@ -18,7 +18,7 @@ be resolved against the SQS API. The send method that takes no destination argum
 ----
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 
 public class SqsQueueSender {
@@ -199,7 +199,7 @@ Exception thrown inside `@SqsListener` annotated methods can be handled by metho
 
 [source,java,indent=0]
 ----
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.stereotype.Component;
 

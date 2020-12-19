@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
 
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.util.ClassUtils;

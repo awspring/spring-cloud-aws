@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.stack;
+package io.awspring.cloud.it.core.env.stack;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration;
-import org.springframework.cloud.aws.it.IntegrationTestConfig;
-import org.springframework.cloud.aws.it.support.TestStackEnvironment;
+import io.awspring.cloud.context.config.annotation.EnableStackConfiguration;
+import io.awspring.cloud.it.IntegrationTestConfig;
+import io.awspring.cloud.it.support.TestStackEnvironment;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource;
+package io.awspring.cloud.jdbc.datasource;
 
 import java.sql.Connection;
 import java.sql.SQLException;

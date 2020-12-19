@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.cache;
+package io.awspring.cloud.autoconfigure.cache;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,7 +37,7 @@ public class ElastiCacheProperties {
 	 * multiple caches {@link Cluster} configurations with their physical cache name (as
 	 * configured in the ElastiCache service) or their logical cache name if the caches
 	 * are configured inside a stack and
-	 * {@link org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration}
+	 * {@link io.awspring.cloud.context.config.annotation.EnableStackConfiguration}
 	 * annotation is used inside the application.
 	 */
 	private List<Cluster> clusters = Collections.emptyList();

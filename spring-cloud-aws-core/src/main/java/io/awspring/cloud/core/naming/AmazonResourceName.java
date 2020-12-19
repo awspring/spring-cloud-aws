@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.naming;
+package io.awspring.cloud.core.naming;
 
 import java.util.Arrays;
 

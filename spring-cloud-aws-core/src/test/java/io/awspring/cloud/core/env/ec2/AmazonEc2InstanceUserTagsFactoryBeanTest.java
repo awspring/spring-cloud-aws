@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.ec2;
+package io.awspring.cloud.core.env.ec2;
 
 import java.util.Collections;
 import java.util.Map;

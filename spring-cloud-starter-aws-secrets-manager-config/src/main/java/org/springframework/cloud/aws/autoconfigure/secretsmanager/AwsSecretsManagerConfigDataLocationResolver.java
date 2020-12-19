@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.secretsmanager;
+package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySources;
 import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapContext;
@@ -34,8 +36,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerProperties;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySources;
 import org.springframework.util.StringUtils;
 
 /**

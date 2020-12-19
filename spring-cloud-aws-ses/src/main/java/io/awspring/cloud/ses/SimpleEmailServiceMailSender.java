@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.ses;
+package io.awspring.cloud.ses;
 
 import java.util.HashMap;
 import java.util.Map;

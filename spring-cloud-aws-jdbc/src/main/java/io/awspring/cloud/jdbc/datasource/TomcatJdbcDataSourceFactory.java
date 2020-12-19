@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource;
+package io.awspring.cloud.jdbc.datasource;
 
 import java.sql.Connection;
 
 import javax.sql.DataSource;
 
+import io.awspring.cloud.jdbc.datasource.support.DatabasePlatformSupport;
+import io.awspring.cloud.jdbc.datasource.support.StaticDatabasePlatformSupport;
 import org.apache.tomcat.jdbc.pool.PoolConfiguration;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabasePlatformSupport;
-import org.springframework.cloud.aws.jdbc.datasource.support.StaticDatabasePlatformSupport;
 import org.springframework.core.Constants;
 
 /**

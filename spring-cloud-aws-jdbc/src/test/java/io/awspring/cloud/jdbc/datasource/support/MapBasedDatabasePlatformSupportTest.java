@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource.support;
+package io.awspring.cloud.jdbc.datasource.support;
 
 import java.util.Collections;
 import java.util.Map;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit test class for
- * {@link org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport}.
+ * {@link io.awspring.cloud.jdbc.datasource.support.MapBasedDatabasePlatformSupport}.
  *
  * @author Agim Emruli
  * @since 1.0

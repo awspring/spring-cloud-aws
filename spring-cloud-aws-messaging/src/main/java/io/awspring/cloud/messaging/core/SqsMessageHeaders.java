@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.core;
+package io.awspring.cloud.messaging.core;
 
 import java.util.Map;
 import java.util.Objects;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.config.xml;
+package io.awspring.cloud.mail.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.ClassUtils;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
@@ -42,10 +42,10 @@ class SimpleEmailServiceBeanDefinitionParser extends AbstractSingleBeanDefinitio
 	@Override
 	protected String getBeanClassName(Element element) {
 		if (JAVA_MAIL_PRESENT) {
-			return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceJavaMailSender";
+			return "io.awspring.cloud.mail.simplemail.SimpleEmailServiceJavaMailSender";
 		}
 
-		return "org.springframework.cloud.aws.mail.simplemail.SimpleEmailServiceMailSender";
+		return "io.awspring.cloud.mail.simplemail.SimpleEmailServiceMailSender";
 	}
 
 	@Override

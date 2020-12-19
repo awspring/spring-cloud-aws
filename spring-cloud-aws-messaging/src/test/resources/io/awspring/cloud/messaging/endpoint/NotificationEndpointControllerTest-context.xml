@@ -39,5 +39,5 @@
 	</bean>
 
 	<bean
-		class="org.springframework.cloud.aws.messaging.endpoint.NotificationTestController"/>
+		class="io.awspring.cloud.messaging.endpoint.NotificationTestController"/>
 </beans>

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import java.beans.Introspector;
 import java.net.URI;
 
 import com.amazonaws.regions.Regions;
+import io.awspring.cloud.core.credentials.CredentialsProviderFactoryBean;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -27,8 +29,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -43,7 +43,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	 * Name of the bean for region provider.
 	 */
 	// @checkstyle:off
-	public static final String REGION_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.region.RegionProvider.BEAN_NAME";
+	public static final String REGION_PROVIDER_BEAN_NAME = "io.awspring.cloud.core.region.RegionProvider.BEAN_NAME";
 
 	public static final String GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME = "com.amazonaws.ClientConfiguration.BEAN_NAME";
 
@@ -53,7 +53,7 @@ public final class AmazonWebserviceClientConfigurationUtils {
 	 * Name of the bean for credentials provider.
 	 */
 	// @checkstyle:off
-	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.BEAN_NAME";
+	public static final String CREDENTIALS_PROVIDER_BEAN_NAME = "io.awspring.cloud.core.credentials.CredentialsProviderFactoryBean.BEAN_NAME";
 
 	// @checkstyle:on
 	private static final String SERVICE_IMPLEMENTATION_SUFFIX = "Client";

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
 
 import org.junit.jupiter.api.Test;
 

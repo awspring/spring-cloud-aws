@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd=org/springframework/cloud/aws/context/config/xml/spring-cloud-aws-context-1.0.xsd
-http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.2.xsd=org/springframework/cloud/aws/context/config/xml/spring-cloud-aws-context-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd=org/springframework/cloud/aws/context/config/xml/spring-cloud-aws-context-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd=org/springframework/cloud/aws/cache/config/xml/spring-cloud-aws-cache-1.0.xsd
-http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.2.xsd=org/springframework/cloud/aws/cache/config/xml/spring-cloud-aws-cache-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd=org/springframework/cloud/aws/cache/config/xml/spring-cloud-aws-cache-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd=org/springframework/cloud/aws/mail/config/xml/spring-cloud-aws-mail-1.0.xsd
-http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.2.xsd=org/springframework/cloud/aws/mail/config/xml/spring-cloud-aws-mail-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd=org/springframework/cloud/aws/mail/config/xml/spring-cloud-aws-mail-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.0.xsd=io/awspring/cloud/context/config/xml/spring-cloud-aws-context-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context-1.2.xsd=io/awspring/cloud/context/config/xml/spring-cloud-aws-context-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd=io/awspring/cloud/context/config/xml/spring-cloud-aws-context-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.0.xsd=io/awspring/cloud/cache/config/xml/spring-cloud-aws-cache-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache-1.2.xsd=io/awspring/cloud/cache/config/xml/spring-cloud-aws-cache-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/cache/spring-cloud-aws-cache.xsd=io/awspring/cloud/cache/config/xml/spring-cloud-aws-cache-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.0.xsd=io/awspring/cloud/mail/config/xml/spring-cloud-aws-mail-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail-1.2.xsd=io/awspring/cloud/mail/config/xml/spring-cloud-aws-mail-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/mail/spring-cloud-aws-mail.xsd=io/awspring/cloud/mail/config/xml/spring-cloud-aws-mail-1.2.xsd

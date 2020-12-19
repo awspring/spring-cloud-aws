@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
 
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import io.awspring.cloud.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -27,16 +32,11 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser} parser
@@ -61,7 +61,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 	// @checkstyle:on
 
 	// @checkstyle:off
-	private static final String USER_TAG_FACTORY_BEAN_CLASS_NAME = "org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceUserTagsFactoryBean";
+	private static final String USER_TAG_FACTORY_BEAN_CLASS_NAME = "io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceUserTagsFactoryBean";
 
 	// @checkstyle:on
 
@@ -72,7 +72,7 @@ class AmazonRdsDataSourceBeanDefinitionParser extends AbstractBeanDefinitionPars
 	private static final String DATABASE_NAME = "database-name";
 
 	/**
-	 * Creates a {@link org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory}
+	 * Creates a {@link io.awspring.cloud.jdbc.datasource.DataSourceFactory}
 	 * implementation. Uses the TomcatJdbcDataSourceFactory implementation and passes all
 	 * pool attributes from the xml directly to the class (through setting the bean
 	 * properties).

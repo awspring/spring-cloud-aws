@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.retry;
+package io.awspring.cloud.jdbc.retry;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
@@ -81,9 +81,8 @@ public class DatabaseInstanceStatusRetryPolicy implements RetryPolicy {
 	}
 
 	/**
-	 * Configures an option.
-	 * {@link org.springframework.cloud.aws.core.env.ResourceIdResolver} to resolve
-	 * logical name to physical name
+	 * Configures an option. {@link io.awspring.cloud.core.env.ResourceIdResolver} to
+	 * resolve logical name to physical name
 	 * @param resourceIdResolver - the resourceIdResolver to be used, may be null
 	 */
 	public void setResourceIdResolver(ResourceIdResolver resourceIdResolver) {

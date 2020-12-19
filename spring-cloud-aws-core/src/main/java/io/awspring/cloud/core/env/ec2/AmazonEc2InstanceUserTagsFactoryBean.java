@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.ec2;
+package io.awspring.cloud.core.env.ec2;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -25,9 +25,9 @@ import com.amazonaws.services.ec2.model.DescribeTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeTagsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.TagDescription;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
 
 /**
  * @author Agim Emruli

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.annotation;
+package io.awspring.cloud.context.config.annotation;
 
 import java.util.Collections;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import io.awspring.cloud.core.region.Ec2MetadataRegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.cloud.aws.core.region.Ec2MetadataRegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
