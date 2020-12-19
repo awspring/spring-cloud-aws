@@ -85,11 +85,11 @@ dots, dashes, forward slashes, backward slashes and underscores next to alphanum
 [TIP]
 ====
 In order to find out which properties are retrieved from AWS Parameter Store on application startup,
-turn on `DEBUG` logging on `org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource` class.
+turn on `DEBUG` logging on `io.awspring.cloud.paramstore.AwsParamStorePropertySource` class.
 
 [source,indent=0]
 ----
-logging.level.org.springframework.cloud.aws.paramstore.AwsParamStorePropertySource=debug
+logging.level.io.awspring.cloud.paramstore.AwsParamStorePropertySource=debug
 ----
 ====
 

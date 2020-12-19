@@ -480,7 +480,7 @@ any region or security specific configuration.
 ==== Enabling instance metadata support with Java
 The instance metadata can also be configured within a Java configuration class without the need for an XML configuration.
 The next example shows a typical Spring `@Configuration` class that enables the instance metadata with the
-`org.springframework.cloud.aws.context.config.annotation.EnableInstanceData`
+`io.awspring.cloud.context.config.annotation.EnableInstanceData`
 
 [source,java,indent=0]
 ----
