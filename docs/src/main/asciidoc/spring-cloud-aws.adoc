@@ -51,41 +51,13 @@ also the Amazon SDK that are needed to operate the modules. The general dependen
   <dependency>
     <groupId>io.awspring.cloud</groupId>
     <artifactId>spring-cloud-aws-context</artifactId>
-    <version>{spring-cloud-version}</version>
+    <version>{spring-cloud-aws-version}</version>
   </dependency>
 </dependencies>
 ----
 
 Different modules can be included by replacing the module name with the respective one (e.g. `spring-cloud-aws-messaging`
 instead of `spring-cloud-aws-context`)
-
-
-The example above works with the Maven Central repository. To use the Spring Maven repository (e.g. for milestones or
-developer snapshots), you need to specify the repository location in your Maven configuration. For full releases:
-
-[source,xml,indent=0]
-----
-<repositories>
-    <repository>
-        <id>io.spring.repo.maven.release</id>
-        <url>https://repo.spring.io/release/</url>
-        <snapshots><enabled>false</enabled></snapshots>
-    </repository>
-</repositories>
-----
-
-For milestones:
-
-[source,xml,indent=0]
-----
-<repositories>
-    <repository>
-        <id>io.spring.repo.maven.milestone</id>
-        <url>https://repo.spring.io/milestone/</url>
-        <snapshots><enabled>false</enabled></snapshots>
-    </repository>
-</repositories>
-----
 
 === Amazon SDK dependency version management
 
