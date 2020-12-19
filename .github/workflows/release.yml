@@ -37,9 +37,16 @@ jobs:
           server-username: BINTRAY_USERNAME
           server-password: BINTRAY_PASSWORD
       - name: Run tests
-        run: ./mvnw -V verify
+        run: ./mvnw -V verify -Pdocs
       - name: Deploy to Bintray
         run: ./mvnw -V deploy -DskipTests
         env:
           BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
           BINTRAY_PASSWORD: ${{ secrets.BINTRAY_PASSWORD }}
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
+        run: |
+          aws s3 sync --delete --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"
