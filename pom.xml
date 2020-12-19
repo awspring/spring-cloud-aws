@@ -34,11 +34,11 @@
 	<description>Spring Cloud AWS</description>
 
 	<scm>
-		<url>https://github.com/spring-cloud/spring-cloud-aws</url>
-		<connection>scm:git:git://github.com/spring-cloud/spring-cloud-aws.git
+		<url>https://github.com/awspring/spring-cloud-aws</url>
+		<connection>scm:git:git://github.com/awspring/spring-cloud-aws.git
 		</connection>
 		<developerConnection>
-			scm:git:ssh://git@github.com/spring-cloud/spring-cloud-aws.git
+			scm:git:ssh://git@github.com/awspring/spring-cloud-aws.git
 		</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
