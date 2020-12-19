@@ -36,7 +36,7 @@
 	<context:property-placeholder location="file://${els.config.dir}/access.properties"/>
 
 	<bean id="testStackEnvironment"
-		  class="org.springframework.cloud.aws.it.support.TestStackEnvironment">
+		  class="io.awspring.cloud.it.support.TestStackEnvironment">
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation"/>
 	</bean>
@@ -45,12 +45,12 @@
 									 user-tags-map="stackTags"/>
 
 	<bean id="testStackInstanceIdService"
-		  class="org.springframework.cloud.aws.it.support.TestStackInstanceIdService"
+		  class="io.awspring.cloud.it.support.TestStackInstanceIdService"
 		  factory-method="fromStackOutputKey">
 		<constructor-arg name="stackName"
-						 value="#{T(org.springframework.cloud.aws.it.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
+						 value="#{T(io.awspring.cloud.it.support.TestStackEnvironment).DEFAULT_STACK_NAME}"/>
 		<constructor-arg name="outputKey"
-						 value="#{T(org.springframework.cloud.aws.it.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}"/>
+						 value="#{T(io.awspring.cloud.it.support.TestStackEnvironment).INSTANCE_ID_STACK_OUTPUT_KEY}"/>
 		<!--suppress SpringModelInspection -->
 		<constructor-arg name="amazonCloudFormationClient" ref="amazonCloudFormation"/>
 	</bean>

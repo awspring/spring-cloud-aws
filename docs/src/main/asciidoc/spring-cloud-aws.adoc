@@ -501,7 +501,7 @@ instance metadata inside an XML file using placeholders and also the expression 
 [source,xml,indent=0]
 ----
 <beans ...>
- <bean class="org.springframework.cloud.aws....SimpleConfigurationBean">
+ <bean class="io.awspring.cloud....SimpleConfigurationBean">
 	<property name="value1" value="#{environment.ami-id}" />
 	<property name="value2" value="#{environment.hostname}" />
 	<property name="value3" value="${instance-type}" />

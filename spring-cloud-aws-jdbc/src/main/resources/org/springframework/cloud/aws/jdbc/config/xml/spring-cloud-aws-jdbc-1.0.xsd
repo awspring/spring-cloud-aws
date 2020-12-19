@@ -30,7 +30,7 @@
 	<xsd:element name="data-source">
 		<xsd:annotation>
 			<xsd:documentation
-				source="java:org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean">
+				source="java:io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean">
 				<![CDATA[
 	Creates an Amazon RDS backed datasource to other beans as a javax.sql.DataSource.
 			]]></xsd:documentation>
@@ -135,7 +135,7 @@
 	<xsd:element name="retry-interceptor">
 		<xsd:annotation>
 			<xsd:documentation
-				source="java:org.springframework.cloud.aws.jdbc.retry.RdbmsRetryOperationsInterceptor">
+				source="java:io.awspring.cloud.jdbc.retry.RdbmsRetryOperationsInterceptor">
 				<![CDATA[
 	Creates an AOP Interceptor which can be used to retry database operations which failed due to transient error (e.g. connection lost due to failover)
 			]]></xsd:documentation>

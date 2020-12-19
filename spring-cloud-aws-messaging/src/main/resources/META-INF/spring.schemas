@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd=org/springframework/cloud/aws/messaging/config/xml/spring-cloud-aws-messaging-1.0.xsd
-http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.2.xsd=org/springframework/cloud/aws/messaging/config/xml/spring-cloud-aws-messaging-1.2.xsd
-http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd=org/springframework/cloud/aws/messaging/config/xml/spring-cloud-aws-messaging-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.0.xsd=io/awspring/cloud/messaging/config/xml/spring-cloud-aws-messaging-1.0.xsd
+http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging-1.2.xsd=io/awspring/cloud/messaging/config/xml/spring-cloud-aws-messaging-1.2.xsd
+http\://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging.xsd=io/awspring/cloud/messaging/config/xml/spring-cloud-aws-messaging-1.2.xsd

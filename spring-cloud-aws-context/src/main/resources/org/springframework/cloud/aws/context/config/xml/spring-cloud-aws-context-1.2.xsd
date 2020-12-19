@@ -162,7 +162,7 @@
 			<xsd:appinfo>
 				<tool:annotation>
 					<tool:exports
-						type="org.springframework.cloud.aws.core.region.RegionProvider"/>
+						type="io.awspring.cloud.core.region.RegionProvider"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -204,7 +204,7 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="org.springframework.cloud.aws.core.env.ec2.InstanceIdProvider"/>
+								type="io.awspring.cloud.core.env.ec2.InstanceIdProvider"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -263,7 +263,7 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-							type="org.springframework.cloud.aws.core.region.RegionProvider"/>
+							type="io.awspring.cloud.core.region.RegionProvider"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -319,7 +319,7 @@
 			<xsd:appinfo>
 				<tool:annotation>
 					<tool:exports
-						type="org.springframework.cloud.aws.core.env.stack.StackResourceRegistry"/>
+						type="io.awspring.cloud.core.env.stack.StackResourceRegistry"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
