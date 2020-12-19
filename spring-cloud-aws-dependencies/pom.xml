@@ -207,4 +207,12 @@
 			</pluginRepositories>
 		</profile>
 	</profiles>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-awspring</id>
+			<url>https://api.bintray.com/maven/awspring/releases/spring-cloud-aws/;publish=1</url>
+		</repository>
+	</distributionManagement>
+
 </project>
