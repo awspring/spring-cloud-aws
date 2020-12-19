@@ -25,6 +25,7 @@
 		<version>3.0.0-RC1</version>
 		<relativePath/>
 	</parent>
+	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<version>2.3.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -80,72 +81,72 @@
 				<version>${elasticache.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-jdbc</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-messaging</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-parameter-store-config</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-secrets-manager-config</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-ses</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-context</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-messaging</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-jdbc</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-parameter-store-config</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-secrets-manager-config</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-ses</artifactId>
 				<version>${project.version}</version>
 			</dependency>
