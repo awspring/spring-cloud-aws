@@ -41,5 +41,5 @@ jobs:
       - name: Build with Maven
         run: ./mvnw -V deploy
         env:
-          BINTRAY_USERNAME: awspring-releaser
+          BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
           BINTRAY_PASSWORD: ${{ secrets.BINTRAY_PASSWORD }}
