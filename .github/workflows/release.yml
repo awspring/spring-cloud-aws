@@ -36,10 +36,10 @@ jobs:
           server-id: bintray-awspring
           server-username: BINTRAY_USERNAME
           server-password: BINTRAY_PASSWORD
-      - name: Build with Maven
+      - name: Run tests
         run: ./mvnw -V verify
-      - name: Build with Maven
-        run: ./mvnw -V deploy
+      - name: Deploy to Bintray
+        run: ./mvnw -V deploy -DskipTests
         env:
           BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
           BINTRAY_PASSWORD: ${{ secrets.BINTRAY_PASSWORD }}
