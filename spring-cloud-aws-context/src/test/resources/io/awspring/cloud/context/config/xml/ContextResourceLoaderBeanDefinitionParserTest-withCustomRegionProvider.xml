@@ -27,11 +27,13 @@
 		<aws-context:simple-credentials access-key="first" secret-key="first"/>
 	</aws-context:context-credentials>
 
-	<aws-context:context-resource-loader amazon-s3="customS3Client"/>
+	<aws-context:context-resource-loader region-provider="customRegionProvider"/>
 
-	<bean id="customS3Client" class="com.amazonaws.services.s3.AmazonS3Client"/>
+	<bean id="customRegionProvider"
+		  class="io.awspring.cloud.core.region.StaticRegionProvider">
+		<constructor-arg value="us-west-2"/>
+	</bean>
 
 	<bean
-		class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
-
+		class="io.awspring.cloud.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
 </beans>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.config.xml;
+package io.awspring.cloud.mail.config.xml;
 
 import org.junit.jupiter.api.Test;
 

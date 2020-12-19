@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.messaging;
+package io.awspring.cloud.autoconfigure.messaging;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +23,10 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.region.RegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,17 +34,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
-import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.jdbc;
+package io.awspring.cloud.it.jdbc;
 
 import java.sql.Timestamp;
 import java.util.Date;

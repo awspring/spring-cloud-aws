@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.retry;
+package io.awspring.cloud.jdbc.retry;
 
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;

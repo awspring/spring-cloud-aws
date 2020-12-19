@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.annotation;
+package io.awspring.cloud.cache.config.annotation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.services.elasticache.AmazonElastiCache;
+import io.awspring.cloud.cache.CacheFactory;
+import io.awspring.cloud.cache.ElastiCacheFactoryBean;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.cloud.aws.cache.CacheFactory;
-import org.springframework.cloud.aws.cache.ElastiCacheFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 /**
  * @author Agim Emruli

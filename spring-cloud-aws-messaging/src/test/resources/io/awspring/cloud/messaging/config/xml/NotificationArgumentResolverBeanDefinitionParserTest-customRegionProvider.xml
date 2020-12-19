@@ -34,7 +34,7 @@
 												  region-provider="myRegionProvider"/>
 
 	<bean id="myRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
+		  class="io.awspring.cloud.core.region.StaticRegionProvider">
 		<constructor-arg value="us-west-2"/>
 	</bean>
 </beans>

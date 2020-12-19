@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it;
+package io.awspring.cloud.it;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import io.awspring.cloud.context.config.annotation.EnableContextCredentials;
+import io.awspring.cloud.context.config.annotation.EnableContextRegion;
+import io.awspring.cloud.context.config.annotation.EnableStackConfiguration;
+import io.awspring.cloud.it.support.TestStackEnvironment;
+import io.awspring.cloud.it.support.TestStackInstanceIdService;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableContextCredentials;
-import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
-import org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration;
-import org.springframework.cloud.aws.it.support.TestStackEnvironment;
-import org.springframework.cloud.aws.it.support.TestStackInstanceIdService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.xml;
+package io.awspring.cloud.jdbc.config.xml;
 
 import java.util.Date;
 import java.util.Map;
@@ -33,6 +33,8 @@ import com.amazonaws.services.rds.model.Endpoint;
 import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
 import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.rds.model.Tag;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -45,8 +47,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;

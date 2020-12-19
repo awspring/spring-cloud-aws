@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.xml;
+package io.awspring.cloud.messaging.config.xml;
 
 import java.net.URI;
 
@@ -27,8 +27,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 
 public class NotificationArgumentResolverBeanDefinitionParserTest {
 

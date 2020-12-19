@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.paramstore;
+package io.awspring.cloud.paramstore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +23,9 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
+import io.awspring.cloud.paramstore.AwsParamStorePropertySources.AwsParameterPropertySourceNotFoundException;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySources.AwsParameterPropertySourceNotFoundException;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.mock.env.MockEnvironment;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.secretsmanager;
+package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -22,11 +22,11 @@ import java.net.URI;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySourceLocator;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySourceLocator;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 

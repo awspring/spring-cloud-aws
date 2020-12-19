@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.redis;
+package io.awspring.cloud.cache.redis;
 
 import java.util.Map;
 
+import io.awspring.cloud.cache.AbstractCacheFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.Cache;
-import org.springframework.cloud.aws.cache.AbstractCacheFactory;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;

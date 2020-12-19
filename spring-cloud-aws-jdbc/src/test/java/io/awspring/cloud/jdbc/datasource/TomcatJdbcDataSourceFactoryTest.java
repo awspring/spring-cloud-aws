@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource;
+package io.awspring.cloud.jdbc.datasource;
 
 import java.beans.PropertyDescriptor;
 import java.sql.Connection;
@@ -24,14 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import io.awspring.cloud.jdbc.datasource.support.DatabaseType;
+import io.awspring.cloud.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.cloud.aws.jdbc.datasource.support.DatabaseType;
-import org.springframework.cloud.aws.jdbc.datasource.support.MapBasedDatabasePlatformSupport;
 import org.springframework.transaction.TransactionDefinition;
 
 import static org.assertj.core.api.Assertions.assertThat;

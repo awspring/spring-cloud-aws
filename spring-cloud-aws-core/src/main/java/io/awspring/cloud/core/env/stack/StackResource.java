@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack;
+package io.awspring.cloud.core.env.stack;
 
 /**
  * @author Agim Emruli

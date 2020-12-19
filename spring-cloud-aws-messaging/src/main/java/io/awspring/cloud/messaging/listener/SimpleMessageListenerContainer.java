@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.createMessage;
+import static io.awspring.cloud.messaging.core.QueueMessageUtils.createMessage;
 
 /**
  * @author Agim Emruli

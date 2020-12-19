@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 import java.util.concurrent.Future;
 

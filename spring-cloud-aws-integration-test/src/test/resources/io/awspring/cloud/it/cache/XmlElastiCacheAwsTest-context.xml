@@ -36,5 +36,5 @@
 
 	<cache:annotation-driven/>
 
-	<bean class="org.springframework.cloud.aws.it.cache.CachingService"/>
+	<bean class="io.awspring.cloud.it.cache.CachingService"/>
 </beans>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack.config;
+package io.awspring.cloud.core.env.stack.config;
 
 /**
  * Represents a strategy for resolving and providing the name of an amazon cloud formation

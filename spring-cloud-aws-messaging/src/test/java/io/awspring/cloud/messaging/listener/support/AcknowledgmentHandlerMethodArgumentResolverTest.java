@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener.support;
+package io.awspring.cloud.messaging.listener.support;
 
 import org.junit.jupiter.api.Test;
 

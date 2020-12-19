@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,19 +26,19 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.credentials.CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.aws.core.credentials.CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME;
 
 /**
  * Tests for {@link ContextCredentialsAutoConfiguration}.

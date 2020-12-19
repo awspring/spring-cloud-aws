@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
 import java.lang.reflect.Method;
 
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockHttpServletRequest;

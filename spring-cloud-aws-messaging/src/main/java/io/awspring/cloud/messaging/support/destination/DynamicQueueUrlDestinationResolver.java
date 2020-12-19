@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support.destination;
+package io.awspring.cloud.messaging.support.destination;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,8 +25,8 @@ import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;

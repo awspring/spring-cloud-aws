@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.annotation;
+package io.awspring.cloud.context.annotation;
 
 import org.junit.jupiter.api.Test;
 

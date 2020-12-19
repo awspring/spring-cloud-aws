@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.mail;
+package io.awspring.cloud.autoconfigure.mail;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

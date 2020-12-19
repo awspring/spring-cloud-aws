@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,12 +27,12 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.apache.http.client.CredentialsProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;

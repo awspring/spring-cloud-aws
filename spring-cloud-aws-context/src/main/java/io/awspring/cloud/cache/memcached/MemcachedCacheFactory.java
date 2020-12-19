@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.memcached;
+package io.awspring.cloud.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.awspring.cloud.cache.AbstractCacheFactory;
 import net.spy.memcached.MemcachedClient;
-
-import org.springframework.cloud.aws.cache.AbstractCacheFactory;
 
 /**
  * @author Agim Emruli

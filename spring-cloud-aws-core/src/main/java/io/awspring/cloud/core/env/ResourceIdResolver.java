@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env;
+package io.awspring.cloud.core.env;
 
 /**
  * Provides support for resolving logical resource ids to physical resource ids.

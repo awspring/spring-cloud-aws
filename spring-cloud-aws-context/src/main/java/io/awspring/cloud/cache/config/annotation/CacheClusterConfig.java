@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.annotation;
+package io.awspring.cloud.cache.config.annotation;
 
 /**
  * Configuration annotation used by the
- * {@link org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache}
- * annotation to configure cache specific attributes. This annotation allows to explicitly
- * to define the cache names and also to configure further cache specific attributes like
- * the expiration.
+ * {@link io.awspring.cloud.cache.config.annotation.EnableElastiCache} annotation to
+ * configure cache specific attributes. This annotation allows to explicitly to define the
+ * cache names and also to configure further cache specific attributes like the
+ * expiration.
  *
  * @author Agim Emruli
  * @deprecated use auto-configuration

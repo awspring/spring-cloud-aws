@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env;
+package io.awspring.cloud.core.env;
 
 import java.util.Collection;
+
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
 /**
  * Provides support for resolving logical resource ids to physical resource ids for stack

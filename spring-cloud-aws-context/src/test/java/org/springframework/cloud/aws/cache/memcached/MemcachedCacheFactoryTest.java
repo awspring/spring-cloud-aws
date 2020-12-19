@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.memcached;
+package io.awspring.cloud.cache.memcached;
 
+import io.awspring.cloud.cache.config.TestMemcacheServer;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cloud.aws.cache.config.TestMemcacheServer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

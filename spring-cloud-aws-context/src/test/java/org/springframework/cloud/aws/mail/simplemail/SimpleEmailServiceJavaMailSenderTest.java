@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.simplemail;
+package io.awspring.cloud.mail.simplemail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

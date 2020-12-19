@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 /**
  * Defines the policy that must be used for the deletion of SQS messages once they were
  * processed. The deletion policy can be set individually on every listener method using
- * the
- * {@link org.springframework.cloud.aws.messaging.listener.annotation.SqsListener @SqsListener}
+ * the {@link io.awspring.cloud.messaging.listener.annotation.SqsListener @SqsListener}
  * annotation. The default policy is {@code NO_REDRIVE} because it is the safest way to
  * avoid poison messages and have a safe way to avoid the loss of messages (i.e. using a
  * dead letter queue).
@@ -41,7 +40,7 @@ package org.springframework.cloud.aws.messaging.listener;
  * @author Alain Sahli
  * @author Matej Nedic
  * @since 1.1
- * @see org.springframework.cloud.aws.messaging.listener.annotation.SqsListener
+ * @see io.awspring.cloud.messaging.listener.annotation.SqsListener
  */
 public enum SqsMessageDeletionPolicy {
 

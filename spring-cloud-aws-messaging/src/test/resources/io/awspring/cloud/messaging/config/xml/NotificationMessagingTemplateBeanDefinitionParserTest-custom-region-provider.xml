@@ -31,7 +31,7 @@
 	</aws-context:context-credentials>
 
 	<bean id="customRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
+		  class="io.awspring.cloud.core.region.StaticRegionProvider">
 		<constructor-arg value="cn-north-1"/>
 	</bean>
 	<aws-messaging:notification-messaging-template id="notificationMessagingTemplate"

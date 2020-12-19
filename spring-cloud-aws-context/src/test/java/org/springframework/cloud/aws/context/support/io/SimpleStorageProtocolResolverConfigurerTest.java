@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.support.io;
+package io.awspring.cloud.context.support.io;
 
 import com.amazonaws.services.s3.AmazonS3;
+import io.awspring.cloud.core.io.s3.SimpleStorageProtocolResolver;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.StaticApplicationContext;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.core;
+package io.awspring.cloud.messaging.core;
 
 import java.time.LocalDate;
 import java.util.Locale;
@@ -26,10 +26,10 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;

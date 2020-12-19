@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context.properties;
+package io.awspring.cloud.autoconfigure.context.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Tom Gianos
  * @since 2.0.2
- * @see org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration
+ * @see io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration
  */
 @ConfigurationProperties(prefix = AwsCredentialsProperties.PREFIX)
 public class AwsCredentialsProperties {

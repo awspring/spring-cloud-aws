@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
+import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
-import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

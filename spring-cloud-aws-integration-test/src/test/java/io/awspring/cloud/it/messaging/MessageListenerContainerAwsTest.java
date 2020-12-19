@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,14 +26,14 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 

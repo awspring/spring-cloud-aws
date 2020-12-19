@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.security;
+package io.awspring.cloud.autoconfigure.security;
 
 import org.junit.jupiter.api.Test;
 

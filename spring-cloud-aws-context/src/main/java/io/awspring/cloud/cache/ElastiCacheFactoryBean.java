@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache;
+package io.awspring.cloud.cache;
 
 import java.util.List;
 
@@ -23,13 +23,13 @@ import com.amazonaws.services.elasticache.model.CacheCluster;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest;
 import com.amazonaws.services.elasticache.model.DescribeCacheClustersResult;
 import com.amazonaws.services.elasticache.model.Endpoint;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.cache.Cache;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 
 /**
  * @author Agim Emruli

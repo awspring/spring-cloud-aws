@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.redis;
+package io.awspring.cloud.cache.redis;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

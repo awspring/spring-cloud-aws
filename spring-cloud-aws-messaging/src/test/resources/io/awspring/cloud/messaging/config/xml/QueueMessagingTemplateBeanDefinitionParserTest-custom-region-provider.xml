@@ -31,7 +31,7 @@
 	</aws-context:context-credentials>
 
 	<bean id="myCustomRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
+		  class="io.awspring.cloud.core.region.StaticRegionProvider">
 		<constructor-arg value="ap-southeast-2"/>
 	</bean>
 	<aws-messaging:queue-messaging-template id="queueMessagingTemplate"

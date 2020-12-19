@@ -22,4 +22,4 @@
  * @author Tom Gianos
  * @since 2.0.2
  */
-package org.springframework.cloud.aws.autoconfigure.context.properties;
+package io.awspring.cloud.autoconfigure.context.properties;

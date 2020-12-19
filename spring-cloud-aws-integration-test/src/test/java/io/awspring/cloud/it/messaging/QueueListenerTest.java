@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -26,6 +26,12 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
+import io.awspring.cloud.messaging.core.SqsMessageHeaders;
+import io.awspring.cloud.messaging.listener.Acknowledgment;
+import io.awspring.cloud.messaging.listener.SqsMessageDeletionPolicy;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,12 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
-import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
-import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;

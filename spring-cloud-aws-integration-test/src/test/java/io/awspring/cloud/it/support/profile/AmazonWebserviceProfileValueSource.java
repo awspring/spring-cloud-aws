@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.support.profile;
+package io.awspring.cloud.it.support.profile;
 
 import com.amazonaws.util.EC2MetadataUtils;
 

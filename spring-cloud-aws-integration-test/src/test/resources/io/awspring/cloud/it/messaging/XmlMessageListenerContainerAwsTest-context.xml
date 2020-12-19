@@ -34,5 +34,5 @@
 				   rejection-policy="CALLER_RUNS"/>
 
 	<bean
-		class="org.springframework.cloud.aws.it.messaging.MessageListenerContainerAwsTest$MessageReceiver"/>
+		class="io.awspring.cloud.it.messaging.MessageListenerContainerAwsTest$MessageReceiver"/>
 </beans>

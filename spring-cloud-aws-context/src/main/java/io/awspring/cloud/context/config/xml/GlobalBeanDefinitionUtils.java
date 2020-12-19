@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
+
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.StackResourceRegistryDetectingResourceIdResolver;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
 
 /**
  * Provides utility methods for registering globally used bean definitions.

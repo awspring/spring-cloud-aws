@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env;
+package io.awspring.cloud.core.env;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

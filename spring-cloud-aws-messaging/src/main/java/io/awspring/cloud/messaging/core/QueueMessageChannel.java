@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.core;
+package io.awspring.cloud.messaging.core;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
 
-import static org.springframework.cloud.aws.messaging.core.QueueMessageUtils.createMessage;
+import static io.awspring.cloud.messaging.core.QueueMessageUtils.createMessage;
 
 /**
  * @author Agim Emruli

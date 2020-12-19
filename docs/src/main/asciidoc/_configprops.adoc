@@ -23,7 +23,7 @@
 |cloud.aws.credentials.profile-path |  | The AWS profile path.
 |cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |cloud.aws.elasticache.cache-names |  | 
-|cloud.aws.elasticache.clusters |  | Configures the cache clusters for the caching configuration. Support one or multiple caches {@link Cluster} configurations with their physical cache name (as configured in the ElastiCache service) or their logical cache name if the caches are configured inside a stack and {@link org.springframework.cloud.aws.context.config.annotation.EnableStackConfiguration} annotation is used inside the application.
+|cloud.aws.elasticache.clusters |  | Configures the cache clusters for the caching configuration. Support one or multiple caches {@link Cluster} configurations with their physical cache name (as configured in the ElastiCache service) or their logical cache name if the caches are configured inside a stack and {@link io.awspring.cloud.context.config.annotation.EnableStackConfiguration} annotation is used inside the application.
 |cloud.aws.elasticache.default-expiration | `0` | Configures the default expiration time in seconds if there is no custom expiration time configuration with a {@link Cluster} configuration for the cache. The expiration time is implementation specific (e.g. Redis or Memcached) and could therefore differ in the behaviour based on the cache implementation.
 |cloud.aws.elasticache.enabled | `true` | Enables ElastiCache integration.
 |cloud.aws.elasticache.expiry-time-per-cache |  | 

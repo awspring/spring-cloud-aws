@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.secretsmanager;
+package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import java.util.Collections;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySource;
 
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySource;
 
 /**
  * Loads config data from AWS Secret Manager.

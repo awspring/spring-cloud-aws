@@ -109,7 +109,7 @@ A full list of all configuration attributes with their value is available https:
 
 === Configuring data source with Java config
 Spring Cloud AWS also supports the configuration of the data source within an `@Configuration` class. The
-`org.springframework.cloud.aws.jdbc.config.annotation.EnableRdsInstance` annotation can be used to configure one data
+`io.awspring.cloud.jdbc.config.annotation.EnableRdsInstance` annotation can be used to configure one data
 source. Multiple ones can be used to configure more then one data source. Each annotation will generate exactly one
 data source bean.
 
@@ -128,8 +128,8 @@ for the XML configuration (the `dbInstanceIdentifier` and `password` attribute)
 
 ==== Java based data source pool configuration
 It is also possible to override the pool configuration with custom values. Spring Cloud AWS provides a
-`org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer` that creates a
-`org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory` which might contain custom pool attributes. The next
+`io.awspring.cloud.jdbc.config.annotation.RdsInstanceConfigurer` that creates a
+`io.awspring.cloud.jdbc.datasource.DataSourceFactory` which might contain custom pool attributes. The next
 examples shows the implementation of one configurer that overrides the validation query and the initial size.
 
 [source,java,indent=0]
@@ -153,7 +153,7 @@ public class ApplicationConfiguration {
 }
 ----
 
-TIP: This class returns an anonymous class of type `org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer`,
+TIP: This class returns an anonymous class of type `io.awspring.cloud.jdbc.config.annotation.RdsInstanceConfigurer`,
 which might also of course be a standalone class.
 
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.cache;
+package io.awspring.cloud.autoconfigure.cache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,17 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticache.AmazonElastiCache;
 import com.amazonaws.services.elasticache.AmazonElastiCacheClient;
+import io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration;
+import io.awspring.cloud.cache.CacheFactory;
+import io.awspring.cloud.cache.config.annotation.ElastiCacheCacheConfigurer;
+import io.awspring.cloud.cache.memcached.MemcachedCacheFactory;
+import io.awspring.cloud.cache.redis.RedisCacheFactory;
+import io.awspring.cloud.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.stack.ListableStackResourceFactory;
+import io.awspring.cloud.core.env.stack.StackResource;
+import io.awspring.cloud.core.region.RegionProvider;
 import net.spy.memcached.MemcachedClient;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -32,23 +43,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.CachingConfigurer;
-import org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration;
-import org.springframework.cloud.aws.cache.CacheFactory;
-import org.springframework.cloud.aws.cache.config.annotation.ElastiCacheCacheConfigurer;
-import org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory;
-import org.springframework.cloud.aws.cache.redis.RedisCacheFactory;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 /**
  * @author Agim Emruli

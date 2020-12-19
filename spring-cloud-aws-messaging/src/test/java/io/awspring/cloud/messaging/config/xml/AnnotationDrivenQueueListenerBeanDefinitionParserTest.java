@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.xml;
+package io.awspring.cloud.messaging.config.xml;
 
 import java.util.List;
 
@@ -22,6 +22,11 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import io.awspring.cloud.core.env.StackResourceRegistryDetectingResourceIdResolver;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
+import io.awspring.cloud.messaging.listener.QueueMessageHandler;
+import io.awspring.cloud.messaging.listener.SendToHandlerMethodReturnValueHandler;
+import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,11 +36,6 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.cloud.aws.core.env.StackResourceRegistryDetectingResourceIdResolver;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SendToHandlerMethodReturnValueHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.MethodParameter;

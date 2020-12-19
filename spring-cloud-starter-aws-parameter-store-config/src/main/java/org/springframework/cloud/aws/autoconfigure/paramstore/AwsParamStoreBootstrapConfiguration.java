@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.util.StringUtils;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.paramstore.AwsParamStoreProperties;
+import io.awspring.cloud.paramstore.AwsParamStorePropertySourceLocator;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
-import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;

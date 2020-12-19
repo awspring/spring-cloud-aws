@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it;
+package io.awspring.cloud.it;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

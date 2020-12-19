@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.core;
+package io.awspring.cloud.messaging.core;
 
 import java.util.Collections;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
+import io.awspring.cloud.messaging.support.destination.DynamicTopicDestinationResolver;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
-import org.springframework.cloud.aws.messaging.support.destination.DynamicTopicDestinationResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.core.DestinationResolver;
 

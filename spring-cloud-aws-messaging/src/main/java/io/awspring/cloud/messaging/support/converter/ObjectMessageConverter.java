@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support.converter;
+package io.awspring.cloud.messaging.support.converter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

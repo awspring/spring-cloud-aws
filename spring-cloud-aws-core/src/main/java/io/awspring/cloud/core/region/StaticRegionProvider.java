@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.region;
+package io.awspring.cloud.core.region;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
 
 /**
  * Static {@link RegionProvider} implementation that can used to statically configure a

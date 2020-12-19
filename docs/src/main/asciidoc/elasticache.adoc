@@ -101,7 +101,7 @@ No configured values implies that there is an infinite expiration time.
 
 === Configuring caching using Java configuration
 Spring Cloud AWS also support the cache configuration with Java configuration classes. On any `Configuration` class,
-the caching can be configured using the `org.springframework.cloud.aws.cache.config.annotation.EnableElastiCache`
+the caching can be configured using the `io.awspring.cloud.cache.config.annotation.EnableElastiCache`
 annotation provided by Spring Cloud AWS. The next example shows a configuration of two cache clusters.
 
 [source,java,indent=0]

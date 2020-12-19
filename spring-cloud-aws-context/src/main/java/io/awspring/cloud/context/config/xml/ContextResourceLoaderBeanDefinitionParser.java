@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.xml;
+package io.awspring.cloud.context.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -27,7 +27,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <aws-context:context-resource-loader />} element.
@@ -43,7 +43,7 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 	private static final String AMAZON_S3_CLIENT_CLASS_NAME = "com.amazonaws.services.s3.AmazonS3Client";
 
 	// @checkstyle:off
-	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer";
+	private static final String RESOURCE_LOADER_BEAN_POST_PROCESSOR = "io.awspring.cloud.context.support.io.SimpleStorageProtocolResolverConfigurer";
 
 	// @checkstyle:on
 
@@ -51,7 +51,7 @@ public class ContextResourceLoaderBeanDefinitionParser extends AbstractSimpleBea
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
 		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver");
+				.genericBeanDefinition("io.awspring.cloud.core.io.s3.SimpleStorageProtocolResolver");
 		resolverBuilder.addConstructorArgReference(getCustomClientOrDefaultClientBeanName(element, parserContext,
 				"amazon-s3", AMAZON_S3_CLIENT_CLASS_NAME));
 

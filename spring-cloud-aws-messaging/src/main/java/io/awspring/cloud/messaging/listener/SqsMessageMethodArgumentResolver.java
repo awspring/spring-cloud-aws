@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
-import org.springframework.cloud.aws.messaging.core.QueueMessageUtils;
+import io.awspring.cloud.messaging.core.QueueMessageUtils;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;

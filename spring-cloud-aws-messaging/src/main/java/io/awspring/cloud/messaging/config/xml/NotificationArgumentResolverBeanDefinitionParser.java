@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.xml;
+package io.awspring.cloud.messaging.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * @author Agim Emruli
@@ -32,7 +32,7 @@ class NotificationArgumentResolverBeanDefinitionParser extends AbstractSingleBea
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
+		return "io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverFactoryBean";
 	}
 
 	@Override

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import io.awspring.cloud.context.config.support.ContextConfigurationUtils;
+import io.awspring.cloud.core.region.DefaultAwsRegionProviderChainDelegate;
+import io.awspring.cloud.core.region.RegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils;
-import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
-import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

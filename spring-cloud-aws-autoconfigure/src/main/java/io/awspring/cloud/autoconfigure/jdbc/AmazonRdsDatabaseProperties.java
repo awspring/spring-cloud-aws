@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.jdbc;
+package io.awspring.cloud.autoconfigure.jdbc;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import io.awspring.cloud.core.config.AwsClientProperties;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.core.config.AwsClientProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.StringUtils;
 
@@ -29,7 +30,7 @@ import org.springframework.util.StringUtils;
  * Properties related to AWS Rds.
  *
  * @author Mete Alpaslan Katırcıoğlu
- * @see org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration
+ * @see io.awspring.cloud.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration
  */
 @ConfigurationProperties(prefix = AmazonRdsDatabaseProperties.PREFIX)
 public class AmazonRdsDatabaseProperties extends AwsClientProperties {

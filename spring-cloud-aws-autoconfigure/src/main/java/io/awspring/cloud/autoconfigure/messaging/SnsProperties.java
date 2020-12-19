@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.messaging;
+package io.awspring.cloud.autoconfigure.messaging;
+
+import io.awspring.cloud.core.config.AwsClientProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.core.config.AwsClientProperties;
 
 /**
  * Configuration properties for AWS Simple Notification Service.

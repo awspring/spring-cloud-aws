@@ -27,9 +27,8 @@
 		<aws-context:simple-credentials access-key="first" secret-key="first"/>
 	</aws-context:context-credentials>
 
-	<aws-context:context-resource-loader/>
+	<aws-context:context-resource-loader region="eu-west-1"/>
 
 	<bean
-		class="org.springframework.cloud.aws.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
-
+		class="io.awspring.cloud.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
 </beans>

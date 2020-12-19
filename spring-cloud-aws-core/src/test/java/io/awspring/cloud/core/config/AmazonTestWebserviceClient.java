@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
-
-import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
 
 import static org.springframework.util.Assert.notNull;
 

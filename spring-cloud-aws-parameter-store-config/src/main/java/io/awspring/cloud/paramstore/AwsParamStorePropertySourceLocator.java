@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.paramstore;
+package io.awspring.cloud.paramstore;
 
 import java.util.ArrayList;
 import java.util.Arrays;

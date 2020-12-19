@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.task;
+package io.awspring.cloud.core.task;
 
 import java.util.Collections;
 import java.util.List;

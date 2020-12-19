@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
+
+import io.awspring.cloud.autoconfigure.context.properties.AwsRegionProperties;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.core.region.DefaultAwsRegionProviderChainDelegate;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.cloud.aws.autoconfigure.context.properties.AwsRegionProperties;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.core.region.DefaultAwsRegionProviderChainDelegate;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -32,7 +33,7 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 
-import static org.springframework.cloud.aws.context.config.support.ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
+import static io.awspring.cloud.context.config.support.ContextConfigurationUtils.REGION_PROVIDER_BEAN_NAME;
 
 /**
  * Region auto configuration, based on <a

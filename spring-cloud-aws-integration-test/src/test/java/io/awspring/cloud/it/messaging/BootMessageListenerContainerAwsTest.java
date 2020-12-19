@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.messaging;
+package io.awspring.cloud.it.messaging;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;

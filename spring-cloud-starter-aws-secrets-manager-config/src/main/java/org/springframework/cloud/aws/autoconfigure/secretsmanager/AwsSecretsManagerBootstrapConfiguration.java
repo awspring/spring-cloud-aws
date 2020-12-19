@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.secretsmanager;
+package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.util.StringUtils;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
+import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySourceLocator;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.aws.core.SpringCloudClientConfiguration;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerProperties;
-import org.springframework.cloud.aws.secretsmanager.AwsSecretsManagerPropertySourceLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint.config;
+package io.awspring.cloud.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
 
@@ -22,7 +22,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
-import static org.springframework.cloud.aws.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
+import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 /**
  * @author Agim Emruli

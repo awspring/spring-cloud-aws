@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.metrics;
+package io.awspring.cloud.autoconfigure.metrics;
 
 import io.micrometer.cloudwatch.CloudWatchConfig;
 

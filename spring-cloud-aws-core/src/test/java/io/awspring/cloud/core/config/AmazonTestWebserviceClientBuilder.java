@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import com.amazonaws.ClientConfigurationFactory;
 import com.amazonaws.client.AwsSyncClientParams;

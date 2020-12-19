@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack.config;
+package io.awspring.cloud.core.env.stack.config;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+
 import org.springframework.util.Assert;
 
 /**

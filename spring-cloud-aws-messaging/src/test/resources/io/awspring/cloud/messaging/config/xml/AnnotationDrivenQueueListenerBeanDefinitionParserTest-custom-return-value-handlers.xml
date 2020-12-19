@@ -30,7 +30,7 @@
 	<aws-messaging:annotation-driven-queue-listener>
 		<aws-messaging:return-value-handlers>
 			<bean
-				class="org.springframework.cloud.aws.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParserTest$TestHandlerMethodReturnValueHandler"/>
+				class="io.awspring.cloud.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParserTest$TestHandlerMethodReturnValueHandler"/>
 		</aws-messaging:return-value-handlers>
 	</aws-messaging:annotation-driven-queue-listener>
 

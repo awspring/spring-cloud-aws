@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
+
+import io.awspring.cloud.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
+import io.awspring.cloud.context.config.annotation.ContextResourceLoaderConfiguration;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
-import org.springframework.cloud.aws.context.config.annotation.ContextResourceLoaderConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

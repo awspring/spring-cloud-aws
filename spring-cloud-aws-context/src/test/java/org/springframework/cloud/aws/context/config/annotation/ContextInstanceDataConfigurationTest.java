@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.annotation;
+package io.awspring.cloud.context.config.annotation;
 
 import java.lang.reflect.Field;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import io.awspring.cloud.context.MetaDataServer;
+import io.awspring.cloud.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.context.MetaDataServer;
-import org.springframework.cloud.aws.context.support.env.AwsCloudEnvironmentCheckUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ReflectionUtils;

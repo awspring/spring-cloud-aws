@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -22,12 +22,12 @@ import java.net.URI;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
+import io.awspring.cloud.paramstore.AwsParamStoreProperties;
+import io.awspring.cloud.paramstore.AwsParamStorePropertySourceLocator;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.paramstore.AwsParamStoreProperties;
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySourceLocator;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 

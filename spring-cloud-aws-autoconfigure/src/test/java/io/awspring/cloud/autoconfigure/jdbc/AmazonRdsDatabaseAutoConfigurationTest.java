@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.jdbc;
+package io.awspring.cloud.autoconfigure.jdbc;
 
 import java.net.URI;
 
@@ -28,22 +28,22 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import com.amazonaws.services.rds.model.Endpoint;
+import io.awspring.cloud.jdbc.config.annotation.RdsInstanceConfigurer;
+import io.awspring.cloud.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import io.awspring.cloud.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.jdbc.config.annotation.RdsInstanceConfigurer;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class AmazonRdsDatabaseAutoConfigurationTest {
 

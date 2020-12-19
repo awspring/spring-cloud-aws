@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.util.Objects;
 
+import io.awspring.cloud.paramstore.AwsParamStorePropertySources;
+
 import org.springframework.boot.context.config.ConfigDataResource;
-import org.springframework.cloud.aws.paramstore.AwsParamStorePropertySources;
 import org.springframework.core.style.ToStringCreator;
 
 /**

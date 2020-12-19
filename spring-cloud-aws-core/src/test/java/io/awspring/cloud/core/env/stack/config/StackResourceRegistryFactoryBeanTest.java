@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.env.stack.config;
+package io.awspring.cloud.core.env.stack.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,11 +26,10 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.ListStackResourcesResult;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
+import io.awspring.cloud.core.env.stack.ListableStackResourceFactory;
+import io.awspring.cloud.core.env.stack.StackResource;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;

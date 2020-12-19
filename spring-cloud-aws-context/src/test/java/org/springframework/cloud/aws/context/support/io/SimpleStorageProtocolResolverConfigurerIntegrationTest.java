@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.support.io;
+package io.awspring.cloud.context.support.io;
 
+import io.awspring.cloud.context.config.annotation.EnableContextResourceLoader;
+import io.awspring.cloud.core.io.s3.SimpleStorageResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -23,8 +25,6 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.aws.context.config.annotation.EnableContextResourceLoader;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;

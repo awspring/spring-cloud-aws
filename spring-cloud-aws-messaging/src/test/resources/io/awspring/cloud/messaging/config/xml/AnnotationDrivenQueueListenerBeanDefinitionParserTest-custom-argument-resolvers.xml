@@ -30,7 +30,7 @@
 	<aws-messaging:annotation-driven-queue-listener>
 		<aws-messaging:argument-resolvers>
 			<bean
-				class="org.springframework.cloud.aws.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParserTest$TestHandlerMethodArgumentResolver"/>
+				class="io.awspring.cloud.messaging.config.xml.AnnotationDrivenQueueListenerBeanDefinitionParserTest$TestHandlerMethodArgumentResolver"/>
 		</aws-messaging:argument-resolvers>
 	</aws-messaging:annotation-driven-queue-listener>
 

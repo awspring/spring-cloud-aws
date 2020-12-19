@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context.properties;
+package io.awspring.cloud.autoconfigure.context.properties;
 
 import java.util.UUID;
 

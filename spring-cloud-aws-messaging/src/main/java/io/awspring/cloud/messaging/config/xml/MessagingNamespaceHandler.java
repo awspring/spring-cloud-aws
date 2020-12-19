@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.xml;
+package io.awspring.cloud.messaging.config.xml;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support;
+package io.awspring.cloud.messaging.support;
 
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.cloud.aws.messaging.core.SqsMessageHeaders;
+import io.awspring.cloud.messaging.core.SqsMessageHeaders;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;

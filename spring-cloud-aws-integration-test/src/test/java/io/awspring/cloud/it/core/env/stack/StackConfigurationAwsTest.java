@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.core.env.stack;
+package io.awspring.cloud.it.core.env.stack;
 
 import java.util.Collection;
 
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.env.stack.ListableStackResourceFactory;
+import io.awspring.cloud.core.env.stack.StackResource;
+import io.awspring.cloud.it.AWSIntegration;
+import io.awspring.cloud.it.support.TestStackEnvironment;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.env.stack.ListableStackResourceFactory;
-import org.springframework.cloud.aws.core.env.stack.StackResource;
-import org.springframework.cloud.aws.it.AWSIntegration;
-import org.springframework.cloud.aws.it.support.TestStackEnvironment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;

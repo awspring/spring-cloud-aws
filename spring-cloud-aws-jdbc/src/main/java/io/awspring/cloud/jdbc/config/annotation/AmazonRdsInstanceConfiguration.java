@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.annotation;
+package io.awspring.cloud.jdbc.config.annotation;
+
+import io.awspring.cloud.context.config.annotation.ContextDefaultConfigurationRegistrar;
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
+import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
+import io.awspring.cloud.jdbc.datasource.TomcatJdbcDataSourceFactory;
+import io.awspring.cloud.jdbc.rds.AmazonRdsDataSourceFactoryBean;
+import io.awspring.cloud.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.aws.context.config.annotation.ContextDefaultConfigurationRegistrar;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.springframework.cloud.aws.jdbc.datasource.TomcatJdbcDataSourceFactory;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean;
-import org.springframework.cloud.aws.jdbc.rds.AmazonRdsReadReplicaAwareDataSourceFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

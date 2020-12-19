@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.it.context.support.io;
+package io.awspring.cloud.it.context.support.io;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -26,13 +26,13 @@ import java.util.concurrent.Executors;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import io.awspring.cloud.core.env.stack.StackResourceRegistry;
+import io.awspring.cloud.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
+import io.awspring.cloud.it.AWSIntegration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.aws.core.env.stack.StackResourceRegistry;
-import org.springframework.cloud.aws.core.io.s3.PathMatchingSimpleStorageResourcePatternResolver;
-import org.springframework.cloud.aws.it.AWSIntegration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.test.context.junit.jupiter.SpringExtension;

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint.config;
+package io.awspring.cloud.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver;
+import io.awspring.cloud.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
+import io.awspring.cloud.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver;
 
-import org.springframework.cloud.aws.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 

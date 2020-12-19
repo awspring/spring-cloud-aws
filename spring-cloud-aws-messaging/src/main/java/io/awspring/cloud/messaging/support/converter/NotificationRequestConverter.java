@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support.converter;
+package io.awspring.cloud.messaging.support.converter;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -24,9 +24,9 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.messaging.core.MessageAttributeDataTypes;
+import io.awspring.cloud.messaging.core.QueueMessageUtils;
 
-import org.springframework.cloud.aws.messaging.core.MessageAttributeDataTypes;
-import org.springframework.cloud.aws.messaging.core.QueueMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;

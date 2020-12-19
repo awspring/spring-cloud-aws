@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.annotation;
+package io.awspring.cloud.messaging.config.annotation;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.region.RegionProvider;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;

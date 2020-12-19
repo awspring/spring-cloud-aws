@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.annotation;
+package io.awspring.cloud.messaging.config.annotation;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,17 +27,17 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.context.config.annotation.EnableContextRegion;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
+import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
+import io.awspring.cloud.messaging.listener.QueueMessageHandler;
+import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
+import io.awspring.cloud.messaging.listener.SqsMessageDeletionPolicy;
+import io.awspring.cloud.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
-import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
-import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
-import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
-import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

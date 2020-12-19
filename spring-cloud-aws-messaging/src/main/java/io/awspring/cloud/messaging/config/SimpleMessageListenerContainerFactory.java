@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config;
+package io.awspring.cloud.messaging.config;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.messaging.listener.QueueMessageHandler;
+import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.core.DestinationResolver;
@@ -170,7 +170,7 @@ public class SimpleMessageListenerContainerFactory {
 	 * destination name configured for this instance. <br>
 	 * This setter can be used when a custom configured {@link DestinationResolver} must
 	 * be provided. (For example if one want to have the
-	 * {@link org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver}
+	 * {@link io.awspring.cloud.messaging.support.destination.DynamicQueueUrlDestinationResolver}
 	 * with the auto creation of queues set to {@code true}.
 	 * @param destinationResolver another or customized {@link DestinationResolver}
 	 */

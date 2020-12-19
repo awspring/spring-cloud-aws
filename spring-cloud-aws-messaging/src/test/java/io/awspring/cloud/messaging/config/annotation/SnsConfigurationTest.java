@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.annotation;
+package io.awspring.cloud.messaging.config.annotation;
 
 import java.util.List;
 
@@ -22,11 +22,11 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.context.config.annotation.EnableContextRegion;
+import io.awspring.cloud.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.context.config.annotation.EnableContextRegion;
-import org.springframework.cloud.aws.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.util.ReflectionTestUtils;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.config.annotation;
+package io.awspring.cloud.jdbc.config.annotation;
 
-import org.springframework.cloud.aws.jdbc.datasource.DataSourceFactory;
+import io.awspring.cloud.jdbc.datasource.DataSourceFactory;
 
 /**
  * @author Agim Emruli

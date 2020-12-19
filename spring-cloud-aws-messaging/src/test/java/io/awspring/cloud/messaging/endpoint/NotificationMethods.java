@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.endpoint;
+package io.awspring.cloud.messaging.endpoint;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationMessage;
-import org.springframework.cloud.aws.messaging.config.annotation.NotificationSubject;
-import org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationMessageMapping;
-import org.springframework.cloud.aws.messaging.endpoint.annotation.NotificationSubscriptionMapping;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
+import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
+import io.awspring.cloud.messaging.endpoint.annotation.NotificationMessageMapping;
+import io.awspring.cloud.messaging.endpoint.annotation.NotificationSubscriptionMapping;
 
 /**
  * @author Agim Emruli

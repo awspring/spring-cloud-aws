@@ -40,5 +40,5 @@
 	</bean>
 
 	<bean
-		class="org.springframework.cloud.aws.messaging.endpoint.ComplexNotificationTestController"/>
+		class="io.awspring.cloud.messaging.endpoint.ComplexNotificationTestController"/>
 </beans>

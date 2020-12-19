@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.datasource.support;
+package io.awspring.cloud.jdbc.datasource.support;
 
-import org.springframework.cloud.aws.core.support.documentation.RuntimeUse;
+import io.awspring.cloud.core.support.documentation.RuntimeUse;
+
 import org.springframework.util.Assert;
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.support.destination;
+package io.awspring.cloud.messaging.support.destination;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -23,9 +23,9 @@ import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;

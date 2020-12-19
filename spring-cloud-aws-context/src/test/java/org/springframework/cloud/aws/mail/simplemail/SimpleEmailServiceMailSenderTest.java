@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.mail.simplemail;
+package io.awspring.cloud.mail.simplemail;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;

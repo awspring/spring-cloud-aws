@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.jdbc.retry;
+package io.awspring.cloud.jdbc.retry;
 
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.context.RetryContextSupport;

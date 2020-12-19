@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.messaging;
+package io.awspring.cloud.autoconfigure.messaging;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -26,6 +26,15 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
+import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
+import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.region.RegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
+import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
+import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.listener.QueueMessageHandler;
+import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -35,22 +44,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.aws.context.annotation.ConditionalOnMissingAmazonClient;
-import org.springframework.cloud.aws.core.config.AmazonWebserviceClientFactoryBean;
-import org.springframework.cloud.aws.core.env.ResourceIdResolver;
-import org.springframework.cloud.aws.core.region.RegionProvider;
-import org.springframework.cloud.aws.core.region.StaticRegionProvider;
-import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
-import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
-import org.springframework.cloud.aws.messaging.listener.QueueMessageHandler;
-import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.util.CollectionUtils;
 
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.

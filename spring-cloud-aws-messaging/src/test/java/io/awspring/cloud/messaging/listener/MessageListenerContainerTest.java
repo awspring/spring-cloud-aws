@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.listener;
+package io.awspring.cloud.messaging.listener;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -25,13 +25,13 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import io.awspring.cloud.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
+import io.awspring.cloud.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 
-import org.springframework.cloud.aws.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
-import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolutionException;

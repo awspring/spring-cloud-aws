@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.autoconfigure.context;
+package io.awspring.cloud.autoconfigure.context;
 
 import java.net.URI;
 
@@ -22,21 +22,21 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import io.awspring.cloud.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
+import io.awspring.cloud.context.support.io.SimpleStorageProtocolResolverConfigurer;
+import io.awspring.cloud.core.io.s3.SimpleStorageProtocolResolver;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.autoconfigure.context.properties.AwsS3ResourceLoaderProperties;
-import org.springframework.cloud.aws.context.support.io.SimpleStorageProtocolResolverConfigurer;
-import org.springframework.cloud.aws.core.io.s3.SimpleStorageProtocolResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.aws.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
 
 class ContextResourceLoaderAutoConfigurationTest {
 

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cache.config.xml;
+package io.awspring.cloud.cache.config.xml;
 
 import java.util.List;
 
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -28,12 +29,11 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
-import static org.springframework.cloud.aws.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
+import static io.awspring.cloud.core.config.xml.XmlWebserviceConfigurationUtils.getCustomClientOrDefaultClientBeanName;
 
 /**
  * Parser for the {@code <aws-cache:cache-manager />} element.
@@ -51,7 +51,7 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String CACHE_REF_ELEMENT_NAME = "cache-ref";
 
-	private static final String ELASTICACHE_FACTORY_BEAN = "org.springframework.cloud.aws.cache.ElastiCacheFactoryBean";
+	private static final String ELASTICACHE_FACTORY_BEAN = "io.awspring.cloud.cache.ElastiCacheFactoryBean";
 
 	// @checkstyle:off
 	private static final String ELASTI_CACHE_CLIENT_CLASS_NAME = "com.amazonaws.services.elasticache.AmazonElastiCacheClient";
@@ -59,12 +59,12 @@ class CacheBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 	// @checkstyle:on
 
 	// @checkstyle:off
-	private static final String MEMCACHED_FACTORY_CLASS_NAME = "org.springframework.cloud.aws.cache.memcached.MemcachedCacheFactory";
+	private static final String MEMCACHED_FACTORY_CLASS_NAME = "io.awspring.cloud.cache.memcached.MemcachedCacheFactory";
 
 	// @checkstyle:on
 
 	// @checkstyle:off
-	private static final String REDIS_CONNECTION_FACTORY_CLASS_NAME = "org.springframework.cloud.aws.cache.redis.RedisCacheFactory";
+	private static final String REDIS_CONNECTION_FACTORY_CLASS_NAME = "io.awspring.cloud.cache.redis.RedisCacheFactory";
 
 	// @checkstyle:on
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.config;
+package io.awspring.cloud.core.config;
 
 import java.net.URI;
 

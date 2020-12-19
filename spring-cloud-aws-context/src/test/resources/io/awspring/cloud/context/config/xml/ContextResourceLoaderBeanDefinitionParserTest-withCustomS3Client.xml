@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2013-2019 the original author or authors.
   ~
@@ -15,17 +16,22 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:context="http://www.springframework.org/schema/cloud/aws/context"
+	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   https://www.springframework.org/schema/beans/spring-beans.xsd
 	   					   http://www.springframework.org/schema/cloud/aws/context
 	   					   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
 
-	<context:context-region region-provider="myRegionProvider"/>
+	<aws-context:context-credentials>
+		<aws-context:simple-credentials access-key="first" secret-key="first"/>
+	</aws-context:context-credentials>
 
-	<bean id="myRegionProvider"
-		  class="org.springframework.cloud.aws.core.region.StaticRegionProvider">
-		<constructor-arg value="eu-west-1"/>
-	</bean>
+	<aws-context:context-resource-loader amazon-s3="customS3Client"/>
+
+	<bean id="customS3Client" class="com.amazonaws.services.s3.AmazonS3Client"/>
+
+	<bean
+		class="io.awspring.cloud.context.config.xml.ContextResourceLoaderBeanDefinitionParserTest$ResourceLoaderBean"/>
+
 </beans>

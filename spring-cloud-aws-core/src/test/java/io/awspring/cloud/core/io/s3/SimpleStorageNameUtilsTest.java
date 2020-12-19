@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.core.io.s3;
+package io.awspring.cloud.core.io.s3;
 
 import org.junit.jupiter.api.Test;
 
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getBucketNameFromLocation;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getContentTypeFromLocation;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObject;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObjectAndVersionId;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getObjectNameFromLocation;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.getVersionIdFromLocation;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.isSimpleStorageResource;
+import static io.awspring.cloud.core.io.s3.SimpleStorageNameUtils.stripProtocol;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getBucketNameFromLocation;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getContentTypeFromLocation;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObject;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getLocationForBucketAndObjectAndVersionId;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getObjectNameFromLocation;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.getVersionIdFromLocation;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.isSimpleStorageResource;
-import static org.springframework.cloud.aws.core.io.s3.SimpleStorageNameUtils.stripProtocol;
 
 /**
  * @author Agim Emruli

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.context.config.annotation;
+package io.awspring.cloud.context.config.annotation;
 
 import java.util.HashMap;
 import java.util.List;

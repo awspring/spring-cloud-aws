@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.messaging.config.xml;
+package io.awspring.cloud.messaging.config.xml;
 
 import java.util.List;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import io.awspring.cloud.context.config.xml.GlobalBeanDefinitionUtils;
+import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -28,8 +30,6 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.cloud.aws.context.config.xml.GlobalBeanDefinitionUtils;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
