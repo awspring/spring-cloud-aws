@@ -28,10 +28,7 @@
 	<name>Spring Cloud AWS Messaging Starter</name>
 	<description>Spring Cloud AWS Messaging Starter</description>
 	<url>https://projects.spring.io/spring-cloud</url>
-	<organization>
-		<name>Pivotal Software, Inc.</name>
-		<url>https://www.spring.io</url>
-	</organization>
+
 	<properties>
 		<main.basedir>${basedir}/../..</main.basedir>
 	</properties>
