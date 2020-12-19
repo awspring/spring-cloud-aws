@@ -26,6 +26,7 @@
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
+	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
 	<version>2.3.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -75,7 +76,7 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-dependencies</artifactId>
 				<version>${project.version}</version>
 				<type>pom</type>
