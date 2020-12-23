@@ -60,8 +60,8 @@
 |spring.cloud.aws.security.cognito.algorithm | `RS256` | Encryption algorithm used to sign the JWK token.
 |spring.cloud.aws.security.cognito.app-client-id |  | Non-dynamic audience string to validate.
 |spring.cloud.aws.security.cognito.enabled | `true` | Enables Cognito integration.
-|spring.cloud.aws.security.cognito.region |  | 
-|spring.cloud.aws.security.cognito.user-pool-id |  | 
+|spring.cloud.aws.security.cognito.region |  | Region of the user pool.
+|spring.cloud.aws.security.cognito.user-pool-id |  | Id of the user pool.
 |spring.cloud.aws.ses.enabled | `true` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 

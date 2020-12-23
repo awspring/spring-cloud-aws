@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class AwsSecretsManagerProperties implements Validator {
 
 	/**
 	 * Prefix indicating first level for every property. Value must start with a forward
-	 * slash followed by a valid path segment or be empty. Defaults to "/config".
+	 * slash followed by a valid path segment or be empty. Defaults to "/secret".
 	 */
 	private String prefix = "/secret";
 
