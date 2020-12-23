@@ -32,12 +32,12 @@ public class CognitoAuthenticationProperties {
 	private static final String COGNITO_REGISTRY = "https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json";
 
 	/**
-	 *
+	 * Id of the user pool.
 	 */
 	private String userPoolId;
 
 	/**
-	 *
+	 * Region of the user pool.
 	 */
 	private String region;
 
