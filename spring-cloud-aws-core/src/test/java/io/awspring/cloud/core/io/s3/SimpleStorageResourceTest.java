@@ -288,7 +288,7 @@ class SimpleStorageResourceTest {
 	}
 
 	@Test
-	public void writeFile_simpleUpload_setsContentType() throws Exception {
+	void writeFile_simpleUpload_setsContentType() throws Exception {
 		// Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucketName", "objectName",
@@ -312,7 +312,7 @@ class SimpleStorageResourceTest {
 	}
 
 	@Test
-	public void writeFile_multipartUpload_setsContentType() throws Exception {
+	void writeFile_multipartUpload_setsContentType() throws Exception {
 		// Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);
 		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucketName", "objectName",

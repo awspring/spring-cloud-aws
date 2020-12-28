@@ -61,10 +61,10 @@ import static org.mockito.Mockito.when;
  * @author Agim Emruli
  * @since 1.0
  */
-public class AmazonRdsDataSourceBeanDefinitionParserTest {
+class AmazonRdsDataSourceBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_minimalConfiguration_createsBeanDefinitionWithoutReadReplicas() throws Exception {
+	void parseInternal_minimalConfiguration_createsBeanDefinitionWithoutReadReplicas() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -98,7 +98,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_readReplicaSupportEnabled_configuresReadReplicaEnabledFactoryBean() throws Exception {
+	void parseInternal_readReplicaSupportEnabled_configuresReadReplicaEnabledFactoryBean() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -123,7 +123,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_noCredentialsDefined_returnsClientWithDefaultCredentialsProvider() throws Exception {
+	void parseInternal_noCredentialsDefined_returnsClientWithDefaultCredentialsProvider() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
@@ -156,7 +156,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_fullConfiguration_createsBeanDefinitionWithoutReadReplicas() throws Exception {
+	void parseInternal_fullConfiguration_createsBeanDefinitionWithoutReadReplicas() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -196,7 +196,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_dataSourceWithConfiguredPoolAttributes_poolAttributesConfigured() throws Exception {
+	void parseInternal_dataSourceWithConfiguredPoolAttributes_poolAttributesConfigured() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -252,7 +252,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	@Test
 	// As we provide default in the schema for better code completion we should check if
 	// they match to the underlying pool defaults
-	public void parseInternal_defaultPoolAttribute_matchesPoolConfiguration() throws Exception {
+	void parseInternal_defaultPoolAttribute_matchesPoolConfiguration() throws Exception {
 		// Arrange
 		PoolProperties poolProperties = new PoolProperties();
 
@@ -277,7 +277,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRegionConfigured_amazonRdsClientWithCustomRegionConfigured() throws Exception {
+	void parseInternal_customRegionConfigured_amazonRdsClientWithCustomRegionConfigured() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -296,7 +296,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_custRegionProviderConf_amazRdsClientWithCustomRegionConfThatIsReturnedFromRegionProvider()
+	void parseInternal_custRegionProviderConf_amazRdsClientWithCustomRegionConfThatIsReturnedFromRegionProvider()
 			throws Exception {
 
 		// Arrange
@@ -317,7 +317,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRegionProviderAndRegionConfigured_reportsError() throws Exception {
+	void parseInternal_customRegionProviderAndRegionConfigured_reportsError() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(() -> new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customRegionProviderAndRegion.xml", getClass()))
@@ -325,7 +325,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_userTagsDefined_createsUserTagBeanDefinition() throws Exception {
+	void parseInternal_userTagsDefined_createsUserTagBeanDefinition() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -369,7 +369,7 @@ public class AmazonRdsDataSourceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRdsInstance_createsRdsBeanAndUserTagsWithCustomRdsInstance() throws Exception {
+	void parseInternal_customRdsInstance_createsRdsBeanAndUserTagsWithCustomRdsInstance() throws Exception {
 
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();

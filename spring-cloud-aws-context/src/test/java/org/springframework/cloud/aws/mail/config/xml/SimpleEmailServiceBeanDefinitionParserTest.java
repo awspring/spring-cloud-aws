@@ -35,7 +35,7 @@ import static org.springframework.util.ReflectionUtils.makeAccessible;
 /**
  * @author Agim Emruli
  */
-public class SimpleEmailServiceBeanDefinitionParserTest {
+class SimpleEmailServiceBeanDefinitionParserTest {
 
 	private static String getEndpointUrlFromWebserviceClient(AmazonSimpleEmailServiceClient client) throws Exception {
 		Field field = findField(AmazonSimpleEmailServiceClient.class, "endpoint");
@@ -45,7 +45,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail() throws Exception {
+	void parse_MailSenderWithMinimalConfiguration_createMailSenderWithJavaMail() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-context.xml", getClass());
@@ -63,7 +63,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion() throws Exception {
+	void parse_MailSenderWithRegionConfiguration_createMailSenderWithJavaMailAndRegion() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-region.xml", getClass());
@@ -81,7 +81,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider()
+	void parse_MailSenderWithRegionProviderConfiguration_createMailSenderWithJavaMailAndRegionFromRegionProvider()
 			throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -101,7 +101,7 @@ public class SimpleEmailServiceBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_MailSenderWithCustomSesClient_createMailSenderWithCustomSesClient() throws Exception {
+	void parse_MailSenderWithCustomSesClient_createMailSenderWithCustomSesClient() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-ses-client.xml", getClass());

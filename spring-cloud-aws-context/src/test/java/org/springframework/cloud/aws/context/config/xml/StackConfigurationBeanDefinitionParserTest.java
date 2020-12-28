@@ -54,11 +54,11 @@ import static org.mockito.Mockito.when;
  * @author Agim Emruli
  * @author Alain Sahli
  */
-public class StackConfigurationBeanDefinitionParserTest {
+class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void parseInternal_stackConfigurationWithExternallyConfiguredCloudFormationClient_returnsConfiguredStackWithExternallyConfiguredClient()
+	void parseInternal_stackConfigurationWithExternallyConfiguredCloudFormationClient_returnsConfiguredStackWithExternallyConfiguredClient()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -88,7 +88,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+	void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -104,7 +104,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
+	void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
@@ -121,7 +121,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposed() {
+	void resourceIdResolver_stackConfiguration_resourceIdResolverBeanExposed() {
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		AmazonCloudFormation amazonCloudFormation = Mockito.mock(AmazonCloudFormation.class);
@@ -145,7 +145,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName()
+	void stackResourceRegistry_stackConfigurationWithStaticName_stackResourceRegistryBeanExposedUnderStaticStackName()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -172,7 +172,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void stackResourceRegistry_stackConfigurationWithoutStaticName_stackResourceRegistryBeanExposedUnderGeneratedName()
+	void stackResourceRegistry_stackConfigurationWithoutStaticName_stackResourceRegistryBeanExposedUnderGeneratedName()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -211,7 +211,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
+	void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId() {
 		// @checkstyle:on
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
@@ -240,7 +240,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId()
+	void resourceIdResolverResolveToPhysicalResourceId_stackConfigurationWithoutStaticNameAndLogicalResourceIdOfExistingResourceProvided_returnsPhysicalResourceId()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -280,7 +280,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void resourceIdResolverResolveToPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_returnsLogicalResourceIdAsPhysicalResourceId() {
+	void resourceIdResolverResolveToPhysicalResourceId_logicalResourceIdOfNonExistingResourceProvided_returnsLogicalResourceIdAsPhysicalResourceId() {
 		// @checkstyle:on
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
@@ -305,7 +305,7 @@ public class StackConfigurationBeanDefinitionParserTest {
 	}
 
 	@AfterEach
-	public void destroyMetaDataServer() throws Exception {
+	void destroyMetaDataServer() throws Exception {
 		MetaDataServer.shutdownHttpServer();
 
 	}

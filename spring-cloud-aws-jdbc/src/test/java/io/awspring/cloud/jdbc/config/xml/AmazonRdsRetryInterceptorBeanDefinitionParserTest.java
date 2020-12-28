@@ -34,10 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Agim Emruli
  */
-public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
+class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_minimalConfiguration_createsRetryInterceptor() throws Exception {
+	void parseInternal_minimalConfiguration_createsRetryInterceptor() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-minimal.xml", getClass());
@@ -50,7 +50,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRegionConfigured_createsAmazonRdsClientWithCustomRegionConfigured()
+	void parseInternal_customRegionConfigured_createsAmazonRdsClientWithCustomRegionConfigured()
 			throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
@@ -65,7 +65,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRegionProviderConfigured_createAmazonRdsClientWithCustomRegionConfigured()
+	void parseInternal_customRegionProviderConfigured_createAmazonRdsClientWithCustomRegionConfigured()
 			throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
@@ -80,7 +80,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customRDsClientConfigured_createInterceptorWithCustomRdsClient() throws Exception {
+	void parseInternal_customRDsClientConfigured_createInterceptorWithCustomRdsClient() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customRdsClient.xml", getClass());
@@ -95,7 +95,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customBackOffPolicy_createInterceptorWithCustomBackOffPolicy() throws Exception {
+	void parseInternal_customBackOffPolicy_createInterceptorWithCustomBackOffPolicy() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customBackOffPolicy.xml", getClass());
@@ -112,7 +112,7 @@ public class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customNumberOfRetiresConfigured_createRetryPolicyWithCustomNumberOfRetriesConfigured()
+	void parseInternal_customNumberOfRetiresConfigured_createRetryPolicyWithCustomNumberOfRetriesConfigured()
 			throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(

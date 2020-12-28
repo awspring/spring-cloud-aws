@@ -25,10 +25,10 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Alain Sahli
  */
-public class MailSchemaWithoutVersionTest {
+class MailSchemaWithoutVersionTest {
 
 	@Test
-	public void mailXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
+	void mailXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);

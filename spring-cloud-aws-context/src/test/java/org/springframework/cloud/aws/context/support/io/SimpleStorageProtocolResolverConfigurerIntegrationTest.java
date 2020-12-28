@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class SimpleStorageProtocolResolverConfigurerIntegrationTest {
+class SimpleStorageProtocolResolverConfigurerIntegrationTest {
 
 	@Autowired
 	@Qualifier("configurationLoadedResource")
@@ -52,17 +52,17 @@ public class SimpleStorageProtocolResolverConfigurerIntegrationTest {
 	private ResourceLoader resourceLoader;
 
 	@Test
-	public void configurationClassAnnotatedResourceResolvesToS3Resource() throws Exception {
+	void configurationClassAnnotatedResourceResolvesToS3Resource() throws Exception {
 		assertThat(((Advised) resource).getTargetSource().getTarget()).isInstanceOf(SimpleStorageResource.class);
 	}
 
 	@Test
-	public void valueAnnotatedResourceResolvesToS3Resource() {
+	void valueAnnotatedResourceResolvesToS3Resource() {
 		assertThat(fieldResource).isInstanceOf(SimpleStorageResource.class);
 	}
 
 	@Test
-	public void resourceLoadedResourceIsS3Resource() {
+	void resourceLoadedResourceIsS3Resource() {
 		assertThat(resourceLoader.getResource("s3://foo/bar.txt")).isInstanceOf(SimpleStorageResource.class);
 	}
 

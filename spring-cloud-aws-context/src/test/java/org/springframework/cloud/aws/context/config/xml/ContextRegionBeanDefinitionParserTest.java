@@ -31,10 +31,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @author Agim Emruli
  */
-public class ContextRegionBeanDefinitionParserTest {
+class ContextRegionBeanDefinitionParserTest {
 
 	@Test
-	public void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegion() throws Exception {
+	void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegion() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-context.xml", getClass());
@@ -49,8 +49,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegionAsExpression()
-			throws Exception {
+	void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegionAsExpression() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testWithExpression.xml", getClass());
@@ -65,8 +64,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegionAsPlaceHolder()
-			throws Exception {
+	void parse_staticConfiguredRegion_createsStaticRegionProviderWithSpecifiedRegionAsPlaceHolder() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testWithPlaceHolder.xml", getClass());
@@ -81,7 +79,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_autoDetectRegion_returnEc2MetadataRegionProvider() throws Exception {
+	void parse_autoDetectRegion_returnEc2MetadataRegionProvider() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testAutoDetection.xml", getClass());
@@ -96,7 +94,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_customRegionProvider_returnAliasToCustomRegionProvider() throws Exception {
+	void parse_customRegionProvider_returnAliasToCustomRegionProvider() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testCustomRegionProvider.xml", getClass());
@@ -113,7 +111,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_autoDetectionAndStaticRegionProvider_reportsError() throws Exception {
+	void parse_autoDetectionAndStaticRegionProvider_reportsError() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(() -> new ClassPathXmlApplicationContext(getClass().getSimpleName()
 				+ "-testAutoDetectionWithConfiguredRegion.xml",
@@ -122,7 +120,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_noValidRegionProviderConfigured_reportsError() throws Exception {
+	void parse_noValidRegionProviderConfigured_reportsError() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(() -> new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testNoValidRegionProviderConfigurationSpecified.xml", getClass()))
@@ -131,7 +129,7 @@ public class ContextRegionBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parse_twoRegionProviderConfigured_reportsError() throws Exception {
+	void parse_twoRegionProviderConfigured_reportsError() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(() -> new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testTwoRegionProviderConfigured.xml", getClass()))

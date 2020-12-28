@@ -39,10 +39,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Agim Emruli
  * @since 1.0
  */
-public class ContextResourceLoaderBeanDefinitionParserTest {
+class ContextResourceLoaderBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_defaultConfiguration_createsAmazonS3ClientWithoutRegionConfigured() {
+	void parseInternal_defaultConfiguration_createsAmazonS3ClientWithoutRegionConfigured() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-context.xml", getClass());
@@ -60,7 +60,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_configurationWithRegion_createsAmazonS3ClientWithRegionConfigured() {
+	void parseInternal_configurationWithRegion_createsAmazonS3ClientWithRegionConfigured() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-withRegionConfigured.xml", getClass());
@@ -79,7 +79,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_configurationWithCustomRegionProvider_createsAmazonS3ClientWithRegionConfigured() {
+	void parseInternal_configurationWithCustomRegionProvider_createsAmazonS3ClientWithRegionConfigured() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-withCustomRegionProvider.xml", getClass());
@@ -98,7 +98,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() {
+	void parseInternal_configurationWithCustomTaskExecutor_createsResourceLoaderWithCustomTaskExecutor() {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-withCustomTaskExecutor.xml", getClass());
@@ -115,8 +115,7 @@ public class ContextResourceLoaderBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_configurationWithCustomAmazonS3Client_createResourceLoaderWithCustomS3Client()
-			throws Exception {
+	void parseInternal_configurationWithCustomAmazonS3Client_createResourceLoaderWithCustomS3Client() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-withCustomS3Client.xml", getClass());

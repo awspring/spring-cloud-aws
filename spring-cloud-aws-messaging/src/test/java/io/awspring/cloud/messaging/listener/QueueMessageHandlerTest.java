@@ -359,7 +359,7 @@ class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withSqsMessageHeadersObject_shouldReceiveAllHeaders() {
+	void receiveMessage_withSqsMessageHeadersObject_shouldReceiveAllHeaders() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",
@@ -393,7 +393,7 @@ class QueueMessageHandlerTest {
 	}
 
 	@Test
-	public void receiveMessage_withMessageHeadersObject_shouldReceiveAllHeaders() {
+	void receiveMessage_withMessageHeadersObject_shouldReceiveAllHeaders() {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",

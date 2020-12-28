@@ -45,10 +45,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Alain Sahli
  */
-public class QueueMessagingTemplateBeanDefinitionParserTest {
+class QueueMessagingTemplateBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_withMinimalConfig_shouldProduceAQueueMessagingTemplateWithDefaults() throws Exception {
+	void parseInternal_withMinimalConfig_shouldProduceAQueueMessagingTemplateWithDefaults() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -87,7 +87,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomAmazonSqsClient_shouldPassItAsConstructorArg() throws Exception {
+	void parseInternal_withCustomAmazonSqsClient_shouldPassItAsConstructorArg() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -103,7 +103,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomConverter_mustBeSetOnTemplate() throws Exception {
+	void parseInternal_withCustomConverter_mustBeSetOnTemplate() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -122,7 +122,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
+	void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -138,7 +138,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+	void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -155,7 +155,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
+	void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
@@ -173,7 +173,7 @@ public class QueueMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withMultipleMessagingTemplatesDefined_shouldConfigureOnlyOneSqsClientAndDecorateOnlyOnce()
+	void parseInternal_withMultipleMessagingTemplatesDefined_shouldConfigureOnlyOneSqsClientAndDecorateOnlyOnce()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();

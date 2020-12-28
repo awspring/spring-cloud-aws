@@ -82,7 +82,7 @@ class ElastiCacheAutoConfigurationTest {
 	}
 
 	@Test
-	public void elastiCacheIsDisabled() {
+	void elastiCacheIsDisabled() {
 		this.contextRunner.withPropertyValues("cloud.aws.elasticache.enabled:false")
 				.run(context -> assertThat(context).doesNotHaveBean(CachingConfigurer.class));
 	}

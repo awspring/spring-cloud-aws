@@ -46,10 +46,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Agim Emruli
  */
-public class CacheBeanDefinitionParserTest {
+class CacheBeanDefinitionParserTest {
 
 	@BeforeAll
-	public static void setupMemcachedServerAndClient() throws Exception {
+	static void setupMemcachedServerAndClient() throws Exception {
 		// Get next free port for the test server
 		int availableTcpPort = TestMemcacheServer.startServer();
 
@@ -58,13 +58,13 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@AfterAll
-	public static void tearDownMemcachedServerAndClient() throws Exception {
+	static void tearDownMemcachedServerAndClient() throws Exception {
 		TestMemcacheServer.stopServer();
 		System.clearProperty("memcachedPort");
 	}
 
 	@Test
-	public void parseInternal_cacheConfigWithExpiration_returnsConfiguredCacheThatRespectExpiration() throws Exception {
+	void parseInternal_cacheConfigWithExpiration_returnsConfiguredCacheThatRespectExpiration() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
@@ -107,7 +107,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customCache_returnsCacheManagerWithCustomCache() throws Exception {
+	void parseInternal_customCache_returnsCacheManagerWithCustomCache() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customCache.xml", getClass());
@@ -123,7 +123,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_mixedCacheConfig_returnsBothCaches() throws Exception {
+	void parseInternal_mixedCacheConfig_returnsBothCaches() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
@@ -181,7 +181,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_clusterCacheConfiguration_returnsConfiguredClusterCache() throws Exception {
+	void parseInternal_clusterCacheConfiguration_returnsConfiguredClusterCache() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
@@ -224,7 +224,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_clusterCacheConfigurationWithLogicalName_returnsConfiguredClusterCacheWithPhysicalName()
+	void parseInternal_clusterCacheConfigurationWithLogicalName_returnsConfiguredClusterCacheWithPhysicalName()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -279,8 +279,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_clusterCacheConfigurationWithRegion_returnsConfiguredClusterCacheWithRegion()
-			throws Exception {
+	void parseInternal_clusterCacheConfigurationWithRegion_returnsConfiguredClusterCacheWithRegion() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
@@ -299,7 +298,7 @@ public class CacheBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_clusterCacheConfigurationWithCustomElastiCacheClient_returnsConfigurationWithCustomClient()
+	void parseInternal_clusterCacheConfigurationWithCustomElastiCacheClient_returnsConfigurationWithCustomClient()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();

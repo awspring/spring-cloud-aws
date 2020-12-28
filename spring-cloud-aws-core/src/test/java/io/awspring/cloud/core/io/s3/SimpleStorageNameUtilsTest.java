@@ -110,7 +110,7 @@ class SimpleStorageNameUtilsTest {
 	}
 
 	@Test
-	public void testGetContentTypeFromLocation() {
+	void testGetContentTypeFromLocation() {
 		assertThat(getContentTypeFromLocation("s3://foo/bar")).isEqualTo(null);
 		assertThat(getContentTypeFromLocation("s3://foo/bar^versionIdValue")).isEqualTo(null);
 		assertThat(getContentTypeFromLocation("s3://foo/bar/baz/boo.txt")).isEqualTo("text/plain");

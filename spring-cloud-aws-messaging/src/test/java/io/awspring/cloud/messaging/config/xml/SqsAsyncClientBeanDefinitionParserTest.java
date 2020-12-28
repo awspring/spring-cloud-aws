@@ -32,10 +32,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SqsAsyncClientBeanDefinitionParserTest {
+class SqsAsyncClientBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_minimalConfiguration_createsBufferedClientWithoutExplicitTaskExecutor() throws Exception {
+	void parseInternal_minimalConfiguration_createsBufferedClientWithoutExplicitTaskExecutor() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
@@ -55,7 +55,7 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_notBuffered_createsAsyncClientWithoutBufferedDecorator() throws Exception {
+	void parseInternal_notBuffered_createsAsyncClientWithoutBufferedDecorator() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
@@ -70,7 +70,7 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomTasExecutor_createsBufferedClientWithCustomTaskExecutor() throws Exception {
+	void parseInternal_withCustomTasExecutor_createsBufferedClientWithCustomTaskExecutor() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
@@ -92,7 +92,7 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+	void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -109,7 +109,7 @@ public class SqsAsyncClientBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
+	void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
