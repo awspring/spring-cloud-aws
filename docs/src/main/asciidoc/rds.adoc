@@ -408,3 +408,43 @@ Sample IAM policy granting access to RDS:
         },
 }
 ----
+
+=== SecretsManager credentials
+
+Credentials can be stored at SecretsManager. `aws-secretsmanager-jdbc` dependency should be added.
+
+[source,xml,indent=0]
+----
+<dependency>
+    <groupId>com.amazonaws.secretsmanager</groupId>
+    <artifactId>aws-secretsmanager-jdbc</artifactId>
+</dependency>
+----
+
+In order to use it, three configuration properties should be added `driver-class-name`, `url` and `username`, where `username` is the `secretId`
+
+The drivers below are available:
+
+[cols="2", options="header"]
+|===
+| Database
+| Driver
+
+| MSSQL
+| `com.amazonaws.secretsmanager.sql.AWSSecretsManagerMSSQLServerDriver`
+
+| MariaDB
+| `com.amazonaws.secretsmanager.sql.AWSSecretsManagerMariaDBDriver`
+
+| MySQL
+| `com.amazonaws.secretsmanager.sql.AWSSecretsManagerMySQLDriver`
+
+| Oracle
+| `com.amazonaws.secretsmanager.sql.AWSSecretsManagerOracleDriver`
+
+| Postgres
+| `com.amazonaws.secretsmanager.sql.AWSSecretsManagerPostgreSQLDriver`
+
+|===
+
+For more information, check https://github.com/aws/aws-secretsmanager-jdbc[aws-secretsmanager-jdbc].

@@ -35,6 +35,8 @@
 		<aws-java-sdk.version>1.11.907</aws-java-sdk.version>
 		<elasticache.version>1.1.1</elasticache.version>
 		<jmemcached.version>1.0.0</jmemcached.version>
+		<secretsmanager-caching.version>1.0.1</secretsmanager-caching.version>
+		<secretsmanager-jdbc.version>1.0.6</secretsmanager-jdbc.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -79,6 +81,16 @@
 				<groupId>com.amazonaws</groupId>
 				<artifactId>elasticache-java-cluster-client</artifactId>
 				<version>${elasticache.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.amazonaws.secretsmanager</groupId>
+				<artifactId>aws-secretsmanager-caching-java</artifactId>
+				<version>${secretsmanager-caching.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.amazonaws.secretsmanager</groupId>
+				<artifactId>aws-secretsmanager-jdbc</artifactId>
+				<version>${secretsmanager-jdbc.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
