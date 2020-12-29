@@ -50,8 +50,7 @@ class AmazonRdsRetryInterceptorBeanDefinitionParserTest {
 	}
 
 	@Test
-	void parseInternal_customRegionConfigured_createsAmazonRdsClientWithCustomRegionConfigured()
-			throws Exception {
+	void parseInternal_customRegionConfigured_createsAmazonRdsClientWithCustomRegionConfigured() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customRegion.xml", getClass());

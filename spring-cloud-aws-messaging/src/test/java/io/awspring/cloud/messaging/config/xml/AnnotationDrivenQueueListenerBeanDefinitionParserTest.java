@@ -126,8 +126,7 @@ class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor()
-			throws Exception {
+	void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);

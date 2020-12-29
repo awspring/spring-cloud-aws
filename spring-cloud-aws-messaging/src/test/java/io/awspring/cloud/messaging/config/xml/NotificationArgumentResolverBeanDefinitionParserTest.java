@@ -84,8 +84,7 @@ class NotificationArgumentResolverBeanDefinitionParserTest {
 	}
 
 	@Test
-	void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient()
-			throws Exception {
+	void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient() throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-customSnsClient.xml", getClass());
