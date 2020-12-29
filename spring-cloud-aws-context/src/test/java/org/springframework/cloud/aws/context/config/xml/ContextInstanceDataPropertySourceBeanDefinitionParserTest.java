@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Agim Emruli
  */
-public class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
+class ContextInstanceDataPropertySourceBeanDefinitionParserTest {
 
 	@Test
 	public void parseInternal_singleElementDefined_beanDefinitionCreated() throws Exception {

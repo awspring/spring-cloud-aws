@@ -49,10 +49,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @author Agim Emruli
  */
-public class ContextCredentialsBeanDefinitionParserTest {
+class ContextCredentialsBeanDefinitionParserTest {
 
 	@Test
-	public void testCreateBeanDefinition() throws Exception {
+	void testCreateBeanDefinition() throws Exception {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-context.xml", getClass());
 
@@ -81,7 +81,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testMultipleElements() throws Exception {
+	void testMultipleElements() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(
 				() -> new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testMultipleElements.xml",
@@ -90,7 +90,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testWithEmptyAccessKey() throws Exception {
+	void testWithEmptyAccessKey() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(
 				() -> new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithEmptyAccessKey.xml",
@@ -99,7 +99,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testWithEmptySecretKey() throws Exception {
+	void testWithEmptySecretKey() throws Exception {
 		// noinspection ResultOfObjectAllocationIgnored
 		assertThatThrownBy(
 				() -> new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-testWithEmptySecretKey.xml",
@@ -108,7 +108,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testWithPlaceHolder() throws Exception {
+	void testWithPlaceHolder() throws Exception {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testWithPlaceHolder.xml", getClass());
 
@@ -119,7 +119,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void testWithExpressions() throws Exception {
+	void testWithExpressions() throws Exception {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-testWithExpressions.xml", getClass());
 
@@ -130,7 +130,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseBean_withProfileCredentialsProvider_createProfileCredentialsProvider() {
+	void parseBean_withProfileCredentialsProvider_createProfileCredentialsProvider() {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-profileCredentialsProvider.xml", getClass());
 
@@ -148,8 +148,7 @@ public class ContextCredentialsBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseBean_withProfileCredentialsProviderAndProfileFile_createProfileCredentialsProvider()
-			throws IOException {
+	void parseBean_withProfileCredentialsProviderAndProfileFile_createProfileCredentialsProvider() throws IOException {
 		GenericApplicationContext applicationContext = new GenericApplicationContext();
 
 		Map<String, Object> secretAndAccessKeyMap = new HashMap<>();

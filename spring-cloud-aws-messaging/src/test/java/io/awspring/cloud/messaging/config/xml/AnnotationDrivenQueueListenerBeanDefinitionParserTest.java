@@ -57,10 +57,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Alain Sahli
  * @since 1.0
  */
-public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
+class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_minimalConfiguration_shouldProduceContainerWithDefaultAmazonSqsBean() throws Exception {
+	void parseInternal_minimalConfiguration_shouldProduceContainerWithDefaultAmazonSqsBean() throws Exception {
 		// Act
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-minimal.xml", getClass());
@@ -103,7 +103,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customSqsClient_shouldProduceContainerWithCustomSqsClientUsed() throws Exception {
+	void parseInternal_customSqsClient_shouldProduceContainerWithCustomSqsClientUsed() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -126,7 +126,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor()
+	void parseInternal_customTaskExecutor_shouldCreateContainerAndClientWithCustomTaskExecutor()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -153,7 +153,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withSendToMessageTemplateAttribute_mustBeSetOnTheBeanDefinition() throws Exception {
+	void parseInternal_withSendToMessageTemplateAttribute_mustBeSetOnTheBeanDefinition() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -178,7 +178,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomProperties_customPropertiesConfiguredOnContainer() throws Exception {
+	void parseInternal_withCustomProperties_customPropertiesConfiguredOnContainer() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -203,7 +203,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customArgumentResolvers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
+	void parseInternal_customArgumentResolvers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
@@ -223,7 +223,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customReturnValueHandlers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
+	void parseInternal_customReturnValueHandlers_parsedAndConfiguredInQueueMessageHandler() throws Exception {
 		// Arrange
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(applicationContext);
@@ -242,7 +242,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customerRegionConfigured_regionConfiguredAndParsedForInternalCreatedSqsClient()
+	void parseInternal_customerRegionConfigured_regionConfiguredAndParsedForInternalCreatedSqsClient()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
@@ -263,7 +263,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void parseInternal_customerRegionProviderConfigured_regionProviderConfiguredAndParsedForInternalCreatedSqsClient()
+	void parseInternal_customerRegionProviderConfigured_regionProviderConfiguredAndParsedForInternalCreatedSqsClient()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -284,7 +284,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void contextRegion_clientWithoutRegion_shouldHaveTheRegionGloballyDefined() throws Exception {
+	void contextRegion_clientWithoutRegion_shouldHaveTheRegionGloballyDefined() throws Exception {
 		// Arrange & Act
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-context-region.xml", getClass());
@@ -299,7 +299,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customDestinationResolver_isUsedOnTheContainer() throws Exception {
+	void parseInternal_customDestinationResolver_isUsedOnTheContainer() throws Exception {
 		// Arrange & Act
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-custom-destination-resolver.xml", getClass());
@@ -312,7 +312,7 @@ public class AnnotationDrivenQueueListenerBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_definedBackOffTime_shouldBeSetOnContainer() throws Exception {
+	void parseInternal_definedBackOffTime_shouldBeSetOnContainer() throws Exception {
 		// Arrange & Act
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				getClass().getSimpleName() + "-back-off-time.xml", getClass());

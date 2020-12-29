@@ -42,10 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Alain Sahli
  */
-public class NotificationMessagingTemplateBeanDefinitionParserTest {
+class NotificationMessagingTemplateBeanDefinitionParserTest {
 
 	@Test
-	public void parseInternal_withMinimalConfig_shouldCreateDefaultTemplate() throws Exception {
+	void parseInternal_withMinimalConfig_shouldCreateDefaultTemplate() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -86,7 +86,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomAmazonSnsClient_shouldPassItAsConstructorArg() throws Exception {
+	void parseInternal_withCustomAmazonSnsClient_shouldPassItAsConstructorArg() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -103,7 +103,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
+	void parseInternal_withDefaultDestination_mustBeSetOnTemplate() throws Exception {
 		// Arrange
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -120,7 +120,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
+	void parseInternal_withCustomRegion_shouldConfigureDefaultClientWithCustomRegion() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
@@ -136,7 +136,7 @@ public class NotificationMessagingTemplateBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
+	void parseInternal_withCustomRegionProvider_shouldConfigureDefaultClientWithCustomRegionReturnedByProvider()
 			throws Exception {
 		// Arrange
 		DefaultListableBeanFactory registry = new DefaultListableBeanFactory();

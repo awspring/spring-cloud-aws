@@ -30,11 +30,11 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.getBeanName;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NotificationArgumentResolverBeanDefinitionParserTest {
+class NotificationArgumentResolverBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void parseInternal_minimalConfiguration_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfigured()
+	void parseInternal_minimalConfiguration_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfigured()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -51,7 +51,7 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void parseInternal_customRegion_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
+	void parseInternal_customRegion_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -68,7 +68,7 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 
 	// @checkstyle:off
 	@Test
-	public void parseInternal_customRegionProvider_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
+	void parseInternal_customRegionProvider_configuresHandlerMethodArgumentResolverWithAmazonSnsImplicitlyConfiguredAndCustomRegionSet()
 			throws Exception {
 		// @checkstyle:on
 		// Arrange
@@ -84,7 +84,7 @@ public class NotificationArgumentResolverBeanDefinitionParserTest {
 	}
 
 	@Test
-	public void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient()
+	void parseInternal_customSnsClient_configuresHandlerMethodArgumentResolverWithCustomSnsClient()
 			throws Exception {
 		// Arrange
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(

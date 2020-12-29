@@ -25,10 +25,10 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Alain Sahli
  */
-public class ContextSchemaWithoutVersionTest {
+class ContextSchemaWithoutVersionTest {
 
 	@Test
-	public void contextXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
+	void contextXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);

@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
  * @author Matej Nedic
  * @author Eddú Meléndez
  */
-public class AwsParamStorePropertySourceLocatorTest {
+class AwsParamStorePropertySourceLocatorTest {
 
 	private AWSSimpleSystemsManagement ssmClient = mock(AWSSimpleSystemsManagement.class);
 

@@ -23,7 +23,7 @@ import org.apache.tomcat.jdbc.pool.Validator;
 /**
  * @author Agim Emruli
  */
-public class SampleValidator implements Validator {
+class SampleValidator implements Validator {
 
 	@Override
 	public boolean validate(Connection connection, int i) {

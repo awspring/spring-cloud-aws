@@ -25,10 +25,10 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Alain Sahli
  */
-public class JdbcSchemaWithoutVersionTest {
+class JdbcSchemaWithoutVersionTest {
 
 	@Test
-	public void jdbcXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
+	void jdbcXsd_withoutVersion_shouldNotThrowAnException() throws Exception {
 		// Arrange
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
