@@ -1,6 +1,14 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.aws.autoconfigure.appconfig.AppConfigBootstrapConfiguration
 
+# ConfigData Location Resolvers
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+io.awspring.cloud.autoconfigure.appconfig.AppConfigDataLocationResolver
+
+# ConfigData Loaders
+org.springframework.boot.context.config.ConfigDataLoader=\
+io.awspring.cloud.autoconfigure.appconfig.AppConfigDataLoader
+
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.awspring.cloud.autoconfigure.context.ContextInstanceDataAutoConfiguration,\
 io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration,\
