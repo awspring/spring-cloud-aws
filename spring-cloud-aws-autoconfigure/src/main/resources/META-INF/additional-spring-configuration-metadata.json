@@ -69,6 +69,22 @@
 	  "type": "java.lang.Boolean"
     },
     {
+      "defaultValue": false,
+      "name": "spring.cloud.aws.ec2.user-data.enabled",
+      "description": "Enables EC2 User Data integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "name": "spring.cloud.aws.ec2.user-data.attribute-separator",
+      "description": "Attribute separator in User Data.",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "spring.cloud.aws.ec2.user-data.value-separator",
+      "description": "Value separator in User Data.",
+      "type": "java.lang.String"
+    },
+    {
       "defaultValue": true,
       "name": "spring.cloud.aws.security.cognito.enabled",
       "description": "Enables Cognito integration.",

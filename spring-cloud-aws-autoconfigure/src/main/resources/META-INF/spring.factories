@@ -12,3 +12,6 @@ io.awspring.cloud.autoconfigure.messaging.SnsAutoConfiguration,\
 io.awspring.cloud.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration,\
 io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration,\
 io.awspring.cloud.autoconfigure.security.CognitoAuthenticationAutoConfiguration
+
+org.springframework.boot.env.EnvironmentPostProcessor=\
+io.awspring.cloud.autoconfigure.ec2.UserDataEnvironmentPostProcessor

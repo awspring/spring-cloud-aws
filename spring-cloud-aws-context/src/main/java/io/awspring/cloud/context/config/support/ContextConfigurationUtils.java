@@ -127,6 +127,7 @@ public final class ContextConfigurationUtils {
 				CredentialsProviderFactoryBean.CREDENTIALS_PROVIDER_BEAN_NAME);
 	}
 
+	@Deprecated
 	public static void registerInstanceDataPropertySource(BeanDefinitionRegistry registry, String valueSeparator,
 			String attributeSeparator) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(POST_PROCESSOR_CLASS_NAME);

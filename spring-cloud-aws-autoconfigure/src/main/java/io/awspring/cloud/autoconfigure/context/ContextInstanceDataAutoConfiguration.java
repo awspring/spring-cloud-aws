@@ -17,6 +17,7 @@
 package io.awspring.cloud.autoconfigure.context;
 
 import io.awspring.cloud.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
+import io.awspring.cloud.autoconfigure.ec2.UserDataEnvironmentPostProcessor;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,6 +35,7 @@ import static io.awspring.cloud.context.config.support.ContextConfigurationUtils
  * {@link org.springframework.context.annotation.PropertySource}.
  *
  * @author Agim Emruli
+ * @deprecated see {@link UserDataEnvironmentPostProcessor}
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "cloud.aws.instance.data.enabled", havingValue = "true")
