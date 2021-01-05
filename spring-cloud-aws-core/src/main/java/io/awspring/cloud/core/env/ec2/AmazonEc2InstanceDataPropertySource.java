@@ -36,7 +36,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
- * @deprecated use {@link UserDataPropertySource}
+ * @deprecated use {@link UserDataPropertySource} or/and
+ * {@link InstanceDataPropertySource}
  */
 public class AmazonEc2InstanceDataPropertySource extends EnumerablePropertySource<Object> {
 

@@ -70,6 +70,12 @@
     },
     {
       "defaultValue": false,
+      "name": "spring.cloud.aws.ec2.instance-data.enabled",
+      "description": "Enables EC2 Instance Data integration.",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "defaultValue": false,
       "name": "spring.cloud.aws.ec2.user-data.enabled",
       "description": "Enables EC2 User Data integration.",
       "type": "java.lang.Boolean"
