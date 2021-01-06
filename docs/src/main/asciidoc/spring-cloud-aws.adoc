@@ -464,7 +464,7 @@ The next example shows a typical Spring `@Configuration` class that enables the 
 
 ==== Enabling instance metadata support in Spring Boot
 The instance metadata is available in a Spring Boot application as a property source if the application
-is running on an EC2 instance and `cloud.aws.instance.data.enabled` property is set to `true`.
+is running on an EC2 instance and `spring.cloud.aws.ec2.instance-data.enabled` property is set to `true`. Also, user data is available if `spring.cloud.aws.ec2.user-data.enabled` property is set to `true`.
 
 ==== Using instance metadata
 Instance metadata can be used in XML, Java placeholders and expressions. The example below demonstrates the usage of
