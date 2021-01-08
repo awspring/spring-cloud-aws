@@ -18,9 +18,9 @@ underscore.
 That means that for a service called `my-service` the module by default would find and use these parameters:
 [cols="3*", options="header"]
 |===
-|parameter key
+|Parameter key
 |Spring property
-|description
+|Description
 
 |`/config/application/cloud.aws.stack.name`
 |`cloud.aws.stack.name`
@@ -47,9 +47,9 @@ You can configure the following settings in a Spring Cloud `bootstrap.properties
 (note that relaxed property binding is applied, so you don't have to use this exact syntax):
 [cols="3*", options="header"]
 |===
-|property
-|default
-|explanation
+|Property
+|Default
+|Explanation
 
 |`aws.paramstore.prefix`
 |`/config`
@@ -105,9 +105,21 @@ enable it you need an additional dependency:
 </dependency>
 ----
 
-However, starting at `spring-cloud-aws` `2.3`, allows import default aws' parameterstore keys
-(`spring.config.import=aws-parameterstore:`) or individual keys
-(`spring.config.import=aws-parameterstore:config-key;other-config-key`)
+However, starting at `spring-cloud-aws` `2.3`, allows import default aws parameterstore keys
+[cols="2*", options="header"]
+|===
+|Property
+|Description
+
+|`spring.config.import=aws-parameterstore:`
+|Importing parameters based on spring.application.name property value for each active profile
+
+|`spring.config.import=aws-parameterstore:config-key;other-config-key`
+|Importing parameters by individual keys
+
+|`spring.config.import=optional:aws-parameterstore:config-key;other-config-key`
+|With `optional` application will start even if there is no parameter found for specified parameter.
+|===
 
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
