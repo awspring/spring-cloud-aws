@@ -16,7 +16,7 @@ Once you don't need the infrastructure anymore, it can be destroyed by calling:
 * `cdk destroy`.
 
 You will need following policies to run cdk and Sample app:
-
+(Ideally this should be two different policies. One just for ssm and another for cloudFormations. For sake of sample and simplicity we will use one.)
 * `{
       "Version": "2012-10-17",
       "Statement": [
@@ -35,7 +35,7 @@ You will need following policies to run cdk and Sample app:
                   "cloudformation:ExecuteChangeSet",
                   "cloudformation:DescribeStacks"
               ],
-              "Resource": "yourArn"
+              "Resource": "*"
           }
       ]
   }`
