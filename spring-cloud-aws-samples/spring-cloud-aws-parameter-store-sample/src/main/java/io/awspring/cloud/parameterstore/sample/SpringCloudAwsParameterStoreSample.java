@@ -37,7 +37,7 @@ public class SpringCloudAwsParameterStoreSample {
 	@Bean
 	ApplicationRunner applicationRunner(@Value("${.message}") String message) {
 		return args -> {
-			LOGGER.info("`password` loaded from the AWS Parameter store: {}", message);
+			LOGGER.info("`message` loaded from the AWS Parameter store: {}", message);
 		};
 	}
 
