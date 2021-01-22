@@ -31,27 +31,28 @@ import org.springframework.messaging.support.MessageBuilder;
 @SpringBootApplication
 public class SpringSNSSample {
 
-		private final NotificationMessagingTemplate notificationMessagingTemplate;
+	private final NotificationMessagingTemplate notificationMessagingTemplate;
 
-		@Autowired
-		public SpringSNSSample(AmazonSNS amazonSns) {
-				this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-		}
+	@Autowired
+	public SpringSNSSample(AmazonSNS amazonSns) {
+		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+	}
 
-		private static final Logger LOGGER = LoggerFactory.getLogger(SpringSNSSample.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSNSSample.class);
 
-		public static void main(String[] args) {
-				SpringApplication.run(SpringSNSSample.class, args);
-		}
+	public static void main(String[] args) {
+		SpringApplication.run(SpringSNSSample.class, args);
+	}
 
-		@EventListener(ApplicationReadyEvent.class)
-		public void sendMessage() {
-				this.notificationMessagingTemplate.send("snsSpring",
-						MessageBuilder.withPayload("Spring cloud Aws SNS sample!").build());
-		}
+	@EventListener(ApplicationReadyEvent.class)
+	public void sendMessage() {
+		this.notificationMessagingTemplate.send("snsSpring",
+				MessageBuilder.withPayload("Spring cloud Aws SNS sample!").build());
+	}
 
-		@SqsListener("InfrastractureStack-spring-aws")
-		private void listenToMessage(String message) {
-				LOGGER.info("This is message you want to see: {}", message);
-		}
+	@SqsListener("InfrastractureStack-spring-aws")
+	private void listenToMessage(String message) {
+		LOGGER.info("This is message you want to see: {}", message);
+	}
+
 }
