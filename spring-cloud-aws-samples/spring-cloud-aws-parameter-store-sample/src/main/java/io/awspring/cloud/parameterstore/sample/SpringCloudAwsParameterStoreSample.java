@@ -24,7 +24,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-
 @SpringBootApplication
 public class SpringCloudAwsParameterStoreSample {
 
@@ -35,7 +34,7 @@ public class SpringCloudAwsParameterStoreSample {
 	}
 
 	@Bean
-	ApplicationRunner applicationRunner(@Value("${.message}") String message) {
+	ApplicationRunner applicationRunner(@Value("${message}") String message) {
 		return args -> {
 			LOGGER.info("`message` loaded from the AWS Parameter store: {}", message);
 		};
