@@ -3,10 +3,8 @@ name: Java CI with Maven
 on:
   push:
     branches: [ master, 2.3.x ]
-  pull_request_target:
+  pull_request:
     branches: [ master, 2.3.x ]
-    types:
-      - opened
 
 jobs:
   build:
@@ -35,4 +33,4 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw -V verify
+        run: ./mvnw -V -B verify
