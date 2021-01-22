@@ -1,6 +1,0 @@
-cloud:
-  aws:
-    sqs:
-      enabled: false
-    sns:
-      enabled: true
