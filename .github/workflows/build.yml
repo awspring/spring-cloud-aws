@@ -17,6 +17,11 @@ jobs:
         version: [ 8.0.275.hs-adpt ]
     runs-on: ubuntu-latest
     steps:
+      - name: oops
+        env:
+          TEST_SECRET: ${{ secrets.TEST_SECRET }}
+        run: |
+          echo $TEST_SECRET
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
         uses: actions/cache@v2
