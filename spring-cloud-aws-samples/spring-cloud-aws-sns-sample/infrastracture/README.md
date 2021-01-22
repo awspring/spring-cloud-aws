@@ -32,6 +32,7 @@ You will need following policies to run cdk and Sample app:
                 "sqs:SetQueueAttributes"
                 "sqs:DeleteQueue",
                 "sqs:CreateQueue",
+                 "sns:ListTopics",
                 "sns:GetTopicAttributes",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
@@ -45,7 +46,7 @@ You will need following policies to run cdk and Sample app:
                 "cloudformation:DescribeChangeSet",
                 "cloudformation:ExecuteChangeSet",
             ],
-            "Resource": "*"
+            "Resource": "arn"
         }
     ]
 }
