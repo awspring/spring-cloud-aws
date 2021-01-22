@@ -3,13 +3,14 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
-		<artifactId>spring-cloud-aws</artifactId>
+		<artifactId>spring-cloud-aws-samples</artifactId>
 		<groupId>io.awspring.cloud</groupId>
 		<version>2.3.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-		<artifactId>spring-cloud-aws-parameter-store-sample</artifactId>
+	<artifactId>spring-cloud-aws-parameter-store-sample</artifactId>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
