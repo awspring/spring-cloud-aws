@@ -7,7 +7,6 @@ on:
     branches: [ master, 2.3.x ]
     types:
       - opened
-      - synchronize
 
 jobs:
   build:
@@ -17,17 +16,12 @@ jobs:
         version: [ 8.0.275.hs-adpt ]
     runs-on: ubuntu-latest
     steps:
-      - name: oops
-        env:
-          TEST_SECRET: ${{ secrets.TEST_SECRET }}
-        run: |
-          echo $TEST_SECRET
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-x-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Download ${{ matrix.version }}
         uses: sdkman/sdkman-action@master
