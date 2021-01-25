@@ -36,15 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AwsSecretsManagerPropertiesTest {
 
-	@Test
-	void validationSucceeds() {
-		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec")
-				.withDefaultContext("app").withProfileSeparator("_").build();
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-		assertThat(errors.getAllErrors()).isEmpty();
-	}
-
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
@@ -56,28 +47,24 @@ class AwsSecretsManagerPropertiesTest {
 		assertThat(errors.getFieldError(field).getCode()).isEqualTo(errorCode);
 	}
 
-	@Test
-	void acceptsForwardSlashAsProfileSeparator() {
-		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
-		properties.setProfileSeparator("/");
-
+	@ParameterizedTest
+	@MethodSource("validProperties")
+	void validationSucceeds(AwsSecretsManagerProperties properties) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
 		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+		assertThat(errors.getAllErrors()).isEmpty();
 	}
 
-	@Test
-	void acceptsBackslashAsProfileSeparator() {
-		AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
-		properties.setProfileSeparator("\\");
-
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+	private static Stream<Arguments> validProperties() {
+		return Stream.of(
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
+						.withProfileSeparator("\\").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
+						.withProfileSeparator("/").build()));
 	}
 
 	private static Stream<Arguments> invalidProperties() {
