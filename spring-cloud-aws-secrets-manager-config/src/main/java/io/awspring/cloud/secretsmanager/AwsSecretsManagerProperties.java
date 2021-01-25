@@ -30,6 +30,7 @@ import org.springframework.validation.Validator;
  *
  * @author Fabio Maia
  * @author Matej Nedic
+ * @author Hari Ohm Prasath
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX)
@@ -43,7 +44,7 @@ public class AwsSecretsManagerProperties implements Validator {
 	/**
 	 * Pattern used for prefix validation.
 	 */
-	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/[a-zA-Z0-9.\\-_]+)*");
+	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/)?([a-zA-Z0-9.\\-_]+)*");
 
 	/**
 	 * Pattern used for profileSeparator validation.
