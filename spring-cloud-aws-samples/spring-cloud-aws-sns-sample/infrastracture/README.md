@@ -1,5 +1,9 @@
 # Spring Cloud AWS SNS Sample App Infrastructure
 
+This sample shows sending SNS messages receiving them with SQSListener and receiving them with NotificationMapping. 
+
+---
+
 Infrastructure code to run **Spring Cloud AWS SNS Sample App** based on [AWS CDK](https://aws.amazon.com/cdk/)
 
 ## How to install
@@ -17,7 +21,7 @@ Once you don't need the infrastructure anymore, it can be destroyed by calling:
 
 You will need following policies to run cdk and Sample app:
 (Ideally this should be two different policies. One just for SNS and another for cloudFormations. For sake of sample and simplicity we will use one.)
-
+---
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -50,3 +54,4 @@ You will need following policies to run cdk and Sample app:
         }
     ]
 }
+---
