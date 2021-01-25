@@ -8,7 +8,7 @@ export class InfrastractureStack extends cdk.Stack {
     super(scope, id, props);
 
     const topic = new sns.Topic(this, 'snsSpring', {
-      displayName: 'Spring cloud AWS SNS samplenpm i @aws-cdk/aws-sns',
+      displayName: 'Spring cloud AWS SNS sample',
       topicName: 'snsSpring',
     });
 
