@@ -5,13 +5,13 @@ Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
 
-= Spring Cloud for Amazon Web Services
+= 🍃 Spring Cloud for Amazon Web Services
 
 Spring Cloud AWS, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
 
-➡️ http://awspring.io/[Official Website]
+* http://awspring.io/[Official Website]
 
-➡️ https://docs.awspring.io/spring-cloud-aws/docs/2.3.0-RC1/reference/html/index.html[Reference Guide]
+* https://docs.awspring.io/spring-cloud-aws/docs/2.3.0-RC1/reference/html/index.html[Reference Guide]
 
 = Checking out and building
 
@@ -37,6 +37,17 @@ build.
 -----------
 ./mvnw package -Pdocs
 -----------
+
+= Getting in touch
+
+* https://github.com/awspring/spring-cloud-aws/discussions[Discussions on Github] - the best way to discuss anything Spring Cloud AWS related
+* https://gitter.im/spring-cloud/spring-cloud-aws[Spring Cloud AWS channel on Gitter]
+
+Or reach out directly to individual team members:
+
+* Maciej Walkowiak (https://twitter.com/maciejwalkowiak[Twitter]
+* Eddú Meléndez (https://twitter.com/EdduMelendez[Twitter]
+* Matej Nedic (https://twitter.com/MatejNedic1[Twitter])
 
 = Using IntelliJ IDEA
 
@@ -100,17 +111,6 @@ for the tests run, you have to create the stack manually using the
 template found in /spring-cloud-aws-integration-test/src/test/resources.
 You will need to create the stack with the name "IntegrationTestStack"
 to ensure that the integration tests will re-use the stack.
-
-= Getting in touch
-
-* https://github.com/awspring/spring-cloud-aws/discussions[Discussions on Github] - the best way to discuss anything Spring Cloud AWS related
-* https://gitter.im/spring-cloud/spring-cloud-aws[Spring Cloud AWS channel on Gitter]
-
-Or reach out directly to individual team members:
-
-* Maciej Walkowiak (https://twitter.com/maciejwalkowiak[Twitter]
-* Eddú Meléndez (https://twitter.com/EdduMelendez[Twitter]
-* Matej Nedic (https://twitter.com/MatejNedic1[Twitter])
 
 == Contributing
 
