@@ -7,50 +7,39 @@ Edit the files in the src/main/asciidoc/ directory instead.
 
 = Spring Cloud for Amazon Web Services
 
-Spring Cloud for Amazon Web Services, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
+Spring Cloud AWS, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
+
+➡️ http://awspring.io/[Official Website]
+
+➡️ https://docs.awspring.io/spring-cloud-aws/docs/2.3.0-RC1/reference/html/index.html[Reference Guide]
 
 = Checking out and building
+
 To check out the project and build it from source, do the following:
 
 --------------------------------------------------------------
-git clone https://github.com/spring-cloud/spring-cloud-aws.git
+git clone https://github.com/awspring/spring-cloud-aws.git
 cd spring-cloud-aws
-mvn package
+./mvnw package
 --------------------------------------------------------------
-
-If you encounter out of memory errors during the build, increase
-available heap and permgen for Maven:
-
--------------------------------------------
-MAVEN_OPTS='-XX:MaxPermSize=258m -Xmx1024m'
--------------------------------------------
 
 To build and install jars into your local Maven cache:
 
 -----------
-mvn install
+./mvnw install
 -----------
 
 = Building documentation
-Documentation can be built by activating the `docs`profile in the maven
-build. If there is an ruby error like
 
---------------------------------------------------------------
-LoadError: no such file to load -- asciidoctor
---------------------------------------------------------------
+Documentation can be built by activating the `docs` profile in the maven
+build.
 
-then the user must install the _asciidoctor_ gem and set the environment
-variable `GEM_HOME`to the ruby gem folder. For example:
-
--------------------------------------------------------------
-  # Get gem info
-  gem environment
-
-  export GEM_HOME=<PATH FOR GEM ENVIRONMENT>
-
--------------------------------------------------------------
+-----------
+./mvnw package -Pdocs
+-----------
 
 = Using IntelliJ IDEA
+
 Spring Cloud AWS development is done with
 https://www.jetbrains.com/idea/[IntelliJ IDEA]. In order to create all
 https://www.jetbrains.com/idea/[IntelliJ IDEA] project files, you have to
@@ -99,12 +88,13 @@ after executing the tests (either successful or failed) to ensure that
 there are no unnecessary costs.
 
 = Costs of integration tests
+
 The costs for one integration test run should not be more than 0.40 $
 per hour (excl. VAT).
 
 = Developing using Amazon Web Services
 
-During development it might be time-consuming to run the integration
+During the development, it might be time-consuming to run the integration
 tests regularly. In order to create a stack only once, and reuse them
 for the tests run, you have to create the stack manually using the
 template found in /spring-cloud-aws-integration-test/src/test/resources.
@@ -113,15 +103,14 @@ to ensure that the integration tests will re-use the stack.
 
 = Getting in touch
 
-Spring Cloud Team on https://twitter.com/springcentral[Twitter]
+* https://github.com/awspring/spring-cloud-aws/discussions[Discussions on Github] - the best way to discuss anything Spring Cloud AWS related
+* https://gitter.im/spring-cloud/spring-cloud-aws[Spring Cloud AWS channel on Gitter]
 
-Individual team members can be found on different social media channels
+Or reach out directly to individual team members:
 
-* Agim Emruli (https://twitter.com/aemruli[Twitter] /
-https://de.linkedin.com/in/agimemruli[LinkedIn])
-* Alain Sahli (https://twitter.com/sahlialain[Twitter] /
-https://ch.linkedin.com/in/asahli[LinkedIn])
-* Christian Stettler (https://twitter.com/chrisstettler[Twitter])
+* Maciej Walkowiak (https://twitter.com/maciejwalkowiak[Twitter]
+* Eddú Meléndez (https://twitter.com/EdduMelendez[Twitter]
+* Matej Nedic (https://twitter.com/MatejNedic1[Twitter])
 
 == Contributing
 
