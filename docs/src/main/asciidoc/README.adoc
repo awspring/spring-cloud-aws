@@ -1,10 +1,10 @@
-= Spring Cloud for Amazon Web Services
+= 🍃 Spring Cloud for Amazon Web Services
 
 Spring Cloud AWS, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
 
-➡️  http://awspring.io/[Official Website]
+* http://awspring.io/[Official Website]
 
-➡️  https://docs.awspring.io/spring-cloud-aws/docs/2.3.0-RC1/reference/html/index.html[Reference Guide]
+* https://docs.awspring.io/spring-cloud-aws/docs/2.3.0-RC1/reference/html/index.html[Reference Guide]
 
 = Checking out and building
 
