@@ -326,7 +326,7 @@ Spring Cloud AWS provides the following properties to configure the credentials 
 ===== Configuring region
 Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
 Boot configuration files. The region can be automatically detected using https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/DefaultAwsRegionProviderChain.html[DefaultAwsRegionProviderChain] or explicitly configured (e.g. in case of local tests
-against the AWS cloud).
+against the AWS cloud). Each integration can now be configured to have a specific region. If region is specified this way it takes priority over default or static region.
 
 The properties to configure the region are shown below
 
@@ -341,7 +341,28 @@ The properties to configure the region are shown below
 |Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
 eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
 configured with own region meta data
+
+|cloud.aws.sqs.region
+|eu-west-1
+|Configures a region that SQS integration will use.
 |===
+
+===== Enabling integrations
+Each integration can be enable or disable autoconfiguration. By default all integrations are enabled beside ContextInstanceDataAutoConfiguration and CloudFormation.
+
+The properties to configure the enabling are shown below
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.sqs.enabled
+|false
+|This disables SQS integration autoconfiguration.
+|===
+
 
 ===== Configuring endpoints
 For each integrated AWS service you can configure Spring Cloud AWS to use a custom endpoint using configuration properties. For example:

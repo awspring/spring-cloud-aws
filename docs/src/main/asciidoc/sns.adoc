@@ -1,4 +1,4 @@
-=== SNS support
+	=== SNS support
 Amazon SNS is a publish-subscribe messaging system that allows clients to publish notification to a particular topic. Other
 interested clients may subscribe using different protocols like HTTP/HTTPS, e-mail or an Amazon SQS queue to receive the messages.
 

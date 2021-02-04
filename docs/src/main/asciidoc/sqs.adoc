@@ -108,6 +108,7 @@ converts the payload `Person` using the configured `MessageConverter` and sends 
 There are two ways for receiving SQS messages, either use the `receive` methods of the `QueueMessagingTemplate` or with
 annotation-driven listener endpoints. The latter is by far the more convenient way to receive messages.
 
+
 [source,java,indent=0]
 ----
 Person person = this.queueMessagingTemplate.receiveAndConvert("queueName", Person.class);
@@ -133,8 +134,11 @@ public void queueListener(Person person) {
 }
 ----
 
+
 In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
 annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
+
+Note that SQS messages that were not deleted successfully are logged as an error.
 
 In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
 annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
