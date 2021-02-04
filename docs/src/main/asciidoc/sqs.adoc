@@ -136,8 +136,6 @@ public void queueListener(Person person) {
 In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
 annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
 
-Note that SQS messages that were not deleted successfully are logged as an error.
-
 In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
 annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
 containing all headers.
@@ -171,6 +169,7 @@ the application, a custom task executor can be set with the `task-executor` attr
 
 ===== Deletion policies
 Sqs integration supports deletion policies that are used when processing messages.
+Note that SQS messages that were not deleted successfully are logged as an error.
 
 [cols="2"]
 |===
