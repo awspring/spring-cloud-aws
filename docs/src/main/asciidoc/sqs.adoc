@@ -171,6 +171,43 @@ the application, a custom task executor can be set with the `task-executor` attr
 <aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
 ----
 
+===== Deletion policies
+Sqs integration supports deletion policies that are used when processing messages.
+
+[cols="2"]
+|===
+|	ALWAYS
+|   Always deletes message in case of success (no exception thrown) or failure (exception thrown)
+
+|	NEVER
+|   When using this policy method listening must take care of deleting messages.
+
+|	NO_REDRIVE
+| 	Deletes message if no redrive policy is defined
+
+|	ON_SUCCESS
+|   Deletes message only when successfully executed by listener method (no exception thrown)
+
+|	DEFAULT
+|   Default if not changed is set to NO_REDRIVE.
+|===
+
+Deletion policy can be specified inside of `@SqsListener`. When policy is explicitly used in `@SqsListener` it takes priority over Global deletion policy
+----
+	@SqsListener(value = "QueueName", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+----
+
+Global deletion policy which will be used by all `@SqsListener` can be set by using property auto-configuration for example like:
+
+----
+cloud:
+  aws:
+    sqs:
+      handler:
+        default-deletion-policy: ON_SUCCESS
+----
+
+
 ===== Message reply
 Message listener methods can be annotated with `@SendTo` to send their return value to another channel. The
 `SendToHandlerMethodReturnValueHandler` uses the defined messaging template set on the
