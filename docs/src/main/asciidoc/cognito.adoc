@@ -1,0 +1,34 @@
+== OAuth2 with Cognito
+
+Spring Cloud AWS Cognito integration auto-configures `DelegatingOAuth2TokenValidator` and `NimbusJwtDecoder` which are used by Spring Security for OAuth2 integration.
+
+Following configuration properties are available to configure Cognito integration:
+
+[cols="3*", options="header"]
+|===
+|property
+|default
+|description
+
+|spring.cloud.aws.security.cognito.app-client-id
+|
+|You need app client id in order to make api calls towards AWS Cognito
+
+|spring.cloud.aws.security.cognito.user-pool-id
+|
+|Id of your user pool in AWS Cognito
+
+|spring.cloud.aws.security.algorithm
+|RS256
+|Specifies which algorithm should JWTDecoder use
+
+|spring.cloud.aws.security.region
+|
+|Region where user pool is located
+
+|spring.cloud.aws.security.enable
+|true
+|Enables Cognito integration
+
+|===
+

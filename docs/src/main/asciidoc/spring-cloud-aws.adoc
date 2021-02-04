@@ -341,7 +341,38 @@ The properties to configure the region are shown below
 |Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
 eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
 configured with own region meta data
+
 |===
+
+Each integration can now be configured to have a specific region. If region is specified this way it takes priority over default or static region. For example:
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.sqs.region
+|eu-west-1
+|Configures a region that SQS integration will use.
+
+|===
+
+===== Enabling integrations
+
+Each integration can be enabled or disabled through a property. By default, all integrations are enabled except `ContextInstanceDataAutoConfiguration`:
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|cloud.aws.sqs.enabled
+|false
+|Disables SQS integration autoconfiguration.
+|===
+
 
 ===== Configuring endpoints
 For each integrated AWS service you can configure Spring Cloud AWS to use a custom endpoint using configuration properties. For example:
@@ -722,6 +753,8 @@ include::ses.adoc[]
 include::s3.adoc[]
 
 include::cloudwatch.adoc[]
+
+include::cognito.adoc[]
 
 == Configuration properties
 

@@ -104,6 +104,8 @@ Spring Cloud AWS also support the cache configuration with Java configuration cl
 the caching can be configured using the `io.awspring.cloud.cache.config.annotation.EnableElastiCache`
 annotation provided by Spring Cloud AWS. The next example shows a configuration of two cache clusters.
 
+CAUTION: Since 2.3.0 `@EnableElastiCache` annotation has been deprecated. We suggest using Spring Boot auto-configuration instead.
+
 [source,java,indent=0]
 ----
 

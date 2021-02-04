@@ -113,6 +113,8 @@ Spring Cloud AWS also supports the configuration of the data source within an `@
 source. Multiple ones can be used to configure more then one data source. Each annotation will generate exactly one
 data source bean.
 
+CAUTION: Since 2.3.0 `@EnableRdsInstance` annotation has been deprecated. We suggest using configuration Spring Boot auto-configuration instead.
+
 The class below shows a data source configuration inside a configuration class
 
 [source,java,indent=0]
