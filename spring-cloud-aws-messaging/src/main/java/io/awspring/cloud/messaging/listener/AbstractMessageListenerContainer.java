@@ -331,9 +331,10 @@ abstract class AbstractMessageListenerContainer
 				new GetQueueAttributesRequest(destinationUrl).withAttributeNames(QueueAttributeName.RedrivePolicy));
 		boolean hasRedrivePolicy = queueAttributes.getAttributes()
 				.containsKey(QueueAttributeName.RedrivePolicy.toString());
+		boolean isFifo = queue.endsWith(".fifo");
 
 		return new QueueAttributes(hasRedrivePolicy, deletionPolicy, destinationUrl, getMaxNumberOfMessages(),
-				getVisibilityTimeout(), getWaitTimeOut());
+				getVisibilityTimeout(), getWaitTimeOut(), isFifo);
 	}
 
 	@Override
@@ -384,14 +385,17 @@ abstract class AbstractMessageListenerContainer
 
 		private final Integer waitTimeOut;
 
+		private final boolean fifo;
+
 		public QueueAttributes(boolean hasRedrivePolicy, SqsMessageDeletionPolicy deletionPolicy, String destinationUrl,
-				Integer maxNumberOfMessages, Integer visibilityTimeout, Integer waitTimeOut) {
+				Integer maxNumberOfMessages, Integer visibilityTimeout, Integer waitTimeOut, boolean fifo) {
 			this.hasRedrivePolicy = hasRedrivePolicy;
 			this.deletionPolicy = deletionPolicy;
 			this.destinationUrl = destinationUrl;
 			this.maxNumberOfMessages = maxNumberOfMessages;
 			this.visibilityTimeout = visibilityTimeout;
 			this.waitTimeOut = waitTimeOut;
+			this.fifo = fifo;
 		}
 
 		public boolean hasRedrivePolicy() {
@@ -422,6 +426,10 @@ abstract class AbstractMessageListenerContainer
 
 		public SqsMessageDeletionPolicy getDeletionPolicy() {
 			return this.deletionPolicy;
+		}
+
+		boolean isFifo() {
+			return fifo;
 		}
 
 	}
