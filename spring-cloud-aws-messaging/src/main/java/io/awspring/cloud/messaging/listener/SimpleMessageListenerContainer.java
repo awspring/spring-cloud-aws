@@ -16,7 +16,9 @@
 
 package io.awspring.cloud.messaging.listener;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -24,9 +26,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageSystemAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -329,12 +333,16 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				try {
 					ReceiveMessageResult receiveMessageResult = getAmazonSqs()
 							.receiveMessage(this.queueAttributes.getReceiveMessageRequest());
-					CountDownLatch messageBatchLatch = new CountDownLatch(receiveMessageResult.getMessages().size());
-					for (Message message : receiveMessageResult.getMessages()) {
+
+					final List<MessageGroup> messageGroups = queueAttributes.isFifo()
+							? groupByMessageGroupId(receiveMessageResult) : groupByMessage(receiveMessageResult);
+					CountDownLatch messageBatchLatch = new CountDownLatch(messageGroups.size());
+					for (MessageGroup messageGroup : messageGroups) {
 						if (isQueueRunning(this.logicalQueueName)) {
-							MessageExecutor messageExecutor = new MessageExecutor(this.logicalQueueName, message,
-									this.queueAttributes);
-							getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageExecutor));
+							MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
+									messageGroup, this.queueAttributes);
+							getTaskExecutor()
+									.execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
 						}
 						else {
 							messageBatchLatch.countDown();
@@ -363,11 +371,40 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			SimpleMessageListenerContainer.this.scheduledFutureByQueue.remove(this.logicalQueueName);
 		}
 
+		private List<MessageGroup> groupByMessageGroupId(final ReceiveMessageResult receiveMessageResult) {
+			return receiveMessageResult.getMessages().stream()
+					.collect(Collectors.groupingBy(message -> message.getMessageAttributes()
+							.get(MessageSystemAttributeName.MessageGroupId.name())))
+					.values().stream().map(MessageGroup::new).collect(Collectors.toList());
+		}
+
+		private List<MessageGroup> groupByMessage(final ReceiveMessageResult receiveMessageResult) {
+			return receiveMessageResult.getMessages().stream().map(MessageGroup::new).collect(Collectors.toList());
+		}
+
 	}
 
-	private final class MessageExecutor implements Runnable {
+	private static final class MessageGroup {
 
-		private final Message message;
+		private final List<Message> messages;
+
+		MessageGroup(final Message message) {
+			this.messages = Collections.singletonList(message);
+		}
+
+		MessageGroup(final List<Message> messages) {
+			this.messages = messages;
+		}
+
+		public List<Message> getMessages() {
+			return this.messages;
+		}
+
+	}
+
+	private final class MessageGroupExecutor implements Runnable {
+
+		private final MessageGroup messageGroup;
 
 		private final String logicalQueueName;
 
@@ -377,9 +414,10 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private final SqsMessageDeletionPolicy deletionPolicy;
 
-		private MessageExecutor(String logicalQueueName, Message message, QueueAttributes queueAttributes) {
+		private MessageGroupExecutor(String logicalQueueName, MessageGroup messageGroup,
+				QueueAttributes queueAttributes) {
 			this.logicalQueueName = logicalQueueName;
-			this.message = message;
+			this.messageGroup = messageGroup;
 			this.queueUrl = queueAttributes.getReceiveMessageRequest().getQueueUrl();
 			this.hasRedrivePolicy = queueAttributes.hasRedrivePolicy();
 			this.deletionPolicy = queueAttributes.getDeletionPolicy();
@@ -387,14 +425,16 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		@Override
 		public void run() {
-			String receiptHandle = this.message.getReceiptHandle();
-			org.springframework.messaging.Message<String> queueMessage = getMessageForExecution();
-			try {
-				executeMessage(queueMessage);
-				applyDeletionPolicyOnSuccess(receiptHandle);
-			}
-			catch (MessagingException messagingException) {
-				applyDeletionPolicyOnError(receiptHandle);
+			for (Message message : this.messageGroup.getMessages()) {
+				String receiptHandle = message.getReceiptHandle();
+				org.springframework.messaging.Message<String> queueMessage = getMessageForExecution(message);
+				try {
+					executeMessage(queueMessage);
+					applyDeletionPolicyOnSuccess(receiptHandle);
+				}
+				catch (MessagingException messagingException) {
+					applyDeletionPolicyOnError(receiptHandle);
+				}
 			}
 		}
 
@@ -418,20 +458,19 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					new DeleteMessageHandler(receiptHandle));
 		}
 
-		private org.springframework.messaging.Message<String> getMessageForExecution() {
+		private org.springframework.messaging.Message<String> getMessageForExecution(final Message message) {
 			HashMap<String, Object> additionalHeaders = new HashMap<>();
 			additionalHeaders.put(QueueMessageHandler.LOGICAL_RESOURCE_ID, this.logicalQueueName);
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.NEVER) {
-				String receiptHandle = this.message.getReceiptHandle();
+				String receiptHandle = message.getReceiptHandle();
 				QueueMessageAcknowledgment acknowledgment = new QueueMessageAcknowledgment(
 						SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, receiptHandle);
 				additionalHeaders.put(QueueMessageHandler.ACKNOWLEDGMENT, acknowledgment);
 			}
-			additionalHeaders.put(QueueMessageHandler.VISIBILITY,
-					new QueueMessageVisibility(SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl,
-							this.message.getReceiptHandle()));
+			additionalHeaders.put(QueueMessageHandler.VISIBILITY, new QueueMessageVisibility(
+					SimpleMessageListenerContainer.this.getAmazonSqs(), this.queueUrl, message.getReceiptHandle()));
 
-			return createMessage(this.message, additionalHeaders);
+			return createMessage(message, additionalHeaders);
 		}
 
 	}
