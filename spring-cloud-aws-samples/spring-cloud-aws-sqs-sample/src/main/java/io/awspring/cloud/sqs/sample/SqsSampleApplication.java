@@ -48,9 +48,8 @@ public class SqsSampleApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
 		this.queueMessagingTemplate.send("InfrastructureStack-spring-aws",
-				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
+			MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
 		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo", new Person("Joe", "Doe"));
-		listenToPerson();
 	}
 
 	@SqsListener("InfrastructureStack-spring-aws")
@@ -58,14 +57,9 @@ public class SqsSampleApplication {
 		LOGGER.info("This is message you want to see: {}", message);
 	}
 
-	/*
-	 * This can be done with SqsListener as well.
-	 *
-	 * @SqsListener("InfrastructureStack-aws-pojo") private void listenToPerson(Person
-	 * person)
-	 */
-	private void listenToPerson() {
-		Person person = queueMessagingTemplate.receiveAndConvert("InfrastructureStack-aws-pojo", Person.class);
+
+	@SqsListener("InfrastructureStack-aws-pojo")
+	private void listenToPerson(Person person) {
 		LOGGER.info(person.toString());
 	}
 
