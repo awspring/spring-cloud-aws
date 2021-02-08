@@ -1,6 +1,5 @@
 # Ignore folders
 target/
-bin/
 /config
 /.idea
 /out
