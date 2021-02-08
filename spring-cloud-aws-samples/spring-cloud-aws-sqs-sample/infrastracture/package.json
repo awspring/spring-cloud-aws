@@ -2,7 +2,7 @@
   "name": "infrastracture",
   "version": "0.1.0",
   "bin": {
-    "infrastracture": "bin/infrastracture.js"
+    "infrastracture": "bin/infrastructure.js"
   },
   "scripts": {
     "build": "tsc",
