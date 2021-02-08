@@ -37,6 +37,11 @@ public final class MessageAttributeDataTypes {
 	 */
 	public static final String STRING = "String";
 
+	/**
+	 * String.Array message attribute data type.
+	 */
+	public static final String STRING_ARRAY = "String.Array";
+
 	private MessageAttributeDataTypes() {
 		// Avoid instantiation
 	}
