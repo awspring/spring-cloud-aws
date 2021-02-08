@@ -16,7 +16,6 @@
 
 package io.awspring.cloud.sqs.sample;
 
-
 public class Person {
 
 	private String firstName;
