@@ -71,8 +71,8 @@
 		<module>spring-cloud-starter-aws-ses</module>
 		<module>spring-cloud-aws-integration-test</module>
 		<module>docs</module>
-        <module>spring-cloud-aws-samples</module>
-	</modules>
+		<module>spring-cloud-aws-samples</module>
+		</modules>
 
 	<dependencyManagement>
 		<dependencies>

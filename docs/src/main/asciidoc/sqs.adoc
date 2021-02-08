@@ -286,6 +286,9 @@ Following IAM permissions are required by Spring Cloud AWS:
 | To use sqsListener with SimpleMessageListenerContainerFactory you will need to add as well
 | `sqs:GetQueueAttributes`
 
+| To use SqsListener with Sqs name instead of ARN you will need
+| `sqs:GetQueueUrl`
+
 |===
 
 Sample IAM policy granting access to SQS:
@@ -301,7 +304,8 @@ Sample IAM policy granting access to SQS:
                 "sqs:DeleteMessage",
                 "sqs:ReceiveMessage",
                 "sqs:SendMessage",
-                "sqs:GetQueueAttributes"
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl"
             ],
             "Resource": "yourARN"
         }
