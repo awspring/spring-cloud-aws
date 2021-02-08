@@ -81,15 +81,20 @@ public class SnsAutoConfiguration {
 		return clientFactoryBean;
 	}
 
-	@Bean
+	@Configuration
 	@ConditionalOnClass(WebMvcConfigurer.class)
-	public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-				resolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
-			}
-		};
+	static class SnsWebConfiguration {
+
+		@Bean
+		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
+			return new WebMvcConfigurer() {
+				@Override
+				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+					resolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
+				}
+			};
+		}
+
 	}
 
 }
