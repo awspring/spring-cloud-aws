@@ -16,7 +16,6 @@
 
 package io.awspring.cloud.sqs.sample;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Person {
 
@@ -24,7 +23,10 @@ public class Person {
 
 	private String lastName;
 
-	public Person(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName) {
+	public Person() {
+	}
+
+	public Person(String firstName, String lastName) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 	}

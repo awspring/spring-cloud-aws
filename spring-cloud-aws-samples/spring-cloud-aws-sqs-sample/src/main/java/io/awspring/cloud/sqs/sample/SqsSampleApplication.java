@@ -61,7 +61,7 @@ public class SqsSampleApplication {
 	/*
 	 * This can be done with SqsListener as well.
 	 *
-	 * @SqsListener("InfrastractureStack-aws-pojo") private void listenToPerson(Person
+	 * @SqsListener("InfrastructureStack-aws-pojo") private void listenToPerson(Person
 	 * person)
 	 */
 	private void listenToPerson() {
