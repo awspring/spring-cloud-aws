@@ -1,6 +1,0 @@
-cloud:
-  aws:
-    region:
-      static: eu-central-1
-    sqs:
-      region: eu-central-1
