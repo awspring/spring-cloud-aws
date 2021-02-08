@@ -11,5 +11,6 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-cloud-aws-parameter-store-sample</module>
+		<module>spring-cloud-aws-secrets-manager-sample</module>
 	</modules>
 </project>
