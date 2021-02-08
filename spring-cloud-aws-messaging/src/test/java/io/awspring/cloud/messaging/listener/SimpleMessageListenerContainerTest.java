@@ -91,12 +91,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * @author Mete Alpaslan Katırcıoğlu
  * @since 1.0
  */
-/**
- * @author Agim Emruli
- * @author Alain Sahli
- * @author Mete Alpaslan Katırcıoğlu
- * @since 1.0
- */
 class SimpleMessageListenerContainerTest {
 
 	@Captor
