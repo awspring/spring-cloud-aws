@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.sqs.sample;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -20,6 +21,7 @@ import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -46,7 +48,7 @@ public class SqsSampleApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
 		this.queueMessagingTemplate.send("InfrastractureStack-spring-aws",
-			MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
+				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
 		this.queueMessagingTemplate.convertAndSend("InfrastractureStack-aws-pojo", new Person("Joe", "Doe"));
 		listenToPerson();
 	}
