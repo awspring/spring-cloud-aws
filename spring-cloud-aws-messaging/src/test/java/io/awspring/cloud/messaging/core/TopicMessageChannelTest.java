@@ -19,6 +19,8 @@ package io.awspring.cloud.messaging.core;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -217,6 +219,29 @@ class TopicMessageChannelTest {
 		assertThat(sent).isTrue();
 		assertThat(sendMessageRequestArgumentCaptor.getValue().getMessageAttributes().get(MessageHeaders.ID)
 				.getStringValue()).isEqualTo(uuid.toString());
+	}
+
+	@Test
+	public void sendMessage_withStringArrayMessageHeader_shouldBeSentAsTopicMessageAttribute() {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+		when(amazonSns.publish(publishRequestArgumentCaptor.capture())).thenReturn(new PublishResult());
+
+		List<String> headerValue = Arrays.asList("List", "\"of\"", "header", "values");
+		String headerName = "MyHeader";
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(headerName, headerValue).build();
+		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertThat(sent).isTrue();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getStringValue())
+				.isEqualTo("[\"List\", \"\\\"of\\\"\", \"header\", \"values\"]");
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes().get(headerName).getDataType())
+				.isEqualTo(MessageAttributeDataTypes.STRING_ARRAY);
 	}
 
 }
