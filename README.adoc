@@ -5,7 +5,7 @@ Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
 
-= ðŸ�ƒ Spring Cloud for Amazon Web Services
+= 🍃 Spring Cloud for Amazon Web Services
 
 Spring Cloud AWS, part of the Spring Cloud umbrella project, eases the integration with hosted Amazon Web Services. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs, such as the messaging or caching API. Developers can build their application around the hosted services without having to care about infrastructure or maintenance.
 
@@ -46,7 +46,7 @@ build.
 Or reach out directly to individual team members:
 
 * Maciej Walkowiak (https://twitter.com/maciejwalkowiak[Twitter]
-* EddÃº MelÃ©ndez (https://twitter.com/EdduMelendez[Twitter]
+* Eddú Meléndez (https://twitter.com/EdduMelendez[Twitter]
 * Matej Nedic (https://twitter.com/MatejNedic1[Twitter])
 
 = Using IntelliJ IDEA
