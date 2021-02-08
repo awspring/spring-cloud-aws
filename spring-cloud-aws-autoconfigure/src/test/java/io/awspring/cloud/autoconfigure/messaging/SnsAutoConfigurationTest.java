@@ -31,6 +31,7 @@ import io.awspring.cloud.messaging.endpoint.NotificationStatusHandlerMethodArgum
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils.GLOBAL_CLIENT_CONFIGURATION_BEAN_NAME;
@@ -191,6 +193,14 @@ class SnsAutoConfigurationTest {
 				});
 	}
 
+	@Test
+	void doesNotFailWithoutWebMvcConfigurerOnClasspath() {
+		this.contextRunner.withUserConfiguration(NoSpringMvcSnsConfiguration.class)
+				.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run((context) -> {
+					assertThat(context).hasSingleBean(AmazonSNS.class);
+				});
+	}
+
 	private NotificationStatusHandlerMethodArgumentResolver getNotificationStatusHandlerMethodArgumentResolver(
 			List<HandlerMethodArgumentResolver> resolvers) {
 		for (HandlerMethodArgumentResolver resolver : resolvers) {
@@ -205,6 +215,11 @@ class SnsAutoConfigurationTest {
 
 	@EnableWebMvc
 	protected static class MinimalSnsConfiguration {
+
+	}
+
+	@Configuration
+	protected static class NoSpringMvcSnsConfiguration {
 
 	}
 
