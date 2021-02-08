@@ -46,7 +46,7 @@ public class SqsSampleApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
 		this.queueMessagingTemplate.send("InfrastractureStack-spring-aws",
-				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
+			MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
 		this.queueMessagingTemplate.convertAndSend("InfrastractureStack-aws-pojo", new Person("Joe", "Doe"));
 		listenToPerson();
 	}
