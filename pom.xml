@@ -28,7 +28,7 @@
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>2.3.0.BUILD-SNAPSHOT</version>
+	<version>2.3.0-RC2</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 	<description>Spring Cloud AWS</description>
