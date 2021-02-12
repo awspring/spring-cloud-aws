@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.awspring.cloud</groupId>
+        <artifactId>spring-cloud-aws</artifactId>
+        <version>2.3.0-RC2</version>
+    </parent>
+
+    <artifactId>v3</artifactId>
+    <version>2.3.0-RC2</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>spring-cloud-aws-v3-core</module>
+		<module>spring-cloud-aws-v3-autoconfigure</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>2.15.80</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
