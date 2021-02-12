@@ -90,19 +90,19 @@ public class AwsCredentialsProperties {
 
 		private String path;
 
-		String getName() {
+		public String getName() {
 			return name;
 		}
 
-		void setName(String name) {
+		public void setName(String name) {
 			this.name = name;
 		}
 
-		String getPath() {
+		public String getPath() {
 			return path;
 		}
 
-		void setPath(String path) {
+		public void setPath(String path) {
 			this.path = path;
 		}
 
