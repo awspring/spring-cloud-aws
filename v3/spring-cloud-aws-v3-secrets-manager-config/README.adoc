@@ -1,0 +1,5 @@
+= AWS Secrets Manager
+
+== References
+
+https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html[AWS Secrets Manager Official Docs]

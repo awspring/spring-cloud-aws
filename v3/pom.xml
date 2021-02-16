@@ -17,14 +17,17 @@
 	<modules>
 		<module>spring-cloud-aws-v3-core</module>
 		<module>spring-cloud-aws-v3-autoconfigure</module>
+		<module>spring-cloud-aws-v3-secrets-manager-config</module>
+		<module>spring-cloud-starter-aws-v3-secrets-manager-config</module>
+		<module>spring-cloud-aws-v3-dependencies</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>software.amazon.awssdk</groupId>
-				<artifactId>bom</artifactId>
-				<version>2.15.80</version>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-v3-dependencies</artifactId>
+				<version>${project.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
