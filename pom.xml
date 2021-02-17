@@ -54,6 +54,7 @@
 	</properties>
 
 	<modules>
+		<module>v3</module>
 		<module>spring-cloud-aws-dependencies</module>
 		<module>spring-cloud-aws-core</module>
 		<module>spring-cloud-aws-context</module>
