@@ -25,7 +25,6 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import org.apache.http.client.CredentialsProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -75,7 +74,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(AWSStaticCredentialsProvider.class);
@@ -108,7 +107,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(AWSStaticCredentialsProvider.class);
@@ -144,7 +143,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(AWSStaticCredentialsProvider.class);
@@ -169,7 +168,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(2);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(AWSStaticCredentialsProvider.class);
@@ -188,7 +187,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(EC2ContainerCredentialsProviderWrapper.class);
@@ -208,7 +207,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(ProfileCredentialsProvider.class);
@@ -243,7 +242,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(1);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(ProfileCredentialsProvider.class);
@@ -265,7 +264,7 @@ class ContextCredentialsConfigurationRegistrarTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders).hasSize(3);
 		assertThat(credentialsProviders.get(0)).isInstanceOf(AWSStaticCredentialsProvider.class);

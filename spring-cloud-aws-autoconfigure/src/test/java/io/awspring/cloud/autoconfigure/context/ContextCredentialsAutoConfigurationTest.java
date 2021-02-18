@@ -27,7 +27,6 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.apache.http.client.CredentialsProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -91,7 +90,7 @@ class ContextCredentialsAutoConfigurationTest {
 					assertThat(awsCredentialsProvider.getCredentials().getAWSSecretKey()).isEqualTo("bar");
 
 					@SuppressWarnings("unchecked")
-					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+					List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
 					assertThat(credentialsProviders).hasSize(1)
 							.hasOnlyElementsOfType(AWSStaticCredentialsProvider.class);
@@ -108,7 +107,7 @@ class ContextCredentialsAutoConfigurationTest {
 					assertThat(awsCredentialsProvider).isNotNull();
 
 					@SuppressWarnings("unchecked")
-					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+					List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
 					assertThat(credentialsProviders).hasSize(1)
 							.hasOnlyElementsOfType(EC2ContainerCredentialsProviderWrapper.class);
@@ -125,7 +124,7 @@ class ContextCredentialsAutoConfigurationTest {
 					assertThat(awsCredentialsProvider).isNotNull();
 
 					@SuppressWarnings("unchecked")
-					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+					List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
 					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class);
 					assertThat(ReflectionTestUtils.getField(credentialsProviders.get(0), "profileName"))
@@ -147,7 +146,7 @@ class ContextCredentialsAutoConfigurationTest {
 					assertThat(awsCredentialsProvider).isNotNull();
 
 					@SuppressWarnings("unchecked")
-					List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+					List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 							.getField(awsCredentialsProvider, "credentialsProviders");
 					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class);
 

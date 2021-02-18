@@ -28,7 +28,6 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationUtils;
-import org.apache.http.client.CredentialsProvider;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -139,7 +138,7 @@ class ContextCredentialsBeanDefinitionParserTest {
 		assertThat(awsCredentialsProvider).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		List<CredentialsProvider> credentialsProviders = (List<CredentialsProvider>) ReflectionTestUtils
+		List<AWSCredentialsProvider> credentialsProviders = (List<AWSCredentialsProvider>) ReflectionTestUtils
 				.getField(awsCredentialsProvider, "credentialsProviders");
 		assertThat(credentialsProviders.size()).isEqualTo(1);
 		assertThat(ProfileCredentialsProvider.class.isInstance(credentialsProviders.get(0))).isTrue();
