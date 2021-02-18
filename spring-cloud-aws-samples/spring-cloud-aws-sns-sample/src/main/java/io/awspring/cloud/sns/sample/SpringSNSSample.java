@@ -51,7 +51,7 @@ public class SpringSNSSample {
 				MessageBuilder.withPayload("Spring cloud Aws SNS sample!").build());
 	}
 
-	@SqsListener("InfrastractureStack-spring-aws")
+	@SqsListener("InfrastructureStack-spring-aws")
 	private void listenToMessage(GenericMessage message) {
 		LOGGER.info("This is message you want to see: {}", message.getPayload());
 	}
