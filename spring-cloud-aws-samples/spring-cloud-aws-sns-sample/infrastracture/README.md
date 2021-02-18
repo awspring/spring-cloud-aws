@@ -4,6 +4,7 @@ This sample shows sending SNS messages receiving them with SQSListener and Notif
 To use NotificationMapping you will need to use NGROK: https://ngrok.com/docs
 Firstly you will need to start 'ngrok http 127.0.0.1:{YourPort}' after that you will need to change URL inside CDK.
 Once you changed URL inside CDK you can run CDK deploy. Subscription will be automatically sent to NGROK url.
+There is possibility subscription isn't confirmed since application is not started as of CDK deploy, so you should resend subscription from a console.
 After that you can send messages in AWS console and see logged messages and subjects inside controller.
 ---
 

@@ -40,10 +40,8 @@ public class NotificationMappingController {
 
 	@NotificationMessageMapping
 	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-		{
 			LOGGER.info("NotificationMessageMapping message is: " + message);
 			LOGGER.info("NotificationMessageMapping subject is: " + subject);
-		}
 	}
 
 	@NotificationUnsubscribeConfirmationMapping
