@@ -1,5 +1,5 @@
 {
-  "name": "infrastracture",
+  "name": "infrastructure",
   "version": "0.1.0",
   "bin": {
     "infrastracture": "bin/infrastracture.js"
@@ -14,9 +14,9 @@
     "@aws-cdk/assert": "1.86.0",
     "@types/jest": "^26.0.10",
     "@types/node": "10.17.27",
+    "aws-cdk": "^1.90.0",
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
-    "aws-cdk": "1.86.0",
     "ts-node": "^9.0.0",
     "typescript": "~3.9.7"
   },

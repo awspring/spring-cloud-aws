@@ -1,7 +1,10 @@
 # Spring Cloud AWS SNS Sample App Infrastructure
 
-This sample shows sending SNS messages receiving them with SQSListener and receiving them with NotificationMapping. 
-
+This sample shows sending SNS messages receiving them with SQSListener and NotificationMapping. 
+To use NotificationMapping you will need to use NGROK: https://ngrok.com/docs
+Firstly you will need to start 'ngrok http 127.0.0.1:{YourPort}' after that you will need to change URL inside CDK.
+Once you changed URL inside CDK you can run CDK deploy. Subscription will be automatically sent to NGROK url.
+After that you can send messages in AWS console and see logged messages and subjects inside controller.
 ---
 
 Infrastructure code to run **Spring Cloud AWS SNS Sample App** based on [AWS CDK](https://aws.amazon.com/cdk/)
