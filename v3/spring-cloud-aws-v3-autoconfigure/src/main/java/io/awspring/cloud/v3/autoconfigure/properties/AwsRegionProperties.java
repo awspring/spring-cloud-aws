@@ -42,9 +42,10 @@ public class AwsRegionProperties {
 	 */
 	private String staticRegion;
 
-	public String getStatic() {
-		return this.staticRegion;
-	}
+	/**
+	 * The AWS profile.
+	 */
+	private Profile profile;
 
 	public boolean isStatic() {
 		return StringUtils.hasText(this.staticRegion);
@@ -52,6 +53,42 @@ public class AwsRegionProperties {
 
 	public void setStatic(String staticRegion) {
 		this.staticRegion = staticRegion;
+	}
+
+	public Profile getProfile() {
+		return profile;
+	}
+
+	public void setProfile(Profile profile) {
+		this.profile = profile;
+	}
+
+	public String getStatic() {
+		return this.staticRegion;
+	}
+
+	public static class Profile {
+
+		private String name;
+
+		private String path;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getPath() {
+			return path;
+		}
+
+		public void setPath(String path) {
+			this.path = path;
+		}
+
 	}
 
 }

@@ -16,9 +16,16 @@
 
 package io.awspring.cloud.v3.autoconfigure;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 import io.awspring.cloud.v3.autoconfigure.properties.AwsRegionProperties;
 import io.awspring.cloud.v3.core.region.StaticRegionProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -31,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
  * {@link EnableAutoConfiguration} for {@link AwsRegionProvider}.
  *
  * @author Maciej Walkowiak
+ * @author Siva Katamreddy
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsRegionProperties.class)
@@ -45,11 +53,23 @@ public class RegionProviderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsRegionProvider awsRegionProvider() {
+		final List<AwsRegionProvider> providers = new ArrayList<>();
+
 		if (properties.isStatic()) {
-			return new StaticRegionProvider(properties.getStatic());
+			providers.add(new StaticRegionProvider(properties.getStatic()));
+		}
+		if (properties.getProfile() != null && properties.getProfile().getName() != null) {
+			providers.add(new AwsProfileRegionProvider(() -> properties.getProfile().getPath() != null
+					? ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION)
+							.content(Paths.get(properties.getProfile().getPath())).build()
+					: ProfileFile.defaultProfileFile(), properties.getProfile().getName()));
+		}
+
+		if (providers.isEmpty()) {
+			return DefaultAwsRegionProviderChain.builder().build();
 		}
 		else {
-			return DefaultAwsRegionProviderChain.builder().build();
+			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
 	}
 
