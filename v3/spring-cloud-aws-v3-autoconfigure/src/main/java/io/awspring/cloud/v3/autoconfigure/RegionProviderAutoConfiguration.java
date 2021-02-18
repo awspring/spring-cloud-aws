@@ -16,10 +16,15 @@
 
 package io.awspring.cloud.v3.autoconfigure;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.awspring.cloud.v3.autoconfigure.properties.AwsRegionProperties;
 import io.awspring.cloud.v3.core.region.StaticRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,12 +50,20 @@ public class RegionProviderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsRegionProvider awsRegionProvider() {
+		final List<AwsRegionProvider> providers = new ArrayList<>();
+
 		if (properties.isStatic()) {
-			return new StaticRegionProvider(properties.getStatic());
+			providers.add(new StaticRegionProvider(properties.getStatic()));
 		}
-		else {
+
+		if (properties.isInstanceProfile()) {
+			providers.add(new InstanceProfileRegionProvider());
+		}
+
+		if (providers.isEmpty()) {
 			return DefaultAwsRegionProviderChain.builder().build();
+		} else {
+			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
 	}
-
 }

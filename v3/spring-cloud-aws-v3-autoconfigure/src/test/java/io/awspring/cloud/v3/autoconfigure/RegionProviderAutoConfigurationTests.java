@@ -16,23 +16,26 @@
 
 package io.awspring.cloud.v3.autoconfigure;
 
-import io.awspring.cloud.v3.core.region.StaticRegionProvider;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RegionProviderAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class));
 
 	@Test
 	void autoDetectionConfigured_noConfigurationProvided_DefaultAwsRegionProviderChainDelegateConfigured() {
@@ -51,7 +54,7 @@ class RegionProviderAutoConfigurationTests {
 	@Test
 	void staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:eu-west-1").run((context) -> {
-			StaticRegionProvider regionProvider = context.getBean(StaticRegionProvider.class);
+			AwsRegionProvider regionProvider = context.getBean(AwsRegionProvider.class);
 			assertThat(regionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
 		});
 	}
@@ -63,6 +66,20 @@ class RegionProviderAutoConfigurationTests {
 			assertThat(regionProvider).isNotNull().isInstanceOf(CustomRegionProvider.class);
 		});
 
+	}
+
+	@Test
+	void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
+			AwsRegionProvider awsCredentialsProvider = context.getBean("awsRegionProvider",
+				AwsRegionProvider.class);
+			assertThat(awsCredentialsProvider).isNotNull();
+
+			@SuppressWarnings("unchecked")
+			List<AwsRegionProvider> credentialsProviders = (List<AwsRegionProvider>) ReflectionTestUtils
+				.getField(awsCredentialsProvider, "providers");
+			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
+		});
 	}
 
 	@Configuration

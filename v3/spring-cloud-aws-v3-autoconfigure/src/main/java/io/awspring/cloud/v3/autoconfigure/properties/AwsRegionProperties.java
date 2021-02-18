@@ -42,6 +42,11 @@ public class AwsRegionProperties {
 	 */
 	private String staticRegion;
 
+	/**
+	 * Configures an instance profile region provider with no further configuration.
+	 */
+	private boolean instanceProfile = false;
+
 	public String getStatic() {
 		return this.staticRegion;
 	}
@@ -54,4 +59,11 @@ public class AwsRegionProperties {
 		this.staticRegion = staticRegion;
 	}
 
+	public boolean isInstanceProfile() {
+		return instanceProfile;
+	}
+
+	public void setInstanceProfile(boolean instanceProfile) {
+		this.instanceProfile = instanceProfile;
+	}
 }
