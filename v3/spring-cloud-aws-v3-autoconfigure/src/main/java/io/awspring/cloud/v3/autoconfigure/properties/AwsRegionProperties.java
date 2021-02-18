@@ -66,4 +66,5 @@ public class AwsRegionProperties {
 	public void setInstanceProfile(boolean instanceProfile) {
 		this.instanceProfile = instanceProfile;
 	}
+
 }

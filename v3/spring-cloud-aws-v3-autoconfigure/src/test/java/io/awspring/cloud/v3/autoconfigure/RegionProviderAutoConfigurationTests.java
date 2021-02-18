@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RegionProviderAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class));
 
 	@Test
 	void autoDetectionConfigured_noConfigurationProvided_DefaultAwsRegionProviderChainDelegateConfigured() {
@@ -71,13 +71,12 @@ class RegionProviderAutoConfigurationTests {
 	@Test
 	void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
-			AwsRegionProvider awsCredentialsProvider = context.getBean("awsRegionProvider",
-				AwsRegionProvider.class);
+			AwsRegionProvider awsCredentialsProvider = context.getBean("awsRegionProvider", AwsRegionProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull();
 
 			@SuppressWarnings("unchecked")
 			List<AwsRegionProvider> credentialsProviders = (List<AwsRegionProvider>) ReflectionTestUtils
-				.getField(awsCredentialsProvider, "providers");
+					.getField(awsCredentialsProvider, "providers");
 			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
 		});
 	}

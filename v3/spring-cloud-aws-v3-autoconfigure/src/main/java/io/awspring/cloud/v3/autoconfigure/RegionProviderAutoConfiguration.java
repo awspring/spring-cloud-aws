@@ -62,8 +62,10 @@ public class RegionProviderAutoConfiguration {
 
 		if (providers.isEmpty()) {
 			return DefaultAwsRegionProviderChain.builder().build();
-		} else {
+		}
+		else {
 			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
 	}
+
 }
