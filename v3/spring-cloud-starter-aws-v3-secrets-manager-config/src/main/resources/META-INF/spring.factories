@@ -1,0 +1,7 @@
+# ConfigData Location Resolvers
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+io.awspring.cloud.v3.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLocationResolver
+
+# ConfigData Loaders
+org.springframework.boot.context.config.ConfigDataLoader=\
+io.awspring.cloud.v3.autoconfigure.secretsmanager.AwsSecretsManagerConfigDataLoader
