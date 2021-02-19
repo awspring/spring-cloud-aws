@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>v3</artifactId>
+		<groupId>io.awspring.cloud</groupId>
+		<version>2.3.0-RC2</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>spring-cloud-aws-v3-secrets-manager</artifactId>
+	<name>Spring Cloud AWS V3 Secrets Manager</name>
+	<description>Spring Cloud V3 AWS Secrets Manager</description>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>secretsmanager</artifactId>
+		</dependency>
+
+	</dependencies>
+</project>
