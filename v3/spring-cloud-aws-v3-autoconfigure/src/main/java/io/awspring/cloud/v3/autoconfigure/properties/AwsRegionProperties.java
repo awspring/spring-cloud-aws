@@ -47,6 +47,19 @@ public class AwsRegionProperties {
 	 */
 	private boolean instanceProfile = false;
 
+	/**
+	 * The AWS profile.
+	 */
+	private Profile profile;
+
+	public Profile getProfile() {
+		return profile;
+	}
+
+	public void setProfile(Profile profile) {
+		this.profile = profile;
+	}
+
 	public String getStatic() {
 		return this.staticRegion;
 	}
