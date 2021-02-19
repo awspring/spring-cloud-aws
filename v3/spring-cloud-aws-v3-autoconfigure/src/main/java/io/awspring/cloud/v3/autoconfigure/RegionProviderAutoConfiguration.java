@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * {@link EnableAutoConfiguration} for {@link AwsRegionProvider}.
  *
- * @author Maciej Walkowiak
+ * @author Siva Katamreddy
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsRegionProperties.class)
