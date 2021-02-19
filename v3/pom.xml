@@ -17,6 +17,8 @@
 	<modules>
 		<module>spring-cloud-aws-v3-core</module>
 		<module>spring-cloud-aws-v3-autoconfigure</module>
+		<module>spring-cloud-aws-v3-secrets-manager-config</module>
+		<module>spring-cloud-starter-aws-v3-secrets-manager-config</module>
 	</modules>
 
 	<dependencyManagement>
@@ -28,6 +30,31 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-v3-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-v3-autoconfigure</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-v3-secrets-manager-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-starter-aws-v3-secrets-manager-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 </project>
