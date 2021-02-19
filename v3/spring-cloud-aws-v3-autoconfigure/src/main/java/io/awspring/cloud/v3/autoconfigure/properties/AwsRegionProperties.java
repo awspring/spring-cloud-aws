@@ -67,28 +67,4 @@ public class AwsRegionProperties {
 		return this.staticRegion;
 	}
 
-	public static class Profile {
-
-		private String name;
-
-		private String path;
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public void setPath(String path) {
-			this.path = path;
-		}
-
-	}
-
 }
