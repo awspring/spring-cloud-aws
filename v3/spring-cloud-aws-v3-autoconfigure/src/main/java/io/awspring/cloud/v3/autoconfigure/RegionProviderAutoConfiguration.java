@@ -27,6 +27,7 @@ import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,7 +38,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * {@link EnableAutoConfiguration} for {@link AwsRegionProvider}.
  *
- * @author Maciej Walkowiak
  * @author Siva Katamreddy
  */
 @Configuration(proxyBeanMethods = false)
@@ -58,6 +58,11 @@ public class RegionProviderAutoConfiguration {
 		if (properties.isStatic()) {
 			providers.add(new StaticRegionProvider(properties.getStatic()));
 		}
+
+		if (properties.isInstanceProfile()) {
+			providers.add(new InstanceProfileRegionProvider());
+		}
+
 		if (properties.getProfile() != null && properties.getProfile().getName() != null) {
 			providers.add(new AwsProfileRegionProvider(() -> properties.getProfile().getPath() != null
 					? ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION)

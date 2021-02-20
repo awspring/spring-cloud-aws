@@ -25,6 +25,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -70,6 +71,15 @@ class RegionProviderAutoConfigurationTests {
 	}
 
 	@Test
+	void customRegionConfigured() {
+		this.contextRunner.withUserConfiguration(CustomRegionProviderConfiguration.class).run((context) -> {
+			AwsRegionProvider regionProvider = context.getBean(AwsRegionProvider.class);
+			assertThat(regionProvider).isNotNull().isInstanceOf(CustomRegionProvider.class);
+		});
+
+	}
+
+	@Test
 	void regionProvider_profileNameAndPathConfigured_profileRegionProviderConfiguredWithCustomProfile()
 			throws IOException {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.profile.name:customProfile",
@@ -91,12 +101,16 @@ class RegionProviderAutoConfigurationTests {
 	}
 
 	@Test
-	void customRegionConfigured() {
-		this.contextRunner.withUserConfiguration(CustomRegionProviderConfiguration.class).run((context) -> {
-			AwsRegionProvider regionProvider = context.getBean(AwsRegionProvider.class);
-			assertThat(regionProvider).isNotNull().isInstanceOf(CustomRegionProvider.class);
-		});
+	void regionProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
+			AwsRegionProvider awsCredentialsProvider = context.getBean("awsRegionProvider", AwsRegionProvider.class);
+			assertThat(awsCredentialsProvider).isNotNull();
 
+			@SuppressWarnings("unchecked")
+			List<AwsRegionProvider> credentialsProviders = (List<AwsRegionProvider>) ReflectionTestUtils
+					.getField(awsCredentialsProvider, "providers");
+			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
+		});
 	}
 
 	@Configuration

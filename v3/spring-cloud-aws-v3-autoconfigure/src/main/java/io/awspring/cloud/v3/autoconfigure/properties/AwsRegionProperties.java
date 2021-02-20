@@ -43,17 +43,14 @@ public class AwsRegionProperties {
 	private String staticRegion;
 
 	/**
+	 * Configures an instance profile region provider with no further configuration.
+	 */
+	private boolean instanceProfile = false;
+
+	/**
 	 * The AWS profile.
 	 */
 	private Profile profile;
-
-	public boolean isStatic() {
-		return StringUtils.hasText(this.staticRegion);
-	}
-
-	public void setStatic(String staticRegion) {
-		this.staticRegion = staticRegion;
-	}
 
 	public Profile getProfile() {
 		return profile;
@@ -65,6 +62,22 @@ public class AwsRegionProperties {
 
 	public String getStatic() {
 		return this.staticRegion;
+	}
+
+	public boolean isStatic() {
+		return StringUtils.hasText(this.staticRegion);
+	}
+
+	public void setStatic(String staticRegion) {
+		this.staticRegion = staticRegion;
+	}
+
+	public boolean isInstanceProfile() {
+		return instanceProfile;
+	}
+
+	public void setInstanceProfile(boolean instanceProfile) {
+		this.instanceProfile = instanceProfile;
 	}
 
 }
