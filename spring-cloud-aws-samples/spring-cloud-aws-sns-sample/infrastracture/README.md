@@ -3,8 +3,9 @@
 This sample shows sending SNS messages receiving them with SQSListener and NotificationMapping. 
 To use NotificationMapping you will need to use NGROK: https://ngrok.com/docs
 Firstly you will need to start 'ngrok http 127.0.0.1:{YourPort}' after that you will need to change URL inside CDK.
-Once you changed URL inside CDK you can run CDK deploy. Subscription will be automatically sent to NGROK url.
-There is possibility subscription isn't confirmed since application is not started as of CDK deploy, so you should resend subscription from a console.
+After you change URL inside CDK, you can run CDK deploy. Subscription will be automatically sent to NGROK url + topicTest.
+There is possibility subscription isn't confirmed since application is not started as of CDK deploy, so you should resend subscription from an AWS console.
+When you open AWS Management console from your favourite browser you search for SNS and after that on left side select subscriptions and request confirmation for NGROK url + /topicTest.
 After that you can send messages in AWS console and see logged messages and subjects inside controller.
 ---
 
@@ -40,7 +41,7 @@ You will need following policies to run cdk and Sample app:
                 "sqs:SetQueueAttributes"
                 "sqs:DeleteQueue",
                 "sqs:CreateQueue",
-                 "sns:ListTopics",
+				"sns:ListTopics",
                 "sns:GetTopicAttributes",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
