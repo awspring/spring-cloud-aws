@@ -21,15 +21,14 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.sesv2.SesV2Client;
-import software.amazon.awssdk.services.sesv2.model.Body;
-import software.amazon.awssdk.services.sesv2.model.Content;
-import software.amazon.awssdk.services.sesv2.model.Destination;
-import software.amazon.awssdk.services.sesv2.model.EmailContent;
-import software.amazon.awssdk.services.sesv2.model.Message;
-import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
-import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
-import software.amazon.awssdk.services.sesv2.model.SesV2Exception;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.Body;
+import software.amazon.awssdk.services.ses.model.Content;
+import software.amazon.awssdk.services.ses.model.Destination;
+import software.amazon.awssdk.services.ses.model.Message;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.SendEmailResponse;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.mail.MailException;
@@ -52,15 +51,15 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
 
-	private final SesV2Client sesV2Client;
+	private final SesClient sesClient;
 
-	public SimpleEmailServiceMailSender(SesV2Client sesV2Client) {
-		this.sesV2Client = sesV2Client;
+	public SimpleEmailServiceMailSender(SesClient sesClient) {
+		this.sesClient = sesClient;
 	}
 
 	@Override
 	public void destroy() {
-		sesV2Client.close();
+		sesClient.close();
 	}
 
 	@Override
@@ -79,7 +78,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 					LOGGER.debug("Message with id: {} successfully send", sendEmailResult.messageId());
 				}
 			}
-			catch (SesV2Exception e) {
+			catch (SesException e) {
 				// Ignore Exception because we are collecting and throwing all if any
 				// noinspection ThrowableResultOfMethodCallIgnored
 				failedMessages.put(simpleMessage, e);
@@ -92,8 +91,8 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	}
 
-	protected SesV2Client getEmailService() {
-		return this.sesV2Client;
+	protected SesClient getEmailService() {
+		return this.sesClient;
 	}
 
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
@@ -113,8 +112,9 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 		Message message = Message.builder().body(body).subject(subject).build();
 
 		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder()
-				.destination(destinationBuilder.build()).fromEmailAddress(simpleMailMessage.getFrom())
-				.content(EmailContent.builder().simple(message).build());
+				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).message(message);
+
+		// .content(EmailContent.builder().simple(message).build());
 
 		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
 			emailRequestBuilder.replyToAddresses(simpleMailMessage.getReplyTo());

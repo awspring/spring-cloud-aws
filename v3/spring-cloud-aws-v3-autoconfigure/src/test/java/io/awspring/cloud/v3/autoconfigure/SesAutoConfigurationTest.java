@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.ses.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure;
 
-import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -31,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for class {@link SesAutoConfiguration}
  *
+ * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  * @author Arun Patra
  */
 class SesAutoConfigurationTest {

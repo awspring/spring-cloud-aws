@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.ses.autoconfigure.properties;
+package io.awspring.cloud.v3.autoconfigure.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Properties related to AWS Simple Email Service.
  *
+ * @author Eddú Meléndez
  * @author Arun Patra
- * @since 3.0.0
  */
 @ConfigurationProperties(prefix = AwsSesProperties.PREFIX)
 public class AwsSesProperties {
@@ -31,6 +31,11 @@ public class AwsSesProperties {
 	 * The prefix used for AWS credentials related properties.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.ses";
+
+	/**
+	 * Overrides the default region.
+	 */
+	private String region;
 
 	/** Is AWS SES support enabled. */
 	private boolean enabled = true;
@@ -41,6 +46,14 @@ public class AwsSesProperties {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
 	}
 
 }

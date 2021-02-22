@@ -16,8 +16,6 @@
 
 package io.awspring.cloud.v3.ses;
 
-//import javax.activation.FileTypeMap;
-//import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +33,10 @@ import javax.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.sesv2.SesV2Client;
-import software.amazon.awssdk.services.sesv2.model.EmailContent;
-import software.amazon.awssdk.services.sesv2.model.RawMessage;
-import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
-import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.RawMessage;
+import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
+import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.mail.MailException;
@@ -77,8 +74,8 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	private FileTypeMap defaultFileTypeMap;
 
-	public SimpleEmailServiceJavaMailSender(SesV2Client sesV2Client) {
-		super(sesV2Client);
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
+		super(sesClient);
 	}
 
 	/**
@@ -206,14 +203,15 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 		for (MimeMessage mimeMessage : mimeMessages) {
 			try {
-				RawMessage rm = createRawMessage(mimeMessage);
+				RawMessage rawMessage = createRawMessage(mimeMessage);
 
-				SendEmailResponse sendRawEmailResult = getEmailService()
-						.sendEmail(SendEmailRequest.builder().content(EmailContent.builder().raw(rm).build()).build());
+				SendRawEmailResponse sendRawEmailResponse = getEmailService()
+						.sendRawEmail(SendRawEmailRequest.builder().rawMessage(rawMessage).build());
+
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.messageId());
+					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResponse.messageId());
 				}
-				mimeMessage.setHeader("Message-ID", sendRawEmailResult.messageId());
+				mimeMessage.setHeader("Message-ID", sendRawEmailResponse.messageId());
 			}
 			catch (Exception e) {
 				// Ignore Exception because we are collecting and throwing all if any

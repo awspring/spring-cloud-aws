@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.ses.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure;
 
 import javax.mail.Session;
 
-import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.properties.AwsSesProperties;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceMailSender;
-import io.awspring.cloud.v3.ses.autoconfigure.properties.AwsSesProperties;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.SesClientBuilder;
+import software.amazon.awssdk.utils.StringUtils;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,6 +44,8 @@ import org.springframework.mail.javamail.JavaMailSender;
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and
  * {@link SimpleEmailServiceJavaMailSender}.
  *
+ * @author Agim Emruli
+ * @author Eddú Meléndez
  * @author Arun Patra
  */
 @Configuration(proxyBeanMethods = false)
@@ -59,21 +62,28 @@ public class SesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SesV2Client sesV2Client(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
-		return SesV2Client.builder().credentialsProvider(awsCredentialsProvider).region(awsRegionProvider.getRegion())
-				.build();
+	public SesClient sesClient(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
+		SesClientBuilder sesV2ClientBuilder = SesClient.builder().credentialsProvider(awsCredentialsProvider);
+
+		if (!StringUtils.isEmpty(properties.getRegion())) {
+			sesV2ClientBuilder.region(Region.of(properties.getRegion()));
+		}
+		else {
+			sesV2ClientBuilder.region(awsRegionProvider.getRegion());
+		}
+		return sesV2ClientBuilder.build();
 	}
 
 	@Bean
 	@ConditionalOnMissingClass("javax.mail.Session")
-	public MailSender simpleMailSender(SesV2Client sesV2Client) {
-		return new SimpleEmailServiceMailSender(sesV2Client);
+	public MailSender simpleMailSender(SesClient sesClient) {
+		return new SimpleEmailServiceMailSender(sesClient);
 	}
 
 	@Bean
 	@ConditionalOnClass(Session.class)
-	public JavaMailSender javaMailSender(SesV2Client sesV2Client) {
-		return new SimpleEmailServiceJavaMailSender(sesV2Client);
+	public JavaMailSender javaMailSender(SesClient sesClient) {
+		return new SimpleEmailServiceJavaMailSender(sesClient);
 	}
 
 }

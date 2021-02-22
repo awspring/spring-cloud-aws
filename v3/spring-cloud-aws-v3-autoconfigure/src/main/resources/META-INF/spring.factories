@@ -1,3 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration,\
-io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration
+io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration,\
+io.awspring.cloud.v3.autoconfigure.SesAutoConfiguration
+
