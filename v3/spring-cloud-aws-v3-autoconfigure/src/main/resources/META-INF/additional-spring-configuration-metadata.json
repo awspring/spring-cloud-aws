@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "defaultValue": true,
+      "name": "spring.cloud.aws.ses.enabled",
+      "description": "Enables Simple Email Service integration.",
+      "type": "java.lang.Boolean"
+    }
+  ]
+}

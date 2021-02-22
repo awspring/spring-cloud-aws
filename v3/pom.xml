@@ -18,6 +18,8 @@
 		<module>spring-cloud-aws-v3-core</module>
 		<module>spring-cloud-aws-v3-autoconfigure</module>
 		<module>spring-cloud-aws-v3-dependencies</module>
+		<module>spring-cloud-aws-v3-ses</module>
+		<module>spring-cloud-starter-aws-v3-ses</module>
 	</modules>
 
 	<dependencyManagement>
