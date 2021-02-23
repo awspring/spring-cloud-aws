@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.secretsmanager.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure;
 
 import java.util.Objects;
-
-import io.awspring.cloud.v3.secretsmanager.AwsSecretsManagerPropertySources;
 
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.core.style.ToStringCreator;

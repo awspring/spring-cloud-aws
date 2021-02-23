@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.secretsmanager.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.autoconfigure.properties.AwsSecretsManagerProperties;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
-import io.awspring.cloud.v3.secretsmanager.AwsSecretsManagerProperties;
-import io.awspring.cloud.v3.secretsmanager.AwsSecretsManagerPropertySources;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;

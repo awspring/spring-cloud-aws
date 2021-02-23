@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.properties;
 
 import java.util.stream.Stream;
 

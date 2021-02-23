@@ -19,6 +19,7 @@
 		<module>spring-cloud-aws-v3-autoconfigure</module>
 		<module>spring-cloud-aws-v3-secrets-manager</module>
 		<module>spring-cloud-starter-aws-v3-secrets-manager</module>
+		<module>spring-cloud-aws-v3-samples</module>
 	</modules>
 
 	<dependencyManagement>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.properties;
 
 import java.net.URI;
 import java.util.regex.Pattern;
@@ -40,7 +40,7 @@ public class AwsSecretsManagerProperties implements Validator {
 	/**
 	 * Configuration prefix.
 	 */
-	public static final String CONFIG_PREFIX = "aws.secretsmanager";
+	public static final String CONFIG_PREFIX = "spring.cloud.aws.secretsmanager";
 
 	/**
 	 * Pattern used for prefix validation.
