@@ -1,0 +1,66 @@
+= Spring Cloud AWS Secrets Manager Config Sample
+
+This sample application shows how to retrieve a secret from AWS Secrets Manager using Spring Cloud AWS and Spring Boot https://docs.spring.io/spring-boot/docs/2.4.0/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[Config Import].
+
+== Using Spring Cloud AWS Secrets Manager
+
+https://awspring.io[Spring Cloud AWS Secrets Manager] makes it easy to retrieve secrets from the AWS Secrets Manager service. The following features are supported.
+
+=== Using Auto Configuration
+Pull secrets from AWS Secrets Manager service and also inject all pulled properties into your Spring Boot Application's `Environment`.
+
+The easiest way to enable auto-configuration provided by Spring Cloud AWS Secrets Manager is to add the following dependency in your `pom.xml`.
+
+----
+    <dependency>
+        <groupId>io.awspring.cloud</groupId>
+        <artifactId>spring-cloud-starter-aws-v3-secrets-manager</artifactId>
+        <version>2.3.0-RC2</version>
+    </dependency>
+----
+The `spring-cloud-starter-aws-v3-secrets-manager` pulls in the auto-configuration and secrets manager integration modules.
+
+Now add the following in your `application.yaml`.
+
+----
+spring.config.import: optional:aws-secretsmanager:/secrets/spring-cloud-aws-sample-app/
+----
+For more examples, and to know how to use multiple secrets see the `application.yml` included in this sample.
+Here, `/secrets/spring-cloud-aws-sample-app/` is the Secret that you would have configured in AWS. Go ahead and add a property named `password` in the secret.
+When the application starts, it will try to retrieve all remote properties available in the `/secrets/spring-cloud-aws-sample-app/` secret and inject them into your Spring Boot application's `Environment`. You could retrieve those properties in many ways, one way being:
+
+----
+    // Add this in any bean stood up by your application
+    @Value
+    private String password;
+----
+
+
+=== Without Auto Configuration
+
+If you just require to pull secrets from AWS Secrets Manager service and not do anything with your `Environment` or don't want any auto-configuration, you only need to add the following dependency in your Spring Boot app. You would follow this route in the scenario where you already have configured a `SecretsManagerClient` yourself.
+
+----
+    <dependency>
+        <groupId>io.awspring.cloud</groupId>
+        <artifactId>spring-cloud-aws-v3-secrets-manager</artifactId>
+        <version>2.3.0-RC2</version>
+    </dependency>
+----
+
+The following snippet demonstrates how to read properties.
+
+----
+        // Create it using the AWS SDK V2
+        SecretsManagerClient secretsManagerClient = ...
+
+		String secretsContext = "/secrets/spring-cloud-aws-sample-app/";
+		AwsSecretsManagerPropertySource propertySource =
+            new AwsSecretsManagerPropertySource(secretsContext, secretsManagerClient);
+
+		propertySource.init();
+
+        // Retrieve your property
+		String yourRemoteProperty =
+            (String) propertySource.getProperty("your_remote_prop_key");
+----
