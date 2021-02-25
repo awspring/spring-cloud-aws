@@ -138,10 +138,7 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	private static Message fifoMessage(final String messageGroupId, final String content) {
-		Map<String, MessageAttributeValue> headers = new HashMap<>();
-		headers.put(MessageSystemAttributeName.MessageGroupId.name(), new MessageAttributeValue()
-				.withDataType(MessageAttributeDataTypes.STRING).withStringValue(messageGroupId));
-		return new Message().withMessageAttributes(headers).withBody(content);
+		return new Message().addAttributesEntry(MessageSystemAttributeName.MessageGroupId.name(), messageGroupId).withBody(content);
 	}
 
 	@BeforeEach
@@ -276,7 +273,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 
 		CountDownLatch countDownLatch = new CountDownLatch(10);
-		List<String> actualHandledMessages = new ArrayList<>();
+		List<String> actualHandledMessages = Collections.synchronizedList(new ArrayList<>());
 		QueueMessageHandler messageHandler = new QueueMessageHandler() {
 
 			@Override

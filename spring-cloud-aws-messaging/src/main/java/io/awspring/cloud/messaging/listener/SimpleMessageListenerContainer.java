@@ -373,7 +373,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private List<MessageGroup> groupByMessageGroupId(final ReceiveMessageResult receiveMessageResult) {
 			return receiveMessageResult.getMessages().stream()
-					.collect(Collectors.groupingBy(message -> message.getMessageAttributes()
+					.collect(Collectors.groupingBy(message -> message.getAttributes()
 							.get(MessageSystemAttributeName.MessageGroupId.name())))
 					.values().stream().map(MessageGroup::new).collect(Collectors.toList());
 		}
