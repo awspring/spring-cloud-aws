@@ -48,7 +48,6 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import io.awspring.cloud.core.support.documentation.RuntimeUse;
 import io.awspring.cloud.messaging.config.annotation.EnableSqs;
-import io.awspring.cloud.messaging.core.MessageAttributeDataTypes;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
