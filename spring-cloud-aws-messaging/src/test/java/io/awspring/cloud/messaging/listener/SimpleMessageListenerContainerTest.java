@@ -137,7 +137,8 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	private static Message fifoMessage(final String messageGroupId, final String content) {
-		return new Message().addAttributesEntry(MessageSystemAttributeName.MessageGroupId.name(), messageGroupId).withBody(content);
+		return new Message().addAttributesEntry(MessageSystemAttributeName.MessageGroupId.name(), messageGroupId)
+				.withBody(content);
 	}
 
 	@BeforeEach
