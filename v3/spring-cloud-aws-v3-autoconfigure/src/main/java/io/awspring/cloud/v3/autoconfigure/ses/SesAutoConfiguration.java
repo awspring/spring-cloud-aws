@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.ses;
 
 import javax.mail.Session;
 
-import io.awspring.cloud.v3.autoconfigure.properties.AwsSesProperties;
+import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.ses.properties.AwsSesProperties;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceMailSender;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
