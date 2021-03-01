@@ -121,6 +121,42 @@ However, starting at `spring-cloud-aws` `2.3`, allows import default aws paramet
 |With `optional` application will start even if there is no parameter found for specified parameter.
 |===
 
+Spring Boot 2.4 changed the ways files are loaded which means profile loading has changed for Spring-Cloud-AWS as well.
+Each block is separated with `#---` and describe one document. Only block that `spring.config.activate.on-profile` is equal to active profile in Application Context are used.
+Example of Application.properties way to load parameters for specific profile:
+
+----
+spring.config.activate.on-profile=dev
+spring.config.import=aws-parameterstore:/config/prod/path/
+#---
+spring.config.activate.on-profile=dev
+spring.config.import= aws-parameterstore:/other/dev/path/
+#---
+spring.config.activate.on-profile=test
+spring.config.import= aws-parameterstore:/something/test/path/
+---
+
+If you want to share for example `spring.config.import` between test,dev and qa but don't share endpoint or region configuration something like this can be done.
+
+---
+spring.config.activate.on-profile=prod
+spring.config.import= aws-parameterstore:/prod/path/
+#---
+spring.config.activate.on-profile=dev,qa,prod
+spring.config.import= aws-parameterstore:test/path/
+#---
+spring.config.activate.on-profile=qa
+aws.parameterstore.region=us-west-1
+#---
+spring.config.activate.on-profile=test
+aws.parameterstore.region=eu-east-1
+#---
+spring.config.activate.on-profile=dev
+aws.parameterstore.endpoint= 127.0.0.1
+---
+
+More can be read about loading properties in 2.4 and onwards here: https://spring.io/blog/2020/08/14/config-file-processing-in-spring-boot-2-4
+
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
