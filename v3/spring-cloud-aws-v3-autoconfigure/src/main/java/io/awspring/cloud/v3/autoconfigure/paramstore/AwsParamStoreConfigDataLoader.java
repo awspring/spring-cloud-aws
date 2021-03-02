@@ -16,14 +16,15 @@
 
 package io.awspring.cloud.v3.autoconfigure.paramstore;
 
+import java.util.Collections;
+
 import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
+import software.amazon.awssdk.services.ssm.SsmClient;
+
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
-import software.amazon.awssdk.services.ssm.SsmClient;
-
-import java.util.Collections;
 
 /**
  * @author Eddú Meléndez

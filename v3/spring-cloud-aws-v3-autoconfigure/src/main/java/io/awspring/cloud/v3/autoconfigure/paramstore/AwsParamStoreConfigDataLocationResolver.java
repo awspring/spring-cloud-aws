@@ -16,23 +16,28 @@
 
 package io.awspring.cloud.v3.autoconfigure.paramstore;
 
-import io.awspring.cloud.v3.paramstore.AwsParamStoreProperties;
-import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySources;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
-import org.springframework.boot.context.config.*;
-import org.springframework.boot.context.properties.bind.Bindable;
-import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.services.ssm.SsmClient;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.awspring.cloud.v3.paramstore.AwsParamStoreProperties;
+import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySources;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.services.ssm.SsmClient;
+
+import org.springframework.boot.BootstrapContext;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.context.config.ConfigDataLocation;
+import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
+import org.springframework.boot.context.config.ConfigDataLocationResolver;
+import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
+import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Eddú Meléndez

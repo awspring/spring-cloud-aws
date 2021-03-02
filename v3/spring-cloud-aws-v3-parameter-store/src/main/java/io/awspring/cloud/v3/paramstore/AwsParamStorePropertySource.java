@@ -16,17 +16,18 @@
 
 package io.awspring.cloud.v3.paramstore;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.EnumerablePropertySource;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import org.springframework.core.env.EnumerablePropertySource;
 
 /**
  * Recursively retrieves all parameters under the given context / path with decryption

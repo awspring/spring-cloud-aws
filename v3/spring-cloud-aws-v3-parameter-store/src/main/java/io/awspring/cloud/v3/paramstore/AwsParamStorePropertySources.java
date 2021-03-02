@@ -16,12 +16,13 @@
 
 package io.awspring.cloud.v3.paramstore;
 
-import org.apache.commons.logging.Log;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.services.ssm.SsmClient;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import software.amazon.awssdk.services.ssm.SsmClient;
+
+import org.springframework.util.StringUtils;
 
 /**
  * @author Eddú Meléndez

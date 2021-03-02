@@ -18,9 +18,10 @@ package io.awspring.cloud.v3.autoconfiguration.paramstore;
 
 import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ssm.SsmClient;
+
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import software.amazon.awssdk.services.ssm.SsmClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

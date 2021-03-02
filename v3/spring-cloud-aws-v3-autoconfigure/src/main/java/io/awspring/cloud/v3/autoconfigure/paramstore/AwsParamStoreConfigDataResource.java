@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.v3.autoconfigure.paramstore;
 
+import java.util.Objects;
+
 import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySources;
+
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.core.style.ToStringCreator;
-
-import java.util.Objects;
 
 /**
  * Config data resource for AWS System Manager Management integration.

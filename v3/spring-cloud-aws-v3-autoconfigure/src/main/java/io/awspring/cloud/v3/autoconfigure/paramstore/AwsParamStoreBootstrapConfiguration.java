@@ -18,6 +18,11 @@ package io.awspring.cloud.v3.autoconfigure.paramstore;
 
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.v3.paramstore.AwsParamStoreProperties;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
+import software.amazon.awssdk.utils.StringUtils;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,10 +30,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * @author Joris Kuipers

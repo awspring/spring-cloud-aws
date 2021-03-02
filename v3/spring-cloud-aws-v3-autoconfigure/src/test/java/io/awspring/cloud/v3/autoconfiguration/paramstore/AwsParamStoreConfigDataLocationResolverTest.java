@@ -16,19 +16,20 @@
 
 package io.awspring.cloud.v3.autoconfiguration.paramstore;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolver;
 import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataResource;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

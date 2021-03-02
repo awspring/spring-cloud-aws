@@ -16,13 +16,14 @@
 
 package io.awspring.cloud.v3.paramstore;
 
+import java.net.URI;
+import java.util.regex.Pattern;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import java.net.URI;
-import java.util.regex.Pattern;
 
 /**
  * Configuration properties for the AWS Parameter Store integration. Mostly based on the
