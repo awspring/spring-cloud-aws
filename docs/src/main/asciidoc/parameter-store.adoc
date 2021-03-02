@@ -127,7 +127,7 @@ If active profile is `dev` parameterstore will try to load from `/config/prod/pa
 Example of Application.properties way to load parameters for specific profile:
 
 ----
-spring.config.activate.on-profile=dev
+spring.config.activate.on-profile=prod
 spring.config.import=aws-parameterstore:/config/prod/path/
 #---
 spring.config.activate.on-profile=dev
@@ -143,7 +143,7 @@ If you want to share for example `spring.config.import` between test,dev and qa 
 spring.config.activate.on-profile=prod
 spring.config.import= aws-parameterstore:/prod/path/
 #---
-spring.config.activate.on-profile=dev,qa,prod
+spring.config.activate.on-profile=dev,qa,test
 spring.config.import= aws-parameterstore:test/path/
 #---
 spring.config.activate.on-profile=qa
