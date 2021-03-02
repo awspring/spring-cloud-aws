@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
@@ -266,11 +267,20 @@ abstract class AbstractMessageListenerContainer
 	public void afterPropertiesSet() throws Exception {
 		validateConfiguration();
 		initialize();
+		validateFifoConfiguration();
 	}
 
 	private void validateConfiguration() {
 		Assert.state(this.amazonSqs != null, "amazonSqs must not be null");
 		Assert.state(this.messageHandler != null, "messageHandler must not be null");
+	}
+
+	private void validateFifoConfiguration() {
+		if (getRegisteredQueues().values().stream().anyMatch(queueAttributes -> queueAttributes.isFifo())
+				&& getAmazonSqs() instanceof AmazonSQSBufferedAsyncClient) {
+			getLogger().warn(
+					"`AmazonSQSBufferedAsyncClient` that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues.");
+		}
 	}
 
 	protected void initialize() {
