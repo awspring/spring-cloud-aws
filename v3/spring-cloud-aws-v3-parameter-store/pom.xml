@@ -13,12 +13,10 @@
 	<artifactId>spring-cloud-aws-v3-parameter-store</artifactId>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>ssm</artifactId>
 		</dependency>
-
 	</dependencies>
 
 </project>
