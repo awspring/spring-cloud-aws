@@ -32,14 +32,13 @@ import org.springframework.messaging.support.MessageBuilder;
 @SpringBootApplication
 public class SpringSNSSample {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSNSSample.class);
 	private final NotificationMessagingTemplate notificationMessagingTemplate;
 
 	@Autowired
 	public SpringSNSSample(AmazonSNS amazonSns) {
 		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
 	}
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSNSSample.class);
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringSNSSample.class, args);
@@ -48,7 +47,7 @@ public class SpringSNSSample {
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
 		this.notificationMessagingTemplate.send("snsSpring",
-				MessageBuilder.withPayload("Spring cloud Aws SNS sample!").build());
+				MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!").build());
 	}
 
 	@SqsListener("InfrastructureStack-spring-aws")
