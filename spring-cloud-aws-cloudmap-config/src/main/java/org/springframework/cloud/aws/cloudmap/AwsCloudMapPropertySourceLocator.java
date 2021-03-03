@@ -47,7 +47,7 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
 		AwsCloudMapPropertySources sources = new AwsCloudMapPropertySources(this.properties);
 
-		CompositePropertySource composite = new CompositePropertySource("aws-cloud-map");
+		CompositePropertySource composite = new CompositePropertySource(AwsCloudMapProperties.CONFIG_PREFIX);
 		PropertySource<AWSServiceDiscovery> propertySource = sources.createPropertySource(!this.properties.isFailFast(),
 				this.serviceDiscovery, this.instanceDiscovery);
 		if (propertySource != null) {
