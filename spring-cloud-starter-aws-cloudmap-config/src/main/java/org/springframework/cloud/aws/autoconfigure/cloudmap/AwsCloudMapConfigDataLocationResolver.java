@@ -38,15 +38,9 @@ import org.springframework.cloud.aws.cloudmap.AwsCloudMapPropertySources;
 public class AwsCloudMapConfigDataLocationResolver
 		implements ConfigDataLocationResolver<AwsCloudMapConfigDataResource> {
 
-	/**
-	 * Default cloudmap prefix.
-	 */
-	public static final String PREFIX = "aws-cloudmap:";
-
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		System.out.println(location.getValue());
-		if (!location.hasPrefix(PREFIX)) {
+		if (!location.hasPrefix(AwsCloudMapProperties.CONFIG_PREFIX)) {
 			return false;
 		}
 		return context.getBinder().bind(AwsCloudMapProperties.CONFIG_PREFIX + ".enabled", Boolean.class).orElse(true);
