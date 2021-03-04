@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 public class AwsCloudMapPropertySources {
 
-	private final AwsCloudMapDiscoveryProperties properties;
+	private final CloudMapDiscoveryProperties properties;
 
 	private static final Logger log = LoggerFactory.getLogger(CloudMapDiscoverService.class);
 
-	public AwsCloudMapPropertySources(AwsCloudMapDiscoveryProperties properties) {
+	public AwsCloudMapPropertySources(CloudMapDiscoveryProperties properties) {
 		this.properties = properties;
 	}
 

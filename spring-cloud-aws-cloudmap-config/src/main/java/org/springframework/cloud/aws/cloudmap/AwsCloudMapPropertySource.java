@@ -50,7 +50,7 @@ public class AwsCloudMapPropertySource extends EnumerablePropertySource<AWSServi
 		this.instanceDiscovery = instanceDiscovery;
 	}
 
-	public void init(AwsCloudMapDiscoveryProperties discoveryParameters) {
+	public void init(CloudMapDiscoveryProperties discoveryParameters) {
 		getServices(discoveryParameters);
 	}
 
@@ -65,7 +65,7 @@ public class AwsCloudMapPropertySource extends EnumerablePropertySource<AWSServi
 		return this.properties.get(name);
 	}
 
-	private void getServices(AwsCloudMapDiscoveryProperties discoveryParameters) {
+	private void getServices(CloudMapDiscoveryProperties discoveryParameters) {
 		final String namespace = discoveryParameters.getServiceNameSpace();
 		final String serviceName = discoveryParameters.getService();
 		try {

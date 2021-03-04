@@ -46,18 +46,18 @@ public class CloudMapRegistryAnnotationScanner {
 		Set<Class<?>> annotatedTypes = reflections.getTypesAnnotatedWith(CloudMapRegistry.class, true);
 		annotatedTypes.forEach(x -> {
 			CloudMapRegistry cloudMapRegistry = AnnotationUtils.findAnnotation(x, CloudMapRegistry.class);
-			AwsCloudMapRegistryProperties cloudMapRegistryProperties = getRegistryProperties(cloudMapRegistry);
+			CloudMapRegistryProperties cloudMapRegistryProperties = getRegistryProperties(cloudMapRegistry);
 			if (cloudMapRegistryProperties != null) {
 				new CloudMapRegistryService(this.serviceDiscovery, cloudMapRegistryProperties).registerInstances();
 			}
 		});
 	}
 
-	private AwsCloudMapRegistryProperties getRegistryProperties(CloudMapRegistry cloudMapRegistry) {
+	private CloudMapRegistryProperties getRegistryProperties(CloudMapRegistry cloudMapRegistry) {
 		try {
 			if (!StringUtils.isNullOrEmpty(cloudMapRegistry.serviceNameSpace())
 					&& !StringUtils.isNullOrEmpty(cloudMapRegistry.service())) {
-				AwsCloudMapRegistryProperties properties = new AwsCloudMapRegistryProperties();
+				CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
 				properties.setServiceNameSpace(cloudMapRegistry.serviceNameSpace());
 				properties.setService(cloudMapRegistry.service());
 

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.aws.cloudmap;
 
-public class AwsCloudMapRegistryProperties {
+public class CloudMapRegistryProperties {
 
 	private String serviceNameSpace;
 

@@ -18,7 +18,7 @@ package org.springframework.cloud.aws.cloudmap;
 
 import java.util.Map;
 
-public class AwsCloudMapDiscoveryProperties {
+public class CloudMapDiscoveryProperties {
 
 	private String serviceNameSpace;
 
@@ -27,7 +27,7 @@ public class AwsCloudMapDiscoveryProperties {
 	private Map<String, String> filterAttributes;
 
 	public String getServiceNameSpace() {
-		return serviceNameSpace;
+		return this.serviceNameSpace;
 	}
 
 	public void setServiceNameSpace(String serviceNameSpace) {
@@ -35,7 +35,7 @@ public class AwsCloudMapDiscoveryProperties {
 	}
 
 	public String getService() {
-		return service;
+		return this.service;
 	}
 
 	public void setService(String service) {
@@ -43,7 +43,7 @@ public class AwsCloudMapDiscoveryProperties {
 	}
 
 	public Map<String, String> getFilterAttributes() {
-		return filterAttributes;
+		return this.filterAttributes;
 	}
 
 	public void setFilterAttributes(Map<String, String> filterAttributes) {

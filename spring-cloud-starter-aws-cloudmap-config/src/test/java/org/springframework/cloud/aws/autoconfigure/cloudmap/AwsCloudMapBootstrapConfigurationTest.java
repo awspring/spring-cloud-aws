@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.aws.cloudmap.AwsCloudMapProperties;
+import org.springframework.cloud.aws.cloudmap.CloudMapProperties;
 import org.springframework.cloud.aws.cloudmap.AwsCloudMapPropertySourceLocator;
 import org.springframework.cloud.aws.cloudmap.CloudMapDiscoverService;
 import org.springframework.cloud.aws.cloudmap.CloudMapRegistryService;
@@ -46,7 +46,7 @@ public class AwsCloudMapBootstrapConfigurationTest {
 					assertThat(context).hasSingleBean(CloudMapDiscoverService.class);
 					assertThat(context).hasSingleBean(CloudMapRegistryService.class);
 
-					AwsCloudMapProperties properties = context.getBean(AwsCloudMapProperties.class);
+					CloudMapProperties properties = context.getBean(CloudMapProperties.class);
 
 					assertThat(properties.getDiscovery().getDiscoveryList().get(0).getService()).isEqualTo("service");
 				});
