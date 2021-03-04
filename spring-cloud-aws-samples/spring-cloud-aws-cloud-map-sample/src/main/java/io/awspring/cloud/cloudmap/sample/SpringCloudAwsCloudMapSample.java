@@ -30,7 +30,7 @@ public class SpringCloudAwsCloudMapSample implements ApplicationRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringCloudAwsCloudMapSample.class);
 
-	@Value("${test-namespace/test-service}")
+	@Value("${hari-namespace/hari-service}")
 	private String registryDetails;
 
 	public static void main(String[] args) {
