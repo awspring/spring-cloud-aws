@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.ses;
 
-import io.awspring.cloud.v3.autoconfigure.ses.SesAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;

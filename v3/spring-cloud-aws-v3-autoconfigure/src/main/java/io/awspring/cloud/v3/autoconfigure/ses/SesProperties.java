@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.ses.properties;
+package io.awspring.cloud.v3.autoconfigure.ses;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -24,8 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eddú Meléndez
  * @author Arun Patra
  */
-@ConfigurationProperties(prefix = AwsSesProperties.PREFIX)
-public class AwsSesProperties {
+@ConfigurationProperties(prefix = SesProperties.PREFIX)
+public class SesProperties {
 
 	/**
 	 * The prefix used for AWS credentials related properties.
@@ -41,7 +41,7 @@ public class AwsSesProperties {
 	private boolean enabled = true;
 
 	public boolean isEnabled() {
-		return enabled;
+		return this.enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -49,7 +49,7 @@ public class AwsSesProperties {
 	}
 
 	public String getRegion() {
-		return region;
+		return this.region;
 	}
 
 	public void setRegion(String region) {

@@ -20,7 +20,6 @@ import javax.mail.Session;
 
 import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
-import io.awspring.cloud.v3.autoconfigure.ses.properties.AwsSesProperties;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceMailSender;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -51,14 +50,14 @@ import org.springframework.mail.javamail.JavaMailSender;
  * @author Arun Patra
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AwsSesProperties.class)
+@EnableConfigurationProperties(SesProperties.class)
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.ses.enabled", havingValue = "true", matchIfMissing = true)
 public class SesAutoConfiguration {
 
-	private final AwsSesProperties properties;
+	private final SesProperties properties;
 
-	public SesAutoConfiguration(AwsSesProperties properties) {
+	public SesAutoConfiguration(SesProperties properties) {
 		this.properties = properties;
 	}
 
