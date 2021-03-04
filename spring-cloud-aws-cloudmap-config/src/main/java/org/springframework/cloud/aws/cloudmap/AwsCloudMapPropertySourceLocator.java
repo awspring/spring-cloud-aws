@@ -28,12 +28,12 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
 	private final AWSServiceDiscovery serviceDiscovery;
 
-	private final AwsCloudMapDiscovery discovery;
+	private final CloudMapDiscovery discovery;
 
 	private final CloudMapDiscoverService instanceDiscovery;
 
-	public AwsCloudMapPropertySourceLocator(AWSServiceDiscovery serviceDiscovery,
-			AwsCloudMapDiscovery cloudMapDiscovery, CloudMapDiscoverService instanceDiscovery) {
+	public AwsCloudMapPropertySourceLocator(AWSServiceDiscovery serviceDiscovery, CloudMapDiscovery cloudMapDiscovery,
+			CloudMapDiscoverService instanceDiscovery) {
 		this.serviceDiscovery = serviceDiscovery;
 		this.discovery = cloudMapDiscovery;
 		this.instanceDiscovery = instanceDiscovery;
@@ -45,7 +45,7 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 			return null;
 		}
 
-		final CompositePropertySource composite = new CompositePropertySource(AwsCloudMapProperties.CONFIG_PREFIX);
+		final CompositePropertySource composite = new CompositePropertySource(CloudMapProperties.CONFIG_PREFIX);
 		if (discovery != null) {
 			discovery.getDiscoveryList().forEach(d -> {
 				AwsCloudMapPropertySources sources = new AwsCloudMapPropertySources(d);

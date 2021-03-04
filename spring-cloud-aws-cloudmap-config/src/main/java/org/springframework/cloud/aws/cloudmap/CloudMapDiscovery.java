@@ -18,11 +18,11 @@ package org.springframework.cloud.aws.cloudmap;
 
 import java.util.List;
 
-public class AwsCloudMapDiscovery {
+public class CloudMapDiscovery {
 
 	private boolean failFast;
 
-	private List<AwsCloudMapDiscoveryProperties> discoveryList;
+	private List<CloudMapDiscoveryProperties> discoveryList;
 
 	public boolean isFailFast() {
 		return failFast;
@@ -32,11 +32,11 @@ public class AwsCloudMapDiscovery {
 		this.failFast = failFast;
 	}
 
-	public List<AwsCloudMapDiscoveryProperties> getDiscoveryList() {
+	public List<CloudMapDiscoveryProperties> getDiscoveryList() {
 		return discoveryList;
 	}
 
-	public void setDiscoveryList(List<AwsCloudMapDiscoveryProperties> discoveryList) {
+	public void setDiscoveryList(List<CloudMapDiscoveryProperties> discoveryList) {
 		this.discoveryList = discoveryList;
 	}
 

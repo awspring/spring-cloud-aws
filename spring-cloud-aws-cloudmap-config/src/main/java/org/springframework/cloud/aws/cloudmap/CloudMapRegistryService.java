@@ -72,7 +72,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 	private final AWSServiceDiscovery serviceDiscovery;
 
-	private final AwsCloudMapRegistryProperties properties;
+	private final CloudMapRegistryProperties properties;
 
 	private String serviceInstanceId;
 
@@ -82,7 +82,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 	private volatile Connector connector;
 
-	public CloudMapRegistryService(AWSServiceDiscovery serviceDiscovery, AwsCloudMapRegistryProperties properties) {
+	public CloudMapRegistryService(AWSServiceDiscovery serviceDiscovery, CloudMapRegistryProperties properties) {
 		this.serviceDiscovery = serviceDiscovery;
 		this.properties = properties;
 	}
@@ -149,7 +149,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 		return null;
 	}
 
-	private String createNameSpace(AwsCloudMapRegistryProperties properties, String vpcId)
+	private String createNameSpace(CloudMapRegistryProperties properties, String vpcId)
 			throws CreateNameSpaceException {
 		final String nameSpace = properties.getServiceNameSpace();
 		try {
@@ -263,7 +263,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 	@Override
 	public void onApplicationEvent(ContextClosedEvent event) {
-		this.deregisterInstance();
+		deregisterInstance();
 	}
 
 	public void deregisterInstance() {

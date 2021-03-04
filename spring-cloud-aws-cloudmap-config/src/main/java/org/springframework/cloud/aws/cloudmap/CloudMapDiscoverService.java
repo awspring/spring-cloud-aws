@@ -34,7 +34,7 @@ public class CloudMapDiscoverService {
 	private static final Logger log = LoggerFactory.getLogger(CloudMapDiscoverService.class);
 
 	public List<HttpInstanceSummary> discoverInstances(AWSServiceDiscovery serviceDiscovery,
-			AwsCloudMapDiscoveryProperties properties) {
+			CloudMapDiscoveryProperties properties) {
 		final String namespace = properties.getServiceNameSpace();
 		final String serviceName = properties.getService();
 		try {

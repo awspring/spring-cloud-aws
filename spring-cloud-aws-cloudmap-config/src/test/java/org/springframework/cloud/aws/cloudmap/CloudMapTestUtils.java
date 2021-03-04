@@ -72,8 +72,8 @@ public class CloudMapTestUtils {
 		return attributeMap;
 	}
 
-	public static AwsCloudMapRegistryProperties getProperties() {
-		AwsCloudMapRegistryProperties properties = new AwsCloudMapRegistryProperties();
+	public static CloudMapRegistryProperties getProperties() {
+		CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
 		properties.setService(SERVICE);
 		properties.setServiceNameSpace(NAMESPACE);
 		properties.setDescription("DESCRIPTION");

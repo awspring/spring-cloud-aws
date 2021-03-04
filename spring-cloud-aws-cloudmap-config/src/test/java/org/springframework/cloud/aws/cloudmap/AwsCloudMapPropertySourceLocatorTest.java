@@ -50,7 +50,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 
 	@Test
 	void cloudMapServiceInstanceExists() {
-		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		DiscoverInstancesResult firstResult = getFirstResult(cloudMapDiscovery.getDiscoveryList().get(0));
 		when(this.serviceDiscovery.discoverInstances(any(DiscoverInstancesRequest.class))).thenReturn(firstResult);
@@ -69,7 +69,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
 				cloudMapDiscovery, new CloudMapDiscoverService());
@@ -84,7 +84,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
 				cloudMapDiscovery, new CloudMapDiscoverService());
@@ -99,7 +99,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
 				cloudMapDiscovery, new CloudMapDiscoverService());
@@ -117,7 +117,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 						};
 					});
 
-			AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+			CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
 			cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 			cloudMapDiscovery.setFailFast(true);
 			AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
@@ -134,8 +134,8 @@ public class AwsCloudMapPropertySourceLocatorTest {
 		}
 	}
 
-	private static AwsCloudMapDiscoveryProperties getDiscoveryProperties() {
-		AwsCloudMapDiscoveryProperties properties = new AwsCloudMapDiscoveryProperties();
+	private static CloudMapDiscoveryProperties getDiscoveryProperties() {
+		CloudMapDiscoveryProperties properties = new CloudMapDiscoveryProperties();
 		properties.setServiceNameSpace("namespace");
 		properties.setService("service");
 		Map<String, String> filterMap = new HashMap<>();
@@ -145,7 +145,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 		return properties;
 	}
 
-	private static DiscoverInstancesResult getFirstResult(AwsCloudMapDiscoveryProperties properties) {
+	private static DiscoverInstancesResult getFirstResult(CloudMapDiscoveryProperties properties) {
 		DiscoverInstancesResult dResult = new DiscoverInstancesResult();
 		HttpInstanceSummary summary = new HttpInstanceSummary();
 		summary.setNamespaceName(properties.getServiceNameSpace());
@@ -155,7 +155,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 		return dResult;
 	}
 
-	private static String getName(AwsCloudMapDiscoveryProperties properties) {
+	private static String getName(CloudMapDiscoveryProperties properties) {
 		return properties.getServiceNameSpace() + "/" + properties.getService();
 	}
 

@@ -18,18 +18,17 @@ package org.springframework.cloud.aws.cloudmap;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(AwsCloudMapProperties.CONFIG_PREFIX)
-
-public class AwsCloudMapProperties {
+@ConfigurationProperties(CloudMapProperties.CONFIG_PREFIX)
+public class CloudMapProperties {
 
 	/**
 	 * Default cloudmap prefix.
 	 */
 	public static final String CONFIG_PREFIX = "aws.cloudmap";
 
-	private AwsCloudMapRegistryProperties registry;
+	private CloudMapRegistryProperties registry;
 
-	private AwsCloudMapDiscovery discovery;
+	private CloudMapDiscovery discovery;
 
 	private String region;
 
@@ -38,7 +37,7 @@ public class AwsCloudMapProperties {
 	private String annotationBasePackage;
 
 	public String getAnnotationBasePackage() {
-		return annotationBasePackage;
+		return this.annotationBasePackage;
 	}
 
 	public void setAnnotationBasePackage(String annotationBasePackage) {
@@ -46,31 +45,31 @@ public class AwsCloudMapProperties {
 	}
 
 	public String getRegion() {
-		return region;
+		return this.region;
 	}
 
 	public void setRegion(String region) {
 		this.region = region;
 	}
 
-	public AwsCloudMapRegistryProperties getRegistry() {
-		return registry;
+	public CloudMapRegistryProperties getRegistry() {
+		return this.registry;
 	}
 
-	public void setRegistry(AwsCloudMapRegistryProperties registry) {
+	public void setRegistry(CloudMapRegistryProperties registry) {
 		this.registry = registry;
 	}
 
-	public AwsCloudMapDiscovery getDiscovery() {
-		return discovery;
+	public CloudMapDiscovery getDiscovery() {
+		return this.discovery;
 	}
 
-	public void setDiscovery(AwsCloudMapDiscovery discovery) {
+	public void setDiscovery(CloudMapDiscovery discovery) {
 		this.discovery = discovery;
 	}
 
 	public boolean isEnabled() {
-		return enabled;
+		return this.enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
