@@ -73,7 +73,7 @@
 		<module>docs</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-cloudmap</module>
-		<module>spring-cloud-starter-aws-cloudmap-config</module>
+		<module>spring-cloud-starter-aws-cloudmap</module>
 		</modules>
 
 	<dependencyManagement>
