@@ -160,8 +160,10 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 			return getNameSpaceId(nameSpace);
 		}
-		catch (NamespaceAlreadyExistsException | InvalidInputException | ResourceLimitExceededException
-				| DuplicateRequestException e) {
+		catch (NamespaceAlreadyExistsException e) {
+			return getNameSpaceId(nameSpace);
+		}
+		catch (InvalidInputException | ResourceLimitExceededException | DuplicateRequestException e) {
 			log.error("Error while registering with cloudmap {} with error {}", nameSpace, e.getMessage(), e);
 			throw new CreateNameSpaceException(e);
 		}
@@ -202,7 +204,10 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 			log.info("Service ID create {} for {} with namespace {}", serviceId, service, nameSpace);
 			return serviceId;
 		}
-		catch (InvalidInputException | ResourceLimitExceededException | ServiceAlreadyExistsException e) {
+		catch (ServiceAlreadyExistsException e) {
+			return getServiceId(service, nameSpaceId);
+		}
+		catch (InvalidInputException | ResourceLimitExceededException e) {
 			log.error("Error while creating service {} with namespace {}", service, nameSpace);
 			throw new CreateServiceException(e);
 		}
