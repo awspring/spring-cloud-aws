@@ -50,14 +50,15 @@ public class AwsCloudMapPropertySourceLocatorTest {
 
 	@Test
 	void cloudMapServiceInstanceExists() {
-		AwsCloudMapDiscoveryProperties properties = getDiscoveryProperties();
-		DiscoverInstancesResult firstResult = getFirstResult(properties);
+		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
+		DiscoverInstancesResult firstResult = getFirstResult(cloudMapDiscovery.getDiscoveryList().get(0));
 		when(this.serviceDiscovery.discoverInstances(any(DiscoverInstancesRequest.class))).thenReturn(firstResult);
 
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
-				properties, new CloudMapDiscoverService());
+				cloudMapDiscovery, new CloudMapDiscoverService());
 		PropertySource<?> source = locator.locate(this.env);
-		assertThat(source.getProperty(getName(properties))).hasToString(
+		assertThat(source.getProperty(getName(cloudMapDiscovery.getDiscoveryList().get(0)))).hasToString(
 				"[{\"instanceId\":\"INSTANCE_ID\",\"namespaceName\":\"namespace\",\"serviceName\":\"service\",\"healthStatus\":null,\"attributes\":null}]");
 	}
 
@@ -68,11 +69,12 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscoveryProperties properties = getDiscoveryProperties();
+		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
-				properties, new CloudMapDiscoverService());
+				cloudMapDiscovery, new CloudMapDiscoverService());
 		PropertySource<?> source = locator.locate(this.env);
-		assertThat(source.getProperty(getName(properties))).isNull();
+		assertThat(source.getProperty(getName(cloudMapDiscovery.getDiscoveryList().get(0)))).isNull();
 	}
 
 	@Test
@@ -82,11 +84,12 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscoveryProperties properties = getDiscoveryProperties();
+		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
-				properties, new CloudMapDiscoverService());
+				cloudMapDiscovery, new CloudMapDiscoverService());
 		PropertySource<?> source = locator.locate(this.env);
-		assertThat(source.getProperty(getName(properties))).hasToString("");
+		assertThat(source.getProperty(getName(cloudMapDiscovery.getDiscoveryList().get(0)))).hasToString("");
 	}
 
 	@Test
@@ -96,11 +99,12 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			};
 		});
 
-		AwsCloudMapDiscoveryProperties properties = getDiscoveryProperties();
+		AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
-				properties, new CloudMapDiscoverService());
+				cloudMapDiscovery, new CloudMapDiscoverService());
 		PropertySource<?> source = locator.locate(this.env);
-		assertThat(source.getProperty(getName(properties))).hasToString("");
+		assertThat(source.getProperty(getName(cloudMapDiscovery.getDiscoveryList().get(0)))).hasToString("");
 	}
 
 	@Test
@@ -113,10 +117,11 @@ public class AwsCloudMapPropertySourceLocatorTest {
 						};
 					});
 
-			AwsCloudMapDiscoveryProperties properties = getDiscoveryProperties();
-			properties.setFailFast(true);
+			AwsCloudMapDiscovery cloudMapDiscovery = new AwsCloudMapDiscovery();
+			cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
+			cloudMapDiscovery.setFailFast(true);
 			AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
-					properties, new CloudMapDiscoverService());
+					cloudMapDiscovery, new CloudMapDiscoverService());
 			locator.locate(this.env);
 
 			Assertions.fail();

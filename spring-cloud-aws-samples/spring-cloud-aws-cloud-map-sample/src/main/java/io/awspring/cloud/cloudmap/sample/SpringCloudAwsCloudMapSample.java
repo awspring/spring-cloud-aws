@@ -24,14 +24,13 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class SpringCloudAwsCloudMapSample implements ApplicationRunner{
+public class SpringCloudAwsCloudMapSample implements ApplicationRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringCloudAwsCloudMapSample.class);
 
-	@Value("${hari-namespace/hari-service}")
+	@Value("${test-namespace/test-service}")
 	private String registryDetails;
 
 	public static void main(String[] args) {
@@ -42,4 +41,5 @@ public class SpringCloudAwsCloudMapSample implements ApplicationRunner{
 	public void run(ApplicationArguments args) {
 		LOGGER.info("CloudMap registry details: {}", registryDetails);
 	}
+
 }

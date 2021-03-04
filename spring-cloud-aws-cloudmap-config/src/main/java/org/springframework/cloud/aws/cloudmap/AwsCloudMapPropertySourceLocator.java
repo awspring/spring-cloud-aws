@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,14 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
 	private final AWSServiceDiscovery serviceDiscovery;
 
-	private final AwsCloudMapDiscoveryProperties properties;
+	private final AwsCloudMapDiscovery discovery;
 
 	private final CloudMapDiscoverService instanceDiscovery;
 
 	public AwsCloudMapPropertySourceLocator(AWSServiceDiscovery serviceDiscovery,
-			AwsCloudMapDiscoveryProperties properties, CloudMapDiscoverService instanceDiscovery) {
+			AwsCloudMapDiscovery cloudMapDiscovery, CloudMapDiscoverService instanceDiscovery) {
 		this.serviceDiscovery = serviceDiscovery;
-		this.properties = properties;
+		this.discovery = cloudMapDiscovery;
 		this.instanceDiscovery = instanceDiscovery;
 	}
 
@@ -45,13 +45,16 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 			return null;
 		}
 
-		AwsCloudMapPropertySources sources = new AwsCloudMapPropertySources(this.properties);
-
-		CompositePropertySource composite = new CompositePropertySource(AwsCloudMapProperties.CONFIG_PREFIX);
-		PropertySource<AWSServiceDiscovery> propertySource = sources.createPropertySource(!this.properties.isFailFast(),
-				this.serviceDiscovery, this.instanceDiscovery);
-		if (propertySource != null) {
-			composite.addPropertySource(propertySource);
+		final CompositePropertySource composite = new CompositePropertySource(AwsCloudMapProperties.CONFIG_PREFIX);
+		if (discovery != null) {
+			discovery.getDiscoveryList().forEach(d -> {
+				AwsCloudMapPropertySources sources = new AwsCloudMapPropertySources(d);
+				PropertySource<AWSServiceDiscovery> propertySource = sources.createPropertySource(
+						!this.discovery.isFailFast(), this.serviceDiscovery, this.instanceDiscovery);
+				if (propertySource != null) {
+					composite.addPropertySource(propertySource);
+				}
+			});
 		}
 
 		return composite;
