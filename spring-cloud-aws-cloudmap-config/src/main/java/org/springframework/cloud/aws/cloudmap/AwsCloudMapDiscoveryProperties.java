@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ public class AwsCloudMapDiscoveryProperties {
 
 	private Map<String, String> filterAttributes;
 
-	private boolean failFast;
-
 	public String getServiceNameSpace() {
 		return serviceNameSpace;
 	}
@@ -52,12 +50,16 @@ public class AwsCloudMapDiscoveryProperties {
 		this.filterAttributes = filterAttributes;
 	}
 
-	public boolean isFailFast() {
-		return failFast;
-	}
-
-	public void setFailFast(boolean failFast) {
-		this.failFast = failFast;
+	@Override
+	public String toString() {
+		String data = "AwsCloudMapDiscoveryProperties{" + "serviceNameSpace=" + serviceNameSpace + ", service="
+				+ service;
+		if (filterAttributes != null) {
+			data += filterAttributes.keySet().stream().map(f -> "key = " + f + ":" + filterAttributes.get(f))
+					.reduce((a, b) -> a + "," + b).get();
+		}
+		data += "}";
+		return data;
 	}
 
 }

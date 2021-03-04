@@ -36,8 +36,10 @@ public class AwsCloudMapBootstrapConfigurationTest {
 	@Test
 	void testWithStaticRegion() {
 		this.contextRunner
-				.withPropertyValues("aws.cloudmap.discovery.enabled:true",
-						"aws.cloudmap.discovery.serviceNameSpace:namespace", "aws.cloudmap.discovery.service:service")
+
+				.withPropertyValues("aws.cloudmap.enabled:true",
+						"aws.cloudmap.discovery.discoveryList[0].serviceNameSpace:namespace",
+						"aws.cloudmap.discovery.discoveryList[0].service:service")
 				.run(context -> {
 					assertThat(context).hasSingleBean(AwsCloudMapPropertySourceLocator.class);
 					assertThat(context).hasSingleBean(AWSServiceDiscovery.class);
@@ -46,7 +48,7 @@ public class AwsCloudMapBootstrapConfigurationTest {
 
 					AwsCloudMapProperties properties = context.getBean(AwsCloudMapProperties.class);
 
-					assertThat(properties.getDiscovery().getService()).isEqualTo("service");
+					assertThat(properties.getDiscovery().getDiscoveryList().get(0).getService()).isEqualTo("service");
 				});
 	}
 
