@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfiguration.paramstore;
+package io.awspring.cloud.v3.autoconfiguration.parameterstore;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolver;
-import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataResource;
+import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataLocationResolver;
+import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataResource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.BootstrapRegistry;

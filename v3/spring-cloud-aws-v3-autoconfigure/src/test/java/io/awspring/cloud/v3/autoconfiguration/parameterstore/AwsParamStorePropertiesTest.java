@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.paramstore;
+package io.awspring.cloud.v3.autoconfiguration.parameterstore;
 
 import java.util.stream.Stream;
 
+import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

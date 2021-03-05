@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.paramstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import java.net.URI;
 import java.util.regex.Pattern;

@@ -2,14 +2,13 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration,\
 io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration
 
-
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration
+io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreBootstrapConfiguration
 
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
-io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolver
+io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreConfigDataLoader
+io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataLoader

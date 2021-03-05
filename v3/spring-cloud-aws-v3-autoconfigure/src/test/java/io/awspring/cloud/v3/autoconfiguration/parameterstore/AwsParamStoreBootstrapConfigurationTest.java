@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfiguration.paramstore;
+package io.awspring.cloud.v3.autoconfiguration.parameterstore;
 
-import io.awspring.cloud.v3.autoconfigure.paramstore.AwsParamStoreBootstrapConfiguration;
+import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreBootstrapConfiguration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.ssm.SsmClient;
 

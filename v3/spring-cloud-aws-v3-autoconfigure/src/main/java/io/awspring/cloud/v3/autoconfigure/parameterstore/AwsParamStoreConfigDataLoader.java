@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.paramstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import java.util.Collections;
 

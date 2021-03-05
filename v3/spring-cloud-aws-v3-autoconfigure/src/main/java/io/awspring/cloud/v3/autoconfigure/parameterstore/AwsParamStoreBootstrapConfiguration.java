@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.paramstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
-import io.awspring.cloud.v3.paramstore.AwsParamStoreProperties;
+import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -39,7 +39,7 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsParamStoreProperties.class)
-@ConditionalOnClass({ SsmClient.class })
+@ConditionalOnClass({ SsmClient.class, AwsParamStorePropertySource.class })
 @ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 public class AwsParamStoreBootstrapConfiguration {
 

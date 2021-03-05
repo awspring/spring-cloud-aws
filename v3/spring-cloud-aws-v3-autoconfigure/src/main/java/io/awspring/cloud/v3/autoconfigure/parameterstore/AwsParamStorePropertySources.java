@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.paramstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
