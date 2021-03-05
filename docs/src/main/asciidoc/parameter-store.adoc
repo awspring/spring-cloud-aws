@@ -122,8 +122,8 @@ However, starting at `spring-cloud-aws` `2.3`, allows import default aws paramet
 |===
 
 Spring Boot 2.4 changed the ways files are loaded which means profile loading has changed for spring-cloud-aws as well.
-Link to Spring Boot reference docs about file specific loading: https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config-files-profile-specific
-More can be read on Spring blog here as well: https://spring.io/blog/2020/08/14/config-file-processing-in-spring-boot-2-4
+Link to Spring Boot reference docs about file specific loading: https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config-files-profile-specific [Reference Docs]
+More can be read on Spring blog here as well: https://spring.io/blog/2020/08/14/config-file-processing-in-spring-boot-2-4 [Blog]
 
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
