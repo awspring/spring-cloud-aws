@@ -87,6 +87,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 		});
 
 		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
+		cloudMapDiscovery.setFailFast(false);
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
 				cloudMapDiscovery, new CloudMapDiscoverService());
@@ -102,6 +103,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 		});
 
 		CloudMapDiscovery cloudMapDiscovery = new CloudMapDiscovery();
+		cloudMapDiscovery.setFailFast(false);
 		cloudMapDiscovery.setDiscoveryList(Collections.singletonList(getDiscoveryProperties()));
 		AwsCloudMapPropertySourceLocator locator = new AwsCloudMapPropertySourceLocator(this.serviceDiscovery,
 				cloudMapDiscovery, new CloudMapDiscoverService());
