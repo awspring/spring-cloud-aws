@@ -26,7 +26,8 @@ import java.util.List;
  */
 public class CloudMapDiscovery {
 
-	private boolean failFast;
+	// Default to fail if discovery has failed
+	private boolean failFast = true;
 
 	private List<CloudMapDiscoveryProperties> discoveryList;
 
