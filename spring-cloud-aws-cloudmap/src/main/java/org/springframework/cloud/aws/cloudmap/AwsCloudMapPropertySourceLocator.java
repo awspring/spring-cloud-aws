@@ -46,6 +46,12 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 		this.instanceDiscovery = instanceDiscovery;
 	}
 
+	/**
+	 * Recursively read http instances and add them to property source based on discovery
+	 * parameters.
+	 * @param environment Spring environment
+	 * @return property source
+	 */
 	@Override
 	public PropertySource<?> locate(Environment environment) {
 		if (!(environment instanceof ConfigurableEnvironment)) {
@@ -54,6 +60,8 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
 		final CompositePropertySource composite = new CompositePropertySource(CloudMapProperties.CONFIG_PREFIX);
 		if (discovery != null) {
+
+			// Iterate and fetch the values
 			discovery.getDiscoveryList().forEach(d -> {
 				AwsCloudMapPropertySources sources = new AwsCloudMapPropertySources(d);
 				PropertySource<AWSServiceDiscovery> propertySource = sources.createPropertySource(

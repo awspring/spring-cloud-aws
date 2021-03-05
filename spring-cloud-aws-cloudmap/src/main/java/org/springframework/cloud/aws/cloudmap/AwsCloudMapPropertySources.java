@@ -17,8 +17,6 @@
 package org.springframework.cloud.aws.cloudmap;
 
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Recursively retrieves all Http instances based on cloudmap namespace and services from
@@ -31,29 +29,25 @@ public class AwsCloudMapPropertySources {
 
 	private final CloudMapDiscoveryProperties properties;
 
-	private static final Logger log = LoggerFactory.getLogger(CloudMapDiscoverService.class);
-
 	public AwsCloudMapPropertySources(CloudMapDiscoveryProperties properties) {
 		this.properties = properties;
 	}
 
+	/**
+	 * Create property store and initialize it.
+	 * @param optional based on failFast attribute
+	 * @param serviceDiscovery AWS service discovery
+	 * @param instanceDiscovery helps to query cloudmap service with discovery parameters
+	 * @return property source with key "namespace/service, httpinstance"
+	 * @throws AwsCloudMapPropertySources.AwsCloudMapPropertySourceNotFoundException
+	 * thrown in case of error and failFast=true
+	 */
 	public AwsCloudMapPropertySource createPropertySource(boolean optional, AWSServiceDiscovery serviceDiscovery,
-			CloudMapDiscoverService instanceDiscovery) {
-		try {
-			AwsCloudMapPropertySource propertySource = new AwsCloudMapPropertySource(serviceDiscovery,
-					instanceDiscovery);
-			propertySource.init(properties);
-			return propertySource;
-		}
-		catch (Exception e) {
-			if (!optional) {
-				throw new AwsCloudMapPropertySourceNotFoundException(e);
-			}
-			else {
-				log.warn("Unable to find CloudMap service {}" + e.getMessage());
-			}
-		}
-		return null;
+			CloudMapDiscoverService instanceDiscovery)
+			throws AwsCloudMapPropertySources.AwsCloudMapPropertySourceNotFoundException {
+		AwsCloudMapPropertySource propertySource = new AwsCloudMapPropertySource(serviceDiscovery, instanceDiscovery);
+		propertySource.init(optional, properties);
+		return propertySource;
 	}
 
 	static class AwsCloudMapPropertySourceNotFoundException extends RuntimeException {

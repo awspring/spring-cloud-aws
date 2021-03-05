@@ -129,7 +129,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 			Assertions.fail();
 		}
 		catch (AwsCloudMapPropertySources.AwsCloudMapPropertySourceNotFoundException e) {
-			// Dont do anything
+			// Expected error received, test cases has passed
 		}
 		catch (Exception e) {
 			Assertions.fail();

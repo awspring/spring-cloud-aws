@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.aws.cloudmap;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +25,6 @@ import com.amazonaws.services.servicediscovery.model.DiscoverInstancesRequest;
 import com.amazonaws.services.servicediscovery.model.HttpInstanceSummary;
 import com.amazonaws.services.servicediscovery.model.NamespaceNotFoundException;
 import com.amazonaws.services.servicediscovery.model.ServiceNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Builds cloudmap discovery request based and fetching the httpinstances using AWS
@@ -38,35 +35,34 @@ import org.slf4j.LoggerFactory;
  */
 public class CloudMapDiscoverService {
 
-	private static final Logger log = LoggerFactory.getLogger(CloudMapDiscoverService.class);
-
+	/**
+	 * Get Http instances from cloudmap based on the namespace, service name and filter
+	 * attributes.
+	 * @param serviceDiscovery AWS Service discovery
+	 * @param properties cloudmap discovery properties
+	 * @return list of http instances
+	 * @throws NamespaceNotFoundException thrown if the namespace with the given name
+	 * doesnt exist
+	 * @throws ServiceNotFoundException thrown if the service with the given name doesnt
+	 * exist
+	 */
 	public List<HttpInstanceSummary> discoverInstances(AWSServiceDiscovery serviceDiscovery,
-			CloudMapDiscoveryProperties properties) {
+			CloudMapDiscoveryProperties properties) throws NamespaceNotFoundException, ServiceNotFoundException {
 		final String namespace = properties.getServiceNameSpace();
 		final String serviceName = properties.getService();
-		try {
-			DiscoverInstancesRequest dRequest = new DiscoverInstancesRequest();
-			dRequest.setNamespaceName(namespace);
-			dRequest.setServiceName(serviceName);
+		DiscoverInstancesRequest dRequest = new DiscoverInstancesRequest();
+		dRequest.setNamespaceName(namespace);
+		dRequest.setServiceName(serviceName);
 
-			if (properties.getFilterAttributes() != null && !properties.getFilterAttributes().isEmpty()) {
-				Map<String, String> filterMap = new HashMap<>();
-				for (String key : properties.getFilterAttributes().keySet()) {
-					filterMap.put(key, properties.getFilterAttributes().get(key));
-				}
-				dRequest.setQueryParameters(filterMap);
+		if (properties.getFilterAttributes() != null && !properties.getFilterAttributes().isEmpty()) {
+			Map<String, String> filterMap = new HashMap<>();
+			for (String key : properties.getFilterAttributes().keySet()) {
+				filterMap.put(key, properties.getFilterAttributes().get(key));
 			}
+			dRequest.setQueryParameters(filterMap);
+		}
 
-			return serviceDiscovery.discoverInstances(dRequest).getInstances();
-		}
-		catch (NamespaceNotFoundException e) {
-			log.error("Unable to find the namespace {} - {}", namespace, e.getMessage(), e);
-		}
-		catch (ServiceNotFoundException e) {
-			log.error("Unable to find the service {} under namespace {} - {}", serviceName, namespace, e.getMessage(),
-					e);
-		}
-		return Collections.emptyList();
+		return serviceDiscovery.discoverInstances(dRequest).getInstances();
 	}
 
 }

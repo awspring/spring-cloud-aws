@@ -52,6 +52,11 @@ public class CloudMapUtils {
 
 	private AmazonEC2 ec2Client;
 
+	/**
+	 * Uses ECS Fargate metadata URL to fetch all the required details around IP address
+	 * and VpcID to register instances to cloudmap service.
+	 * @return map containing ip address and vpcid
+	 */
 	Map<String, String> getRegistrationAttributes() {
 		Map<String, String> attributes = new HashMap<>();
 		try {

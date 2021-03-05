@@ -53,9 +53,11 @@ public class CloudMapRegistryAnnotationScanner {
 	 * registry information.
 	 */
 	public void scanAndRegister() {
+		// Find all classes with CloudMapRegistry annotation based on base package
 		Reflections reflections = new Reflections(this.annotationBasePackage, new TypeAnnotationsScanner());
 		Set<Class<?>> annotatedTypes = reflections.getTypesAnnotatedWith(CloudMapRegistry.class, true);
 		annotatedTypes.forEach(x -> {
+			// Retrieve the properties and proceed with registration
 			CloudMapRegistry cloudMapRegistry = AnnotationUtils.findAnnotation(x, CloudMapRegistry.class);
 			CloudMapRegistryProperties cloudMapRegistryProperties = getRegistryProperties(cloudMapRegistry);
 			if (cloudMapRegistryProperties != null) {

@@ -141,6 +141,10 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 				return operationId;
 			}
+			catch (InvalidInputException e) {
+				log.error("Invalid input passed into the service {} - {} - {}", nameSpaceId, serviceId, e.getMessage(),
+						e);
+			}
 			catch (CreateNameSpaceException e) {
 				log.error("Error while creating namespace {} - {}", nameSpace, e.getMessage());
 			}
@@ -153,9 +157,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 			catch (MaxRetryExceededException e) {
 				log.error("Maximum number of retry exceeded for registering instance with {} for {}", nameSpace,
 						service, e);
-			}
-			catch (Exception e) {
-				log.error("Internal error {}", e.getMessage(), e);
 			}
 		}
 		else {
@@ -200,10 +201,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 			log.error("Maximum number of retry exceeded for namespace {}", nameSpace, e);
 			throw new CreateNameSpaceException(e);
 		}
-		catch (Exception e) {
-			log.error("Internal error {}", e.getMessage(), e);
-			throw new CreateNameSpaceException(e);
-		}
 	}
 
 	/**
@@ -240,10 +237,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 		}
 		catch (InvalidInputException | ResourceLimitExceededException e) {
 			log.error("Error while creating service {} with namespace {}", service, nameSpace);
-			throw new CreateServiceException(e);
-		}
-		catch (Exception e) {
-			log.error("Internal error {}", e.getMessage(), e);
 			throw new CreateServiceException(e);
 		}
 	}
@@ -335,9 +328,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 			}
 			catch (MaxRetryExceededException e) {
 				log.error("Maximum number of retry exceeded {}", e.getMessage(), e);
-			}
-			catch (Exception e) {
-				log.error("Internal error {}", e.getMessage(), e);
 			}
 		}
 	}
