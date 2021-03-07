@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ public class AwsSecretsManagerConfigDataLoader implements ConfigDataLoader<AwsSe
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, AwsSecretsManagerConfigDataResource resource) {
 		try {
-			AWSSecretsManager ssm = context.getBootstrapContext().get(AWSSecretsManager.class);
+			AWSSecretsManager sm = context.getBootstrapContext().get(AWSSecretsManager.class);
 			AwsSecretsManagerPropertySource propertySource = resource.getPropertySources()
-					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
+					.createPropertySource(resource.getContext(), resource.isOptional(), sm);
 			if (propertySource != null) {
 				return new ConfigData(Collections.singletonList(propertySource));
 			}
