@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import io.awspring.cloud.v3.autoconfigure.properties.AwsSecretsManagerProperties;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.regions.Region;
@@ -48,8 +47,8 @@ import org.springframework.boot.context.properties.bind.Binder;
  * @author Arun Patra
  * @since 2.3.0
  */
-public class AwsSecretsManagerConfigDataLocationResolver
-		implements ConfigDataLocationResolver<AwsSecretsManagerConfigDataResource> {
+public class SecretsManagerConfigDataLocationResolver
+		implements ConfigDataLocationResolver<SecretsManagerConfigDataResource> {
 
 	private final Log log;
 
@@ -58,7 +57,7 @@ public class AwsSecretsManagerConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-secretsmanager:";
 
-	public AwsSecretsManagerConfigDataLocationResolver(Log log) {
+	public SecretsManagerConfigDataLocationResolver(Log log) {
 		this.log = log;
 	}
 
@@ -67,36 +66,35 @@ public class AwsSecretsManagerConfigDataLocationResolver
 		if (!location.hasPrefix(PREFIX)) {
 			return false;
 		}
-		return context.getBinder().bind(AwsSecretsManagerProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
+		return context.getBinder().bind(SecretsManagerProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
 				.orElse(true);
 	}
 
 	@Override
-	public List<AwsSecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext context,
+	public List<SecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext context,
 			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<AwsSecretsManagerConfigDataResource> resolveProfileSpecific(
+	public List<SecretsManagerConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
-		registerBean(resolverContext, AwsSecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
 
-		AwsSecretsManagerProperties properties = loadConfigProperties(resolverContext.getBinder());
+		SecretsManagerProperties properties = loadConfigProperties(resolverContext.getBinder());
 
-		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties, log);
+		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources(properties, log);
 
 		List<String> contexts = location.getValue().equals(PREFIX)
 				? propertySources.getAutomaticContexts(profiles.getAccepted())
 				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
-		List<AwsSecretsManagerConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(
-				propertySourceContext -> locations.add(new AwsSecretsManagerConfigDataResource(propertySourceContext,
-						location.isOptional(), propertySources)));
+		List<SecretsManagerConfigDataResource> locations = new ArrayList<>();
+		contexts.forEach(propertySourceContext -> locations.add(
+				new SecretsManagerConfigDataResource(propertySourceContext, location.isOptional(), propertySources)));
 
 		return locations;
 	}
@@ -129,7 +127,7 @@ public class AwsSecretsManagerConfigDataLocationResolver
 	}
 
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
-		AwsSecretsManagerProperties properties = context.get(AwsSecretsManagerProperties.class);
+		SecretsManagerProperties properties = context.get(SecretsManagerProperties.class);
 
 		SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
@@ -144,15 +142,15 @@ public class AwsSecretsManagerConfigDataLocationResolver
 		return builder.build();
 	}
 
-	protected AwsSecretsManagerProperties loadProperties(Binder binder) {
-		return binder.bind(AwsSecretsManagerProperties.CONFIG_PREFIX, Bindable.of(AwsSecretsManagerProperties.class))
-				.orElseGet(AwsSecretsManagerProperties::new);
+	protected SecretsManagerProperties loadProperties(Binder binder) {
+		return binder.bind(SecretsManagerProperties.CONFIG_PREFIX, Bindable.of(SecretsManagerProperties.class))
+				.orElseGet(SecretsManagerProperties::new);
 	}
 
-	protected AwsSecretsManagerProperties loadConfigProperties(Binder binder) {
-		AwsSecretsManagerProperties properties = binder
-				.bind(AwsSecretsManagerProperties.CONFIG_PREFIX, Bindable.of(AwsSecretsManagerProperties.class))
-				.orElseGet(AwsSecretsManagerProperties::new);
+	protected SecretsManagerProperties loadConfigProperties(Binder binder) {
+		SecretsManagerProperties properties = binder
+				.bind(SecretsManagerProperties.CONFIG_PREFIX, Bindable.of(SecretsManagerProperties.class))
+				.orElseGet(SecretsManagerProperties::new);
 
 		if (StringUtils.isEmpty(properties.getName())) {
 			properties.setName(binder.bind("spring.application.name", String.class).orElse("application"));

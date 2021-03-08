@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.Objects;
 
@@ -28,16 +28,16 @@ import org.springframework.core.style.ToStringCreator;
  * @author Maciej Walkowiak
  * @since 2.3.0
  */
-public class AwsSecretsManagerConfigDataResource extends ConfigDataResource {
+public class SecretsManagerConfigDataResource extends ConfigDataResource {
 
 	private final String context;
 
 	private final boolean optional;
 
-	private final AwsSecretsManagerPropertySources propertySources;
+	private final SecretsManagerPropertySources propertySources;
 
-	public AwsSecretsManagerConfigDataResource(String context, boolean optional,
-			AwsSecretsManagerPropertySources propertySources) {
+	public SecretsManagerConfigDataResource(String context, boolean optional,
+			SecretsManagerPropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
 		this.propertySources = propertySources;
@@ -59,7 +59,7 @@ public class AwsSecretsManagerConfigDataResource extends ConfigDataResource {
 		return this.optional;
 	}
 
-	public AwsSecretsManagerPropertySources getPropertySources() {
+	public SecretsManagerPropertySources getPropertySources() {
 		return this.propertySources;
 	}
 
@@ -71,7 +71,7 @@ public class AwsSecretsManagerConfigDataResource extends ConfigDataResource {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		AwsSecretsManagerConfigDataResource that = (AwsSecretsManagerConfigDataResource) o;
+		SecretsManagerConfigDataResource that = (SecretsManagerConfigDataResource) o;
 		return this.optional == that.optional && this.context.equals(that.context);
 	}
 

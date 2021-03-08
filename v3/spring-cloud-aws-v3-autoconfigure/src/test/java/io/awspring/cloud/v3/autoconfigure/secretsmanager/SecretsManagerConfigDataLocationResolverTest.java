@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,14 +35,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link AwsSecretsManagerConfigDataLocationResolver}
+ * Tests for {@link SecretsManagerConfigDataLocationResolver}
  */
-class AwsSecretsManagerConfigDataLocationResolverTest {
+class SecretsManagerConfigDataLocationResolverTest {
 
 	@Test
 	void testResolveProfileSpecificWithAutomaticPaths() {
 		String location = "aws-secretsmanager:";
-		List<AwsSecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
+		List<SecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(4);
 		assertThat(toContexts(locations)).containsExactly("/secret/testapp_dev", "/secret/testapp",
 				"/secret/application_dev", "/secret/application");
@@ -51,17 +51,17 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 	@Test
 	void testResolveProfileSpecificWithCustomPaths() {
 		String location = "aws-secretsmanager:/mypath1;/mypath2;/mypath3";
-		List<AwsSecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
+		List<SecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(3);
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
 	}
 
-	private List<String> toContexts(List<AwsSecretsManagerConfigDataResource> locations) {
-		return locations.stream().map(AwsSecretsManagerConfigDataResource::getContext).collect(Collectors.toList());
+	private List<String> toContexts(List<SecretsManagerConfigDataResource> locations) {
+		return locations.stream().map(SecretsManagerConfigDataResource::getContext).collect(Collectors.toList());
 	}
 
-	private List<AwsSecretsManagerConfigDataResource> testResolveProfileSpecific(String location) {
-		AwsSecretsManagerConfigDataLocationResolver resolver = createResolver();
+	private List<SecretsManagerConfigDataResource> testResolveProfileSpecific(String location) {
+		SecretsManagerConfigDataLocationResolver resolver = createResolver();
 		ConfigDataLocationResolverContext context = mock(ConfigDataLocationResolverContext.class);
 		MockEnvironment env = new MockEnvironment();
 		env.setProperty("spring.application.name", "testapp");
@@ -71,8 +71,8 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 		return resolver.resolveProfileSpecific(context, ConfigDataLocation.of(location), profiles);
 	}
 
-	private AwsSecretsManagerConfigDataLocationResolver createResolver() {
-		return new AwsSecretsManagerConfigDataLocationResolver(LogFactory.getLog("any")) {
+	private SecretsManagerConfigDataLocationResolver createResolver() {
+		return new SecretsManagerConfigDataLocationResolver(LogFactory.getLog("any")) {
 			@Override
 			public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
 				// do nothing

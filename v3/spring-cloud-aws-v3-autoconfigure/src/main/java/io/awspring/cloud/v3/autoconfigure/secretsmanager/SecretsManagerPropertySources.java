@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.awspring.cloud.v3.autoconfigure.properties.AwsSecretsManagerProperties;
-import io.awspring.cloud.v3.secretsmanager.AwsSecretsManagerPropertySource;
+import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
@@ -33,13 +32,13 @@ import org.springframework.util.StringUtils;
  * @author Maciej Walkowiak
  * @author Arun Patra
  */
-public class AwsSecretsManagerPropertySources {
+public class SecretsManagerPropertySources {
 
-	private final AwsSecretsManagerProperties properties;
+	private final SecretsManagerProperties properties;
 
 	private final Log log;
 
-	public AwsSecretsManagerPropertySources(AwsSecretsManagerProperties properties, Log log) {
+	public SecretsManagerPropertySources(SecretsManagerProperties properties, Log log) {
 		this.properties = properties;
 		this.log = log;
 	}
@@ -82,11 +81,11 @@ public class AwsSecretsManagerPropertySources {
 	 * @return a property source or null if secret could not be loaded and optional is set
 	 * to true
 	 */
-	public AwsSecretsManagerPropertySource createPropertySource(String context, boolean optional,
+	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			SecretsManagerClient client) {
 		log.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
-			AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(context, client);
+			SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource(context, client);
 			propertySource.init();
 			return propertySource;
 			// TODO: howto call close when /refresh

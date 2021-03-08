@@ -29,16 +29,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link AwsSecretsManagerPropertySource}.
+ * Tests for {@link SecretsManagerPropertySource}.
  *
  */
 
-class AwsSecretsManagerPropertySourceTest {
+class SecretsManagerPropertySourceTest {
 
 	private SecretsManagerClient client = mock(SecretsManagerClient.class);
 
-	private AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource("/config/myservice",
-			client);
+	private SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice", client);
 
 	@Test
 	void shouldParseSecretValue() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.properties;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.net.URI;
 import java.util.regex.Pattern;
@@ -34,8 +34,8 @@ import org.springframework.validation.Validator;
  * @author Arun Patra
  * @since 2.0.0
  */
-@ConfigurationProperties(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX)
-public class AwsSecretsManagerProperties implements Validator {
+@ConfigurationProperties(prefix = SecretsManagerProperties.CONFIG_PREFIX)
+public class SecretsManagerProperties implements Validator {
 
 	/**
 	 * Configuration prefix.
@@ -84,12 +84,12 @@ public class AwsSecretsManagerProperties implements Validator {
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return AwsSecretsManagerProperties.class.isAssignableFrom(clazz);
+		return SecretsManagerProperties.class.isAssignableFrom(clazz);
 	}
 
 	@Override
 	public void validate(Object target, Errors errors) {
-		AwsSecretsManagerProperties properties = (AwsSecretsManagerProperties) target;
+		SecretsManagerProperties properties = (SecretsManagerProperties) target;
 
 		if (!StringUtils.hasLength(properties.getPrefix())) {
 			errors.rejectValue("prefix", "NotEmpty", "prefix should not be empty or null.");

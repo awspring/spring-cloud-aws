@@ -1,10 +1,10 @@
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
-io.awspring.cloud.v3.autoconfigure.AwsSecretsManagerConfigDataLocationResolver
+io.awspring.cloud.v3.autoconfigure.secretsmanager.SecretsManagerConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-io.awspring.cloud.v3.autoconfigure.AwsSecretsManagerConfigDataLoader
+io.awspring.cloud.v3.autoconfigure.secretsmanager.SecretsManagerConfigDataLoader
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration,\

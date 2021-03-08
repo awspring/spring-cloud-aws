@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.properties;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.stream.Stream;
 
@@ -28,13 +28,13 @@ import org.springframework.validation.Errors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link AwsSecretsManagerProperties}.
+ * Tests for {@link SecretsManagerProperties}.
  *
  * @author Matej Nedic
  * @author Maciej Walkowiak
  * @author Arun Patra
  */
-class AwsSecretsManagerPropertiesTest {
+class SecretsManagerPropertiesTest {
 
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
@@ -62,7 +62,7 @@ class AwsSecretsManagerPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
+	public void validationFails(SecretsManagerProperties properties, String field, String errorCode) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 
 		properties.validate(properties, errors);
@@ -73,7 +73,7 @@ class AwsSecretsManagerPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("validProperties")
-	void validationSucceeds(AwsSecretsManagerProperties properties) {
+	void validationSucceeds(SecretsManagerProperties properties) {
 		Errors errors = new BeanPropertyBindingResult(properties, "properties");
 		properties.validate(properties, errors);
 		assertThat(errors.getAllErrors()).isEmpty();
@@ -81,7 +81,7 @@ class AwsSecretsManagerPropertiesTest {
 
 	private static class AwsSecretsManagerPropertiesBuilder {
 
-		private final AwsSecretsManagerProperties properties = new AwsSecretsManagerProperties();
+		private final SecretsManagerProperties properties = new SecretsManagerProperties();
 
 		AwsSecretsManagerPropertiesBuilder withPrefix(String prefix) {
 			this.properties.setPrefix(prefix);
@@ -98,7 +98,7 @@ class AwsSecretsManagerPropertiesTest {
 			return this;
 		}
 
-		AwsSecretsManagerProperties build() {
+		SecretsManagerProperties build() {
 			return this.properties;
 		}
 

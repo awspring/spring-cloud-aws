@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 import java.util.Collections;
 
-import io.awspring.cloud.v3.secretsmanager.AwsSecretsManagerPropertySource;
+import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import org.springframework.boot.context.config.ConfigData;
@@ -34,13 +34,13 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
  * @author Arun Patra
  * @since 2.3.0
  */
-public class AwsSecretsManagerConfigDataLoader implements ConfigDataLoader<AwsSecretsManagerConfigDataResource> {
+public class SecretsManagerConfigDataLoader implements ConfigDataLoader<SecretsManagerConfigDataResource> {
 
 	@Override
-	public ConfigData load(ConfigDataLoaderContext context, AwsSecretsManagerConfigDataResource resource) {
+	public ConfigData load(ConfigDataLoaderContext context, SecretsManagerConfigDataResource resource) {
 		try {
 			SecretsManagerClient ssm = context.getBootstrapContext().get(SecretsManagerClient.class);
-			AwsSecretsManagerPropertySource propertySource = resource.getPropertySources()
+			SecretsManagerPropertySource propertySource = resource.getPropertySources()
 					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
 			if (propertySource != null) {
 				return new ConfigData(Collections.singletonList(propertySource));

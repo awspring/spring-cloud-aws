@@ -55,8 +55,8 @@ The following snippet demonstrates how to read properties.
         SecretsManagerClient secretsManagerClient = ...
 
 		String secretsContext = "/secrets/spring-cloud-aws-sample-app/";
-		AwsSecretsManagerPropertySource propertySource =
-            new AwsSecretsManagerPropertySource(secretsContext, secretsManagerClient);
+		SecretsManagerPropertySource propertySource =
+            new SecretsManagerPropertySource(secretsContext, secretsManagerClient);
 
 		propertySource.init();
 

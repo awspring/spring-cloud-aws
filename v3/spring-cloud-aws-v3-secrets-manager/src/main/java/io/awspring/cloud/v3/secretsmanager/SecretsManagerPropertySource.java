@@ -39,7 +39,7 @@ import org.springframework.core.env.EnumerablePropertySource;
  * @author Arun Patra
  * @since 2.0.0
  */
-public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<SecretsManagerClient> {
+public class SecretsManagerPropertySource extends EnumerablePropertySource<SecretsManagerClient> {
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -47,7 +47,7 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<Se
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
-	public AwsSecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
+	public SecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
 		super(context, smClient);
 		this.context = context;
 	}
