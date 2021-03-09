@@ -92,7 +92,7 @@ public class AwsCloudMapPropertySource extends EnumerablePropertySource<AWSServi
 	 */
 	private void getServices(boolean optional, CloudMapDiscoveryProperties discoveryParameters)
 			throws AwsCloudMapPropertySources.AwsCloudMapPropertySourceNotFoundException {
-		final String namespace = discoveryParameters.getServiceNameSpace();
+		final String namespace = discoveryParameters.getNameSpace();
 		final String serviceName = discoveryParameters.getService();
 		final String key = namespace + "/" + serviceName;
 		try {

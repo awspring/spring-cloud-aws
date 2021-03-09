@@ -81,12 +81,8 @@ public class CloudMapTestUtils {
 	public static CloudMapRegistryProperties getProperties() {
 		CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
 		properties.setService(SERVICE);
-		properties.setServiceNameSpace(NAMESPACE);
+		properties.setNameSpace(NAMESPACE);
 		properties.setDescription("DESCRIPTION");
-		properties.setPort(80);
-		properties.setHealthCheckThreshold(80);
-		properties.setHealthCheckResourcePath("PATH");
-		properties.setHealthCheckProtocol("HTTPS");
 		return properties;
 	}
 

@@ -33,18 +33,10 @@ import org.springframework.stereotype.Component;
 @Target(ElementType.TYPE)
 public @interface CloudMapRegistry {
 
-	String serviceNameSpace();
+	String nameSpace();
 
 	String service();
 
 	String description() default "";
-
-	String healthCheckProtocol() default "";
-
-	int healthCheckThreshold() default 0;
-
-	String healthCheckResourcePath() default "";
-
-	int port() default 0;
 
 }

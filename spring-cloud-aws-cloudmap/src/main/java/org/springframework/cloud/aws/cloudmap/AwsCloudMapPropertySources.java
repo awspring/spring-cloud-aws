@@ -19,8 +19,8 @@ package org.springframework.cloud.aws.cloudmap;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
 
 /**
- * Recursively retrieves all Http instances based on cloudmap namespace and services from
- * the AWS CloudMap using the provided AWS ServiceDiscovery client.
+ * Fetch Http instances based on cloudmap namespace and services from the AWS CloudMap
+ * service using the provided AWS ServiceDiscovery client.
  *
  * @author Hari Ohm Prasath
  * @since 1.0

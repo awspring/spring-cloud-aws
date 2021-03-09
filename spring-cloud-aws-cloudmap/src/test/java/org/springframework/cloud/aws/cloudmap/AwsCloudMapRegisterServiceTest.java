@@ -198,12 +198,8 @@ public class AwsCloudMapRegisterServiceTest {
 	private CloudMapRegistryProperties getProperties() {
 		CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
 		properties.setService(CloudMapTestUtils.SERVICE);
-		properties.setServiceNameSpace(CloudMapTestUtils.NAMESPACE);
+		properties.setNameSpace(CloudMapTestUtils.NAMESPACE);
 		properties.setDescription("DESCRIPTION");
-		properties.setPort(80);
-		properties.setHealthCheckThreshold(80);
-		properties.setHealthCheckResourcePath("PATH");
-		properties.setHealthCheckProtocol("HTTPS");
 		return properties;
 	}
 

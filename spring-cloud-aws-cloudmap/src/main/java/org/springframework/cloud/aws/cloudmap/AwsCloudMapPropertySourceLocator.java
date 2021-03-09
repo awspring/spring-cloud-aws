@@ -39,6 +39,12 @@ public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
 	private final CloudMapDiscoverService instanceDiscovery;
 
+	/**
+	 * Constructor method.
+	 * @param serviceDiscovery AWS CloudMap service discovery
+	 * @param cloudMapDiscovery CloudMap discovery POJO (user specified)
+	 * @param instanceDiscovery Service class for cloud map registration
+	 */
 	public AwsCloudMapPropertySourceLocator(AWSServiceDiscovery serviceDiscovery, CloudMapDiscovery cloudMapDiscovery,
 			CloudMapDiscoverService instanceDiscovery) {
 		this.serviceDiscovery = serviceDiscovery;

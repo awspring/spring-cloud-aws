@@ -30,8 +30,6 @@ import com.amazonaws.services.servicediscovery.model.DnsConfig;
 import com.amazonaws.services.servicediscovery.model.DnsRecord;
 import com.amazonaws.services.servicediscovery.model.DuplicateRequestException;
 import com.amazonaws.services.servicediscovery.model.GetOperationRequest;
-import com.amazonaws.services.servicediscovery.model.HealthCheckConfig;
-import com.amazonaws.services.servicediscovery.model.HealthCheckType;
 import com.amazonaws.services.servicediscovery.model.InvalidInputException;
 import com.amazonaws.services.servicediscovery.model.ListNamespacesRequest;
 import com.amazonaws.services.servicediscovery.model.ListServicesRequest;
@@ -70,8 +68,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 	private static final String AWS_INSTANCE_IPV_4 = "AWS_INSTANCE_IPV4";
 
-	private static final String AWS_INSTANCE_PORT = "AWS_INSTANCE_PORT";
-
 	private static final String REGION = "REGION";
 
 	private static final Logger log = LoggerFactory.getLogger(CloudMapRegistryService.class);
@@ -100,16 +96,16 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 	 * @return cloudmap registration operation ID
 	 */
 	public String registerInstances() {
-		if (properties != null && !StringUtils.isNullOrEmpty(properties.getServiceNameSpace())
+		if (properties != null && !StringUtils.isNullOrEmpty(properties.getNameSpace())
 				&& !StringUtils.isNullOrEmpty(properties.getService())) {
 
-			final String nameSpace = properties.getServiceNameSpace();
+			final String nameSpace = properties.getNameSpace();
 			final String service = properties.getService();
 
 			this.serviceInstanceId = UUID.randomUUID().toString();
 
 			Map<String, String> registrationDetails = cloudMapUtils.getRegistrationAttributes();
-			String nameSpaceId = getNameSpaceId(properties.getServiceNameSpace());
+			String nameSpaceId = getNameSpaceId(properties.getNameSpace());
 			try {
 				// Create namespace if not exists
 				if (nameSpaceId == null) {
@@ -127,7 +123,6 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 
 				Map<String, String> attributes = new HashMap<>();
 				attributes.put(AWS_INSTANCE_IPV_4, registrationDetails.get(CloudMapUtils.IPV_4_ADDRESS));
-				attributes.put(AWS_INSTANCE_PORT, String.valueOf(properties.getPort()));
 				attributes.put(REGION, System.getenv("AWS_REGION"));
 
 				// Register instance
@@ -175,7 +170,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 	 */
 	private String createNameSpace(CloudMapRegistryProperties properties, String vpcId)
 			throws CreateNameSpaceException {
-		final String nameSpace = properties.getServiceNameSpace();
+		final String nameSpace = properties.getNameSpace();
 		try {
 			// Create namespace
 			final String operationId = serviceDiscovery.createPrivateDnsNamespace(new CreatePrivateDnsNamespaceRequest()
@@ -210,23 +205,13 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 	 * @throws CreateServiceException thrown in case of runtime exception
 	 */
 	private String createService(String nameSpaceId) throws CreateServiceException {
-		final String nameSpace = properties.getServiceNameSpace();
+		final String nameSpace = properties.getNameSpace();
 		final String service = properties.getService();
 
 		try {
 			CreateServiceRequest serviceRequest = new CreateServiceRequest().withName(service)
 					.withNamespaceId(nameSpaceId).withDnsConfig(
 							new DnsConfig().withDnsRecords(new DnsRecord().withType(RecordType.A).withTTL(300L)));
-
-			if (!StringUtils.isNullOrEmpty(properties.getHealthCheckResourcePath())) {
-				HealthCheckConfig healthCheckConfig = new HealthCheckConfig();
-				healthCheckConfig.setType(String.valueOf(("https").equalsIgnoreCase(properties.getHealthCheckProtocol())
-						? HealthCheckType.HTTPS : HealthCheckType.HTTP));
-				healthCheckConfig.setResourcePath(properties.getHealthCheckResourcePath());
-				healthCheckConfig.setFailureThreshold(
-						(properties.getHealthCheckThreshold() == null) ? 5 : properties.getHealthCheckThreshold());
-				serviceRequest.withHealthCheckConfig(healthCheckConfig);
-			}
 
 			final String serviceId = serviceDiscovery.createService(serviceRequest).getService().getId();
 			log.info("Service ID create {} for {} with namespace {}", serviceId, service, nameSpace);

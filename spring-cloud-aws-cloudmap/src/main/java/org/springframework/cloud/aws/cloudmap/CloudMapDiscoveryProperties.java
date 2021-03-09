@@ -26,18 +26,18 @@ import java.util.Map;
  */
 public class CloudMapDiscoveryProperties {
 
-	private String serviceNameSpace;
+	private String nameSpace;
 
 	private String service;
 
 	private Map<String, String> filterAttributes;
 
-	public String getServiceNameSpace() {
-		return this.serviceNameSpace;
+	public String getNameSpace() {
+		return this.nameSpace;
 	}
 
-	public void setServiceNameSpace(String serviceNameSpace) {
-		this.serviceNameSpace = serviceNameSpace;
+	public void setNameSpace(String nameSpace) {
+		this.nameSpace = nameSpace;
 	}
 
 	public String getService() {
@@ -58,8 +58,7 @@ public class CloudMapDiscoveryProperties {
 
 	@Override
 	public String toString() {
-		String data = "AwsCloudMapDiscoveryProperties{" + "serviceNameSpace=" + serviceNameSpace + ", service="
-				+ service;
+		String data = "AwsCloudMapDiscoveryProperties{" + "serviceNameSpace=" + nameSpace + ", service=" + service;
 		if (filterAttributes != null) {
 			data += filterAttributes.keySet().stream().map(f -> "key = " + f + ":" + filterAttributes.get(f))
 					.reduce((a, b) -> a + "," + b).get();

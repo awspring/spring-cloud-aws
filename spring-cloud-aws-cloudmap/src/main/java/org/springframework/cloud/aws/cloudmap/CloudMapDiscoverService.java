@@ -48,7 +48,7 @@ public class CloudMapDiscoverService {
 	 */
 	public List<HttpInstanceSummary> discoverInstances(AWSServiceDiscovery serviceDiscovery,
 			CloudMapDiscoveryProperties properties) throws NamespaceNotFoundException, ServiceNotFoundException {
-		final String namespace = properties.getServiceNameSpace();
+		final String namespace = properties.getNameSpace();
 		final String serviceName = properties.getService();
 		DiscoverInstancesRequest dRequest = new DiscoverInstancesRequest();
 		dRequest.setNamespaceName(namespace);
@@ -56,8 +56,8 @@ public class CloudMapDiscoverService {
 
 		if (properties.getFilterAttributes() != null && !properties.getFilterAttributes().isEmpty()) {
 			Map<String, String> filterMap = new HashMap<>();
-			for (String key : properties.getFilterAttributes().keySet()) {
-				filterMap.put(key, properties.getFilterAttributes().get(key));
+			for (Map.Entry<String, String> entry : properties.getFilterAttributes().entrySet()) {
+				filterMap.put(entry.getKey(), entry.getValue());
 			}
 			dRequest.setQueryParameters(filterMap);
 		}

@@ -24,26 +24,18 @@ package org.springframework.cloud.aws.cloudmap;
  */
 public class CloudMapRegistryProperties {
 
-	private String serviceNameSpace;
+	private String nameSpace;
 
 	private String service;
 
 	private String description;
 
-	private String healthCheckProtocol;
-
-	private Integer healthCheckThreshold;
-
-	private String healthCheckResourcePath;
-
-	private int port;
-
-	public String getServiceNameSpace() {
-		return serviceNameSpace;
+	public String getNameSpace() {
+		return nameSpace;
 	}
 
-	public void setServiceNameSpace(String serviceNameSpace) {
-		this.serviceNameSpace = serviceNameSpace;
+	public void setNameSpace(String nameSpace) {
+		this.nameSpace = nameSpace;
 	}
 
 	public String getService() {
@@ -60,38 +52,6 @@ public class CloudMapRegistryProperties {
 
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public String getHealthCheckProtocol() {
-		return healthCheckProtocol;
-	}
-
-	public void setHealthCheckProtocol(String healthCheckProtocol) {
-		this.healthCheckProtocol = healthCheckProtocol;
-	}
-
-	public Integer getHealthCheckThreshold() {
-		return healthCheckThreshold;
-	}
-
-	public void setHealthCheckThreshold(Integer healthCheckThreshold) {
-		this.healthCheckThreshold = healthCheckThreshold;
-	}
-
-	public String getHealthCheckResourcePath() {
-		return healthCheckResourcePath;
-	}
-
-	public void setHealthCheckResourcePath(String healthCheckResourcePath) {
-		this.healthCheckResourcePath = healthCheckResourcePath;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
 	}
 
 }

@@ -140,7 +140,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 
 	private static CloudMapDiscoveryProperties getDiscoveryProperties() {
 		CloudMapDiscoveryProperties properties = new CloudMapDiscoveryProperties();
-		properties.setServiceNameSpace("namespace");
+		properties.setNameSpace("namespace");
 		properties.setService("service");
 		Map<String, String> filterMap = new HashMap<>();
 		filterMap.put("name", "value");
@@ -152,7 +152,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 	private static DiscoverInstancesResult getFirstResult(CloudMapDiscoveryProperties properties) {
 		DiscoverInstancesResult dResult = new DiscoverInstancesResult();
 		HttpInstanceSummary summary = new HttpInstanceSummary();
-		summary.setNamespaceName(properties.getServiceNameSpace());
+		summary.setNamespaceName(properties.getNameSpace());
 		summary.setServiceName(properties.getService());
 		summary.setInstanceId("INSTANCE_ID");
 		dResult.setInstances(Collections.singleton(summary));
@@ -160,7 +160,7 @@ public class AwsCloudMapPropertySourceLocatorTest {
 	}
 
 	private static String getName(CloudMapDiscoveryProperties properties) {
-		return properties.getServiceNameSpace() + "/" + properties.getService();
+		return properties.getNameSpace() + "/" + properties.getService();
 	}
 
 }

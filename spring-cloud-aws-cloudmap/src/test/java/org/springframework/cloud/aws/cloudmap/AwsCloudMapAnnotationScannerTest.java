@@ -40,9 +40,8 @@ import static org.mockito.Mockito.when;
  * @author Hari Ohm Prasath
  * @since 1.0
  */
-@CloudMapRegistry(serviceNameSpace = CloudMapTestUtils.NAMESPACE, service = CloudMapTestUtils.SERVICE,
-		description = "DESCRIPTION", healthCheckProtocol = "HTTP", port = 80, healthCheckResourcePath = "/health",
-		healthCheckThreshold = 5)
+@CloudMapRegistry(nameSpace = CloudMapTestUtils.NAMESPACE, service = CloudMapTestUtils.SERVICE,
+		description = "DESCRIPTION")
 public class AwsCloudMapAnnotationScannerTest {
 
 	private final AWSServiceDiscovery serviceDiscovery = mock(AWSServiceDiscovery.class);

@@ -68,26 +68,14 @@ public class CloudMapRegistryAnnotationScanner {
 
 	private CloudMapRegistryProperties getRegistryProperties(CloudMapRegistry cloudMapRegistry) {
 		try {
-			if (!StringUtils.isNullOrEmpty(cloudMapRegistry.serviceNameSpace())
+			if (!StringUtils.isNullOrEmpty(cloudMapRegistry.nameSpace())
 					&& !StringUtils.isNullOrEmpty(cloudMapRegistry.service())) {
 				CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
-				properties.setServiceNameSpace(cloudMapRegistry.serviceNameSpace());
+				properties.setNameSpace(cloudMapRegistry.nameSpace());
 				properties.setService(cloudMapRegistry.service());
 
-				if (cloudMapRegistry.port() != 0) {
-					properties.setPort(cloudMapRegistry.port());
-				}
 				if (!StringUtils.isNullOrEmpty(cloudMapRegistry.description())) {
 					properties.setDescription(cloudMapRegistry.description());
-				}
-				if (!StringUtils.isNullOrEmpty(cloudMapRegistry.healthCheckProtocol())) {
-					properties.setHealthCheckProtocol(cloudMapRegistry.healthCheckProtocol());
-				}
-				if (!StringUtils.isNullOrEmpty(cloudMapRegistry.healthCheckResourcePath())) {
-					properties.setHealthCheckResourcePath(cloudMapRegistry.healthCheckResourcePath());
-				}
-				if (cloudMapRegistry.healthCheckThreshold() != 0) {
-					properties.setHealthCheckThreshold(cloudMapRegistry.healthCheckThreshold());
 				}
 				return properties;
 			}
