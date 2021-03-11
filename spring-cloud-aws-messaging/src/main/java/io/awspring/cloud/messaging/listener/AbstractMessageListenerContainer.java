@@ -279,7 +279,7 @@ abstract class AbstractMessageListenerContainer
 		if (getRegisteredQueues().values().stream().anyMatch(queueAttributes -> queueAttributes.isFifo())
 				&& getAmazonSqs() instanceof AmazonSQSBufferedAsyncClient) {
 			getLogger().warn(
-					"`AmazonSQSBufferedAsyncClient` that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues.");
+					"AmazonSQSBufferedAsyncClient that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues. Consider registering non-buffered AmazonSQSAsyncClient bean.");
 		}
 	}
 
