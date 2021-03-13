@@ -24,6 +24,7 @@ import io.awspring.cloud.messaging.endpoint.annotation.NotificationSubscriptionM
 import io.awspring.cloud.messaging.endpoint.annotation.NotificationUnsubscribeConfirmationMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -34,14 +35,14 @@ public class NotificationMappingController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);
 
 	@NotificationSubscriptionMapping
-	public void handleSubscriptionMessage(NotificationStatus status)  {
+	public void handleSubscriptionMessage(NotificationStatus status) {
 		status.confirmSubscription();
 	}
 
 	@NotificationMessageMapping
 	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-			LOGGER.info("NotificationMessageMapping message is: {}", message);
-			LOGGER.info("NotificationMessageMapping subject is: {}" + subject);
+		LOGGER.info("NotificationMessageMapping message is: {}", message);
+		LOGGER.info("NotificationMessageMapping subject is: {}" + subject);
 	}
 
 	@NotificationUnsubscribeConfirmationMapping
