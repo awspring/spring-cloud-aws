@@ -45,9 +45,9 @@ build.
 
 Or reach out directly to individual team members:
 
-* Maciej Walkowiak (https://twitter.com/maciejwalkowiak[Twitter])
-* Eddú Meléndez (https://twitter.com/EdduMelendez[Twitter])
-* Matej Nedic (https://twitter.com/MatejNedic1[Twitter])
+* Maciej Walkowiak https://twitter.com/maciejwalkowiak[Twitter]
+* Eddú Meléndez https://twitter.com/EdduMelendez[Twitter]
+* Matej Nedic https://twitter.com/MatejNedic1[Twitter]
 
 = Using IntelliJ IDEA
 
