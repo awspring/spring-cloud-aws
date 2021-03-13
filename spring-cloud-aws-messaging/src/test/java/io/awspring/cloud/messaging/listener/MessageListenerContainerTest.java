@@ -90,7 +90,7 @@ class MessageListenerContainerTest {
 
 		assertThat(container.isActive()).isTrue();
 		verify(loggerMock).warn(
-				"`AmazonSQSBufferedAsyncClient` that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues.");
+				"AmazonSQSBufferedAsyncClient that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues. Consider registering non-buffered AmazonSQSAsyncClient bean.");
 	}
 
 	@Test
