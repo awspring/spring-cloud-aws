@@ -95,7 +95,7 @@ public class CloudMapRegistryService implements TomcatConnectorCustomizer, Appli
 	 * with the created namespace and service
 	 * @return cloudmap registration operation ID
 	 */
-	public String registerInstances() {
+	public String registerInstance() {
 		if (properties != null && !StringUtils.isNullOrEmpty(properties.getNameSpace())
 				&& !StringUtils.isNullOrEmpty(properties.getService())) {
 

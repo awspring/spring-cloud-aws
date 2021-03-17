@@ -61,7 +61,7 @@ public class CloudMapRegistryAnnotationScanner {
 			CloudMapRegistry cloudMapRegistry = AnnotationUtils.findAnnotation(x, CloudMapRegistry.class);
 			CloudMapRegistryProperties cloudMapRegistryProperties = getRegistryProperties(cloudMapRegistry);
 			if (cloudMapRegistryProperties != null) {
-				new CloudMapRegistryService(this.serviceDiscovery, cloudMapRegistryProperties).registerInstances();
+				new CloudMapRegistryService(this.serviceDiscovery, cloudMapRegistryProperties).registerInstance();
 			}
 		});
 	}

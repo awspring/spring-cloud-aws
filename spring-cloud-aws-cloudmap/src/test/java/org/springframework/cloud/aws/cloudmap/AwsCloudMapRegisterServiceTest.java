@@ -75,7 +75,7 @@ public class AwsCloudMapRegisterServiceTest {
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResult);
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResult);
-		assertThat(registryService.registerInstances()).hasToString(CloudMapTestUtils.OPERATION_ID);
+		assertThat(registryService.registerInstance()).hasToString(CloudMapTestUtils.OPERATION_ID);
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class AwsCloudMapRegisterServiceTest {
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResult);
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResult);
-		assertThat(registryService.registerInstances()).hasToString(CloudMapTestUtils.OPERATION_ID);
+		assertThat(registryService.registerInstance()).hasToString(CloudMapTestUtils.OPERATION_ID);
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class AwsCloudMapRegisterServiceTest {
 				.thenReturn(registerInstanceRequest);
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResult);
 
-		assertThat(registryService.registerInstances()).hasToString(CloudMapTestUtils.OPERATION_ID);
+		assertThat(registryService.registerInstance()).hasToString(CloudMapTestUtils.OPERATION_ID);
 	}
 
 	@Test

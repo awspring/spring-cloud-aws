@@ -59,7 +59,7 @@ public class AwsCloudMapBootstrapConfiguration {
 	CloudMapRegistryService registerInstance(AWSServiceDiscovery serviceDiscovery, CloudMapProperties properties) {
 		CloudMapRegistryService registryService = new CloudMapRegistryService(serviceDiscovery,
 				properties.getRegistry());
-		registryService.registerInstances();
+		registryService.registerInstance();
 		return registryService;
 	}
 

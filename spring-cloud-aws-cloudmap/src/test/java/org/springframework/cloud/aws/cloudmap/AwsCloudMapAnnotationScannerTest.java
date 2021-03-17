@@ -65,7 +65,7 @@ public class AwsCloudMapAnnotationScannerTest {
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResult);
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResult);
-		assertThat(registryService.registerInstances()).hasToString(CloudMapTestUtils.OPERATION_ID);
+		assertThat(registryService.registerInstance()).hasToString(CloudMapTestUtils.OPERATION_ID);
 
 		CloudMapRegistryAnnotationScanner scanner = new CloudMapRegistryAnnotationScanner(serviceDiscovery,
 				"org.springframework.cloud.aws.cloudmap");
