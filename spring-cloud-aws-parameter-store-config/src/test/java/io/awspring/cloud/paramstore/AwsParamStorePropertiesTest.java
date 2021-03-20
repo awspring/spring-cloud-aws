@@ -27,6 +27,8 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -39,12 +41,7 @@ class AwsParamStorePropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError(field)).isNotNull();
-		assertThat(errors.getFieldError(field).getCode()).isEqualTo(errorCode);
+		assertThrows(ValidationException.class, properties::validate);
 	}
 
 	@Test
@@ -52,34 +49,21 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-
-		assertThat(errors.getAllErrors()).isEmpty();
+		assertDoesNotThrow(properties::validate);
 	}
 
 	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");
-
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+		assertDoesNotThrow(properties::validate);
 	}
 
 	@Test
 	void acceptsBackslashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("\\");
-
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+		assertDoesNotThrow(properties::validate);
 	}
 
 	private static Stream<Arguments> invalidProperties() {

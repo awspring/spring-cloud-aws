@@ -21,8 +21,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Configuration properties for the AWS Parameter Store integration. Mostly based on the
@@ -33,7 +33,7 @@ import org.springframework.validation.Validator;
  * @since 2.0.0
  */
 @ConfigurationProperties(AwsParamStoreProperties.CONFIG_PREFIX)
-public class AwsParamStoreProperties implements Validator {
+public class AwsParamStoreProperties {
 
 	/**
 	 * Configuration prefix.
@@ -83,33 +83,26 @@ public class AwsParamStoreProperties implements Validator {
 	/** Is AWS Parameter Store support enabled. */
 	private boolean enabled = true;
 
-	@Override
-	public boolean supports(Class clazz) {
-		return AwsParamStoreProperties.class.isAssignableFrom(clazz);
-	}
+	@PostConstruct
+	public void validate() {
 
-	@Override
-	public void validate(Object target, Errors errors) {
-		AwsParamStoreProperties properties = (AwsParamStoreProperties) target;
-
-		if (!StringUtils.hasLength(properties.getPrefix())) {
-			errors.rejectValue("prefix", "NotEmpty", "prefix should not be empty or null.");
+		if (!StringUtils.hasLength(prefix)) {
+			throw new ValidationException("prefix", "prefix should not be empty or null.");
 		}
 
-		if (!StringUtils.hasLength(properties.getDefaultContext())) {
-			errors.rejectValue("defaultContext", "NotEmpty", "defaultContext should not be empty or null.");
+		if (!StringUtils.hasLength(defaultContext)) {
+			throw new ValidationException("defaultContext", "defaultContext should not be empty or null.");
 		}
 
-		if (!StringUtils.hasLength(properties.getProfileSeparator())) {
-			errors.rejectValue("profileSeparator", "NotEmpty", "profileSeparator should not be empty or null.");
+		if (!StringUtils.hasLength(profileSeparator)) {
+			throw new ValidationException("profileSeparator", "profileSeparator should not be empty or null.");
 		}
 
-		if (!PREFIX_PATTERN.matcher(properties.getPrefix()).matches()) {
-			errors.rejectValue("prefix", "Pattern", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+		if (!PREFIX_PATTERN.matcher(prefix).matches()) {
+			throw new ValidationException("prefix", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
-		if (!PROFILE_SEPARATOR_PATTERN.matcher(properties.getProfileSeparator()).matches()) {
-			errors.rejectValue("profileSeparator", "Pattern",
-					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
+		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
+			throw new ValidationException("profileSeparator", "The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
 	}
 
