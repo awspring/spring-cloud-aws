@@ -19,8 +19,7 @@ package io.awspring.cloud.paramstore;
 import java.net.URI;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
-
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -33,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @since 2.0.0
  */
 @ConfigurationProperties(AwsParamStoreProperties.CONFIG_PREFIX)
-public class AwsParamStoreProperties {
+public class AwsParamStoreProperties implements InitializingBean {
 
 	/**
 	 * Configuration prefix.
@@ -83,8 +82,7 @@ public class AwsParamStoreProperties {
 	/** Is AWS Parameter Store support enabled. */
 	private boolean enabled = true;
 
-	@PostConstruct
-	public void validate() {
+	public void afterPropertiesSet() throws Exception {
 
 		if (!StringUtils.hasLength(prefix)) {
 			throw new ValidationException(CONFIG_PREFIX + ".prefix", "prefix should not be empty or null.");

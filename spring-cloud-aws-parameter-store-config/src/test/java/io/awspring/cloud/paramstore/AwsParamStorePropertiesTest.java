@@ -37,7 +37,7 @@ class AwsParamStorePropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
-		assertThatThrownBy(properties::validate).isInstanceOf(ValidationException.class);
+		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
 	}
 
 	@Test
@@ -45,21 +45,21 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		assertThatNoException().isThrownBy(properties::validate);
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");
-		assertThatNoException().isThrownBy(properties::validate);
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
 	void acceptsBackslashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("\\");
-		assertThatNoException().isThrownBy(properties::validate);
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	private static Stream<Arguments> invalidProperties() {

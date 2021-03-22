@@ -36,13 +36,13 @@ class AwsSecretsManagerPropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
-		assertThatThrownBy(properties::validate).isInstanceOf(ValidationException.class);
+		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
 	}
 
 	@ParameterizedTest
 	@MethodSource("validProperties")
 	void validationSucceeds(AwsSecretsManagerProperties properties) {
-		assertThatNoException().isThrownBy(properties::validate);
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	private static Stream<Arguments> validProperties() {
