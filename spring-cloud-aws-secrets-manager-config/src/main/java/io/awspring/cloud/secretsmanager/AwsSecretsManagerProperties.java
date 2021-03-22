@@ -88,22 +88,25 @@ public class AwsSecretsManagerProperties {
 	public void validate() {
 
 		if (!StringUtils.hasLength(prefix)) {
-			throw new ValidationException("prefix", "prefix should not be empty or null.");
+			throw new ValidationException(CONFIG_PREFIX + ".prefix", "prefix should not be empty or null.");
 		}
 
 		if (!StringUtils.hasLength(defaultContext)) {
-			throw new ValidationException("defaultContext", "defaultContext should not be empty or null.");
+			throw new ValidationException(CONFIG_PREFIX + ".defaultContext",
+					"defaultContext should not be empty or null.");
 		}
 
 		if (!StringUtils.hasLength(profileSeparator)) {
-			throw new ValidationException("profileSeparator", "profileSeparator should not be empty or null.");
+			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
+					"profileSeparator should not be empty or null.");
 		}
 
 		if (!PREFIX_PATTERN.matcher(prefix).matches()) {
-			throw new ValidationException("prefix", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+			throw new ValidationException(CONFIG_PREFIX + ".prefix",
+					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
 		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
-			throw new ValidationException("profileSeparator",
+			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
 					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
 
