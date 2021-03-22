@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.paramstore;
+package io.awspring.cloud.autoconfigure.paramstore;
+
+import io.awspring.cloud.paramstore.ValidationException;
+
+import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
+import org.springframework.boot.diagnostics.FailureAnalysis;
 
 /**
- * Custom exception that is to be thrown if validation of {@link AwsParamStoreProperties}
- * fails.
+ * Custom Analyzer that makes {@link ValidationException} more readable.
  *
  * @author Matej Nedic
  * @since 2.3.1
  */
-public class ValidationException extends RuntimeException {
+public class AwsParamStoreValidationAnalyzer extends AbstractFailureAnalyzer<ValidationException> {
 
-	private final String field;
-
-	public ValidationException(String field, String message) {
-		super(message);
-		this.field = field;
-	}
-
-	public String getField() {
-		return field;
+	@Override
+	protected FailureAnalysis analyze(Throwable rootFailure, ValidationException cause) {
+		return new FailureAnalysis("Validation failed for field: " + cause.getField(), cause.getMessage(), cause);
 	}
 
 }

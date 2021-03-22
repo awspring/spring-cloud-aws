@@ -23,12 +23,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -41,7 +37,7 @@ class AwsParamStorePropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
-		assertThrows(ValidationException.class, properties::validate);
+		assertThatThrownBy(properties::validate).isInstanceOf(ValidationException.class);
 	}
 
 	@Test
@@ -49,21 +45,21 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		assertDoesNotThrow(properties::validate);
+		assertThatNoException().isThrownBy(properties::validate);
 	}
 
 	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");
-		assertDoesNotThrow(properties::validate);
+		assertThatNoException().isThrownBy(properties::validate);
 	}
 
 	@Test
 	void acceptsBackslashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("\\");
-		assertDoesNotThrow(properties::validate);
+		assertThatNoException().isThrownBy(properties::validate);
 	}
 
 	private static Stream<Arguments> invalidProperties() {

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.paramstore;
+package io.awspring.cloud.secretsmanager;
 
 /**
- * Custom exception that is to be thrown if validation of {@link AwsParamStoreProperties}
- * fails.
+ * Custom exception that is to be thrown if validation of
+ * {@link AwsSecretsManagerProperties} fails.
  *
  * @author Matej Nedic
  * @since 2.3.1

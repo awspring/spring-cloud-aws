@@ -19,10 +19,10 @@ package io.awspring.cloud.paramstore;
 import java.net.URI;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Configuration properties for the AWS Parameter Store integration. Mostly based on the
@@ -102,7 +102,8 @@ public class AwsParamStoreProperties {
 			throw new ValidationException("prefix", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
 		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
-			throw new ValidationException("profileSeparator", "The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
+			throw new ValidationException("profileSeparator",
+					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
 	}
 
