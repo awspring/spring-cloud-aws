@@ -8,7 +8,7 @@ on:
       - 2.2.x
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
@@ -23,11 +23,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build docs
-        run: ./mvnw clean package -Pdocs,spring -DskipTests=true
+        run: ./mvnw clean package javadoc:aggregate -Pdocs,spring -DskipTests=true
       - name: Upload to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
         run: |
           aws s3 sync --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws s3 sync --acl public-read target/site/ s3://awspring-docs/spring-cloud-aws/docs/
           aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"

@@ -176,26 +176,27 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<links>
+						<link>https://docs.oracle.com/javase/8/docs/api/</link>
+						<link>https://docs.oracle.com/javaee/8/api/</link>
+						<link>https://fasterxml.github.io/jackson-core/javadoc/2.8/</link>
+						<link>https://docs.spring.io/spring/docs/5.3.x/javadoc-api/</link>
+					</links>
+					<author>true</author>
+					<header>${project.name}</header>
+					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
 	<reporting>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<links>
-						<link>https://docs.oracle.com/javase/7/docs/api/</link>
-						<link>https://docs.oracle.com/javaee/7/api/</link>
-						<link>https://fasterxml.github.com/jackson-core/javadoc/2.0.0/
-						</link>
-						<link>https://docs.spring.io/spring/docs/4.1.x/javadoc-api/</link>
-					</links>
-					<author>true</author>
-					<header>${project.name}</header>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
