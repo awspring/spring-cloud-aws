@@ -19,10 +19,9 @@ package io.awspring.cloud.secretsmanager;
 import java.net.URI;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 
 /**
  * Configuration properties for the AWS Secrets Manager integration. Mostly based on the
@@ -34,7 +33,7 @@ import org.springframework.validation.Validator;
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = AwsSecretsManagerProperties.CONFIG_PREFIX)
-public class AwsSecretsManagerProperties implements Validator {
+public class AwsSecretsManagerProperties implements InitializingBean {
 
 	/**
 	 * Configuration prefix.
@@ -85,33 +84,31 @@ public class AwsSecretsManagerProperties implements Validator {
 	private boolean enabled = true;
 
 	@Override
-	public boolean supports(Class<?> clazz) {
-		return AwsSecretsManagerProperties.class.isAssignableFrom(clazz);
-	}
+	public void afterPropertiesSet() throws Exception {
 
-	@Override
-	public void validate(Object target, Errors errors) {
-		AwsSecretsManagerProperties properties = (AwsSecretsManagerProperties) target;
-
-		if (!StringUtils.hasLength(properties.getPrefix())) {
-			errors.rejectValue("prefix", "NotEmpty", "prefix should not be empty or null.");
+		if (!StringUtils.hasLength(prefix)) {
+			throw new ValidationException(CONFIG_PREFIX + ".prefix", "prefix should not be empty or null.");
 		}
 
-		if (!StringUtils.hasLength(properties.getDefaultContext())) {
-			errors.rejectValue("defaultContext", "NotEmpty", "defaultContext should not be empty or null.");
+		if (!StringUtils.hasLength(defaultContext)) {
+			throw new ValidationException(CONFIG_PREFIX + ".defaultContext",
+					"defaultContext should not be empty or null.");
 		}
 
-		if (!StringUtils.hasLength(properties.getProfileSeparator())) {
-			errors.rejectValue("profileSeparator", "NotEmpty", "profileSeparator should not be empty or null.");
+		if (!StringUtils.hasLength(profileSeparator)) {
+			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
+					"profileSeparator should not be empty or null.");
 		}
 
-		if (!PREFIX_PATTERN.matcher(properties.getPrefix()).matches()) {
-			errors.rejectValue("prefix", "Pattern", "The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+		if (!PREFIX_PATTERN.matcher(prefix).matches()) {
+			throw new ValidationException(CONFIG_PREFIX + ".prefix",
+					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
-		if (!PROFILE_SEPARATOR_PATTERN.matcher(properties.getProfileSeparator()).matches()) {
-			errors.rejectValue("profileSeparator", "Pattern",
+		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
+			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
 					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
+
 	}
 
 	public String getPrefix() {

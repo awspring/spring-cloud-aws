@@ -23,10 +23,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -39,12 +37,7 @@ class AwsParamStorePropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError(field)).isNotNull();
-		assertThat(errors.getFieldError(field).getCode()).isEqualTo(errorCode);
+		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
 	}
 
 	@Test
@@ -52,34 +45,21 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-
-		assertThat(errors.getAllErrors()).isEmpty();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");
-
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
 	void acceptsBackslashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("\\");
-
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError("profileSeparator")).isNull();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	private static Stream<Arguments> invalidProperties() {
