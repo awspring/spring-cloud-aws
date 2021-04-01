@@ -37,15 +37,15 @@ import org.springframework.core.env.EnumerablePropertySource;
  * @author Eddú Meléndez
  * @since 2.0.0
  */
-public class AwsParameterStorePropertySource extends EnumerablePropertySource<SsmClient> {
+public class ParameterStorePropertySource extends EnumerablePropertySource<SsmClient> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AwsParameterStorePropertySource.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ParameterStorePropertySource.class);
 
 	private final String context;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
-	public AwsParameterStorePropertySource(String context, SsmClient ssmClient) {
+	public ParameterStorePropertySource(String context, SsmClient ssmClient) {
 		super(context, ssmClient);
 		this.context = context;
 	}

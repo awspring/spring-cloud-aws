@@ -33,22 +33,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class AwsParameterStoreConfigDataLocationResolverTest {
+class ParameterStoreConfigDataLocationResolverTest {
 
 	@Test
 	void testResolveProfileSpecificWithCustomPaths() {
 		String location = "aws-parameterstore:/mypath1;/mypath2;/mypath3";
-		List<AwsParameterStoreConfigDataResource> locations = testResolveProfileSpecific(location);
+		List<ParameterStoreConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(3);
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
 	}
 
-	private List<String> toContexts(List<AwsParameterStoreConfigDataResource> locations) {
-		return locations.stream().map(AwsParameterStoreConfigDataResource::getContext).collect(Collectors.toList());
+	private List<String> toContexts(List<ParameterStoreConfigDataResource> locations) {
+		return locations.stream().map(ParameterStoreConfigDataResource::getContext).collect(Collectors.toList());
 	}
 
-	private List<AwsParameterStoreConfigDataResource> testResolveProfileSpecific(String location) {
-		AwsParameterStoreConfigDataLocationResolver resolver = createResolver();
+	private List<ParameterStoreConfigDataResource> testResolveProfileSpecific(String location) {
+		ParameterStoreConfigDataLocationResolver resolver = createResolver();
 		ConfigDataLocationResolverContext context = mock(ConfigDataLocationResolverContext.class);
 		MockEnvironment env = new MockEnvironment();
 		env.setProperty("spring.application.name", "testapp");
@@ -58,8 +58,8 @@ class AwsParameterStoreConfigDataLocationResolverTest {
 		return resolver.resolveProfileSpecific(context, ConfigDataLocation.of(location), profiles);
 	}
 
-	private AwsParameterStoreConfigDataLocationResolver createResolver() {
-		return new AwsParameterStoreConfigDataLocationResolver() {
+	private ParameterStoreConfigDataLocationResolver createResolver() {
+		return new ParameterStoreConfigDataLocationResolver() {
 			@Override
 			public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
 				// do nothing

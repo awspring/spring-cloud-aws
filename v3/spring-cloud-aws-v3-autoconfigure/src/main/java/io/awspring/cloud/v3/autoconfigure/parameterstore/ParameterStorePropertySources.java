@@ -16,7 +16,7 @@
 
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
-import io.awspring.cloud.v3.paramstore.AwsParameterStorePropertySource;
+import io.awspring.cloud.v3.paramstore.ParameterStorePropertySource;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -24,11 +24,11 @@ import software.amazon.awssdk.services.ssm.SsmClient;
  * @author Eddú Meléndez
  * @since 2.3
  */
-public class AwsParameterStorePropertySources {
+public class ParameterStorePropertySources {
 
 	private final Log log;
 
-	public AwsParameterStorePropertySources(Log log) {
+	public ParameterStorePropertySources(Log log) {
 		this.log = log;
 	}
 
@@ -41,10 +41,10 @@ public class AwsParameterStorePropertySources {
 	 * @return a property source or null if parameter could not be loaded and optional is
 	 * set to true
 	 */
-	public AwsParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
+	public ParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
 		log.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
-			AwsParameterStorePropertySource propertySource = new AwsParameterStorePropertySource(context, client);
+			ParameterStorePropertySource propertySource = new ParameterStorePropertySource(context, client);
 			propertySource.init();
 			return propertySource;
 			// TODO: howto call close when /refresh

@@ -44,46 +44,46 @@ import org.springframework.util.StringUtils;
  * @author Eddú Meléndez
  * @since 2.3.0
  */
-public class AwsParameterStoreConfigDataLocationResolver
-		implements ConfigDataLocationResolver<AwsParameterStoreConfigDataResource> {
+public class ParameterStoreConfigDataLocationResolver
+		implements ConfigDataLocationResolver<ParameterStoreConfigDataResource> {
 
 	/**
 	 * AWS ParameterStore Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private final Log log = LogFactory.getLog(AwsParameterStoreConfigDataLocationResolver.class);
+	private final Log log = LogFactory.getLog(ParameterStoreConfigDataLocationResolver.class);
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		if (!location.hasPrefix(PREFIX)) {
 			return false;
 		}
-		return context.getBinder().bind(AwsParameterStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
+		return context.getBinder().bind(ParameterStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
 				.orElse(true);
 	}
 
 	@Override
-	public List<AwsParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
+	public List<ParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
 			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<AwsParameterStoreConfigDataResource> resolveProfileSpecific(
+	public List<ParameterStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
-		registerBean(resolverContext, AwsParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
-		AwsParameterStorePropertySources sources = new AwsParameterStorePropertySources(log);
+		ParameterStorePropertySources sources = new ParameterStorePropertySources(log);
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
-		List<AwsParameterStoreConfigDataResource> locations = new ArrayList<>();
+		List<ParameterStoreConfigDataResource> locations = new ArrayList<>();
 		contexts.forEach(propertySourceContext -> locations
-				.add(new AwsParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+				.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
 		return locations;
 	}
@@ -116,7 +116,7 @@ public class AwsParameterStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		AwsParameterStoreProperties properties = context.get(AwsParameterStoreProperties.class);
+		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
@@ -128,9 +128,9 @@ public class AwsParameterStoreConfigDataLocationResolver
 		return builder.build();
 	}
 
-	protected AwsParameterStoreProperties loadProperties(Binder binder) {
-		return binder.bind(AwsParameterStoreProperties.CONFIG_PREFIX, Bindable.of(AwsParameterStoreProperties.class))
-				.orElseGet(AwsParameterStoreProperties::new);
+	protected ParameterStoreProperties loadProperties(Binder binder) {
+		return binder.bind(ParameterStoreProperties.CONFIG_PREFIX, Bindable.of(ParameterStoreProperties.class))
+				.orElseGet(ParameterStoreProperties::new);
 	}
 
 }

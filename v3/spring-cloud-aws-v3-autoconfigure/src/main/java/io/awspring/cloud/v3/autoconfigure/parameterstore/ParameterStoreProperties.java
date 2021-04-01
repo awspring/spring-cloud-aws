@@ -29,8 +29,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eddú Meléndez
  * @since 2.0.0
  */
-@ConfigurationProperties(AwsParameterStoreProperties.CONFIG_PREFIX)
-public class AwsParameterStoreProperties extends AwsClientProperties {
+@ConfigurationProperties(ParameterStoreProperties.CONFIG_PREFIX)
+public class ParameterStoreProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
