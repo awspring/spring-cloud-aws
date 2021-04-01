@@ -3,9 +3,6 @@ io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration,\
 io.awspring.cloud.v3.autoconfigure.core.RegionProviderAutoConfiguration,\
 io.awspring.cloud.v3.autoconfigure.ses.SesAutoConfiguration
 
-org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParameterStoreBootstrapConfiguration
-
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
 io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParameterStoreConfigDataLocationResolver,\

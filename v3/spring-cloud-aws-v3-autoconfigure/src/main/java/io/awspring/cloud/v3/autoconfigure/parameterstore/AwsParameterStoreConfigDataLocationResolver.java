@@ -21,9 +21,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
@@ -114,8 +117,15 @@ public class AwsParameterStoreConfigDataLocationResolver
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		AwsParameterStoreProperties properties = context.get(AwsParameterStoreProperties.class);
-
-		return AwsParameterStoreBootstrapConfiguration.createSimpleSystemManagementClient(properties);
+		SsmClientBuilder builder = SsmClient.builder()
+				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+		if (StringUtils.hasLength(properties.getRegion())) {
+			builder.region(Region.of(properties.getRegion()));
+		}
+		if (properties.getEndpoint() != null) {
+			builder.endpointOverride(properties.getEndpoint());
+		}
+		return builder.build();
 	}
 
 	protected AwsParameterStoreProperties loadProperties(Binder binder) {
