@@ -16,15 +16,22 @@
 
 package io.awspring.cloud.v3.autoconfigure.ses;
 
+import java.net.URI;
+
 import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.utils.AttributeMap;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,6 +72,19 @@ class SesAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.enabled:false").run(context -> {
 			assertThat(context).doesNotHaveBean(MailSender.class);
 			assertThat(context).doesNotHaveBean(JavaMailSender.class);
+		});
+	}
+
+	@Test
+	void withCustomEndpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.endpoint:http://localhost:8090").run(context -> {
+			SesClient client = context.getBean(SesClient.class);
+
+			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
+					"clientConfiguration");
+			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
+			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
 		});
 	}
 

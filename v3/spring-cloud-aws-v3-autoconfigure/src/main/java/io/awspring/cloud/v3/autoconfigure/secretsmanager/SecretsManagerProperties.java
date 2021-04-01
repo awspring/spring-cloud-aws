@@ -16,7 +16,7 @@
 
 package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
-import java.net.URI;
+import io.awspring.cloud.v3.autoconfigure.AwsClientProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -28,41 +28,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Matej Nedic
  * @author Hari Ohm Prasath
  * @author Arun Patra
+ * @author Eddú Meléndez
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = SecretsManagerProperties.CONFIG_PREFIX)
-public class SecretsManagerProperties {
+public class SecretsManagerProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.secretsmanager";
-
-	/**
-	 * If region value is not null or empty it will be used in creation of
-	 * AWSSecretsManager.
-	 */
-	private String region;
-
-	/**
-	 * Overrides the default endpoint.
-	 */
-	private URI endpoint;
-
-	public String getRegion() {
-		return region;
-	}
-
-	public void setRegion(final String region) {
-		this.region = region;
-	}
-
-	public URI getEndpoint() {
-		return endpoint;
-	}
-
-	public void setEndpoint(URI endpoint) {
-		this.endpoint = endpoint;
-	}
 
 }

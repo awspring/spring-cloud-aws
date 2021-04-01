@@ -16,6 +16,8 @@
 
 package io.awspring.cloud.v3.autoconfigure.ses;
 
+import java.util.Optional;
+
 import javax.mail.Session;
 
 import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.SesClientBuilder;
 import software.amazon.awssdk.utils.StringUtils;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -65,7 +68,9 @@ public class SesAutoConfiguration {
 	public SesClient sesClient(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
 		Region region = StringUtils.isEmpty(this.properties.getRegion()) ? awsRegionProvider.getRegion()
 				: Region.of(this.properties.getRegion());
-		return SesClient.builder().credentialsProvider(awsCredentialsProvider).region(region).build();
+		SesClientBuilder client = SesClient.builder().credentialsProvider(awsCredentialsProvider).region(region);
+		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(client::endpointOverride);
+		return client.build();
 	}
 
 	@Bean

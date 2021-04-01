@@ -14,24 +14,41 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.ses;
+package io.awspring.cloud.v3.autoconfigure;
 
-import io.awspring.cloud.v3.autoconfigure.AwsClientProperties;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.net.URI;
 
 /**
- * Properties related to AWS Simple Email Service.
+ * Base properties for AWS Service client.
  *
- * @author Eddú Meléndez
- * @author Arun Patra
+ * @author Maciej Walkowiak
  */
-@ConfigurationProperties(prefix = SesProperties.PREFIX)
-public class SesProperties extends AwsClientProperties {
+public abstract class AwsClientProperties {
 
 	/**
-	 * The prefix used for AWS credentials related properties.
+	 * Overrides the default endpoint.
 	 */
-	public static final String PREFIX = "spring.cloud.aws.ses";
+	private URI endpoint;
+
+	/**
+	 * Overrides the default region.
+	 */
+	private String region;
+
+	public URI getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(URI endpoint) {
+		this.endpoint = endpoint;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
 
 }

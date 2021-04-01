@@ -16,7 +16,7 @@
 
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
-import java.net.URI;
+import io.awspring.cloud.v3.autoconfigure.AwsClientProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -30,37 +30,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.0.0
  */
 @ConfigurationProperties(AwsParameterStoreProperties.CONFIG_PREFIX)
-public class AwsParameterStoreProperties {
+public class AwsParameterStoreProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.parameterstore";
-
-	/**
-	 * If region value is not null or empty it will be used in creation of SsmClient.
-	 */
-	private String region;
-
-	/**
-	 * Overrides the default endpoint.
-	 */
-	private URI endpoint;
-
-	public String getRegion() {
-		return region;
-	}
-
-	public void setRegion(final String region) {
-		this.region = region;
-	}
-
-	public URI getEndpoint() {
-		return endpoint;
-	}
-
-	public void setEndpoint(URI endpoint) {
-		this.endpoint = endpoint;
-	}
 
 }
