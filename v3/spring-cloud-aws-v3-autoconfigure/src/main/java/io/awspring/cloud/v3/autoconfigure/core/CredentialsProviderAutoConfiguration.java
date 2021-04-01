@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.core;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.awspring.cloud.v3.autoconfigure.properties.AwsCredentialsProperties;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
@@ -41,6 +40,7 @@ import org.springframework.util.StringUtils;
  * {@link EnableAutoConfiguration} for {@link AwsCredentialsProvider}.
  *
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsCredentialsProperties.class)
@@ -57,22 +57,18 @@ public class CredentialsProviderAutoConfiguration {
 	public AwsCredentialsProvider awsCredentialsProvider() {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
-		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
-			providers.add(StaticCredentialsProvider
-					.create(AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey())));
+		if (StringUtils.hasText(this.properties.getAccessKey())
+				&& StringUtils.hasText(this.properties.getSecretKey())) {
+			providers.add(createStaticCredentialsProvider());
 		}
 
-		if (properties.isInstanceProfile()) {
+		if (this.properties.isInstanceProfile()) {
 			providers.add(InstanceProfileCredentialsProvider.create());
 		}
 
-		if (properties.getProfile() != null && properties.getProfile().getName() != null) {
-			providers.add(ProfileCredentialsProvider.builder().profileName(properties.getProfile().getName())
-					.profileFile(properties.getProfile().getPath() != null
-							? ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS)
-									.content(Paths.get(properties.getProfile().getPath())).build()
-							: ProfileFile.defaultProfileFile())
-					.build());
+		Profile profile = this.properties.getProfile();
+		if (profile != null && profile.getName() != null) {
+			providers.add(createProfileCredentialProvider());
 		}
 
 		if (providers.isEmpty()) {
@@ -81,6 +77,20 @@ public class CredentialsProviderAutoConfiguration {
 		else {
 			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
 		}
+	}
+
+	private StaticCredentialsProvider createStaticCredentialsProvider() {
+		return StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(this.properties.getAccessKey(), this.properties.getSecretKey()));
+	}
+
+	private ProfileCredentialsProvider createProfileCredentialProvider() {
+		Profile profile = this.properties.getProfile();
+		ProfileFile credentialProfileFile = ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS)
+				.content(Paths.get(profile.getPath())).build();
+		ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();
+		ProfileFile profileFile = profile.getPath() != null ? credentialProfileFile : defaultProfileFile;
+		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
 	}
 
 }

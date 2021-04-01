@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.core;
 
 import java.io.IOException;
 import java.util.List;

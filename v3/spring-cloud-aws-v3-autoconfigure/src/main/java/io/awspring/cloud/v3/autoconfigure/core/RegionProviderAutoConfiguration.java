@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure;
+package io.awspring.cloud.v3.autoconfigure.core;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-import io.awspring.cloud.v3.autoconfigure.properties.AwsRegionProperties;
 import io.awspring.cloud.v3.core.region.StaticRegionProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Configuration;
  * {@link EnableAutoConfiguration} for {@link AwsRegionProvider}.
  *
  * @author Siva Katamreddy
+ * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsRegionProperties.class)
@@ -55,19 +56,17 @@ public class RegionProviderAutoConfiguration {
 	public AwsRegionProvider awsRegionProvider() {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
-		if (properties.isStatic()) {
-			providers.add(new StaticRegionProvider(properties.getStatic()));
+		if (this.properties.isStatic()) {
+			providers.add(new StaticRegionProvider(this.properties.getStatic()));
 		}
 
-		if (properties.isInstanceProfile()) {
+		if (this.properties.isInstanceProfile()) {
 			providers.add(new InstanceProfileRegionProvider());
 		}
 
-		if (properties.getProfile() != null && properties.getProfile().getName() != null) {
-			providers.add(new AwsProfileRegionProvider(() -> properties.getProfile().getPath() != null
-					? ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION)
-							.content(Paths.get(properties.getProfile().getPath())).build()
-					: ProfileFile.defaultProfileFile(), properties.getProfile().getName()));
+		Profile profile = this.properties.getProfile();
+		if (profile != null && profile.getName() != null) {
+			providers.add(createProfileRegionProvider());
 		}
 
 		if (providers.isEmpty()) {
@@ -76,6 +75,17 @@ public class RegionProviderAutoConfiguration {
 		else {
 			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
+	}
+
+	private AwsProfileRegionProvider createProfileRegionProvider() {
+		Profile profile = this.properties.getProfile();
+		Supplier<ProfileFile> profileFileFn = () -> {
+			ProfileFile profileFile = ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION)
+					.content(Paths.get(profile.getPath())).build();
+			ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();
+			return profile.getPath() != null ? profileFile : defaultProfileFile;
+		};
+		return new AwsProfileRegionProvider(profileFileFn, profile.getName());
 	}
 
 }

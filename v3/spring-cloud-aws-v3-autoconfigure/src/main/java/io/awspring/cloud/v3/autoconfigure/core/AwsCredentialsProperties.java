@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.properties;
+package io.awspring.cloud.v3.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

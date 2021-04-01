@@ -18,8 +18,8 @@ package io.awspring.cloud.v3.autoconfigure.ses;
 
 import java.net.URI;
 
-import io.awspring.cloud.v3.autoconfigure.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.v3.autoconfigure.RegionProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.v3.autoconfigure.core.RegionProviderAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
