@@ -24,8 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Tom Gianos
  * @since 2.0.2
  */
-@ConfigurationProperties(prefix = AwsCredentialsProperties.PREFIX)
-public class AwsCredentialsProperties {
+@ConfigurationProperties(prefix = CredentialsProperties.PREFIX)
+public class CredentialsProperties {
 
 	/**
 	 * The prefix used for AWS credentials related properties.

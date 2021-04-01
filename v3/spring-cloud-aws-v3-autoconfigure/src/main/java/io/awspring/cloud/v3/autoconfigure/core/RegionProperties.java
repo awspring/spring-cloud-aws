@@ -26,8 +26,8 @@ import org.springframework.util.StringUtils;
  * @author Maciej Walkowiak
  * @since 2.0.2
  */
-@ConfigurationProperties(prefix = AwsRegionProperties.PREFIX)
-public class AwsRegionProperties {
+@ConfigurationProperties(prefix = RegionProperties.PREFIX)
+public class RegionProperties {
 
 	/**
 	 * The prefix used for AWS region related properties.

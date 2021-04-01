@@ -42,12 +42,12 @@ import org.springframework.context.annotation.Configuration;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AwsRegionProperties.class)
+@EnableConfigurationProperties(RegionProperties.class)
 public class RegionProviderAutoConfiguration {
 
-	private final AwsRegionProperties properties;
+	private final RegionProperties properties;
 
-	public RegionProviderAutoConfiguration(AwsRegionProperties properties) {
+	public RegionProviderAutoConfiguration(RegionProperties properties) {
 		this.properties = properties;
 	}
 

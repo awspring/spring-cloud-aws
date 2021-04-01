@@ -43,12 +43,12 @@ import org.springframework.util.StringUtils;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AwsCredentialsProperties.class)
+@EnableConfigurationProperties(CredentialsProperties.class)
 public class CredentialsProviderAutoConfiguration {
 
-	private final AwsCredentialsProperties properties;
+	private final CredentialsProperties properties;
 
-	public CredentialsProviderAutoConfiguration(AwsCredentialsProperties properties) {
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties) {
 		this.properties = properties;
 	}
 
