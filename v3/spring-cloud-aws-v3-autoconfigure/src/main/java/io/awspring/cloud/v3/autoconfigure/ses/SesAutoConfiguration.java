@@ -29,7 +29,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.SesClientBuilder;
-import software.amazon.awssdk.utils.StringUtils;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -42,6 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and
@@ -66,8 +66,8 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
-		Region region = StringUtils.isEmpty(this.properties.getRegion()) ? awsRegionProvider.getRegion()
-				: Region.of(this.properties.getRegion());
+		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
+				: awsRegionProvider.getRegion();
 		SesClientBuilder client = SesClient.builder().credentialsProvider(awsCredentialsProvider).region(region);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(client::endpointOverride);
 		return client.build();

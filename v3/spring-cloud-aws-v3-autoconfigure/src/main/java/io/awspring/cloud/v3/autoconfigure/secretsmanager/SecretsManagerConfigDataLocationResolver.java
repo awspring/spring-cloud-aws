@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
-import software.amazon.awssdk.utils.StringUtils;
 
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
@@ -38,6 +37,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.util.StringUtils;
 
 /**
  * Resolves config data locations in AWS Secrets Manager.
@@ -128,7 +128,7 @@ public class SecretsManagerConfigDataLocationResolver
 		SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 
-		if (!StringUtils.isEmpty(properties.getRegion())) {
+		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
 		}
 		if (properties.getEndpoint() != null) {
