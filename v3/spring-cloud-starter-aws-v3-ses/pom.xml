@@ -15,7 +15,6 @@
 	<description>Spring Cloud AWS V3 SES Starter</description>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-v3-autoconfigure</artifactId>
@@ -25,6 +24,5 @@
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-v3-ses</artifactId>
 		</dependency>
-
 	</dependencies>
 </project>

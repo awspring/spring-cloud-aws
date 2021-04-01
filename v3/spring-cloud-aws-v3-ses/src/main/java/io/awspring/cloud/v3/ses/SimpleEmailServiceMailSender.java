@@ -114,8 +114,6 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder()
 				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).message(message);
 
-		// .content(EmailContent.builder().simple(message).build());
-
 		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
 			emailRequestBuilder.replyToAddresses(simpleMailMessage.getReplyTo());
 		}

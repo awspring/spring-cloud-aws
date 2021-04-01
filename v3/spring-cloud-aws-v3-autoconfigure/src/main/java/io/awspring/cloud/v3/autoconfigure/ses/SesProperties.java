@@ -37,17 +37,6 @@ public class SesProperties {
 	 */
 	private String region;
 
-	/** Is AWS SES support enabled. */
-	private boolean enabled = true;
-
-	public boolean isEnabled() {
-		return this.enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
 	public String getRegion() {
 		return this.region;
 	}

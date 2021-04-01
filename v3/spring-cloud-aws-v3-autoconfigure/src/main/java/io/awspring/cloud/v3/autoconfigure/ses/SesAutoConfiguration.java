@@ -26,7 +26,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
 import software.amazon.awssdk.utils.StringUtils;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -64,15 +63,9 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
-		SesClientBuilder sesV2ClientBuilder = SesClient.builder().credentialsProvider(awsCredentialsProvider);
-
-		if (!StringUtils.isEmpty(properties.getRegion())) {
-			sesV2ClientBuilder.region(Region.of(properties.getRegion()));
-		}
-		else {
-			sesV2ClientBuilder.region(awsRegionProvider.getRegion());
-		}
-		return sesV2ClientBuilder.build();
+		Region region = StringUtils.isEmpty(this.properties.getRegion()) ? awsRegionProvider.getRegion()
+				: Region.of(this.properties.getRegion());
+		return SesClient.builder().credentialsProvider(awsCredentialsProvider).region(region).build();
 	}
 
 	@Bean
