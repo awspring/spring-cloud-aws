@@ -16,14 +16,9 @@
 
 package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-
-import org.springframework.util.StringUtils;
 
 /**
  * Provides prefix config import support.
@@ -34,42 +29,10 @@ import org.springframework.util.StringUtils;
  */
 public class SecretsManagerPropertySources {
 
-	private final SecretsManagerProperties properties;
-
 	private final Log log;
 
-	public SecretsManagerPropertySources(SecretsManagerProperties properties, Log log) {
-		this.properties = properties;
+	public SecretsManagerPropertySources(Log log) {
 		this.log = log;
-	}
-
-	public List<String> getAutomaticContexts(List<String> profiles) {
-		List<String> contexts = new ArrayList<>();
-		String prefix = this.properties.getPrefix();
-		String defaultContext = getContext(prefix, this.properties.getDefaultContext());
-
-		String appName = this.properties.getName();
-
-		String appContext = prefix + "/" + appName;
-		addProfiles(contexts, appContext, profiles);
-		contexts.add(appContext);
-
-		addProfiles(contexts, defaultContext, profiles);
-		contexts.add(defaultContext);
-		return contexts;
-	}
-
-	protected String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
-			return prefix + "/" + context;
-		}
-		return context;
-	}
-
-	private void addProfiles(List<String> contexts, String baseContext, List<String> profiles) {
-		for (String profile : profiles) {
-			contexts.add(baseContext + this.properties.getProfileSeparator() + profile);
-		}
 	}
 
 	/**

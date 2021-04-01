@@ -1,8 +1,0 @@
-# Disabling the actual Secrets Manager communication with AWS for tests
-spring.cloud.aws.secretsmanager.enabled: false
-
-# If you enable the secrets manager integration, then make sure to create this secret in AWS via AWS Management Console or aws-cli
-spring.config.import: optional:aws-secretsmanager:/secrets/spring-cloud-aws-sample-app/
-
-# Will source the `password` locally instead.
-password: localpassword

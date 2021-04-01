@@ -84,13 +84,9 @@ public class SecretsManagerConfigDataLocationResolver
 
 		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
 
-		SecretsManagerProperties properties = loadConfigProperties(resolverContext.getBinder());
+		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources(log);
 
-		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources(properties, log);
-
-		List<String> contexts = location.getValue().equals(PREFIX)
-				? propertySources.getAutomaticContexts(profiles.getAccepted())
-				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
+		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
 		List<SecretsManagerConfigDataResource> locations = new ArrayList<>();
 		contexts.forEach(propertySourceContext -> locations.add(
@@ -145,18 +141,6 @@ public class SecretsManagerConfigDataLocationResolver
 	protected SecretsManagerProperties loadProperties(Binder binder) {
 		return binder.bind(SecretsManagerProperties.CONFIG_PREFIX, Bindable.of(SecretsManagerProperties.class))
 				.orElseGet(SecretsManagerProperties::new);
-	}
-
-	protected SecretsManagerProperties loadConfigProperties(Binder binder) {
-		SecretsManagerProperties properties = binder
-				.bind(SecretsManagerProperties.CONFIG_PREFIX, Bindable.of(SecretsManagerProperties.class))
-				.orElseGet(SecretsManagerProperties::new);
-
-		if (StringUtils.isEmpty(properties.getName())) {
-			properties.setName(binder.bind("spring.application.name", String.class).orElse("application"));
-		}
-
-		return properties;
 	}
 
 }

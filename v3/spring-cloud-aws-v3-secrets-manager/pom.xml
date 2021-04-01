@@ -14,7 +14,6 @@
 	<description>Spring Cloud V3 AWS Secrets Manager</description>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
@@ -24,6 +23,5 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>secretsmanager</artifactId>
 		</dependency>
-
 	</dependencies>
 </project>
