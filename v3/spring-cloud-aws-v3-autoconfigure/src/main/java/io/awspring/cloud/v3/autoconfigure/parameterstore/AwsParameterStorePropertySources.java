@@ -16,57 +16,20 @@
 
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
+import io.awspring.cloud.v3.paramstore.AwsParameterStorePropertySource;
 import org.apache.commons.logging.Log;
 import software.amazon.awssdk.services.ssm.SsmClient;
-
-import org.springframework.util.StringUtils;
 
 /**
  * @author Eddú Meléndez
  * @since 2.3
  */
-public class AwsParamStorePropertySources {
-
-	private final AwsParamStoreProperties properties;
+public class AwsParameterStorePropertySources {
 
 	private final Log log;
 
-	public AwsParamStorePropertySources(AwsParamStoreProperties properties, Log log) {
-		this.properties = properties;
+	public AwsParameterStorePropertySources(Log log) {
 		this.log = log;
-	}
-
-	public List<String> getAutomaticContexts(List<String> profiles) {
-		List<String> contexts = new ArrayList<>();
-		String prefix = this.properties.getPrefix();
-		String defaultContext = getContext(prefix, this.properties.getDefaultContext());
-
-		String appName = this.properties.getName();
-
-		String appContext = prefix + "/" + appName;
-		addProfiles(contexts, appContext, profiles);
-		contexts.add(appContext + "/");
-
-		addProfiles(contexts, defaultContext, profiles);
-		contexts.add(defaultContext + "/");
-		return contexts;
-	}
-
-	protected String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
-			return prefix + "/" + context;
-		}
-		return context;
-	}
-
-	private void addProfiles(List<String> contexts, String baseContext, List<String> profiles) {
-		for (String profile : profiles) {
-			contexts.add(baseContext + this.properties.getProfileSeparator() + profile + "/");
-		}
 	}
 
 	/**
@@ -78,10 +41,10 @@ public class AwsParamStorePropertySources {
 	 * @return a property source or null if parameter could not be loaded and optional is
 	 * set to true
 	 */
-	public AwsParamStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
+	public AwsParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
 		log.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
-			AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(context, client);
+			AwsParameterStorePropertySource propertySource = new AwsParameterStorePropertySource(context, client);
 			propertySource.init();
 			return propertySource;
 			// TODO: howto call close when /refresh

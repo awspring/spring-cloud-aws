@@ -2,7 +2,7 @@
 	"properties": [
 		{
 			"defaultValue": true,
-			"name": "aws.paramstore.enabled",
+			"name": "spring.cloud.aws.parameterstore.enabled",
 			"description": "Enables Parameter Store integration.",
 			"type": "java.lang.Boolean"
 		},

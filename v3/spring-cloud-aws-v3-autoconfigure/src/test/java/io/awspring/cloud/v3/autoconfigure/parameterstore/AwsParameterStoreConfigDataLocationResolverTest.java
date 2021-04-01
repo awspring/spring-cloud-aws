@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfiguration.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataLocationResolver;
-import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreConfigDataResource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.BootstrapRegistry;
@@ -35,31 +33,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class AwsParamStoreConfigDataLocationResolverTest {
-
-	@Test
-	void testResolveProfileSpecificWithAutomaticPaths() {
-		String location = "aws-parameterstore:";
-		List<AwsParamStoreConfigDataResource> locations = testResolveProfileSpecific(location);
-		assertThat(locations).hasSize(4);
-		assertThat(toContexts(locations)).containsExactly("/config/testapp_dev/", "/config/testapp/",
-				"/config/application_dev/", "/config/application/");
-	}
+class AwsParameterStoreConfigDataLocationResolverTest {
 
 	@Test
 	void testResolveProfileSpecificWithCustomPaths() {
 		String location = "aws-parameterstore:/mypath1;/mypath2;/mypath3";
-		List<AwsParamStoreConfigDataResource> locations = testResolveProfileSpecific(location);
+		List<AwsParameterStoreConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(3);
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
 	}
 
-	private List<String> toContexts(List<AwsParamStoreConfigDataResource> locations) {
-		return locations.stream().map(AwsParamStoreConfigDataResource::getContext).collect(Collectors.toList());
+	private List<String> toContexts(List<AwsParameterStoreConfigDataResource> locations) {
+		return locations.stream().map(AwsParameterStoreConfigDataResource::getContext).collect(Collectors.toList());
 	}
 
-	private List<AwsParamStoreConfigDataResource> testResolveProfileSpecific(String location) {
-		AwsParamStoreConfigDataLocationResolver resolver = createResolver();
+	private List<AwsParameterStoreConfigDataResource> testResolveProfileSpecific(String location) {
+		AwsParameterStoreConfigDataLocationResolver resolver = createResolver();
 		ConfigDataLocationResolverContext context = mock(ConfigDataLocationResolverContext.class);
 		MockEnvironment env = new MockEnvironment();
 		env.setProperty("spring.application.name", "testapp");
@@ -69,8 +58,8 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		return resolver.resolveProfileSpecific(context, ConfigDataLocation.of(location), profiles);
 	}
 
-	private AwsParamStoreConfigDataLocationResolver createResolver() {
-		return new AwsParamStoreConfigDataLocationResolver() {
+	private AwsParameterStoreConfigDataLocationResolver createResolver() {
+		return new AwsParameterStoreConfigDataLocationResolver() {
 			@Override
 			public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
 				// do nothing

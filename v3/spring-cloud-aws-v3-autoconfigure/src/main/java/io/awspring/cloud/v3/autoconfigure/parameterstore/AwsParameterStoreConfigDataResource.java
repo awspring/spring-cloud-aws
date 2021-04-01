@@ -27,16 +27,16 @@ import org.springframework.core.style.ToStringCreator;
  * @author Eddú Meléndez
  * @since 2.3.0
  */
-public class AwsParamStoreConfigDataResource extends ConfigDataResource {
+public class AwsParameterStoreConfigDataResource extends ConfigDataResource {
 
 	private final String context;
 
 	private final boolean optional;
 
-	private final AwsParamStorePropertySources propertySources;
+	private final AwsParameterStorePropertySources propertySources;
 
-	public AwsParamStoreConfigDataResource(String context, boolean optional,
-			AwsParamStorePropertySources propertySources) {
+	public AwsParameterStoreConfigDataResource(String context, boolean optional,
+			AwsParameterStorePropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
 		this.propertySources = propertySources;
@@ -58,7 +58,7 @@ public class AwsParamStoreConfigDataResource extends ConfigDataResource {
 		return this.optional;
 	}
 
-	public AwsParamStorePropertySources getPropertySources() {
+	public AwsParameterStorePropertySources getPropertySources() {
 		return this.propertySources;
 	}
 
@@ -70,7 +70,7 @@ public class AwsParamStoreConfigDataResource extends ConfigDataResource {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		AwsParamStoreConfigDataResource that = (AwsParamStoreConfigDataResource) o;
+		AwsParameterStoreConfigDataResource that = (AwsParameterStoreConfigDataResource) o;
 		return this.optional == that.optional && this.context.equals(that.context);
 	}
 

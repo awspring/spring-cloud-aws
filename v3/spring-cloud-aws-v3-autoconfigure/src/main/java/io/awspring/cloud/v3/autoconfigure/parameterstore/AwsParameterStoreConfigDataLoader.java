@@ -18,7 +18,7 @@ package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import java.util.Collections;
 
-import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
+import io.awspring.cloud.v3.paramstore.AwsParameterStorePropertySource;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 import org.springframework.boot.context.config.ConfigData;
@@ -30,13 +30,13 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
  * @author Eddú Meléndez
  * @since 2.3.0
  */
-public class AwsParamStoreConfigDataLoader implements ConfigDataLoader<AwsParamStoreConfigDataResource> {
+public class AwsParameterStoreConfigDataLoader implements ConfigDataLoader<AwsParameterStoreConfigDataResource> {
 
 	@Override
-	public ConfigData load(ConfigDataLoaderContext context, AwsParamStoreConfigDataResource resource) {
+	public ConfigData load(ConfigDataLoaderContext context, AwsParameterStoreConfigDataResource resource) {
 		try {
 			SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
-			AwsParamStorePropertySource propertySource = resource.getPropertySources()
+			AwsParameterStorePropertySource propertySource = resource.getPropertySources()
 					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
 			if (propertySource != null) {
 				return new ConfigData(Collections.singletonList(propertySource));

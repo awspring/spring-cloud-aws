@@ -17,7 +17,7 @@
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
-import io.awspring.cloud.v3.paramstore.AwsParamStorePropertySource;
+import io.awspring.cloud.v3.paramstore.AwsParameterStorePropertySource;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -29,7 +29,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Joris Kuipers
@@ -38,24 +37,18 @@ import org.springframework.core.env.Environment;
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AwsParamStoreProperties.class)
-@ConditionalOnClass({ SsmClient.class, AwsParamStorePropertySource.class })
-@ConditionalOnProperty(prefix = AwsParamStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
-public class AwsParamStoreBootstrapConfiguration {
-
-	private final Environment environment;
-
-	public AwsParamStoreBootstrapConfiguration(Environment environment) {
-		this.environment = environment;
-	}
+@EnableConfigurationProperties(AwsParameterStoreProperties.class)
+@ConditionalOnClass({ SsmClient.class, AwsParameterStorePropertySource.class })
+@ConditionalOnProperty(prefix = AwsParameterStoreProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
+public class AwsParameterStoreBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	SsmClient ssmClient(AwsParamStoreProperties properties) {
+	SsmClient ssmClient(AwsParameterStoreProperties properties) {
 		return createSimpleSystemManagementClient(properties);
 	}
 
-	public static SsmClient createSimpleSystemManagementClient(AwsParamStoreProperties properties) {
+	public static SsmClient createSimpleSystemManagementClient(AwsParameterStoreProperties properties) {
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (!StringUtils.isEmpty(properties.getRegion())) {

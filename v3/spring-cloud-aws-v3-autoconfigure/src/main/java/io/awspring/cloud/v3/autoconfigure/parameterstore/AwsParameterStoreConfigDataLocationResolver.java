@@ -41,49 +41,46 @@ import org.springframework.util.StringUtils;
  * @author Eddú Meléndez
  * @since 2.3.0
  */
-public class AwsParamStoreConfigDataLocationResolver
-		implements ConfigDataLocationResolver<AwsParamStoreConfigDataResource> {
+public class AwsParameterStoreConfigDataLocationResolver
+		implements ConfigDataLocationResolver<AwsParameterStoreConfigDataResource> {
 
 	/**
 	 * AWS ParameterStore Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private final Log log = LogFactory.getLog(AwsParamStoreConfigDataLocationResolver.class);
+	private final Log log = LogFactory.getLog(AwsParameterStoreConfigDataLocationResolver.class);
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		if (!location.hasPrefix(PREFIX)) {
 			return false;
 		}
-		return context.getBinder().bind(AwsParamStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class).orElse(true);
+		return context.getBinder().bind(AwsParameterStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
+				.orElse(true);
 	}
 
 	@Override
-	public List<AwsParamStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
+	public List<AwsParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
 			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<AwsParamStoreConfigDataResource> resolveProfileSpecific(
+	public List<AwsParameterStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
-		registerBean(resolverContext, AwsParamStoreProperties.class, loadProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, AwsParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
-		AwsParamStoreProperties properties = loadConfigProperties(resolverContext.getBinder());
+		AwsParameterStorePropertySources sources = new AwsParameterStorePropertySources(log);
 
-		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties, log);
+		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
-		List<String> contexts = location.getValue().equals(PREFIX)
-				? sources.getAutomaticContexts(profiles.getAccepted())
-				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
-
-		List<AwsParamStoreConfigDataResource> locations = new ArrayList<>();
+		List<AwsParameterStoreConfigDataResource> locations = new ArrayList<>();
 		contexts.forEach(propertySourceContext -> locations
-				.add(new AwsParamStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+				.add(new AwsParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
 		return locations;
 	}
@@ -116,26 +113,14 @@ public class AwsParamStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		AwsParamStoreProperties properties = context.get(AwsParamStoreProperties.class);
+		AwsParameterStoreProperties properties = context.get(AwsParameterStoreProperties.class);
 
-		return AwsParamStoreBootstrapConfiguration.createSimpleSystemManagementClient(properties);
+		return AwsParameterStoreBootstrapConfiguration.createSimpleSystemManagementClient(properties);
 	}
 
-	protected AwsParamStoreProperties loadProperties(Binder binder) {
-		return binder.bind(AwsParamStoreProperties.CONFIG_PREFIX, Bindable.of(AwsParamStoreProperties.class))
-				.orElseGet(AwsParamStoreProperties::new);
-	}
-
-	protected AwsParamStoreProperties loadConfigProperties(Binder binder) {
-		AwsParamStoreProperties properties = binder
-				.bind(AwsParamStoreProperties.CONFIG_PREFIX, Bindable.of(AwsParamStoreProperties.class))
-				.orElseGet(AwsParamStoreProperties::new);
-
-		if (!StringUtils.hasLength(properties.getName())) {
-			properties.setName(binder.bind("spring.application.name", String.class).orElse("application"));
-		}
-
-		return properties;
+	protected AwsParameterStoreProperties loadProperties(Binder binder) {
+		return binder.bind(AwsParameterStoreProperties.CONFIG_PREFIX, Bindable.of(AwsParameterStoreProperties.class))
+				.orElseGet(AwsParameterStoreProperties::new);
 	}
 
 }

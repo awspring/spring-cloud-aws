@@ -27,11 +27,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class AwsParamStorePropertySourceTest {
+class AwsParameterStorePropertySourceTest {
 
 	private SsmClient ssmClient = mock(SsmClient.class);
 
-	private AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource("/config/myservice/",
+	private AwsParameterStorePropertySource propertySource = new AwsParameterStorePropertySource("/config/myservice/",
 			ssmClient);
 
 	@Test

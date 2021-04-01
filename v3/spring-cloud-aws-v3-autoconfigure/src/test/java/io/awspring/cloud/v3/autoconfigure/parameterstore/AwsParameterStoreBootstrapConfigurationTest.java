@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfiguration.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
-import io.awspring.cloud.v3.autoconfigure.parameterstore.AwsParamStoreBootstrapConfiguration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -26,19 +25,19 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit test for {@link AwsParamStoreBootstrapConfiguration}.
+ * Unit test for {@link AwsParameterStoreBootstrapConfiguration}.
  *
  * @author Matej Nedic
  * @author Eddú Meléndez
  */
-class AwsParamStoreBootstrapConfigurationTest {
+class AwsParameterStoreBootstrapConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(AwsParamStoreBootstrapConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(AwsParameterStoreBootstrapConfiguration.class));
 
 	@Test
 	void testMissingAutoConfiguration() {
-		this.contextRunner.withPropertyValues("aws.paramstore.enabled:false").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.parameterstore.enabled:false").run(context -> {
 			assertThat(context).doesNotHaveBean(SsmClient.class);
 		});
 	}
