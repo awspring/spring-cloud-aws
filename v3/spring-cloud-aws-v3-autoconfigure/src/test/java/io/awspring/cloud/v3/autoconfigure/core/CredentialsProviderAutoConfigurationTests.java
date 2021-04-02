@@ -46,7 +46,7 @@ class CredentialsProviderAutoConfigurationTests {
 	void credentialsProvider_noExplicitCredentialsProviderConfigured_configuresDefaultAwsCredentialsProviderChain() {
 		// @checkstyle:on
 		this.contextRunner.run((context) -> {
-			AwsCredentialsProvider awsCredentialsProvider = context.getBean("awsCredentialsProvider",
+			AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 					AwsCredentialsProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(DefaultCredentialsProvider.class);
 		});
@@ -59,7 +59,7 @@ class CredentialsProviderAutoConfigurationTests {
 		// @checkstyle:on
 		this.contextRunner.withPropertyValues("spring.cloud.aws.credentials.accessKey:foo",
 				"spring.cloud.aws.credentials.secretKey:bar").run((context) -> {
-					AwsCredentialsProvider awsCredentialsProvider = context.getBean("awsCredentialsProvider",
+					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 							AwsCredentialsProvider.class);
 					assertThat(awsCredentialsProvider).isNotNull();
 					assertThat(awsCredentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("foo");
@@ -75,7 +75,7 @@ class CredentialsProviderAutoConfigurationTests {
 	@Test
 	void credentialsProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.credentials.instance-profile:true").run((context) -> {
-			AwsCredentialsProvider awsCredentialsProvider = context.getBean("awsCredentialsProvider",
+			AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 					AwsCredentialsProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull();
 
@@ -93,7 +93,7 @@ class CredentialsProviderAutoConfigurationTests {
 						+ new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile()
 								.getAbsolutePath())
 				.run((context) -> {
-					AwsCredentialsProvider awsCredentialsProvider = context.getBean("awsCredentialsProvider",
+					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 							AwsCredentialsProvider.class);
 					assertThat(awsCredentialsProvider).isNotNull();
 
@@ -121,7 +121,7 @@ class CredentialsProviderAutoConfigurationTests {
 	@Configuration
 	static class CustomCredentialsProviderConfiguration {
 
-		@Bean(name = "awsCredentialsProvider")
+		@Bean(name = "credentialsProvider")
 		public AwsCredentialsProvider customAwsCredentialsProvider() {
 			return new CustomAWSCredentialsProvider();
 		}

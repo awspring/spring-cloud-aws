@@ -65,10 +65,10 @@ public class SesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SesClient sesClient(AwsCredentialsProvider awsCredentialsProvider, AwsRegionProvider awsRegionProvider) {
+	public SesClient sesClient(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-				: awsRegionProvider.getRegion();
-		SesClientBuilder client = SesClient.builder().credentialsProvider(awsCredentialsProvider).region(region);
+				: regionProvider.getRegion();
+		SesClientBuilder client = SesClient.builder().credentialsProvider(credentialsProvider).region(region);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(client::endpointOverride);
 		return client.build();
 	}

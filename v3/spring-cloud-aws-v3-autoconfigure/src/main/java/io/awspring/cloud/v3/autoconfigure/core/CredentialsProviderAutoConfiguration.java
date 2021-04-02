@@ -54,7 +54,7 @@ public class CredentialsProviderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public AwsCredentialsProvider awsCredentialsProvider() {
+	public AwsCredentialsProvider credentialsProvider() {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
 		if (StringUtils.hasText(this.properties.getAccessKey())

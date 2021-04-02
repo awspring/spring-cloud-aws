@@ -87,7 +87,7 @@ class RegionProviderAutoConfigurationTests {
 						+ new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile()
 								.getAbsolutePath())
 				.run((context) -> {
-					AwsRegionProvider awsRegionProvider = context.getBean("awsRegionProvider", AwsRegionProvider.class);
+					AwsRegionProvider awsRegionProvider = context.getBean("regionProvider", AwsRegionProvider.class);
 					assertThat(awsRegionProvider).isNotNull();
 
 					@SuppressWarnings("unchecked")
@@ -103,7 +103,7 @@ class RegionProviderAutoConfigurationTests {
 	@Test
 	void regionProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
-			AwsRegionProvider awsCredentialsProvider = context.getBean("awsRegionProvider", AwsRegionProvider.class);
+			AwsRegionProvider awsCredentialsProvider = context.getBean("regionProvider", AwsRegionProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull();
 
 			@SuppressWarnings("unchecked")
@@ -116,7 +116,7 @@ class RegionProviderAutoConfigurationTests {
 	@Configuration
 	static class CustomRegionProviderConfiguration {
 
-		@Bean(name = "awsRegionProvider")
+		@Bean(name = "regionProvider")
 		public AwsRegionProvider customRegionProvider() {
 			return new CustomRegionProvider();
 		}

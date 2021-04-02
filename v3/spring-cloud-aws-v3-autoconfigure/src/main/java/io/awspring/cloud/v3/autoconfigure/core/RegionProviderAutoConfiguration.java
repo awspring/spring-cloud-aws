@@ -53,7 +53,7 @@ public class RegionProviderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public AwsRegionProvider awsRegionProvider() {
+	public AwsRegionProvider regionProvider() {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
 		if (this.properties.isStatic()) {
