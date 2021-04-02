@@ -22,6 +22,7 @@ import javax.mail.Session;
 
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.v3.ses.SimpleEmailServiceMailSender;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -68,7 +69,8 @@ public class SesAutoConfiguration {
 	public SesClient sesClient(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
 				: regionProvider.getRegion();
-		SesClientBuilder client = SesClient.builder().credentialsProvider(credentialsProvider).region(region);
+		SesClientBuilder client = SesClient.builder().credentialsProvider(credentialsProvider).region(region)
+				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(client::endpointOverride);
 		return client.build();
 	}
