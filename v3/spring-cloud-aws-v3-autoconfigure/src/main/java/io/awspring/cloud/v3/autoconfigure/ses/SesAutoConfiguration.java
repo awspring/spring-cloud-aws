@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SesProperties.class)
+@ConditionalOnClass({ SesClient.class, MailSender.class, SimpleEmailServiceJavaMailSender.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.ses.enabled", havingValue = "true", matchIfMissing = true)
 public class SesAutoConfiguration {

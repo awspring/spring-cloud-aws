@@ -59,6 +59,15 @@ class SesAutoConfigurationTest {
 	}
 
 	@Test
+	void mailSenderWithoutSesClientInTheClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader("software.amazon.awssdk.services.ses.SesClient"))
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(MailSender.class);
+					assertThat(context).doesNotHaveBean(JavaMailSender.class);
+				});
+	}
+
+	@Test
 	void mailSenderWithSimpleEmail() {
 		this.contextRunner.withClassLoader(new FilteredClassLoader("javax.mail.Session")).run(context -> {
 			assertThat(context.getBean(MailSender.class)).isNotNull();
