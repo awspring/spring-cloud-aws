@@ -33,20 +33,18 @@ import org.springframework.cloud.aws.cloudmap.CloudMapProperties;
 import org.springframework.cloud.aws.cloudmap.CloudMapRegistryAnnotationScanner;
 import org.springframework.cloud.aws.cloudmap.CloudMapRegistryService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * Cloudmap BootstrapConfiguration configuration class to create the required beans.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CloudMapProperties.class)
 @ConditionalOnClass({ AWSServiceDiscovery.class })
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
-@ComponentScan
 public class AwsCloudMapBootstrapConfiguration {
 
 	@Bean

@@ -22,7 +22,7 @@ import java.util.List;
  * Pojo class to capture all the discovery parameters.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapDiscovery {
 

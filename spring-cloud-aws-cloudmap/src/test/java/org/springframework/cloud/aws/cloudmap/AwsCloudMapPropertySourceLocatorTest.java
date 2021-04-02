@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * Unit test for {@link AwsCloudMapPropertySourceLocatorTest}.
  *
  * @author Har Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class AwsCloudMapPropertySourceLocatorTest {
 

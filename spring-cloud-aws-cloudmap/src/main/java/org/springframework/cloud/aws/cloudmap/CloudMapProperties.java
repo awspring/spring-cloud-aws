@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * POJO to capture all cloudmap integration parameters (both registry and discovery).
  *
  * @author Hari Ohm Prasath Rajagopal
- * @since 1.0
+ * @since 2.3.2
  */
 @ConfigurationProperties(CloudMapProperties.CONFIG_PREFIX)
 public class CloudMapProperties {

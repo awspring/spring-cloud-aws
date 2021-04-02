@@ -37,7 +37,7 @@ import org.springframework.core.env.EnumerablePropertySource;
  * them with the key cloudMap namespace/service.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class AwsCloudMapPropertySource extends EnumerablePropertySource<AWSServiceDiscovery> {
 

@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * Unit testcase for {@link CloudMapRegistryAnnotationScanner}
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 @CloudMapRegistry(nameSpace = CloudMapTestUtils.NAMESPACE, service = CloudMapTestUtils.SERVICE,
 		description = "DESCRIPTION")

@@ -23,7 +23,7 @@ import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
  * service using the provided AWS ServiceDiscovery client.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class AwsCloudMapPropertySources {
 

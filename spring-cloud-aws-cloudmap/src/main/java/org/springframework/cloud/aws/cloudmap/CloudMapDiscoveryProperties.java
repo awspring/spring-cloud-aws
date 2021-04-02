@@ -22,7 +22,7 @@ import java.util.Map;
  * POJO class to capture cloudmap discovery attributes.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapDiscoveryProperties {
 

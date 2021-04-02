@@ -31,7 +31,7 @@ import com.amazonaws.services.servicediscovery.model.ServiceNotFoundException;
  * service discovery.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapDiscoverService {
 

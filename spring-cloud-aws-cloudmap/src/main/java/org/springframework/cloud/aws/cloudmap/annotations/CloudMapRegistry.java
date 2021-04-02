@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 /**
  * Annotation class for cloud map registration.
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 @Component
 @Retention(RetentionPolicy.RUNTIME)

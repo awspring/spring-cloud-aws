@@ -37,7 +37,7 @@ import org.springframework.web.client.RestTemplate;
  * cloudmap.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapUtils {
 

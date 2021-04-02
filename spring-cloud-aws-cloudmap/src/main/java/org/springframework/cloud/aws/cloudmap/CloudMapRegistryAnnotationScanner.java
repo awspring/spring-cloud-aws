@@ -33,7 +33,7 @@ import org.springframework.core.annotation.AnnotationUtils;
  * instances.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapRegistryAnnotationScanner {
 

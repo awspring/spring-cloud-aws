@@ -20,7 +20,7 @@ package org.springframework.cloud.aws.cloudmap;
  * POJO class to capture cloudmap registration parameters.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class CloudMapRegistryProperties {
 

@@ -29,7 +29,7 @@ import org.springframework.core.env.PropertySource;
  * instances based on cloudmap namespace and service.
  *
  * @author Hari Ohm Prasath
- * @since 1.0
+ * @since 2.3.2
  */
 public class AwsCloudMapPropertySourceLocator implements PropertySourceLocator {
 
