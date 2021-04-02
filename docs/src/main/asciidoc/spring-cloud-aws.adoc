@@ -37,7 +37,7 @@ as a Bootstrap Property Source, comparable to the support provided for the Sprin
 
 
 == Basic setup
-Before using the Spring Cloud AWS module developers have to pick the dependencies and configure the Spring Cloud AWS module.
+Before using a Spring Cloud AWS module developers have to pick the dependencies and configure the module.
 The next chapters describe the dependency management and also the basic configuration for the Spring AWS Cloud project.
 
 === Spring Cloud AWS maven dependency management
@@ -61,8 +61,9 @@ instead of `spring-cloud-aws-context`)
 
 === Amazon SDK dependency version management
 
-Amazon SDK is released more frequently than Spring Cloud AWS. If you need to use newer version of AWS SDK than one configured by Spring Cloud AWS
-add AWS SDK BOM to dependency management section making sure it is declared before any other BOM dependency that configures AWS SDK dependencies.
+The Amazon SDK is released more frequently than Spring Cloud AWS. If you need to use a  newer version of the SDK than
+the one configured by Spring Cloud AWS, add the SDK BOM to the dependency management section making sure it is declared
+before any other BOM dependency that configures AWS SDK dependencies.
 
 [source,xml,indent=0]
 ----
@@ -102,17 +103,20 @@ use of the modules. A typical XML configuration to use Spring Cloud AWS is outli
 
 [TIP]
 ====
-On application startup, for its internal purposes Spring Cloud AWS performs a check if application runs in AWS cloud environment
-by using `EC2MetadataUtils` class provided by AWS SDK. Starting from version 1.11.678, AWS SDK logs a warning message with exception when this check is made outside of AWS environment.
-This warning message can be hidden by setting `ERROR` logging level on `com.amazonaws.util.EC2MetadataUtils` class.
+On application startup, Spring Cloud AWS performs a check to determine whether the application is running in an AWS
+cloud environment by using the `EC2MetadataUtils` class provided by AWS SDK. Starting from version 1.11.678, the SDK
+logs a warning message detailing an exception when this check is performed outside of an AWS environment. This warning
+message can be suppressed by setting the logging level for the `com.amazonaws.util.EC2MetadataUtils` class to `ERROR` -
 
 [source,indent=0]
 ----
 logging.level.com.amazonaws.util.EC2MetadataUtils=error
 ----
 
-If `ContextInstanceDataAutoConfiguration` is enabled, but application is not running in EC2 environment, AWS SDK logs a warning message with an exception which adds potentially unnecessary noise to application logs.
-This warning message can be hidden by setting `ERROR` logging level on `com.amazonaws.internal.InstanceMetadataServiceResourceFetcher` class.
+If `ContextInstanceDataAutoConfiguration` is enabled, but the application is not running in EC2 environment, the AWS SDK
+logs a warning message with an exception which adds potentially unnecessary noise to application logs. This warning
+message can be suppressed by setting the logging level for the
+`com.amazonaws.internal.InstanceMetadataServiceResourceFetcher` class to `ERROR` -
 
 [source,indent=0]
 ----
@@ -121,9 +125,9 @@ logging.level.com.amazonaws.internal.InstanceMetadataServiceResourceFetcher=erro
 ====
 
 ==== SDK credentials configuration
-In order to make calls to the Amazon Web Service the credentials must be configured for the the Amazon SDK. Spring Cloud AWS
-provides support to configure an application context specific credentials that are used for _each_ service call for requests done
-by Spring Cloud AWS components, with the exception of the Parameter Store and Secrets Manager Configuration.
+In order to make calls to Amazon web services, credentials must be configured for the Amazon SDK. Spring Cloud AWS
+provides support for configuring an application context specific set of credentials that are used for _each_ service
+call for requests done by Spring Cloud AWS components, with the exception of the Parameter Store and Secrets Manager Configuration.
 Therefore there must be *exactly one* configuration of the credentials for an entire application context.
 
 [TIP]
@@ -131,11 +135,11 @@ Therefore there must be *exactly one* configuration of the credentials for an en
 The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the clients if there is no dedicated credentials
  provider defined. This will essentially use the following authentication information
 
-* use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-* use the system properties `aws.accessKeyId` and `aws.secretKey`
-* use the user specific profile credentials file
-* use ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
-* use the instance profile credentials (see below)
+* the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+* the system properties `aws.accessKeyId` and `aws.secretKey`
+* the user specific profile credentials file
+* the ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
+* the instance profile credentials (see below)
 ====
 
 Based on the overall credentials policy there are different options to configure the credentials. The possible ones are described in
@@ -198,13 +202,13 @@ errors if the properties are not configured at all.
 ====
 
 ===== Parameter Store and Secrets Manager Configuration credentials and region configuration
-The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
-client, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and `com.amazonaws.regions.DefaultAwsRegionProviderChain`.
-If you want to override this, then you need to
-https://cloud.spring.io/spring-cloud-static/Edgware.SR2/multi/multi__spring_cloud_context_application_context_services.html#_customizing_the_bootstrap_configuration[define your own Spring Cloud bootstrap configuration class]
-with a bean of type `AWSSimpleSystemsManagement` that's configured to use your chosen credentials and/or region provider.
-Because this context is created when your Spring Cloud Bootstrap context is created, you can't simply override the bean
-in a regular `@Configuration` class.
+The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default Amazon
+SDK client for each of AWS services, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and
+`com.amazonaws.regions.DefaultAwsRegionProviderChain`. If you want to override this, then you need to
+https://docs.spring.io/spring-cloud-commons/docs/3.0.0/reference/html/#customizing-the-bootstrap-configuration[define your own Spring Cloud bootstrap configuration class]
+with a bean of the appropriate type of Amazon SDK client (`AWSSimpleSystemsManagement` or `AWSSecretsManager`),
+that's configured to use your chosen credentials and/or region provider. Because this context is created when your
+Spring Cloud Bootstrap context is created, you can't simply override the bean in a regular `@Configuration` class.
 
 ==== Region configuration
 Amazon Web services are available in different https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[regions]. Based
@@ -454,11 +458,11 @@ class CustomSqsConfiguration {
 
 == Cloud environment
 Applications often need environment specific configuration information, especially in changing environments like in the
-Amazon cloud environment. Spring Cloud AWS provides a support to retrieve and use environment specific data inside the
+Amazon cloud environment. Spring Cloud AWS provides support for retrieving and using environment specific data inside the
 application context using common Spring mechanisms like property placeholder or the Spring expression language.
 
 === Retrieving instance metadata
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[Instance metadata] are available inside an
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[Instance metadata] is available inside an
 EC2 environment. The metadata can be queried using a special HTTP address that provides the instance metadata. Spring Cloud
 AWS enables application to access this metadata directly in expression or property placeholder without the need to call
 an external HTTP service.
