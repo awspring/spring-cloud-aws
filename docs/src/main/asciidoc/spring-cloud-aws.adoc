@@ -125,10 +125,10 @@ logging.level.com.amazonaws.internal.InstanceMetadataServiceResourceFetcher=erro
 ====
 
 ==== SDK credentials configuration
-In order to make calls to Amazon web services, credentials must be configured for the Amazon SDK. Spring Cloud AWS
+In order to make calls to Amazon Web Services, credentials must be configured for the Amazon SDK. Spring Cloud AWS
 provides support for configuring an application context specific set of credentials that are used for _each_ service
-call for requests done by Spring Cloud AWS components, with the exception of the Parameter Store and Secrets Manager Configuration.
-Therefore there must be *exactly one* configuration of the credentials for an entire application context.
+call for requests done by Spring Cloud AWS components, except for the Parameter Store and Secrets Manager Configuration
+modules. Therefore, there must be *exactly one* configuration of the credentials for an entire application context.
 
 [TIP]
 ====
