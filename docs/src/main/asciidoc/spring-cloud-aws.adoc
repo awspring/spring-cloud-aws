@@ -133,6 +133,7 @@ The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the c
 
 * use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 * use the system properties `aws.accessKeyId` and `aws.secretKey`
+* use Web identity token from AWS STS (Requires `aws-java-sdk-sts` library)
 * use the user specific profile credentials file
 * use ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
 * use the instance profile credentials (see below)
@@ -196,6 +197,22 @@ EC2 (e.g. on a test server) and locally for testing. The next snippet shows a co
 The access-key and secret-key are defined using a placeholder expressions along with a default value to avoid bootstrap
 errors if the properties are not configured at all.
 ====
+
+===== AWS EKS IAM Roles for Service Accounts configuration
+If your application is deployed to AWS EKS and you wish to use 
+https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html[IAM Roles for Service Accounts] for AWS Authentication, simply include
+the `aws-java-sdk-sts` dependency in your project, and the `DefaultAWSCredentialsProviderChain` will load from Java system properties or environment variables.
+
+[source,xml,indent=0]
+----
+<dependencies>
+	<dependency>
+		<groupId>com.amazonaws</groupId>
+		<artifactId>aws-java-sdk-sts</artifactId>
+		<version>${aws-java-sdk.version}</version>
+	</dependency>
+</dependencies>
+----
 
 ===== Parameter Store and Secrets Manager Configuration credentials and region configuration
 The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
