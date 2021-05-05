@@ -47,6 +47,16 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	 */
 	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
 
+	/**
+	 * Message group id for SNS message (applies only to FIFO queue).
+	 */
+	public static final String MESSAGE_GROUP_ID_HEADER = "MessageGroupId";
+
+	/**
+	 * Message Deduplication id for SNS message.
+	 */
+	public static final String MESSAGE_DEDUPLICATION_ID_HEADER = "MessageDeduplicationId";
+
 	private final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
 
 	private final AmazonSNS amazonSns;
@@ -71,6 +81,13 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		if (!messageAttributes.isEmpty()) {
 			publishRequest.withMessageAttributes(messageAttributes);
 		}
+		if (message.getHeaders().containsKey(MESSAGE_GROUP_ID_HEADER)) {
+			publishRequest.withMessageGroupId(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class));
+		}
+		if (message.getHeaders().containsKey(MESSAGE_DEDUPLICATION_ID_HEADER)) {
+			publishRequest.withMessageDeduplicationId(
+					message.getHeaders().get(MESSAGE_DEDUPLICATION_ID_HEADER, String.class));
+		}
 		this.amazonSns.publish(publishRequest);
 
 		return true;
@@ -81,6 +98,10 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		for (Map.Entry<String, Object> messageHeader : message.getHeaders().entrySet()) {
 			String messageHeaderName = messageHeader.getKey();
 			Object messageHeaderValue = messageHeader.getValue();
+
+			if (isSkipHeader(messageHeaderName)) {
+				continue;
+			}
 
 			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
@@ -110,6 +131,10 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		}
 
 		return messageAttributes;
+	}
+
+	private boolean isSkipHeader(String headerName) {
+		return MESSAGE_GROUP_ID_HEADER.equals(headerName) || MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName);
 	}
 
 	private MessageAttributeValue getStringArrayMessageAttribute(List<Object> messageHeaderValue) {
