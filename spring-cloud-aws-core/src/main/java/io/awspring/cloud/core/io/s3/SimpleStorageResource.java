@@ -37,6 +37,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3;
@@ -69,6 +70,8 @@ import org.springframework.core.task.support.ExecutorServiceAdapter;
  * @since 1.0
  */
 public class SimpleStorageResource extends AbstractResource implements WritableResource {
+
+	private static final Pattern ENCODED_SLASH_REPLACER = Pattern.compile("%2F");
 
 	private final String bucketName;
 
@@ -144,7 +147,11 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	@Override
 	public URL getURL() throws IOException {
 		Region region = this.amazonS3.getRegion().toAWSRegion();
-		String encodedObjectName = URLEncoder.encode(this.objectName, StandardCharsets.UTF_8.toString());
+
+		String encodedObjectName = ENCODED_SLASH_REPLACER
+				.matcher(URLEncoder.encode(this.objectName, StandardCharsets.UTF_8.toString()))
+				.replaceAll("/");
+
 		return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME),
 				"/" + this.bucketName + "/" + encodedObjectName);
 	}
