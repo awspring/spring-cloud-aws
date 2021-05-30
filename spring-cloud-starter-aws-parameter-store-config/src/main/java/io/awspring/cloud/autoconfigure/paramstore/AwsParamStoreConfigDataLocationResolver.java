@@ -106,8 +106,9 @@ public class AwsParamStoreConfigDataLocationResolver
 			T instance = event.getBootstrapContext().get(type);
 			String name = "configData" + type.getSimpleName();
 			ConfigurableApplicationContext appContext = event.getApplicationContext();
-			if (!appContext.getBeanFactory().containsBean(name))
+			if (!appContext.getBeanFactory().containsBean(name)) {
 				appContext.getBeanFactory().registerSingleton(name, instance);
+			}
 		});
 	}
 
