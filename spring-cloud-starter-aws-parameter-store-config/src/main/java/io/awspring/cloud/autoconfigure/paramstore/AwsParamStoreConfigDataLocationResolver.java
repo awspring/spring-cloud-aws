@@ -37,6 +37,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -103,8 +104,10 @@ public class AwsParamStoreConfigDataLocationResolver
 		registerBean(context, type, supplier);
 		context.getBootstrapContext().addCloseListener(event -> {
 			T instance = event.getBootstrapContext().get(type);
-			event.getApplicationContext().getBeanFactory().registerSingleton("configData" + type.getSimpleName(),
-					instance);
+			String name = "configData" + type.getSimpleName();
+			ConfigurableApplicationContext appContext = event.getApplicationContext();
+			if (!appContext.getBeanFactory().containsBean(name))
+				appContext.getBeanFactory().registerSingleton(name, instance);
 		});
 	}
 
