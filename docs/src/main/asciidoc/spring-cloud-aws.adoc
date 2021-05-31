@@ -274,7 +274,7 @@ maven dependency inside the application. The typical configuration will look lik
   <dependency>
     <groupId>io.awspring.cloud</groupId>
     <artifactId>spring-cloud-aws-autoconfigure</artifactId>
-    <version>{spring-cloud-version}</version>
+    <version>{spring-cloud-aws-version}</version>
   </dependency>
 </dependencies>
 ----
