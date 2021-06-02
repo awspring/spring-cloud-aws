@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Eddú Meléndez
+ * @author Matej Nedic
  * @since 2.3.0
  */
 public class AwsParamStoreConfigDataLocationResolver
@@ -99,6 +100,11 @@ public class AwsParamStoreConfigDataLocationResolver
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Since hook can be activated more then one time, ApplicationContext needs to be
+	 * checked if bean is already registered to prevent Exception. See issue #108 for more
+	 * information.
+	 */
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
 			BootstrapRegistry.InstanceSupplier<T> supplier) {
 		registerBean(context, type, supplier);
