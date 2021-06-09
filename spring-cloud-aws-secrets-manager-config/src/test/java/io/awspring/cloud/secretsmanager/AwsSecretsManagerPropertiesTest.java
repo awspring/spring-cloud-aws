@@ -58,6 +58,8 @@ class AwsSecretsManagerPropertiesTest {
 		return Stream.of(
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec/test/var")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
