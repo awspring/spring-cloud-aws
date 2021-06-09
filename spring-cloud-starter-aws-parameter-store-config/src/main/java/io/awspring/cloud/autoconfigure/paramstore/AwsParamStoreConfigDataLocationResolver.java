@@ -16,10 +16,7 @@
 
 package io.awspring.cloud.autoconfigure.paramstore;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import io.awspring.cloud.paramstore.AwsParamStoreProperties;
@@ -79,23 +76,35 @@ public class AwsParamStoreConfigDataLocationResolver
 		AwsParamStoreProperties properties = loadConfigProperties(resolverContext.getBinder());
 
 		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties, log);
-
-		List<String> contexts = location.getValue().equals(PREFIX)
-				? sources.getAutomaticContexts(profiles.getAccepted())
-				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
-
 		List<AwsParamStoreConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(propertySourceContext -> locations
-				.add(new AwsParamStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+		if (location.getValue().equals(PREFIX)) {
+			List<String> contexts = sources.getAutomaticContexts(profiles.getAccepted());
+			contexts.forEach(propertySourceContext -> locations
+					.add(new AwsParamStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+			return locations;
+		}
+
+		Map<String, Boolean> mapOfLocation = getCustomContexts(location.getNonPrefixedValue(PREFIX));
+		mapOfLocation.forEach((variable, optional) -> locations
+				.add(new AwsParamStoreConfigDataResource(variable, optional, sources)));
 
 		return locations;
 	}
 
-	private List<String> getCustomContexts(String keys) {
+	private Map<String, Boolean> getCustomContexts(String keys) {
+		Map<String, Boolean> mapOfValuesWithOptional = new HashMap<>();
 		if (StringUtils.hasLength(keys)) {
-			return Arrays.asList(keys.split(";"));
+			List<String> listOfFields = Arrays.asList(keys.split(";"));
+			listOfFields.forEach(field -> {
+				if (field.toLowerCase().contains("optional")) {
+					mapOfValuesWithOptional.put(field.substring(9), Boolean.TRUE);
+				}
+				else {
+					mapOfValuesWithOptional.put(field, Boolean.FALSE);
+				}
+			});
 		}
-		return Collections.emptyList();
+		return mapOfValuesWithOptional;
 	}
 
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
