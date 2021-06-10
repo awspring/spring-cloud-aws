@@ -201,7 +201,7 @@ errors if the properties are not configured at all.
 The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default `AWSSimpleSystemsManagement`
 client, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and `com.amazonaws.regions.DefaultAwsRegionProviderChain`.
 If you want to override this, then you need to
-https://cloud.spring.io/spring-cloud-static/Edgware.SR2/multi/multi__spring_cloud_context_application_context_services.html#_customizing_the_bootstrap_configuration[define your own Spring Cloud bootstrap configuration class]
+https://projects.spring.io/spring-cloud/spring-cloud.html#_customizing_the_bootstrap_configuration[define your own Spring Cloud bootstrap configuration class]
 with a bean of type `AWSSimpleSystemsManagement` that's configured to use your chosen credentials and/or region provider.
 Because this context is created when your Spring Cloud Bootstrap context is created, you can't simply override the bean
 in a regular `@Configuration` class.
