@@ -19,9 +19,9 @@ package io.awspring.cloud.autoconfigure.secretsmanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
@@ -104,11 +104,12 @@ public class AwsSecretsManagerConfigDataLocationResolver
 	}
 
 	private Map<String, Boolean> getCustomContexts(String keys) {
+		String optionalString = "optional";
 		Map<String, Boolean> mapOfValuesWithOptional = new HashMap<>();
 		if (StringUtils.hasLength(keys)) {
 			List<String> listOfFields = Arrays.asList(keys.split(";"));
 			listOfFields.forEach(field -> {
-				if (field.toLowerCase().contains("optional")) {
+				if (field.length() > 8 && field.toLowerCase().substring(0, 8).equals(optionalString)) {
 					mapOfValuesWithOptional.put(field.substring(9), Boolean.TRUE);
 				}
 				else {
