@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +53,26 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
 	}
 
+	@Test
+	void testResolveNotProfileSpecificWithCustomPaths() {
+		String location = "aws-parameterstore:/mypath1;/mypath2;/mypath3";
+		List<AwsParamStoreConfigDataResource> locations = testResolveNotProfileSpecific(location);
+		assertThat(locations).hasSize(3);
+		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
+	}
+
+	@Test
+	void testResolveNotProfileSpecificWithAutomaticPathsIsNotSupported() {
+		String location = "aws-parameterstore:";
+		try {
+			testResolveNotProfileSpecific(location);
+			fail("Exception expected due to usage of automatic path syntax in resolve without profiles");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage()).contains("Automatic paths from profiles are not supported");
+		}
+
+	}
+
 	private List<String> toContexts(List<AwsParamStoreConfigDataResource> locations) {
 		return locations.stream().map(AwsParamStoreConfigDataResource::getContext).collect(Collectors.toList());
 	}
@@ -65,6 +86,15 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		Profiles profiles = mock(Profiles.class);
 		when(profiles.getAccepted()).thenReturn(Collections.singletonList("dev"));
 		return resolver.resolveProfileSpecific(context, ConfigDataLocation.of(location), profiles);
+	}
+
+	private List<AwsParamStoreConfigDataResource> testResolveNotProfileSpecific(String location) {
+		AwsParamStoreConfigDataLocationResolver resolver = createResolver();
+		ConfigDataLocationResolverContext context = mock(ConfigDataLocationResolverContext.class);
+		MockEnvironment env = new MockEnvironment();
+		env.setProperty("spring.application.name", "testapp");
+		when(context.getBinder()).thenReturn(Binder.get(env));
+		return resolver.resolve(context, ConfigDataLocation.of(location));
 	}
 
 	private AwsParamStoreConfigDataLocationResolver createResolver() {
