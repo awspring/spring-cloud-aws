@@ -146,6 +146,12 @@ added after the original pull request but before a merge.
   Cloud Build] project. If using IntelliJ, you can use the
   https://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
   Plugin] to import the same file.
+  Format source code using maven by running by
+  * add profile group to maven `settings.xml`
+  ```<pluginGroups>
+     	     <pluginGroup>io.spring.javaformat</pluginGroup>
+          </pluginGroups>```
+  * aplly code fomatter by running `./mvnw spring-javaformat:apply`
 * Make sure all new `.java` files to have a simple Javadoc class comment with at least an
   `@author` tag identifying you, and preferably at least a paragraph on what the class is
   for.
