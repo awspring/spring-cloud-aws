@@ -48,7 +48,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
 
 	/**
-	 * Message group id for SNS message (applies only to FIFO queue).
+	 * Message group id for SNS message (applies only to FIFO topic).
 	 */
 	public static final String MESSAGE_GROUP_ID_HEADER = "MessageGroupId";
 
