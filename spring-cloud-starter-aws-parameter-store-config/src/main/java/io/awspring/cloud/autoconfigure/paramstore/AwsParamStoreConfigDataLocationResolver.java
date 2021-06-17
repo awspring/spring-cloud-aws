@@ -75,30 +75,30 @@ public class AwsParamStoreConfigDataLocationResolver
 		return resolve(resolverContext, location, profiles);
 	}
 
-	private List<AwsParamStoreConfigDataResource> resolve(
-		ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, @Nullable Profiles profiles)
-		throws ConfigDataLocationNotFoundException {
+	private List<AwsParamStoreConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataLocation location, @Nullable Profiles profiles) throws ConfigDataLocationNotFoundException {
 
 		registerBean(resolverContext, AwsParamStoreProperties.class, loadProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, AWSSimpleSystemsManagement.class,
-			this::createSimpleSystemManagementClient);
+				this::createSimpleSystemManagementClient);
 
 		AwsParamStoreProperties properties = loadConfigProperties(resolverContext.getBinder());
 
 		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties, log);
 
-		if(location.getValue().equals(PREFIX) && profiles == null) {
-			throw new IllegalArgumentException("Automatic paths from profiles are not supported in profile specific application properties files. Move 'spring.config.import' to root application properties file or set custom context.");
+		if (location.getValue().equals(PREFIX) && profiles == null) {
+			throw new IllegalArgumentException(
+					"Automatic paths from profiles are not supported in profile specific application properties files. Move 'spring.config.import' to root application properties file or set custom context.");
 		}
 
 		List<String> contexts = location.getValue().equals(PREFIX)
-			? sources.getAutomaticContexts(profiles.getAccepted())
-			: getCustomContexts(location.getNonPrefixedValue(PREFIX));
+				? sources.getAutomaticContexts(profiles.getAccepted())
+				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
 		List<AwsParamStoreConfigDataResource> locations = new ArrayList<>();
 		contexts.forEach(propertySourceContext -> locations
-			.add(new AwsParamStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+				.add(new AwsParamStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
 		return locations;
 	}

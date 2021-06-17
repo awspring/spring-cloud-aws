@@ -67,7 +67,8 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		try {
 			testResolveNotProfileSpecific(location);
 			fail("Exception expected due to usage of automatic path syntax in resolve without profiles");
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage()).contains("Automatic paths from profiles are not supported");
 		}
 
