@@ -19,8 +19,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven3-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven3-
       - name: Download ${{ matrix.version }}
         uses: sdkman/sdkman-action@master
         id: sdkman
