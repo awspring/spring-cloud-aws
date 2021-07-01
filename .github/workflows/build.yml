@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "Test with ${{ matrix.version }}"
+    name: "Test with: ${{ matrix.version }}"
     strategy:
       matrix:
         version: [ 8.0.275.hs-adpt, 11.0.10.hs-adpt, 15.0.2.hs-adpt ]
@@ -19,8 +19,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven3-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven3-
       - name: Download ${{ matrix.version }}
         uses: sdkman/sdkman-action@master
         id: sdkman
@@ -33,4 +33,4 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw -V -B verify
+        run: ./mvnw -V -B clean verify
