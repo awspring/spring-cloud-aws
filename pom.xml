@@ -72,6 +72,8 @@
 		<module>spring-cloud-aws-integration-test</module>
 		<module>docs</module>
 		<module>spring-cloud-aws-samples</module>
+		<module>spring-cloud-aws-cloudmap</module>
+		<module>spring-cloud-starter-aws-cloudmap</module>
 		</modules>
 
 	<dependencyManagement>
