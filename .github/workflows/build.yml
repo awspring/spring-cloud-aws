@@ -33,4 +33,4 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw -V -B verify
+        run: ./mvnw -V -B clean verify
