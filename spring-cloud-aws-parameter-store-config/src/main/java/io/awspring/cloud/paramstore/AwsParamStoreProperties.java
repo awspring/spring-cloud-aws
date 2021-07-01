@@ -42,7 +42,7 @@ public class AwsParamStoreProperties implements InitializingBean {
 	/**
 	 * Pattern used for prefix validation.
 	 */
-	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/[a-zA-Z0-9.\\-_]+)*");
+	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
 
 	/**
 	 * Pattern used for profileSeparator validation.
