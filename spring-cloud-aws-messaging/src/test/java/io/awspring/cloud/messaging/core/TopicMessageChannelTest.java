@@ -244,4 +244,46 @@ class TopicMessageChannelTest {
 				.isEqualTo(MessageAttributeDataTypes.STRING_ARRAY);
 	}
 
+	@Test
+	public void sendMessage_withMessageGroupIdHeader_shouldSetMessageGroupIdOnPublishRequestAndNotSetItAsMessageAttribute() {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+		when(amazonSns.publish(publishRequestArgumentCaptor.capture())).thenReturn(new PublishResult());
+
+		Message<String> message = MessageBuilder.withPayload("Hello")
+				.setHeader(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, "id-5").build();
+		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertThat(sent).isTrue();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.containsKey(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER)).isFalse();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageGroupId()).isEqualTo("id-5");
+	}
+
+	@Test
+	public void sendMessage_withMessageDeduplicationIdHeader_shouldSetMessageDeduplicationIdOnPublishRequestAndNotSetItAsMessageAttribute() {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+		when(amazonSns.publish(publishRequestArgumentCaptor.capture())).thenReturn(new PublishResult());
+
+		Message<String> message = MessageBuilder.withPayload("Hello")
+				.setHeader(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER, "id-5").build();
+		MessageChannel messageChannel = new TopicMessageChannel(amazonSns, "topicArn");
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertThat(sent).isTrue();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageAttributes()
+				.containsKey(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER)).isFalse();
+		assertThat(publishRequestArgumentCaptor.getValue().getMessageDeduplicationId()).isEqualTo("id-5");
+	}
+
 }

@@ -16,18 +16,23 @@
 
 package io.awspring.cloud.messaging.core;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 import com.amazonaws.services.sns.model.Topic;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -104,6 +109,28 @@ class NotificationMessagingTemplateTest {
 		// Assert
 		verify(amazonSns).publish(
 				new PublishRequest(physicalTopicName, "My message", "My subject").withMessageAttributes(isNotNull()));
+	}
+
+	@Test
+	void convertAndSend_withPayloadAndMessageGroupIdHeader_shouldSetMessageGroupIdParameter() throws Exception {
+		// Arrange
+		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
+		when(amazonSns.listTopics(new ListTopicsRequest(null)))
+				.thenReturn(new ListTopicsResult().withTopics(new Topic().withTopicArn(physicalTopicName)));
+		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+		when(amazonSns.publish(publishRequestArgumentCaptor.capture())).thenReturn(new PublishResult());
+
+		// Act
+		Map<String, Object> headers = new HashMap<>();
+		headers.put(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, "id-5");
+		notificationMessagingTemplate.convertAndSend(physicalTopicName, "My message", headers);
+
+		// Assert
+		PublishRequest publishRequest = publishRequestArgumentCaptor.getValue();
+		assertThat(publishRequest.getMessage()).isEqualTo("My message");
+		assertThat(publishRequest.getMessageGroupId()).isEqualTo("id-5");
 	}
 
 }
