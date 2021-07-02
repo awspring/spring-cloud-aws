@@ -19,7 +19,9 @@ package io.awspring.cloud.autoconfigure.secretsmanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
@@ -88,23 +90,36 @@ public class AwsSecretsManagerConfigDataLocationResolver
 
 		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties, log);
 
-		List<String> contexts = location.getValue().equals(PREFIX)
-				? propertySources.getAutomaticContexts(profiles.getAccepted())
-				: getCustomContexts(location.getNonPrefixedValue(PREFIX));
-
 		List<AwsSecretsManagerConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(
-				propertySourceContext -> locations.add(new AwsSecretsManagerConfigDataResource(propertySourceContext,
-						location.isOptional(), propertySources)));
+		if (location.getValue().equals(PREFIX)) {
+			List<String> contexts = propertySources.getAutomaticContexts(profiles.getAccepted());
+			contexts.forEach(propertySourceContext -> locations.add(new AwsSecretsManagerConfigDataResource(
+					propertySourceContext, location.isOptional(), propertySources)));
+			return locations;
+		}
+
+		Map<String, Boolean> mapOfLocation = getCustomContexts(location.getNonPrefixedValue(PREFIX));
+		mapOfLocation.forEach((variable, optional) -> locations
+				.add(new AwsSecretsManagerConfigDataResource(variable, optional, propertySources)));
 
 		return locations;
 	}
 
-	private List<String> getCustomContexts(String keys) {
+	private Map<String, Boolean> getCustomContexts(String keys) {
+		String optionalString = "optional";
+		Map<String, Boolean> mapOfValuesWithOptional = new HashMap<>();
 		if (StringUtils.hasLength(keys)) {
-			return Arrays.asList(keys.split(";"));
+			List<String> listOfFields = Arrays.asList(keys.split(";"));
+			listOfFields.forEach(field -> {
+				if (field.length() > 8 && field.toLowerCase().substring(0, 8).equals(optionalString)) {
+					mapOfValuesWithOptional.put(field.substring(9), Boolean.TRUE);
+				}
+				else {
+					mapOfValuesWithOptional.put(field, Boolean.FALSE);
+				}
+			});
 		}
-		return Collections.emptyList();
+		return mapOfValuesWithOptional;
 	}
 
 	/**

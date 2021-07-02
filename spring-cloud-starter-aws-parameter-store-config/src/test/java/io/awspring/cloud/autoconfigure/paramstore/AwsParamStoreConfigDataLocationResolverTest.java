@@ -52,6 +52,17 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
 	}
 
+	@Test
+	void testResolveProfileSpecificWithCustomPathsOptional() {
+		String location = "aws-parameterstore:optional /mypath1;/mypath2;optional /mypath3";
+		List<AwsParamStoreConfigDataResource> locations = testResolveProfileSpecific(location);
+		assertThat(locations).hasSize(3);
+		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
+		assertThat(locations.get(0).isOptional()).isTrue();
+		assertThat(locations.get(1).isOptional()).isFalse();
+		assertThat(locations.get(2).isOptional()).isTrue();
+	}
+
 	private List<String> toContexts(List<AwsParamStoreConfigDataResource> locations) {
 		return locations.stream().map(AwsParamStoreConfigDataResource::getContext).collect(Collectors.toList());
 	}
