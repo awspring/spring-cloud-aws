@@ -338,15 +338,10 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 							? groupByMessageGroupId(receiveMessageResult) : groupByMessage(receiveMessageResult);
 					CountDownLatch messageBatchLatch = new CountDownLatch(messageGroups.size());
 					for (MessageGroup messageGroup : messageGroups) {
-						if (isQueueRunning(this.logicalQueueName)) {
-							MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
-									messageGroup, this.queueAttributes);
-							getTaskExecutor()
-									.execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
-						}
-						else {
-							messageBatchLatch.countDown();
-						}
+						MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
+								messageGroup, this.queueAttributes);
+						getTaskExecutor()
+								.execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
 					}
 					try {
 						messageBatchLatch.await();
