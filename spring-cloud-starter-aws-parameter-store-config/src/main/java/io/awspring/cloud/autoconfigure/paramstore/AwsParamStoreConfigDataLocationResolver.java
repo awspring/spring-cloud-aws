@@ -38,6 +38,7 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -64,15 +65,21 @@ public class AwsParamStoreConfigDataLocationResolver
 	}
 
 	@Override
-	public List<AwsParamStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
+	public List<AwsParamStoreConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
 			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
-		return Collections.emptyList();
+		return resolve(resolverContext, location, null);
 	}
 
 	@Override
 	public List<AwsParamStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
+		return resolve(resolverContext, location, profiles);
+	}
+
+	private List<AwsParamStoreConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataLocation location, @Nullable Profiles profiles) throws ConfigDataLocationNotFoundException {
+
 		registerBean(resolverContext, AwsParamStoreProperties.class, loadProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, AWSSimpleSystemsManagement.class,
@@ -81,6 +88,11 @@ public class AwsParamStoreConfigDataLocationResolver
 		AwsParamStoreProperties properties = loadConfigProperties(resolverContext.getBinder());
 
 		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties, log);
+
+		if (location.getValue().equals(PREFIX) && profiles == null) {
+			throw new IllegalArgumentException(
+					"Automatic paths from profiles are not supported in profile specific application properties files. Move 'spring.config.import' to root application properties file or set custom context.");
+		}
 
 		List<String> contexts = location.getValue().equals(PREFIX)
 				? sources.getAutomaticContexts(profiles.getAccepted())
