@@ -71,7 +71,7 @@ resources takes time and costs money, because every instance creation is
 charged with a one hour usage. Therefore Spring Cloud AWS does not
 execute the integration tests by default.
 
-In order to run integration tests you must prepare three properties named accessKey,secretKey and rdsPassword. These two
+In order to run integration tests you must prepare three properties named accessKey, secretKey and rdsPassword. These two
 properties accessKey and secretKey are account/user specific and should
 never be shared to anyone. To retrieve these settings you have to open
 your account inside the AWS console and retrieve them through the
