@@ -34,6 +34,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
@@ -201,15 +202,19 @@ public class QueueMessageChannel extends AbstractMessageChannel implements Polla
 
 	@Override
 	public Message<String> receive() {
-		return this.receive(0);
+		return this.receive( MessageChannel.INDEFINITE_TIMEOUT);
 	}
 
 	@Override
 	public Message<String> receive(long timeout) {
-		ReceiveMessageResult receiveMessageResult = this.amazonSqs
-				.receiveMessage(new ReceiveMessageRequest(this.queueUrl).withMaxNumberOfMessages(1)
-						.withWaitTimeSeconds(Long.valueOf(timeout).intValue()).withAttributeNames(ATTRIBUTE_NAMES)
-						.withMessageAttributeNames(MESSAGE_ATTRIBUTE_NAMES));
+		ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(this.queueUrl).withMaxNumberOfMessages(1)
+			.withAttributeNames(ATTRIBUTE_NAMES)
+			.withMessageAttributeNames(MESSAGE_ATTRIBUTE_NAMES);
+		if (timeout != MessageChannel.INDEFINITE_TIMEOUT) {
+			receiveMessageRequest.withWaitTimeSeconds(Math.toIntExact(timeout / 1000));
+		}
+
+		ReceiveMessageResult receiveMessageResult = this.amazonSqs.receiveMessage(receiveMessageRequest);
 		if (receiveMessageResult.getMessages().isEmpty()) {
 			return null;
 		}
