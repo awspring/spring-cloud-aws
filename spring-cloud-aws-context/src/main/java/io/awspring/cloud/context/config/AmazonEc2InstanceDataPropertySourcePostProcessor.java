@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @deprecated use `UserDataEnvironmentPostProcessor`
  */
 public class AmazonEc2InstanceDataPropertySourcePostProcessor
 		implements PriorityOrdered, EnvironmentAware, BeanFactoryPostProcessor {
