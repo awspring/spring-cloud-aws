@@ -23,8 +23,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -53,10 +57,7 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-
-		assertThat(errors.getAllErrors()).isEmpty();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
