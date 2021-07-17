@@ -368,6 +368,45 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
+	void testAllMessageReceivedAreConsumed() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+		container.setAmazonSqs(sqs);
+
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+			@Override
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
+				countDownLatch.countDown();
+			}
+		};
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		messageHandler.setApplicationContext(applicationContext);
+		container.setBeanName("testContainerName");
+		messageHandler.afterPropertiesSet();
+
+		mockGetQueueUrl(sqs, "testQueue", "http://testSimpleReceiveMessage.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "http://testSimpleReceiveMessage.amazonaws.com");
+
+		container.afterPropertiesSet();
+
+		when(sqs.receiveMessage(
+			new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
+				.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+			.thenReturn(new ReceiveMessageResult().withMessages(
+				new Message().withBody("messageContent")));
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		container.start();
+		container.stop();
+
+		assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
 	void listener_withMultipleMessageHandlers_shouldBeCalled() throws Exception {
 		CountDownLatch countDownLatch = new CountDownLatch(2);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer() {
