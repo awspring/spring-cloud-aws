@@ -49,6 +49,14 @@ class AwsParamStorePropertiesTest {
 	}
 
 	@Test
+	void validationSucceedsPrefix() {
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla")
+				.withDefaultContext("app").withProfileSeparator("_").build();
+
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
+	}
+
+	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");

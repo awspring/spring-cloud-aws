@@ -137,6 +137,7 @@ The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the c
 
 * the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 * the system properties `aws.accessKeyId` and `aws.secretKey`
+* the web identity token from AWS STS (requires `aws-java-sdk-sts` library)
 * the user specific profile credentials file
 * the ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
 * the instance profile credentials (see below)
@@ -201,11 +202,27 @@ The access-key and secret-key are defined using a placeholder expressions along 
 errors if the properties are not configured at all.
 ====
 
+===== AWS EKS IAM Roles for Service Accounts configuration
+If your application is deployed to AWS EKS and you wish to use
+https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html[IAM Roles for Service Accounts] for AWS Authentication, simply include
+the `aws-java-sdk-sts` dependency in your project, and the `DefaultAWSCredentialsProviderChain` will load from Java system properties or environment variables.
+
+[source,xml,indent=0]
+----
+<dependencies>
+	<dependency>
+		<groupId>com.amazonaws</groupId>
+		<artifactId>aws-java-sdk-sts</artifactId>
+		<version>${aws-java-sdk.version}</version>
+	</dependency>
+</dependencies>
+----
+
 ===== Parameter Store and Secrets Manager Configuration credentials and region configuration
 The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default Amazon
 SDK client for each of AWS services, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and
 `com.amazonaws.regions.DefaultAwsRegionProviderChain`. If you want to override this, then you need to
-https://docs.spring.io/spring-cloud-commons/docs/3.0.0/reference/html/#customizing-the-bootstrap-configuration[define your own Spring Cloud bootstrap configuration class]
+https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#customizing-the-bootstrap-configuration[define your own Spring Cloud bootstrap configuration class]
 with a bean of the appropriate type of Amazon SDK client (`AWSSimpleSystemsManagement` or `AWSSecretsManager`),
 that's configured to use your chosen credentials and/or region provider. Because this context is created when your
 Spring Cloud Bootstrap context is created, you can't simply override the bean in a regular `@Configuration` class.
@@ -278,7 +295,7 @@ maven dependency inside the application. The typical configuration will look lik
   <dependency>
     <groupId>io.awspring.cloud</groupId>
     <artifactId>spring-cloud-aws-autoconfigure</artifactId>
-    <version>{spring-cloud-version}</version>
+    <version>{spring-cloud-aws-version}</version>
   </dependency>
 </dependencies>
 ----
