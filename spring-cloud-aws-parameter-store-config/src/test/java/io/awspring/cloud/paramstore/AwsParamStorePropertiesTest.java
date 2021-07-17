@@ -53,10 +53,7 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla")
 				.withDefaultContext("app").withProfileSeparator("_").build();
 
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-
-		assertThat(errors.getAllErrors()).isEmpty();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	@Test
