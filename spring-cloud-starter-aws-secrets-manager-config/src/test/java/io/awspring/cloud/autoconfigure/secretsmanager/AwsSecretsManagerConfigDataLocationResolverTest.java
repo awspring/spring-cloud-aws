@@ -55,7 +55,7 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 
 	@Test
 	void testResolveProfileSpecificWithCustomPathsOptional() {
-		String location = "aws-secretsmanager:optional /mypath1;/mypath2;optional /mypath3";
+		String location = "aws-secretsmanager:optional:/mypath1;/mypath2;optional:/mypath3";
 		List<AwsSecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(3);
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");

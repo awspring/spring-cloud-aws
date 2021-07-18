@@ -17,15 +17,13 @@
 package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import io.awspring.cloud.paramstore.AwsParamStoreProperties;
 import io.awspring.cloud.paramstore.AwsParamStorePropertySources;
+import io.awspring.cloud.paramstore.ParameterKeyValue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -43,6 +41,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Eddú Meléndez
+ * @author Matej Nedic
  * @since 2.3.0
  */
 public class AwsParamStoreConfigDataLocationResolver
@@ -89,28 +88,13 @@ public class AwsParamStoreConfigDataLocationResolver
 			return locations;
 		}
 
-		Map<String, Boolean> mapOfLocation = getCustomContexts(location.getNonPrefixedValue(PREFIX));
-		mapOfLocation.forEach((variable, optional) -> locations
-				.add(new AwsParamStoreConfigDataResource(variable, optional, sources)));
+		List<ParameterKeyValue> parameterKeyValues = ParameterKeyValue
+				.createParameterValue(location.getNonPrefixedValue(PREFIX));
+		parameterKeyValues.forEach(
+				parameterKeyValue -> locations.add(new AwsParamStoreConfigDataResource(parameterKeyValue.getValue(),
+						parameterKeyValue.isOptional(), sources)));
 
 		return locations;
-	}
-
-	private Map<String, Boolean> getCustomContexts(String keys) {
-		String optionalString = "optional";
-		Map<String, Boolean> mapOfValuesWithOptional = new HashMap<>();
-		if (StringUtils.hasLength(keys)) {
-			List<String> listOfFields = Arrays.asList(keys.split(";"));
-			listOfFields.forEach(field -> {
-				if (field.length() > 8 && field.toLowerCase().substring(0, 8).equals(optionalString)) {
-					mapOfValuesWithOptional.put(field.substring(9), Boolean.TRUE);
-				}
-				else {
-					mapOfValuesWithOptional.put(field, Boolean.FALSE);
-				}
-			});
-		}
-		return mapOfValuesWithOptional;
 	}
 
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,

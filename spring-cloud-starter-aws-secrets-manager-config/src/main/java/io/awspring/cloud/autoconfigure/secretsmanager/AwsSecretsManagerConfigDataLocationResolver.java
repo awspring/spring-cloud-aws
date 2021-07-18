@@ -17,15 +17,13 @@
 package io.awspring.cloud.autoconfigure.secretsmanager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySources;
+import io.awspring.cloud.secretsmanager.SecretKeyValue;
 import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapContext;
@@ -45,6 +43,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  * @since 2.3.0
  */
 public class AwsSecretsManagerConfigDataLocationResolver
@@ -96,28 +95,11 @@ public class AwsSecretsManagerConfigDataLocationResolver
 			return locations;
 		}
 
-		Map<String, Boolean> mapOfLocation = getCustomContexts(location.getNonPrefixedValue(PREFIX));
-		mapOfLocation.forEach((variable, optional) -> locations
-				.add(new AwsSecretsManagerConfigDataResource(variable, optional, propertySources)));
+		List<SecretKeyValue> secretKeyValues = SecretKeyValue.createSecretValue(location.getNonPrefixedValue(PREFIX));
+		secretKeyValues.forEach(secret -> locations
+				.add(new AwsSecretsManagerConfigDataResource(secret.getValue(), secret.isOptional(), propertySources)));
 
 		return locations;
-	}
-
-	private Map<String, Boolean> getCustomContexts(String keys) {
-		String optionalString = "optional";
-		Map<String, Boolean> mapOfValuesWithOptional = new HashMap<>();
-		if (StringUtils.hasLength(keys)) {
-			List<String> listOfFields = Arrays.asList(keys.split(";"));
-			listOfFields.forEach(field -> {
-				if (field.length() > 8 && field.toLowerCase().substring(0, 8).equals(optionalString)) {
-					mapOfValuesWithOptional.put(field.substring(9), Boolean.TRUE);
-				}
-				else {
-					mapOfValuesWithOptional.put(field, Boolean.FALSE);
-				}
-			});
-		}
-		return mapOfValuesWithOptional;
 	}
 
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,

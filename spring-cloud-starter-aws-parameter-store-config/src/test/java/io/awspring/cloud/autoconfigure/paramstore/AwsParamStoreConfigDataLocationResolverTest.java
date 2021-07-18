@@ -54,7 +54,7 @@ class AwsParamStoreConfigDataLocationResolverTest {
 
 	@Test
 	void testResolveProfileSpecificWithCustomPathsOptional() {
-		String location = "aws-parameterstore:optional /mypath1;/mypath2;optional /mypath3";
+		String location = "aws-parameterstore:optional:/mypath1;/mypath2;optional:/mypath3";
 		List<AwsParamStoreConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(3);
 		assertThat(toContexts(locations)).containsExactly("/mypath1", "/mypath2", "/mypath3");
