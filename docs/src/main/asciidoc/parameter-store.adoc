@@ -118,7 +118,10 @@ However, starting at `spring-cloud-aws` `2.3`, allows import default aws paramet
 |Importing parameters by individual keys
 
 |`spring.config.import=optional:aws-parameterstore:config-key;other-config-key`
-|With `optional` application will start even if there is no parameter found for specified parameter.
+|With `optional` application will start even if there is no parameter found for specified parameters.
+
+|`spring.config.import=aws-parameterstore:optional:config-key;other-config-key;optional:some-other-key`
+|With `optional` before a key, application will start even if there is no parameter found for specified key. Only key in front of optional will be taken in account.
 |===
 
 Spring Boot 2.4 changed the ways files are loaded which means profile loading has changed for spring-cloud-aws as well.
