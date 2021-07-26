@@ -44,7 +44,6 @@
 	</scm>
 
 	<properties>
-		<bintray.package>aws</bintray.package>
 		<tomcat.version>8.0.33</tomcat.version>
 		<javax-mail.version>1.5.5</javax-mail.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
@@ -294,12 +293,40 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${maven-gpg-plugin.version}</version>
+						<configuration>
+							<!-- Prevent gpg from using pinentry programs -->
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<distributionManagement>
 		<repository>
-			<id>bintray-awspring</id>
-			<url>https://api.bintray.com/maven/awspring/releases/spring-cloud-aws/;publish=1</url>
+			<id>ossrh-awspring</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 
