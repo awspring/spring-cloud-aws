@@ -340,8 +340,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					for (MessageGroup messageGroup : messageGroups) {
 						MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
 								messageGroup, this.queueAttributes);
-						getTaskExecutor()
-								.execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
+						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
 					}
 					try {
 						messageBatchLatch.await();

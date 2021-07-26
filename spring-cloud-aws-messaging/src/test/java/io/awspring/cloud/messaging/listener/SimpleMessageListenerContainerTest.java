@@ -394,10 +394,10 @@ class SimpleMessageListenerContainerTest {
 		container.afterPropertiesSet();
 
 		when(sqs.receiveMessage(
-			new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
-				.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
-			.thenReturn(new ReceiveMessageResult().withMessages(
-				new Message().withBody("messageContent")));
+				new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
+						.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+								.thenReturn(new ReceiveMessageResult()
+										.withMessages(new Message().withBody("messageContent")));
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
