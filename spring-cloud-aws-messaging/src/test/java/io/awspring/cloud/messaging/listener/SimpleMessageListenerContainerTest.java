@@ -401,9 +401,10 @@ class SimpleMessageListenerContainerTest {
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();
-		container.stop();
 
 		assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue();
+
+		container.stop();
 	}
 
 	@Test
