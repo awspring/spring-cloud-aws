@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         version: [ 8.0.275.hs-adpt ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
@@ -39,7 +39,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify -Pdocs
+        run: ./mvnw -V verify javadoc:aggregate -Pdocs,spring
       - name: Deploy to Sonatype
         run: ./mvnw -V -Prelease deploy -DskipTests
         env:
@@ -52,4 +52,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
         run: |
           aws s3 sync --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws s3 sync --acl public-read target/site/ s3://awspring-docs/spring-cloud-aws/docs/
           aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"
