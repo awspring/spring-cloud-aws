@@ -132,6 +132,9 @@ import. The table below provides examples of supported property values and descr
 
 |`spring.config.import=optional:aws-parameterstore:config-key;other-config-key`
 |When `optional` is used the application will start even if the specified parameter is not found.
+
+|`spring.config.import=optional:aws-parameterstore:other-config-key,aws-parameterstore:required-config-key`
+|Optional and required values can be separated by comma. List can be used as well.
 |===
 
 Spring Boot 2.4 changed the ways files are loaded which means profile loading has changed for spring-cloud-aws as well.
