@@ -794,7 +794,7 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
-	void receiveMessagesFromFifoQueue_stoppsProcessingMessageGroup_whenExceptionIsThrown() throws Exception {
+	void receiveMessagesFromFifoQueue_stopsProcessingMessageGroup_whenExceptionIsThrown() throws Exception {
 		// Arrange
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
