@@ -343,7 +343,8 @@ class SimpleMessageListenerContainerTest {
 
 		CountDownLatch countDownLatch = new CountDownLatch(3);
 		List<String> actualHandledMessages = Collections.synchronizedList(new ArrayList<>());
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(Collections.emptyList(),
+				SqsMessageDeletionPolicy.ON_SUCCESS) {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
@@ -351,6 +352,7 @@ class SimpleMessageListenerContainerTest {
 				countDownLatch.countDown();
 				throw new MessagingException(message);
 			}
+
 		};
 		container.setMessageHandler(messageHandler);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -382,6 +384,7 @@ class SimpleMessageListenerContainerTest {
 										group1Msg4, group1Msg5, group1Msg6, group1Msg7, group2Msg1, group2Msg2,
 										group3Msg1))
 								.thenReturn(new ReceiveMessageResult());
+
 		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
 
 		container.start();

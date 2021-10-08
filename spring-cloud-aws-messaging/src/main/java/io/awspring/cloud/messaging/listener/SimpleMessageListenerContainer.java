@@ -427,8 +427,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					applyDeletionPolicyOnSuccess(receiptHandle);
 				}
 				catch (MessagingException messagingException) {
-					applyDeletionPolicyOnError(receiptHandle);
-					break;
+					if (!applyDeletionPolicyOnError(receiptHandle)) {
+						break;
+					}
 				}
 			}
 		}
@@ -441,11 +442,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			}
 		}
 
-		private void applyDeletionPolicyOnError(String receiptHandle) {
+		private boolean applyDeletionPolicyOnError(String receiptHandle) {
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS
 					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE && !this.hasRedrivePolicy)) {
 				deleteMessage(receiptHandle);
+				return true;
 			}
+			return false;
 		}
 
 		private void deleteMessage(String receiptHandle) {
