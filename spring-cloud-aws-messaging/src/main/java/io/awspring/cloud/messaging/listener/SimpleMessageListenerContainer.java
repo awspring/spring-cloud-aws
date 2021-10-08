@@ -428,6 +428,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				}
 				catch (MessagingException messagingException) {
 					applyDeletionPolicyOnError(receiptHandle);
+					break;
 				}
 			}
 		}
