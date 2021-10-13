@@ -9,6 +9,11 @@ Cloud AWS for JDBC data access are:
 * Automatic read-replica detection and configuration for Amazon RDS database instances.
 * Retry-support to handle exception during Multi-AZ failover inside the data center.
 
+[NOTE]
+====
+Amazon Aurora database clusters (both serverless and provisioned) are not supported by Spring Cloud AWS. Please follow https://github.com/awspring/spring-cloud-aws/issues/50[this issue] for more information.
+====
+
 === Configuring data source
 Before using and configuring the database support, the application has to include the respective module dependency
 into its Maven configuration. Spring Cloud AWS JDBC support comes as a separate module to allow the modularized use of the
