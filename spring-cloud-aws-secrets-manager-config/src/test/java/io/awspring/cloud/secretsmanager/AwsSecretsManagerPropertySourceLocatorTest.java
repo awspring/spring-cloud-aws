@@ -128,10 +128,10 @@ class AwsSecretsManagerPropertySourceLocatorTest {
 
 		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
 
-		assertThat(contextToBeTested.get(0)).isEqualTo("/secret/messaging-service_test");
-		assertThat(contextToBeTested.get(1)).isEqualTo("/secret/messaging-service");
-		assertThat(contextToBeTested.get(2)).isEqualTo("/secret/application_test");
-		assertThat(contextToBeTested.get(3)).isEqualTo("/secret/application");
+		assertThat(contextToBeTested.get(0)).isEqualTo("/secret/application");
+		assertThat(contextToBeTested.get(1)).isEqualTo("/secret/application_test");
+		assertThat(contextToBeTested.get(2)).isEqualTo("/secret/messaging-service");
+		assertThat(contextToBeTested.get(3)).isEqualTo("/secret/messaging-service_test");
 	}
 
 	@Test

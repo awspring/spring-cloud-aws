@@ -41,8 +41,8 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 		String location = "aws-secretsmanager:";
 		List<AwsSecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(4);
-		assertThat(toContexts(locations)).containsExactly("/secret/testapp_dev", "/secret/testapp",
-				"/secret/application_dev", "/secret/application");
+		assertThat(toContexts(locations)).containsExactly("/secret/application", "/secret/application_dev",
+				"/secret/testapp", "/secret/testapp_dev");
 	}
 
 	@Test

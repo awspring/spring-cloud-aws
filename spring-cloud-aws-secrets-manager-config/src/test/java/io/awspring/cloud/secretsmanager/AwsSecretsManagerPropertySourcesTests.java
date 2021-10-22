@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.paramstore;
+package io.awspring.cloud.secretsmanager;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,42 +27,42 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * Unit test for {@link AwsParamStorePropertySourceLocator}.
+ * Unit test for {@link AwsSecretsManagerPropertySources}.
  *
  * @author Manuel Wessner
  */
-class AwsParamStorePropertySourcesTest {
+class AwsSecretsManagerPropertySourcesTests {
 
 	private final Log logMock = mock(Log.class);
 
-	private AwsParamStoreProperties properties;
+	private AwsSecretsManagerProperties properties;
 
 	@BeforeEach
 	void setUp() {
-		properties = new AwsParamStoreProperties();
+		properties = new AwsSecretsManagerProperties();
 		properties.setDefaultContext("application");
 		properties.setName("messaging-service");
 	}
 
 	@Test
 	void getAutomaticContextsWithSingleProfile() {
-		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties, logMock);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
 
 		assertThat(contexts.size()).isEqualTo(4);
-		assertThat(contexts).containsExactly("/config/application/", "/config/application_production/",
-				"/config/messaging-service/", "/config/messaging-service_production/");
+		assertThat(contexts).containsExactly("/secret/application", "/secret/application_production",
+				"/secret/messaging-service", "/secret/messaging-service_production");
 	}
 
 	@Test
 	void getAutomaticContextsWithoutProfile() {
-		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties, logMock);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.emptyList());
 
 		assertThat(contexts.size()).isEqualTo(2);
-		assertThat(contexts).containsExactly("/config/application/", "/config/messaging-service/");
+		assertThat(contexts).containsExactly("/secret/application", "/secret/messaging-service");
 	}
 
 }
