@@ -16,6 +16,9 @@
 
 package io.awspring.cloud.messaging.support.converter;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.sns.message.SnsMessage;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
@@ -26,10 +29,14 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Manuel Wessner
  * @since 1.0
  */
 class NotificationRequestConverterTest {
@@ -104,6 +111,52 @@ class NotificationRequestConverterTest {
 
 		// Assert
 		assertThat(notificationRequest).isNotNull();
+	}
+
+	@Test
+	void fromMessage_withValidSignature_shouldReturnMessage() {
+		// Arrange
+		SnsMessageManager messageManagerMock = mock(SnsMessageManager.class);
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "World");
+		jsonObject.put("Subject", "A subject");
+		jsonObject.put("SignatureVersion", "1");
+		jsonObject.put("Signature", "aValidSignature");
+		jsonObject.put("SigningCertURL",
+				"https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-732423r4fdsfasdf69ffabfda.pem");
+		String payload = jsonObject.toString();
+		when(messageManagerMock.parseMessage(any())).thenReturn(mock(SnsMessage.class));
+
+		// Act
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter(), messageManagerMock)
+				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+
+		// Assert
+		assertThat(((NotificationRequestConverter.NotificationRequest) notificationRequest).getMessage())
+				.isEqualTo("World");
+	}
+
+	@Test
+	void fromMessage_withInvalidSignature_shouldThrowAnException() {
+		// Arrange
+		SnsMessageManager messageManagerMock = mock(SnsMessageManager.class);
+		ObjectNode jsonObject = JsonNodeFactory.instance.objectNode();
+		jsonObject.put("Type", "Notification");
+		jsonObject.put("Message", "World");
+		jsonObject.put("Subject", "A subject");
+		jsonObject.put("SignatureVersion", "1");
+		jsonObject.put("Signature", "invalidSignature");
+		jsonObject.put("SigningCertURL",
+				"https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-732423r4fdsfasdf69abfda.pem");
+		String payload = jsonObject.toString();
+		when(messageManagerMock.parseMessage(any()))
+				.thenThrow(new SdkClientException("Signature in SNS message was invalid"));
+
+		// Act + Assert
+		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter(), messageManagerMock)
+				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
+						.isInstanceOf(SdkClientException.class);
 	}
 
 	@Test

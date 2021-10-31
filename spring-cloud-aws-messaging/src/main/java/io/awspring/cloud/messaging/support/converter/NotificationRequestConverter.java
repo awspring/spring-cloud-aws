@@ -16,12 +16,16 @@
 
 package io.awspring.cloud.messaging.support.converter;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.messaging.core.MessageAttributeDataTypes;
@@ -38,6 +42,7 @@ import org.springframework.util.MimeType;
 /**
  * @author Agim Emruli
  * @author Alain Sahli
+ * @author Manuel Wessner
  * @since 1.0
  */
 public class NotificationRequestConverter implements MessageConverter {
@@ -46,8 +51,15 @@ public class NotificationRequestConverter implements MessageConverter {
 
 	private final MessageConverter payloadConverter;
 
+	private final SnsMessageManager snsMessageManager;
+
 	public NotificationRequestConverter(MessageConverter payloadConverter) {
+		this(payloadConverter, new SnsMessageManager());
+	}
+
+	protected NotificationRequestConverter(MessageConverter payloadConverter, SnsMessageManager snsMessageManager) {
 		this.payloadConverter = payloadConverter;
+		this.snsMessageManager = snsMessageManager;
 	}
 
 	private static Map<String, Object> getMessageAttributesAsMessageHeaders(JsonNode message) {
@@ -84,26 +96,28 @@ public class NotificationRequestConverter implements MessageConverter {
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(targetClass, "target class must not be null");
 
+		String payload = message.getPayload().toString();
 		JsonNode jsonNode;
 		try {
-			jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
+			jsonNode = this.jsonMapper.readTree(payload);
 		}
 		catch (Exception e) {
 			throw new MessageConversionException("Could not read JSON", e);
 		}
 		if (!jsonNode.has("Type")) {
-			throw new MessageConversionException(
-					"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
+			throw new MessageConversionException("Payload: '" + payload + "' does not contain a Type attribute", null);
 		}
 
 		if (!"Notification".equals(jsonNode.get("Type").asText())) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",
-					null);
+			throw new MessageConversionException("Payload: '" + payload + "' is not a valid notification", null);
 		}
 
 		if (!jsonNode.has("Message")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",
-					null);
+			throw new MessageConversionException("Payload: '" + payload + "' does not contain a message", null);
+		}
+
+		if (jsonNode.has("SignatureVersion")) {
+			verifySignature(payload);
 		}
 
 		String messagePayload = jsonNode.get("Message").asText();
@@ -117,6 +131,16 @@ public class NotificationRequestConverter implements MessageConverter {
 	public Message<?> toMessage(Object payload, MessageHeaders headers) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading a SNS notification and not writing them");
+	}
+
+	private void verifySignature(String payload) {
+		try (InputStream messageStream = new ByteArrayInputStream(payload.getBytes())) {
+			// Unmarshalling the message is not needed, but also done here
+			snsMessageManager.parseMessage(messageStream);
+		}
+		catch (IOException e) {
+			throw new MessageConversionException("Issue while verifying signature of Payload: '" + payload + "'", e);
+		}
 	}
 
 	/**
