@@ -112,18 +112,10 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 
 		if (this.customEndpoint != null) {
 			builder.withEndpointConfiguration(
-					new AwsClientBuilder.EndpointConfiguration(this.customEndpoint.toString(), null));
+					new AwsClientBuilder.EndpointConfiguration(this.customEndpoint.toString(), findRegion()));
 		}
 		else {
-			if (this.customRegion != null) {
-				builder.withRegion(this.customRegion.getName());
-			}
-			else if (this.regionProvider != null) {
-				builder.withRegion(this.regionProvider.getRegion().getName());
-			}
-			else {
-				builder.withRegion(Regions.DEFAULT_REGION);
-			}
+			builder.withRegion(findRegion());
 		}
 		return builder.build();
 	}
@@ -151,6 +143,21 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 	@Override
 	protected void destroyInstance(T instance) throws Exception {
 		instance.shutdown();
+	}
+
+	private String findRegion() {
+		String res;
+		if (this.customRegion != null) {
+			res = this.customRegion.getName();
+		}
+		else if (this.regionProvider != null) {
+			res = this.regionProvider.getRegion().getName();
+		}
+		else {
+			res = Regions.DEFAULT_REGION.name();
+		}
+
+		return res;
 	}
 
 }
