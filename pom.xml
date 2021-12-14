@@ -182,7 +182,7 @@
 				<configuration>
 					<links>
 						<link>https://docs.oracle.com/javase/8/docs/api/</link>
-						<link>https://docs.oracle.com/javaee/8/api/</link>
+						<link>https://javaee.github.io/javaee-spec/javadocs/</link>
 						<link>https://fasterxml.github.io/jackson-core/javadoc/2.8/</link>
 						<link>https://docs.spring.io/spring/docs/5.3.x/javadoc-api/</link>
 					</links>
