@@ -25,7 +25,11 @@ import org.apache.commons.logging.Log;
 import org.springframework.util.StringUtils;
 
 /**
+ * Is responsible for creating {@link AwsParamStorePropertySource} and determining
+ * automatic contexts.
+ *
  * @author Eddú Meléndez
+ * @author Manuel Wessner
  * @since 2.3
  */
 public class AwsParamStorePropertySources {
@@ -44,18 +48,18 @@ public class AwsParamStorePropertySources {
 		String prefix = this.properties.getPrefix();
 		String defaultContext = getContext(prefix, this.properties.getDefaultContext());
 
-		String appName = this.properties.getName();
-
-		String appContext = prefix + "/" + appName;
-		addProfiles(contexts, appContext, profiles);
-		contexts.add(appContext + "/");
-
-		addProfiles(contexts, defaultContext, profiles);
 		contexts.add(defaultContext + "/");
+		addProfiles(contexts, defaultContext, profiles);
+
+		String appName = this.properties.getName();
+		String appContext = prefix + "/" + appName;
+		contexts.add(appContext + "/");
+		addProfiles(contexts, appContext, profiles);
+
 		return contexts;
 	}
 
-	protected String getContext(String prefix, String context) {
+	private String getContext(String prefix, String context) {
 		if (StringUtils.hasLength(prefix)) {
 			return prefix + "/" + context;
 		}
