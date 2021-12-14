@@ -427,7 +427,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					applyDeletionPolicyOnSuccess(receiptHandle);
 				}
 				catch (MessagingException messagingException) {
-					getLogger().warn("An exception occurred while handling message", messagingException);
+					getLogger().warn("An exception occurred while handling message with id: {}", message.getMessageId(),
+							messagingException);
 					applyDeletionPolicyOnError(receiptHandle);
 				}
 			}
