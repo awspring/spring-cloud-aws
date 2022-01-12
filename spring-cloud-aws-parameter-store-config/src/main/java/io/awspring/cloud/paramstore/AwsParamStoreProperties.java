@@ -84,10 +84,6 @@ public class AwsParamStoreProperties implements InitializingBean {
 
 	public void afterPropertiesSet() throws Exception {
 
-		if (!StringUtils.hasLength(prefix)) {
-			throw new ValidationException(CONFIG_PREFIX + ".prefix", "prefix should not be empty or null.");
-		}
-
 		if (!StringUtils.hasLength(defaultContext)) {
 			throw new ValidationException(CONFIG_PREFIX + ".defaultContext",
 					"defaultContext should not be empty or null.");
@@ -98,7 +94,7 @@ public class AwsParamStoreProperties implements InitializingBean {
 					"profileSeparator should not be empty or null.");
 		}
 
-		if (!PREFIX_PATTERN.matcher(prefix).matches()) {
+		if (StringUtils.hasLength(prefix) && !PREFIX_PATTERN.matcher(prefix).matches()) {
 			throw new ValidationException(CONFIG_PREFIX + ".prefix",
 					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
