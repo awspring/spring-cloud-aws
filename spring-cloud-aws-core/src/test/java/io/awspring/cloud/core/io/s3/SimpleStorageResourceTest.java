@@ -348,7 +348,7 @@ class SimpleStorageResourceTest {
 				new SyncTaskExecutor());
 
 		assertThat(resource.getURI())
-				.isEqualTo(new URI("https://s3.us-west-2.amazonaws.com/bucketName/some%2F%5BobjectName%5D"));
+				.isEqualTo(new URI("https://s3.us-west-2.amazonaws.com/bucketName/some/%5BobjectName%5D"));
 	}
 
 }
