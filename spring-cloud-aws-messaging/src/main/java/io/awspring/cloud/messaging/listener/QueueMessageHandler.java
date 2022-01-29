@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import io.awspring.cloud.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
@@ -67,6 +68,7 @@ import org.springframework.validation.Validator;
  * @author Maciej Walkowiak
  * @author Wojciech Mąka
  * @author Matej Nedic
+ * @author Manuel Wessner
  * @since 1.0
  */
 public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessageHandler.MappingInformation> {
@@ -77,21 +79,19 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 
 	private final SqsMessageDeletionPolicy sqsMessageDeletionPolicy;
 
+	private final SnsMessageManager snsMessageManager;
+
 	private final List<MessageConverter> messageConverters;
 
 	public QueueMessageHandler(List<MessageConverter> messageConverters,
-			SqsMessageDeletionPolicy sqsMessageDeletionPolicy) {
+			SqsMessageDeletionPolicy sqsMessageDeletionPolicy, SnsMessageManager snsMessageManager) {
 		this.messageConverters = messageConverters;
 		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy;
+		this.snsMessageManager = snsMessageManager;
 	}
 
-	public QueueMessageHandler(List<MessageConverter> messageConverters) {
-		this(messageConverters, SqsMessageDeletionPolicy.NO_REDRIVE);
-	}
-
-	public QueueMessageHandler() {
-		this.messageConverters = Collections.emptyList();
-		this.sqsMessageDeletionPolicy = SqsMessageDeletionPolicy.NO_REDRIVE;
+	public QueueMessageHandler(SnsMessageManager snsMessageManager) {
+		this(Collections.emptyList(), SqsMessageDeletionPolicy.NO_REDRIVE, snsMessageManager);
 	}
 
 	private static String[] wrapInStringArray(Object valueToWrap) {
@@ -105,12 +105,12 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 		resolvers.add(new HeaderMethodArgumentResolver(null, null));
 		resolvers.add(new SqsHeadersMethodArgumentResolver());
 
-		resolvers.add(new NotificationSubjectArgumentResolver());
+		resolvers.add(new NotificationSubjectArgumentResolver(snsMessageManager));
 		resolvers.add(new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT));
 		resolvers.add(new VisibilityHandlerMethodArgumentResolver(VISIBILITY));
 
 		CompositeMessageConverter compositeMessageConverter = createPayloadArgumentCompositeConverter();
-		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter));
+		resolvers.add(new NotificationMessageArgumentResolver(compositeMessageConverter, snsMessageManager));
 		resolvers.add(new MessageMethodArgumentResolver(this.messageConverters.isEmpty() ? new StringMessageConverter()
 				: new CompositeMessageConverter(this.messageConverters)));
 		resolvers.add(new SqsMessageMethodArgumentResolver());

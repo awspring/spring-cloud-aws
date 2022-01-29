@@ -43,15 +43,16 @@ class NotificationRequestConverterTest {
 
 	@Test
 	void testWriteMessageNotSupported() throws Exception {
-		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter()).toMessage("test", null))
-				.isInstanceOf(UnsupportedOperationException.class);
+		assertThatThrownBy(
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.toMessage("test", null)).isInstanceOf(UnsupportedOperationException.class);
 	}
 
 	@Test
 	void fromMessage_withoutMessage_shouldThrowAnException() throws Exception {
 		assertThatThrownBy(
-				() -> new NotificationRequestConverter(new StringMessageConverter()).fromMessage(null, String.class))
-						.isInstanceOf(IllegalArgumentException.class);
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.fromMessage(null, String.class)).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -64,8 +65,8 @@ class NotificationRequestConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter(),
+				mock(SnsMessageManager.class)).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
 		assertThat(notificationRequest).isInstanceOf(NotificationRequestConverter.NotificationRequest.class);
@@ -84,8 +85,8 @@ class NotificationRequestConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter(),
+				mock(SnsMessageManager.class)).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
 		assertThat(notificationRequest).isInstanceOf(NotificationRequestConverter.NotificationRequest.class);
@@ -106,8 +107,8 @@ class NotificationRequestConverterTest {
 		String payload = jsonObject.toString();
 
 		// Act
-		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
+		Object notificationRequest = new NotificationRequestConverter(new StringMessageConverter(),
+				mock(SnsMessageManager.class)).fromMessage(MessageBuilder.withPayload(payload).build(), String.class);
 
 		// Assert
 		assertThat(notificationRequest).isNotNull();
@@ -165,10 +166,11 @@ class NotificationRequestConverterTest {
 		jsonObject.put("Message", "Hello World!");
 		String payload = jsonObject.toString();
 
-		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
-						.isInstanceOf(MessageConversionException.class)
-						.hasMessageContaining("does not contain a Type attribute");
+		assertThatThrownBy(
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
+								.isInstanceOf(MessageConversionException.class)
+								.hasMessageContaining("does not contain a Type attribute");
 
 	}
 
@@ -180,10 +182,11 @@ class NotificationRequestConverterTest {
 
 		String payload = jsonObject.toString();
 
-		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
-						.isInstanceOf(MessageConversionException.class)
-						.hasMessageContaining("is not a valid notification");
+		assertThatThrownBy(
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
+								.isInstanceOf(MessageConversionException.class)
+								.hasMessageContaining("is not a valid notification");
 	}
 
 	@Test
@@ -193,18 +196,21 @@ class NotificationRequestConverterTest {
 		jsonObject.put("Subject", "Hello World!");
 		String payload = jsonObject.toString();
 
-		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
-						.isInstanceOf(MessageConversionException.class)
-						.hasMessageContaining("does not contain a message");
+		assertThatThrownBy(
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.fromMessage(MessageBuilder.withPayload(payload).build(), String.class))
+								.isInstanceOf(MessageConversionException.class)
+								.hasMessageContaining("does not contain a message");
 	}
 
 	@Test
 	void testNoValidJson() throws Exception {
 		String message = "foo";
-		assertThatThrownBy(() -> new NotificationRequestConverter(new StringMessageConverter())
-				.fromMessage(MessageBuilder.withPayload(message).build(), String.class))
-						.isInstanceOf(MessageConversionException.class).hasMessageContaining("Could not read JSON");
+		assertThatThrownBy(
+				() -> new NotificationRequestConverter(new StringMessageConverter(), mock(SnsMessageManager.class))
+						.fromMessage(MessageBuilder.withPayload(message).build(), String.class))
+								.isInstanceOf(MessageConversionException.class)
+								.hasMessageContaining("Could not read JSON");
 	}
 
 }

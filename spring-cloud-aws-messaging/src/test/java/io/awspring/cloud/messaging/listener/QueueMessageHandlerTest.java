@@ -29,6 +29,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -110,7 +111,9 @@ class QueueMessageHandlerTest {
 	void receiveMessage_methodAnnotatedWithSqsListenerAnnotation_methodInvokedForIncomingMessage() {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandler", IncomingMessageHandler.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
@@ -190,6 +193,7 @@ class QueueMessageHandlerTest {
 		ManagedList<HandlerMethodReturnValueHandler> returnValueHandlers = new ManagedList<>(1);
 		returnValueHandlers.add(new SendToHandlerMethodReturnValueHandler(this.messageTemplate));
 		queueMessageHandlerBeanDefinitionBuilder.addPropertyValue("returnValueHandlers", returnValueHandlers);
+		queueMessageHandlerBeanDefinitionBuilder.addConstructorArgValue(new SnsMessageManager("eu-central-1"));
 		return queueMessageHandlerBeanDefinitionBuilder.getBeanDefinition();
 	}
 
@@ -225,7 +229,9 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames",
 				IncomingMessageHandlerWithMultipleQueueNames.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -249,7 +255,9 @@ class QueueMessageHandlerTest {
 				.addLast(new MapPropertySource("test", Collections.singletonMap("myQueue", "resolvedQueue")));
 		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames",
 				IncomingMessageHandlerWithExpressionName.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -274,7 +282,9 @@ class QueueMessageHandlerTest {
 		applicationContext.registerSingleton("ppc", PropertySourcesPlaceholderConfigurer.class);
 		applicationContext.registerSingleton("incomingMessageHandlerWithMultipleQueueNames",
 				IncomingMessageHandlerWithPlaceholderName.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -295,7 +305,9 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation",
 				MessageReceiverWithHeaderAnnotation.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -318,7 +330,10 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeaderAnnotation",
 				MessageReceiverWithHeaderAnnotation.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
+		;
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -340,7 +355,10 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithHeadersAnnotation",
 				MessageReceiverWithHeadersAnnotation.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
+		;
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -364,7 +382,10 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",
 				MessageReceiverWithSqsMessageHeadersObject.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
+		;
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -398,7 +419,10 @@ class QueueMessageHandlerTest {
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("messageHandlerWithMessageHeaderObject",
 				MessageReceiverWithMessageHeadersObject.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
+		;
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -463,6 +487,7 @@ class QueueMessageHandlerTest {
 		MutablePropertyValues properties = new MutablePropertyValues(Collections
 				.singletonList(new PropertyValue("customReturnValueHandlers", handlerMethodReturnValueHandler)));
 		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class, properties);
+
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -482,7 +507,10 @@ class QueueMessageHandlerTest {
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("notificationMessageReceiver", NotificationMessageReceiver.class);
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
+		;
 		applicationContext.refresh();
 
 		QueueMessageHandler queueMessageHandler = applicationContext.getBean(QueueMessageHandler.class);
@@ -507,7 +535,7 @@ class QueueMessageHandlerTest {
 	@Test
 	void getMappingForMethod_methodWithEmptySqsListenerValue_shouldReturnNull() throws Exception {
 		// Arrange
-		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		Method receiveMethod = SqsListenerAnnotationWithEmptyValue.class.getMethod("receive");
 
 		// Act
@@ -521,7 +549,7 @@ class QueueMessageHandlerTest {
 	@Test
 	void getMappingForMethod_methodWithMessageMappingAnnotation_shouldReturnMappingInformation() throws Exception {
 		// Arrange
-		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		Method receiveMethod = MessageMappingAnnotationStillSupported.class.getMethod("receive", String.class);
 
 		// Act
@@ -537,7 +565,7 @@ class QueueMessageHandlerTest {
 	void getMappingForMethod_methodWithDeletionPolicyNeverWithoutParameterTypeAcknowledgment_warningMustBeLogged()
 			throws Exception {
 		// Arrange
-		QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		Method receiveMethod = SqsListenerDeletionPolicyNeverNoAcknowledgment.class.getMethod("receive", String.class);
 
 		LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -569,7 +597,9 @@ class QueueMessageHandlerTest {
 		// @checkstyle:on
 		// Arrange
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		applicationContext.registerSingleton("queueMessageHandler", QueueMessageHandler.class);
+		applicationContext.registerBeanDefinition("queueMessageHandler",
+				BeanDefinitionBuilder.rootBeanDefinition(QueueMessageHandler.class)
+						.addConstructorArgValue(new SnsMessageManager("eu-central-1")).getBeanDefinition());
 		applicationContext.refresh();
 
 		Method receiveMethod = SqsListenerWithExpressionProducingMultipleQueueNames.class.getMethod("receive",
@@ -955,8 +985,8 @@ class QueueMessageHandlerTest {
 
 		@Bean
 		QueueMessageHandler queueMessageHandler() {
-			return new QueueMessageHandler(Arrays.asList(mappingJackson2MessageConverter()),
-					SqsMessageDeletionPolicy.NO_REDRIVE);
+			return new QueueMessageHandler(Collections.singletonList(mappingJackson2MessageConverter()),
+					SqsMessageDeletionPolicy.NO_REDRIVE, new SnsMessageManager("eu-central-1"));
 		}
 
 		@Bean

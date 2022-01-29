@@ -53,11 +53,7 @@ public class NotificationRequestConverter implements MessageConverter {
 
 	private final SnsMessageManager snsMessageManager;
 
-	public NotificationRequestConverter(MessageConverter payloadConverter) {
-		this(payloadConverter, new SnsMessageManager());
-	}
-
-	protected NotificationRequestConverter(MessageConverter payloadConverter, SnsMessageManager snsMessageManager) {
+	public NotificationRequestConverter(MessageConverter payloadConverter, SnsMessageManager snsMessageManager) {
 		this.payloadConverter = payloadConverter;
 		this.snsMessageManager = snsMessageManager;
 	}

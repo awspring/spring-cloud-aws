@@ -23,6 +23,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
 import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
 import io.awspring.cloud.core.region.RegionProvider;
@@ -49,6 +50,7 @@ import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMet
  * @author Alain Sahli
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Manuel Wessner
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(AmazonSNS.class)
@@ -79,6 +81,12 @@ public class SnsAutoConfiguration {
 				AmazonSNSClient.class, this.awsCredentialsProvider, this.regionProvider, this.clientConfiguration);
 		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 		return clientFactoryBean;
+	}
+
+	@ConditionalOnMissingAmazonClient(SnsMessageManager.class)
+	@Bean
+	public SnsMessageManager snsMessageManager() {
+		return new SnsMessageManager(this.regionProvider.getRegion().getName());
 	}
 
 	@Configuration(proxyBeanMethods = false)

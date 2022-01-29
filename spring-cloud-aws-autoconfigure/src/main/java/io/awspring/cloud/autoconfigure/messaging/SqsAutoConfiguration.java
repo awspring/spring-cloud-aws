@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
@@ -57,6 +58,7 @@ import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationU
  *
  * @author Maciej Walkowiak
  * @author Eddú Meléndez
+ * @author Manuel Wessner
  */
 @ConditionalOnClass(SimpleMessageListenerContainer.class)
 @ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
@@ -116,11 +118,14 @@ public class SqsAutoConfiguration {
 
 		private final ObjectMapper objectMapper;
 
+		private final SnsMessageManager snsMessageManager;
+
 		SqsConfiguration(ObjectProvider<SimpleMessageListenerContainerFactory> simpleMessageListenerContainerFactory,
 				ObjectProvider<QueueMessageHandlerFactory> queueMessageHandlerFactory, BeanFactory beanFactory,
 				ObjectProvider<ResourceIdResolver> resourceIdResolver,
 				ObjectProvider<MappingJackson2MessageConverter> mappingJackson2MessageConverter,
-				ObjectProvider<ObjectMapper> objectMapper, SqsProperties sqsProperties) {
+				ObjectProvider<ObjectMapper> objectMapper, SqsProperties sqsProperties,
+				SnsMessageManager snsMessageManager) {
 			this.simpleMessageListenerContainerFactory = simpleMessageListenerContainerFactory
 					.getIfAvailable(() -> createSimpleMessageListenerContainerFactory(sqsProperties));
 			this.queueMessageHandlerFactory = queueMessageHandlerFactory
@@ -129,6 +134,7 @@ public class SqsAutoConfiguration {
 			this.resourceIdResolver = resourceIdResolver.getIfAvailable();
 			this.mappingJackson2MessageConverter = mappingJackson2MessageConverter.getIfAvailable();
 			this.objectMapper = objectMapper.getIfAvailable();
+			this.snsMessageManager = snsMessageManager;
 		}
 
 		private static QueueMessageHandlerFactory createQueueMessageHandlerFactory(SqsProperties sqsProperties) {
@@ -198,6 +204,7 @@ public class SqsAutoConfiguration {
 
 			this.queueMessageHandlerFactory.setBeanFactory(this.beanFactory);
 			this.queueMessageHandlerFactory.setObjectMapper(this.objectMapper);
+			this.queueMessageHandlerFactory.setSnsMessageManager(this.snsMessageManager);
 
 			return this.queueMessageHandlerFactory.createQueueMessageHandler();
 		}

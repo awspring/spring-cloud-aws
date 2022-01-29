@@ -18,6 +18,7 @@ package io.awspring.cloud.messaging.support;
 
 import java.lang.reflect.Method;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.awspring.cloud.core.support.documentation.RuntimeUse;
@@ -35,7 +36,8 @@ class NotificationSubjectArgumentResolverTest {
 	@Test
 	void supportsParameter_withNotificationSubjectMethodParameter_shouldReturnTrue() throws Exception {
 		// Arrange
-		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver(
+				new SnsMessageManager("eu-central-1"));
 		Method methodWithNotificationSubjectArgument = this.getClass()
 				.getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationSubjectArgument, 0);
@@ -55,7 +57,8 @@ class NotificationSubjectArgumentResolverTest {
 	@Test
 	void supportsParameter_withWrongMethodParameter_shouldReturnFalse() throws Exception {
 		// Arrange
-		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver(
+				new SnsMessageManager("eu-central-1"));
 		Method methodWithMissingAnnotation = this.getClass().getDeclaredMethod("methodWithMissingAnnotation",
 				String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithMissingAnnotation, 0);
@@ -75,7 +78,8 @@ class NotificationSubjectArgumentResolverTest {
 	@Test
 	void supportsParameter_withWrongParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
-		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver(
+				new SnsMessageManager("eu-central-1"));
 		Method methodWithWrongParameterType = this.getClass().getDeclaredMethod("methodWithWrongParameterType",
 				Long.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithWrongParameterType, 0);
@@ -95,7 +99,8 @@ class NotificationSubjectArgumentResolverTest {
 	@Test
 	void resolveArgument_withValidRequestPayload_shouldReturnNotificationSubject() throws Exception {
 		// Arrange
-		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver();
+		NotificationSubjectArgumentResolver notificationSubjectArgumentResolver = new NotificationSubjectArgumentResolver(
+				new SnsMessageManager("eu-central-1"));
 		Method methodWithNotificationSubjectArgument = this.getClass()
 				.getDeclaredMethod("methodWithNotificationSubjectArgument", String.class);
 		MethodParameter methodParameter = new MethodParameter(methodWithNotificationSubjectArgument, 0);

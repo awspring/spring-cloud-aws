@@ -19,6 +19,7 @@ package io.awspring.cloud.messaging.config;
 import java.util.Arrays;
 import java.util.List;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,6 +62,8 @@ public class QueueMessageHandlerFactory {
 	private List<MessageConverter> messageConverters;
 
 	private ObjectMapper objectMapper;
+
+	private SnsMessageManager snsMessageManager;
 
 	public void setArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		this.argumentResolvers = argumentResolvers;
@@ -147,12 +150,20 @@ public class QueueMessageHandlerFactory {
 		this.objectMapper = objectMapper;
 	}
 
+	/**
+	 * Configures an {@link SnsMessageManager} that is used by default.
+	 * @param snsMessageManager - sns message manager, shouldn't be null
+	 */
+	public void setSnsMessageManager(SnsMessageManager snsMessageManager) {
+		this.snsMessageManager = snsMessageManager;
+	}
+
 	public QueueMessageHandler createQueueMessageHandler() {
 		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(
 				CollectionUtils.isEmpty(this.messageConverters)
 						? Arrays.asList(getDefaultMappingJackson2MessageConverter(this.objectMapper))
 						: this.messageConverters,
-				this.sqsMessageDeletionPolicy);
+				this.sqsMessageDeletionPolicy, this.snsMessageManager);
 
 		if (!CollectionUtils.isEmpty(this.argumentResolvers)) {
 			queueMessageHandler.getCustomArgumentResolvers().addAll(this.argumentResolvers);

@@ -31,6 +31,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.handlers.AsyncHandler;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
@@ -229,7 +230,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 
 		CountDownLatch countDownLatch = new CountDownLatch(1);
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1")) {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
@@ -274,7 +275,7 @@ class SimpleMessageListenerContainerTest {
 
 		CountDownLatch countDownLatch = new CountDownLatch(10);
 		List<String> actualHandledMessages = Collections.synchronizedList(new ArrayList<>());
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1")) {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
@@ -343,7 +344,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1")) {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
@@ -375,7 +376,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 
 		CountDownLatch countDownLatch = new CountDownLatch(1);
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1")) {
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
 				countDownLatch.countDown();
@@ -421,7 +422,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
 		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
@@ -479,7 +480,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = spy(new QueueMessageHandler());
+		QueueMessageHandler messageHandler = spy(new QueueMessageHandler(new SnsMessageManager("eu-central-1")));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -575,7 +576,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = spy(new QueueMessageHandler());
+		QueueMessageHandler messageHandler = spy(new QueueMessageHandler(new SnsMessageManager("eu-central-1")));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -645,7 +646,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -691,7 +692,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -744,7 +745,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -804,7 +805,7 @@ class SimpleMessageListenerContainerTest {
 						new Message().withBody("messageContent")));
 
 		CountDownLatch countDownLatch = new CountDownLatch(1);
-		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1")) {
 
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
@@ -857,7 +858,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -916,7 +917,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -963,7 +964,7 @@ class SimpleMessageListenerContainerTest {
 		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class);
 		container.setAmazonSqs(sqs);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setMessageHandler(messageHandler);
 
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
@@ -1047,7 +1048,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 		container.setBackOffTime(0);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 
@@ -1095,7 +1096,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 		container.setBackOffTime(0);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 
@@ -1131,7 +1132,7 @@ class SimpleMessageListenerContainerTest {
 		// Arrange
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
-		container.setMessageHandler(new QueueMessageHandler());
+		container.setMessageHandler(new QueueMessageHandler(new SnsMessageManager("eu-central-1")));
 		container.afterPropertiesSet();
 
 		// Assert
@@ -1144,7 +1145,7 @@ class SimpleMessageListenerContainerTest {
 		// Arrange
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setAmazonSqs(mock(AmazonSQSAsync.class, withSettings().stubOnly()));
-		container.setMessageHandler(new QueueMessageHandler());
+		container.setMessageHandler(new QueueMessageHandler(new SnsMessageManager("eu-central-1")));
 
 		container.afterPropertiesSet();
 
@@ -1167,7 +1168,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 		container.setBackOffTime(0);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 
@@ -1202,7 +1203,7 @@ class SimpleMessageListenerContainerTest {
 		container.setAmazonSqs(sqs);
 		container.setBackOffTime(0);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 
@@ -1237,7 +1238,7 @@ class SimpleMessageListenerContainerTest {
 		container.setBackOffTime(0);
 		container.setQueueStopTimeout(100);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 
@@ -1300,7 +1301,7 @@ class SimpleMessageListenerContainerTest {
 		container.setBackOffTime(100);
 		container.setQueueStopTimeout(5000);
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 

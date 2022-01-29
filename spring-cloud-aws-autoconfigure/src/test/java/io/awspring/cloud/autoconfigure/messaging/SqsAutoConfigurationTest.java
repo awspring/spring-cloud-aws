@@ -25,6 +25,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
@@ -448,7 +449,7 @@ class SqsAutoConfigurationTest {
 		static final long BACK_OFF_TIME = 5000;
 
 		static {
-			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
+			QueueMessageHandler queueMessageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 			queueMessageHandler.setApplicationContext(new StaticApplicationContext());
 			MESSAGE_HANDLER = queueMessageHandler;
 		}

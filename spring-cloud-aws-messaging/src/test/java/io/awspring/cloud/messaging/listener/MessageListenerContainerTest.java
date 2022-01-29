@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
@@ -71,7 +72,7 @@ class MessageListenerContainerTest {
 		Logger loggerMock = container.getLogger();
 		AmazonSQSAsync sqsMock = mock(AmazonSQSBufferedAsyncClient.class, withSettings().stubOnly());
 
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setAmazonSqs(sqsMock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.setMessageHandler(messageHandler);
@@ -228,7 +229,7 @@ class MessageListenerContainerTest {
 		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
 
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		container.setAmazonSqs(mock);
 		container.setMessageHandler(mock(QueueMessageHandler.class));
 		container.setMessageHandler(messageHandler);
@@ -266,7 +267,7 @@ class MessageListenerContainerTest {
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 		applicationContext.registerSingleton("messageListener", MessageListener.class);
@@ -436,7 +437,7 @@ class MessageListenerContainerTest {
 		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
 		container.setAmazonSqs(mock);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		QueueMessageHandler messageHandler = new QueueMessageHandler(new SnsMessageManager("eu-central-1"));
 		messageHandler.setApplicationContext(applicationContext);
 		container.setMessageHandler(messageHandler);
 		applicationContext.registerSingleton("messageListener", MessageListener.class);

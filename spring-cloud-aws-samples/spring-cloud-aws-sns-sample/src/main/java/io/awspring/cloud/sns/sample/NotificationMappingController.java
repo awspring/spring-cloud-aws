@@ -29,7 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/testTopic")
+@RequestMapping("/DeleteMe")
 public class NotificationMappingController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);

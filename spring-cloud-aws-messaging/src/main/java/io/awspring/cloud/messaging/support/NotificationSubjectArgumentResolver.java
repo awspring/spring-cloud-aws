@@ -16,6 +16,7 @@
 
 package io.awspring.cloud.messaging.support;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.messaging.config.annotation.NotificationSubject;
 import io.awspring.cloud.messaging.support.converter.NotificationRequestConverter;
 
@@ -33,8 +34,8 @@ public class NotificationSubjectArgumentResolver implements HandlerMethodArgumen
 
 	private final MessageConverter converter;
 
-	public NotificationSubjectArgumentResolver() {
-		this.converter = new NotificationRequestConverter(new StringMessageConverter());
+	public NotificationSubjectArgumentResolver(SnsMessageManager snsMessageManager) {
+		this.converter = new NotificationRequestConverter(new StringMessageConverter(), snsMessageManager);
 	}
 
 	@Override
