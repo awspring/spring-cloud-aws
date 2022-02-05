@@ -18,6 +18,7 @@ package io.awspring.cloud.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +85,12 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 		AwsSecretsManagerPropertySources sources = new AwsSecretsManagerPropertySources(properties, logger);
 
 		List<String> profiles = Arrays.asList(env.getActiveProfiles());
-		this.contexts.addAll(sources.getAutomaticContexts(profiles));
+		List<String> contexts = sources.getAutomaticContexts(profiles);
+		// contexts are initially loaded in ascending priority order (for the
+		// compatibility with spring-config-import=)
+		// here it must be reversed to load from the most specific property source first
+		Collections.reverse(contexts);
+		this.contexts.addAll(contexts);
 
 		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
 
