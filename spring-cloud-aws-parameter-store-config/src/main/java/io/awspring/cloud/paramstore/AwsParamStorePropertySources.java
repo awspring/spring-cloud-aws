@@ -43,6 +43,18 @@ public class AwsParamStorePropertySources {
 		this.log = log;
 	}
 
+	/**
+	 * Returns a list of contexts applicable to profiles in <strong>ascending priority
+	 * order</strong>.
+	 *
+	 * For example: when profile `dev1` is active and application name is set to `MyApp`,
+	 * it returns a list containing:
+	 *
+	 * [0] /config/application/ [1] /config/application_dev1/ [2] /config/MyApp/ [3]
+	 * /config/MyApp_dev1/
+	 * @param profiles - active profiles
+	 * @return list of contexts in <strong>ascending priority order</strong>
+	 */
 	public List<String> getAutomaticContexts(List<String> profiles) {
 		List<String> contexts = new ArrayList<>();
 		String prefix = this.properties.getPrefix();
