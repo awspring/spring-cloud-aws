@@ -8,9 +8,9 @@ Infrastructure code to run **Spring Cloud AWS Secrets Manager Sample App** based
 
 ## How to run
 
-* `cdk synth`
-* `cdk deploy`
+* `npm run cdk synth`
+* `npm run cdk deploy`
 
 Once you don't need the infrastructure anymore, it can be destroyed by calling:
 
-* `cdk destroy`.
+* `npm run cdk destroy`.
