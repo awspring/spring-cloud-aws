@@ -361,7 +361,9 @@ The properties to configure the region are shown below
 |eu-west-1
 |Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
 eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
-configured with own region meta data
+configured with own region meta data.
+
+This is particularly useful if the region can not be automatically derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden
 
 |===
 
