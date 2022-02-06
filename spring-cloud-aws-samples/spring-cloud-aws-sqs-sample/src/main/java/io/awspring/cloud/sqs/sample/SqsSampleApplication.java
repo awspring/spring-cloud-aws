@@ -16,16 +16,13 @@
 
 package io.awspring.cloud.sqs.sample;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
-import com.amazonaws.services.sqs.AmazonSQSAsync;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
