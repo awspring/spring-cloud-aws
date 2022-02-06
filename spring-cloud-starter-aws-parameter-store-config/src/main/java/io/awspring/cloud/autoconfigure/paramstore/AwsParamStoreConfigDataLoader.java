@@ -42,7 +42,7 @@ public class AwsParamStoreConfigDataLoader implements ConfigDataLoader<AwsParamS
 
 	private final DeferredLogFactory logFactory;
 
-	AwsParamStoreConfigDataLoader(DeferredLogFactory logFactory) {
+	public AwsParamStoreConfigDataLoader(DeferredLogFactory logFactory) {
 		this.logFactory = logFactory;
 		reconfigureLoggers(logFactory);
 	}
@@ -66,13 +66,13 @@ public class AwsParamStoreConfigDataLoader implements ConfigDataLoader<AwsParamS
 	}
 
 	private void reconfigureLoggers(DeferredLogFactory logFactory) {
+		// loggers in these classes must be static non-final
 		List<Class<?>> loggers = Arrays.asList(AwsParamStorePropertySource.class, AwsParamStorePropertySources.class);
 
 		loggers.forEach(it -> reconfigureLogger(it, logFactory));
 	}
 
 	static void reconfigureLogger(Class<?> type, DeferredLogFactory logFactory) {
-
 		ReflectionUtils.doWithFields(type, field -> {
 
 			field.setAccessible(true);

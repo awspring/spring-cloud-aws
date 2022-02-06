@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.util.StringUtils;
 
@@ -34,13 +35,12 @@ import org.springframework.util.StringUtils;
  */
 public class AwsSecretsManagerPropertySources {
 
+	private static Log LOG = LogFactory.getLog(AwsSecretsManagerPropertySources.class);
+
 	private final AwsSecretsManagerProperties properties;
 
-	private final Log log;
-
-	public AwsSecretsManagerPropertySources(AwsSecretsManagerProperties properties, Log log) {
+	public AwsSecretsManagerPropertySources(AwsSecretsManagerProperties properties) {
 		this.properties = properties;
-		this.log = log;
 	}
 
 	public List<String> getAutomaticContexts(List<String> profiles) {
@@ -83,7 +83,7 @@ public class AwsSecretsManagerPropertySources {
 	 */
 	public AwsSecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			AWSSecretsManager client) {
-		log.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
+		LOG.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
 			AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource(context, client);
 			propertySource.init();
@@ -95,7 +95,7 @@ public class AwsSecretsManagerPropertySources {
 				throw new AwsSecretsManagerPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
+				LOG.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;

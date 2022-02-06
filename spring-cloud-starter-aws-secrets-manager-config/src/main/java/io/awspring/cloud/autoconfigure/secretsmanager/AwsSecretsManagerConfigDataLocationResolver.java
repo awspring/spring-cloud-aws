@@ -24,7 +24,6 @@ import java.util.List;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySources;
-import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
@@ -50,16 +49,10 @@ import org.springframework.util.StringUtils;
 public class AwsSecretsManagerConfigDataLocationResolver
 		implements ConfigDataLocationResolver<AwsSecretsManagerConfigDataResource> {
 
-	private final Log log;
-
 	/**
 	 * AWS Secrets Manager Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-secretsmanager:";
-
-	public AwsSecretsManagerConfigDataLocationResolver(Log log) {
-		this.log = log;
-	}
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
@@ -86,7 +79,7 @@ public class AwsSecretsManagerConfigDataLocationResolver
 
 		AwsSecretsManagerProperties properties = loadConfigProperties(resolverContext.getBinder());
 
-		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties, log);
+		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties);
 
 		List<String> contexts = location.getValue().equals(PREFIX)
 				? propertySources.getAutomaticContexts(profiles.getAccepted())
