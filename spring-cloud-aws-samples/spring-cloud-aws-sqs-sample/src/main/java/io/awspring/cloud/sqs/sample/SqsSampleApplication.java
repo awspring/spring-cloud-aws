@@ -16,6 +16,9 @@
 
 package io.awspring.cloud.sqs.sample;
 
+import java.time.Instant;
+import java.time.LocalDate;
+
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
@@ -34,9 +37,8 @@ public class SqsSampleApplication {
 
 	private final QueueMessagingTemplate queueMessagingTemplate;
 
-	@Autowired
-	public SqsSampleApplication(AmazonSQSAsync amazonSqs) {
-		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
+	SqsSampleApplication(QueueMessagingTemplate queueMessagingTemplate) {
+		this.queueMessagingTemplate = queueMessagingTemplate;
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SqsSampleApplication.class);
@@ -49,7 +51,7 @@ public class SqsSampleApplication {
 	public void sendMessage() {
 		this.queueMessagingTemplate.send("InfrastructureStack-spring-aws",
 				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
-		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo", new Person("Joe", "Doe"));
+		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo", new Person("Joe", "Doe", LocalDate.of(2000, 1, 12)));
 	}
 
 	@SqsListener("InfrastructureStack-spring-aws")
