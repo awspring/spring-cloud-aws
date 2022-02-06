@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.util.StringUtils;
 
@@ -34,13 +35,12 @@ import org.springframework.util.StringUtils;
  */
 public class AwsParamStorePropertySources {
 
+	private static Log LOG = LogFactory.getLog(AwsParamStorePropertySources.class);
+
 	private final AwsParamStoreProperties properties;
 
-	private final Log log;
-
-	public AwsParamStorePropertySources(AwsParamStoreProperties properties, Log log) {
+	public AwsParamStorePropertySources(AwsParamStoreProperties properties) {
 		this.properties = properties;
-		this.log = log;
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class AwsParamStorePropertySources {
 	 */
 	public AwsParamStorePropertySource createPropertySource(String context, boolean optional,
 			AWSSimpleSystemsManagement client) {
-		log.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
+		LOG.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
 			AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(context, client);
 			propertySource.init();
@@ -107,7 +107,7 @@ public class AwsParamStorePropertySources {
 				throw new AwsParameterPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
+				LOG.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;
