@@ -40,8 +40,8 @@ class AwsParamStoreConfigDataLocationResolverTest {
 		String location = "aws-parameterstore:";
 		List<AwsParamStoreConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(4);
-		assertThat(toContexts(locations)).containsExactly("/config/testapp_dev/", "/config/testapp/",
-				"/config/application_dev/", "/config/application/");
+		assertThat(toContexts(locations)).containsExactly("/config/application/", "/config/application_dev/",
+				"/config/testapp/", "/config/testapp_dev/");
 	}
 
 	@Test
