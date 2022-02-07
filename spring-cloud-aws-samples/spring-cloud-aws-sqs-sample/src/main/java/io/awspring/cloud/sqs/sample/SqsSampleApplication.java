@@ -48,7 +48,8 @@ public class SqsSampleApplication {
 	public void sendMessage() {
 		this.queueMessagingTemplate.send("InfrastructureStack-spring-aws",
 				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
-		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo", new Person("Joe", "Doe", LocalDate.of(2000, 1, 12)));
+		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo",
+				new Person("Joe", "Doe", LocalDate.of(2000, 1, 12)));
 	}
 
 	@SqsListener("InfrastructureStack-spring-aws")
