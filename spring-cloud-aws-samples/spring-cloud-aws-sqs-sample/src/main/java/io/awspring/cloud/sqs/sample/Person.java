@@ -16,7 +16,6 @@
 
 package io.awspring.cloud.sqs.sample;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 public class Person {
@@ -57,7 +56,8 @@ public class Person {
 		this.lastName = lastName;
 	}
 
-	@Override public String toString() {
+	@Override
+	public String toString() {
 		return "Person{" +
 			"firstName='" + firstName + '\'' +
 			", lastName='" + lastName + '\'' +
