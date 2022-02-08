@@ -75,8 +75,8 @@ class AwsParamStorePropertySourcesTest {
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
 
 		assertThat(contexts.size()).isEqualTo(4);
-		assertThat(contexts).containsExactly("/application/", "/application_production/",
-			"/messaging-service/", "/messaging-service_production/");
+		assertThat(contexts).containsExactly("/application/", "/application_production/", "/messaging-service/",
+				"/messaging-service_production/");
 	}
 
 }
