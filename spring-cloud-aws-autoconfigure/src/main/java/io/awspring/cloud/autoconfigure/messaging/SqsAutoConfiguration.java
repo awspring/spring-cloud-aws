@@ -39,7 +39,6 @@ import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -179,8 +178,7 @@ public class SqsAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(QueueMessagingTemplate.class)
-		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs,
-				@Autowired(required = false) ObjectMapper objectMapper) {
+		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs) {
 			if (objectMapper != null) {
 				return new QueueMessagingTemplate(amazonSqs, resourceIdResolver, objectMapper);
 			}
