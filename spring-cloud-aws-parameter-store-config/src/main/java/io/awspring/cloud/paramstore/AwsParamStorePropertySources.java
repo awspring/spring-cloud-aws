@@ -22,8 +22,6 @@ import java.util.List;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import org.apache.commons.logging.Log;
 
-import org.springframework.util.StringUtils;
-
 /**
  * Is responsible for creating {@link AwsParamStorePropertySource} and determining
  * automatic contexts.
