@@ -60,7 +60,7 @@ public class AwsParamStorePropertySources {
 	}
 
 	private String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
+		if (prefix != null) {
 			return prefix + "/" + context;
 		}
 		return context;
