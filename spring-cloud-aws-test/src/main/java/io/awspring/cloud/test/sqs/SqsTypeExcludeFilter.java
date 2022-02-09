@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sqs.sample;
+package io.awspring.cloud.test.sqs;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.filter.StandardAnnotationCustomizableTypeExcludeFilter;
 
-@SpringBootApplication
-public class SqsSampleApplication {
+public class SqsTypeExcludeFilter extends StandardAnnotationCustomizableTypeExcludeFilter<SqsTest> {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SqsSampleApplication.class, args);
+	SqsTypeExcludeFilter(Class<?> testClass) {
+		super(testClass);
 	}
 
 }

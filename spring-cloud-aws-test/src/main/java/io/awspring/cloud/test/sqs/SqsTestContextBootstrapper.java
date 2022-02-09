@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sqs.sample;
+package io.awspring.cloud.test.sqs;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
+import org.springframework.core.annotation.MergedAnnotations;
 
-@SpringBootApplication
-public class SqsSampleApplication {
+public class SqsTestContextBootstrapper extends SpringBootTestContextBootstrapper {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SqsSampleApplication.class, args);
+	@Override
+	protected String[] getProperties(Class<?> testClass) {
+		return MergedAnnotations.from(testClass, MergedAnnotations.SearchStrategy.INHERITED_ANNOTATIONS)
+				.get(SqsTest.class).getValue("properties", String[].class).orElse(null);
 	}
 
 }
