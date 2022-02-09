@@ -66,7 +66,7 @@ class AwsParamStorePropertySourcesTest {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setName("messaging-service");
 		properties.setPrefix("");
-		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
 
