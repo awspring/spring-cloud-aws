@@ -61,4 +61,18 @@ class AwsParamStorePropertySourcesTest {
 		assertThat(contexts).containsExactly("/config/application/", "/config/messaging-service/");
 	}
 
+	@Test
+	void getAutomaticContextsWithSingleProfileWithPrefixEmpty() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setName("messaging-service");
+		properties.setPrefix("");
+		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+
+		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
+
+		assertThat(contexts.size()).isEqualTo(4);
+		assertThat(contexts).containsExactly("/application/", "/application_production/", "/messaging-service/",
+				"/messaging-service_production/");
+	}
+
 }

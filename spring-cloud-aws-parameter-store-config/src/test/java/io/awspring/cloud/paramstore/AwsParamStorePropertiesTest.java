@@ -57,6 +57,14 @@ class AwsParamStorePropertiesTest {
 	}
 
 	@Test
+	void validationSucceedsNoPrefix() {
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("")
+				.withDefaultContext("app").withProfileSeparator("_").build();
+
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
+	}
+
+	@Test
 	void acceptsForwardSlashAsProfileSeparator() {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("/");
@@ -72,7 +80,6 @@ class AwsParamStorePropertiesTest {
 
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
-				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
 				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
 				Arguments.of(new AwsParamStorePropertiesBuilder().withDefaultContext("").build(), "defaultContext",
 						"NotEmpty"),

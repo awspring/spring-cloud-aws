@@ -23,8 +23,6 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.util.StringUtils;
-
 /**
  * Is responsible for creating {@link AwsParamStorePropertySource} and determining
  * automatic contexts.
@@ -72,7 +70,7 @@ public class AwsParamStorePropertySources {
 	}
 
 	private String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
+		if (prefix != null) {
 			return prefix + "/" + context;
 		}
 		return context;

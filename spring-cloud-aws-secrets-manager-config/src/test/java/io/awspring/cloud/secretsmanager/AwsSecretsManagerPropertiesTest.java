@@ -47,6 +47,8 @@ class AwsSecretsManagerPropertiesTest {
 
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec/test/var")
@@ -61,7 +63,6 @@ class AwsSecretsManagerPropertiesTest {
 
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withDefaultContext("").build(), "defaultContext",
 						"NotEmpty"),

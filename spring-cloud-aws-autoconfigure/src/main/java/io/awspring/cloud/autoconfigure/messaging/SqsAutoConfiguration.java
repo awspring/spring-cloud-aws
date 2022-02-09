@@ -33,6 +33,7 @@ import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
 import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
 import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.QueueMessageHandler;
 import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
@@ -173,6 +174,17 @@ public class SqsAutoConfiguration {
 
 			simpleMessageListenerContainer.setMessageHandler(queueMessageHandler);
 			return simpleMessageListenerContainer;
+		}
+
+		@Bean
+		@ConditionalOnMissingBean(QueueMessagingTemplate.class)
+		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs) {
+			if (objectMapper != null) {
+				return new QueueMessagingTemplate(amazonSqs, resourceIdResolver, objectMapper);
+			}
+			else {
+				return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+			}
 		}
 
 		@Bean

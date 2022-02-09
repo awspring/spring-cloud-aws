@@ -23,8 +23,6 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.util.StringUtils;
-
 /**
  * Is responsible for creating {@link AwsSecretsManagerPropertySource} and determining
  * automatic contexts.
@@ -60,7 +58,7 @@ public class AwsSecretsManagerPropertySources {
 	}
 
 	private String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
+		if (prefix != null) {
 			return prefix + "/" + context;
 		}
 		return context;

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -96,7 +98,10 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 	}
 
 	protected void initMessageConverter(MessageConverter messageConverter) {
+		this.initMessageConverter(messageConverter, null);
+	}
 
+	protected void initMessageConverter(MessageConverter messageConverter, ObjectMapper objectMapper) {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 
@@ -109,6 +114,9 @@ public abstract class AbstractMessageChannelMessagingSendingTemplate<D extends M
 		else {
 			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
+			if (objectMapper != null) {
+				mappingJackson2MessageConverter.setObjectMapper(objectMapper);
+			}
 			messageConverters.add(mappingJackson2MessageConverter);
 		}
 
