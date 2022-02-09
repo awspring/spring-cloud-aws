@@ -10,6 +10,7 @@ export class InfrastructureStack extends cdk.Stack {
 			generateSecretString: {
 				secretStringTemplate: '{}',
 				generateStringKey: 'password',
+				excludeCharacters: '#$' // Spring tries to interpolate any ${} and #{}
 			}
 		});
 	}
