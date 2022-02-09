@@ -19,12 +19,10 @@ package io.awspring.cloud.secretsmanager;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Unit test for {@link AwsSecretsManagerPropertySources}.
@@ -32,8 +30,6 @@ import static org.mockito.Mockito.mock;
  * @author Manuel Wessner
  */
 class AwsSecretsManagerPropertySourcesTests {
-
-	private final Log logMock = mock(Log.class);
 
 	private AwsSecretsManagerProperties properties;
 
@@ -46,7 +42,7 @@ class AwsSecretsManagerPropertySourcesTests {
 
 	@Test
 	void getAutomaticContextsWithSingleProfile() {
-		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties, logMock);
+		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
 
@@ -57,7 +53,7 @@ class AwsSecretsManagerPropertySourcesTests {
 
 	@Test
 	void getAutomaticContextsWithoutProfile() {
-		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties, logMock);
+		AwsSecretsManagerPropertySources propertySource = new AwsSecretsManagerPropertySources(properties);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.emptyList());
 
