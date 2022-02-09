@@ -157,6 +157,47 @@ The `aws-messaging:notification-argument-resolver` element registers three argum
 `NotificationStatusHandlerMethodArgumentResolver`, `NotificationMessageHandlerMethodArgumentResolver`,
 and `NotificationSubjectHandlerMethodArgumentResolver`.
 
+==== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| To publish notification to topic
+| `sns:Publish`
+
+| To publish notification you will also need
+| `sns:ListTopics`
+
+| To use Annotation-driven HTTP notification endpoint
+| `sns:ConfirmSubscription`
+
+
+|===
+
+Sample IAM policy granting access to SNS:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish",
+                "sns:ConfirmSubscription"
+            ],
+            "Resource": "yourArn"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "sns:ListTopics",
+            "Resource": "*"
+        }
+    ]
+}
+----
+
 === Using CloudFormation
 Amazon SQS queues and SNS topics can be configured within a stack and then be used by applications. Spring Cloud AWS
 also supports the lookup of stack-configured queues and topics by their logical name with the resolution to the physical
@@ -197,45 +238,3 @@ public void receiveQueueMessages(Person person) {
 
 When using the logical names like in the example above, the stack can be created on different environments without any
 configuration or code changes inside the application.
-
-
-=== IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
-
-[cols="2"]
-|===
-| To publish notification to topic
-| `sns:Publish`
-
-| To publish notification you will also need
-| `sns:ListTopics`
-
-| To use Annotation-driven HTTP notification endpoint
-| `sns:ConfirmSubscription`
-
-
-|===
-
-Sample IAM policy granting access to SNS:
-
-[source,json,indent=0]
-----
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sns:Publish",
-                "sns:ConfirmSubscription"
-            ],
-            "Resource": "yourArn"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "sns:ListTopics",
-            "Resource": "*"
-        }
-    ]
-}
-----
