@@ -45,7 +45,7 @@ public class SecretsManagerPropertySources {
 	 * to true
 	 */
 	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,
-			SecretsManagerClient client) {
+															 SecretsManagerClient client) {
 		log.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
 			SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource(context, client);

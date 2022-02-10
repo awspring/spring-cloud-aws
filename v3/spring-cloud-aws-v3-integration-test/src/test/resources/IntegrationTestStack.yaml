@@ -1,0 +1,352 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Integration Test Template
+Parameters:
+  RdsPassword:
+    Description: The master password for the RDS instance
+    Type: String
+    MinLength: 8
+    NoEcho: true
+  AllowedFrom:
+    Description: Lockdown DB access to the host (default can be accessed from anywhere)
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
+  SSHLocation:
+    Description: 'The IP address range that can be used to SSH to the EC2 instances'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref 'VPC'
+      AvailabilityZone: !Select ['0', !GetAZs {Ref: 'AWS::Region'}]
+      CidrBlock: 10.0.0.0/24
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref 'VPC'
+      AvailabilityZone: !Select ['1', !GetAZs {Ref: 'AWS::Region'}]
+      CidrBlock: 10.0.1.0/24
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref 'VPC'
+      InternetGatewayId: !Ref 'InternetGateway'
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  Route:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref 'RouteTable'
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref 'InternetGateway'
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref 'SubnetA'
+      RouteTableId: !Ref 'RouteTable'
+  SubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref 'SubnetB'
+      RouteTableId: !Ref 'RouteTable'
+  NetworkAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref 'VPC'
+  InboundHTTPNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '100'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '80'
+        To: '80'
+  InboundSSHNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '101'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '22'
+        To: '22'
+  InboundResponsePortsNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '102'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '1024'
+        To: '65535'
+  OutBoundHTTPNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '100'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '80'
+        To: '80'
+  OutBoundHTTPSNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '101'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '443'
+        To: '443'
+  OutBoundResponsePortsNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '102'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '1024'
+        To: '65535'
+  OutBoundSMTPSNetworkAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'NetworkAcl'
+      RuleNumber: '103'
+      Protocol: '6'
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '465'
+        To: '465'
+  SubnetNetworkAclAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref 'SubnetA'
+      NetworkAclId: !Ref 'NetworkAcl'
+  SubnetBNetworkAclAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref 'SubnetB'
+      NetworkAclId: !Ref 'NetworkAcl'
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref 'VPC'
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref 'SSHLocation'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+  UserTagAndUserDataInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      DisableApiTermination: 'FALSE'
+      ImageId: ami-70edb016
+      UserData: !Base64 'data1:value1;data2:value2'
+      InstanceType: t2.nano
+      Tags:
+        - Key: tag1
+          Value: tagv1
+        - Key: tag3
+          Value: tagv3
+        - Key: tag2
+          Value: tagv2
+        - Key: tag4
+          Value: tagv4
+      NetworkInterfaces:
+        - GroupSet: [!Ref 'InstanceSecurityGroup']
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref 'SubnetA'
+  RdsSingleMicroInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t2.micro
+      DBName: test
+      DBSubnetGroupName: !Ref 'RdsSubnetGroup'
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: !Ref 'RdsPassword'
+      PubliclyAccessible: true
+      VPCSecurityGroups:
+        - !Ref 'DatabaseSecurityGroup'
+  RdsSingleMicroInstanceReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '5'
+      SourceDBInstanceIdentifier: !Ref 'RdsSingleMicroInstance'
+      DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !Ref 'DatabaseSecurityGroup'
+  RdsSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnetgroup for both VPNs
+      SubnetIds: [!Ref 'SubnetA', !Ref 'SubnetB']
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref 'VPC'
+      GroupDescription: Elasticache Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          SourceSecurityGroupId:
+            !Ref 'InstanceSecurityGroup'
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: !Ref 'AllowedFrom'
+  EmptyBucket:
+    Type: AWS::S3::Bucket
+  PathMatcherBucket:
+    Type: AWS::S3::Bucket
+  PathMatcherBucket01:
+    Type: AWS::S3::Bucket
+  PathMatcherBucket02:
+    Type: AWS::S3::Bucket
+  PathMatcherBucket03:
+    Type: AWS::S3::Bucket
+  StringQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  SendToQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  JsonQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  StreamQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  LoadTestQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  QueueListenerTest:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  QueueWithRedrivePolicy:
+    Type: AWS::SQS::Queue
+    Properties:
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt [DeadLetterQueue, Arn]
+        maxReceiveCount: 1
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties: {}
+  NotificationQueue:
+    Type: AWS::SQS::Queue
+  ManualDeletionQueue:
+    Type: AWS::SQS::Queue
+  SqsReceivingSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: !GetAtt [NotificationQueue, Arn]
+          Protocol: sqs
+  SnsToSqsPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Version: '2008-10-17'
+        Id: SnsToSqsPolicy
+        Statement:
+          - Sid: Allow-Sns-SendMessage
+            Effect: Allow
+            Principal:
+              AWS: '*'
+            Action: ['sqs:SendMessage']
+            Resource: !GetAtt [NotificationQueue, Arn]
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref 'SqsReceivingSnsTopic'
+      Queues: [!Ref 'NotificationQueue']
+  CacheCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+      Engine: memcached
+      NumCacheNodes: '1'
+      VpcSecurityGroupIds:
+        - !GetAtt [CacheSecurityGroup, GroupId]
+  RedisCacheCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+      Engine: redis
+      NumCacheNodes: '1'
+      VpcSecurityGroupIds:
+        - !GetAtt [CacheSecurityGroup, GroupId]
+  CacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref 'VPC'
+      GroupDescription: Elasticache Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '11211'
+          ToPort: '11211'
+          SourceSecurityGroupId:
+            !Ref 'InstanceSecurityGroup'
+        - IpProtocol: tcp
+          FromPort: '6379'
+          ToPort: '6379'
+          SourceSecurityGroupId:
+            !Ref 'InstanceSecurityGroup'
+  CacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Subnet group for both subnets
+      SubnetIds: [!Ref 'SubnetA', !Ref 'SubnetB']
+Outputs:
+  InstanceId:
+    Value: !Ref 'UserTagAndUserDataInstance'

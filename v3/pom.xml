@@ -10,18 +10,31 @@
 		<version>2.3.0-RC2</version>
 	</parent>
 
+	<properties>
+		<bintray.package>aws</bintray.package>
+		<tomcat.version>8.0.33</tomcat.version>
+		<javax-mail.version>1.5.5</javax-mail.version>
+		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+		<javax.activation.version>1.2.0</javax.activation.version>
+		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
+		<spring-javaformat.version>0.0.25</spring-javaformat.version>
+	</properties>
+
 	<artifactId>v3</artifactId>
 	<version>2.3.0-RC2</version>
 	<packaging>pom</packaging>
 
 	<modules>
 		<module>spring-cloud-aws-v3-core</module>
+		<module>spring-cloud-aws-v3-context</module>
 		<module>spring-cloud-aws-v3-autoconfigure</module>
 		<module>spring-cloud-aws-v3-dependencies</module>
 		<module>spring-cloud-aws-v3-parameter-store</module>
 		<module>spring-cloud-aws-v3-secrets-manager</module>
 		<module>spring-cloud-aws-v3-ses</module>
-        <module>spring-cloud-starter-aws-v3-parameter-store</module>
+		<module>spring-cloud-aws-v3-messaging</module>
+		<module>spring-cloud-aws-v3-integration-test</module>
+		<module>spring-cloud-starter-aws-v3-parameter-store</module>
 		<module>spring-cloud-starter-aws-v3-secrets-manager</module>
 		<module>spring-cloud-starter-aws-v3-ses</module>
     </modules>
@@ -38,6 +51,13 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-commons-dependencies</artifactId>
+				<version>${spring-cloud-commons.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-contract-dependencies</artifactId>
 				<version>${spring-cloud-commons.version}</version>
 				<type>pom</type>
 				<scope>import</scope>

@@ -17,7 +17,6 @@
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 import io.awspring.cloud.v3.autoconfigure.AwsClientProperties;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**

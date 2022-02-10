@@ -1,0 +1,30 @@
+{
+	"Type": "Notification",
+	"MessageId": "7aae457b-2894-56fe-8fe4-0bd5c32b9d60",
+	"TopicArn": "arn:aws:sns:eu-west-1:123453123:IntegrationTestStack-SqsReceivingSnsTopic",
+	"Subject": "Notification Subject",
+	"Message": "{\"firstName\":\"Agim\",\"lastName\":\"Emruli\"}",
+	"Timestamp": "2015-10-31T16:17:03.713Z",
+	"SignatureVersion": "1",
+	"Signature": "NJ62TPLaeXeiecIc==",
+	"SigningCertURL": "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem",
+	"UnsubscribeURL": "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=a",
+	"MessageAttributes": {
+		"NOTIFICATION_SUBJECT_HEADER": {
+			"Type": "String",
+			"Value": "Hello default destination"
+		},
+		"id": {
+			"Type": "String",
+			"Value": "5c450be3-1eab-8f4d-abcc-48772cce6f5d"
+		},
+		"contentType": {
+			"Type": "String",
+			"Value": "application/json;charset=UTF-8"
+		},
+		"timestamp": {
+			"Type": "Number.java.lang.Long",
+			"Value": "1446308223696"
+		}
+	}
+}
