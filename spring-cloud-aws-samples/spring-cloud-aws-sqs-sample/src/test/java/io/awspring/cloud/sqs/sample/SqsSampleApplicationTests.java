@@ -29,7 +29,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -46,7 +45,7 @@ class SqsSampleApplicationTests {
 	// create an SQS locally running equivalent with Localstack and Testcontainers
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS);
+			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(true);
 
 	@Autowired
 	private QueueMessagingTemplate queueMessagingTemplate;
@@ -63,14 +62,14 @@ class SqsSampleApplicationTests {
 	@Test
 	void receivesMessage() {
 		// send a message
-		queueMessagingTemplate.send(QUEUE_NAME, MessageBuilder.withPayload("hello").build());
+		queueMessagingTemplate.convertAndSend(QUEUE_NAME, "hello");
 
 		// verify that bean handling the message was invoked
 		await().untilAsserted(() -> verify(sampleListener).listenToMessage("hello"));
 	}
 
 	@DynamicPropertySource
-	static void registerPgProperties(DynamicPropertyRegistry registry) {
+	static void registerSqsProperties(DynamicPropertyRegistry registry) {
 		// overwrite SQS endpoint with one provided by Localstack
 		registry.add("cloud.aws.sqs.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
 	}

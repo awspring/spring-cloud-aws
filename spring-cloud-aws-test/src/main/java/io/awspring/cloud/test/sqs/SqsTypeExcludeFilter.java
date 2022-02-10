@@ -16,6 +16,10 @@
 
 package io.awspring.cloud.test.sqs;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.test.autoconfigure.filter.StandardAnnotationCustomizableTypeExcludeFilter;
 
@@ -27,8 +31,18 @@ import org.springframework.boot.test.autoconfigure.filter.StandardAnnotationCust
  */
 public class SqsTypeExcludeFilter extends StandardAnnotationCustomizableTypeExcludeFilter<SqsTest> {
 
+	private static final Class<?>[] NO_LISTENERS = {};
+
+	private final Class<?>[] listeners;
+
 	SqsTypeExcludeFilter(Class<?> testClass) {
 		super(testClass);
+		this.listeners = getAnnotation().getValue("listeners", Class[].class).orElse(NO_LISTENERS);
+	}
+
+	@Override
+	protected Set<Class<?>> getComponentIncludes() {
+		return new LinkedHashSet<>(Arrays.asList(this.listeners));
 	}
 
 }

@@ -26,9 +26,11 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.OverrideAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.filter.TypeExcludeFilters;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -57,6 +59,34 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @AutoConfigureSqs
 @ImportAutoConfiguration
 public @interface SqsTest {
+
+	/**
+	 * Determines if default filtering should be used with
+	 * {@link SpringBootApplication @SpringBootApplication}. By default no beans are
+	 * included.
+	 * @see #includeFilters()
+	 * @see #excludeFilters()
+	 * @return if default filters should be used
+	 */
+	boolean useDefaultFilters() default true;
+
+	/**
+	 * Specifies the listeners to test. This is an alias of {@link #listeners()} which can
+	 * be used for brevity if no other attributes are defined. See {@link #listeners()}
+	 * for details.
+	 * @see #listeners()
+	 * @return the listeners to test
+	 */
+	@AliasFor("listeners")
+	Class<?>[] value() default {};
+
+	/**
+	 * Specifies the listeners to test.
+	 * @see #value()
+	 * @return the listeners to test
+	 */
+	@AliasFor("value")
+	Class<?>[] listeners() default {};
 
 	/**
 	 * Properties in form {@literal key=value} that should be added to the Spring
