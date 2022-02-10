@@ -16,8 +16,15 @@
 
 package io.awspring.cloud.test.sqs;
 
+import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.test.autoconfigure.filter.StandardAnnotationCustomizableTypeExcludeFilter;
 
+/**
+ * {@link TypeExcludeFilter} for {@link SqsTest @SqsTest}.
+ *
+ * @author Maciej Walkowiak
+ * @since 2.4.0
+ */
 public class SqsTypeExcludeFilter extends StandardAnnotationCustomizableTypeExcludeFilter<SqsTest> {
 
 	SqsTypeExcludeFilter(Class<?> testClass) {

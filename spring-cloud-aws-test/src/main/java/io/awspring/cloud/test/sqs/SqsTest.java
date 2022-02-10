@@ -33,6 +33,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+/**
+ * Annotation for a SQS test that focuses <strong>only</strong> on SQS-based components.
+ * <p>
+ * Using this annotation will disable full auto-configuration and instead apply only
+ * configuration relevant to SQS tests.
+ * <p>
+ * When using JUnit 4, this annotation should be used in combination with
+ * {@code @RunWith(SpringRunner.class)}.
+ *
+ * @author Maciej Walkowiak
+ * @since 2.4.0
+ * @see AutoConfigureSqs
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -49,7 +62,6 @@ public @interface SqsTest {
 	 * Properties in form {@literal key=value} that should be added to the Spring
 	 * {@link Environment} before the test runs.
 	 * @return the properties to add
-	 * @since 2.1.0
 	 */
 	String[] properties() default {};
 

@@ -18,7 +18,14 @@ package io.awspring.cloud.test.sqs;
 
 import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.test.context.TestContextBootstrapper;
 
+/**
+ * {@link TestContextBootstrapper} for {@link SqsTest @SqsTest} support.
+ *
+ * @author Maciej Walkowiak
+ * @since 2.4.0
+ */
 public class SqsTestContextBootstrapper extends SpringBootTestContextBootstrapper {
 
 	@Override

@@ -26,7 +26,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageSender {
+class MessageSender {
 
 	private final QueueMessagingTemplate queueMessagingTemplate;
 

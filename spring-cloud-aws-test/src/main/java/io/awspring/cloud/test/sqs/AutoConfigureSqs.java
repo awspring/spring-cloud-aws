@@ -25,6 +25,15 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
+/**
+ * {@link ImportAutoConfiguration Auto-configuration imports} for typical SQS tests. Most
+ * tests should consider using {@link SqsTest @SqsTest} rather than using this annotation
+ * directly.
+ *
+ * @author Maciej Walkowiak
+ * @since 2.4.0
+ * @see SqsTest
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
