@@ -128,10 +128,32 @@ class AwsSecretsManagerPropertySourceLocatorTest {
 
 		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
 
-		assertThat(contextToBeTested.get(0)).isEqualTo("/secret/application");
-		assertThat(contextToBeTested.get(1)).isEqualTo("/secret/application_test");
-		assertThat(contextToBeTested.get(2)).isEqualTo("/secret/messaging-service");
-		assertThat(contextToBeTested.get(3)).isEqualTo("/secret/messaging-service_test");
+		assertThat(contextToBeTested.get(0)).isEqualTo("/secret/messaging-service_test");
+		assertThat(contextToBeTested.get(1)).isEqualTo("/secret/messaging-service");
+		assertThat(contextToBeTested.get(2)).isEqualTo("/secret/application_test");
+		assertThat(contextToBeTested.get(3)).isEqualTo("/secret/application");
+	}
+
+	@Test
+	void contextExpectSpecificOrderAndEmptyPrefix() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder()
+				.withDefaultContext("application").withPrefix("").withName("messaging-service").build();
+
+		GetSecretValueResult secretValueResult = new GetSecretValueResult();
+		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+		when(smClient.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+
+		AwsSecretsManagerPropertySourceLocator locator = new AwsSecretsManagerPropertySourceLocator(smClient,
+				properties);
+		env.setActiveProfiles("test");
+		locator.locate(env);
+
+		List<String> contextToBeTested = new ArrayList<>(locator.getContexts());
+
+		assertThat(contextToBeTested.get(0)).isEqualTo("/messaging-service_test");
+		assertThat(contextToBeTested.get(1)).isEqualTo("/messaging-service");
+		assertThat(contextToBeTested.get(2)).isEqualTo("/application_test");
+		assertThat(contextToBeTested.get(3)).isEqualTo("/application");
 	}
 
 	@Test
@@ -171,6 +193,11 @@ class AwsSecretsManagerPropertySourceLocatorTest {
 
 		public AwsSecretsManagerPropertiesBuilder withDefaultContext(String defaultContext) {
 			this.properties.setDefaultContext(defaultContext);
+			return this;
+		}
+
+		public AwsSecretsManagerPropertiesBuilder withPrefix(String prefix) {
+			this.properties.setPrefix(prefix);
 			return this;
 		}
 

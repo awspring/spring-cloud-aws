@@ -429,7 +429,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 				catch (MessagingException messagingException) {
 					getLogger().warn("An exception occurred while handling message with id: {}", message.getMessageId(),
 							messagingException);
-					applyDeletionPolicyOnError(receiptHandle);
+					if (!applyDeletionPolicyOnError(receiptHandle)) {
+						break;
+					}
 				}
 			}
 		}
@@ -442,11 +444,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			}
 		}
 
-		private void applyDeletionPolicyOnError(String receiptHandle) {
+		private boolean applyDeletionPolicyOnError(String receiptHandle) {
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS
 					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE && !this.hasRedrivePolicy)) {
 				deleteMessage(receiptHandle);
+				return true;
 			}
+			return false;
 		}
 
 		private void deleteMessage(String receiptHandle) {

@@ -335,7 +335,7 @@ public void receive(S3EventNotification s3EventNotificationRecord) {
 }
 ----
 
-=== IAM Permissions
+==== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]

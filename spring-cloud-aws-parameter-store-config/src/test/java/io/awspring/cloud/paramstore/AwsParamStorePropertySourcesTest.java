@@ -19,12 +19,10 @@ package io.awspring.cloud.paramstore;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Unit test for {@link AwsParamStorePropertySourceLocator}.
@@ -32,8 +30,6 @@ import static org.mockito.Mockito.mock;
  * @author Manuel Wessner
  */
 class AwsParamStorePropertySourcesTest {
-
-	private final Log logMock = mock(Log.class);
 
 	private AwsParamStoreProperties properties;
 
@@ -46,7 +42,7 @@ class AwsParamStorePropertySourcesTest {
 
 	@Test
 	void getAutomaticContextsWithSingleProfile() {
-		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
 
@@ -57,12 +53,26 @@ class AwsParamStorePropertySourcesTest {
 
 	@Test
 	void getAutomaticContextsWithoutProfile() {
-		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties, logMock);
+		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties);
 
 		List<String> contexts = propertySource.getAutomaticContexts(Collections.emptyList());
 
 		assertThat(contexts.size()).isEqualTo(2);
 		assertThat(contexts).containsExactly("/config/application/", "/config/messaging-service/");
+	}
+
+	@Test
+	void getAutomaticContextsWithSingleProfileWithPrefixEmpty() {
+		AwsParamStoreProperties properties = new AwsParamStoreProperties();
+		properties.setName("messaging-service");
+		properties.setPrefix("");
+		AwsParamStorePropertySources propertySource = new AwsParamStorePropertySources(properties);
+
+		List<String> contexts = propertySource.getAutomaticContexts(Collections.singletonList("production"));
+
+		assertThat(contexts.size()).isEqualTo(4);
+		assertThat(contexts).containsExactly("/application/", "/application_production/", "/messaging-service/",
+				"/messaging-service_production/");
 	}
 
 }

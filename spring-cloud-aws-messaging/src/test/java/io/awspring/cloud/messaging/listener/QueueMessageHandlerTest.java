@@ -614,6 +614,12 @@ class QueueMessageHandlerTest {
 		assertThat(appender.list).hasSize(1);
 	}
 
+	@Test
+	void whenPassedDeletionPolicyIsNullNoRedriveIsUsed() {
+		QueueMessageHandler queueMessageHandler = new QueueMessageHandler(Collections.emptyList(), null);
+		assertThat(queueMessageHandler.getSqsMessageDeletionPolicy()).isEqualTo(SqsMessageDeletionPolicy.NO_REDRIVE);
+	}
+
 	@SuppressWarnings("UnusedDeclaration")
 	private static class IncomingMessageHandler {
 

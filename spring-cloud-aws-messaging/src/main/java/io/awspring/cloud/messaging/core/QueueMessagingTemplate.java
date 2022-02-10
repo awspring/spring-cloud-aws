@@ -18,6 +18,7 @@ package io.awspring.cloud.messaging.core;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.core.env.ResourceIdResolver;
 import io.awspring.cloud.messaging.core.support.AbstractMessageChannelMessagingSendingTemplate;
 import io.awspring.cloud.messaging.support.destination.DynamicQueueUrlDestinationResolver;
@@ -50,11 +51,11 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	private final AmazonSQSAsync amazonSqs;
 
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs) {
-		this(amazonSqs, (ResourceIdResolver) null, null);
+		this(amazonSqs, null, (ObjectMapper) null);
 	}
 
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver) {
-		this(amazonSqs, resourceIdResolver, null);
+		this(amazonSqs, resourceIdResolver, (ObjectMapper) null);
 	}
 
 	/**
@@ -72,6 +73,11 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 		this(amazonSqs, new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver), messageConverter);
 	}
 
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, ResourceIdResolver resourceIdResolver,
+			ObjectMapper objectMapper) {
+		this(amazonSqs, new DynamicQueueUrlDestinationResolver(amazonSqs, resourceIdResolver), null, objectMapper);
+	}
+
 	/**
 	 * Initializes the messaging template by configuring the destination resolver as well
 	 * as the message converter. Uses the {@link DynamicQueueUrlDestinationResolver} with
@@ -86,9 +92,14 @@ public class QueueMessagingTemplate extends AbstractMessageChannelMessagingSendi
 	 */
 	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, DestinationResolver<String> destinationResolver,
 			MessageConverter messageConverter) {
+		this(amazonSqs, destinationResolver, messageConverter, null);
+	}
+
+	public QueueMessagingTemplate(AmazonSQSAsync amazonSqs, DestinationResolver<String> destinationResolver,
+			MessageConverter messageConverter, ObjectMapper objectMapper) {
 		super(destinationResolver);
 		this.amazonSqs = amazonSqs;
-		initMessageConverter(messageConverter);
+		initMessageConverter(messageConverter, objectMapper);
 	}
 
 	@Override

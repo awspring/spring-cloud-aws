@@ -24,8 +24,6 @@ import java.util.List;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import io.awspring.cloud.paramstore.AwsParamStoreProperties;
 import io.awspring.cloud.paramstore.AwsParamStorePropertySources;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
@@ -53,8 +51,6 @@ public class AwsParamStoreConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private final Log log = LogFactory.getLog(AwsParamStoreConfigDataLocationResolver.class);
-
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		if (!location.hasPrefix(PREFIX)) {
@@ -80,7 +76,7 @@ public class AwsParamStoreConfigDataLocationResolver
 
 		AwsParamStoreProperties properties = loadConfigProperties(resolverContext.getBinder());
 
-		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties, log);
+		AwsParamStorePropertySources sources = new AwsParamStorePropertySources(properties);
 
 		List<String> contexts = location.getValue().equals(PREFIX)
 				? sources.getAutomaticContexts(profiles.getAccepted())

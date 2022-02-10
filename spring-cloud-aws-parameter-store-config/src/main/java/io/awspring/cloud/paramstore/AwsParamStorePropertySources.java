@@ -21,8 +21,7 @@ import java.util.List;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import org.apache.commons.logging.Log;
-
-import org.springframework.util.StringUtils;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Is responsible for creating {@link AwsParamStorePropertySource} and determining
@@ -34,15 +33,26 @@ import org.springframework.util.StringUtils;
  */
 public class AwsParamStorePropertySources {
 
+	private static Log LOG = LogFactory.getLog(AwsParamStorePropertySources.class);
+
 	private final AwsParamStoreProperties properties;
 
-	private final Log log;
-
-	public AwsParamStorePropertySources(AwsParamStoreProperties properties, Log log) {
+	public AwsParamStorePropertySources(AwsParamStoreProperties properties) {
 		this.properties = properties;
-		this.log = log;
 	}
 
+	/**
+	 * Returns a list of contexts applicable to profiles in <strong>ascending priority
+	 * order</strong>.
+	 *
+	 * For example: when profile `dev1` is active and application name is set to `MyApp`,
+	 * it returns a list containing:
+	 *
+	 * [0] /config/application/ [1] /config/application_dev1/ [2] /config/MyApp/ [3]
+	 * /config/MyApp_dev1/
+	 * @param profiles - active profiles
+	 * @return list of contexts in <strong>ascending priority order</strong>
+	 */
 	public List<String> getAutomaticContexts(List<String> profiles) {
 		List<String> contexts = new ArrayList<>();
 		String prefix = this.properties.getPrefix();
@@ -60,7 +70,7 @@ public class AwsParamStorePropertySources {
 	}
 
 	private String getContext(String prefix, String context) {
-		if (StringUtils.hasLength(prefix)) {
+		if (prefix != null) {
 			return prefix + "/" + context;
 		}
 		return context;
@@ -83,7 +93,7 @@ public class AwsParamStorePropertySources {
 	 */
 	public AwsParamStorePropertySource createPropertySource(String context, boolean optional,
 			AWSSimpleSystemsManagement client) {
-		log.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
+		LOG.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
 			AwsParamStorePropertySource propertySource = new AwsParamStorePropertySource(context, client);
 			propertySource.init();
@@ -95,7 +105,7 @@ public class AwsParamStorePropertySources {
 				throw new AwsParameterPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
+				LOG.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;
