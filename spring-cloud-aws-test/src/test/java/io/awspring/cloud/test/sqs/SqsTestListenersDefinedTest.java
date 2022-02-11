@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 @SqsTest(listeners = SqsSampleListener.class, properties = { "cloud.aws.credentials.access-key=noop",
-		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static-region=eu-west-1" })
+		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=eu-west-1" })
 @Testcontainers
 class SqsTestListenersDefinedTest {
 
