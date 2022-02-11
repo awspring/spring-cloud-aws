@@ -41,18 +41,23 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @author Manuel Wessner
+ * @author Matej Nedic
  */
 public class NotificationMessageHandlerMethodArgumentResolver
 		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	private final List<HttpMessageConverter<?>> messageConverter;
+
 	private final SnsMessageManager snsMessageManager;
 
 	public NotificationMessageHandlerMethodArgumentResolver(SnsMessageManager snsMessageManager) {
-		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()), snsMessageManager);
+		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()),
+				snsMessageManager);
 	}
 
-	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter, SnsMessageManager snsMessageManager) {
+	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter,
+			SnsMessageManager snsMessageManager) {
 		this.snsMessageManager = snsMessageManager;
 		this.messageConverter = messageConverter;
 	}
@@ -104,7 +109,6 @@ public class NotificationMessageHandlerMethodArgumentResolver
 		throw new HttpMessageNotReadableException(
 				"Error converting notification message with payload:" + messageContent);
 	}
-
 
 	private void verifySignature(String payload) {
 		try (InputStream messageStream = new ByteArrayInputStream(payload.getBytes())) {

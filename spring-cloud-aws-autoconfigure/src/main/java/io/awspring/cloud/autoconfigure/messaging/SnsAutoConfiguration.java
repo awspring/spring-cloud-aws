@@ -51,6 +51,8 @@ import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMet
  * @author Alain Sahli
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Manuel Wessner
+ * @author Matej Nedic
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(AmazonSNS.class)
@@ -89,7 +91,8 @@ public class SnsAutoConfiguration {
 		// when used with localstack what should be verification region?
 		if (snsProperties.getEndpoint() != null || regionProvider == null) {
 			return new SnsMessageManager();
-		} else {
+		}
+		else {
 			return new SnsMessageManager(regionProvider.getRegion().toString());
 		}
 	}

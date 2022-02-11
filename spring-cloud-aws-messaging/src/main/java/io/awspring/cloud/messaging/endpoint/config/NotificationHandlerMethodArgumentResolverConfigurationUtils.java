@@ -35,7 +35,8 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns, SnsMessageManager snsMessageManager) {
+	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns,
+			SnsMessageManager snsMessageManager) {
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
 		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
 		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver(snsMessageManager));
