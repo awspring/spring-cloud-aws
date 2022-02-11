@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.message.SnsMessageManager;
@@ -84,8 +85,13 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingAmazonClient(SnsMessageManager.class)
 	@Bean
-	public SnsMessageManager snsMessageManager() {
-		return new SnsMessageManager(this.regionProvider.getRegion().getName());
+	public SnsMessageManager snsMessageManager(SnsProperties snsProperties) {
+		// when used with localstack what should be verification region?
+		if (snsProperties.getEndpoint() != null || regionProvider == null) {
+			return new SnsMessageManager();
+		} else {
+			return new SnsMessageManager(regionProvider.getRegion().toString());
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

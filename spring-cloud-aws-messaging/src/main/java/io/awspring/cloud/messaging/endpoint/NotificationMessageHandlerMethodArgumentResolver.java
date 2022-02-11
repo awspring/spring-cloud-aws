@@ -86,7 +86,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 		MediaType mediaType = getMediaType(content);
 		String messageContent = content.findPath("Message").asText();
 		if (content.has("SignatureVersion")) {
-
+			verifySignature(content.toString());
 		}
 		for (HttpMessageConverter<?> converter : this.messageConverter) {
 			if (converter.canRead(parameterType, mediaType)) {

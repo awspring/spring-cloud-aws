@@ -25,6 +25,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
 import io.awspring.cloud.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
@@ -77,6 +78,7 @@ class SnsAutoConfigurationTest {
 			assertThat(compositeArgumentResolver.getResolvers()).hasSize(3);
 			assertThat(getNotificationStatusHandlerMethodArgumentResolver(compositeArgumentResolver.getResolvers()))
 					.hasFieldOrProperty("amazonSns").isNotNull();
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 		});
 	}
 
@@ -89,6 +91,7 @@ class SnsAutoConfigurationTest {
 			// Assert
 			assertThat(amazonSns).hasFieldOrPropertyWithValue("awsCredentialsProvider",
 					SnsConfigurationWithCredentials.AWS_CREDENTIALS_PROVIDER);
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 		});
 	}
 
@@ -97,6 +100,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("cloud.aws.sns.enabled:false").run(context -> {
 			assertThat(context).doesNotHaveBean(AmazonSNS.class);
 			assertThat(context).doesNotHaveBean(AmazonSNSClient.class);
+			assertThat(context).doesNotHaveBean(SnsMessageManager.class);
 		});
 	}
 
@@ -116,6 +120,7 @@ class SnsAutoConfigurationTest {
 					handlerMethodArgumentResolver.getResolvers());
 			assertThat(notificationStatusHandlerMethodArgumentResolver).hasFieldOrPropertyWithValue("amazonSns",
 					SnsConfigurationWithCustomAmazonClient.AMAZON_SNS);
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 		});
 	}
 
@@ -128,6 +133,7 @@ class SnsAutoConfigurationTest {
 			// Assert
 			assertThat(ReflectionTestUtils.getField(amazonSns, "endpoint").toString())
 					.isEqualTo("https://" + Region.getRegion(Regions.EU_WEST_1).getServiceEndpoint("sns"));
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 		});
 	}
 
@@ -137,6 +143,7 @@ class SnsAutoConfigurationTest {
 			AmazonSNSClient client = context.getBean(AmazonSNSClient.class);
 			Object region = ReflectionTestUtils.getField(client, "signingRegion");
 			assertThat(region).isEqualTo(Regions.US_EAST_1.getName());
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 		});
 	}
 
@@ -149,6 +156,7 @@ class SnsAutoConfigurationTest {
 			assertThat(endpoint).isEqualTo(URI.create("http://localhost:8090"));
 
 			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 			assertThat(isEndpointOverridden).isTrue();
 		});
 	}
@@ -162,6 +170,7 @@ class SnsAutoConfigurationTest {
 			// Assert
 			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(amazonSns,
 					"clientConfiguration");
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 			assertThat(clientConfiguration.getProxyHost()).isEqualTo("global");
 		});
 	}
@@ -175,6 +184,7 @@ class SnsAutoConfigurationTest {
 			// Assert
 			ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils.getField(amazonSns,
 					"clientConfiguration");
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 			assertThat(clientConfiguration.getProxyHost()).isEqualTo("sns");
 		});
 	}
@@ -189,6 +199,7 @@ class SnsAutoConfigurationTest {
 					// Assert
 					ClientConfiguration clientConfiguration = (ClientConfiguration) ReflectionTestUtils
 							.getField(amazonSns, "clientConfiguration");
+					assertThat(context).hasSingleBean(SnsMessageManager.class);
 					assertThat(clientConfiguration.getProxyHost()).isEqualTo("sns");
 				});
 	}
@@ -198,6 +209,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withUserConfiguration(NoSpringMvcSnsConfiguration.class)
 				.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run((context) -> {
 					assertThat(context).hasSingleBean(AmazonSNS.class);
+					assertThat(context).hasSingleBean(SnsMessageManager.class);
 				});
 	}
 

@@ -34,8 +34,10 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 
 	private final AmazonSNS amazonSns;
 	private final SnsMessageManager snsMessageManager;
+
 	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns, SnsMessageManager snsMessageManager) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
+		Assert.notNull(amazonSns, "SnsMessageManager must not be null");
 		this.amazonSns = amazonSns;
 		this.snsMessageManager = snsMessageManager;
 	}

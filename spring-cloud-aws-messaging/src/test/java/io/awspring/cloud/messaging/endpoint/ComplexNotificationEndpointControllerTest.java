@@ -17,6 +17,7 @@
 package io.awspring.cloud.messaging.endpoint;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.messaging.config.annotation.EnableSns;
 import io.awspring.cloud.messaging.endpoint.ComplexNotificationEndpointControllerTest.Config;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,6 +148,11 @@ class ComplexNotificationEndpointControllerTest {
 	@EnableSns
 	@Import(ComplexNotificationTestController.class)
 	static class Config {
+
+		@Bean
+		SnsMessageManager snsMessageManager() {
+			return Mockito.mock(SnsMessageManager.class);
+		}
 
 		@Bean
 		AmazonSNS amazonSNS() {

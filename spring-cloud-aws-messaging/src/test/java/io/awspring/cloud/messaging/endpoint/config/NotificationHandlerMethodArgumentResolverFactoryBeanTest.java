@@ -17,6 +17,7 @@
 package io.awspring.cloud.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -32,8 +33,9 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	void getObjectType_defaultConfiguration_returnsHandlerMethodArgumentResolverType() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
-		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns);
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns, snsMessageManager);
 
 		// Act
 		Class<HandlerMethodArgumentResolver> type = factoryBean.getObjectType();
@@ -46,8 +48,9 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	void getObject_withDefaultConfiguration_createCompositeResolverWithAllDelegatedResolvers() throws Exception {
 		// Arrange
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
+		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
-		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns);
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns, snsMessageManager);
 		factoryBean.afterPropertiesSet();
 
 		// Act
@@ -61,7 +64,7 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 	@Test
 	void createInstance_withNullSnsClient_reportsError() throws Exception {
 		// Assert
-		assertThatThrownBy(() -> new NotificationHandlerMethodArgumentResolverFactoryBean(null))
+		assertThatThrownBy(() -> new NotificationHandlerMethodArgumentResolverFactoryBean(null, null))
 				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not be null");
 
 	}
