@@ -29,6 +29,22 @@
 	<name>Spring Cloud AWS Integration Tests</name>
 	<description>Spring Cloud AWS Integration Tests</description>
 
+	<!--
+	force 2.6.3 version instead of one resolved by spring-cloud-build.
+	perhaps there is a better place to do it
+	-->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>2.6.3</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
