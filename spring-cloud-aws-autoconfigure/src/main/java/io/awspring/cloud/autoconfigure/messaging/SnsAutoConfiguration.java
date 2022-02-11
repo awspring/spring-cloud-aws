@@ -93,7 +93,7 @@ public class SnsAutoConfiguration {
 			return new SnsMessageManager();
 		}
 		else {
-			return new SnsMessageManager(regionProvider.getRegion().toString());
+			return new SnsMessageManager(regionProvider.getRegion().getName());
 		}
 	}
 
