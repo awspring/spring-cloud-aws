@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SqsTest
-class SqsTestNoListenersDefinedTest {
+class SqsTestNoListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	private static final Class<?>[] EXPECTED_AUTOCONFIGURATION_CLASSES = { SqsAutoConfiguration.class,
 			JacksonAutoConfiguration.class, ContextRegionProviderAutoConfiguration.class,

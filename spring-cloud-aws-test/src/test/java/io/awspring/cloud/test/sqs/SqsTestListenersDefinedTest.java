@@ -16,36 +16,21 @@
 
 package io.awspring.cloud.test.sqs;
 
-import java.io.IOException;
-
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 @SqsTest(listeners = SqsSampleListener.class, properties = { "cloud.aws.credentials.access-key=noop",
 		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=eu-west-1" })
-@Testcontainers
-class SqsTestListenersDefinedTest {
-
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(true);
+class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	@Autowired
 	private ApplicationContext ctx;
@@ -55,18 +40,6 @@ class SqsTestListenersDefinedTest {
 
 	@MockBean
 	private SampleComponent sampleComponent;
-
-	@BeforeAll
-	static void beforeAll() throws IOException, InterruptedException {
-		// create needed queues in SQS
-		localstack.execInContainer("awslocal", "sqs", "create-queue", "--queue-name", QUEUE_NAME);
-	}
-
-	@DynamicPropertySource
-	static void registerSqsProperties(DynamicPropertyRegistry registry) {
-		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("cloud.aws.sqs.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
-	}
 
 	@Test
 	void createsQueueMessagingTemplate() {
