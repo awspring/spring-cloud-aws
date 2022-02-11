@@ -36,7 +36,8 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
-@SqsTest
+@SqsTest(properties = { "cloud.aws.credentials.access-key=noop", "cloud.aws.credentials.secret-key=noop",
+		"cloud.aws.region.static=eu-west-1" })
 @Testcontainers
 class SqsSampleApplicationTests {
 
