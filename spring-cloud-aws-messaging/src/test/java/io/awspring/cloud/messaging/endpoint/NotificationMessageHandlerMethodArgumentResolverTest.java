@@ -34,11 +34,10 @@ import static org.mockito.Mockito.when;
 
 class NotificationMessageHandlerMethodArgumentResolverTest {
 
-	private static final SnsMessageManager snsMessageManager = new SnsMessageManager("eu-east-1");
-
 	@Test
 	void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
 		// Arrange
+		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver(
 				snsMessageManager);
 
@@ -83,6 +82,7 @@ class NotificationMessageHandlerMethodArgumentResolverTest {
 	@Test
 	void supportsParameter_withIntegerParameterType_shouldReturnFalse() throws Exception {
 		// Arrange
+		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver(
 				snsMessageManager);
 		MethodParameter methodParameter = new MethodParameter(
@@ -99,6 +99,7 @@ class NotificationMessageHandlerMethodArgumentResolverTest {
 	@Test
 	void resolveArgument_notificationMessageTypeWithSubject_reportsErrors_failsVerification() throws Exception {
 		// Arrange
+		SnsMessageManager snsMessageManager = new SnsMessageManager("eu-east-1");
 		NotificationMessageHandlerMethodArgumentResolver resolver = new NotificationMessageHandlerMethodArgumentResolver(
 				snsMessageManager);
 
