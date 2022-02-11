@@ -19,6 +19,9 @@ package io.awspring.cloud.test.sqs;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * A sample application used in integration tests.
+ */
 @SpringBootApplication
 public class SqsTestApplication {
 
