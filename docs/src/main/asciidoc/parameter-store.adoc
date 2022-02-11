@@ -111,9 +111,12 @@ From Spring Cloud AWS 2.3.0 onwards, the Parameter Store Configuration module ad
 https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[Spring Boot's (2.4.0+) application config import feature]
  to load Parameter Store values into a Spring application's Environment.
 
-*Note* - This is the recommended approach for importing Parameter Store values from Spring Cloud AWS 2.3.0 onwards.
+[NOTE]
+====
+This is the recommended approach for importing Parameter Store values from Spring Cloud AWS 2.3.0 onwards.
 Using the module's Spring Cloud bootstrap PropertySource is now considered a legacy approach, and support for it will
 be withdrawn in Spring Cloud AWS 3.0.
+====
 
 Importing Parameter Store values using this mechanism is enabled by using Boot's `spring.config.import` application
 config property with a prefix of `aws-parameterstore:`, and optionally specifying a list of the names of parameters to
