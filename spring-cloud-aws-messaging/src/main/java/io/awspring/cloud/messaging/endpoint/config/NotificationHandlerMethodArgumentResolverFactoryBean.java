@@ -19,6 +19,7 @@ package io.awspring.cloud.messaging.endpoint.config;
 import com.amazonaws.services.sns.AmazonSNS;
 
 import com.amazonaws.services.sns.message.SnsMessageManager;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
