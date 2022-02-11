@@ -18,6 +18,7 @@ package io.awspring.cloud.messaging.endpoint.config;
 
 import com.amazonaws.services.sns.AmazonSNS;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -32,10 +33,11 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 		extends AbstractFactoryBean<HandlerMethodArgumentResolver> {
 
 	private final AmazonSNS amazonSns;
-
-	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
+	private final SnsMessageManager snsMessageManager;
+	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns, SnsMessageManager snsMessageManager) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
 		this.amazonSns = amazonSns;
+		this.snsMessageManager = snsMessageManager;
 	}
 
 	@Override
@@ -45,7 +47,7 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 
 	@Override
 	protected HandlerMethodArgumentResolver createInstance() throws Exception {
-		return getNotificationHandlerMethodArgumentResolver(this.amazonSns);
+		return getNotificationHandlerMethodArgumentResolver(this.amazonSns, snsMessageManager);
 	}
 
 }
