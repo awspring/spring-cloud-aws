@@ -113,7 +113,7 @@ class NotificationMessageHandlerMethodArgumentResolverTest {
 		// Assert
 		assertThatThrownBy(() -> resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest),
 				null)).isInstanceOf(SdkClientException.class).hasMessageContaining(
-						"igningCertUrl does not match expected endpoint. Expected sns.eu-east-1.amazonaws.com but received endpoint was sns.eu-west-1.amazonaws.com.");
+						"SigningCertUrl does not match expected endpoint. Expected sns.eu-east-1.amazonaws.com but received endpoint was sns.eu-west-1.amazonaws.com.");
 	}
 
 }
