@@ -23,6 +23,7 @@ import java.util.List;
 
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import org.apache.commons.logging.Log;
+import org.springframework.context.ConfigurableApplicationContext;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
@@ -106,9 +107,12 @@ public class SecretsManagerConfigDataLocationResolver
 			BootstrapRegistry.InstanceSupplier<T> supplier) {
 		registerBean(context, type, supplier);
 		context.getBootstrapContext().addCloseListener(event -> {
+			String name = "configData" + type.getSimpleName();
 			T instance = event.getBootstrapContext().get(type);
-			event.getApplicationContext().getBeanFactory().registerSingleton("configData" + type.getSimpleName(),
-					instance);
+			ConfigurableApplicationContext appContext = event.getApplicationContext();
+			if (!appContext.getBeanFactory().containsBean(name)) {
+				event.getApplicationContext().getBeanFactory().registerSingleton(name, instance);
+			}
 		});
 	}
 

@@ -24,6 +24,7 @@ import java.util.List;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -99,9 +100,12 @@ public class ParameterStoreConfigDataLocationResolver
 			BootstrapRegistry.InstanceSupplier<T> supplier) {
 		registerBean(context, type, supplier);
 		context.getBootstrapContext().addCloseListener(event -> {
+			String name = "configData" + type.getSimpleName();
 			T instance = event.getBootstrapContext().get(type);
-			event.getApplicationContext().getBeanFactory().registerSingleton("configData" + type.getSimpleName(),
-					instance);
+			ConfigurableApplicationContext appContext = event.getApplicationContext();
+			if (!appContext.getBeanFactory().containsBean(name)) {
+				event.getApplicationContext().getBeanFactory().registerSingleton(name, instance);
+			}
 		});
 	}
 
