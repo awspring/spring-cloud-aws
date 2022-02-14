@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.message.SnsMessageManager;
@@ -28,6 +29,8 @@ import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
 import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
 import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,6 +62,8 @@ import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMet
 @ConditionalOnProperty(name = "cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SnsAutoConfiguration.class);
+
 	private final AWSCredentialsProvider awsCredentialsProvider;
 
 	private final RegionProvider regionProvider;
@@ -89,7 +94,10 @@ public class SnsAutoConfiguration {
 	public SnsMessageManager snsMessageManager(SnsProperties snsProperties) {
 		// when used with localstack what should be verification region?
 		if (snsProperties.getEndpoint() != null || regionProvider == null) {
-			return new SnsMessageManager();
+			String defaultRegion = Regions.DEFAULT_REGION.getName();
+			LOGGER.warn(
+					"RegionProvider bean not configured. Configuring SnsMessageManager with region " + defaultRegion);
+			return new SnsMessageManager(defaultRegion);
 		}
 		else {
 			return new SnsMessageManager(regionProvider.getRegion().getName());
