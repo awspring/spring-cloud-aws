@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sqs.sample;
+package io.awspring.cloud.test.sqs;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Component;
 
-@SpringBootApplication
-public class SqsSampleApplication {
+@Component
+class SampleComponent {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SqsSampleApplication.class, args);
+	void save(String message) {
+
 	}
 
 }

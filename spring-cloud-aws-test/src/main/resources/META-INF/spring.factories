@@ -1,0 +1,5 @@
+io.awspring.cloud.test.sqs.AutoConfigureSqs=\
+org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration,\
+io.awspring.cloud.autoconfigure.messaging.SqsAutoConfiguration,\
+io.awspring.cloud.autoconfigure.context.ContextRegionProviderAutoConfiguration,\
+io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration

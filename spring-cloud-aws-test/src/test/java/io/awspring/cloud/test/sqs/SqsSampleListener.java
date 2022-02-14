@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sqs.sample;
+package io.awspring.cloud.test.sqs;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 
-@SpringBootApplication
-public class SqsSampleApplication {
+import org.springframework.stereotype.Component;
 
-	public static void main(String[] args) {
-		SpringApplication.run(SqsSampleApplication.class, args);
+@Component
+class SqsSampleListener {
+
+	static final String QUEUE_NAME = "my-queue";
+
+	private final SampleComponent sampleComponent;
+
+	SqsSampleListener(SampleComponent sampleComponent) {
+		this.sampleComponent = sampleComponent;
+	}
+
+	@SqsListener(QUEUE_NAME)
+	void handle(String message) {
+		sampleComponent.save(message);
 	}
 
 }

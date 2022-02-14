@@ -16,14 +16,25 @@
 
 package io.awspring.cloud.sqs.sample;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.awspring.cloud.messaging.listener.annotation.SqsListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@SpringBootApplication
-public class SqsSampleApplication {
+import org.springframework.stereotype.Component;
 
-	public static void main(String[] args) {
-		SpringApplication.run(SqsSampleApplication.class, args);
+@Component
+class SampleListener {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SampleListener.class);
+
+	@SqsListener("InfrastructureStack-spring-aws")
+	public void listenToMessage(String message) {
+		LOGGER.info("This is message you want to see: {}", message);
+	}
+
+	@SqsListener("InfrastructureStack-aws-pojo")
+	public void listenToPerson(Person person) {
+		LOGGER.info(person.toString());
 	}
 
 }

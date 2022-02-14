@@ -71,6 +71,7 @@
 		<module>spring-cloud-aws-integration-test</module>
 		<module>docs</module>
 		<module>spring-cloud-aws-samples</module>
+		<module>spring-cloud-aws-test</module>
 		</modules>
 
 	<dependencyManagement>
@@ -104,6 +105,13 @@
 						<artifactId>activation</artifactId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>1.16.3</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
