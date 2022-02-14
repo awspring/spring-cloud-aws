@@ -36,16 +36,16 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 
 	private final AmazonSNS amazonSns;
 
-	private final Optional<SnsMessageManager> snsMessageManager;
+	private final SnsMessageManager snsMessageManager;
 
 	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
-		this.amazonSns = amazonSns;
-		this.snsMessageManager = Optional.empty();
+		this.amazonSns = null;
+		snsMessageManager = null;
 	}
 
 	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns,
-			Optional<SnsMessageManager> snsMessageManager) {
+			SnsMessageManager snsMessageManager) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
 		this.amazonSns = amazonSns;
 		this.snsMessageManager = snsMessageManager;
@@ -58,7 +58,7 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 
 	@Override
 	protected HandlerMethodArgumentResolver createInstance() throws Exception {
-		return getNotificationHandlerMethodArgumentResolver(this.amazonSns, snsMessageManager);
+		return getNotificationHandlerMethodArgumentResolver(this.amazonSns, Optional.ofNullable(snsMessageManager));
 	}
 
 }

@@ -16,8 +16,6 @@
 
 package io.awspring.cloud.messaging.endpoint.config;
 
-import java.util.Optional;
-
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.message.SnsMessageManager;
 import org.junit.jupiter.api.Test;
@@ -37,8 +35,7 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
-		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns,
-				Optional.of(snsMessageManager));
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns, snsMessageManager);
 
 		// Act
 		Class<HandlerMethodArgumentResolver> type = factoryBean.getObjectType();
@@ -53,8 +50,7 @@ class NotificationHandlerMethodArgumentResolverFactoryBeanTest {
 		AmazonSNS amazonSns = mock(AmazonSNS.class);
 		SnsMessageManager snsMessageManager = mock(SnsMessageManager.class);
 		NotificationHandlerMethodArgumentResolverFactoryBean factoryBean;
-		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns,
-				Optional.of(snsMessageManager));
+		factoryBean = new NotificationHandlerMethodArgumentResolverFactoryBean(amazonSns, snsMessageManager);
 		factoryBean.afterPropertiesSet();
 
 		// Act

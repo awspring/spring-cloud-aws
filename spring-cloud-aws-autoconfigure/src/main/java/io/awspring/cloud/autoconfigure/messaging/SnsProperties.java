@@ -32,13 +32,13 @@ public class SnsProperties extends AwsClientProperties {
 	 * Property which defines will SNS massages use verification or not. By default
 	 * verification is used.
 	 */
-	private Boolean verification = Boolean.TRUE;
+	private boolean verification = true;
 
-	public Boolean getVerification() {
+	public boolean getVerification() {
 		return verification;
 	}
 
-	public void setVerification(Boolean verification) {
+	public void setVerification(boolean verification) {
 		this.verification = verification;
 	}
 
