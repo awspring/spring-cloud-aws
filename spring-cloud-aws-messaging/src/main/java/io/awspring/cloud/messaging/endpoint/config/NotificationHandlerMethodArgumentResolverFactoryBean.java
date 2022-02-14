@@ -16,6 +16,8 @@
 
 package io.awspring.cloud.messaging.endpoint.config;
 
+import java.util.Optional;
+
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.message.SnsMessageManager;
 
@@ -34,18 +36,17 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 
 	private final AmazonSNS amazonSns;
 
-	private final SnsMessageManager snsMessageManager;
+	private final Optional<SnsMessageManager> snsMessageManager;
 
 	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
 		this.amazonSns = amazonSns;
-		this.snsMessageManager = null;
+		this.snsMessageManager = Optional.empty();
 	}
 
 	public NotificationHandlerMethodArgumentResolverFactoryBean(AmazonSNS amazonSns,
-			SnsMessageManager snsMessageManager) {
+			Optional<SnsMessageManager> snsMessageManager) {
 		Assert.notNull(amazonSns, "AmazonSns must not be null");
-		Assert.notNull(amazonSns, "SnsMessageManager must not be null");
 		this.amazonSns = amazonSns;
 		this.snsMessageManager = snsMessageManager;
 	}

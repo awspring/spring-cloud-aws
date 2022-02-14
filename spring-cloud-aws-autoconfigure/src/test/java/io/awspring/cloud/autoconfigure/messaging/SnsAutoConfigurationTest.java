@@ -105,6 +105,15 @@ class SnsAutoConfigurationTest {
 	}
 
 	@Test
+	void disableSnsVerification() {
+		this.contextRunner.withPropertyValues("cloud.aws.sns.verification:false").run(context -> {
+			assertThat(context).doesNotHaveBean(SnsMessageManager.class);
+			assertThat(context).hasSingleBean(AmazonSNS.class);
+			assertThat(context).hasSingleBean(AmazonSNSClient.class);
+		});
+	}
+
+	@Test
 	void enableSns_withCustomAmazonSnsClient_shouldBeUsedByTheArgumentResolver() throws Exception {
 		// Arrange & Act
 		this.contextRunner.withUserConfiguration(SnsConfigurationWithCustomAmazonClient.class).run((context) -> {

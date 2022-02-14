@@ -89,6 +89,7 @@ public class SnsAutoConfiguration {
 		return clientFactoryBean;
 	}
 
+	@ConditionalOnProperty(name = "cloud.aws.sns.verification", havingValue = "true", matchIfMissing = true)
 	@ConditionalOnMissingAmazonClient(SnsMessageManager.class)
 	@Bean
 	public SnsMessageManager snsMessageManager(SnsProperties snsProperties) {
@@ -109,7 +110,8 @@ public class SnsAutoConfiguration {
 	static class SnsWebConfiguration {
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns, SnsMessageManager snsMessageManager) {
+		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns,
+				Optional<SnsMessageManager> snsMessageManager) {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
