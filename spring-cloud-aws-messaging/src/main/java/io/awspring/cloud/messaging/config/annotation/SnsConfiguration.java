@@ -22,8 +22,6 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
 import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
 import io.awspring.cloud.core.region.RegionProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -38,8 +36,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @Deprecated
 public class SnsConfiguration {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SnsConfiguration.class);
 
 	private final AWSCredentialsProvider awsCredentialsProvider;
 
