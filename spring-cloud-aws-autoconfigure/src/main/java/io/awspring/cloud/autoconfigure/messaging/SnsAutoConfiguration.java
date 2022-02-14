@@ -36,6 +36,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -90,11 +91,10 @@ public class SnsAutoConfiguration {
 	}
 
 	@ConditionalOnProperty(name = "cloud.aws.sns.verification", havingValue = "true", matchIfMissing = true)
-	@ConditionalOnMissingAmazonClient(SnsMessageManager.class)
+	@ConditionalOnMissingBean(SnsMessageManager.class)
 	@Bean
 	public SnsMessageManager snsMessageManager(SnsProperties snsProperties) {
-		// when used with localstack what should be verification region?
-		if (snsProperties.getEndpoint() != null || regionProvider == null) {
+		if (regionProvider == null) {
 			String defaultRegion = Regions.DEFAULT_REGION.getName();
 			LOGGER.warn(
 					"RegionProvider bean not configured. Configuring SnsMessageManager with region " + defaultRegion);

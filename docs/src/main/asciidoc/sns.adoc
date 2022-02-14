@@ -104,6 +104,14 @@ SNS sends three type of requests to an HTTP topic listener endpoint, for each of
 * Notification request -> `@NotificationMessageMapping`
 * Unsubscription request -> `@NotificationUnsubscribeMapping`
 
+[NOTE]
+====
+Since 2.4.0 verification has been introduced for Notification request and is turned on by default. Verification is using same region as SNSClient is.
+To turn off verification simply set property 'cloud.aws.sns.verification=false'.
+With Localstack verification won't work, so you have to set property to 'false' if you want `@NotificationMessageMapping` to work properly.
+For more information about SNS verification https://docs.awspring.io/spring-cloud-aws/docs/2.3.3/reference/html/index.html [here].
+====
+
 HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract
 the message and subject out of the notification requests.
 
