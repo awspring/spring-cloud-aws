@@ -38,7 +38,7 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 	}
 
 	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns,
-			 Optional<SnsMessageManager> snsMessageManager) {
+			Optional<SnsMessageManager> snsMessageManager) {
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
 		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
 		if (snsMessageManager.isPresent()) {
