@@ -44,6 +44,7 @@
 |cloud.aws.sns.enabled | `true` | Enables SNS integration.
 |cloud.aws.sns.endpoint |  | 
 |cloud.aws.sns.region |  | 
+|cloud.aws.sns.verification | `true` | Defines if SNS massages will be verified. By default, verification is used.
 |cloud.aws.sqs.enabled | `true` | Enables SQS integration.
 |cloud.aws.sqs.endpoint |  | 
 |cloud.aws.sqs.handler.default-deletion-policy |  | Configures global deletion policy used if deletion policy is not explicitly set on {@link SqsListener}.

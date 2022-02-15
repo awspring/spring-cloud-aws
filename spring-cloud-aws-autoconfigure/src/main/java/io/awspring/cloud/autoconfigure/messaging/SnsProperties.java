@@ -29,8 +29,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class SnsProperties extends AwsClientProperties {
 
 	/**
-	 * Property which defines will SNS massages use verification or not. By default
-	 * verification is used.
+	 * Defines if SNS massages will be verified. By default, verification is used.
 	 */
 	private boolean verification = true;
 
