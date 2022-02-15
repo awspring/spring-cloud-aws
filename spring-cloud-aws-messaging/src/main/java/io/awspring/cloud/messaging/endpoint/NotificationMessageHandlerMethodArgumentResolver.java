@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.messaging.config.annotation.NotificationMessage;
 
@@ -35,21 +36,29 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli
+ * @author Manuel Wessner
+ * @author Matej Nedic
  */
 public class NotificationMessageHandlerMethodArgumentResolver
 		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	private final List<HttpMessageConverter<?>> messageConverter;
 
-	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
+	private final SnsMessageManager snsMessageManager;
+
+	public NotificationMessageHandlerMethodArgumentResolver(SnsMessageManager snsMessageManager) {
+		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()),
+				snsMessageManager);
 	}
 
-	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
+	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter,
+			SnsMessageManager snsMessageManager) {
+		this.snsMessageManager = snsMessageManager;
 		this.messageConverter = messageConverter;
 	}
 
@@ -81,7 +90,9 @@ public class NotificationMessageHandlerMethodArgumentResolver
 
 		MediaType mediaType = getMediaType(content);
 		String messageContent = content.findPath("Message").asText();
-
+		if (snsMessageManager != null && content.has("SignatureVersion")) {
+			verifySignature(content.toString());
+		}
 		for (HttpMessageConverter<?> converter : this.messageConverter) {
 			if (converter.canRead(parameterType, mediaType)) {
 				try {
@@ -97,6 +108,16 @@ public class NotificationMessageHandlerMethodArgumentResolver
 
 		throw new HttpMessageNotReadableException(
 				"Error converting notification message with payload:" + messageContent);
+	}
+
+	private void verifySignature(String payload) {
+		try (InputStream messageStream = new ByteArrayInputStream(payload.getBytes())) {
+			// Unmarshalling the message is not needed, but also done here
+			snsMessageManager.parseMessage(messageStream);
+		}
+		catch (IOException e) {
+			throw new MessageConversionException("Issue while verifying signature of Payload: '" + payload + "'", e);
+		}
 	}
 
 	private static final class ByteArrayHttpInputMessage implements HttpInputMessage {

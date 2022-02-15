@@ -21,17 +21,22 @@ import java.util.Optional;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
 import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
 import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -49,12 +54,16 @@ import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMet
  * @author Alain Sahli
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Manuel Wessner
+ * @author Matej Nedic
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(AmazonSNS.class)
 @EnableConfigurationProperties(SnsProperties.class)
 @ConditionalOnProperty(name = "cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SnsAutoConfiguration.class);
 
 	private final AWSCredentialsProvider awsCredentialsProvider;
 
@@ -81,16 +90,32 @@ public class SnsAutoConfiguration {
 		return clientFactoryBean;
 	}
 
+	@ConditionalOnProperty(name = "cloud.aws.sns.verification", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnMissingBean(SnsMessageManager.class)
+	@Bean
+	public SnsMessageManager snsMessageManager(SnsProperties snsProperties) {
+		if (regionProvider == null) {
+			String defaultRegion = Regions.DEFAULT_REGION.getName();
+			LOGGER.warn(
+					"RegionProvider bean not configured. Configuring SnsMessageManager with region " + defaultRegion);
+			return new SnsMessageManager(defaultRegion);
+		}
+		else {
+			return new SnsMessageManager(regionProvider.getRegion().getName());
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(WebMvcConfigurer.class)
 	static class SnsWebConfiguration {
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
+		public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns,
+				Optional<SnsMessageManager> snsMessageManager) {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-					resolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
+					resolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns, snsMessageManager));
 				}
 			};
 		}

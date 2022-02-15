@@ -30,6 +30,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 
+import static io.awspring.cloud.messaging.core.TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER;
+
 @SpringBootApplication
 public class SpringSNSSample {
 
@@ -48,11 +50,11 @@ public class SpringSNSSample {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
-		this.notificationMessagingTemplate.send("snsSpring",
-				MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!").build());
+		this.notificationMessagingTemplate.send("snsSpring", MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
+				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Message subject").build());
 	}
 
-	@SqsListener("InfrastructureStack-spring-aws")
+	@SqsListener("SnsSampleAppStack-spring-aws")
 	private void listenToMessage(GenericMessage message) {
 		LOGGER.info("This is message you want to see: {}", message.getPayload());
 	}

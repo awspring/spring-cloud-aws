@@ -28,4 +28,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "cloud.aws.sns")
 public class SnsProperties extends AwsClientProperties {
 
+	/**
+	 * Defines if SNS massages will be verified. By default, verification is used.
+	 */
+	private boolean verification = true;
+
+	public boolean getVerification() {
+		return verification;
+	}
+
+	public void setVerification(boolean verification) {
+		this.verification = verification;
+	}
+
 }

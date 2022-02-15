@@ -17,8 +17,10 @@
 package io.awspring.cloud.messaging.config.annotation;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.context.annotation.ConditionalOnClass;
 
 import org.springframework.context.annotation.Bean;
@@ -37,11 +39,11 @@ import static io.awspring.cloud.messaging.endpoint.config.NotificationHandlerMet
 public class SnsWebConfiguration {
 
 	@Bean
-	public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns) {
+	public WebMvcConfigurer snsWebMvcConfigurer(AmazonSNS amazonSns, Optional<SnsMessageManager> snsMessageManager) {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-				argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns));
+				argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(amazonSns, snsMessageManager));
 			}
 		};
 	}

@@ -16,6 +16,6 @@ export class InfrastructureStack extends cdk.Stack {
 
     topic.addSubscription(new subs.SqsSubscription(queue));
     //URL from NGROK goes here
-    topic.addSubscription(new subs.UrlSubscription('http://1745bc39a0ae.ngrok.io/testTopic'));
+    topic.addSubscription(new subs.UrlSubscription('https://5d50-2a02-8109-8380-c8c-d911-1af7-8ab6-35e1.ngrok.io/testTopic'));
   }
 }

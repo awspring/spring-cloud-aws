@@ -16,7 +16,10 @@
 
 package io.awspring.cloud.messaging.endpoint.config;
 
+import java.util.Optional;
+
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.messaging.endpoint.NotificationMessageHandlerMethodArgumentResolver;
 import io.awspring.cloud.messaging.endpoint.NotificationStatusHandlerMethodArgumentResolver;
 import io.awspring.cloud.messaging.endpoint.NotificationSubjectHandlerMethodArgumentResolver;
@@ -34,10 +37,16 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns) {
+	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(AmazonSNS amazonSns,
+			Optional<SnsMessageManager> snsMessageManager) {
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
 		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(amazonSns));
-		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
+		if (snsMessageManager.isPresent()) {
+			composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver(snsMessageManager.get()));
+		}
+		else {
+			composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver(null));
+		}
 		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
 		return composite;
 	}
