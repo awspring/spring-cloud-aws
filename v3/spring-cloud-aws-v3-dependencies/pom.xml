@@ -13,7 +13,7 @@
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-v3-dependencies</artifactId>
-	<version>2.3.0-RC2</version>
+	<version>2.4.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<dependencyManagement>
