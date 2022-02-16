@@ -82,6 +82,10 @@ public class ParameterStoreConfigDataLocationResolver
 		contexts.forEach(propertySourceContext -> locations
 				.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
+		if (!location.isOptional() && locations.isEmpty()) {
+			throw new ParameterStoreKeysMissingException(
+					"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
+		}
 		return locations;
 	}
 
