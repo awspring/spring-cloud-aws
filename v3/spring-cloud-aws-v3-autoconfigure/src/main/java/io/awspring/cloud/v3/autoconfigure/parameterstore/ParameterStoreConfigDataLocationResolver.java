@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -53,8 +51,6 @@ public class ParameterStoreConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private final Log log = LogFactory.getLog(ParameterStoreConfigDataLocationResolver.class);
-
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		if (!location.hasPrefix(PREFIX)) {
@@ -78,7 +74,7 @@ public class ParameterStoreConfigDataLocationResolver
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
-		ParameterStorePropertySources sources = new ParameterStorePropertySources(log);
+		ParameterStorePropertySources sources = new ParameterStorePropertySources();
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
@@ -96,6 +92,11 @@ public class ParameterStoreConfigDataLocationResolver
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Since hook can be activated more then one time, ApplicationContext needs to be
+	 * checked if bean is already registered to prevent Exception. See issue #108 for more
+	 * information.
+	 */
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
 			BootstrapRegistry.InstanceSupplier<T> supplier) {
 		registerBean(context, type, supplier);

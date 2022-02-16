@@ -20,8 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -35,11 +35,14 @@ import org.springframework.core.env.EnumerablePropertySource;
  *
  * @author Joris Kuipers
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  * @since 2.0.0
  */
 public class ParameterStorePropertySource extends EnumerablePropertySource<SsmClient> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ParameterStorePropertySource.class);
+	// logger must stay static non-final so that it can be set with a value in
+	// ParameterStoreConfigDataLoader
+	private static Log LOG = LogFactory.getLog(ParameterStorePropertySource.class);
 
 	private final String context;
 
@@ -71,7 +74,7 @@ public class ParameterStorePropertySource extends EnumerablePropertySource<SsmCl
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
 			String key = parameter.name().replace(this.context, "").replace('/', '.');
-			LOGGER.debug("Populating property retrieved from AWS Parameter Store: {}", key);
+			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 			this.properties.put(key, parameter.value());
 		}
 		if (paramsResult.nextToken() != null) {
