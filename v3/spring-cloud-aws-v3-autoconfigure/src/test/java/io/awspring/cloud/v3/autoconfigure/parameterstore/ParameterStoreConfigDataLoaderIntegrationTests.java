@@ -16,23 +16,62 @@
 
 package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
+import java.io.IOException;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.annotation.UserConfigurations;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
+
+@Testcontainers
 class ParameterStoreConfigDataLoaderIntegrationTests {
 
-	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(UserConfigurations.of(App.class));
+	private static final String REGION = "us-east-1";
+
+	@Container
+	static LocalStackContainer localstack = new LocalStackContainer(
+			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SSM).withReuse(true);
+
+	@BeforeAll
+	static void beforeAll() {
+		putParameter(localstack, "/config/spring/message", "value from tests", REGION);
+		putParameter(localstack, "/config/spring/another-parameter", "another parameter value", REGION);
+	}
 
 	@Test
-	void test() {
-		contextRunner.withPropertyValues("aws-parameterstore:/config/spring/").run(ctx -> {
-			ctx.getEnvironment().getPropertySources().forEach(System.out::println);
-			System.out.println(ctx.getEnvironment().getProperty("foo"));
-		});
+	void resolvesPropertyFromParameterStore() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString())) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,
+			String region) {
+		try {
+			localstack.execInContainer("awslocal", "ssm", "put-parameter", "--name", parameterName, "--type", "String",
+					"--value", parameterValue, "--region", region);
+		}
+		catch (IOException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@SpringBootApplication
