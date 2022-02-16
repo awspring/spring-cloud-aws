@@ -34,7 +34,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
 @Testcontainers
@@ -58,10 +58,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run(
-				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.parameterstore.region=" + REGION,
-				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString())) {
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
@@ -73,9 +71,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-parameterstore:",
-				"--spring.cloud.aws.parameterstore.region=" + REGION,
-				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString())) {
+		try (ConfigurableApplicationContext context = runApplication(application, "aws-parameterstore:")) {
 			fail("Context without keys should fail to start");
 		}
 		catch (Exception e) {
@@ -85,6 +81,14 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			assertThat(output.getOut())
 					.contains("Description:\n" + "\n" + "Could not import properties from AWS Parameter Store");
 		}
+	}
+
+	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
+		return application.run("--spring.config.import=" + springConfigImport,
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1");
 	}
 
 	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,
