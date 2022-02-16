@@ -55,20 +55,23 @@ public class CredentialsProviderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsCredentialsProvider credentialsProvider() {
+		return createCredentialsProvider(this.properties);
+	}
+
+	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
-		if (StringUtils.hasText(this.properties.getAccessKey())
-				&& StringUtils.hasText(this.properties.getSecretKey())) {
-			providers.add(createStaticCredentialsProvider());
+		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
+			providers.add(createStaticCredentialsProvider(properties));
 		}
 
-		if (this.properties.isInstanceProfile()) {
+		if (properties.isInstanceProfile()) {
 			providers.add(InstanceProfileCredentialsProvider.create());
 		}
 
-		Profile profile = this.properties.getProfile();
+		Profile profile = properties.getProfile();
 		if (profile != null && profile.getName() != null) {
-			providers.add(createProfileCredentialProvider());
+			providers.add(createProfileCredentialProvider(properties));
 		}
 
 		if (providers.isEmpty()) {
@@ -79,13 +82,13 @@ public class CredentialsProviderAutoConfiguration {
 		}
 	}
 
-	private StaticCredentialsProvider createStaticCredentialsProvider() {
+	private static StaticCredentialsProvider createStaticCredentialsProvider(CredentialsProperties properties) {
 		return StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(this.properties.getAccessKey(), this.properties.getSecretKey()));
+				.create(AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey()));
 	}
 
-	private ProfileCredentialsProvider createProfileCredentialProvider() {
-		Profile profile = this.properties.getProfile();
+	private static ProfileCredentialsProvider createProfileCredentialProvider(CredentialsProperties properties) {
+		Profile profile = properties.getProfile();
 		ProfileFile credentialProfileFile = ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS)
 				.content(Paths.get(profile.getPath())).build();
 		ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();

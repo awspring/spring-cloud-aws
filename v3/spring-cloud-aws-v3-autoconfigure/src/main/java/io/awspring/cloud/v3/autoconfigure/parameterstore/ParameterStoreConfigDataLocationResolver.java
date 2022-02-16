@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.autoconfigure.core.CredentialsProperties;
+import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -71,6 +73,8 @@ public class ParameterStoreConfigDataLocationResolver
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, CredentialsProperties.class,
+				loadCredentialsProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
@@ -126,6 +130,7 @@ public class ParameterStoreConfigDataLocationResolver
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
+		CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
@@ -134,12 +139,19 @@ public class ParameterStoreConfigDataLocationResolver
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
 		}
+		builder.credentialsProvider(
+				CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties));
 		return builder.build();
 	}
 
 	protected ParameterStoreProperties loadProperties(Binder binder) {
 		return binder.bind(ParameterStoreProperties.CONFIG_PREFIX, Bindable.of(ParameterStoreProperties.class))
 				.orElseGet(ParameterStoreProperties::new);
+	}
+
+	protected CredentialsProperties loadCredentialsProperties(Binder binder) {
+		return binder.bind(CredentialsProperties.PREFIX, Bindable.of(CredentialsProperties.class))
+				.orElseGet(CredentialsProperties::new);
 	}
 
 }
