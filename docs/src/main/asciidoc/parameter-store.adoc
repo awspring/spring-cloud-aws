@@ -1,8 +1,8 @@
 === Integrating your Spring Cloud application with the AWS Parameter Store
 
 Spring Cloud provides support for centralized configuration, which can be read and made available as a regular Spring
-`PropertySource` when the application is started. The Parameter Store Configuration allows you to use this mechanism
-with the https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store].
+`PropertySource` when the application is started. The Parameter Store Configuration module allows you to use this mechanism
+with https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store].
 
 Simply add a dependency on the `spring-cloud-starter-aws-parameter-store-config` starter module to activate the support.
 The support is similar to the support provided for the Spring Cloud Config Server or Consul's key-value store:
@@ -15,7 +15,7 @@ defaults to the configured `spring.application.name`. You can use both dots and 
 of configuration keys. Names of activated profiles will be appended to the path using a separator that defaults to an
 underscore.
 
-That means that for a service called `my-service` the module by default would find and use these parameters:
+That means that for a service called `my-service` the module by default would find and use the following parameters:
 [cols="3*", options="header"]
 |===
 |Parameter key
@@ -40,8 +40,9 @@ Can be overridden with a service-specific property.
 |Specific to the `my-service` service when a `production` Spring profile is activated.
 |===
 
-Note that this module does not support full configuration files to be used as parameter values like e.g. Spring Cloud Consul does:
-AWS parameter values are limited to 4096 characters, so we support individual Spring properties to be configured only.
+Note that this module does not support full configuration files to be used as parameter values like e.g. Spring Cloud
+Consul. AWS Parameter Store's Standard Parameter values are limited to 4096 characters, so we only support individual
+Spring properties being configured.
 
 You can configure the following settings in a Spring Cloud `bootstrap.properties` or `bootstrap.yml` file
 (note that relaxed property binding is applied, so you don't have to use this exact syntax):
@@ -105,7 +106,22 @@ enable it you need an additional dependency:
 </dependency>
 ----
 
-However, starting at `spring-cloud-aws` `2.3`, allows import default aws parameterstore keys
+==== Spring Boot Configuration Import Support
+From Spring Cloud AWS 2.3.0 onwards, the Parameter Store Configuration module additionally supports using
+https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[Spring Boot's (2.4.0+) application config import feature]
+ to load Parameter Store values into a Spring application's Environment.
+
+[NOTE]
+====
+This is the recommended approach for importing Parameter Store values from Spring Cloud AWS 2.3.0 onwards.
+Using the module's Spring Cloud bootstrap PropertySource is now considered a legacy approach, and support for it will
+be withdrawn in Spring Cloud AWS 3.0.
+====
+
+Importing Parameter Store values using this mechanism is enabled by using Boot's `spring.config.import` application
+config property with a prefix of `aws-parameterstore:`, and optionally specifying a list of the names of parameters to
+import. The table below provides examples of supported property values and describes their behaviour.
+
 [cols="2*", options="header"]
 |===
 |Property
@@ -118,10 +134,17 @@ However, starting at `spring-cloud-aws` `2.3`, allows import default aws paramet
 |Importing parameters by individual keys
 
 |`spring.config.import=optional:aws-parameterstore:config-key;other-config-key`
-|With `optional` application will start even if there is no parameter found for specified parameter.
+|When `optional` is used the application will start even if the specified parameter is not found.
+
+|`spring.config.import=optional:aws-parameterstore:other-config-key,aws-parameterstore:required-config-key`
+|Optional and required values can be separated by comma. List can be used as well.
 |===
 
-=== IAM Permissions
+Spring Boot 2.4 changed the ways files are loaded which means profile loading has changed for spring-cloud-aws as well.
+Link to Spring Boot reference docs about file specific loading: https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config-files-profile-specific[Reference Docs]
+Read more on the official: https://spring.io/blog/2020/08/14/config-file-processing-in-spring-boot-2-4[Spring Blog].
+
+==== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]

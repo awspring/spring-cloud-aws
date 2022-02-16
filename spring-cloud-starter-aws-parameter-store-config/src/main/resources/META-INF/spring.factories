@@ -8,3 +8,6 @@ io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreConfigDataLocationResolv
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
 io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreConfigDataLoader
+
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+io.awspring.cloud.autoconfigure.paramstore.AwsParamStoreValidationAnalyzer

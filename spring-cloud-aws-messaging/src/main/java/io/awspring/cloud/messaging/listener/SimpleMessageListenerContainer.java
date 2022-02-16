@@ -338,15 +338,9 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 							? groupByMessageGroupId(receiveMessageResult) : groupByMessage(receiveMessageResult);
 					CountDownLatch messageBatchLatch = new CountDownLatch(messageGroups.size());
 					for (MessageGroup messageGroup : messageGroups) {
-						if (isQueueRunning(this.logicalQueueName)) {
-							MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
-									messageGroup, this.queueAttributes);
-							getTaskExecutor()
-									.execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
-						}
-						else {
-							messageBatchLatch.countDown();
-						}
+						MessageGroupExecutor messageGroupExecutor = new MessageGroupExecutor(this.logicalQueueName,
+								messageGroup, this.queueAttributes);
+						getTaskExecutor().execute(new SignalExecutingRunnable(messageBatchLatch, messageGroupExecutor));
 					}
 					try {
 						messageBatchLatch.await();
@@ -373,8 +367,8 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 		private List<MessageGroup> groupByMessageGroupId(final ReceiveMessageResult receiveMessageResult) {
 			return receiveMessageResult.getMessages().stream()
-					.collect(Collectors.groupingBy(message -> message.getMessageAttributes()
-							.get(MessageSystemAttributeName.MessageGroupId.name())))
+					.collect(Collectors.groupingBy(
+							message -> message.getAttributes().get(MessageSystemAttributeName.MessageGroupId.name())))
 					.values().stream().map(MessageGroup::new).collect(Collectors.toList());
 		}
 
@@ -433,7 +427,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 					applyDeletionPolicyOnSuccess(receiptHandle);
 				}
 				catch (MessagingException messagingException) {
-					applyDeletionPolicyOnError(receiptHandle);
+					getLogger().warn("An exception occurred while handling message with id: {}", message.getMessageId(),
+							messagingException);
+					if (!applyDeletionPolicyOnError(receiptHandle)) {
+						break;
+					}
 				}
 			}
 		}
@@ -446,11 +444,13 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 			}
 		}
 
-		private void applyDeletionPolicyOnError(String receiptHandle) {
+		private boolean applyDeletionPolicyOnError(String receiptHandle) {
 			if (this.deletionPolicy == SqsMessageDeletionPolicy.ALWAYS
 					|| (this.deletionPolicy == SqsMessageDeletionPolicy.NO_REDRIVE && !this.hasRedrivePolicy)) {
 				deleteMessage(receiptHandle);
+				return true;
 			}
+			return false;
 		}
 
 		private void deleteMessage(String receiptHandle) {

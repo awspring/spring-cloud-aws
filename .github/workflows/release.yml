@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         version: [ 8.0.275.hs-adpt ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
@@ -33,20 +33,24 @@ jobs:
         with:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
-          server-id: bintray-awspring
-          server-username: BINTRAY_USERNAME
-          server-password: BINTRAY_PASSWORD
+          server-id: ossrh-awspring
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify -Pdocs
-      - name: Deploy to Bintray
-        run: ./mvnw -V deploy -DskipTests
+        run: ./mvnw -V verify javadoc:aggregate -Pdocs,spring
+      - name: Deploy to Sonatype
+        run: ./mvnw -V -Prelease deploy -DskipTests
         env:
-          BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
-          BINTRAY_PASSWORD: ${{ secrets.BINTRAY_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Upload to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
         run: |
           aws s3 sync --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws s3 sync --acl public-read target/site/ s3://awspring-docs/spring-cloud-aws/docs/
           aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"

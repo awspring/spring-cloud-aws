@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
 import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
 import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.QueueMessageHandler;
 import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
@@ -56,6 +57,7 @@ import static io.awspring.cloud.core.config.AmazonWebserviceClientConfigurationU
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
  *
  * @author Maciej Walkowiak
+ * @author Eddú Meléndez
  */
 @ConditionalOnClass(SimpleMessageListenerContainer.class)
 @ConditionalOnMissingBean(SimpleMessageListenerContainer.class)
@@ -100,7 +102,7 @@ public class SqsAutoConfiguration {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class SqsConfiguration {
 
 		private final SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory;
@@ -157,7 +159,8 @@ public class SqsAutoConfiguration {
 		}
 
 		@Bean
-		public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs) {
+		public SimpleMessageListenerContainer simpleMessageListenerContainer(AmazonSQSAsync amazonSqs,
+				QueueMessageHandler queueMessageHandler) {
 			if (this.simpleMessageListenerContainerFactory.getAmazonSqs() == null) {
 				this.simpleMessageListenerContainerFactory.setAmazonSqs(amazonSqs);
 			}
@@ -169,8 +172,19 @@ public class SqsAutoConfiguration {
 			SimpleMessageListenerContainer simpleMessageListenerContainer = this.simpleMessageListenerContainerFactory
 					.createSimpleMessageListenerContainer();
 
-			simpleMessageListenerContainer.setMessageHandler(queueMessageHandler(amazonSqs));
+			simpleMessageListenerContainer.setMessageHandler(queueMessageHandler);
 			return simpleMessageListenerContainer;
+		}
+
+		@Bean
+		@ConditionalOnMissingBean(QueueMessagingTemplate.class)
+		public QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSqs) {
+			if (objectMapper != null) {
+				return new QueueMessagingTemplate(amazonSqs, resourceIdResolver, objectMapper);
+			}
+			else {
+				return new QueueMessagingTemplate(amazonSqs, resourceIdResolver);
+			}
 		}
 
 		@Bean

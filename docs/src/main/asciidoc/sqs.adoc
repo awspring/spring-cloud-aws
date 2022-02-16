@@ -167,6 +167,35 @@ the application, a custom task executor can be set with the `task-executor` attr
 <aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
 ----
 
+==== FIFO queue support
+
+`AmazonSQSBufferedAsyncClient` that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues.
+To use FIFO queues with Spring Cloud SQS it is recommended to overwrite default SQS client bean with a custom one that is not based on `AmazonSQSBufferedAsyncClient`.
+For example:
+
+[source,java,index=0]
+----
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
+import io.awspring.cloud.core.region.RegionProvider;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AppConfig {
+
+	@Bean
+	AmazonSQSAsync amazonSQS(AWSCredentialsProvider awsCredentialsProvider, RegionProvider regionProvider,
+			ClientConfiguration clientConfiguration) {
+		return AmazonSQSAsyncClientBuilder.standard().withCredentials(awsCredentialsProvider)
+				.withClientConfiguration(clientConfiguration).withRegion(regionProvider.getRegion().getName()).build();
+	}
+}
+----
+
 ===== Deletion policies
 SQS integration supports deletion policies that are used when processing messages.
 Note that SQS messages that were not deleted successfully are logged as an error.
@@ -306,7 +335,7 @@ public void receive(S3EventNotification s3EventNotificationRecord) {
 }
 ----
 
-=== IAM Permissions
+==== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]

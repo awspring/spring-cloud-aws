@@ -22,10 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for {@link AwsSecretsManagerProperties}.
@@ -38,26 +36,23 @@ class AwsSecretsManagerPropertiesTest {
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
 	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-
-		properties.validate(properties, errors);
-
-		assertThat(errors.getFieldError(field)).isNotNull();
-		assertThat(errors.getFieldError(field).getCode()).isEqualTo(errorCode);
+		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
 	}
 
 	@ParameterizedTest
 	@MethodSource("validProperties")
 	void validationSucceeds(AwsSecretsManagerProperties properties) {
-		Errors errors = new BeanPropertyBindingResult(properties, "properties");
-		properties.validate(properties, errors);
-		assertThat(errors.getAllErrors()).isEmpty();
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec/test/var")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
@@ -68,7 +63,6 @@ class AwsSecretsManagerPropertiesTest {
 
 	private static Stream<Arguments> invalidProperties() {
 		return Stream.of(
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withDefaultContext("").build(), "defaultContext",
 						"NotEmpty"),

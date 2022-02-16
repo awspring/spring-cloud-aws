@@ -2,16 +2,16 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master, 2.3.x, 3.0.x ]
+    branches: [ master, 2.3.x, 2.4.x, 3.0.x ]
   pull_request:
-    branches: [ master, 2.3.x, 3.0.x ]
+    branches: [ master, 2.3.x, 2.4.x, 3.0.x ]
 
 jobs:
   build:
     name: "Test with ${{ matrix.version }}"
     strategy:
       matrix:
-        version: [ 8.0.282.hs-adpt ]
+        version: [ 8.0.312-tem, 11.0.13-tem, 17.0.1-tem ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

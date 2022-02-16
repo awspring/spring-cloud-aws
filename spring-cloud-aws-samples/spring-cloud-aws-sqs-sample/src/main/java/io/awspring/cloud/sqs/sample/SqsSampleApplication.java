@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,14 @@
 
 package io.awspring.cloud.sqs.sample;
 
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import io.awspring.cloud.messaging.listener.annotation.SqsListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.support.MessageBuilder;
 
 @SpringBootApplication
 public class SqsSampleApplication {
 
-	private final QueueMessagingTemplate queueMessagingTemplate;
-
-	@Autowired
-	public SqsSampleApplication(AmazonSQSAsync amazonSqs) {
-		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSqs);
-	}
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SqsSampleApplication.class);
-
 	public static void main(String[] args) {
 		SpringApplication.run(SqsSampleApplication.class, args);
-	}
-
-	@EventListener(ApplicationReadyEvent.class)
-	public void sendMessage() {
-		this.queueMessagingTemplate.send("InfrastructureStack-spring-aws",
-				MessageBuilder.withPayload("Spring cloud Aws SQS sample!").build());
-		this.queueMessagingTemplate.convertAndSend("InfrastructureStack-aws-pojo", new Person("Joe", "Doe"));
-	}
-
-	@SqsListener("InfrastructureStack-spring-aws")
-	private void listenToMessage(String message) {
-		LOGGER.info("This is message you want to see: {}", message);
-	}
-
-	@SqsListener("InfrastructureStack-aws-pojo")
-	private void listenToPerson(Person person) {
-		LOGGER.info(person.toString());
 	}
 
 }

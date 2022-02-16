@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.BootstrapRegistry;
@@ -41,8 +40,8 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 		String location = "aws-secretsmanager:";
 		List<AwsSecretsManagerConfigDataResource> locations = testResolveProfileSpecific(location);
 		assertThat(locations).hasSize(4);
-		assertThat(toContexts(locations)).containsExactly("/secret/testapp_dev", "/secret/testapp",
-				"/secret/application_dev", "/secret/application");
+		assertThat(toContexts(locations)).containsExactly("/secret/application", "/secret/application_dev",
+				"/secret/testapp", "/secret/testapp_dev");
 	}
 
 	@Test
@@ -69,7 +68,7 @@ class AwsSecretsManagerConfigDataLocationResolverTest {
 	}
 
 	private AwsSecretsManagerConfigDataLocationResolver createResolver() {
-		return new AwsSecretsManagerConfigDataLocationResolver(LogFactory.getLog("any")) {
+		return new AwsSecretsManagerConfigDataLocationResolver() {
 			@Override
 			public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
 				// do nothing

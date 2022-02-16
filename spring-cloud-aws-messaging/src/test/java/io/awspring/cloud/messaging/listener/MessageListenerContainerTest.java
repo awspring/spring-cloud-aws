@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
@@ -62,6 +63,34 @@ class MessageListenerContainerTest {
 
 		container.afterPropertiesSet();
 		assertThat(container.isActive()).isTrue();
+	}
+
+	@Test
+	void testAfterPropertiesSetIsLoggingWarnMessageIfFifoUsedWithAmazonSQSBufferedAsyncClient() throws Exception {
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
+		Logger loggerMock = container.getLogger();
+		AmazonSQSAsync sqsMock = mock(AmazonSQSBufferedAsyncClient.class, withSettings().stubOnly());
+
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		container.setAmazonSqs(sqsMock);
+		container.setMessageHandler(mock(QueueMessageHandler.class));
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("messageListener", FifoMessageListener.class);
+
+		messageHandler.setApplicationContext(applicationContext);
+
+		when(sqsMock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue.fifo")))
+				.thenReturn(new GetQueueUrlResult().withQueueUrl("http://testQueue.amazonaws.com"));
+		when(sqsMock.getQueueAttributes(any(GetQueueAttributesRequest.class)))
+				.thenReturn(new GetQueueAttributesResult());
+
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+
+		assertThat(container.isActive()).isTrue();
+		verify(loggerMock).warn(
+				"AmazonSQSBufferedAsyncClient that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues. Consider registering non-buffered AmazonSQSAsyncClient bean.");
 	}
 
 	@Test
@@ -460,6 +489,16 @@ class MessageListenerContainerTest {
 
 		@SuppressWarnings({ "UnusedDeclaration", "EmptyMethod" })
 		@SqsListener("testQueue")
+		void listenerMethod(String ignore) {
+
+		}
+
+	}
+
+	private static class FifoMessageListener {
+
+		@SuppressWarnings({ "UnusedDeclaration", "EmptyMethod" })
+		@SqsListener("testQueue.fifo")
 		void listenerMethod(String ignore) {
 
 		}
