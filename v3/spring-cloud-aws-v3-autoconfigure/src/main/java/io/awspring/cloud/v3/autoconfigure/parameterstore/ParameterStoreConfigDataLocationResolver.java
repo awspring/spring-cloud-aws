@@ -55,11 +55,7 @@ public class ParameterStoreConfigDataLocationResolver
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		if (!location.hasPrefix(PREFIX)) {
-			return false;
-		}
-		return context.getBinder().bind(ParameterStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
-				.orElse(true);
+		return location.hasPrefix(PREFIX);
 	}
 
 	@Override
