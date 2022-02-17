@@ -25,6 +25,8 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -41,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
@@ -107,6 +110,25 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			SsmClient clientFromContext = context.getBean(SsmClient.class);
 			assertThat(clientFromContext).isEqualTo(mockClient);
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from mock");
+		}
+	}
+
+	@Test
+	void credentialsProviderCanBeOverwrittenInBootstrapConfig() {
+		AwsCredentialsProvider mockCredentialsProvider = mock(AwsCredentialsProvider.class);
+		when(mockCredentialsProvider.resolveCredentials())
+				.thenReturn(AwsBasicCredentials.create("mock-key", "mock-secret"));
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(registry -> {
+			registry.register(AwsCredentialsProvider.class, ctx -> mockCredentialsProvider);
+		});
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring")) {
+			// perhaps there is a better way to verify that correct credentials provider
+			// is used by SSM client without using reflection?
+			verify(mockCredentialsProvider).resolveCredentials();
 		}
 	}
 

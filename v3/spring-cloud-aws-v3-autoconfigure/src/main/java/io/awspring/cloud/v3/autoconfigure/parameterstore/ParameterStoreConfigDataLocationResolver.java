@@ -24,6 +24,7 @@ import java.util.List;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -126,7 +127,17 @@ public class ParameterStoreConfigDataLocationResolver
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
-		CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+
+		AwsCredentialsProvider credentialsProvider;
+
+		try {
+			credentialsProvider = context.get(AwsCredentialsProvider.class);
+		}
+		catch (IllegalStateException e) {
+			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
+		}
+
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
@@ -135,8 +146,7 @@ public class ParameterStoreConfigDataLocationResolver
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
 		}
-		builder.credentialsProvider(
-				CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties));
+		builder.credentialsProvider(credentialsProvider);
 		return builder.build();
 	}
 
