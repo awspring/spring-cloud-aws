@@ -25,6 +25,10 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
+import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
+import software.amazon.awssdk.services.ssm.model.Parameter;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
@@ -35,6 +39,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
 @Testcontainers
@@ -80,6 +87,26 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			// error message
 			assertThat(output.getOut())
 					.contains("Description:\n" + "\n" + "Could not import properties from AWS Parameter Store");
+		}
+	}
+
+	@Test
+	void ssmClientCanBeOverwrittenInBootstrapConfig() {
+		SsmClient mockClient = mock(SsmClient.class);
+		when(mockClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder()
+						.parameters(Parameter.builder().name("message").value("value from mock").build()).build());
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(registry -> {
+			registry.register(SsmClient.class, ctx -> mockClient);
+		});
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring")) {
+			SsmClient clientFromContext = context.getBean(SsmClient.class);
+			assertThat(clientFromContext).isEqualTo(mockClient);
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from mock");
 		}
 	}
 
