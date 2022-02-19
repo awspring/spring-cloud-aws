@@ -23,6 +23,7 @@ import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,33 @@ class AwsParamStorePropertySourceTest {
 
 		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2", "key3", "key4");
 		assertThat(propertySource.getProperty("key3")).isEqualTo("value3");
+	}
+
+	@Test
+	void arrayParameterNames() {
+		GetParametersByPathResult result = new GetParametersByPathResult().withParameters(
+				new Parameter().withName("/config/myservice/key_0_.value").withValue("value1"),
+				new Parameter().withName("/config/myservice/key_0_.nested_0_.nestedValue")
+						.withValue("key_nestedValue1"),
+				new Parameter().withName("/config/myservice/key_0_.nested_1_.nestedValue")
+						.withValue("key_nestedValue2"),
+				new Parameter().withName("/config/myservice/key_1_.value").withValue("value2"),
+				new Parameter().withName("/config/myservice/key_1_.nested_0_.nestedValue")
+						.withValue("key_nestedValue1"),
+				new Parameter().withName("/config/myservice/key_1_.nested_1_.nestedValue")
+						.withValue("key_nestedValue2"));
+
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(result);
+
+		propertySource.init();
+
+		assertSoftly(it -> {
+			it.assertThat(propertySource.getPropertyNames()).containsExactly("key[0].value",
+					"key[0].nested[0].nestedValue", "key[0].nested[1].nestedValue", "key[1].value",
+					"key[1].nested[0].nestedValue", "key[1].nested[1].nestedValue");
+			it.assertThat(propertySource.getProperty("key[0].value")).isEqualTo("value1");
+			it.assertThat(propertySource.getProperty("key[1].nested[1].nestedValue")).isEqualTo("key_nestedValue2");
+		});
 	}
 
 }
