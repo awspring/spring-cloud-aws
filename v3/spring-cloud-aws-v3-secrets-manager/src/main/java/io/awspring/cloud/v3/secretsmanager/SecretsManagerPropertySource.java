@@ -23,6 +23,8 @@ import java.util.Set;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -40,6 +42,8 @@ import org.springframework.core.env.EnumerablePropertySource;
  * @since 2.0.0
  */
 public class SecretsManagerPropertySource extends EnumerablePropertySource<SecretsManagerClient> {
+
+	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -80,6 +84,7 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 					});
 
 			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
+				LOG.debug("Populating property retrieved from AWS Parameter Store: " + secretEntry.getKey());
 				properties.put(secretEntry.getKey(), secretEntry.getValue());
 			}
 		}

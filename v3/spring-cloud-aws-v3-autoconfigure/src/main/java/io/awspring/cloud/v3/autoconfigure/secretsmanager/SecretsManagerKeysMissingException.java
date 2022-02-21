@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.secretsmanager;
 
 /**
- * Thrown when configuration provided to ConfigDataLoader is missing parameter store keys,
- * for example `spring.config.import=aws-parameterstore:`.
+ * Thrown when configuration provided to ConfigDataLoader is missing Secrets Manager keys,
+ * for example `spring.config.import=aws-secretsmanager:`.
  *
  * @author Maciej Walkowiak
  * @since 3.0.0
  */
-public class ParameterStoreKeysMissingException extends RuntimeException {
+public class SecretsManagerKeysMissingException extends RuntimeException {
 
-	ParameterStoreKeysMissingException(String message) {
+	public SecretsManagerKeysMissingException(String message) {
 		super(message);
 	}
 

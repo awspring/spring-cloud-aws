@@ -15,4 +15,5 @@ io.awspring.cloud.v3.autoconfigure.secretsmanager.SecretsManagerConfigDataLoader
 
 # Failure Analyzers
 org.springframework.boot.diagnostics.FailureAnalyzer=\
-io.awspring.cloud.v3.autoconfigure.parameterstore.ParameterStoreMissingKeysFailureAnalyzer
+io.awspring.cloud.v3.autoconfigure.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
+io.awspring.cloud.v3.autoconfigure.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer
