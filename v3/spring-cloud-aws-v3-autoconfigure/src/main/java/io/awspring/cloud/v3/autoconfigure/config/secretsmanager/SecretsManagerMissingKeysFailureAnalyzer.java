@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.secretsmanager;
 
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
 /**
- * An {@link AbstractFailureAnalyzer} that performs analysis of a Parameter Store
- * configuration failure caused by not providing a Parameter Store key to
+ * An {@link AbstractFailureAnalyzer} that performs analysis of a Secrets Manager
+ * configuration failure caused by not providing a Secrets Manager key to
  * `spring.config.import` property.
  *
  * @author Maciej Walkowiak
  * @since 3.0.0
  */
-public class ParameterStoreMissingKeysFailureAnalyzer
-		extends AbstractFailureAnalyzer<ParameterStoreKeysMissingException> {
+public class SecretsManagerMissingKeysFailureAnalyzer
+		extends AbstractFailureAnalyzer<SecretsManagerKeysMissingException> {
 
 	@Override
-	protected FailureAnalysis analyze(Throwable rootFailure, ParameterStoreKeysMissingException cause) {
-		return new FailureAnalysis("Could not import properties from AWS Parameter Store: " + cause.getMessage(),
-				"Consider providing keys, for example `spring.config.import=aws-parameterstore:/config/app` or disable integration with `spring.cloud.aws.parameterstore.enabled=false",
-				cause);
+	protected FailureAnalysis analyze(Throwable rootFailure, SecretsManagerKeysMissingException cause) {
+		return new FailureAnalysis("Could not import properties from AWS Secrets Manager: " + cause.getMessage(),
+				"Consider providing keys, for example `spring.config.import=aws-secretsmanager:/config/app`", cause);
 	}
 
 }

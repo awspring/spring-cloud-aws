@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.config.secretsmanager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
@@ -30,16 +29,12 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
-import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @since 2.3.0
  */
 public class SecretsManagerConfigDataLocationResolver
-		implements ConfigDataLocationResolver<SecretsManagerConfigDataResource> {
+		extends AbstractAwsConfigDataLocationResolver<SecretsManagerConfigDataResource> {
 
 	/**
 	 * AWS Secrets Manager Config Data prefix.
@@ -59,14 +54,8 @@ public class SecretsManagerConfigDataLocationResolver
 	public static final String PREFIX = "aws-secretsmanager:";
 
 	@Override
-	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		return location.hasPrefix(PREFIX);
-	}
-
-	@Override
-	public List<SecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext context,
-			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
-		return Collections.emptyList();
+	protected String getPrefix() {
+		return PREFIX;
 	}
 
 	@Override
@@ -93,36 +82,6 @@ public class SecretsManagerConfigDataLocationResolver
 		}
 
 		return locations;
-	}
-
-	private List<String> getCustomContexts(String keys) {
-		if (StringUtils.hasLength(keys)) {
-			return Arrays.asList(keys.split(";"));
-		}
-		return Collections.emptyList();
-	}
-
-	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		registerBean(context, type, supplier);
-		context.getBootstrapContext().addCloseListener(event -> {
-			String name = "configData" + type.getSimpleName();
-			T instance = event.getBootstrapContext().get(type);
-			ConfigurableApplicationContext appContext = event.getApplicationContext();
-			if (!appContext.getBeanFactory().containsBean(name)) {
-				event.getApplicationContext().getBeanFactory().registerSingleton(name, instance);
-			}
-		});
-	}
-
-	public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
-		context.getBootstrapContext().registerIfAbsent(type, BootstrapRegistry.InstanceSupplier.of(instance));
-	}
-
-	protected <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
-		bootstrapContext.registerIfAbsent(type, supplier);
 	}
 
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
@@ -155,11 +114,6 @@ public class SecretsManagerConfigDataLocationResolver
 	protected SecretsManagerProperties loadProperties(Binder binder) {
 		return binder.bind(SecretsManagerProperties.CONFIG_PREFIX, Bindable.of(SecretsManagerProperties.class))
 				.orElseGet(SecretsManagerProperties::new);
-	}
-
-	protected CredentialsProperties loadCredentialsProperties(Binder binder) {
-		return binder.bind(CredentialsProperties.PREFIX, Bindable.of(CredentialsProperties.class))
-				.orElseGet(CredentialsProperties::new);
 	}
 
 }
