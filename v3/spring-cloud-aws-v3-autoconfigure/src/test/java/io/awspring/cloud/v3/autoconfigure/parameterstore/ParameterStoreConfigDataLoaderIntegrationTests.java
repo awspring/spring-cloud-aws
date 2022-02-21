@@ -47,6 +47,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
+/**
+ * Integration tests for loading configuration properties from AWS Parameter Store.
+ *
+ * @author Maciej Walkowiak
+ */
 @Testcontainers
 @ExtendWith(OutputCaptureExtension.class)
 class ParameterStoreConfigDataLoaderIntegrationTests {

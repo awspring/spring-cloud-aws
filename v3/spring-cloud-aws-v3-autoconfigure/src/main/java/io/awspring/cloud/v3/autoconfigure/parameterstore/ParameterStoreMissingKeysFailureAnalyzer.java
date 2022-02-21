@@ -19,6 +19,14 @@ package io.awspring.cloud.v3.autoconfigure.parameterstore;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
+/**
+ * An {@link AbstractFailureAnalyzer} that performs analysis of a Parameter Store
+ * configuration failure caused by not providing a Parameter Store key to
+ * `spring.config.import` property.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0.0
+ */
 public class ParameterStoreMissingKeysFailureAnalyzer
 		extends AbstractFailureAnalyzer<ParameterStoreKeysMissingException> {
 
