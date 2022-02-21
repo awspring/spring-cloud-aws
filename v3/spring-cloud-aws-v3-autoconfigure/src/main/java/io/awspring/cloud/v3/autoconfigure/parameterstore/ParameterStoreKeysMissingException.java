@@ -18,7 +18,7 @@ package io.awspring.cloud.v3.autoconfigure.parameterstore;
 
 /**
  * Thrown when configuration provided to ConfigDataLoader is missing parameter store keys,
- * for example `spring.config.import=aws-parameterstore:`
+ * for example `spring.config.import=aws-parameterstore:`.
  *
  * @author Maciej Walkowiak
  * @since 3.0.0
