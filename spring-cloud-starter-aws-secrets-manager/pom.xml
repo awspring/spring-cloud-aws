@@ -10,8 +10,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-starter-aws-secrets-manager</artifactId>
-	<name>Spring Cloud AWS V3 Secrets Manager Starter</name>
-	<description>Spring Cloud AWS V3 Secrets Manager Starter</description>
+	<name>Spring Cloud AWS Secrets Manager Starter</name>
+	<description>Spring Cloud AWS Secrets Manager Starter</description>
 
 	<dependencies>
 		<dependency>

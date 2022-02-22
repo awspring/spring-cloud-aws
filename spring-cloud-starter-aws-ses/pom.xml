@@ -11,8 +11,8 @@
 	<packaging>pom</packaging>
 
 	<artifactId>spring-cloud-starter-aws-ses</artifactId>
-	<name>Spring Cloud AWS V3 SES Starter</name>
-	<description>Spring Cloud AWS V3 SES Starter</description>
+	<name>Spring Cloud AWS SES Starter</name>
+	<description>Spring Cloud AWS SES Starter</description>
 
 	<dependencies>
 		<dependency>
