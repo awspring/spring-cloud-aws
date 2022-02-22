@@ -1,19 +1,19 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration,\
-io.awspring.cloud.v3.autoconfigure.core.RegionProviderAutoConfiguration,\
-io.awspring.cloud.v3.autoconfigure.ses.SesAutoConfiguration
+io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration,\
+io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration,\
+io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration
 
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
-io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver,\
-io.awspring.cloud.v3.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLocationResolver
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver,\
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStoreConfigDataLoader,\
-io.awspring.cloud.v3.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLoader
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLoader,\
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLoader
 
 # Failure Analyzers
 org.springframework.boot.diagnostics.FailureAnalyzer=\
-io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
-io.awspring.cloud.v3.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer
