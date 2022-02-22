@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
@@ -30,16 +29,12 @@ import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
-import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,7 +42,7 @@ import org.springframework.util.StringUtils;
  * @since 2.3.0
  */
 public class ParameterStoreConfigDataLocationResolver
-		implements ConfigDataLocationResolver<ParameterStoreConfigDataResource> {
+		extends AbstractAwsConfigDataLocationResolver<ParameterStoreConfigDataResource> {
 
 	/**
 	 * AWS ParameterStore Config Data prefix.
@@ -55,14 +50,8 @@ public class ParameterStoreConfigDataLocationResolver
 	public static final String PREFIX = "aws-parameterstore:";
 
 	@Override
-	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		return location.hasPrefix(PREFIX);
-	}
-
-	@Override
-	public List<ParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
-			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
-		return Collections.emptyList();
+	protected String getPrefix() {
+		return PREFIX;
 	}
 
 	@Override
@@ -88,41 +77,6 @@ public class ParameterStoreConfigDataLocationResolver
 					"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
 		}
 		return locations;
-	}
-
-	private List<String> getCustomContexts(String keys) {
-		if (StringUtils.hasLength(keys)) {
-			return Arrays.asList(keys.split(";"));
-		}
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Since hook can be activated more then one time, ApplicationContext needs to be
-	 * checked if bean is already registered to prevent Exception. See issue #108 for more
-	 * information.
-	 */
-	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		registerBean(context, type, supplier);
-		context.getBootstrapContext().addCloseListener(event -> {
-			String name = "configData" + type.getSimpleName();
-			T instance = event.getBootstrapContext().get(type);
-			ConfigurableApplicationContext appContext = event.getApplicationContext();
-			if (!appContext.getBeanFactory().containsBean(name)) {
-				event.getApplicationContext().getBeanFactory().registerSingleton(name, instance);
-			}
-		});
-	}
-
-	public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
-		context.getBootstrapContext().registerIfAbsent(type, BootstrapRegistry.InstanceSupplier.of(instance));
-	}
-
-	protected <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
-		bootstrapContext.registerIfAbsent(type, supplier);
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
@@ -153,11 +107,6 @@ public class ParameterStoreConfigDataLocationResolver
 	protected ParameterStoreProperties loadProperties(Binder binder) {
 		return binder.bind(ParameterStoreProperties.CONFIG_PREFIX, Bindable.of(ParameterStoreProperties.class))
 				.orElseGet(ParameterStoreProperties::new);
-	}
-
-	protected CredentialsProperties loadCredentialsProperties(Binder binder) {
-		return binder.bind(CredentialsProperties.PREFIX, Bindable.of(CredentialsProperties.class))
-				.orElseGet(CredentialsProperties::new);
 	}
 
 }

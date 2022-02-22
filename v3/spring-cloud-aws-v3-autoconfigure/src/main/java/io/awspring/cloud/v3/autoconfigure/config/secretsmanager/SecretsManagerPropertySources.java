@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
