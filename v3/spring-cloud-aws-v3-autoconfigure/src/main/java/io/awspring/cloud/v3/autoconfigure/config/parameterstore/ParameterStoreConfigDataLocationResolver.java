@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+import io.awspring.cloud.v3.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.v3.autoconfigure.core.CredentialsProperties;
+import io.awspring.cloud.v3.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.v3.core.SpringCloudClientConfiguration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
-import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -46,28 +42,16 @@ import org.springframework.util.StringUtils;
  * @since 2.3.0
  */
 public class ParameterStoreConfigDataLocationResolver
-		implements ConfigDataLocationResolver<ParameterStoreConfigDataResource> {
+		extends AbstractAwsConfigDataLocationResolver<ParameterStoreConfigDataResource> {
 
 	/**
 	 * AWS ParameterStore Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private final Log log = LogFactory.getLog(ParameterStoreConfigDataLocationResolver.class);
-
 	@Override
-	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		if (!location.hasPrefix(PREFIX)) {
-			return false;
-		}
-		return context.getBinder().bind(ParameterStoreProperties.CONFIG_PREFIX + ".enabled", Boolean.class)
-				.orElse(true);
-	}
-
-	@Override
-	public List<ParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext context,
-			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
-		return Collections.emptyList();
+	protected String getPrefix() {
+		return PREFIX;
 	}
 
 	@Override
@@ -75,10 +59,12 @@ public class ParameterStoreConfigDataLocationResolver
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, CredentialsProperties.class,
+				loadCredentialsProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
-		ParameterStorePropertySources sources = new ParameterStorePropertySources(log);
+		ParameterStorePropertySources sources = new ParameterStorePropertySources();
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
@@ -86,41 +72,26 @@ public class ParameterStoreConfigDataLocationResolver
 		contexts.forEach(propertySourceContext -> locations
 				.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
-		return locations;
-	}
-
-	private List<String> getCustomContexts(String keys) {
-		if (StringUtils.hasLength(keys)) {
-			return Arrays.asList(keys.split(";"));
+		if (!location.isOptional() && locations.isEmpty()) {
+			throw new ParameterStoreKeysMissingException(
+					"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
 		}
-		return Collections.emptyList();
-	}
-
-	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		registerBean(context, type, supplier);
-		context.getBootstrapContext().addCloseListener(event -> {
-			String name = "configData" + type.getSimpleName();
-			T instance = event.getBootstrapContext().get(type);
-			ConfigurableApplicationContext appContext = event.getApplicationContext();
-			if (!appContext.getBeanFactory().containsBean(name)) {
-				event.getApplicationContext().getBeanFactory().registerSingleton(name, instance);
-			}
-		});
-	}
-
-	public <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type, T instance) {
-		context.getBootstrapContext().registerIfAbsent(type, BootstrapRegistry.InstanceSupplier.of(instance));
-	}
-
-	protected <T> void registerBean(ConfigDataLocationResolverContext context, Class<T> type,
-			BootstrapRegistry.InstanceSupplier<T> supplier) {
-		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
-		bootstrapContext.registerIfAbsent(type, supplier);
+		return locations;
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
+
+		AwsCredentialsProvider credentialsProvider;
+
+		try {
+			credentialsProvider = context.get(AwsCredentialsProvider.class);
+		}
+		catch (IllegalStateException e) {
+			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
+		}
+
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
@@ -129,6 +100,7 @@ public class ParameterStoreConfigDataLocationResolver
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
 		}
+		builder.credentialsProvider(credentialsProvider);
 		return builder.build();
 	}
 

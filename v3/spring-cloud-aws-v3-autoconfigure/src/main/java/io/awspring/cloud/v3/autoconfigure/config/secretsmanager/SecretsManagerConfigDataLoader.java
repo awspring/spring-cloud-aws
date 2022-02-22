@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.config.secretsmanager;
 
 import java.util.Collections;
 
+import io.awspring.cloud.v3.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
@@ -25,6 +26,7 @@ import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.boot.logging.DeferredLogFactory;
 
 /**
  * Loads config data from AWS Secret Manager.
@@ -35,6 +37,12 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
  * @since 2.3.0
  */
 public class SecretsManagerConfigDataLoader implements ConfigDataLoader<SecretsManagerConfigDataResource> {
+
+	public SecretsManagerConfigDataLoader(DeferredLogFactory logFactory) {
+		BootstrapLoggingHelper.reconfigureLoggers(logFactory,
+				"io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource",
+				"io.awspring.cloud.v3.autoconfigure.config.secretsmanager.SecretsManagerPropertySources");
+	}
 
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, SecretsManagerConfigDataResource resource) {

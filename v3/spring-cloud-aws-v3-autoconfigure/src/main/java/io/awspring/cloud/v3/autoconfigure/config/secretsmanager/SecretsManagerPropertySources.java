@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**
@@ -29,11 +30,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
  */
 public class SecretsManagerPropertySources {
 
-	private final Log log;
-
-	public SecretsManagerPropertySources(Log log) {
-		this.log = log;
-	}
+	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySources.class);
 
 	/**
 	 * Creates property source for given context.
@@ -46,7 +43,7 @@ public class SecretsManagerPropertySources {
 	 */
 	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			SecretsManagerClient client) {
-		log.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
+		LOG.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
 			SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource(context, client);
 			propertySource.init();
@@ -58,7 +55,7 @@ public class SecretsManagerPropertySources {
 				throw new AwsSecretsManagerPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
+				LOG.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;

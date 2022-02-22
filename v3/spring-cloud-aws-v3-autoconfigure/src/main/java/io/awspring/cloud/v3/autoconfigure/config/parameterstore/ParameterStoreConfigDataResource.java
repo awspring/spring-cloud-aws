@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.secretsmanager;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
 import java.util.Objects;
 
@@ -22,22 +22,21 @@ import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.core.style.ToStringCreator;
 
 /**
- * Config data resource for AWS Secret Manager integration.
+ * Config data resource for AWS System Manager Management integration.
  *
  * @author Eddú Meléndez
- * @author Maciej Walkowiak
  * @since 2.3.0
  */
-public class SecretsManagerConfigDataResource extends ConfigDataResource {
+public class ParameterStoreConfigDataResource extends ConfigDataResource {
 
 	private final String context;
 
 	private final boolean optional;
 
-	private final SecretsManagerPropertySources propertySources;
+	private final ParameterStorePropertySources propertySources;
 
-	public SecretsManagerConfigDataResource(String context, boolean optional,
-			SecretsManagerPropertySources propertySources) {
+	public ParameterStoreConfigDataResource(String context, boolean optional,
+			ParameterStorePropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
 		this.propertySources = propertySources;
@@ -59,7 +58,7 @@ public class SecretsManagerConfigDataResource extends ConfigDataResource {
 		return this.optional;
 	}
 
-	public SecretsManagerPropertySources getPropertySources() {
+	public ParameterStorePropertySources getPropertySources() {
 		return this.propertySources;
 	}
 
@@ -71,7 +70,7 @@ public class SecretsManagerConfigDataResource extends ConfigDataResource {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		SecretsManagerConfigDataResource that = (SecretsManagerConfigDataResource) o;
+		ParameterStoreConfigDataResource that = (ParameterStoreConfigDataResource) o;
 		return this.optional == that.optional && this.context.equals(that.context);
 	}
 

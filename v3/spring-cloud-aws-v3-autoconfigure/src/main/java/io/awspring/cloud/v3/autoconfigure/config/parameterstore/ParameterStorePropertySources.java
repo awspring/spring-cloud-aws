@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
-import io.awspring.cloud.v3.paramstore.ParameterStorePropertySource;
+import io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 /**
@@ -26,11 +27,7 @@ import software.amazon.awssdk.services.ssm.SsmClient;
  */
 public class ParameterStorePropertySources {
 
-	private final Log log;
-
-	public ParameterStorePropertySources(Log log) {
-		this.log = log;
-	}
+	private static Log LOG = LogFactory.getLog(ParameterStorePropertySources.class);
 
 	/**
 	 * Creates property source for given context.
@@ -42,7 +39,7 @@ public class ParameterStorePropertySources {
 	 * set to true
 	 */
 	public ParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
-		log.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
+		LOG.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
 			ParameterStorePropertySource propertySource = new ParameterStorePropertySource(context, client);
 			propertySource.init();
@@ -54,7 +51,7 @@ public class ParameterStorePropertySources {
 				throw new AwsParameterPropertySourceNotFoundException(e);
 			}
 			else {
-				log.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
+				LOG.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;

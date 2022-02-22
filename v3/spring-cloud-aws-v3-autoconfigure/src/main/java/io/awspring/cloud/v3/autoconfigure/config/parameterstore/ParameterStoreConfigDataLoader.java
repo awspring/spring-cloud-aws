@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
 import java.util.Collections;
 
-import io.awspring.cloud.v3.paramstore.ParameterStorePropertySource;
+import io.awspring.cloud.v3.autoconfigure.config.BootstrapLoggingHelper;
+import io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.boot.logging.DeferredLogFactory;
 
 /**
+ * {@link ConfigDataLoader} for AWS Parameter Store.
+ *
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  * @since 2.3.0
  */
 public class ParameterStoreConfigDataLoader implements ConfigDataLoader<ParameterStoreConfigDataResource> {
+
+	public ParameterStoreConfigDataLoader(DeferredLogFactory logFactory) {
+		BootstrapLoggingHelper.reconfigureLoggers(logFactory,
+				"io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource",
+				"io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStorePropertySources");
+	}
 
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, ParameterStoreConfigDataResource resource) {
