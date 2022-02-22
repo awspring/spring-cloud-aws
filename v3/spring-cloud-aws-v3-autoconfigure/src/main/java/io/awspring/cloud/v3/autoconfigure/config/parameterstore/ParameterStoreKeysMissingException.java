@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.autoconfigure.parameterstore;
+package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
 /**
  * Thrown when configuration provided to ConfigDataLoader is missing parameter store keys,

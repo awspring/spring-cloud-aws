@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.v3.paramstore;
+package io.awspring.cloud.v3.parameterstore;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
