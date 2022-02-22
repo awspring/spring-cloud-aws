@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright 2013-2019 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
+			xmlns="http://www.springframework.org/schema/cloud/aws/jdbc"
+			targetNamespace="http://www.springframework.org/schema/cloud/aws/jdbc"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+				schemaLocation="https://www.springframework.org/schema/tool/spring-tool.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/cloud/aws/context"
+				schemaLocation="http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd"/>
+
+	<xsd:element name="data-source">
+		<xsd:annotation>
+			<xsd:documentation
+				source="java:org.springframework.cloud.aws.jdbc.rds.AmazonRdsDataSourceFactoryBean">
+				<![CDATA[
+	Creates an Amazon RDS backed datasource to other beans as a javax.sql.DataSource.
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="javax.sql.DataSource"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="pool-attributes" type="poolAttributesType"
+							 minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							The pool properties used for the underlying connection pool
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+
+			<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+			<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The name of the database identifier in Amazon RDS
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="username" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The user name that will be used to connect to the database
+												]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="database-name" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The database name to be used if not the default database configured in RDS
+												]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="password" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The password that will be used to connect to the database
+						]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="read-replica-support" type="xsd:boolean" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Defines if the read replica support should be enabled for mysql
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="user-tags-map" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Defines the bean name for the user tags that should be made available as a map for the instance
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-rds" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an externally configured Amazon RDS instance used to retrieve instance details
+					]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="com.amazonaws.services.rds.AmazonRDS"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-identity-management" type="xsd:string"
+						   use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an externally configured Amazon identity management instance to retrieve account information.
+					This bean is only used if the user tags of a data source will be used. Otherwise this bean reference
+					will be ignored.
+					]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="com.amazonaws.services.identitymanagement.AmazonIdentityManagement"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<xsd:element name="retry-interceptor">
+		<xsd:annotation>
+			<xsd:documentation
+				source="java:org.springframework.cloud.aws.jdbc.retry.RdbmsRetryOperationsInterceptor">
+				<![CDATA[
+	Creates an AOP Interceptor which can be used to retry database operations which failed due to transient error (e.g. connection lost due to failover)
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.aopalliance.intercept.MethodInterceptor"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="aws-context:locationAttributeGroup"/>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+										The unique identifier for a bean. A bean id may not be used more than once
+										within the same <beans> element.
+													]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="db-instance-identifier" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The name of the database identifier in Amazon RDS instance. Should be the same as the database instance used inside the operations that will be retried.
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-retries" type="xsd:int" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The maximum number of retries the interceptor will re-execute the call after an error happened
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="back-off-policy" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					The reference to a BackOffPolicy which defines what should happen between retry approaches. Normally a back-off-policy will sleep in between the retry attempts.
+						]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.retry.backoff.BackOffPolicy"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amazon-rds" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Reference to an externally configured Amazon RDS instance used to retrieve instance status during retry
+					]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="com.amazonaws.services.rds.AmazonRDS"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="poolAttributesType">
+		<xsd:attribute name="defaultAutoCommit" type="xsd:boolean" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default auto-commit state of connections created by this pool.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="defaultReadOnly" type="xsd:boolean" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default read-only state of connections created by this pool. If
+					not set then the setReadOnly
+					method will not be called.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="defaultTransactionIsolation" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default TransactionIsolation state of connections created by this
+					pool. If not set,
+					the method will not be called and it defaults to the JDBC driver.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:int">
+					<xsd:enumeration value="0"/>
+					<xsd:enumeration value="1"/>
+					<xsd:enumeration value="2"/>
+					<xsd:enumeration value="4"/>
+					<xsd:enumeration value="8"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="defaultTransactionIsolationName" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default TransactionIsolation names of connections created by this
+					pool. If not set,
+					the method will not be called and it defaults to the JDBC driver.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="NONE"/>
+					<xsd:enumeration value="READ_COMMITTED"/>
+					<xsd:enumeration value="READ_UNCOMMITTED"/>
+					<xsd:enumeration value="READ_COMMITTED"/>
+					<xsd:enumeration value="SERIALIZABLE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="defaultCatalog" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The default catalog of connections created by this pool.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="maxActive" type="xsd:int" use="optional" default="100">
+			<xsd:annotation>
+				<xsd:documentation>
+					The maximum number of active connections that can be allocated from
+					this pool at the same time.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="maxIdle" type="xsd:int" use="optional" default="100">
+			<xsd:annotation>
+				<xsd:documentation>
+					The maximum number of active connections that can be allocated from
+					this pool at the same time.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="minIdle" type="xsd:int" use="optional" default="10">
+			<xsd:annotation>
+				<xsd:documentation>
+					The maximum number of connections that should be kept in the pool at
+					all times. Default value is
+					maxActive:100 Idle connections are checked periodically (if enabled)
+					and connections that been idle
+					for longer than minEvictableIdleTimeMillis will be released. (also see
+					testWhileIdle)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="initialSize" type="xsd:int" use="optional" default="10">
+			<xsd:annotation>
+				<xsd:documentation>
+					The initial number of connections that are created when the pool is
+					started.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="maxWait" type="xsd:int" use="optional" default="30000">
+			<xsd:annotation>
+				<xsd:documentation>
+					The maximum number of milliseconds that the pool will wait (when there
+					are no available connections)
+					for a connection to be returned before throwing an exception.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="testOnBorrow" type="xsd:boolean" use="optional"
+					   default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					The indication of whether objects will be validated before being
+					borrowed from the pool. If the
+					object fails to validate, it will be dropped from the pool, and we
+					will attempt to borrow another.
+					NOTE - for a true value to have any effect, the validationQuery
+					attribute must be set to a non-null
+					string. In order to have a more efficient validation, see
+					validationInterval.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="testOnReturn" type="xsd:boolean" use="optional"
+					   default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					The indication of whether objects will be validated before being
+					returned to the pool. NOTE - for a
+					true value to have any effect, the validationQuery parameter must be
+					set to a non-null string.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="testWhileIdle" type="xsd:boolean" use="optional"
+					   default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					The indication of whether objects will be validated by the idle object
+					evictor (if any). If an
+					object fails to validate, it will be dropped from the pool. NOTE - for
+					a true value to have any
+					effect, the validationQuery attribute must be set to a non-null
+					string. This attribute has to be set
+					in order for the pool cleaner/test thread is to run (also see
+					timeBetweenEvictionRunsMillis)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="validationQuery" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The SQL query that will be used to validate connections from this pool
+					before returning them to the
+					caller. If specified, this query does not have to return any data, it
+					just can't throw a
+					SQLException. The default value is null. Example values are SELECT
+					1(mysql), select 1 from
+					dual(oracle), SELECT 1(MS Sql Server)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="validatorClassName" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The name of a class which implements the
+					org.apache.tomcat.jdbc.pool.Validator interface and
+					provides a no-arg constructor (may be implicit). If specified, the
+					class will be used to create a
+					Validator instance which is then used instead of any validation query
+					to validate connections. The
+					default value is null. An example value is
+					com.company.project.SimpleValidator.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="timeBetweenEvictionRunsMillis" type="xsd:int" use="optional"
+					   default="5000">
+			<xsd:annotation>
+				<xsd:documentation>
+					The number of milliseconds to sleep between runs of the idle
+					connection validation/cleaner thread.
+					This value should not be set under 1 second. It dictates how often we
+					check for idle, abandoned
+					connections, and how often we validate idle connections.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="minEvictableIdleTimeMillis" type="xsd:int" use="optional"
+					   default="60000">
+			<xsd:annotation>
+				<xsd:documentation>
+					The minimum amount of time an object may sit idle in the pool before
+					it is eligible for eviction.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="removeAbandoned" type="xsd:boolean" use="optional"
+					   default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to remove abandoned connections if they exceed the
+					removeAbandonedTimeout. If set to true a
+					connection is considered abandoned and eligible for removal if it has
+					been in use longer than the
+					removeAbandonedTimeout Setting this to true can recover db connections
+					from applications that fail
+					to close a connection. See also logAbandoned.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="removeAbandonedTimeout" type="xsd:int" use="optional"
+					   default="60">
+			<xsd:annotation>
+				<xsd:documentation>
+					Timeout in seconds before an abandoned(in use) connection can be
+					removed. The default value is 60
+					(seconds). The value should be set to the longest running query your
+					applications might have.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="logAbandoned" type="xsd:boolean" use="optional"
+					   default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to log stack traces for application code which abandoned a
+					Connection. Logging of abandoned
+					Connections adds overhead for every Connection borrow because a stack
+					trace has to be generated.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="connectionProperties" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					The connection properties that will be sent to our JDBC driver when
+					establishing new connections.
+					Format of the string must be [propertyName=property;]*
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="initSQL" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					A custom query to be run when a connection is first created.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+</xsd:schema>
