@@ -8,21 +8,20 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<packaging>pom</packaging>
 
-	<artifactId>spring-cloud-starter-aws-ses</artifactId>
-	<name>Spring Cloud AWS V3 SES Starter</name>
-	<description>Spring Cloud AWS V3 SES Starter</description>
+	<artifactId>spring-cloud-aws-secrets-manager</artifactId>
+	<name>Spring Cloud AWS V3 Secrets Manager</name>
+	<description>Spring Cloud V3 AWS Secrets Manager</description>
 
 	<dependencies>
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-ses</artifactId>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>secretsmanager</artifactId>
 		</dependency>
 	</dependencies>
 </project>

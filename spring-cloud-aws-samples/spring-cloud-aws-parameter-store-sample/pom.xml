@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-aws-samples</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<version>2.4.1-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -19,8 +19,8 @@
 
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws-v3-parameter-store</artifactId>
-			<version>2.4.1-SNAPSHOT</version>
+			<artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
