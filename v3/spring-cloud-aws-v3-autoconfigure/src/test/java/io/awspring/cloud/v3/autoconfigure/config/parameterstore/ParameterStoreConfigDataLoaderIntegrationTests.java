@@ -144,7 +144,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring/")) {
-			String message = context.getEnvironment().getProperty("message");
+			context.getEnvironment().getProperty("message");
 			assertThat(output.getAll()).contains("Populating property retrieved from AWS Parameter Store: message");
 		}
 	}
