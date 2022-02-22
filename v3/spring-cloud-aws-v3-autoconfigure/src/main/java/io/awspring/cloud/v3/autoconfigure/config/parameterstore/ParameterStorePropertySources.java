@@ -16,7 +16,7 @@
 
 package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 
-import io.awspring.cloud.v3.paramstore.ParameterStorePropertySource;
+import io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;

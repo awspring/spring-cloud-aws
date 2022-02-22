@@ -32,8 +32,8 @@ import org.springframework.util.ReflectionUtils;
  * Utility class for setting up logging in objects registered in
  * {@link BootstrapRegistry}.
  *
- * @since 3.0
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 public final class BootstrapLoggingHelper {
 

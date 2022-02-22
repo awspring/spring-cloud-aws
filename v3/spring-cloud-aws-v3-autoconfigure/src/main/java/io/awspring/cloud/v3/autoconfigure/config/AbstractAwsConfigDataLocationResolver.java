@@ -36,11 +36,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for AWS specific {@link ConfigDataLocationResolver}s
+ * Base class for AWS specific {@link ConfigDataLocationResolver}s.
  *
- * @since 3.0
- * @author Maciej Walkowiak
  * @param <T> - the location type
+ * @author Maciej Walkowiak
+ * @since 3.0
  */
 public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigDataResource>
 		implements ConfigDataLocationResolver<T> {

@@ -19,7 +19,7 @@ package io.awspring.cloud.v3.autoconfigure.config.parameterstore;
 import java.util.Collections;
 
 import io.awspring.cloud.v3.autoconfigure.config.BootstrapLoggingHelper;
-import io.awspring.cloud.v3.paramstore.ParameterStorePropertySource;
+import io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 import org.springframework.boot.context.config.ConfigData;
@@ -39,7 +39,7 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 
 	public ParameterStoreConfigDataLoader(DeferredLogFactory logFactory) {
 		BootstrapLoggingHelper.reconfigureLoggers(logFactory,
-				"io.awspring.cloud.v3.paramstore.ParameterStorePropertySource",
+				"io.awspring.cloud.v3.parameterstore.ParameterStorePropertySource",
 				"io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStorePropertySources");
 	}
 

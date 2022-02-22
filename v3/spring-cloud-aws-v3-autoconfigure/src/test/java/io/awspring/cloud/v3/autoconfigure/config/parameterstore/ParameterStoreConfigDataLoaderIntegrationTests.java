@@ -154,7 +154,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.v3.paramstore=debug");
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.v3.parameterstore=debug");
 	}
 
 	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,
