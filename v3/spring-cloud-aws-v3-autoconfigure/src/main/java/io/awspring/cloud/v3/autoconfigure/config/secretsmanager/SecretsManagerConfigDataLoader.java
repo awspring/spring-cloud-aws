@@ -41,7 +41,7 @@ public class SecretsManagerConfigDataLoader implements ConfigDataLoader<SecretsM
 	public SecretsManagerConfigDataLoader(DeferredLogFactory logFactory) {
 		BootstrapLoggingHelper.reconfigureLoggers(logFactory,
 				"io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource",
-				"io.awspring.cloud.v3.secretsmanager.SecretsManagerPropertySource");
+				"io.awspring.cloud.v3.autoconfigure.config.secretsmanager.SecretsManagerPropertySources");
 	}
 
 	@Override
