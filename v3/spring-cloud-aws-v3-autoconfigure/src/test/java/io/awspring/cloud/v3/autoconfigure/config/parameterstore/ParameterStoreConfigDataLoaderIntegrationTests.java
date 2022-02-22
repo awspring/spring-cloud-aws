@@ -137,12 +137,24 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void outputsDebugLogs(CapturedOutput output) {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/")) {
+			String message = context.getEnvironment().getProperty("message");
+			assertThat(output.getAll()).contains("Populating property retrieved from AWS Parameter Store: message");
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1");
+				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.v3.paramstore=debug");
 	}
 
 	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,

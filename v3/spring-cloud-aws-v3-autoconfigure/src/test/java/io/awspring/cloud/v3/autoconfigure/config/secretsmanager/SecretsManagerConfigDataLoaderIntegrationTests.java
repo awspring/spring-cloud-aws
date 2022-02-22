@@ -137,13 +137,26 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void outputsDebugLogs(CapturedOutput output) {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second")) {
+			context.getEnvironment().getProperty("message");
+			assertThat(output.getAll()).contains("Populating property retrieved from AWS Parameter Store: message");
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
 				"--spring.cloud.aws.secretsmanager.endpoint="
 						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1");
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.v3.secretsmanager=debug");
 	}
 
 	private static void createSecret(LocalStackContainer localstack, String secretName, String parameterValue,
