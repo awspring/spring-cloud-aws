@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2020 the original author or authors.
+  ~ Copyright 2013-2022 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,34 +15,34 @@
   ~ limitations under the License.
   -->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
-		<groupId>io.awspring.cloud</groupId>
 		<artifactId>spring-cloud-aws</artifactId>
-		<version>2.4.1-SNAPSHOT</version>
+		<groupId>io.awspring.cloud</groupId>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-aws-ses</artifactId>
-	<name>Spring Cloud AWS SimpleEmail</name>
-	<description>Spring Cloud AWS SimpleEmail</description>
+	<name>Spring Cloud AWS SimpleEmailService</name>
+	<description>Spring Cloud AWS SimpleEmailService</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-context</artifactId>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>ses</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-ses</artifactId>
-		</dependency>
+
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>javax.mail-api</artifactId>
@@ -54,10 +54,6 @@
 			<artifactId>jakarta.mail</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
+
 </project>

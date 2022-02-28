@@ -16,8 +16,8 @@
 
 package io.awspring.cloud.core;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.PredefinedClientConfigurations;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 
 /**
  * @author Eddú Meléndez
@@ -26,7 +26,7 @@ public final class SpringCloudClientConfiguration {
 
 	private static final String NAME = "spring-cloud-aws";
 
-	private static final String VERSION = "2.3.0";
+	private static final String VERSION = "3.0";
 
 	private SpringCloudClientConfiguration() {
 
@@ -36,14 +36,9 @@ public final class SpringCloudClientConfiguration {
 		return NAME + "/" + VERSION;
 	}
 
-	public static ClientConfiguration getClientConfiguration() {
-		return getClientConfiguration(PredefinedClientConfigurations.defaultConfig());
-	}
-
-	public static ClientConfiguration getClientConfiguration(ClientConfiguration clientConfiguration) {
-		ClientConfiguration config = clientConfiguration != null ? clientConfiguration
-				: PredefinedClientConfigurations.defaultConfig();
-		return config.withUserAgentSuffix(getUserAgent());
+	public static ClientOverrideConfiguration clientOverrideConfiguration() {
+		return ClientOverrideConfiguration.builder()
+				.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, getUserAgent()).build();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 import java.util.Properties;
 
 import javax.activation.FileTypeMap;
@@ -29,14 +30,13 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
-import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
-import io.awspring.cloud.mail.simplemail.SimpleEmailServiceJavaMailSender;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
+import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
@@ -53,7 +53,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for class SimpleEmailServiceJavaMailSender.
+ * Tests for class {@link SimpleEmailServiceJavaMailSender}.
+ *
+ * @author Eddú Meléndez
+ * @author Maciej Walkowiak
+ * @author Arun Patra
  */
 class SimpleEmailServiceJavaMailSenderTest {
 
@@ -147,11 +151,14 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	void testSendMimeMessage() throws MessagingException {
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+
 		MimeMessage mimeMessage = createMimeMessage();
 		mailSender.send(mimeMessage);
 		assertThat(mimeMessage.getMessageID()).isEqualTo("123");
@@ -159,19 +166,20 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	void testSendMultipleMimeMessages() throws Exception {
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
-				.thenReturn(new SendRawEmailResult().withMessageId("123"));
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+
 		mailSender.send(createMimeMessage(), createMimeMessage());
 		verify(emailService, times(2)).sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class));
 	}
 
 	@Test
 	void testSendMailWithMimeMessagePreparator() throws Exception {
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -183,12 +191,13 @@ class SimpleEmailServiceJavaMailSenderTest {
 		};
 
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(preparator);
 
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().getRawMessage().getData().array()));
+				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
 		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
 		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
 		assertThat(mimeMessage.getContent()).isEqualTo("body");
@@ -197,7 +206,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 	@Test
 	void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
 
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -218,12 +227,13 @@ class SimpleEmailServiceJavaMailSenderTest {
 		};
 
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture())).thenReturn(new SendRawEmailResult().withMessageId("123"));
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(preparators);
 
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().getRawMessage().getData().array()));
+				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
 		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
 		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
 		assertThat(mimeMessage.getContent()).isEqualTo("body");
@@ -234,7 +244,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 	void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
 		InputStream inputStream = mock(InputStream.class);
 
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -247,21 +257,23 @@ class SimpleEmailServiceJavaMailSenderTest {
 			fail("MailPreparationException expected due to error while creating mail");
 		}
 		catch (MailParseException e) {
-			assertThat(e.getMessage().startsWith("Could not parse raw MIME content")).isTrue();
+			assertThat(Objects.requireNonNull(e.getMessage()).startsWith("Could not parse raw MIME content")).isTrue();
 			assertThat(e.getCause().getCause()).isSameAs(ioException);
 		}
 	}
 
 	@Test
 	void testSendMultipleMailsWithException() throws Exception {
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessage failureMail = createMimeMessage();
+
 		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
-				.thenReturn(new SendRawEmailResult()).thenThrow(new AmazonClientException("error"))
-				.thenReturn(new SendRawEmailResult());
+				.thenReturn(SendRawEmailResponse.builder().build())
+				.thenThrow(SesException.builder().message("error").build())
+				.thenReturn(SendRawEmailResponse.builder().build());
 
 		try {
 			mailSender.send(createMimeMessage(), failureMail, createMimeMessage());
@@ -275,7 +287,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	void testSendMailsWithExceptionWhilePreparing() {
-		AmazonSimpleEmailService emailService = mock(AmazonSimpleEmailService.class);
+		SesClient emailService = mock(SesClient.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 

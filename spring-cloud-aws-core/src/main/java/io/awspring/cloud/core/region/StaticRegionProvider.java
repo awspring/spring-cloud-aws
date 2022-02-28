@@ -16,19 +16,19 @@
 
 package io.awspring.cloud.core.region;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import io.awspring.cloud.core.support.documentation.RuntimeUse;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 /**
- * Static {@link RegionProvider} implementation that can used to statically configure a
+ * Static {@link AwsRegionProvider} implementation that can used to statically configure a
  * region. The region could be provided through a configuration file at configuration
  * time.
  *
  * @author Agim Emruli
+ * @author Maciej Walkowiak
  * @since 1.0
  */
-public class StaticRegionProvider implements RegionProvider {
+public class StaticRegionProvider implements AwsRegionProvider {
 
 	private final Region configuredRegion;
 
@@ -37,10 +37,9 @@ public class StaticRegionProvider implements RegionProvider {
 	 * @param configuredRegion - the region that will be statically returned in
 	 * {@link #getRegion()}
 	 */
-	@RuntimeUse
 	public StaticRegionProvider(String configuredRegion) {
 		try {
-			this.configuredRegion = Region.getRegion(Regions.fromName(configuredRegion));
+			this.configuredRegion = Region.of(configuredRegion);
 		}
 		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("The region '" + configuredRegion + "' is not a valid region!", e);

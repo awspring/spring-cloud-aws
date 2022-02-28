@@ -1,84 +1,10 @@
 {
-  "properties": [
-    {
-      "defaultValue": "",
-      "name": "management.metrics.export.cloudwatch.namespace",
-      "description": "Cloud watch namespace.",
-      "type": "java.lang.String"
-    },
-    {
-      "defaultValue": true,
-      "name": "management.metrics.export.cloudwatch.enabled",
-      "description": "Enables cloud watch metrics.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.rds.enabled",
-      "description": "Enables RDS integration.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.sqs.enabled",
-      "description": "Enables SQS integration.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.sns.enabled",
-      "description": "Enables SNS integration.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.elasticache.enabled",
-      "description": "Enables ElastiCache integration.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.mail.enabled",
-      "description": "Enables Mail integration.",
-      "type": "java.lang.Boolean",
-      "deprecation": {
-        "level": "warning",
-        "replacement": "spring.cloud.aws.ses.enabled"
-      }
-    },
-    {
-      "defaultValue": true,
-      "name": "cloud.aws.stack.enabled",
-      "description": "Enables Stack integration.",
-      "type": "java.lang.Boolean"
-    },
-	{
-	  "name": "cloud.aws.s3.region",
-	  "description": "Overrides the default region.",
-	  "type": "java.lang.String"
-	},
-	{
-	  "name": "cloud.aws.s3.endpoint",
-	  "description": "Overrides the default endpoint.",
-	  "type": "java.lang.String"
-	},
-    {
-	  "defaultValue": false,
-	  "name": "cloud.aws.instance.data.enabled",
-	  "description": "Enables Instance Data integration.",
-	  "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "spring.cloud.aws.security.cognito.enabled",
-      "description": "Enables Cognito integration.",
-      "type": "java.lang.Boolean"
-    },
-    {
-      "defaultValue": true,
-      "name": "spring.cloud.aws.ses.enabled",
-      "description": "Enables Simple Email Service integration.",
-      "type": "java.lang.Boolean"
-    }
-  ]
+	"properties": [
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.ses.enabled",
+			"description": "Enables Simple Email Service integration.",
+			"type": "java.lang.Boolean"
+		}
+	]
 }

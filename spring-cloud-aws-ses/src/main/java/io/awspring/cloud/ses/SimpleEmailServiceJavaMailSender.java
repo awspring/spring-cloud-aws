@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,13 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.model.RawMessage;
-import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
-import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.RawMessage;
+import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
+import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.mail.MailException;
@@ -56,6 +57,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Agim Emruli
  * @author Eddú Meléndez
+ * @author Arun Patra
  * @since 1.0
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
@@ -72,8 +74,8 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	private FileTypeMap defaultFileTypeMap;
 
-	public SimpleEmailServiceJavaMailSender(AmazonSimpleEmailService amazonSimpleEmailService) {
-		super(amazonSimpleEmailService);
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
+		super(sesClient);
 	}
 
 	/**
@@ -201,12 +203,15 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 		for (MimeMessage mimeMessage : mimeMessages) {
 			try {
-				RawMessage rm = createRawMessage(mimeMessage);
-				SendRawEmailResult sendRawEmailResult = getEmailService().sendRawEmail(new SendRawEmailRequest(rm));
+				RawMessage rawMessage = createRawMessage(mimeMessage);
+
+				SendRawEmailResponse sendRawEmailResponse = getEmailService()
+						.sendRawEmail(SendRawEmailRequest.builder().rawMessage(rawMessage).build());
+
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResult.getMessageId());
+					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResponse.messageId());
 				}
-				mimeMessage.setHeader("Message-ID", sendRawEmailResult.getMessageId());
+				mimeMessage.setHeader("Message-ID", sendRawEmailResponse.messageId());
 			}
 			catch (Exception e) {
 				// Ignore Exception because we are collecting and throwing all if any
@@ -252,7 +257,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		catch (MessagingException e) {
 			throw new MailParseException(e);
 		}
-		return new RawMessage(ByteBuffer.wrap(out.toByteArray()));
+		return RawMessage.builder().data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(out.toByteArray()))).build();
 	}
 
 }

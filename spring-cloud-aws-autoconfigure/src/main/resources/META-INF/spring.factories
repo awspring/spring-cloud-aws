@@ -1,14 +1,19 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.awspring.cloud.autoconfigure.context.ContextInstanceDataAutoConfiguration,\
-io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.context.ContextRegionProviderAutoConfiguration,\
-io.awspring.cloud.autoconfigure.context.ContextResourceLoaderAutoConfiguration,\
-io.awspring.cloud.autoconfigure.context.ContextStackAutoConfiguration,\
-io.awspring.cloud.autoconfigure.mail.SimpleEmailAutoConfiguration,\
-io.awspring.cloud.autoconfigure.cache.ElastiCacheAutoConfiguration,\
-io.awspring.cloud.autoconfigure.mail.SesAutoConfiguration,\
-io.awspring.cloud.autoconfigure.messaging.SqsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.messaging.SnsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration,\
-io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration,\
-io.awspring.cloud.autoconfigure.security.CognitoAuthenticationAutoConfiguration
+io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration,\
+io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration,\
+io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration
+
+# ConfigData Location Resolvers
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver,\
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLocationResolver
+
+# ConfigData Loaders
+org.springframework.boot.context.config.ConfigDataLoader=\
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLoader,\
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLoader
+
+# Failure Analyzers
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer
