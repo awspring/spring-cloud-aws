@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.paramstore;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -47,6 +48,12 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SSM).withReuse(true);
+
+	@BeforeAll
+	public static void setUpCredentials() {
+		System.setProperty("aws.accessKeyId", "accesskey");
+		System.setProperty("aws.secretKey", "secretkey");
+	}
 
 	@Test
 	void followsNextToken() {
