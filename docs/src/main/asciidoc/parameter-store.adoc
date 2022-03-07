@@ -58,6 +58,9 @@ spring.config.import[0]=optional:aws-parameterstore=/config/spring
 spring.config.import[1]=aws-parameterstore=/config/optional-params/
 ----
 
+If you add indexed parameter names such as `/config/application/cloud.aws.stack_0_.name`, `/config/application/cloud.aws.stack_1_.name`, ... to Parameter Store,
+these will become accessible as array properties `cloud.aws.stack[0].name`, `cloud.aws.stack[1].name`, ... in Spring.
+
 === Using SsmClient
 
 The starter automatically configures and registers a `SsmClient` bean in the Spring application context. The `SsmClient` bean can be used to create or retrieve parameters from Parameter Store.

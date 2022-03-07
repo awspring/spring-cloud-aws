@@ -218,6 +218,33 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void arrayParameterNames() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		putParameter(localstack, "/config/myservice/key_0_.value", "value1", REGION);
+		putParameter(localstack, "/config/myservice/key_0_.nested_0_.nestedValue", "key_nestedValue1", REGION);
+		putParameter(localstack, "/config/myservice/key_0_.nested_1_.nestedValue", "key_nestedValue2", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.value", "value2", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.nested_0_.nestedValue", "key_nestedValue3", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.nested_1_.nestedValue", "key_nestedValue4", REGION);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+			"aws-parameterstore:/config/myservice/")) {
+			assertThat(context.getEnvironment().getProperty("key[0].value")).isEqualTo("value1");
+			assertThat(context.getEnvironment().getProperty("key[0].nested[0].nestedValue"))
+				.isEqualTo("key_nestedValue1");
+			assertThat(context.getEnvironment().getProperty("key[0].nested[1].nestedValue"))
+				.isEqualTo("key_nestedValue2");
+			assertThat(context.getEnvironment().getProperty("key[1].value")).isEqualTo("value2");
+			assertThat(context.getEnvironment().getProperty("key[1].nested[0].nestedValue"))
+				.isEqualTo("key_nestedValue3");
+			assertThat(context.getEnvironment().getProperty("key[1].nested[1].nestedValue"))
+				.isEqualTo("key_nestedValue4");
+		}
+	}
+
 	@Nested
 	class ReloadConfigurationTests {
 

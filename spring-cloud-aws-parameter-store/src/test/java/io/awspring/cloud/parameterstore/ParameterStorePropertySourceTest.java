@@ -16,6 +16,7 @@
 package io.awspring.cloud.parameterstore;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,4 +63,31 @@ class ParameterStorePropertySourceTest {
 		assertThat(propertySource.getProperty("key3")).isEqualTo("value3");
 	}
 
+	@Test
+	void arrayParameterNames() {
+		GetParametersByPathResponse result = GetParametersByPathResponse.builder()
+				.parameters(Parameter.builder().name("/config/myservice/key_0_.value").value("value1").build(),
+						Parameter.builder().name("/config/myservice/key_0_.nested_0_.nestedValue")
+								.value("key_nestedValue1").build(),
+						Parameter.builder().name("/config/myservice/key_0_.nested_1_.nestedValue")
+								.value("key_nestedValue2").build(),
+						Parameter.builder().name("/config/myservice/key_1_.value").value("value2").build(),
+						Parameter.builder().name("/config/myservice/key_1_.nested_0_.nestedValue")
+								.value("key_nestedValue1").build(),
+						Parameter.builder().name("/config/myservice/key_1_.nested_1_.nestedValue")
+								.value("key_nestedValue2").build())
+				.build();
+
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(result);
+
+		propertySource.init();
+
+		assertSoftly(it -> {
+			it.assertThat(propertySource.getPropertyNames()).containsExactly("key[0].value",
+					"key[0].nested[0].nestedValue", "key[0].nested[1].nestedValue", "key[1].value",
+					"key[1].nested[0].nestedValue", "key[1].nested[1].nestedValue");
+			it.assertThat(propertySource.getProperty("key[0].value")).isEqualTo("value1");
+			it.assertThat(propertySource.getProperty("key[1].nested[1].nestedValue")).isEqualTo("key_nestedValue2");
+		});
+	}
 }
