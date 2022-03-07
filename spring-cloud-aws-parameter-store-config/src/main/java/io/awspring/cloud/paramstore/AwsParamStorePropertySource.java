@@ -18,7 +18,6 @@ package io.awspring.cloud.paramstore;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
@@ -58,8 +57,7 @@ public class AwsParamStorePropertySource extends EnumerablePropertySource<AWSSim
 
 	@Override
 	public String[] getPropertyNames() {
-		Set<String> strings = this.properties.keySet();
-		return strings.toArray(new String[strings.size()]);
+		return this.properties.keySet().stream().toArray(String[]::new);
 	}
 
 	@Override
@@ -70,7 +68,7 @@ public class AwsParamStorePropertySource extends EnumerablePropertySource<AWSSim
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
 		GetParametersByPathResult paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.getParameters()) {
-			String key = parameter.getName().replace(this.context, "").replace('/', '.');
+			String key = parameter.getName().replace(this.context, "").replace('/', '.').replaceAll("_(\\d)_", "[$1]");
 			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 			this.properties.put(key, parameter.getValue());
 		}

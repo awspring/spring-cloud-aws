@@ -9,5 +9,15 @@ export class InfrastructureStack extends cdk.Stack {
 		  parameterName: '/config/spring/message',
 		  stringValue: 'Spring-cloud-aws value!'
 	  });
+
+	  new ssm.StringParameter(this, 'Parameter2', {
+		  parameterName: '/config/spring/messages_0_',
+		  stringValue: 'Spring-cloud-aws msg0!'
+	  });
+
+	  new ssm.StringParameter(this, 'Parameter3', {
+		  parameterName: '/config/spring/messages_1_',
+		  stringValue: 'Spring-cloud-aws msg1!'
+	  });
   }
 }

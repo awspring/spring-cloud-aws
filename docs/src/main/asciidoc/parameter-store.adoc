@@ -38,6 +38,10 @@ Can be overridden with a service-specific property.
 |`/config/my-service_production/cloud/aws/stack/auto`
 |`cloud.aws.stack.auto`
 |Specific to the `my-service` service when a `production` Spring profile is activated.
+
+|`/config/application/cloud.aws.stack_0_.name`
+|`cloud.aws.stack[0].name`
+|Array indexes for lists properties are denoted by `_INDEX_`.
 |===
 
 Note that this module does not support full configuration files to be used as parameter values like e.g. Spring Cloud
