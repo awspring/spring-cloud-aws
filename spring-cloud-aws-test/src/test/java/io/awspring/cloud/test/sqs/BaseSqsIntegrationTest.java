@@ -40,7 +40,8 @@ abstract class BaseSqsIntegrationTest {
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
 		// create needed queues in SQS
-		localstack.execInContainer("awslocal", "sqs", "create-queue", "--queue-name", QUEUE_NAME);
+		localstack.execInContainer("awslocal", "sqs", "create-queue", "--queue-name", QUEUE_NAME, "--region",
+				"us-east-2");
 	}
 
 	@DynamicPropertySource

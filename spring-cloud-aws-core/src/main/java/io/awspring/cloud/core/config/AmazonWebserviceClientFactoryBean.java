@@ -31,6 +31,7 @@ import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.core.region.RegionProvider;
+import io.awspring.cloud.core.region.StaticRegionProvider;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
@@ -110,9 +111,16 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 			builder.withCredentials(this.credentialsProvider);
 		}
 
+		// endpoint can be overwritten when used with AWS-compatible environment
 		if (this.customEndpoint != null) {
+			// if in addition to custom endpoint, a region was explicitly configured, it
+			// must be set as a signing region
+			// for compatibility with multi-region AWS-compatible environments like
+			// Localstack
+			// NOTE: we consider only static region as a valid signing region because of
+			// the backward compatibility
 			builder.withEndpointConfiguration(
-					new AwsClientBuilder.EndpointConfiguration(this.customEndpoint.toString(), null));
+					new AwsClientBuilder.EndpointConfiguration(this.customEndpoint.toString(), findStaticRegion()));
 		}
 		else {
 			if (this.customRegion != null) {
@@ -151,6 +159,15 @@ public class AmazonWebserviceClientFactoryBean<T extends AmazonWebServiceClient>
 	@Override
 	protected void destroyInstance(T instance) throws Exception {
 		instance.shutdown();
+	}
+
+	private String findStaticRegion() {
+		if (this.regionProvider != null && this.regionProvider instanceof StaticRegionProvider) {
+			return this.regionProvider.getRegion().getName();
+		}
+		else {
+			return null;
+		}
 	}
 
 }
