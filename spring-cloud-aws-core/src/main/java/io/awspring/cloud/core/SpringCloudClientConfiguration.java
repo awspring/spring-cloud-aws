@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 
 /**
+ * Utility class for creating {@link ClientOverrideConfiguration} containing "Spring Cloud
+ * AWS" user agent. When used, server side (AWS or AWS-compatible service) can measure how
+ * many requests to its services come from Spring Cloud AWS.
+ *
  * @author Eddú Meléndez
  */
 public final class SpringCloudClientConfiguration {
@@ -32,13 +36,13 @@ public final class SpringCloudClientConfiguration {
 
 	}
 
-	private static String getUserAgent() {
-		return NAME + "/" + VERSION;
-	}
-
 	public static ClientOverrideConfiguration clientOverrideConfiguration() {
 		return ClientOverrideConfiguration.builder()
 				.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, getUserAgent()).build();
+	}
+
+	private static String getUserAgent() {
+		return NAME + "/" + VERSION;
 	}
 
 }
