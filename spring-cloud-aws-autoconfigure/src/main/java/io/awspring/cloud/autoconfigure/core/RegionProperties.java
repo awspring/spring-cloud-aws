@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,6 +41,7 @@ public class RegionProperties {
 	 * ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
 	 * configured with own region meta data.
 	 */
+	@Nullable
 	private String staticRegion;
 
 	/**
@@ -50,8 +52,10 @@ public class RegionProperties {
 	/**
 	 * The AWS profile.
 	 */
+	@Nullable
 	private Profile profile;
 
+	@Nullable
 	public Profile getProfile() {
 		return profile;
 	}
@@ -60,6 +64,7 @@ public class RegionProperties {
 		this.profile = profile;
 	}
 
+	@Nullable
 	public String getStatic() {
 		return this.staticRegion;
 	}

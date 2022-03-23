@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class RegionProviderAutoConfiguration {
 	public AwsRegionProvider regionProvider() {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
-		if (this.properties.isStatic()) {
+		if (this.properties.getStatic() != null && this.properties.isStatic()) {
 			providers.add(new StaticRegionProvider(this.properties.getStatic()));
 		}
 
@@ -66,7 +66,7 @@ public class RegionProviderAutoConfiguration {
 
 		Profile profile = this.properties.getProfile();
 		if (profile != null && profile.getName() != null) {
-			providers.add(createProfileRegionProvider());
+			providers.add(createProfileRegionProvider(profile));
 		}
 
 		if (providers.isEmpty()) {
@@ -77,13 +77,15 @@ public class RegionProviderAutoConfiguration {
 		}
 	}
 
-	private AwsProfileRegionProvider createProfileRegionProvider() {
-		Profile profile = this.properties.getProfile();
+	private AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
 		Supplier<ProfileFile> profileFileFn = () -> {
-			ProfileFile profileFile = ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION)
-					.content(Paths.get(profile.getPath())).build();
-			ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();
-			return profile.getPath() != null ? profileFile : defaultProfileFile;
+			if (profile.getPath() != null) {
+				return ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION).content(Paths.get(profile.getPath()))
+						.build();
+			}
+			else {
+				return ProfileFile.defaultProfileFile();
+			}
 		};
 		return new AwsProfileRegionProvider(profileFileFn, profile.getName());
 	}

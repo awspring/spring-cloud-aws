@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
@@ -68,10 +69,13 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	private Properties javaMailProperties = new Properties();
 
+	@Nullable
 	private volatile Session session;
 
+	@Nullable
 	private String defaultEncoding;
 
+	@Nullable
 	private FileTypeMap defaultFileTypeMap;
 
 	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
@@ -108,6 +112,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	 * specified explicitly.
 	 * @return cached session or a new one from java mail properties
 	 */
+	@Nullable
 	protected Session getSession() {
 		if (this.session == null) {
 			this.session = Session.getInstance(getJavaMailProperties());

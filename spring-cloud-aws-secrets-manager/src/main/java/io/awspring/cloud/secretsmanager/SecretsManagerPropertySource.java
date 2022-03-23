@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.lang.Nullable;
 
 /**
  * Retrieves secret value under the given context / path from the AWS Secrets Manager
@@ -72,6 +73,7 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 	}
 
 	@Override
+	@Nullable
 	public Object getProperty(String name) {
 		return properties.get(name);
 	}
