@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package io.awspring.cloud.core.config;
 
+import java.net.URI;
+
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
+
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.springframework.util.Assert.notNull;
 
@@ -46,6 +50,18 @@ class AmazonTestWebserviceClient extends AmazonWebServiceClient {
 	@Override
 	public void setRegion(Region region) {
 		this.region = region;
+	}
+
+	public String getSigningRegion() {
+		return super.getSigningRegion();
+	}
+
+	public URI getEndpoint() {
+		return (URI) ReflectionTestUtils.getField(this, "endpoint");
+	}
+
+	public boolean isEndpointOverridden() {
+		return isEndpointOverridden;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package io.awspring.cloud.core.config;
+
+import java.net.URI;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -80,7 +82,26 @@ class AmazonWebserviceClientFactoryBeanTest {
 
 		// Assert
 		assertThat(webserviceClient.getClientConfiguration().getUserAgentSuffix()).startsWith("spring-cloud-aws/");
+	}
 
+	@Test
+	void getObject_withCustomEndpointAndStaticRegion() throws Exception {
+		// Arrange
+		AmazonWebserviceClientFactoryBean<AmazonTestWebserviceClient> factoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonTestWebserviceClient.class,
+				new AWSStaticCredentialsProvider(new BasicAWSCredentials("aaa", "bbb")));
+		factoryBean.setRegionProvider(new StaticRegionProvider("us-east-2"));
+		URI customEndpoint = URI.create("http://localhost:8080");
+		factoryBean.setCustomEndpoint(customEndpoint);
+
+		// Act
+		factoryBean.afterPropertiesSet();
+		AmazonTestWebserviceClient webserviceClient = factoryBean.getObject();
+
+		// Assert
+		assertThat(webserviceClient.isEndpointOverridden()).isTrue();
+		assertThat(webserviceClient.getEndpoint()).isEqualTo(customEndpoint);
+		assertThat(webserviceClient.getSigningRegion()).isEqualTo("us-east-2");
 	}
 
 }
