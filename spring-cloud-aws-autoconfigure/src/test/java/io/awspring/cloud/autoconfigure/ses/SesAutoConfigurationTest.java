@@ -17,10 +17,12 @@
 package io.awspring.cloud.autoconfigure.ses;
 
 import java.net.URI;
+import java.util.Objects;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -52,15 +54,15 @@ class SesAutoConfigurationTest {
 	@Test
 	void mailSenderWithJavaMail() {
 		this.contextRunner.run(context -> {
-			assertThat(context.getBean(MailSender.class)).isNotNull();
-			assertThat(context.getBean(JavaMailSender.class)).isNotNull();
-			assertThat(context.getBean(JavaMailSender.class)).isSameAs(context.getBean(MailSender.class));
+			assertThat(context).hasSingleBean(MailSender.class);
+			assertThat(context).hasSingleBean(JavaMailSender.class);
+			assertThat(context).getBean(JavaMailSender.class).isSameAs(context.getBean(MailSender.class));
 		});
 	}
 
 	@Test
 	void mailSenderWithoutSesClientInTheClasspath() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader("software.amazon.awssdk.services.ses.SesClient"))
+		this.contextRunner.withClassLoader(new FilteredClassLoader(software.amazon.awssdk.services.ses.SesClient.class))
 				.run(context -> {
 					assertThat(context).doesNotHaveBean(MailSender.class);
 					assertThat(context).doesNotHaveBean(JavaMailSender.class);
@@ -69,10 +71,10 @@ class SesAutoConfigurationTest {
 
 	@Test
 	void mailSenderWithSimpleEmail() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader("javax.mail.Session")).run(context -> {
-			assertThat(context.getBean(MailSender.class)).isNotNull();
-			assertThat(context.getBean("simpleMailSender")).isNotNull();
-			assertThat(context.getBean("simpleMailSender")).isSameAs(context.getBean(MailSender.class));
+		this.contextRunner.withClassLoader(new FilteredClassLoader(javax.mail.Session.class)).run(context -> {
+			assertThat(context).hasSingleBean(MailSender.class);
+			assertThat(context).hasBean("simpleMailSender");
+			assertThat(context).getBean("simpleMailSender").isSameAs(context.getBean(MailSender.class));
 		});
 	}
 
@@ -87,14 +89,31 @@ class SesAutoConfigurationTest {
 	@Test
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.endpoint:http://localhost:8090").run(context -> {
-			SesClient client = context.getBean(SesClient.class);
-
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-					"clientConfiguration");
-			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
-			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
-			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(client.isEndpointOverridden()).isTrue();
 		});
+	}
+
+	private static class ConfiguredAwsClient {
+
+		private final AttributeMap clientConfigurationAttributes;
+
+		ConfiguredAwsClient(SdkClient sdkClient) {
+			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils
+					.getField(sdkClient, "clientConfiguration");
+			this.clientConfigurationAttributes = (AttributeMap) ReflectionTestUtils
+					.getField(Objects.requireNonNull(clientConfiguration), "attributes");
+		}
+
+		URI getEndpoint() {
+			return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT);
+		}
+
+		boolean isEndpointOverridden() {
+			return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
+		}
+
 	}
 
 }
