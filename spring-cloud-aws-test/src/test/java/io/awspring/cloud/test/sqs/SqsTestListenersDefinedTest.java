@@ -29,7 +29,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.verify;
 
 @SqsTest(listeners = SqsSampleListener.class, properties = { "cloud.aws.credentials.access-key=noop",
-		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=eu-west-1" })
+		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=us-east-2" })
 class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	@Autowired
