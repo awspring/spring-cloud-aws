@@ -171,6 +171,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.2.0</version>
 				<configuration>
+					<skip>true</skip>
 					<links>
 						<link>https://docs.oracle.com/javase/8/docs/api/</link>
 						<link>https://javaee.github.io/javaee-spec/javadocs/</link>
@@ -308,6 +309,20 @@
 								</goals>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<skip>false</skip>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
