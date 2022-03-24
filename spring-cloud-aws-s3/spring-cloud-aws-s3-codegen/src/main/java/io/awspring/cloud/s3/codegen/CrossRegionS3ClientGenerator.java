@@ -18,8 +18,10 @@ package io.awspring.cloud.s3.codegen;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -33,6 +35,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ClassLoaderTypeSolver;
@@ -58,6 +61,10 @@ public final class CrossRegionS3ClientGenerator {
 	}
 
 	public static void main(String[] args) throws IOException {
+		if (args.length != 1) {
+			throw new RuntimeException("Need 1 parameter: the JavaParser source checkout root directory.");
+		}
+
 		CompilationUnit compilationUnit = new CompilationUnit();
 		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3");
 		compilationUnit.setBlockComment(" * Copyright 2013-2022 the original author or authors.\n" + " *\n"
@@ -116,24 +123,24 @@ public final class CrossRegionS3ClientGenerator {
 		TypeSolver typeSolver = new ClassLoaderTypeSolver(CrossRegionS3ClientGenerator.class.getClassLoader());
 		ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = typeSolver
 				.solveType(S3Client.class.getName());
-		resolvedReferenceTypeDeclaration.getAllMethods().forEach(u -> {
-			if (!u.getName().equals("listBuckets") && u.getParamTypes().size() == 1
-					&& u.getParamType(0).describe().endsWith("Request")) {
-				MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(u.getName(),
-						Modifier.Keyword.PUBLIC);
-				methodDeclaration
-						.addParameter(new Parameter(new ClassOrInterfaceType(u.getParamType(0).describe()), "request"));
-				methodDeclaration.setType(new ClassOrInterfaceType(u.getDeclaration().getReturnType().describe()));
-				methodDeclaration.setBody(new BlockStmt()
-						.addStatement("return executeInBucketRegion(request.bucket(), s3Client -> s3Client."
-								+ u.getName() + "(request));"));
-				methodDeclaration.addMarkerAnnotation(Override.class);
-				// methodDeclaration.addThrownException(NoSuchBucketException.class);
-				methodDeclaration.addThrownException(AwsServiceException.class);
-				methodDeclaration.addThrownException(SdkClientException.class);
-				// methodDeclaration.addThrownException(S3Exception.class);
-			}
-		});
+		resolvedReferenceTypeDeclaration.getAllMethods().stream().sorted(Comparator.comparing(MethodUsage::getName))
+				.forEach(u -> {
+					if (!u.getName().equals("listBuckets") && u.getParamTypes().size() == 1
+							&& u.getParamType(0).describe().endsWith("Request")) {
+						MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(u.getName(),
+								Modifier.Keyword.PUBLIC);
+						methodDeclaration.addParameter(
+								new Parameter(new ClassOrInterfaceType(u.getParamType(0).describe()), "request"));
+						methodDeclaration
+								.setType(new ClassOrInterfaceType(u.getDeclaration().getReturnType().describe()));
+						methodDeclaration.setBody(new BlockStmt()
+								.addStatement("return executeInBucketRegion(request.bucket(), s3Client -> s3Client."
+										+ u.getName() + "(request));"));
+						methodDeclaration.addMarkerAnnotation(Override.class);
+						methodDeclaration.addThrownException(AwsServiceException.class);
+						methodDeclaration.addThrownException(SdkClientException.class);
+					}
+				});
 
 		MethodDeclaration listBuckets = crossRegionS3Client.addMethod("listBuckets", Modifier.Keyword.PUBLIC);
 		listBuckets.addMarkerAnnotation(Override.class);
@@ -186,9 +193,10 @@ public final class CrossRegionS3ClientGenerator {
 		close.addMarkerAnnotation(Override.class);
 		close.setBody(new BlockStmt().addStatement("this.clientCache.values().forEach(SdkAutoCloseable::close);"));
 
-		Files.write(Paths.get(
-				"/Users/maciej/Development/workspaces/spring-cloud-aws/spring-cloud-aws-s3/spring-cloud-aws-s3/src/main/java/io/awspring/cloud/s3/CrossRegionS3Client.java"),
-				Arrays.asList(compilationUnit.toString()));
+		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3", "src", "main", "java", "io",
+				"awspring", "cloud", "s3", "CrossRegionS3Client.java");
+
+		Files.write(generatedJavaCcRoot, Arrays.asList(compilationUnit.toString()));
 	}
 
 }
