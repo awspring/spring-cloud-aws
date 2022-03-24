@@ -17,14 +17,16 @@
 package io.awspring.cloud.sns.core;
 
 import io.awspring.cloud.core.resource.AmazonResourceName;
-import org.springframework.messaging.core.DestinationResolutionException;
-import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
 import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
+
+
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Agim Emruli

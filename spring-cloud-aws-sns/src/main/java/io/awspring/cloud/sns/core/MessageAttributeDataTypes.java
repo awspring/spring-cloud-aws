@@ -20,7 +20,7 @@ package io.awspring.cloud.sns.core;
  * @author Alain Sahli
  * @since 1.0
  */
-public class MessageAttributeDataTypes {
+public final class MessageAttributeDataTypes {
 
 	/**
 	 * Binary message attribute data type.

@@ -16,10 +16,11 @@
 
 package io.awspring.cloud.sns.configuration;
 
+import software.amazon.awssdk.services.sns.SnsClient;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import software.amazon.awssdk.services.sns.SnsClient;
 
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 

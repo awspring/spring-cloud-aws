@@ -19,9 +19,10 @@ package io.awspring.cloud.sns.configuration;
 import io.awspring.cloud.sns.handlers.NotificationMessageHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationStatusHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationSubjectHandlerMethodArgumentResolver;
+import software.amazon.awssdk.services.sns.SnsClient;
+
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
-import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
  * @author Alain Sahli

@@ -16,20 +16,25 @@
 
 package io.awspring.cloud.sns.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.services.sns.SnsClient;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.core.*;
-import software.amazon.awssdk.services.sns.SnsClient;
+import org.springframework.messaging.core.AbstractMessageSendingTemplate;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
+import org.springframework.messaging.core.MessagePostProcessor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Alain Sahli

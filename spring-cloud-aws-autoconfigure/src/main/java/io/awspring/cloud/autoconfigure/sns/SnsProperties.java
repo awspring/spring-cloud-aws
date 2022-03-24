@@ -17,6 +17,7 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
