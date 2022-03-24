@@ -17,16 +17,10 @@
 package io.awspring.cloud.s3.sample;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import org.springframework.boot.ApplicationRunner;
@@ -48,8 +42,9 @@ public class SpringCloudAwsS3Sample {
 		return args -> {
 			s3Client.listBuckets().buckets().forEach(bucket -> {
 				List<S3Object> contents = s3Client.listObjects(r -> r.bucket(bucket.name())).contents();
-				System.out.println("Bucket " + bucket.name() + " has " + contents.size() + " items");
+				LOGGER.info("Bucket {} has {} items", bucket.name(), contents.size());
 			});
 		};
 	}
+
 }

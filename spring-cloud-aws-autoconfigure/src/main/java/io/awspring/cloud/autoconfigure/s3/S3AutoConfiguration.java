@@ -19,6 +19,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import java.util.Optional;
 
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.s3.CrossRegionS3Client;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -47,9 +48,9 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-			: regionProvider.getRegion();
+				: regionProvider.getRegion();
 		S3ClientBuilder builder = S3Client.builder().credentialsProvider(credentialsProvider).region(region)
-			.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
 	}
