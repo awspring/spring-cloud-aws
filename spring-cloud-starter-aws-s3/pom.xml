@@ -25,23 +25,19 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-samples</artifactId>
-	<packaging>pom</packaging>
-	<modules>
-		<module>spring-cloud-aws-parameter-store-sample</module>
-		<module>spring-cloud-aws-secrets-manager-sample</module>
-		<module>spring-cloud-aws-s3-sample</module>
-	</modules>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.7</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	<artifactId>spring-cloud-starter-aws-s3</artifactId>
+	<name>Spring Cloud AWS S3 Starter</name>
+	<description>Spring Cloud AWS S3 Starter</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+		</dependency>
+	</dependencies>
 </project>

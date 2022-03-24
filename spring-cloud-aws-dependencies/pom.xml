@@ -97,6 +97,12 @@
 				<artifactId>spring-cloud-starter-aws-ses</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-starter-aws-s3</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
