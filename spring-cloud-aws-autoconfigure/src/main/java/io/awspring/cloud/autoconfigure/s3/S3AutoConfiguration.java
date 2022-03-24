@@ -25,13 +25,11 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.util.StringUtils;
 
 @ConditionalOnClass(S3Client.class)
@@ -63,7 +61,7 @@ public class S3AutoConfiguration {
 	}
 
 	@Bean
-	@Primary
+	@ConditionalOnMissingBean
 	S3Client crossRegionS3Client(S3ClientBuilder s3ClientBuilder) {
 		return new CrossRegionS3Client(s3ClientBuilder);
 	}
