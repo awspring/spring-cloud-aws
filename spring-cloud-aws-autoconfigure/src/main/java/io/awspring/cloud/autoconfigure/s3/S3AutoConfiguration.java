@@ -64,8 +64,8 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@Primary
-	S3Client crossRegionS3Client(@Qualifier("s3Client") S3Client s3Client, S3ClientBuilder s3ClientBuilder) {
-		return new CrossRegionS3Client(s3Client, s3ClientBuilder);
+	S3Client crossRegionS3Client(S3ClientBuilder s3ClientBuilder) {
+		return new CrossRegionS3Client(s3ClientBuilder);
 	}
 
 }
