@@ -30,7 +30,6 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
@@ -50,19 +49,24 @@ public final class CrossRegionS3ClientGenerator {
 			throw new RuntimeException("Need 1 parameter: the JavaParser source checkout root directory.");
 		}
 
+		// load template class
 		final Path source = Paths.get(args[0], "..", "spring-cloud-aws-s3-codegen", "src", "main", "java", "io",
 				"awspring", "cloud", "s3", "codegen", "CrossRegionS3ClientTemplate.java");
 		CompilationUnit compilationUnit = StaticJavaParser.parse(source);
 		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3");
 		ClassOrInterfaceDeclaration classOrInterfaceDeclaration = compilationUnit
-				.getClassByName("CrossRegionS3ClientTemplate").get();
+				.getClassByName("CrossRegionS3ClientTemplate")
+				.orElseThrow(() -> new IllegalStateException("Class CrossRegionS3ClientTemplate not found"));
+
+		// rename class and constructors
 		classOrInterfaceDeclaration.setName("CrossRegionS3Client");
-		addOverriddenMethods(classOrInterfaceDeclaration);
 		classOrInterfaceDeclaration.getConstructors()
 				.forEach(constructorDeclaration -> constructorDeclaration.setName("CrossRegionS3Client"));
-		System.out.println(compilationUnit);
 
-		// generate file
+		// add methods
+		addOverriddenMethods(classOrInterfaceDeclaration);
+
+		// generate target file
 		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3", "src", "main", "java", "io",
 				"awspring", "cloud", "s3", "CrossRegionS3Client.java");
 		Files.write(generatedJavaCcRoot, Collections.singletonList(compilationUnit.toString()));
@@ -73,23 +77,31 @@ public final class CrossRegionS3ClientGenerator {
 		ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = typeSolver
 				.solveType(S3Client.class.getName());
 		resolvedReferenceTypeDeclaration.getAllMethods().stream().sorted(Comparator.comparing(MethodUsage::getName))
-				.forEach(u -> {
-					if (!u.getName().equals("listBuckets") && u.getParamTypes().size() == 1
-							&& u.getParamType(0).describe().endsWith("Request")) {
-						MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(u.getName(),
+				.forEach(method -> {
+					if (isRegionSpecific(method) && isCanonical(method)) {
+						MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(method.getName(),
 								Modifier.Keyword.PUBLIC);
-						methodDeclaration.addParameter(
-								new Parameter(new ClassOrInterfaceType(u.getParamType(0).describe()), "request"));
-						methodDeclaration
-								.setType(new ClassOrInterfaceType(u.getDeclaration().getReturnType().describe()));
+						methodDeclaration.addParameter(new Parameter(
+								StaticJavaParser.parseClassOrInterfaceType(method.getParamType(0).describe()),
+								"request"));
+						methodDeclaration.setType(StaticJavaParser
+								.parseClassOrInterfaceType(method.getDeclaration().getReturnType().describe()));
 						methodDeclaration.setBody(new BlockStmt()
 								.addStatement("return executeInBucketRegion(request.bucket(), s3Client -> s3Client."
-										+ u.getName() + "(request));"));
+										+ method.getName() + "(request));"));
 						methodDeclaration.addMarkerAnnotation(Override.class);
 						methodDeclaration.addThrownException(AwsServiceException.class);
 						methodDeclaration.addThrownException(SdkClientException.class);
 					}
 				});
+	}
+
+	private static boolean isRegionSpecific(MethodUsage method) {
+		return !method.getName().equals("listBuckets");
+	}
+
+	private static boolean isCanonical(MethodUsage method) {
+		return method.getParamTypes().size() == 1 && method.getParamType(0).describe().endsWith("Request");
 	}
 
 }
