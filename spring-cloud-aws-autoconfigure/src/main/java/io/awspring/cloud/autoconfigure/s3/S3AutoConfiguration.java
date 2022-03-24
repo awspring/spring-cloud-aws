@@ -25,6 +25,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
-@ConditionalOnClass(S3Client.class)
+@ConditionalOnClass({ S3Client.class, CrossRegionS3Client.class })
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
 public class S3AutoConfiguration {
@@ -50,9 +51,33 @@ public class S3AutoConfiguration {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
 				: regionProvider.getRegion();
 		S3ClientBuilder builder = S3Client.builder().credentialsProvider(credentialsProvider).region(region)
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration())
+				.serviceConfiguration(s3ServiceConfiguration());
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
+	}
+
+	private S3Configuration s3ServiceConfiguration() {
+		S3Configuration.Builder config = S3Configuration.builder();
+		if (properties.getAccelerateModeEnabled() != null) {
+			config.accelerateModeEnabled(properties.getAccelerateModeEnabled());
+		}
+		if (properties.getChecksumValidationEnabled() != null) {
+			config.checksumValidationEnabled(properties.getChecksumValidationEnabled());
+		}
+		if (properties.getChunkedEncodingEnabled() != null) {
+			config.chunkedEncodingEnabled(properties.getChunkedEncodingEnabled());
+		}
+		if (properties.getDualstackEnabled() != null) {
+			config.dualstackEnabled(properties.getDualstackEnabled());
+		}
+		if (properties.getPathStyleAccessEnabled() != null) {
+			config.pathStyleAccessEnabled(properties.getPathStyleAccessEnabled());
+		}
+		if (properties.getUseArnRegionEnabled() != null) {
+			config.useArnRegionEnabled(properties.getUseArnRegionEnabled());
+		}
+		return config.build();
 	}
 
 	@Bean

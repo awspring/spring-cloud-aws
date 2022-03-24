@@ -36,8 +36,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3</artifactId>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-s3</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -28,4 +28,64 @@ public class S3Properties extends AwsClientProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.aws.s3";
 
+	private Boolean accelerateModeEnabled;
+
+	private Boolean checksumValidationEnabled;
+
+	private Boolean chunkedEncodingEnabled;
+
+	private Boolean dualstackEnabled;
+
+	private Boolean pathStyleAccessEnabled;
+
+	private Boolean useArnRegionEnabled;
+
+	public Boolean getAccelerateModeEnabled() {
+		return accelerateModeEnabled;
+	}
+
+	public void setAccelerateModeEnabled(Boolean accelerateModeEnabled) {
+		this.accelerateModeEnabled = accelerateModeEnabled;
+	}
+
+	public Boolean getChecksumValidationEnabled() {
+		return checksumValidationEnabled;
+	}
+
+	public void setChecksumValidationEnabled(Boolean checksumValidationEnabled) {
+		this.checksumValidationEnabled = checksumValidationEnabled;
+	}
+
+	public Boolean getChunkedEncodingEnabled() {
+		return chunkedEncodingEnabled;
+	}
+
+	public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
+		this.chunkedEncodingEnabled = chunkedEncodingEnabled;
+	}
+
+	public Boolean getDualstackEnabled() {
+		return dualstackEnabled;
+	}
+
+	public void setDualstackEnabled(Boolean dualstackEnabled) {
+		this.dualstackEnabled = dualstackEnabled;
+	}
+
+	public Boolean getPathStyleAccessEnabled() {
+		return pathStyleAccessEnabled;
+	}
+
+	public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
+		this.pathStyleAccessEnabled = pathStyleAccessEnabled;
+	}
+
+	public Boolean getUseArnRegionEnabled() {
+		return useArnRegionEnabled;
+	}
+
+	public void setUseArnRegionEnabled(Boolean useArnRegionEnabled) {
+		this.useArnRegionEnabled = useArnRegionEnabled;
+	}
+
 }
