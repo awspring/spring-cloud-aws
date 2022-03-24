@@ -31,7 +31,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import software.amazon.awssdk.services.ses.SesClient;
 
 /**
- * Tests for class {@link SesAutoConfiguration}
+ * Tests for class {@link SesAutoConfiguration}.
  *
  * @author Eddú Meléndez
  * @author Maciej Walkowiak

@@ -18,9 +18,10 @@ package io.awspring.cloud.sns.endpoint.config;
 
 import io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverFactoryBean;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.sns.SnsClient;
+
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
-import software.amazon.awssdk.services.sns.SnsClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

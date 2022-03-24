@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.sns.endpoint;
+
+import java.io.IOException;
 
 import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
 import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
@@ -21,10 +24,9 @@ import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirma
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.io.IOException;
 
 /**
  * @author Agim Emruli

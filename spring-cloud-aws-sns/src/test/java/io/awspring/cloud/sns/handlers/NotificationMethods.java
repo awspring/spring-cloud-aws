@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.sns.handlers;
 
-import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
-import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 
 /**
  * @author Agim Emruli

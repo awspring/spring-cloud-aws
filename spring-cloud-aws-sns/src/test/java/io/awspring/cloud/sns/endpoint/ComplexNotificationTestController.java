@@ -24,6 +24,7 @@ import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirma
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
