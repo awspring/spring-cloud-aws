@@ -35,7 +35,6 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
 
-
 /**
  * @author Alain Sahli
  * @author Matej Nedic
