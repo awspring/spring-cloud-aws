@@ -17,7 +17,7 @@
 package io.awspring.cloud.sns.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.awspring.cloud.sns.annotation.NotificationSubject;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;

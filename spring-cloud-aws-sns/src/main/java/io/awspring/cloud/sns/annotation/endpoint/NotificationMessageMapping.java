@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sns.annotation;
+package io.awspring.cloud.sns.annotation.endpoint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;

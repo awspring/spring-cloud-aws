@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.awspring.cloud.sns.annotation.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;

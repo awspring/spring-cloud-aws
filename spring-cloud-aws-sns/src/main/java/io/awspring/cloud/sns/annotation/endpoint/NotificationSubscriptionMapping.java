@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sns.annotation;
+package io.awspring.cloud.sns.annotation.endpoint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -27,17 +27,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoint subscriptions
  * using the Spring Controller model. This annotation configures a method to receive
- * notification unsubscriptions if the user does not want that a controller receives any
- * further notification. An annotated {@link NotificationUnsubscribeConfirmationMapping}
- * will receive a {@link io.awspring.cloud.sns.handlers.NotificationStatus} parameter and
- * can either receive the unsubscribe message without any further action or re-subscribe
+ * notification subscriptions using a
+ * {@link io.awspring.cloud.sns.handlers.NotificationStatus} object and to confirm them
  * using the
  * {@link io.awspring.cloud.sns.handlers.NotificationStatus#confirmSubscription()} method.
  *
  * A notification controller will be mapped to a particular url inside the application
  * context. The mapped url must be configured inside the Amazon Web Service platform as a
  * subscription. Before receiving any notification itself a controller must confirm the
- * subscription.
+ * subscription. After confirming the subscription, the controller will start to receive
+ * notifications using an annotated {@link NotificationMessageMapping} method.
  *
  * The mapping of the controller to a URL has to be done using a
  * {@link org.springframework.web.bind.annotation.RequestMapping} annotation. Typically
@@ -51,8 +50,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Agim Emruli
  */
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping(headers = "x-amz-sns-message-type=UnsubscribeConfirmation", method = RequestMethod.POST)
+@RequestMapping(headers = "x-amz-sns-message-type=SubscriptionConfirmation", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
-public @interface NotificationUnsubscribeConfirmationMapping {
+public @interface NotificationSubscriptionMapping {
 
 }

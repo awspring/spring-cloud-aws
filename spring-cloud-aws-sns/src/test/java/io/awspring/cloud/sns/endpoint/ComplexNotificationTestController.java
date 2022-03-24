@@ -18,7 +18,11 @@ package io.awspring.cloud.sns.endpoint;
 
 import java.io.IOException;
 
-import io.awspring.cloud.sns.annotation.*;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

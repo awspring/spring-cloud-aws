@@ -4,6 +4,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-cloud-aws-samples/spring-cloud-aws-sns-sample/pom.xml" />
       </list>
     </option>
   </component>

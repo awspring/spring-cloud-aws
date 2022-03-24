@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import io.awspring.cloud.sns.annotation.NotificationSubject;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.mock.web.MockHttpServletRequest;

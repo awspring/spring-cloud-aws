@@ -15,11 +15,10 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import io.awspring.cloud.sns.annotation.NotificationMessage;
-import io.awspring.cloud.sns.annotation.NotificationMessageMapping;
-import io.awspring.cloud.sns.annotation.NotificationSubject;
-import io.awspring.cloud.sns.annotation.NotificationSubscriptionMapping;
-import io.awspring.cloud.sns.handlers.NotificationStatus;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
 
 /**
  * @author Agim Emruli

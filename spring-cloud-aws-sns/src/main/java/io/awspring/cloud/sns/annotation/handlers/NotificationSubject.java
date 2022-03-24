@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.sns.annotation;
+package io.awspring.cloud.sns.annotation.handlers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,6 +26,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface NotificationMessage {
+public @interface NotificationSubject {
 
 }
