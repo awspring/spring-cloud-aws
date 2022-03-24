@@ -58,12 +58,6 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-		return s3ClientBuilder.build();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	S3Client crossRegionS3Client(S3ClientBuilder s3ClientBuilder) {
 		return new CrossRegionS3Client(s3ClientBuilder);
 	}
 
