@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,31 +95,56 @@ public final class CrossRegionS3ClientGenerator {
 		crossRegionS3Client.addFieldWithInitializer("Logger", "LOGGER",
 				StaticJavaParser.parseExpression("LoggerFactory.getLogger(CrossRegionS3Client.class)"),
 				Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+
 		crossRegionS3Client.addFieldWithInitializer("int", "DEFAULT_BUCKET_CACHE_SIZE",
 				StaticJavaParser.parseExpression("20"), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
 				Modifier.Keyword.FINAL);
+
 		crossRegionS3Client.addFieldWithInitializer("Map<Region, S3Client>", "clientCache",
 				StaticJavaParser.parseExpression("new ConcurrentHashMap<>(Region.regions().size())"),
 				Modifier.Keyword.PRIVATE, Modifier.Keyword.FINAL);
 
 		crossRegionS3Client.addField("S3Client", "defaultS3Client", Modifier.Keyword.PRIVATE, Modifier.Keyword.FINAL);
+
 		crossRegionS3Client.addField("ConcurrentLruCache<String, S3Client>", "bucketCache", Modifier.Keyword.PRIVATE,
 				Modifier.Keyword.FINAL);
 
+		addSecondaryConstructor(crossRegionS3Client);
+		addPrimaryConstructor(crossRegionS3Client);
+
+		addOverriddenMethods(crossRegionS3Client);
+
+		addListBucketsMethod(crossRegionS3Client);
+		addExecuteInBucketRegionmethod(crossRegionS3Client);
+		addResolveBucketRegionMethod(crossRegionS3Client);
+		addServiceNameMethod(crossRegionS3Client);
+		addCloseMethod(crossRegionS3Client);
+
+		// generate file
+		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3", "src", "main", "java", "io",
+				"awspring", "cloud", "s3", "CrossRegionS3Client.java");
+		Files.write(generatedJavaCcRoot, Collections.singletonList(compilationUnit.toString()));
+	}
+
+	private static void addSecondaryConstructor(ClassOrInterfaceDeclaration crossRegionS3Client) {
 		ConstructorDeclaration constructorDeclaration = crossRegionS3Client.addConstructor(Modifier.Keyword.PUBLIC);
 		constructorDeclaration.addParameter("S3ClientBuilder", "clientBuilder");
 		constructorDeclaration.setBody(new BlockStmt().addStatement("this(DEFAULT_BUCKET_CACHE_SIZE, clientBuilder);"));
+	}
 
+	private static void addPrimaryConstructor(ClassOrInterfaceDeclaration crossRegionS3Client) {
 		ConstructorDeclaration primaryConstructor = crossRegionS3Client.addConstructor(Modifier.Keyword.PUBLIC);
 		primaryConstructor.addParameter("int", "bucketCacheSize");
 		primaryConstructor.addParameter("S3ClientBuilder", "clientBuilder");
 		primaryConstructor.setBody(new BlockStmt().addStatement("this.defaultS3Client = clientBuilder.build();")
-				.addStatement("\t\tthis.bucketCache = new ConcurrentLruCache<>(bucketCacheSize, bucket -> {\n"
-						+ "\t\t\tRegion region = resolveBucketRegion(bucket);\n"
-						+ "\t\t\treturn clientCache.computeIfAbsent(region, r -> {\n"
-						+ "\t\t\t\tLOGGER.debug(\"Creating new S3 client for region: {}\", r);\n"
-						+ "\t\t\t\treturn clientBuilder.region(r).build();\n" + "\t\t\t});\n" + "\t\t});"));
+				.addStatement("this.bucketCache = new ConcurrentLruCache<>(bucketCacheSize, bucket -> {"
+						+ "Region region = resolveBucketRegion(bucket);"
+						+ "return clientCache.computeIfAbsent(region, r -> {"
+						+ "LOGGER.debug(\"Creating new S3 client for region: {}\", r);"
+						+ "return clientBuilder.region(r).build();});});"));
+	}
 
+	private static void addOverriddenMethods(ClassOrInterfaceDeclaration crossRegionS3Client) {
 		TypeSolver typeSolver = new ClassLoaderTypeSolver(CrossRegionS3ClientGenerator.class.getClassLoader());
 		ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = typeSolver
 				.solveType(S3Client.class.getName());
@@ -141,35 +166,22 @@ public final class CrossRegionS3ClientGenerator {
 						methodDeclaration.addThrownException(SdkClientException.class);
 					}
 				});
+	}
 
-		MethodDeclaration listBuckets = crossRegionS3Client.addMethod("listBuckets", Modifier.Keyword.PUBLIC);
-		listBuckets.addMarkerAnnotation(Override.class);
-		listBuckets.addThrownException(AwsServiceException.class);
-		listBuckets.addThrownException(SdkClientException.class);
-		listBuckets.addParameter(ListBucketsRequest.class, "request");
-		listBuckets.setType(ListBucketsResponse.class);
-		listBuckets.setBody(new BlockStmt().addStatement("return defaultS3Client.listBuckets(request);"));
+	private static void addCloseMethod(ClassOrInterfaceDeclaration crossRegionS3Client) {
+		MethodDeclaration close = crossRegionS3Client.addMethod("close", Modifier.Keyword.PUBLIC);
+		close.addMarkerAnnotation(Override.class);
+		close.setBody(new BlockStmt().addStatement("this.clientCache.values().forEach(SdkAutoCloseable::close);"));
+	}
 
-		MethodDeclaration executeInBucketRegion = crossRegionS3Client.addMethod("executeInBucketRegion",
-				Modifier.Keyword.PRIVATE);
-		executeInBucketRegion.addParameter("String", "bucket");
-		executeInBucketRegion.addParameter("Function<S3Client, Result>", "fn");
-		executeInBucketRegion.addTypeParameter("Result");
-		executeInBucketRegion.setType("Result");
+	private static void addServiceNameMethod(ClassOrInterfaceDeclaration crossRegionS3Client) {
+		MethodDeclaration serviceName = crossRegionS3Client.addMethod("serviceName", Modifier.Keyword.PUBLIC);
+		serviceName.setType(String.class);
+		serviceName.addMarkerAnnotation(Override.class);
+		serviceName.setBody(new BlockStmt().addStatement("return S3Client.SERVICE_NAME;"));
+	}
 
-		executeInBucketRegion.setBody(new BlockStmt().addStatement("try {\n"
-				+ "\t\t\tif (bucketCache.contains(bucket)) {\n" + "\t\t\t\treturn fn.apply(bucketCache.get(bucket));\n"
-				+ "\t\t\t} else {\n" + "\t\t\t\treturn fn.apply(defaultS3Client);\n" + "\t\t\t}\n"
-				+ "\t\t} catch (S3Exception e) {\n" + "\t\t\tif (LOGGER.isTraceEnabled()) {\n"
-				+ "\t\t\t\tLOGGER.trace(\"Exception when requesting S3: {}\", e.awsErrorDetails().errorCode(), e);\n"
-				+ "\t\t\t} else {\n"
-				+ "\t\t\t\tLOGGER.debug(\"Exception when requesting S3 for bucket: {}: [{}] {}\", bucket, e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage());\n"
-				+ "\t\t\t}\n"
-				+ "\t\t\t// \"PermanentRedirect\" means that the bucket is in different region than the defaultS3Client is configured for\n"
-				+ "\t\t\tif (\"PermanentRedirect\".equals(e.awsErrorDetails().errorCode())) {\n"
-				+ "\t\t\t\treturn fn.apply(bucketCache.get(bucket));\n" + "\t\t\t} else {\n" + "\t\t\t\tthrow e;\n"
-				+ "\t\t\t}\n" + "\t\t}"));
-
+	private static void addResolveBucketRegionMethod(ClassOrInterfaceDeclaration crossRegionS3Client) {
 		MethodDeclaration resolveBucketRegion = crossRegionS3Client.addMethod("resolveBucketRegion",
 				Modifier.Keyword.PRIVATE);
 		resolveBucketRegion.addParameter("String", "bucket");
@@ -178,25 +190,41 @@ public final class CrossRegionS3ClientGenerator {
 		resolveBucketRegion.setBody(new BlockStmt()
 				.addStatement("LOGGER.debug(\"Resolving region for bucket {}\", bucket);")
 				.addStatement(
-						"\t\tString bucketLocation = defaultS3Client.getBucketLocation(request -> request.bucket(bucket)).locationConstraintAsString();\n")
+						"String bucketLocation = defaultS3Client.getBucketLocation(request -> request.bucket(bucket)).locationConstraintAsString();")
 				.addStatement(
-						"\t\tRegion region = StringUtils.hasLength(bucketLocation) ? Region.of(bucketLocation) : Region.US_EAST_1;\n")
-				.addStatement("\t\tLOGGER.debug(\"Region for bucket {} is {}\", bucket, region);\n")
-				.addStatement("\t\treturn region;"));
+						"Region region = StringUtils.hasLength(bucketLocation) ? Region.of(bucketLocation) : Region.US_EAST_1;")
+				.addStatement("LOGGER.debug(\"Region for bucket {} is {}\", bucket, region);")
+				.addStatement("return region;"));
+	}
 
-		MethodDeclaration serviceName = crossRegionS3Client.addMethod("serviceName", Modifier.Keyword.PUBLIC);
-		serviceName.setType(String.class);
-		serviceName.addMarkerAnnotation(Override.class);
-		serviceName.setBody(new BlockStmt().addStatement("return S3Client.SERVICE_NAME;"));
+	private static MethodDeclaration addExecuteInBucketRegionmethod(ClassOrInterfaceDeclaration crossRegionS3Client) {
+		MethodDeclaration executeInBucketRegion = crossRegionS3Client.addMethod("executeInBucketRegion",
+				Modifier.Keyword.PRIVATE);
+		executeInBucketRegion.addParameter("String", "bucket");
+		executeInBucketRegion.addParameter("Function<S3Client, Result>", "fn");
+		executeInBucketRegion.addTypeParameter("Result");
+		executeInBucketRegion.setType("Result");
+		executeInBucketRegion.setBody(new BlockStmt().addStatement("try {\n" + "if (bucketCache.contains(bucket)) {\n"
+				+ "return fn.apply(bucketCache.get(bucket));\n" + "} else {\n" + "return fn.apply(defaultS3Client);\n"
+				+ "}\n" + "} catch (S3Exception e) {\n" + "if (LOGGER.isTraceEnabled()) {\n"
+				+ "LOGGER.trace(\"Exception when requesting S3: {}\", e.awsErrorDetails().errorCode(), e);\n"
+				+ "} else {\n"
+				+ "LOGGER.debug(\"Exception when requesting S3 for bucket: {}: [{}] {}\", bucket, e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage());\n"
+				+ "}\n"
+				+ "// \"PermanentRedirect\" means that the bucket is in different region than the defaultS3Client is configured for\n"
+				+ "if (\"PermanentRedirect\".equals(e.awsErrorDetails().errorCode())) {\n"
+				+ "return fn.apply(bucketCache.get(bucket));\n" + "} else {\n" + "throw e;\n" + "}\n" + "}"));
+		return executeInBucketRegion;
+	}
 
-		MethodDeclaration close = crossRegionS3Client.addMethod("close", Modifier.Keyword.PUBLIC);
-		close.addMarkerAnnotation(Override.class);
-		close.setBody(new BlockStmt().addStatement("this.clientCache.values().forEach(SdkAutoCloseable::close);"));
-
-		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3", "src", "main", "java", "io",
-				"awspring", "cloud", "s3", "CrossRegionS3Client.java");
-
-		Files.write(generatedJavaCcRoot, Arrays.asList(compilationUnit.toString()));
+	private static void addListBucketsMethod(ClassOrInterfaceDeclaration crossRegionS3Client) {
+		MethodDeclaration listBuckets = crossRegionS3Client.addMethod("listBuckets", Modifier.Keyword.PUBLIC);
+		listBuckets.addMarkerAnnotation(Override.class);
+		listBuckets.addThrownException(AwsServiceException.class);
+		listBuckets.addThrownException(SdkClientException.class);
+		listBuckets.addParameter(ListBucketsRequest.class, "request");
+		listBuckets.setType(ListBucketsResponse.class);
+		listBuckets.setBody(new BlockStmt().addStatement("return defaultS3Client.listBuckets(request);"));
 	}
 
 }
