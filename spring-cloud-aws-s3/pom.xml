@@ -25,19 +25,14 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-s3</artifactId>
-	<name>Spring Cloud AWS S3 Integration</name>
-	<description>Spring Cloud AWS S3 Integration</description>
+	<artifactId>spring-cloud-aws-s3-parent</artifactId>
+	<name>Spring Cloud AWS S3 Parent</name>
+	<description>Spring Cloud AWS S3 Parent</description>
+	<packaging>pom</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3</artifactId>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>spring-cloud-aws-s3-codegen</module>
+		<module>spring-cloud-aws-s3</module>
+	</modules>
 
 </project>
