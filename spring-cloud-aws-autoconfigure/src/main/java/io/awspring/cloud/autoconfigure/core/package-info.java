@@ -14,46 +14,11 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.autoconfigure.core;
-
-import org.springframework.lang.Nullable;
-
 /**
- * Properties related to AWS Profile.
- *
- * @author Tom Gianos
- * @author Siva Katamreddy
+ * Auto-configurations for core Spring Cloud AWS components -
+ * {@link software.amazon.awssdk.auth.credentials.AwsCredentialsProvider} and
+ * {@link software.amazon.awssdk.regions.providers.AwsRegionProvider}.
  */
-public class Profile {
-
-	/**
-	 * Profile name.
-	 */
-	@Nullable
-	private String name;
-
-	/**
-	 * Profile file path.
-	 */
-	@Nullable
-	private String path;
-
-	@Nullable
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	@Nullable
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.autoconfigure.core;

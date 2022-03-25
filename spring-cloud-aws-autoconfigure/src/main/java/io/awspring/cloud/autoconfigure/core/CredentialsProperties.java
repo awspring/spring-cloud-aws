@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS credentials.
@@ -35,11 +36,13 @@ public class CredentialsProperties {
 	/**
 	 * The access key to be used with a static provider.
 	 */
+	@Nullable
 	private String accessKey;
 
 	/**
 	 * The secret key to be used with a static provider.
 	 */
+	@Nullable
 	private String secretKey;
 
 	/**
@@ -50,8 +53,10 @@ public class CredentialsProperties {
 	/**
 	 * The AWS profile.
 	 */
+	@Nullable
 	private Profile profile;
 
+	@Nullable
 	public String getAccessKey() {
 		return this.accessKey;
 	}
@@ -60,6 +65,7 @@ public class CredentialsProperties {
 		this.accessKey = accessKey;
 	}
 
+	@Nullable
 	public String getSecretKey() {
 		return this.secretKey;
 	}
@@ -76,6 +82,7 @@ public class CredentialsProperties {
 		this.instanceProfile = instanceProfile;
 	}
 
+	@Nullable
 	public Profile getProfile() {
 		return profile;
 	}

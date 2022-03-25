@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link ConfigDataLoader} for AWS Parameter Store.
@@ -44,6 +45,7 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 	}
 
 	@Override
+	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, ParameterStoreConfigDataResource resource) {
 		try {
 			SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
