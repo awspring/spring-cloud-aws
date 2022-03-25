@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -67,6 +68,11 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 		return defaultS3Client.listBuckets(request);
 	}
 
+	// visible for testing
+	Map<Region, S3Client> getClientCache() {
+		return clientCache;
+	}
+
 	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn) {
 		try {
 			if (bucketCache.contains(bucket)) {
@@ -97,7 +103,8 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 
 	private Region resolveBucketRegion(String bucket) {
 		LOGGER.debug("Resolving region for bucket {}", bucket);
-		String bucketLocation = defaultS3Client.getBucketLocation(request -> request.bucket(bucket))
+		String bucketLocation = defaultS3Client
+				.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucket).build())
 				.locationConstraintAsString();
 		Region region = StringUtils.hasLength(bucketLocation) ? Region.of(bucketLocation) : Region.US_EAST_1;
 		LOGGER.debug("Region for bucket {} is {}", bucket, region);
