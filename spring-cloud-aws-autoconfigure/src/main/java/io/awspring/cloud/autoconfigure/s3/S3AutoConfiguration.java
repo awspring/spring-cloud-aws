@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
+import io.awspring.cloud.s3.S3ProtocolResolver;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -32,11 +33,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.util.StringUtils;
 
 @ConditionalOnClass({ S3Client.class, CrossRegionS3Client.class })
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
+@Import(S3ProtocolResolver.class)
 public class S3AutoConfiguration {
 
 	private final S3Properties properties;
