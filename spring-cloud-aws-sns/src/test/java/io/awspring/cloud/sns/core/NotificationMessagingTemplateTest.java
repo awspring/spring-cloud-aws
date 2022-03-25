@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.sns.model.Topic;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -124,7 +125,7 @@ class NotificationMessagingTemplateTest {
 
 		// Act
 		Map<String, Object> headers = new HashMap<>();
-		headers.put(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, "id-5");
+		headers.put(MESSAGE_GROUP_ID_HEADER, "id-5");
 		notificationMessagingTemplate.convertAndSend(physicalTopicName, "My message", headers);
 
 		// Assert

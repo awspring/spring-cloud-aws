@@ -44,7 +44,7 @@ public class NotificationHandlerMethodArgumentResolverFactoryBean
 	}
 
 	@Override
-	protected HandlerMethodArgumentResolver createInstance() throws Exception {
+	protected HandlerMethodArgumentResolver createInstance() {
 		return getNotificationHandlerMethodArgumentResolver(this.snsClient);
 	}
 

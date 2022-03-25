@@ -17,7 +17,6 @@
 package io.awspring.cloud.sns.handlers;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -116,7 +115,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 		}
 
 		@Override
-		public InputStream getBody() throws IOException {
+		public InputStream getBody() {
 			return new ByteArrayInputStream(this.content.getBytes(getCharset()));
 		}
 

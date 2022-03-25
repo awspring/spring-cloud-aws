@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.sns.model.Topic;
 
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,17 +37,10 @@ public class DynamicTopicDestinationResolver implements DestinationResolver<Stri
 
 	private final SnsClient snsClient;
 
-	private final ResourceIdResolver resourceIdResolver;
-
 	private boolean autoCreate;
 
-	public DynamicTopicDestinationResolver(SnsClient snsClient, ResourceIdResolver resourceIdResolver) {
+	public DynamicTopicDestinationResolver(SnsClient snsClient) {
 		this.snsClient = snsClient;
-		this.resourceIdResolver = resourceIdResolver;
-	}
-
-	public DynamicTopicDestinationResolver(SnsClient SnsClient) {
-		this(SnsClient, null);
 	}
 
 	public void setAutoCreate(boolean autoCreate) {
@@ -55,20 +49,15 @@ public class DynamicTopicDestinationResolver implements DestinationResolver<Stri
 
 	@Override
 	public String resolveDestination(String name) throws DestinationResolutionException {
+		Assert.notNull(name, "Name must not be null");
 		if (this.autoCreate) {
 			return this.snsClient.createTopic(CreateTopicRequest.builder().name(name).build()).topicArn();
 		}
 		else {
-			String physicalTopicName = name;
-			if (this.resourceIdResolver != null) {
-				physicalTopicName = this.resourceIdResolver.resolveToPhysicalResourceId(name);
+			if (AmazonResourceName.isValidAmazonResourceName(name)) {
+				return name;
 			}
-
-			if (physicalTopicName != null && AmazonResourceName.isValidAmazonResourceName(physicalTopicName)) {
-				return physicalTopicName;
-			}
-
-			String topicArn = getTopicResourceName(null, physicalTopicName);
+			String topicArn = getTopicResourceName(null, name);
 			if (topicArn == null) {
 				throw new IllegalArgumentException("No Topic with name: '" + name + "' found. Please use "
 						+ "the right topic name or enable auto creation of topics for this DestinationResolver");

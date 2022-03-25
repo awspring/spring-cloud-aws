@@ -36,6 +36,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_DEDUPLICATION_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -54,7 +57,7 @@ public class TopicMessageChannelTest {
 		SnsClient snsClient = mock(SnsClient.class);
 
 		Message<String> stringMessage = MessageBuilder.withPayload("Message content")
-				.setHeader(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, "Subject").build();
+				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Subject").build();
 		MessageChannel messageChannel = new TopicMessageChannel(snsClient, "topicArn");
 
 		// Act
@@ -252,8 +255,8 @@ public class TopicMessageChannelTest {
 		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
 		when(snsClient.publish(publishRequestArgumentCaptor.capture())).thenReturn(PublishResponse.builder().build());
 
-		Message<String> message = MessageBuilder.withPayload("Hello")
-				.setHeader(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, "id-5").build();
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MESSAGE_GROUP_ID_HEADER, "id-5")
+				.build();
 		MessageChannel messageChannel = new TopicMessageChannel(snsClient, "topicArn");
 
 		// Act
@@ -261,8 +264,8 @@ public class TopicMessageChannelTest {
 
 		// Assert
 		assertThat(sent).isTrue();
-		assertThat(publishRequestArgumentCaptor.getValue().messageAttributes()
-				.containsKey(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER)).isFalse();
+		assertThat(publishRequestArgumentCaptor.getValue().messageAttributes().containsKey(MESSAGE_GROUP_ID_HEADER))
+				.isFalse();
 		assertThat(publishRequestArgumentCaptor.getValue().messageGroupId()).isEqualTo("id-5");
 	}
 
@@ -273,8 +276,8 @@ public class TopicMessageChannelTest {
 		ArgumentCaptor<PublishRequest> publishRequestArgumentCaptor = ArgumentCaptor.forClass(PublishRequest.class);
 		when(snsClient.publish(publishRequestArgumentCaptor.capture())).thenReturn(PublishResponse.builder().build());
 
-		Message<String> message = MessageBuilder.withPayload("Hello")
-				.setHeader(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER, "id-5").build();
+		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MESSAGE_DEDUPLICATION_ID_HEADER, "id-5")
+				.build();
 		MessageChannel messageChannel = new TopicMessageChannel(snsClient, "topicArn");
 
 		// Act
@@ -283,7 +286,7 @@ public class TopicMessageChannelTest {
 		// Assert
 		assertThat(sent).isTrue();
 		assertThat(publishRequestArgumentCaptor.getValue().messageAttributes()
-				.containsKey(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER)).isFalse();
+				.containsKey(MESSAGE_DEDUPLICATION_ID_HEADER)).isFalse();
 		assertThat(publishRequestArgumentCaptor.getValue().messageDeduplicationId()).isEqualTo("id-5");
 	}
 

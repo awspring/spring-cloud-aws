@@ -35,6 +35,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
 
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_DEDUPLICATION_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+
 /**
  * @author Agim Emruli
  * @author Alain Sahli
@@ -42,21 +46,6 @@ import org.springframework.util.NumberUtils;
  * @since 1.0
  */
 public class TopicMessageChannel extends AbstractMessageChannel {
-
-	/**
-	 * Header name.
-	 */
-	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
-
-	/**
-	 * Message group id for SNS message (applies only to FIFO topic).
-	 */
-	public static final String MESSAGE_GROUP_ID_HEADER = "message-group-id";
-
-	/**
-	 * Message Deduplication id for SNS message.
-	 */
-	public static final String MESSAGE_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
 
 	private final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
 

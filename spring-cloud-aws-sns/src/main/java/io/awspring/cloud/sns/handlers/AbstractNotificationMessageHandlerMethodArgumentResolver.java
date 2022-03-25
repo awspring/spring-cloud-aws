@@ -16,8 +16,6 @@
 
 package io.awspring.cloud.sns.handlers;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,6 +33,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * @author Agim Emruli
+ * @author Matej Nedic
  */
 public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 		implements HandlerMethodArgumentResolver {
@@ -48,22 +47,24 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 		Assert.notNull(parameter, "Parameter must not be null");
+		HttpInputMessage httpInputMessage = createInputMessage(webRequest);
+		JsonNode content = null;
+
 		if (webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST) == null) {
-			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
-					this.messageConverter.read(JsonNode.class, createInputMessage(webRequest)),
-					RequestAttributes.SCOPE_REQUEST);
+			content = (JsonNode) this.messageConverter.read(JsonNode.class, httpInputMessage);
+			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, content, RequestAttributes.SCOPE_REQUEST);
 		}
 
-		JsonNode content = (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
+		content = content != null ? content : (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
 				RequestAttributes.SCOPE_REQUEST);
-		return doResolveArgumentFromNotificationMessage(content, createInputMessage(webRequest),
-				parameter.getParameterType());
+
+		return doResolveArgumentFromNotificationMessage(content, httpInputMessage, parameter.getParameterType());
 	}
 
 	protected abstract Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType);
 
-	private HttpInputMessage createInputMessage(NativeWebRequest webRequest) throws IOException {
+	private HttpInputMessage createInputMessage(NativeWebRequest webRequest) {
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		return new ServletServerHttpRequest(servletRequest);
 	}

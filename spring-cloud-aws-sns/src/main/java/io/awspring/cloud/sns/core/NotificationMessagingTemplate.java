@@ -21,19 +21,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
+
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 
 /**
  * @author Alain Sahli
@@ -43,21 +43,16 @@ import org.springframework.messaging.core.MessagePostProcessor;
 public class NotificationMessagingTemplate extends AbstractMessageSendingTemplate<TopicMessageChannel>
 		implements DestinationResolvingMessageSendingOperations<TopicMessageChannel> {
 
-	private SnsClient snsClient;
+	private final SnsClient snsClient;
 
-	private DestinationResolver<String> destinationResolver;
+	private final DestinationResolver<String> destinationResolver;
 
 	public NotificationMessagingTemplate(SnsClient snsClient) {
-		this(snsClient, (ResourceIdResolver) null, null);
+		this(snsClient, null);
 	}
 
-	public NotificationMessagingTemplate(SnsClient snsClient, ResourceIdResolver resourceIdResolver) {
-		this(snsClient, resourceIdResolver, null);
-	}
-
-	public NotificationMessagingTemplate(SnsClient snsClient, ResourceIdResolver resourceIdResolver,
-			MessageConverter messageConverter) {
-		this.destinationResolver = new DynamicTopicDestinationResolver(snsClient, resourceIdResolver);
+	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter) {
+		this.destinationResolver = new DynamicTopicDestinationResolver(snsClient);
 		this.snsClient = snsClient;
 		initMessageConverter(messageConverter);
 	}
@@ -117,10 +112,6 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	}
 
 	protected void initMessageConverter(MessageConverter messageConverter) {
-		this.initMessageConverter(messageConverter, null);
-	}
-
-	protected void initMessageConverter(MessageConverter messageConverter, ObjectMapper objectMapper) {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 
@@ -130,15 +121,6 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 		if (messageConverter != null) {
 			messageConverters.add(messageConverter);
 		}
-		else {
-			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
-			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
-			if (objectMapper != null) {
-				mappingJackson2MessageConverter.setObjectMapper(objectMapper);
-			}
-			messageConverters.add(mappingJackson2MessageConverter);
-		}
-
 		setMessageConverter(new CompositeMessageConverter(messageConverters));
 	}
 
@@ -157,8 +139,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	 * @param subject The subject to send
 	 */
 	public void sendNotification(String destinationName, Object message, String subject) {
-		this.convertAndSend(destinationName, message,
-				Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+		this.convertAndSend(destinationName, message, Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
 	/**
@@ -172,7 +153,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	 */
 	public void sendNotification(Object message, String subject) {
 		this.convertAndSend(getRequiredDefaultDestination(), message,
-				Collections.singletonMap(TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER, subject));
+				Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
 }

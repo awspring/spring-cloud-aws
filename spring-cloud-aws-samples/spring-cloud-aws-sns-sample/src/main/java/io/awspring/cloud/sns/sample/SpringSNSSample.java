@@ -17,8 +17,6 @@
 package io.awspring.cloud.sns.sample;
 
 import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -27,12 +25,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static io.awspring.cloud.sns.core.TopicMessageChannel.NOTIFICATION_SUBJECT_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 
 @SpringBootApplication
 public class SpringSNSSample {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSNSSample.class);
 
 	@Autowired
 	private NotificationMessagingTemplate notificationMessagingTemplate;
