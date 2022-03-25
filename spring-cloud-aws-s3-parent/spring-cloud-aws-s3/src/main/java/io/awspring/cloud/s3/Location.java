@@ -36,6 +36,12 @@ class Location {
 		return new Location(location);
 	}
 
+	Location(String bucket, String object, String version) {
+		this.bucket = bucket;
+		this.object = object;
+		this.version = version;
+	}
+
 	private Location(String location) {
 		this.bucket = resolveBucketName(location);
 		this.object = resolveObjectName(location);

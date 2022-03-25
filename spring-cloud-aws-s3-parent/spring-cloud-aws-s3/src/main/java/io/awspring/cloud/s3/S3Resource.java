@@ -19,6 +19,9 @@ package io.awspring.cloud.s3;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import software.amazon.awssdk.services.s3.S3Client;
@@ -43,8 +46,22 @@ public class S3Resource extends AbstractResource {
 	}
 
 	S3Resource(String location, S3Client s3Client) {
-		this.location = Location.of(location);
+		this(Location.of(location), s3Client);
+	}
+
+	S3Resource(String bucket, String key, S3Client s3Client) {
+		this(new Location(bucket, key, null), s3Client);
+	}
+
+	S3Resource(Location location, S3Client s3Client) {
+		this.location = location;
 		this.s3Client = s3Client;
+	}
+
+	@Override
+	public URL getURL() throws IOException {
+		String encodedObjectName = URLEncoder.encode(location.getObject(), StandardCharsets.UTF_8.toString());
+		return new URL("https", location.getBucket() + ".s3.amazonaws.com", "/" + encodedObjectName);
 	}
 
 	@Override

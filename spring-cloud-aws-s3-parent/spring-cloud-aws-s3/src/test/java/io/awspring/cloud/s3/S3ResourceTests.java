@@ -19,6 +19,8 @@ package io.awspring.cloud.s3;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -101,6 +103,21 @@ class S3ResourceTests {
 	void contentLengthThrowsWhenResourceDoesNotExist() {
 		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
+	}
+
+	@Test
+	void returnsResourceUrl() throws IOException {
+		S3Resource resource = new S3Resource("s3://first-bucket/a-file.txt", client);
+		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
+	}
+
+	@Test
+	void returnsEncodedResourceUrlAndUri() throws IOException, URISyntaxException {
+		S3Resource resource = new S3Resource("s3://first-bucket/some/[objectName]", client);
+		assertThat(resource.getURL().toString())
+				.isEqualTo("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D");
+		assertThat(resource.getURI())
+				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D"));
 	}
 
 	@NotNull
