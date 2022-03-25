@@ -16,17 +16,20 @@
 
 package io.awspring.cloud.s3.sample;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 @SpringBootApplication
 public class SpringCloudAwsS3Sample {
@@ -37,14 +40,30 @@ public class SpringCloudAwsS3Sample {
 		SpringApplication.run(SpringCloudAwsS3Sample.class, args);
 	}
 
+	// load resource using @Value
+	@Value("s3://spring-cloud-aws-sample-bucket1/test-file.txt")
+	private Resource file;
+
 	@Bean
-	ApplicationRunner applicationRunner(S3Client s3Client) {
+	ApplicationRunner applicationRunner(S3Client s3Client, ResourceLoader resourceLoader) {
 		return args -> {
-			s3Client.listBuckets().buckets().forEach(bucket -> {
-				List<S3Object> contents = s3Client.listObjects(r -> r.bucket(bucket.name())).contents();
-				LOGGER.info("Bucket {} has {} items", bucket.name(), contents.size());
-			});
+			// use auto-configured cross-region client
+			s3Client.listObjects(request -> request.bucket("spring-cloud-aws-sample-bucket1")).contents()
+					.forEach(s3Object -> LOGGER.info("Object in bucket: {}", s3Object.key()));
+
+			// load resource using ResourceLoader
+			Resource resource = resourceLoader.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
+			String content = readContent(resource);
+			LOGGER.info("File content: {}", content);
+
+			// load content of file retrieved with @Value
+			LOGGER.info("File content: {}", readContent(file));
 		};
+	}
+
+	private String readContent(Resource resource) throws IOException {
+		Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
+		return s.hasNext() ? s.next() : "";
 	}
 
 }
