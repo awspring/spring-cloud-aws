@@ -30,6 +30,14 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
 
+/**
+ * {@link org.springframework.core.io.Resource} implementation for S3 objects.
+ *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public class S3Resource extends AbstractResource {
 
 	private final Location location;

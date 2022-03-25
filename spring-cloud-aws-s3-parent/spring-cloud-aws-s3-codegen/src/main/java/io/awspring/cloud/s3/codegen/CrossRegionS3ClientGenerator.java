@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.function.Function;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -38,6 +39,15 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3Client;
 
+/**
+ * Generates CrossRegionS3Client class from {@link CrossRegionS3ClientTemplate}.
+ *
+ * Generated methods wrap every bucket-specific {@link S3Client} method with
+ * {@link CrossRegionS3ClientTemplate#executeInBucketRegion(String, Function)}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public final class CrossRegionS3ClientGenerator {
 
 	private CrossRegionS3ClientGenerator() {

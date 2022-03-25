@@ -44,6 +44,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+/**
+ * Integration tests for {@link S3Resource}.
+ *
+ * @author Maciej Walkowiak
+ */
 @Testcontainers
 class S3ResourceTests {
 

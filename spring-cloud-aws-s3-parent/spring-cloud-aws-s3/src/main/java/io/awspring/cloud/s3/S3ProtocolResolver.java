@@ -30,6 +30,15 @@ import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+/**
+ * Resolves {@link S3Resource} for resources paths starting from s3://. Registers resolver
+ * for S3 protocol in {@link ResourceLoader}.
+ *
+ * @author Agim Emruli
+ * @author Alain Sahli
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware, BeanFactoryPostProcessor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(S3ProtocolResolver.class);

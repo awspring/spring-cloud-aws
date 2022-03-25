@@ -18,6 +18,12 @@ package io.awspring.cloud.s3;
 
 import org.springframework.util.Assert;
 
+/**
+ * Represents S3 bucket or object location.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 class Location {
 
 	private static final String S3_PROTOCOL_PREFIX = "s3://";
@@ -32,16 +38,31 @@ class Location {
 
 	private final String version;
 
+	/**
+	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key
+	 * @param location - the location
+	 * @return {@link Location}
+	 */
 	static Location of(String location) {
 		return new Location(location);
 	}
 
+	/**
+	 * Creates location.
+	 * @param bucket - the bucket name
+	 * @param object - the object key
+	 * @param version - the object version
+	 */
 	Location(String bucket, String object, String version) {
 		this.bucket = bucket;
 		this.object = object;
 		this.version = version;
 	}
 
+	/**
+	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key
+	 * @param location - the location
+	 */
 	private Location(String location) {
 		this.bucket = resolveBucketName(location);
 		this.object = resolveObjectName(location);

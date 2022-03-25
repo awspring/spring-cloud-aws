@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,6 +37,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.StringUtils;
 
+/**
+ * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
+ *
+ * @author Maciej Walkowiak
+ */
 @ConditionalOnClass({ S3Client.class, CrossRegionS3Client.class })
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
@@ -60,6 +66,12 @@ public class S3AutoConfiguration {
 		return builder;
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+		return new CrossRegionS3Client(s3ClientBuilder);
+	}
+
 	private S3Configuration s3ServiceConfiguration() {
 		S3Configuration.Builder config = S3Configuration.builder();
 		if (properties.getAccelerateModeEnabled() != null) {
@@ -81,12 +93,6 @@ public class S3AutoConfiguration {
 			config.useArnRegionEnabled(properties.getUseArnRegionEnabled());
 		}
 		return config.build();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-		return new CrossRegionS3Client(s3ClientBuilder);
 	}
 
 }

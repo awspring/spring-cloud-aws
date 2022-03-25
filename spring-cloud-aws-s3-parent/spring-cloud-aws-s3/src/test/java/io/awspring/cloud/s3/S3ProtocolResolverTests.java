@@ -21,6 +21,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+/**
+ * Tests for {@link S3ProtocolResolverTests}.
+ *
+ * @author Maciej Walkowiak
+ */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 // context must be cleaned up before each method to make sure that for each use case
