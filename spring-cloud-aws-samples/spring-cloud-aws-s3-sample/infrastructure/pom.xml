@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<artifactId>spring-cloud-aws-samples</artifactId>
+		<artifactId>spring-cloud-aws-samples-s3</artifactId>
 		<groupId>io.awspring.cloud</groupId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>

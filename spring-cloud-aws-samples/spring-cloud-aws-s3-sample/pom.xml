@@ -25,7 +25,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-s3-sample</artifactId>
+	<artifactId>spring-cloud-aws-samples-s3</artifactId>
 	<packaging>pom</packaging>
 
 	<modules>
