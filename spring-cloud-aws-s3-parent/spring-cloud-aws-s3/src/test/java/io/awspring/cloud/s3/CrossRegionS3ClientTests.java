@@ -47,17 +47,17 @@ import static org.mockito.Mockito.when;
  */
 class CrossRegionS3ClientTests {
 
-	private S3ClientBuilder mock = mock(S3ClientBuilder.class);
+	private final S3ClientBuilder mock = mock(S3ClientBuilder.class);
 
 	/**
 	 * The default client.
 	 */
-	private S3Client defaultClient = mock(S3Client.class);
+	private final S3Client defaultClient = mock(S3Client.class);
 
 	/**
 	 * Clients per region.
 	 */
-	private Map<Region, S3Client> clients = new HashMap<>();
+	private final Map<Region, S3Client> clients = new HashMap<>();
 
 	private CrossRegionS3Client crossRegionS3Client;
 
@@ -70,13 +70,11 @@ class CrossRegionS3ClientTests {
 			when(mock.build()).thenReturn(clients.get(region));
 			builders.put(region, mock);
 		});
-		when(mock.region(any())).thenAnswer(invocationOnMock -> {
-			System.out.println("Getting builder " + invocationOnMock.getArgument(0));
-			return builders.get(invocationOnMock.getArgument(0, Region.class));
-		});
+		when(mock.region(any()))
+				.thenAnswer(invocationOnMock -> builders.get(invocationOnMock.getArgument(0, Region.class)));
 
 		when(mock.build()).thenReturn(defaultClient);
-		this.crossRegionS3Client = new CrossRegionS3Client(mock);
+		crossRegionS3Client = new CrossRegionS3Client(mock);
 	}
 
 	@Test
