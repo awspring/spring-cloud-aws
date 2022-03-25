@@ -30,6 +30,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -46,7 +47,8 @@ class S3ResourceTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		client = S3Client.builder().endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
+		client = S3Client.builder().region(Region.US_EAST_1)
+				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
