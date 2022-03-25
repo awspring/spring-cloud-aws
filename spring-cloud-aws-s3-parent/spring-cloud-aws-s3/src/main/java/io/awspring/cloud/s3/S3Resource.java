@@ -16,10 +16,14 @@
 
 package io.awspring.cloud.s3;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
 
@@ -28,6 +32,8 @@ public class S3Resource extends AbstractResource {
 	private final Location location;
 
 	private final S3Client s3Client;
+
+	private ObjectMetadata metadata;
 
 	public static S3Resource create(String location, S3Client s3Client) {
 		if (Location.isSimpleStorageResource(location)) {
@@ -50,6 +56,58 @@ public class S3Resource extends AbstractResource {
 	public InputStream getInputStream() throws IOException {
 		return s3Client.getObject(request -> request.bucket(location.getBucket()).key(location.getObject())
 				.versionId(location.getVersion()));
+	}
+
+	@Override
+	public boolean exists() {
+		try {
+			fetchMetadata();
+			return true;
+		}
+		catch (NoSuchKeyException e) {
+			return false;
+		}
+	}
+
+	@Override
+	public long contentLength() throws IOException {
+		if (metadata == null) {
+			fetchMetadata();
+		}
+		return metadata.contentLength;
+	}
+
+	@Override
+	public long lastModified() throws IOException {
+		if (metadata == null) {
+			fetchMetadata();
+		}
+		return metadata.lastModified.toEpochMilli();
+	}
+
+	@Override
+	public File getFile() throws IOException {
+		throw new UnsupportedOperationException("Amazon S3 resource can not be resolved to java.io.File objects.Use "
+				+ "getInputStream() to retrieve the contents of the object!");
+	}
+
+	private void fetchMetadata() {
+		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
+				.key(location.getObject()).versionId(location.getVersion()));
+		this.metadata = new ObjectMetadata(response);
+	}
+
+	private static class ObjectMetadata {
+
+		private final Long contentLength;
+
+		private final Instant lastModified;
+
+		ObjectMetadata(HeadObjectResponse headObjectResponse) {
+			this.contentLength = headObjectResponse.contentLength();
+			this.lastModified = headObjectResponse.lastModified();
+		}
+
 	}
 
 }

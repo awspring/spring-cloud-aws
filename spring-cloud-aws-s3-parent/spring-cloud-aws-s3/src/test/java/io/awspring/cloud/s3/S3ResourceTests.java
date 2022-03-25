@@ -36,9 +36,11 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @Testcontainers
 class S3ResourceTests {
@@ -70,6 +72,35 @@ class S3ResourceTests {
 		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
 		String content = retrieveContent(resource);
 		assertThat(content).isEqualTo("test-file-content");
+	}
+
+	@Test
+	void existsReturnsTrueWhenKeyExists() {
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+				RequestBody.fromString("test-file-content"));
+		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		assertThat(resource.exists()).isTrue();
+	}
+
+	@Test
+	void existsReturnsFalseWhenObjectDoesNotExist() {
+		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		assertThat(resource.exists()).isFalse();
+	}
+
+	@Test
+	void objectHasContentLength() throws IOException {
+		String contents = "test-file-content";
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+				RequestBody.fromString(contents));
+		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		assertThat(resource.contentLength()).isEqualTo(contents.length());
+	}
+
+	@Test
+	void contentLengthThrowsWhenResourceDoesNotExist() {
+		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
 	}
 
 	@NotNull
