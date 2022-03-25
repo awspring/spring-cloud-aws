@@ -45,15 +45,15 @@ public class S3Resource extends AbstractResource {
 		return null;
 	}
 
-	S3Resource(String location, S3Client s3Client) {
+	public S3Resource(String location, S3Client s3Client) {
 		this(Location.of(location), s3Client);
 	}
 
-	S3Resource(String bucket, String key, S3Client s3Client) {
+	public S3Resource(String bucket, String key, S3Client s3Client) {
 		this(new Location(bucket, key, null), s3Client);
 	}
 
-	S3Resource(Location location, S3Client s3Client) {
+	public S3Resource(Location location, S3Client s3Client) {
 		this.location = location;
 		this.s3Client = s3Client;
 	}
