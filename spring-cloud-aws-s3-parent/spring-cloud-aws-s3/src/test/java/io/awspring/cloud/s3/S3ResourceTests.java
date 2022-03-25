@@ -47,6 +47,8 @@ class S3ResourceTests {
 
 	@BeforeAll
 	static void beforeAll() {
+		// region here is irrelevant for test, but must be added to make test work on
+		// environments without AWS cli configured
 		client = S3Client.builder().region(Region.US_EAST_1)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
