@@ -18,6 +18,9 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import java.util.Optional;
 
+import edu.colorado.cires.cmg.s3out.AwsS3ClientMultipartUpload;
+import edu.colorado.cires.cmg.s3out.ContentTypeResolver;
+import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
 import io.awspring.cloud.s3.S3ProtocolResolver;
@@ -70,6 +73,14 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
 		return new CrossRegionS3Client(s3ClientBuilder);
+	}
+
+	@Bean
+	S3ClientMultipartUpload s3ClientMultipartUpload(S3Client s3Client,
+			Optional<ContentTypeResolver> contentTypeResolver) {
+		AwsS3ClientMultipartUpload.Builder builder = AwsS3ClientMultipartUpload.builder().s3(s3Client);
+		contentTypeResolver.ifPresent(builder::contentTypeResolver);
+		return builder.build();
 	}
 
 	private S3Configuration s3ServiceConfiguration() {

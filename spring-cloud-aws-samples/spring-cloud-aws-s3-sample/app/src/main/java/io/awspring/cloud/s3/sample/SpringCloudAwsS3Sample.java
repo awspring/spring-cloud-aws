@@ -17,6 +17,8 @@
 package io.awspring.cloud.s3.sample;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.WritableResource;
 
 @SpringBootApplication
 public class SpringCloudAwsS3Sample {
@@ -52,12 +55,19 @@ public class SpringCloudAwsS3Sample {
 					.forEach(s3Object -> LOGGER.info("Object in bucket: {}", s3Object.key()));
 
 			// load resource using ResourceLoader
-			Resource resource = resourceLoader.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
+			WritableResource resource = (WritableResource) resourceLoader
+					.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
 			String content = readContent(resource);
 			LOGGER.info("File content: {}", content);
 
 			// load content of file retrieved with @Value
 			LOGGER.info("File content: {}", readContent(file));
+
+			// write to resource
+			try (OutputStream outputStream = resource.getOutputStream()) {
+				outputStream.write("overwritten".getBytes(StandardCharsets.UTF_8));
+			}
+			LOGGER.info("Overwritten content: {}", readContent(resource));
 		};
 	}
 

@@ -439,6 +439,13 @@ public class CrossRegionS3Client implements S3Client {
 	}
 
 	@Override
+	public software.amazon.awssdk.services.s3.model.GetObjectAttributesResponse getObjectAttributes(
+			software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest request)
+			throws AwsServiceException, SdkClientException {
+		return executeInBucketRegion(request.bucket(), s3Client -> s3Client.getObjectAttributes(request));
+	}
+
+	@Override
 	public software.amazon.awssdk.services.s3.model.GetObjectLegalHoldResponse getObjectLegalHold(
 			software.amazon.awssdk.services.s3.model.GetObjectLegalHoldRequest request)
 			throws AwsServiceException, SdkClientException {

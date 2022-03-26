@@ -19,11 +19,14 @@ package io.awspring.cloud.s3;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import com.amazonaws.auth.AWSCredentials;
+import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -58,6 +61,8 @@ class S3ResourceTests {
 
 	private static S3Client client;
 
+	private static S3ClientMultipartUpload clientMultipartUpload;
+
 	@BeforeAll
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make test
@@ -69,6 +74,8 @@ class S3ResourceTests {
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
+
+		clientMultipartUpload = S3ClientMultipartUpload.createDefault(client);
 	}
 
 	@Test
@@ -76,7 +83,7 @@ class S3ResourceTests {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
 
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		String content = retrieveContent(resource);
 		assertThat(content).isEqualTo("test-file-content");
 	}
@@ -85,13 +92,13 @@ class S3ResourceTests {
 	void existsReturnsTrueWhenKeyExists() {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		assertThat(resource.exists()).isTrue();
 	}
 
 	@Test
 	void existsReturnsFalseWhenObjectDoesNotExist() {
-		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThat(resource.exists()).isFalse();
 	}
 
@@ -100,29 +107,46 @@ class S3ResourceTests {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		assertThat(resource.contentLength()).isEqualTo(contents.length());
 	}
 
 	@Test
 	void contentLengthThrowsWhenResourceDoesNotExist() {
-		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
 	}
 
 	@Test
 	void returnsResourceUrl() throws IOException {
-		S3Resource resource = new S3Resource("s3://first-bucket/a-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt");
 		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
 	}
 
 	@Test
 	void returnsEncodedResourceUrlAndUri() throws IOException, URISyntaxException {
-		S3Resource resource = new S3Resource("s3://first-bucket/some/[objectName]", client);
+		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]");
 		assertThat(resource.getURL().toString())
 				.isEqualTo("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D");
 		assertThat(resource.getURI())
 				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D"));
+	}
+
+	@Test
+	void resourceIsWritable() throws IOException {
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+				RequestBody.fromString("test-file-content"));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("overwritten".getBytes(StandardCharsets.UTF_8));
+		}
+		assertThat(retrieveContent(resource)).isEqualTo("overwritten");
+	}
+
+	@NotNull
+	private S3Resource s3Resource(String location) {
+		return new S3Resource(location, client, clientMultipartUpload);
 	}
 
 	@NotNull

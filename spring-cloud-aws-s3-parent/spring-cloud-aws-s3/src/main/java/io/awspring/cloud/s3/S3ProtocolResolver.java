@@ -16,6 +16,7 @@
 
 package io.awspring.cloud.s3;
 
+import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -45,6 +46,8 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 
 	private S3Client s3Client;
 
+	private S3ClientMultipartUpload s3ClientMultipartUpload;
+
 	private BeanFactory beanFactory;
 
 	// for testing
@@ -57,7 +60,16 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 
 	@Override
 	public Resource resolve(String location, ResourceLoader resourceLoader) {
-		return S3Resource.create(location, getS3Client());
+		return S3Resource.create(location, getS3Client(), getS3ClientMultipartUpload());
+	}
+
+	private S3ClientMultipartUpload getS3ClientMultipartUpload() {
+		if (s3ClientMultipartUpload == null) {
+			return this.beanFactory.getBean(S3ClientMultipartUpload.class);
+		}
+		else {
+			return s3ClientMultipartUpload;
+		}
 	}
 
 	@Override

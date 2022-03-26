@@ -1,5 +1,6 @@
 package io.awspring.cloud.s3;
 
+import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -74,6 +75,11 @@ class S3ProtocolResolverTests {
 		@Bean
 		S3Client s3Client() {
 			return mock(S3Client.class);
+		}
+
+		@Bean
+		S3ClientMultipartUpload s3ClientMultipartUpload() {
+			return mock(S3ClientMultipartUpload.class);
 		}
 
 	}

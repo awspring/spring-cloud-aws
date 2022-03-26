@@ -19,16 +19,20 @@ package io.awspring.cloud.s3;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
+import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
+import edu.colorado.cires.cmg.s3out.S3OutputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.WritableResource;
 
 /**
  * {@link org.springframework.core.io.Resource} implementation for S3 objects.
@@ -38,32 +42,36 @@ import org.springframework.core.io.AbstractResource;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-public class S3Resource extends AbstractResource {
+public class S3Resource extends AbstractResource implements WritableResource {
 
 	private final Location location;
 
 	private final S3Client s3Client;
 
+	private final S3ClientMultipartUpload s3ClientMultipartUpload;
+
 	private ObjectMetadata metadata;
 
-	public static S3Resource create(String location, S3Client s3Client) {
+	public static S3Resource create(String location, S3Client s3Client,
+			S3ClientMultipartUpload s3ClientMultipartUpload) {
 		if (Location.isSimpleStorageResource(location)) {
-			return new S3Resource(location, s3Client);
+			return new S3Resource(location, s3Client, s3ClientMultipartUpload);
 		}
 		return null;
 	}
 
-	public S3Resource(String location, S3Client s3Client) {
-		this(Location.of(location), s3Client);
+	public S3Resource(String location, S3Client s3Client, S3ClientMultipartUpload s3ClientMultipartUpload) {
+		this(Location.of(location), s3Client, s3ClientMultipartUpload);
 	}
 
-	public S3Resource(String bucket, String key, S3Client s3Client) {
-		this(new Location(bucket, key, null), s3Client);
+	public S3Resource(String bucket, String key, S3Client s3Client, S3ClientMultipartUpload s3ClientMultipartUpload) {
+		this(new Location(bucket, key, null), s3Client, s3ClientMultipartUpload);
 	}
 
-	public S3Resource(Location location, S3Client s3Client) {
+	public S3Resource(Location location, S3Client s3Client, S3ClientMultipartUpload s3ClientMultipartUpload) {
 		this.location = location;
 		this.s3Client = s3Client;
+		this.s3ClientMultipartUpload = s3ClientMultipartUpload;
 	}
 
 	@Override
@@ -120,6 +128,12 @@ public class S3Resource extends AbstractResource {
 		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
 				.key(location.getObject()).versionId(location.getVersion()));
 		this.metadata = new ObjectMetadata(response);
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		return S3OutputStream.builder().s3(S3ClientMultipartUpload.createDefault(s3Client)).bucket(location.getBucket())
+				.key(location.getObject()).build();
 	}
 
 	private static class ObjectMetadata {
