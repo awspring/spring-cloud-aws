@@ -19,6 +19,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS S3.
@@ -38,11 +39,13 @@ public class S3Properties extends AwsClientProperties {
 	 * endpoints allow faster transfer of objects by using Amazon CloudFront's globally
 	 * distributed edge locations.
 	 */
+	@Nullable
 	private Boolean accelerateModeEnabled;
 
 	/**
 	 * Option to disable doing a validation of the checksum of an object stored in S3.
 	 */
+	@Nullable
 	private Boolean checksumValidationEnabled;
 
 	/**
@@ -50,12 +53,14 @@ public class S3Properties extends AwsClientProperties {
 	 * {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and
 	 * {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
 	 */
+	@Nullable
 	private Boolean chunkedEncodingEnabled;
 
 	/**
 	 * Option to enable using the dualstack endpoints when accessing S3. Dualstack should
 	 * be enabled if you want to use IPv6.
 	 */
+	@Nullable
 	private Boolean dualstackEnabled;
 
 	/**
@@ -63,6 +68,7 @@ public class S3Properties extends AwsClientProperties {
 	 * style access. DNS style access is preferred as it will result in better load
 	 * balancing when accessing S3.
 	 */
+	@Nullable
 	private Boolean pathStyleAccessEnabled;
 
 	/**
@@ -71,53 +77,60 @@ public class S3Properties extends AwsClientProperties {
 	 * to 'true' to permit the client to make a cross-region call to the region specified
 	 * in the ARN otherwise an exception will be thrown.
 	 */
+	@Nullable
 	private Boolean useArnRegionEnabled;
 
+	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return accelerateModeEnabled;
 	}
 
-	public void setAccelerateModeEnabled(Boolean accelerateModeEnabled) {
+	public void setAccelerateModeEnabled(@Nullable Boolean accelerateModeEnabled) {
 		this.accelerateModeEnabled = accelerateModeEnabled;
 	}
 
+	@Nullable
 	public Boolean getChecksumValidationEnabled() {
 		return checksumValidationEnabled;
 	}
 
-	public void setChecksumValidationEnabled(Boolean checksumValidationEnabled) {
+	public void setChecksumValidationEnabled(@Nullable Boolean checksumValidationEnabled) {
 		this.checksumValidationEnabled = checksumValidationEnabled;
 	}
 
+	@Nullable
 	public Boolean getChunkedEncodingEnabled() {
 		return chunkedEncodingEnabled;
 	}
 
-	public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
+	public void setChunkedEncodingEnabled(@Nullable Boolean chunkedEncodingEnabled) {
 		this.chunkedEncodingEnabled = chunkedEncodingEnabled;
 	}
 
+	@Nullable
 	public Boolean getDualstackEnabled() {
 		return dualstackEnabled;
 	}
 
-	public void setDualstackEnabled(Boolean dualstackEnabled) {
+	public void setDualstackEnabled(@Nullable Boolean dualstackEnabled) {
 		this.dualstackEnabled = dualstackEnabled;
 	}
 
+	@Nullable
 	public Boolean getPathStyleAccessEnabled() {
 		return pathStyleAccessEnabled;
 	}
 
-	public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
+	public void setPathStyleAccessEnabled(@Nullable Boolean pathStyleAccessEnabled) {
 		this.pathStyleAccessEnabled = pathStyleAccessEnabled;
 	}
 
+	@Nullable
 	public Boolean getUseArnRegionEnabled() {
 		return useArnRegionEnabled;
 	}
 
-	public void setUseArnRegionEnabled(Boolean useArnRegionEnabled) {
+	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
 		this.useArnRegionEnabled = useArnRegionEnabled;
 	}
 

@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.core.io.Resource} implementation for S3 objects.
@@ -44,8 +45,10 @@ public class S3Resource extends AbstractResource {
 
 	private final S3Client s3Client;
 
+	@Nullable
 	private ObjectMetadata metadata;
 
+	@Nullable
 	public static S3Resource create(String location, S3Client s3Client) {
 		if (Location.isSimpleStorageResource(location)) {
 			return new S3Resource(location, s3Client);
