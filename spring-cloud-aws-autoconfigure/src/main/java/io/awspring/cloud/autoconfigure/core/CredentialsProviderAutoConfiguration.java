@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class CredentialsProviderAutoConfiguration {
 
 		Profile profile = properties.getProfile();
 		if (profile != null && profile.getName() != null) {
-			providers.add(createProfileCredentialProvider(properties));
+			providers.add(createProfileCredentialProvider(profile));
 		}
 
 		if (providers.isEmpty()) {
@@ -87,8 +87,7 @@ public class CredentialsProviderAutoConfiguration {
 				.create(AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey()));
 	}
 
-	private static ProfileCredentialsProvider createProfileCredentialProvider(CredentialsProperties properties) {
-		Profile profile = properties.getProfile();
+	private static ProfileCredentialsProvider createProfileCredentialProvider(Profile profile) {
 		ProfileFile credentialProfileFile = ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS)
 				.content(Paths.get(profile.getPath())).build();
 		ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();

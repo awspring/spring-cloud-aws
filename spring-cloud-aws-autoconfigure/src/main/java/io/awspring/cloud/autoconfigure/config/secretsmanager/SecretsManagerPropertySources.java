@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Provides prefix config import support.
  *
@@ -41,6 +43,7 @@ public class SecretsManagerPropertySources {
 	 * @return a property source or null if secret could not be loaded and optional is set
 	 * to true
 	 */
+	@Nullable
 	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			SecretsManagerClient client) {
 		LOG.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
