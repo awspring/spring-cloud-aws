@@ -5,6 +5,12 @@
 			"name": "spring.cloud.aws.ses.enabled",
 			"description": "Enables Simple Email Service integration.",
 			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.s3.enabled",
+			"description": "Enables S3 integration.",
+			"type": "java.lang.Boolean"
 		}
 	]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package io.awspring.cloud.autoconfigure;
 
 import java.net.URI;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Base properties for AWS Service client.
  *
@@ -28,13 +30,16 @@ public abstract class AwsClientProperties {
 	/**
 	 * Overrides the default endpoint.
 	 */
+	@Nullable
 	private URI endpoint;
 
 	/**
 	 * Overrides the default region.
 	 */
+	@Nullable
 	private String region;
 
+	@Nullable
 	public URI getEndpoint() {
 		return endpoint;
 	}
@@ -43,6 +48,7 @@ public abstract class AwsClientProperties {
 		this.endpoint = endpoint;
 	}
 
+	@Nullable
 	public String getRegion() {
 		return region;
 	}

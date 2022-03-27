@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
+import org.springframework.lang.Nullable;
 import org.springframework.core.io.WritableResource;
 
 /**
@@ -50,8 +51,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	private final S3ClientMultipartUpload s3ClientMultipartUpload;
 
+	@Nullable
 	private ObjectMetadata metadata;
 
+	@Nullable
 	public static S3Resource create(String location, S3Client s3Client,
 			S3ClientMultipartUpload s3ClientMultipartUpload) {
 		if (Location.isSimpleStorageResource(location)) {

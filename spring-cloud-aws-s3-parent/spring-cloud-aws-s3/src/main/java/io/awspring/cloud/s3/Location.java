@@ -16,6 +16,7 @@
 
 package io.awspring.cloud.s3;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -36,6 +37,7 @@ class Location {
 
 	private final String object;
 
+	@Nullable
 	private final String version;
 
 	/**
@@ -53,7 +55,7 @@ class Location {
 	 * @param object - the object key
 	 * @param version - the object version
 	 */
-	Location(String bucket, String object, String version) {
+	Location(String bucket, String object, @Nullable String version) {
 		this.bucket = bucket;
 		this.object = object;
 		this.version = version;
@@ -77,6 +79,7 @@ class Location {
 		return object;
 	}
 
+	@Nullable
 	String getVersion() {
 		return version;
 	}
@@ -122,6 +125,7 @@ class Location {
 		return location.substring(++bucketEndIndex, endIndex);
 	}
 
+	@Nullable
 	private static String resolveVersionId(String location) {
 		int objectNameEndIndex = location.indexOf(VERSION_DELIMITER, S3_PROTOCOL_PREFIX.length());
 		if (objectNameEndIndex == -1 || location.endsWith(VERSION_DELIMITER)) {

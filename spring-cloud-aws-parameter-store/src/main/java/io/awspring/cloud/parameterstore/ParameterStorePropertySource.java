@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.lang.Nullable;
 
 /**
  * Recursively retrieves all parameters under the given context / path with decryption
@@ -66,6 +67,7 @@ public class ParameterStorePropertySource extends EnumerablePropertySource<SsmCl
 	}
 
 	@Override
+	@Nullable
 	public Object getProperty(String name) {
 		return this.properties.get(name);
 	}

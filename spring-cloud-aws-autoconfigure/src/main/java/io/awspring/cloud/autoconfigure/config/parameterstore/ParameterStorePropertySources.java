@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
+import org.springframework.lang.Nullable;
+
 /**
  * @author Eddú Meléndez
  * @since 2.3
@@ -38,6 +40,7 @@ public class ParameterStorePropertySources {
 	 * @return a property source or null if parameter could not be loaded and optional is
 	 * set to true
 	 */
+	@Nullable
 	public ParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
 		LOG.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
