@@ -31,7 +31,9 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,6 +48,7 @@ import org.springframework.util.StringUtils;
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
+@ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {
 
 	private final S3Properties properties;
@@ -74,24 +77,14 @@ public class S3AutoConfiguration {
 
 	private S3Configuration s3ServiceConfiguration() {
 		S3Configuration.Builder config = S3Configuration.builder();
-		if (properties.getAccelerateModeEnabled() != null) {
-			config.accelerateModeEnabled(properties.getAccelerateModeEnabled());
-		}
-		if (properties.getChecksumValidationEnabled() != null) {
-			config.checksumValidationEnabled(properties.getChecksumValidationEnabled());
-		}
-		if (properties.getChunkedEncodingEnabled() != null) {
-			config.chunkedEncodingEnabled(properties.getChunkedEncodingEnabled());
-		}
-		if (properties.getDualstackEnabled() != null) {
-			config.dualstackEnabled(properties.getDualstackEnabled());
-		}
-		if (properties.getPathStyleAccessEnabled() != null) {
-			config.pathStyleAccessEnabled(properties.getPathStyleAccessEnabled());
-		}
-		if (properties.getUseArnRegionEnabled() != null) {
-			config.useArnRegionEnabled(properties.getUseArnRegionEnabled());
-		}
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		propertyMapper.from(properties::getAccelerateModeEnabled).whenNonNull().to(config::accelerateModeEnabled);
+		propertyMapper.from(properties::getChecksumValidationEnabled).whenNonNull()
+				.to(config::checksumValidationEnabled);
+		propertyMapper.from(properties::getChunkedEncodingEnabled).whenNonNull().to(config::chunkedEncodingEnabled);
+		propertyMapper.from(properties::getDualstackEnabled).whenNonNull().to(config::dualstackEnabled);
+		propertyMapper.from(properties::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
+		propertyMapper.from(properties::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
 	}
 
