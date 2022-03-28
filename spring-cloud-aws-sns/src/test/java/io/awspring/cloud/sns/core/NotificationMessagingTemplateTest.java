@@ -18,11 +18,14 @@ package io.awspring.cloud.sns.core;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
 import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
 import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -33,6 +36,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -66,8 +70,10 @@ class NotificationMessagingTemplateTest {
 	void send_validTextMessageWithCustomDestinationResolver_usesTopicChannel() throws Exception {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
-				false, new ObjectMapper());
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient, true,
+				new ObjectMapper());
+		when(snsClient.createTopic(any(Consumer.class)))
+				.thenReturn(CreateTopicResponse.builder().topicArn("arn:aws:sns:eu-west:123456789012:test").build());
 
 		// Act
 		notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
@@ -75,6 +81,17 @@ class NotificationMessagingTemplateTest {
 		// Assert
 		verify(snsClient).publish(PublishRequest.builder().topicArn("TEST").message("Message content").subject(null)
 				.messageAttributes(isNotNull()).build());
+	}
+
+	@Test
+	void send_validTextMessageWithCustomDestinationResolver_failsForAutoCreateFalse() throws Exception {
+		// Arrange
+		SnsClient snsClient = mock(SnsClient.class);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
+				false, new ObjectMapper());
+		// Act
+		Assertions.assertThrows(IllegalArgumentException.class, () -> notificationMessagingTemplate.send("test",
+				MessageBuilder.withPayload("Message content").build()));
 	}
 
 	@Test
