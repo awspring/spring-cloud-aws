@@ -59,7 +59,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 		Assert.notNull(snsClient, "AutoCreate must not be null");
 		this.autoTopicCreator = new DefaultAutoTopicCreator(snsClient, autoCreate);
 		this.snsClient = snsClient;
-		initMessageConverter(messageConverter, objectMapper);
+		setMessageConverter(initMessageConverter(messageConverter, objectMapper));
 	}
 
 	public NotificationMessagingTemplate(SnsClient snsClient, AutoTopicCreator autoTopicCreator,
@@ -68,7 +68,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 		Assert.notNull(snsClient, "AutoCreate must not be null");
 		this.autoTopicCreator = autoTopicCreator;
 		this.snsClient = snsClient;
-		initMessageConverter(messageConverter, objectMapper);
+		setMessageConverter(initMessageConverter(messageConverter, objectMapper));
 	}
 
 	public void setDefaultDestinationName(String defaultDestination) {
@@ -139,7 +139,6 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 		}
 
 		CompositeMessageConverter converter = new CompositeMessageConverter(messageConverters);
-		setMessageConverter(converter);
 		return converter;
 	}
 
