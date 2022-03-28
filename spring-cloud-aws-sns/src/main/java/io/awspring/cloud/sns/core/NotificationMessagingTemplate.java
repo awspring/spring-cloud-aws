@@ -21,17 +21,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
+import org.springframework.util.Assert;
 
 import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 
@@ -45,23 +47,28 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 
 	private final SnsClient snsClient;
 
-	private final DestinationResolver<String> destinationResolver;
+	private final AutoTopicCreator autoTopicCreator;
 
-	public NotificationMessagingTemplate(SnsClient snsClient) {
-		this(snsClient, null);
+	public NotificationMessagingTemplate(SnsClient snsClient, Boolean autoCreate, ObjectMapper objectMapper) {
+		this(snsClient, null, autoCreate, objectMapper);
 	}
 
-	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter) {
-		this.destinationResolver = new DynamicTopicDestinationResolver(snsClient);
+	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter, Boolean autoCreate,
+			ObjectMapper objectMapper) {
+		Assert.notNull(snsClient, "SnsClient must not be null");
+		Assert.notNull(snsClient, "AutoCreate must not be null");
+		this.autoTopicCreator = new DefaultAutoTopicCreator(snsClient, autoCreate);
 		this.snsClient = snsClient;
-		initMessageConverter(messageConverter);
+		initMessageConverter(messageConverter, objectMapper);
 	}
 
-	public NotificationMessagingTemplate(SnsClient snsClient, DestinationResolver<String> destinationResolver,
-			MessageConverter messageConverter) {
-		this.destinationResolver = destinationResolver;
+	public NotificationMessagingTemplate(SnsClient snsClient, AutoTopicCreator autoTopicCreator,
+			MessageConverter messageConverter, ObjectMapper objectMapper) {
+		Assert.notNull(snsClient, "SnsClient must not be null");
+		Assert.notNull(snsClient, "AutoCreate must not be null");
+		this.autoTopicCreator = autoTopicCreator;
 		this.snsClient = snsClient;
-		initMessageConverter(messageConverter);
+		initMessageConverter(messageConverter, objectMapper);
 	}
 
 	public void setDefaultDestinationName(String defaultDestination) {
@@ -74,44 +81,45 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	}
 
 	@Override
-	public void send(String destinationName, Message<?> message) throws MessagingException {
-		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+	public void send(String destination, Message<?> message) throws MessagingException {
+		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		doSend(channel, message);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destinationName, T payload) throws MessagingException {
-		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+	public <T> void convertAndSend(String destination, T payload) throws MessagingException {
+		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers)
+	public <T> void convertAndSend(String destination, T payload, Map<String, Object> headers)
 			throws MessagingException {
-		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, headers);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destinationName, T payload, MessagePostProcessor postProcessor)
+	public <T> void convertAndSend(String destination, T payload, MessagePostProcessor postProcessor)
 			throws MessagingException {
-		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, postProcessor);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destinationName, T payload, Map<String, Object> headers,
+	public <T> void convertAndSend(String destination, T payload, Map<String, Object> headers,
 			MessagePostProcessor postProcessor) throws MessagingException {
-		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destinationName);
+		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, headers, postProcessor);
 	}
 
 	protected TopicMessageChannel resolveMessageChannelByLogicalName(String destination) {
-		String physicalResourceId = this.destinationResolver.resolveDestination(destination);
+		String physicalResourceId = this.autoTopicCreator.createTopicBasedOnName(destination);
 		return resolveMessageChannel(physicalResourceId);
 	}
 
-	protected void initMessageConverter(MessageConverter messageConverter) {
+	protected CompositeMessageConverter initMessageConverter(MessageConverter messageConverter,
+			ObjectMapper objectMapper) {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 
@@ -121,7 +129,18 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 		if (messageConverter != null) {
 			messageConverters.add(messageConverter);
 		}
-		setMessageConverter(new CompositeMessageConverter(messageConverters));
+		else {
+			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+			mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
+			if (objectMapper != null) {
+				mappingJackson2MessageConverter.setObjectMapper(objectMapper);
+			}
+			messageConverters.add(mappingJackson2MessageConverter);
+		}
+
+		CompositeMessageConverter converter = new CompositeMessageConverter(messageConverters);
+		setMessageConverter(converter);
+		return converter;
 	}
 
 	protected TopicMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {

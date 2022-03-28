@@ -45,7 +45,21 @@ public class NotificationMessageTemplateTest {
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
 
 	@Test
-	void send_validTextMessage_usesTopicChannel() {
+	void send_validTextMessage_usesTopicChannel_auto_create() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application)) {
+			NotificationMessagingTemplate notificationMessagingTemplate = context
+					.getBean(NotificationMessagingTemplate.class);
+
+			assertThatCode(() -> notificationMessagingTemplate.convertAndSend(TOPIC_NAME, "message"))
+					.doesNotThrowAnyException();
+		}
+	}
+
+	@Test
+	void send_validTextMessage_usesTopicChannel_send_arn() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -53,9 +67,9 @@ public class NotificationMessageTemplateTest {
 			NotificationMessagingTemplate notificationMessagingTemplate = context
 					.getBean(NotificationMessagingTemplate.class);
 			SnsClient client = context.getBean(SnsClient.class);
-			client.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build());
+			String topic_arn = client.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 
-			assertThatCode(() -> notificationMessagingTemplate.convertAndSend(TOPIC_NAME, "message"))
+			assertThatCode(() -> notificationMessagingTemplate.convertAndSend(topic_arn, "message"))
 					.doesNotThrowAnyException();
 		}
 	}

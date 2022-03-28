@@ -31,6 +31,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,6 +59,8 @@ public class SnsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(NotificationMessagingTemplate.class);
+			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
+					.getBean(HandlerMethodArgumentResolver.class);
 
 			SnsClient client = context.getBean(SnsClient.class);
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
@@ -64,6 +68,9 @@ public class SnsAutoConfigurationTest {
 			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
 			assertThat(attributes.get(SdkClientOption.ENDPOINT))
 					.isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
+			assertThat(handlerMethodArgumentResolver).isNotNull();
+			assertThat(((HandlerMethodArgumentResolverComposite) handlerMethodArgumentResolver).getResolvers().size())
+					.isEqualTo(3);
 		});
 	}
 
@@ -71,6 +78,8 @@ public class SnsAutoConfigurationTest {
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.endpoint:http://localhost:8090").run(context -> {
 			SnsClient client = context.getBean(SnsClient.class);
+			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
+					.getBean(HandlerMethodArgumentResolver.class);
 			assertThat(context).hasSingleBean(NotificationMessagingTemplate.class);
 
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
@@ -78,6 +87,10 @@ public class SnsAutoConfigurationTest {
 			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
 			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
+			assertThat(context).hasSingleBean(HandlerMethodArgumentResolver.class);
+			assertThat(handlerMethodArgumentResolver).isNotNull();
+			assertThat(((HandlerMethodArgumentResolverComposite) handlerMethodArgumentResolver).getResolvers().size())
+					.isEqualTo(3);
 		});
 	}
 

@@ -18,7 +18,6 @@ package io.awspring.cloud.sns.sample;
 
 import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -30,8 +29,11 @@ import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT
 @SpringBootApplication
 public class SpringSNSSample {
 
-	@Autowired
 	private NotificationMessagingTemplate notificationMessagingTemplate;
+
+	public SpringSNSSample(NotificationMessagingTemplate notificationMessagingTemplate) {
+		this.notificationMessagingTemplate = notificationMessagingTemplate;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringSNSSample.class, args);

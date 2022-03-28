@@ -17,7 +17,9 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
@@ -52,8 +54,8 @@ import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgum
  * @author Matej Nedic
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(SnsClient.class)
-@EnableConfigurationProperties(SnsProperties.class)
+@ConditionalOnClass({ SnsClient.class, NotificationMessagingTemplate.class })
+@EnableConfigurationProperties({ SnsProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
@@ -80,8 +82,16 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public NotificationMessagingTemplate notificationTemplate(SnsClient snsClient) {
-		return new NotificationMessagingTemplate(snsClient);
+	public NotificationMessagingTemplate notificationTemplate(SnsClient snsClient,
+			Optional<ObjectMapper> objectMapper) {
+		return new NotificationMessagingTemplate(snsClient, this.properties.getAutoCreate(),
+				objectMapper.orElseGet(ObjectMapper::new));
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public HandlerMethodArgumentResolver handlerMethodArgumentResolver(SnsClient snsClient) {
+		return getNotificationHandlerMethodArgumentResolver(snsClient);
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -89,11 +99,11 @@ public class SnsAutoConfiguration {
 	static class SnsWebConfiguration {
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient) {
+		public WebMvcConfigurer snsWebMvcConfigurer(HandlerMethodArgumentResolver handlerMethodArgumentResolver) {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-					resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
+					resolvers.add(handlerMethodArgumentResolver);
 				}
 			};
 		}

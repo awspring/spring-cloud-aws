@@ -17,9 +17,9 @@
 package io.awspring.cloud.sns.core;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -29,7 +29,6 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
 
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.MessageBuilder;
 
 import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
@@ -48,7 +47,8 @@ class NotificationMessagingTemplateTest {
 	void send_validTextMessage_usesTopicChannel() throws Exception {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
+				false, new ObjectMapper());
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(snsClient.listTopics(ListTopicsRequest.builder().build())).thenReturn(
 				ListTopicsResponse.builder().topics(Topic.builder().topicArn(physicalTopicName).build()).build());
@@ -67,7 +67,7 @@ class NotificationMessagingTemplateTest {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
 		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
-				(DestinationResolver<String>) name -> name.toUpperCase(Locale.ENGLISH), null);
+				false, new ObjectMapper());
 
 		// Act
 		notificationMessagingTemplate.send("test", MessageBuilder.withPayload("Message content").build());
@@ -81,7 +81,8 @@ class NotificationMessagingTemplateTest {
 	void convertAndSend_withDestinationPayloadAndSubject_shouldSetSubject() throws Exception {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
+				false, new ObjectMapper());
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(snsClient.listTopics(ListTopicsRequest.builder().build())).thenReturn(
 				ListTopicsResponse.builder().topics(Topic.builder().topicArn(physicalTopicName).build()).build());
@@ -98,7 +99,8 @@ class NotificationMessagingTemplateTest {
 	void convertAndSend_withPayloadAndSubject_shouldSetSubject() throws Exception {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
+				false, new ObjectMapper());
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(snsClient.listTopics(ListTopicsRequest.builder().build())).thenReturn(
 				ListTopicsResponse.builder().topics(Topic.builder().topicArn(physicalTopicName).build()).build());
@@ -116,7 +118,8 @@ class NotificationMessagingTemplateTest {
 	void convertAndSend_withPayloadAndMessageGroupIdHeader_shouldSetMessageGroupIdParameter() throws Exception {
 		// Arrange
 		SnsClient snsClient = mock(SnsClient.class);
-		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient);
+		NotificationMessagingTemplate notificationMessagingTemplate = new NotificationMessagingTemplate(snsClient,
+				false, new ObjectMapper());
 		String physicalTopicName = "arn:aws:sns:eu-west:123456789012:test";
 		when(snsClient.listTopics(ListTopicsRequest.builder().build())).thenReturn(
 				ListTopicsResponse.builder().topics(Topic.builder().topicArn(physicalTopicName).build()).build());
