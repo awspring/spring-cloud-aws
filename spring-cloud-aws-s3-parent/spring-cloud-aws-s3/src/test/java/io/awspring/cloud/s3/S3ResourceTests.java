@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import com.amazonaws.auth.AWSCredentials;
-import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,8 +59,6 @@ class S3ResourceTests {
 
 	private static S3Client client;
 
-	private static S3ClientMultipartUpload clientMultipartUpload;
-
 	@BeforeAll
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make test
@@ -73,8 +70,6 @@ class S3ResourceTests {
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
-
-		clientMultipartUpload = S3ClientMultipartUpload.createDefault(client);
 	}
 
 	@Test
@@ -142,19 +137,6 @@ class S3ResourceTests {
 			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
 		}
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
-	}
-
-	@Test
-	void resourceIsWritableWithMultipartUpload() throws IOException {
-		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
-				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
-				new MultipartS3OutputStreamProvider(client));
-
-		try (OutputStream outputStream = resource.getOutputStream()) {
-			outputStream.write("overwritten with multipart".getBytes(StandardCharsets.UTF_8));
-		}
-		assertThat(retrieveContent(resource)).isEqualTo("overwritten with multipart");
 	}
 
 	@NotNull

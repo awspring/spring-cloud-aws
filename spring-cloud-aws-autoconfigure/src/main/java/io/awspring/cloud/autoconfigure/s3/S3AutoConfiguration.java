@@ -21,7 +21,6 @@ import java.util.Optional;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
-import io.awspring.cloud.s3.MultipartS3OutputStreamProvider;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -81,12 +80,7 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client) {
-		if (properties.getUpload() == S3Properties.Upload.MULTIPART) {
-			return new MultipartS3OutputStreamProvider(s3Client);
-		}
-		else {
-			return new DiskBufferingS3OutputStreamProvider(s3Client);
-		}
+		return new DiskBufferingS3OutputStreamProvider(s3Client);
 	}
 
 	private S3Configuration s3ServiceConfiguration() {

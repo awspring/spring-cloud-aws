@@ -86,8 +86,6 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	private Boolean useArnRegionEnabled;
 
-	private Upload upload = Upload.BUFFERED;
-
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return accelerateModeEnabled;
@@ -140,14 +138,6 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
 		this.useArnRegionEnabled = useArnRegionEnabled;
-	}
-
-	public Upload getUpload() {
-		return upload;
-	}
-
-	public void setUpload(Upload upload) {
-		this.upload = upload;
 	}
 
 }
