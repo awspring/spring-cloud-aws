@@ -135,7 +135,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
-		return S3OutputStream.builder().s3(S3ClientMultipartUpload.createDefault(s3Client)).bucket(location.getBucket())
+		return S3OutputStream.builder().s3(s3ClientMultipartUpload).bucket(location.getBucket())
 				.key(location.getObject()).build();
 	}
 
