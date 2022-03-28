@@ -29,7 +29,7 @@ import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT
 @SpringBootApplication
 public class SpringSNSSample {
 
-	private NotificationMessagingTemplate notificationMessagingTemplate;
+	private final NotificationMessagingTemplate notificationMessagingTemplate;
 
 	public SpringSNSSample(NotificationMessagingTemplate notificationMessagingTemplate) {
 		this.notificationMessagingTemplate = notificationMessagingTemplate;
