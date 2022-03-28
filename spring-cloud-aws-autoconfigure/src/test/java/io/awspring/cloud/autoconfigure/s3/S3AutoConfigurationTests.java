@@ -16,16 +16,12 @@
 
 package io.awspring.cloud.autoconfigure.s3;
 
-import java.util.Optional;
-
-import edu.colorado.cires.cmg.s3out.AwsS3ClientMultipartUpload;
-import edu.colorado.cires.cmg.s3out.ContentTypeResolver;
-import edu.colorado.cires.cmg.s3out.DefaultContentTypeResolver;
-import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
-import org.jetbrains.annotations.Nullable;
+import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.MultipartS3OutputStreamProvider;
+import io.awspring.cloud.s3.S3OutputStreamProvider;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -34,7 +30,6 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -57,7 +52,7 @@ class S3AutoConfigurationTests {
 			assertThat(context).hasSingleBean(S3Client.class);
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
-			assertThat(context).hasSingleBean(S3ClientMultipartUpload.class);
+			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
 		});
 	}
 
@@ -85,24 +80,14 @@ class S3AutoConfigurationTests {
 	}
 
 	@Test
-	void byDefaultMultipartClientHasDefaultContentTypeResolver() {
-		this.contextRunner.run(context -> {
-			AwsS3ClientMultipartUpload clientMultipartUpload = context.getBean(AwsS3ClientMultipartUpload.class);
-			assertThat(getContentTypeResolver(clientMultipartUpload)).isInstanceOf(DefaultContentTypeResolver.class);
-		});
+	void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
+		this.contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
 	}
 
 	@Test
-	void multipartContentTypeResolverCanBeConfigured() {
-		this.contextRunner.withUserConfiguration(CustomContentTypeResolverConfiguration.class).run(context -> {
-			AwsS3ClientMultipartUpload clientMultipartUpload = context.getBean(AwsS3ClientMultipartUpload.class);
-			assertThat(getContentTypeResolver(clientMultipartUpload)).isInstanceOf(CustomContentTypeResolver.class);
-		});
-	}
-
-	@Nullable
-	private ContentTypeResolver getContentTypeResolver(AwsS3ClientMultipartUpload bean) {
-		return (ContentTypeResolver) ReflectionTestUtils.getField(bean, "contentTypeResolver");
+	void multipartS3OutputStreamProviderCanBeConfigured() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.upload:MULTIPART")
+				.run(context -> assertThat(context).hasSingleBean(MultipartS3OutputStreamProvider.class));
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -111,25 +96,6 @@ class S3AutoConfigurationTests {
 		@Bean
 		S3Client customS3Client() {
 			return mock(S3Client.class);
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomContentTypeResolverConfiguration {
-
-		@Bean
-		ContentTypeResolver customContentTypeResolver() {
-			return new CustomContentTypeResolver();
-		}
-
-	}
-
-	static class CustomContentTypeResolver implements ContentTypeResolver {
-
-		@Override
-		public Optional<String> resolveContentType(String s) {
-			return Optional.empty();
 		}
 
 	}

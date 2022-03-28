@@ -16,7 +16,6 @@
 
 package io.awspring.cloud.s3;
 
-import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -49,15 +48,10 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 	private S3Client s3Client;
 
 	@Nullable
-	private S3ClientMultipartUpload s3ClientMultipartUpload;
+	private S3OutputStreamProvider s3OutputStreamProvider;
 
 	@Nullable
 	private BeanFactory beanFactory;
-
-	// for testing
-	S3ProtocolResolver(S3Client s3Client) {
-		this.s3Client = s3Client;
-	}
 
 	public S3ProtocolResolver() {
 	}
@@ -70,22 +64,24 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 			return null;
 		}
 
-		S3ClientMultipartUpload s3ClientMultipartUpload = getS3ClientMultipartUpload();
-		if (s3ClientMultipartUpload == null) {
-			LOGGER.warn("Could not resolve S3ClientMultipartUpload. Resource {} could not be resolved", location);
+		S3OutputStreamProvider s3OutputStreamProvider = getS3OutputStreamProvider();
+		if (s3OutputStreamProvider == null) {
+			LOGGER.warn("Could not resolve S3OutputStreamProvider. Resource {} could not be resolved", location);
 			return null;
 		}
 
-		return S3Resource.create(location, s3Client, s3ClientMultipartUpload);
+		return S3Resource.create(location, s3Client, s3OutputStreamProvider);
 	}
 
 	@Nullable
-	private S3ClientMultipartUpload getS3ClientMultipartUpload() {
-		if (s3ClientMultipartUpload != null) {
-			return s3ClientMultipartUpload;
+	private S3OutputStreamProvider getS3OutputStreamProvider() {
+		if (s3OutputStreamProvider != null) {
+			return s3OutputStreamProvider;
 		}
 		else if (beanFactory != null) {
-			return beanFactory.getBean(S3ClientMultipartUpload.class);
+			S3OutputStreamProvider s3OutputStreamProvider = beanFactory.getBean(S3OutputStreamProvider.class);
+			this.s3OutputStreamProvider = s3OutputStreamProvider;
+			return s3OutputStreamProvider;
 		}
 		else {
 			return null;
@@ -114,7 +110,9 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 			return s3Client;
 		}
 		else if (beanFactory != null) {
-			return beanFactory.getBean(S3Client.class);
+			S3Client s3Client = beanFactory.getBean(S3Client.class);
+			this.s3Client = s3Client;
+			return s3Client;
 		}
 		else {
 			return null;

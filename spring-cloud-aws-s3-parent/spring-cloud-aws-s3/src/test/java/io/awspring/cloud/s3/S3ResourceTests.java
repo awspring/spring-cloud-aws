@@ -36,7 +36,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -133,20 +132,39 @@ class S3ResourceTests {
 	}
 
 	@Test
-	void resourceIsWritable() throws IOException {
+	void resourceIsWritableWithDiskBuffering() throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
+				new DiskBufferingS3OutputStreamProvider(client));
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
-			outputStream.write("overwritten".getBytes(StandardCharsets.UTF_8));
+			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
 		}
-		assertThat(retrieveContent(resource)).isEqualTo("overwritten");
+		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
+	}
+
+	@Test
+	void resourceIsWritableWithMultipartUpload() throws IOException {
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+				RequestBody.fromString("test-file-content"));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
+				new MultipartS3OutputStreamProvider(client));
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("overwritten with multipart".getBytes(StandardCharsets.UTF_8));
+		}
+		assertThat(retrieveContent(resource)).isEqualTo("overwritten with multipart");
 	}
 
 	@NotNull
 	private S3Resource s3Resource(String location) {
-		return new S3Resource(location, client, clientMultipartUpload);
+		return new S3Resource(location, client, new DiskBufferingS3OutputStreamProvider(client));
+	}
+
+	@NotNull
+	private S3Resource s3Resource(String location, S3OutputStreamProvider s3OutputStreamProvider) {
+		return new S3Resource(location, client, s3OutputStreamProvider);
 	}
 
 	@NotNull

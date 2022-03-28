@@ -18,11 +18,11 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import java.util.Optional;
 
-import edu.colorado.cires.cmg.s3out.AwsS3ClientMultipartUpload;
-import edu.colorado.cires.cmg.s3out.ContentTypeResolver;
-import edu.colorado.cires.cmg.s3out.S3ClientMultipartUpload;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
+import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.MultipartS3OutputStreamProvider;
+import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -79,11 +79,14 @@ public class S3AutoConfiguration {
 	}
 
 	@Bean
-	S3ClientMultipartUpload s3ClientMultipartUpload(S3Client s3Client,
-			Optional<ContentTypeResolver> contentTypeResolver) {
-		AwsS3ClientMultipartUpload.Builder builder = AwsS3ClientMultipartUpload.builder().s3(s3Client);
-		contentTypeResolver.ifPresent(builder::contentTypeResolver);
-		return builder.build();
+	@ConditionalOnMissingBean
+	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client) {
+		if (properties.getUpload() == S3Properties.Upload.MULTIPART) {
+			return new MultipartS3OutputStreamProvider(s3Client);
+		}
+		else {
+			return new DiskBufferingS3OutputStreamProvider(s3Client);
+		}
 	}
 
 	private S3Configuration s3ServiceConfiguration() {

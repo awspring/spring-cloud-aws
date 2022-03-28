@@ -29,6 +29,12 @@ import org.springframework.lang.Nullable;
 @ConfigurationProperties(prefix = S3Properties.PREFIX)
 public class S3Properties extends AwsClientProperties {
 
+	enum Upload {
+
+		MULTIPART, BUFFERED
+
+	}
+
 	/**
 	 * The prefix used for S3 related properties.
 	 */
@@ -79,6 +85,8 @@ public class S3Properties extends AwsClientProperties {
 	 */
 	@Nullable
 	private Boolean useArnRegionEnabled;
+
+	private Upload upload = Upload.BUFFERED;
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
@@ -132,6 +140,14 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
 		this.useArnRegionEnabled = useArnRegionEnabled;
+	}
+
+	public Upload getUpload() {
+		return upload;
+	}
+
+	public void setUpload(Upload upload) {
+		this.upload = upload;
 	}
 
 }

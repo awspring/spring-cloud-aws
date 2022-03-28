@@ -20,8 +20,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 
 import com.github.javaparser.StaticJavaParser;
@@ -91,14 +94,25 @@ public final class CrossRegionS3ClientGenerator {
 					if (isRegionSpecific(method) && isCanonical(method)) {
 						MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(method.getName(),
 								Modifier.Keyword.PUBLIC);
-						methodDeclaration.addParameter(new Parameter(
-								StaticJavaParser.parseClassOrInterfaceType(method.getParamType(0).describe()),
-								"request"));
+
+						// collect & create method parameters
+						List<String> parameterStrings = new ArrayList<>();
+						for (int i = 0; i < method.getParamTypes().size(); i++) {
+							methodDeclaration.addParameter(new Parameter(StaticJavaParser
+									.parseClassOrInterfaceType(method.getParamTypes().get(i).describe()), "p" + i));
+							parameterStrings.add("p" + i);
+						}
+
+						// handle generic types
+						if (method.getDeclaration().getReturnType().isTypeVariable()) {
+							methodDeclaration.addTypeParameter(method.getDeclaration().getReturnType().describe());
+						}
+
 						methodDeclaration.setType(StaticJavaParser
 								.parseClassOrInterfaceType(method.getDeclaration().getReturnType().describe()));
 						methodDeclaration.setBody(new BlockStmt()
-								.addStatement("return executeInBucketRegion(request.bucket(), s3Client -> s3Client."
-										+ method.getName() + "(request));"));
+								.addStatement("return executeInBucketRegion(p0.bucket(), s3Client -> s3Client."
+										+ method.getName() + "(" + String.join(",", parameterStrings) + "));"));
 						methodDeclaration.addMarkerAnnotation(Override.class);
 						methodDeclaration.addThrownException(AwsServiceException.class);
 						methodDeclaration.addThrownException(SdkClientException.class);
@@ -107,11 +121,11 @@ public final class CrossRegionS3ClientGenerator {
 	}
 
 	private static boolean isRegionSpecific(MethodUsage method) {
-		return !method.getName().equals("listBuckets");
+		return !Arrays.asList("listBuckets", "writeGetObjectResponse").contains(method.getName());
 	}
 
 	private static boolean isCanonical(MethodUsage method) {
-		return method.getParamTypes().size() == 1 && method.getParamType(0).describe().endsWith("Request");
+		return method.getParamTypes().size() > 0 && method.getParamType(0).describe().endsWith("Request");
 	}
 
 }
