@@ -18,6 +18,12 @@ package io.awspring.cloud.s3;
 
 import java.io.OutputStream;
 
+/**
+ * Represents {@link OutputStream} that writes data to S3.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public abstract class S3OutputStream extends OutputStream {
 
 }

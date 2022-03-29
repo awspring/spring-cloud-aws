@@ -17,11 +17,26 @@
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.springframework.lang.Nullable;
 
+/**
+ * Creates an {@link OutputStream} that writes data to S3.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public interface S3OutputStreamProvider {
 
+	/**
+	 * Creates an {@link OutputStream} that writes data to S3.
+	 * @param bucket - the bucket name
+	 * @param key - the object key
+	 * @param metadata - object metadata, can be {@code null}
+	 * @return the S3 output stream
+	 * @throws IOException - when IO operation fails
+	 */
 	S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException;
 
 }

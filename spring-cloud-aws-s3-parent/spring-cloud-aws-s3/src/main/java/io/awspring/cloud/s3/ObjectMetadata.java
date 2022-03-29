@@ -31,6 +31,13 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 
 import org.springframework.lang.Nullable;
 
+/**
+ * Container for S3 Object Metadata. For information about each field look at
+ * {@link PutObjectRequest} Javadocs.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public class ObjectMetadata {
 
 	@Nullable

@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * and adopted to Spring Cloud AWS needs.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 class DiskBufferingS3OutputStream extends S3OutputStream {
 

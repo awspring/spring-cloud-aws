@@ -29,6 +29,11 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Unit tests for {@link ObjectMetadata}.
+ *
+ * @author Maciej Walkowiak
+ */
 class ObjectMetadataTests {
 
 	@Test

@@ -22,6 +22,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import org.springframework.lang.Nullable;
 
+/**
+ * Creates {@link DiskBufferingS3OutputStream}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public class DiskBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
 	private final S3Client s3Client;
