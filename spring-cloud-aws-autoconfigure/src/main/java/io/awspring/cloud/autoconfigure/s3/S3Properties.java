@@ -29,12 +29,6 @@ import org.springframework.lang.Nullable;
 @ConfigurationProperties(prefix = S3Properties.PREFIX)
 public class S3Properties extends AwsClientProperties {
 
-	enum Upload {
-
-		MULTIPART, BUFFERED
-
-	}
-
 	/**
 	 * The prefix used for S3 related properties.
 	 */
