@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -80,7 +81,7 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 	private MessageDigest hash;
 
 	@Nullable
-	private ObjectMetadata objectMetadata;
+	private final ObjectMetadata objectMetadata;
 
 	/**
 	 * Flag to indicate this stream has been closed, to ensure close is only done once.
@@ -99,8 +100,8 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 			hash = MessageDigest.getInstance("MD5");
 			localOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(file), hash));
 		}
-		catch (NoSuchAlgorithmException nsae) {
-			LOG.warn("Algorithm not available for MD5 hash.", nsae);
+		catch (NoSuchAlgorithmException e) {
+			LOG.warn("Algorithm not available for MD5 hash.", e);
 			hash = null;
 			localOutputStream = new BufferedOutputStream(new FileOutputStream(file));
 		}
@@ -140,11 +141,10 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 			if (objectMetadata != null) {
 				objectMetadata.apply(builder);
 			}
-			// TODO: fix passing hash
-			// if (hash != null) {
-			// builder =
-			// builder.contentMD5(DigestUtils.md5DigestAsHex(hash.digest()).toUpperCase(Locale.ROOT));
-			// }
+			if (hash != null) {
+				String contentMD5 = new String(Base64.getEncoder().encode(hash.digest()));
+				builder = builder.contentMD5(contentMD5);
+			}
 			s3Client.putObject(builder.build(), RequestBody.fromFile(file));
 			file.delete();
 		}
