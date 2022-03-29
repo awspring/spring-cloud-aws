@@ -19,8 +19,10 @@ package io.awspring.cloud.s3;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -33,16 +35,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration tests for {@link S3Resource}.
@@ -76,7 +79,7 @@ class S3ResourceTests {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
 
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		String content = retrieveContent(resource);
 		assertThat(content).isEqualTo("test-file-content");
 	}
@@ -85,13 +88,13 @@ class S3ResourceTests {
 	void existsReturnsTrueWhenKeyExists() {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		assertThat(resource.exists()).isTrue();
 	}
 
 	@Test
 	void existsReturnsFalseWhenObjectDoesNotExist() {
-		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThat(resource.exists()).isFalse();
 	}
 
@@ -100,29 +103,71 @@ class S3ResourceTests {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
-		S3Resource resource = new S3Resource("s3://first-bucket/test-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
 		assertThat(resource.contentLength()).isEqualTo(contents.length());
 	}
 
 	@Test
 	void contentLengthThrowsWhenResourceDoesNotExist() {
-		S3Resource resource = new S3Resource("s3://first-bucket/non-existing-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
 	}
 
 	@Test
 	void returnsResourceUrl() throws IOException {
-		S3Resource resource = new S3Resource("s3://first-bucket/a-file.txt", client);
+		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt");
 		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
 	}
 
 	@Test
 	void returnsEncodedResourceUrlAndUri() throws IOException, URISyntaxException {
-		S3Resource resource = new S3Resource("s3://first-bucket/some/[objectName]", client);
+		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]");
 		assertThat(resource.getURL().toString())
 				.isEqualTo("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D");
 		assertThat(resource.getURI())
 				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D"));
+	}
+
+	@Test
+	void resourceIsWritableWithDiskBuffering() throws IOException {
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+				RequestBody.fromString("test-file-content"));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
+				new DiskBufferingS3OutputStreamProvider(client));
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
+		}
+		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
+	}
+
+	@Test
+	void objectMetadataCanBeSetOnWriting() throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
+				new DiskBufferingS3OutputStreamProvider(client));
+
+		ObjectMetadata objectMetadata = ObjectMetadata.builder().storageClass(StorageClass.ONEZONE_IA.name())
+				.metadata("key", "value").contentLanguage("en").build();
+		resource.setObjectMetadata(objectMetadata);
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+		}
+		GetObjectResponse result = client
+				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+		assertThat(result.storageClass()).isEqualTo(StorageClass.ONEZONE_IA);
+		assertThat(result.contentLanguage()).isEqualTo("en");
+		assertThat(result.metadata()).containsEntry("key", "value");
+	}
+
+	@NotNull
+	private S3Resource s3Resource(String location) {
+		return new S3Resource(location, client, new DiskBufferingS3OutputStreamProvider(client));
+	}
+
+	@NotNull
+	private S3Resource s3Resource(String location, S3OutputStreamProvider s3OutputStreamProvider) {
+		return new S3Resource(location, client, s3OutputStreamProvider);
 	}
 
 	@NotNull

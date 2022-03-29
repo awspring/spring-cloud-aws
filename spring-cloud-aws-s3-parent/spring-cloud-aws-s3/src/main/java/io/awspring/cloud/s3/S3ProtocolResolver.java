@@ -48,12 +48,10 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 	private S3Client s3Client;
 
 	@Nullable
-	private BeanFactory beanFactory;
+	private S3OutputStreamProvider s3OutputStreamProvider;
 
-	// for testing
-	S3ProtocolResolver(S3Client s3Client) {
-		this.s3Client = s3Client;
-	}
+	@Nullable
+	private BeanFactory beanFactory;
 
 	public S3ProtocolResolver() {
 	}
@@ -61,11 +59,31 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 	@Override
 	public Resource resolve(String location, ResourceLoader resourceLoader) {
 		S3Client s3Client = getS3Client();
-		if (s3Client != null) {
-			return S3Resource.create(location, s3Client);
+		if (s3Client == null) {
+			LOGGER.warn("Could not resolve S3Client. Resource {} could not be resolved", location);
+			return null;
+		}
+
+		S3OutputStreamProvider s3OutputStreamProvider = getS3OutputStreamProvider();
+		if (s3OutputStreamProvider == null) {
+			LOGGER.warn("Could not resolve S3OutputStreamProvider. Resource {} could not be resolved", location);
+			return null;
+		}
+
+		return S3Resource.create(location, s3Client, s3OutputStreamProvider);
+	}
+
+	@Nullable
+	private S3OutputStreamProvider getS3OutputStreamProvider() {
+		if (s3OutputStreamProvider != null) {
+			return s3OutputStreamProvider;
+		}
+		else if (beanFactory != null) {
+			S3OutputStreamProvider s3OutputStreamProvider = beanFactory.getBean(S3OutputStreamProvider.class);
+			this.s3OutputStreamProvider = s3OutputStreamProvider;
+			return s3OutputStreamProvider;
 		}
 		else {
-			LOGGER.warn("Could not resolve S3Client. Resource {} could not be resolved", location);
 			return null;
 		}
 	}
@@ -92,7 +110,9 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 			return s3Client;
 		}
 		else if (beanFactory != null) {
-			return beanFactory.getBean(S3Client.class);
+			S3Client s3Client = beanFactory.getBean(S3Client.class);
+			this.s3Client = s3Client;
+			return s3Client;
 		}
 		else {
 			return null;

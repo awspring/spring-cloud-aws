@@ -41,7 +41,7 @@ class Location {
 	private final String version;
 
 	/**
-	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key
+	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key.
 	 * @param location - the location
 	 * @return {@link Location}
 	 */
@@ -62,7 +62,7 @@ class Location {
 	}
 
 	/**
-	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key
+	 * Creates {@link Location} from full S3 path s3://bucket-name/object-key.
 	 * @param location - the location
 	 */
 	private Location(String location) {

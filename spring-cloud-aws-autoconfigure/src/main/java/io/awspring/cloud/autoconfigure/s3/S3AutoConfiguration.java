@@ -20,6 +20,8 @@ import java.util.Optional;
 
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
+import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -73,6 +75,12 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
 		return new CrossRegionS3Client(s3ClientBuilder);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client) {
+		return new DiskBufferingS3OutputStreamProvider(s3Client);
 	}
 
 	private S3Configuration s3ServiceConfiguration() {

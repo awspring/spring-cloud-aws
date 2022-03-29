@@ -16,9 +16,15 @@
 
 package io.awspring.cloud.autoconfigure.s3;
 
+import java.io.IOException;
+
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
+import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.ObjectMetadata;
+import io.awspring.cloud.s3.S3OutputStream;
+import io.awspring.cloud.s3.S3OutputStreamProvider;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -27,6 +33,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -49,6 +56,7 @@ class S3AutoConfigurationTests {
 			assertThat(context).hasSingleBean(S3Client.class);
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
+			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
 		});
 	}
 
@@ -75,12 +83,42 @@ class S3AutoConfigurationTests {
 		});
 	}
 
+	@Test
+	void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
+		this.contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
+	}
+
+	@Test
+	void customS3OutputStreamProviderCanBeConfigured() {
+		this.contextRunner.withUserConfiguration(CustomS3OutputStreamProviderConfiguration.class)
+				.run(context -> assertThat(context).hasSingleBean(CustomS3OutputStreamProvider.class));
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomS3ClientConfiguration {
 
 		@Bean
 		S3Client customS3Client() {
 			return mock(S3Client.class);
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomS3OutputStreamProviderConfiguration {
+
+		@Bean
+		S3OutputStreamProvider customS3OutputStreamProvider() {
+			return new CustomS3OutputStreamProvider();
+		}
+
+	}
+
+	static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
+
+		@Override
+		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
+			return null;
 		}
 
 	}

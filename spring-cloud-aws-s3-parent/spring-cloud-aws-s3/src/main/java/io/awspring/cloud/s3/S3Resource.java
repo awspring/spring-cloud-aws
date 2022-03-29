@@ -19,6 +19,7 @@ package io.awspring.cloud.s3;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
 
 /**
@@ -39,34 +41,40 @@ import org.springframework.lang.Nullable;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-public class S3Resource extends AbstractResource {
+public class S3Resource extends AbstractResource implements WritableResource {
 
 	private final Location location;
 
 	private final S3Client s3Client;
 
-	@Nullable
-	private ObjectMetadata metadata;
+	private final S3OutputStreamProvider s3OutputStreamProvider;
 
 	@Nullable
-	public static S3Resource create(String location, S3Client s3Client) {
+	private HeadMetadata headMetadata;
+
+	@Nullable
+	private ObjectMetadata objectMetadata;
+
+	@Nullable
+	public static S3Resource create(String location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
 		if (Location.isSimpleStorageResource(location)) {
-			return new S3Resource(location, s3Client);
+			return new S3Resource(location, s3Client, s3OutputStreamProvider);
 		}
 		return null;
 	}
 
-	public S3Resource(String location, S3Client s3Client) {
-		this(Location.of(location), s3Client);
+	public S3Resource(String location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
+		this(Location.of(location), s3Client, s3OutputStreamProvider);
 	}
 
-	public S3Resource(String bucket, String key, S3Client s3Client) {
-		this(new Location(bucket, key, null), s3Client);
+	public S3Resource(String bucket, String key, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
+		this(new Location(bucket, key, null), s3Client, s3OutputStreamProvider);
 	}
 
-	public S3Resource(Location location, S3Client s3Client) {
+	public S3Resource(Location location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
 		this.location = location;
 		this.s3Client = s3Client;
+		this.s3OutputStreamProvider = s3OutputStreamProvider;
 	}
 
 	@Override
@@ -86,6 +94,10 @@ public class S3Resource extends AbstractResource {
 				.versionId(location.getVersion()));
 	}
 
+	public void setObjectMetadata(@Nullable ObjectMetadata objectMetadata) {
+		this.objectMetadata = objectMetadata;
+	}
+
 	@Override
 	public boolean exists() {
 		try {
@@ -99,18 +111,18 @@ public class S3Resource extends AbstractResource {
 
 	@Override
 	public long contentLength() throws IOException {
-		if (metadata == null) {
+		if (headMetadata == null) {
 			fetchMetadata();
 		}
-		return metadata.contentLength;
+		return headMetadata.contentLength;
 	}
 
 	@Override
 	public long lastModified() throws IOException {
-		if (metadata == null) {
+		if (headMetadata == null) {
 			fetchMetadata();
 		}
-		return metadata.lastModified.toEpochMilli();
+		return headMetadata.lastModified.toEpochMilli();
 	}
 
 	@Override
@@ -122,16 +134,21 @@ public class S3Resource extends AbstractResource {
 	private void fetchMetadata() {
 		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
 				.key(location.getObject()).versionId(location.getVersion()));
-		this.metadata = new ObjectMetadata(response);
+		this.headMetadata = new HeadMetadata(response);
 	}
 
-	private static class ObjectMetadata {
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		return s3OutputStreamProvider.create(location.getBucket(), location.getObject(), objectMetadata);
+	}
+
+	private static class HeadMetadata {
 
 		private final Long contentLength;
 
 		private final Instant lastModified;
 
-		ObjectMetadata(HeadObjectResponse headObjectResponse) {
+		HeadMetadata(HeadObjectResponse headObjectResponse) {
 			this.contentLength = headObjectResponse.contentLength();
 			this.lastModified = headObjectResponse.lastModified();
 		}
