@@ -36,7 +36,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import org.springframework.util.ConcurrentLruCache;
 import org.springframework.util.StringUtils;
 
-@SuppressWarnings("checkstyle")
 public class CrossRegionS3ClientTemplate implements S3Client {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");

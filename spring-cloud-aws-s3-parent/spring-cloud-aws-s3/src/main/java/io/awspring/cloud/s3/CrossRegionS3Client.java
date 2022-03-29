@@ -33,7 +33,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import org.springframework.util.ConcurrentLruCache;
 import org.springframework.util.StringUtils;
 
-@SuppressWarnings("checkstyle")
 public class CrossRegionS3Client implements S3Client {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");
@@ -751,15 +750,15 @@ public class CrossRegionS3Client implements S3Client {
 
 	@Override
 	public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(
-			software.amazon.awssdk.services.s3.model.PutObjectRequest p0, java.nio.file.Path p1)
-			throws AwsServiceException, SdkClientException {
+			software.amazon.awssdk.services.s3.model.PutObjectRequest p0,
+			software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.putObject(p0, p1));
 	}
 
 	@Override
 	public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(
-			software.amazon.awssdk.services.s3.model.PutObjectRequest p0,
-			software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
+			software.amazon.awssdk.services.s3.model.PutObjectRequest p0, java.nio.file.Path p1)
+			throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.putObject(p0, p1));
 	}
 
@@ -814,15 +813,15 @@ public class CrossRegionS3Client implements S3Client {
 
 	@Override
 	public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(
-			software.amazon.awssdk.services.s3.model.UploadPartRequest p0, java.nio.file.Path p1)
-			throws AwsServiceException, SdkClientException {
+			software.amazon.awssdk.services.s3.model.UploadPartRequest p0,
+			software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.uploadPart(p0, p1));
 	}
 
 	@Override
 	public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(
-			software.amazon.awssdk.services.s3.model.UploadPartRequest p0,
-			software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
+			software.amazon.awssdk.services.s3.model.UploadPartRequest p0, java.nio.file.Path p1)
+			throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.uploadPart(p0, p1));
 	}
 
