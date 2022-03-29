@@ -78,18 +78,22 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 	@Nullable
 	private MessageDigest hash;
 
+	@Nullable
+	private ObjectMetadata objectMetadata;
+
 	/**
 	 * Flag to indicate this stream has been closed, to ensure close is only done once.
 	 */
 	private boolean closed;
 
-	DiskBufferingS3OutputStream(@NonNull String bucket, @NonNull String key, @NonNull S3Client client)
-			throws IOException {
+	DiskBufferingS3OutputStream(@NonNull String bucket, @NonNull String key, @NonNull S3Client client,
+			@Nullable ObjectMetadata objectMetadata) throws IOException {
 		Assert.notNull(bucket, "Bucket name must not be null.");
 		this.bucket = bucket;
 		this.key = key;
-		s3Client = client;
-		file = File.createTempFile("DiskBufferingS3OutputStream", UUID.randomUUID().toString());
+		this.s3Client = client;
+		this.objectMetadata = objectMetadata;
+		this.file = File.createTempFile("DiskBufferingS3OutputStream", UUID.randomUUID().toString());
 		try {
 			hash = MessageDigest.getInstance("MD5");
 			localOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(file), hash));
@@ -132,6 +136,9 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 		try {
 			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(bucket).key(key)
 					.contentLength(file.length());
+			if (objectMetadata != null) {
+				objectMetadata.apply(builder);
+			}
 			// TODO: fix passing hash
 			// if (hash != null) {
 			// builder =

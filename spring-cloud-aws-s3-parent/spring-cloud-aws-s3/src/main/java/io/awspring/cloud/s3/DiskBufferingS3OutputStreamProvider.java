@@ -17,9 +17,10 @@
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
-import java.util.Map;
 
 import software.amazon.awssdk.services.s3.S3Client;
+
+import org.springframework.lang.Nullable;
 
 public class DiskBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
@@ -30,9 +31,8 @@ public class DiskBufferingS3OutputStreamProvider implements S3OutputStreamProvid
 	}
 
 	@Override
-	public S3OutputStream create(String bucket, String key, Map<String, String> metadata) throws IOException {
-		// TODO: metadata support
-		return new DiskBufferingS3OutputStream(bucket, key, s3Client);
+	public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
+		return new DiskBufferingS3OutputStream(bucket, key, s3Client, metadata);
 	}
 
 }

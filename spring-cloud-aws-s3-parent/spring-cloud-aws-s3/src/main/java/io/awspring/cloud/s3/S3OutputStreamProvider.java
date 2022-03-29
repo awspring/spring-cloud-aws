@@ -17,12 +17,11 @@
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.springframework.lang.Nullable;
 
 public interface S3OutputStreamProvider {
 
-	S3OutputStream create(String bucket, String key, @Nullable Map<String, String> metadata) throws IOException;
+	S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException;
 
 }

@@ -39,11 +39,13 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration tests for {@link S3Resource}.
@@ -137,6 +139,25 @@ class S3ResourceTests {
 			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
 		}
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
+	}
+
+	@Test
+	void objectMetadataCanBeSetOnWriting() throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
+				new DiskBufferingS3OutputStreamProvider(client));
+
+		ObjectMetadata objectMetadata = ObjectMetadata.builder().storageClass(StorageClass.ONEZONE_IA.name())
+				.metadata("key", "value").contentLanguage("en").build();
+		resource.setObjectMetadata(objectMetadata);
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+		}
+		GetObjectResponse result = client
+				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+		assertThat(result.storageClass()).isEqualTo(StorageClass.ONEZONE_IA);
+		assertThat(result.contentLanguage()).isEqualTo("en");
+		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
 	@NotNull

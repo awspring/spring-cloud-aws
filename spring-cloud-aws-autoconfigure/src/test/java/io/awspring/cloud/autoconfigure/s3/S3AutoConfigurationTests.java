@@ -17,12 +17,12 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import java.io.IOException;
-import java.util.Map;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.CrossRegionS3Client;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import org.junit.jupiter.api.Test;
@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -116,7 +117,7 @@ class S3AutoConfigurationTests {
 	static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
 
 		@Override
-		public S3OutputStream create(String bucket, String key, Map<String, String> metadata) throws IOException {
+		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
 			return null;
 		}
 

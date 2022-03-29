@@ -50,7 +50,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	private final S3OutputStreamProvider s3OutputStreamProvider;
 
 	@Nullable
-	private ObjectMetadata metadata;
+	private HeadMetadata headMetadata;
+
+	@Nullable
+	private ObjectMetadata objectMetadata;
 
 	@Nullable
 	public static S3Resource create(String location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
@@ -91,6 +94,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 				.versionId(location.getVersion()));
 	}
 
+	public void setObjectMetadata(@Nullable ObjectMetadata objectMetadata) {
+		this.objectMetadata = objectMetadata;
+	}
+
 	@Override
 	public boolean exists() {
 		try {
@@ -104,18 +111,18 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public long contentLength() throws IOException {
-		if (metadata == null) {
+		if (headMetadata == null) {
 			fetchMetadata();
 		}
-		return metadata.contentLength;
+		return headMetadata.contentLength;
 	}
 
 	@Override
 	public long lastModified() throws IOException {
-		if (metadata == null) {
+		if (headMetadata == null) {
 			fetchMetadata();
 		}
-		return metadata.lastModified.toEpochMilli();
+		return headMetadata.lastModified.toEpochMilli();
 	}
 
 	@Override
@@ -127,21 +134,21 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	private void fetchMetadata() {
 		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
 				.key(location.getObject()).versionId(location.getVersion()));
-		this.metadata = new ObjectMetadata(response);
+		this.headMetadata = new HeadMetadata(response);
 	}
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
-		return s3OutputStreamProvider.create(location.getBucket(), location.getObject(), null);
+		return s3OutputStreamProvider.create(location.getBucket(), location.getObject(), objectMetadata);
 	}
 
-	private static class ObjectMetadata {
+	private static class HeadMetadata {
 
 		private final Long contentLength;
 
 		private final Instant lastModified;
 
-		ObjectMetadata(HeadObjectResponse headObjectResponse) {
+		HeadMetadata(HeadObjectResponse headObjectResponse) {
 			this.contentLength = headObjectResponse.contentLength();
 			this.lastModified = headObjectResponse.lastModified();
 		}
