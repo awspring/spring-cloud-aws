@@ -26,26 +26,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/testTopic")
 public class NotificationMappingController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);
 
-	@NotificationSubscriptionMapping
+	@NotificationSubscriptionMapping(path = "/testTopic")
 	public void handleSubscriptionMessage(NotificationStatus status) {
 		status.confirmSubscription();
 	}
 
-	@NotificationMessageMapping
+	@NotificationMessageMapping(path = "/testTopic")
 	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
 		LOGGER.info("NotificationMessageMapping message is: {}", message);
 		LOGGER.info("NotificationMessageMapping subject is: {}", subject);
 	}
 
-	@NotificationUnsubscribeConfirmationMapping
+	@NotificationUnsubscribeConfirmationMapping(path = "/testTopic")
 	public void handleUnsubscribeMessage(NotificationStatus status) {
 		status.confirmSubscription();
 	}

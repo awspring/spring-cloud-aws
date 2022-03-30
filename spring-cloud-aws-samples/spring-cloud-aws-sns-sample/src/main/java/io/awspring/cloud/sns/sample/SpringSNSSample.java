@@ -64,7 +64,7 @@ public class SpringSNSSample {
 		snsClient.subscribe(SubscribeRequest.builder().protocol("http")
 				.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(arn).build());
 		this.notificationMessagingTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
-				.setHeader(NOTIFICATION_SUBJECT_HEADER, null).build());
+				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
 	}
 
 }

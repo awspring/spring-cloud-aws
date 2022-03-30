@@ -19,6 +19,7 @@ package io.awspring.cloud.sns.annotation.endpoint;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,20 +40,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * subscription. Before receiving any notification itself a controller must confirm the
  * subscription.
  *
- * The mapping of the controller to a URL has to be done using a
- * {@link org.springframework.web.bind.annotation.RequestMapping} annotation. Typically
- * one controller class will contain all the methods used to confirm a subscription,
- * receive notifications and receive the unsubscribe message.
- *
- * <b>Note:</b> Currently this annotation does not allow an explicit mapping of controller
- * methods to URLs. Therefore this annotation can only be used in one controller class
- * that has an class level @RequestMapping annotation.
+ * Since 3.0 Annotation can be used on a method level and provide path mapping. Works same
+ * like {@link RequestMapping}.
  *
  * @author Agim Emruli
+ * @author Matej Nedic
  */
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping(headers = "x-amz-sns-message-type=UnsubscribeConfirmation", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
 public @interface NotificationUnsubscribeConfirmationMapping {
+
+	@AliasFor(annotation = RequestMapping.class, attribute = "path")
+	String[] path() default {};
 
 }
