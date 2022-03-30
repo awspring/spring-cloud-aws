@@ -24,6 +24,10 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 
 /**
+ *
+ * Handles Subscription and Unsubscription events by transforming them to
+ * {@link NotificationStatus} which can be used to confirm Subscriptions/Subscriptions.
+ *
  * @author Agim Emruli
  */
 public class NotificationStatusHandlerMethodArgumentResolver

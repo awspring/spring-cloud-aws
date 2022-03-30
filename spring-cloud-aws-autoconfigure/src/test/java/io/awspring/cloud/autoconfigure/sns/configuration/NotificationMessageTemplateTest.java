@@ -33,6 +33,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 @Testcontainers
 public class NotificationMessageTemplateTest {
 

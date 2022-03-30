@@ -37,10 +37,13 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.util.StringUtils;
 
 /**
+ * Handles conversion of SNS notification value to a variable that is annotated with
+ * {@link NotificationMessage}. Validation is not implemented in SDKv2.
+ * https://github.com/aws/aws-sdk-java-v2/issues/1302
+ *
  * @author Agim Emruli
  * @author Manuel Wessner
- * @author Matej Nedic Validation is not implemented in SDKv2
- * https://github.com/aws/aws-sdk-java-v2/issues/1302
+ * @author Matej Nedic
  */
 public class NotificationMessageHandlerMethodArgumentResolver
 		extends AbstractNotificationMessageHandlerMethodArgumentResolver {

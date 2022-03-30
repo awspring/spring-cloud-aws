@@ -25,6 +25,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 
 /**
+ * Simple util class that is used to create handlers for Http/s notification support.
+ *
  * @author Alain Sahli
  * @since 1.0
  */

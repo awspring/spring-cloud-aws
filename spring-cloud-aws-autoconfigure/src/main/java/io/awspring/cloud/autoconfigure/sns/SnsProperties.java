@@ -25,6 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Properties related to AWS SNS.
  *
  * @author Matej Nedic
+ * @since 3.0
  */
 @ConfigurationProperties(prefix = SnsProperties.PREFIX)
 public class SnsProperties extends AwsClientProperties {
@@ -38,13 +39,13 @@ public class SnsProperties extends AwsClientProperties {
 	 * Value which determines will auto create for topic creation be used when
 	 * {@link NotificationMessagingTemplate} methods are called.
 	 */
-	private Boolean autoCreate = true;
+	private boolean autoCreate = true;
 
-	public Boolean getAutoCreate() {
+	public boolean getAutoCreate() {
 		return autoCreate;
 	}
 
-	public void setAutoCreate(Boolean autoCreate) {
+	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
 	}
 

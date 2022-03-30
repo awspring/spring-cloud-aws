@@ -16,7 +16,11 @@
 
 package io.awspring.cloud.sns.core;
 
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
 /**
+ * Helper class used for conversion between {@link MessageAttributeValue} and Java types.
+ *
  * @author Alain Sahli
  * @since 1.0
  */

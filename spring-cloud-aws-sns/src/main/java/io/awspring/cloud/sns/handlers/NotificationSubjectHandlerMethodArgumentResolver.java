@@ -24,6 +24,10 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.util.ClassUtils;
 
 /**
+ *
+ * Handles conversion of SNS subject value to a variable that is annotated with
+ * {@link NotificationSubject}.
+ *
  * @author Agim Emruli
  */
 public class NotificationSubjectHandlerMethodArgumentResolver

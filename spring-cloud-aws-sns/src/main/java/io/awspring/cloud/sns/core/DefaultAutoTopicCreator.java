@@ -21,8 +21,9 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import org.springframework.util.Assert;
 
 /**
- * Is used to determine topic ARN by name and create a topic. If AutoCreate is turned off
- * destination must be ARN.
+ * Default implementation of {@link AutoTopicCreator} used to determine topic ARN by name
+ * and create a topic. If AutoCreate is turned off destination must be ARN, meaning topic
+ * ARN can't be resolved by topic name.
  *
  * @author Matej Nedic
  */
@@ -30,9 +31,9 @@ public class DefaultAutoTopicCreator implements AutoTopicCreator {
 
 	private final SnsClient snsClient;
 
-	private boolean autoCreate;
+	private final boolean autoCreate;
 
-	public DefaultAutoTopicCreator(SnsClient snsClient, Boolean autoCreate) {
+	public DefaultAutoTopicCreator(SnsClient snsClient, boolean autoCreate) {
 		this.snsClient = snsClient;
 		this.autoCreate = autoCreate;
 	}
@@ -47,7 +48,7 @@ public class DefaultAutoTopicCreator implements AutoTopicCreator {
 	 */
 	public String createTopicBasedOnName(String destination) {
 		Assert.notNull(destination, "Destination must not be null");
-		if (this.autoCreate && !destination.toLowerCase().startsWith("arn")) {
+		if (this.autoCreate && !destination.toLowerCase().startsWith("arn:")) {
 			return this.snsClient.createTopic(request -> request.name(destination)).topicArn();
 		}
 		else {

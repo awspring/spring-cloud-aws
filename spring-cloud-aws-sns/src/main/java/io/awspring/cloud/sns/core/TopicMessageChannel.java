@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.io.JsonStringEncoder;
@@ -40,6 +41,9 @@ import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEA
 import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 
 /**
+ * Implementation of {@link AbstractMessageChannel} which is used for converting and
+ * sending messages via {@link SnsClient} to SNS.
+ *
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Gyozo Papp
@@ -69,16 +73,13 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		publishRequestBuilder.topicArn(this.topicArn).message(message.getPayload().toString())
 				.subject(findNotificationSubject(message));
 		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
-		if (!messageAttributes.isEmpty()) {
-			publishRequestBuilder.messageAttributes(messageAttributes);
-		}
-		if (message.getHeaders().containsKey(MESSAGE_GROUP_ID_HEADER)) {
-			publishRequestBuilder.messageGroupId(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class));
-		}
-		if (message.getHeaders().containsKey(MESSAGE_DEDUPLICATION_ID_HEADER)) {
-			publishRequestBuilder
-					.messageDeduplicationId(message.getHeaders().get(MESSAGE_DEDUPLICATION_ID_HEADER, String.class));
-		}
+
+		Optional.of(messageAttributes).ifPresent(publishRequestBuilder::messageAttributes);
+		Optional.ofNullable(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class))
+				.ifPresent(publishRequestBuilder::messageGroupId);
+		Optional.ofNullable(message.getHeaders().get(MESSAGE_DEDUPLICATION_ID_HEADER, String.class))
+				.ifPresent(publishRequestBuilder::messageDeduplicationId);
+
 		this.snsClient.publish(publishRequestBuilder.build());
 		return true;
 	}
@@ -129,10 +130,9 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 
 	private MessageAttributeValue getStringArrayMessageAttribute(List<Object> messageHeaderValue) {
 
-		List<String> stringValues = messageHeaderValue.stream()
+		String stringValue = "[" + messageHeaderValue.stream()
 				.map(item -> "\"" + String.valueOf(jsonStringEncoder.quoteAsString(item.toString())) + "\"")
-				.collect(Collectors.toList());
-		String stringValue = "[" + String.join(", ", stringValues) + "]";
+				.collect(Collectors.joining(", ")) + "]";
 
 		return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING_ARRAY).stringValue(stringValue)
 				.build();

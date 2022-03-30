@@ -17,7 +17,8 @@
 package io.awspring.cloud.sns.core;
 
 /**
- * Class that helps people reference Header keys in Map more easier.
+ * Helper Class that helps people reference Header keys when using
+ * {@link NotificationMessagingTemplate}.
  *
  * @author Matej Nedic
  * @since 3.0.0

@@ -22,6 +22,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation that is used to map SNS notification value to a variable that is annotated.
+ * Used in Controllers method for handling/receiving SNS notifications.
+ *
  * @author Alain Sahli
  */
 @Retention(RetentionPolicy.RUNTIME)

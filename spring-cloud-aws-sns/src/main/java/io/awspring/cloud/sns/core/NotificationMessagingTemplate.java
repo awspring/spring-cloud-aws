@@ -38,6 +38,9 @@ import org.springframework.util.Assert;
 import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
 
 /**
+ * Helper class that simplifies synchronous sending of notifications to SNS. The only
+ * mandatory fields are {@link SnsClient} and AutoCreate boolean.
+ *
  * @author Alain Sahli
  * @author Matej Nedic
  * @since 1.0
@@ -49,11 +52,11 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 
 	private final AutoTopicCreator autoTopicCreator;
 
-	public NotificationMessagingTemplate(SnsClient snsClient, Boolean autoCreate, ObjectMapper objectMapper) {
+	public NotificationMessagingTemplate(SnsClient snsClient, boolean autoCreate, ObjectMapper objectMapper) {
 		this(snsClient, null, autoCreate, objectMapper);
 	}
 
-	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter, Boolean autoCreate,
+	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter, boolean autoCreate,
 			ObjectMapper objectMapper) {
 		Assert.notNull(snsClient, "SnsClient must not be null");
 		Assert.notNull(snsClient, "AutoCreate must not be null");
