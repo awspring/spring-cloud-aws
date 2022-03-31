@@ -67,7 +67,7 @@ class NotificationEndpointControllerTest {
 	private MockMvc mockMvc;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
 	}
 
