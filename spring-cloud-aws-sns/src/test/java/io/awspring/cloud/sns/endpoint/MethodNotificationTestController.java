@@ -27,7 +27,6 @@ import io.awspring.cloud.sns.handlers.NotificationStatus;
 
 import org.springframework.stereotype.Controller;
 
-
 /**
  * @author Matej Nedic
  * @since 3.0.0
@@ -47,19 +46,19 @@ public class MethodNotificationTestController {
 		return this.message;
 	}
 
-	@NotificationSubscriptionMapping(path = {"/testTopic"})
+	@NotificationSubscriptionMapping(path = { "/testTopic" })
 	void handleSubscriptionMessage(NotificationStatus status) throws IOException {
 		// We subscribe to start receive the message
 		status.confirmSubscription();
 	}
 
-	@NotificationMessageMapping(path = {"/testTopic"})
+	@NotificationMessageMapping(path = { "/testTopic" })
 	void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
 		this.subject = subject;
 		this.message = message;
 	}
 
-	@NotificationUnsubscribeConfirmationMapping(path = {"/testTopic"})
+	@NotificationUnsubscribeConfirmationMapping(path = { "/testTopic" })
 	void handleUnsubscribeMessage(NotificationStatus status) {
 		// e.g. the client has been unsubscribed and we want to "re-subscribe"
 		status.confirmSubscription();

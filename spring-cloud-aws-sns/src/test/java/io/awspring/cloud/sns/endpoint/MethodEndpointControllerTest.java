@@ -46,7 +46,6 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 /**
  * @author Matej Nedic
  * @since 3.0.0
@@ -55,7 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(classes = MethodEndpointControllerTest.Config.class)
 public class MethodEndpointControllerTest {
-
 
 	@Autowired
 	private WebApplicationContext context;
@@ -75,35 +73,36 @@ public class MethodEndpointControllerTest {
 
 	@Test
 	void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
-		throws Exception {
+			throws Exception {
 		// Arrange
 		byte[] subscriptionRequestJsonContent = FileCopyUtils
-			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("subscriptionConfirmation.json"));
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("subscriptionConfirmation.json"));
 
 		// Act
 		this.mockMvc.perform(post("/testTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation")
-			.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
+				.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
 		verify(this.snsClient, times(1)).confirmSubscription(
-			ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
-				.token("111111111111111111111111111111111111111111111111111111"
-					+ "11111111111111111111111111111111111111111111111111111"
-					+ "111111111111111111111111111111111111111111111111111111"
-					+ "1111111111111111111111111111111111111111111111111")
-				.build());
+				ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
+						.token("111111111111111111111111111111111111111111111111111111"
+								+ "11111111111111111111111111111111111111111111111111111"
+								+ "111111111111111111111111111111111111111111111111111111"
+								+ "1111111111111111111111111111111111111111111111111")
+						.build());
 	}
 
 	@Test
 	void notification_notificationReceivedAsMessage_notificationSubjectAndMessagePassedToAnnotatedControllerMethod()
-		throws Exception {
+			throws Exception {
 		// Arrange
 		byte[] notificationJsonContent = FileCopyUtils
-			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
 
 		// Act
-		this.mockMvc.perform(post("/testTopic").header("x-amz-sns-message-type", "Notification")
-			.content(notificationJsonContent)).andExpect(status().isNoContent());
+		this.mockMvc.perform(
+				post("/testTopic").header("x-amz-sns-message-type", "Notification").content(notificationJsonContent))
+				.andExpect(status().isNoContent());
 
 		// Assert
 		assertThat(this.notificationTestController.getMessage()).isEqualTo("asdasd");
@@ -114,20 +113,20 @@ public class MethodEndpointControllerTest {
 	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
 		// Arrange
 		byte[] notificationJsonContent = FileCopyUtils
-			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("unsubscribeConfirmation.json"));
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("unsubscribeConfirmation.json"));
 
 		// Act
 		this.mockMvc.perform(post("/testTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation")
-			.content(notificationJsonContent)).andExpect(status().isNoContent());
+				.content(notificationJsonContent)).andExpect(status().isNoContent());
 
 		// Assert
 		verify(this.snsClient, times(1)).confirmSubscription(
-			ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
-				.token("2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb"
-					+ "8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d3"
-					+ "4dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf"
-					+ "54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45")
-				.build());
+				ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
+						.token("2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb"
+								+ "8607743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d3"
+								+ "4dca3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf"
+								+ "54605e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f40bddfb45")
+						.build());
 	}
 
 	@EnableWebMvc
@@ -150,4 +149,5 @@ public class MethodEndpointControllerTest {
 		}
 
 	}
+
 }
