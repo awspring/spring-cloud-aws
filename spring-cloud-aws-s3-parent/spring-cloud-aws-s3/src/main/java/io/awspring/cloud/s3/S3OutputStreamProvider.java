@@ -31,7 +31,6 @@ public interface S3OutputStreamProvider {
 
 	/**
 	 * Creates an {@link OutputStream} that writes data to S3.
-	 *
 	 * @param bucket - the bucket name
 	 * @param key - the object key
 	 * @param metadata - object metadata, can be {@code null}
