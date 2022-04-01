@@ -10,14 +10,12 @@
 		<version>3.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.awspring.cloud</groupId>
     <artifactId>spring-cloud-aws-s3-codegen</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-symbol-solver-core</artifactId>
-			<version>3.24.0</version>
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
@@ -28,5 +26,18 @@
 			<artifactId>spring-core</artifactId>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

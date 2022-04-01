@@ -74,6 +74,15 @@ class S3AutoConfigurationTests {
 	}
 
 	@Test
+	void autoconfigurationIsNotTriggeredWhenS3ModuleIsNotOnClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(S3OutputStreamProvider.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(S3Client.class);
+			assertThat(context).doesNotHaveBean(S3ClientBuilder.class);
+			assertThat(context).doesNotHaveBean(S3Properties.class);
+		});
+	}
+
+	@Test
 	void byDefaultCreatesCrossRegionS3Client() {
 		this.contextRunner
 				.run(context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));

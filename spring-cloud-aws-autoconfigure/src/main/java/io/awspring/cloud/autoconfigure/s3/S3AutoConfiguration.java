@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Maciej Walkowiak
  */
-@ConditionalOnClass({ S3Client.class })
+@ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
