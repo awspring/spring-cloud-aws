@@ -34,3 +34,30 @@ jobs:
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
         run: ./mvnw -V -B verify
+  build-java-17:
+    name: "Test with ${{ matrix.version }}"
+    strategy:
+      matrix:
+        version: [ 17.0.1-tem ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+      - name: Download ${{ matrix.version }}
+        uses: sdkman/sdkman-action@master
+        id: sdkman
+        with:
+          candidate: java
+          version: ${{ matrix.version }}
+      - name: Set up ${{ matrix.version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+          jdkFile: ${{ steps.sdkman.outputs.file }}
+      - name: Build with Maven
+        run: ./mvnw -V -B verify -Dspotless.check.skip=true
