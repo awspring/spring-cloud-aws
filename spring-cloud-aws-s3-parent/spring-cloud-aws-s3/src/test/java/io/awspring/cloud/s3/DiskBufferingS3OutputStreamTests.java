@@ -24,11 +24,14 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link DiskBufferingS3OutputStream}.
@@ -50,6 +53,23 @@ class DiskBufferingS3OutputStreamTests {
 		verify(s3Client).putObject(captor.capture(), any(RequestBody.class));
 
 		assertThat(captor.getValue().contentMD5()).isNotNull();
+	}
+
+	@Test
+	void throwsExceptionWhenUploadFails() throws IOException {
+		S3Client s3Client = mock(S3Client.class);
+		when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenThrow(S3Exception.class);
+
+		try {
+			try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream("bucket",
+					"key", s3Client, null)) {
+				diskBufferingS3OutputStream.write("hello".getBytes(StandardCharsets.UTF_8));
+			}
+			fail("UploadFailedException should be thrown");
+		}
+		catch (UploadFailedException e) {
+			assertThat(e.getPath()).isNotNull();
+		}
 	}
 
 }

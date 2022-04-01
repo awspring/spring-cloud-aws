@@ -150,7 +150,7 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 		}
 		catch (Exception se) {
 			LOG.error("Failed to upload " + key + ". Temporary file @ " + file.getPath());
-			throw new IOException(se);
+			throw new UploadFailedException(file.getPath(), se);
 		}
 	}
 
