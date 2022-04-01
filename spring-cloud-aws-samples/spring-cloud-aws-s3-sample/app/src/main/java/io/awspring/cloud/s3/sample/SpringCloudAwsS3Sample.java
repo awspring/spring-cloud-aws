@@ -57,8 +57,7 @@ public class SpringCloudAwsS3Sample {
 			// load resource using ResourceLoader
 			WritableResource resource = (WritableResource) resourceLoader
 					.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
-			String content = readContent(resource);
-			LOGGER.info("File content: {}", content);
+			LOGGER.info("File content: {}", readContent(resource));
 
 			// load content of file retrieved with @Value
 			LOGGER.info("File content: {}", readContent(file));
