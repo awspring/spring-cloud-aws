@@ -25,25 +25,15 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-secrets-manager</artifactId>
-	<name>Spring Cloud AWS Secrets Manager</name>
-	<description>Spring Cloud AWS Secrets Manager</description>
+	<artifactId>spring-cloud-aws-s3-parent</artifactId>
+	<name>Spring Cloud AWS S3 Parent</name>
+	<description>Spring Cloud AWS S3 Parent</description>
+	<packaging>pom</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
+	<modules>
+		<module>spring-cloud-aws-s3-codegen</module>
+		<module>spring-cloud-aws-s3-cross-region-client</module>
+		<module>spring-cloud-aws-s3</module>
+	</modules>
 
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>secretsmanager</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-
-	</dependencies>
 </project>

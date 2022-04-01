@@ -19,31 +19,17 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
-		<artifactId>spring-cloud-aws</artifactId>
+		<artifactId>spring-cloud-aws-samples</artifactId>
 		<groupId>io.awspring.cloud</groupId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-secrets-manager</artifactId>
-	<name>Spring Cloud AWS Secrets Manager</name>
-	<description>Spring Cloud AWS Secrets Manager</description>
+	<artifactId>spring-cloud-aws-samples-s3</artifactId>
+	<packaging>pom</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>secretsmanager</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-
-	</dependencies>
+	<modules>
+		<module>infrastructure</module>
+		<module>app</module>
+	</modules>
 </project>
