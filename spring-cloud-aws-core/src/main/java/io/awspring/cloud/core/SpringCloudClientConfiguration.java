@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.core;
 
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 
 /**
- * Utility class for creating {@link ClientOverrideConfiguration} containing "Spring Cloud
- * AWS" user agent. When used, server side (AWS or AWS-compatible service) can measure how
- * many requests to its services come from Spring Cloud AWS.
+ * Utility class for creating {@link ClientOverrideConfiguration} containing "Spring Cloud AWS" user agent. When used,
+ * server side (AWS or AWS-compatible service) can measure how many requests to its services come from Spring Cloud AWS.
  *
  * @author Eddú Meléndez
  */

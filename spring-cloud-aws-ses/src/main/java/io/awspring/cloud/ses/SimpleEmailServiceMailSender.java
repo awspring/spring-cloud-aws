@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.ses;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.Body;
 import software.amazon.awssdk.services.ses.model.Content;
@@ -30,18 +34,10 @@ import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendEmailResponse;
 import software.amazon.awssdk.services.ses.model.SesException;
 
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.mail.MailException;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.util.StringUtils;
-
 /**
- * Simple MailSender implementation to send E-Mails with the Amazon Simple Email Service.
- * This implementation has no dependencies to the Java Mail API. It can be used to send
- * simple mail messages that doesn't have any attachment and therefore only consist of a
- * text body and a subject line.
+ * Simple MailSender implementation to send E-Mails with the Amazon Simple Email Service. This implementation has no
+ * dependencies to the Java Mail API. It can be used to send simple mail messages that doesn't have any attachment and
+ * therefore only consist of a text body and a subject line.
  *
  * @author Agim Emruli
  * @author Eddú Meléndez

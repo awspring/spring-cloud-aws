@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.springframework.lang.Nullable;
 
 /**

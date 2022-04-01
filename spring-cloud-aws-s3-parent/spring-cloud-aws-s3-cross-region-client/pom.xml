@@ -54,27 +54,6 @@
 					</arguments>
 				</configuration>
 			</plugin>
-			<!-- disable checkstyle as generated code does not match required style -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>checkstyle-validation</id>
-						<phase>none</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- disable spring-javaformat as generated code does not match required formatting -->
-			<plugin>
-				<groupId>io.spring.javaformat</groupId>
-				<artifactId>spring-javaformat-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>none</phase>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 

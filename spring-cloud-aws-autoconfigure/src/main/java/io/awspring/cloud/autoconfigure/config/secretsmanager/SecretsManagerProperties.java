@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for the AWS Secrets Manager integration. Mostly based on the
- * Spring Cloud Consul Configuration equivalent.
+ * Configuration properties for the AWS Secrets Manager integration. Mostly based on the Spring Cloud Consul
+ * Configuration equivalent.
  *
  * @author Fabio Maia
  * @author Matej Nedic

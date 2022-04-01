@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
-
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Utility class for setting up logging in objects registered in
- * {@link BootstrapRegistry}.
+ * Utility class for setting up logging in objects registered in {@link BootstrapRegistry}.
  *
  * @author Maciej Walkowiak
  * @since 3.0

@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.parameterstore;
-
-import java.util.Collections;
 
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
-import software.amazon.awssdk.services.ssm.SsmClient;
-
+import java.util.Collections;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.ssm.SsmClient;
 
 /**
  * {@link ConfigDataLoader} for AWS Parameter Store.

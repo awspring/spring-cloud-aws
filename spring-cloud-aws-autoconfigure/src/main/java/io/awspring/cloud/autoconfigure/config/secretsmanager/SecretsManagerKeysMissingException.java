@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 /**
- * Thrown when configuration provided to ConfigDataLoader is missing Secrets Manager keys,
- * for example `spring.config.import=aws-secretsmanager:`.
+ * Thrown when configuration provided to ConfigDataLoader is missing Secrets Manager keys, for example
+ * `spring.config.import=aws-secretsmanager:`.
  *
  * @author Maciej Walkowiak
  * @since 3.0.0

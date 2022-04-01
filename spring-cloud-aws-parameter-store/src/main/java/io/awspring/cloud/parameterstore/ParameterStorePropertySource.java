@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2012 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.parameterstore;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.lang.Nullable;
-
 /**
- * Recursively retrieves all parameters under the given context / path with decryption
- * from the AWS Parameter Store using the provided SSM client.
+ * Recursively retrieves all parameters under the given context / path with decryption from the AWS Parameter Store
+ * using the provided SSM client.
  *
  * @author Joris Kuipers
  * @author Eddú Meléndez

@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config;
 
+import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;

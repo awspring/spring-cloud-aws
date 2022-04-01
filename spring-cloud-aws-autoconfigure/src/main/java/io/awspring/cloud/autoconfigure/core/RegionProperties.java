@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2012 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,10 +35,9 @@ public class RegionProperties {
 	public static final String PREFIX = "spring.cloud.aws.region";
 
 	/**
-	 * Configures a static region for the application. Possible regions are (currently)
-	 * us-east-1, us-west-1, us-west-2, eu-west-1, eu-central-1, ap-southeast-1,
-	 * ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
-	 * configured with own region meta data.
+	 * Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
+	 * eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom
+	 * region configured with own region meta data.
 	 */
 	@Nullable
 	private String staticRegion;

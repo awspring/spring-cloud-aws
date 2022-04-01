@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**
  * Provides prefix config import support.
@@ -37,11 +35,9 @@ public class SecretsManagerPropertySources {
 	/**
 	 * Creates property source for given context.
 	 * @param context property source context equivalent to the secret name
-	 * @param optional if creating context should fail with exception if secret cannot be
-	 * loaded
+	 * @param optional if creating context should fail with exception if secret cannot be loaded
 	 * @param client Secret Manager client
-	 * @return a property source or null if secret could not be loaded and optional is set
-	 * to true
+	 * @return a property source or null if secret could not be loaded and optional is set to true
 	 */
 	@Nullable
 	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,

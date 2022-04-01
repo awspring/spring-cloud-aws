@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
 import java.io.BufferedOutputStream;
@@ -26,24 +25,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-
 /**
- * {@link S3OutputStream} implementation, that first uploads to a local file in tmp folder
- * and then flushes file to S3.
+ * {@link S3OutputStream} implementation, that first uploads to a local file in tmp folder and then flushes file to S3.
  *
  * Originally developed in
- * https://github.com/Alluxio/alluxio/blob/master/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3AOutputStream.java
- * and adopted to Spring Cloud AWS needs.
+ * https://github.com/Alluxio/alluxio/blob/master/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3AOutputStream.java and
+ * adopted to Spring Cloud AWS needs.
  *
  * @author Maciej Walkowiak
  * @since 3.0

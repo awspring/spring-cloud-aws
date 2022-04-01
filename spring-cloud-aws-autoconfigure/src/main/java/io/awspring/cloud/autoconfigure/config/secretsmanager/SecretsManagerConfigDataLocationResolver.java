@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -36,6 +29,10 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 /**
  * Resolves config data locations in AWS Secrets Manager.
