@@ -133,8 +133,8 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 		if (closed) {
 			return;
 		}
-		closed = true;
 		localOutputStream.close();
+		closed = true;
 		try {
 			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(bucket).key(key)
 					.contentLength(file.length());
