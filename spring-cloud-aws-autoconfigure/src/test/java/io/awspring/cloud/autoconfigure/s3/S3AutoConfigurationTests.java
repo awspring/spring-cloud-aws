@@ -20,16 +20,17 @@ import java.io.IOException;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.s3.CrossRegionS3Client;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
+import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +55,9 @@ class S3AutoConfigurationTests {
 	void createsS3ClientBean() {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(S3Client.class);
+			S3Client s3Client = context.getBean(S3Client.class);
+			assertThat(s3Client).isInstanceOf(CrossRegionS3Client.class);
+
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
 			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
@@ -92,6 +96,14 @@ class S3AutoConfigurationTests {
 	void customS3OutputStreamProviderCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(CustomS3OutputStreamProviderConfiguration.class)
 				.run(context -> assertThat(context).hasSingleBean(CustomS3OutputStreamProvider.class));
+	}
+
+	@Test
+	void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+			assertThat(context).hasSingleBean(S3Client.class);
+		});
 	}
 
 	@Configuration(proxyBeanMethods = false)

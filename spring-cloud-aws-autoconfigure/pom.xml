@@ -69,6 +69,11 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>javax.mail-api</artifactId>
 			<optional>true</optional>

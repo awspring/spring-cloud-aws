@@ -19,10 +19,10 @@ package io.awspring.cloud.autoconfigure.s3;
 import java.util.Optional;
 
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-import io.awspring.cloud.s3.CrossRegionS3Client;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
+import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -46,7 +47,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Maciej Walkowiak
  */
-@ConditionalOnClass({ S3Client.class, CrossRegionS3Client.class })
+@ConditionalOnClass({ S3Client.class })
 @EnableConfigurationProperties(S3Properties.class)
 @Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
@@ -73,12 +74,6 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-		return new CrossRegionS3Client(s3ClientBuilder);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
 	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client) {
 		return new DiskBufferingS3OutputStreamProvider(s3Client);
 	}
@@ -94,6 +89,30 @@ public class S3AutoConfiguration {
 		propertyMapper.from(properties::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(properties::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(CrossRegionS3Client.class)
+	static class CrossRegionS3ClientConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+			return new CrossRegionS3Client(s3ClientBuilder);
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("io.awspring.cloud.s3.crossregion.CrossRegionS3Client")
+	static class StandardS3ClientConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+			return s3ClientBuilder.build();
+		}
+
 	}
 
 }

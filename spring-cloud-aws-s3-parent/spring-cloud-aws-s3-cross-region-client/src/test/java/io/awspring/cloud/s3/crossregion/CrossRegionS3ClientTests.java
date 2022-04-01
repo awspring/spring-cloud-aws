@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.awspring.cloud.s3;
+package io.awspring.cloud.s3.crossregion;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;

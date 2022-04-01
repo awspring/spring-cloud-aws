@@ -32,6 +32,7 @@
 
 	<modules>
 		<module>spring-cloud-aws-s3-codegen</module>
+		<module>spring-cloud-aws-s3-cross-region-client</module>
 		<module>spring-cloud-aws-s3</module>
 	</modules>
 

@@ -66,7 +66,7 @@ public final class CrossRegionS3ClientGenerator {
 		final Path source = Paths.get(args[0], "..", "spring-cloud-aws-s3-codegen", "src", "main", "java", "io",
 				"awspring", "cloud", "s3", "codegen", "CrossRegionS3ClientTemplate.java");
 		CompilationUnit compilationUnit = StaticJavaParser.parse(source);
-		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3");
+		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3.crossregion");
 		ClassOrInterfaceDeclaration classOrInterfaceDeclaration = compilationUnit
 				.getClassByName("CrossRegionS3ClientTemplate")
 				.orElseThrow(() -> new IllegalStateException("Class CrossRegionS3ClientTemplate not found"));
@@ -80,8 +80,8 @@ public final class CrossRegionS3ClientGenerator {
 		addOverriddenMethods(classOrInterfaceDeclaration);
 
 		// generate target file
-		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3", "src", "main", "java", "io",
-				"awspring", "cloud", "s3", "CrossRegionS3Client.java");
+		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3-cross-region-client", "src",
+				"main", "java", "io", "awspring", "cloud", "s3", "crossregion", "CrossRegionS3Client.java");
 		Files.write(generatedJavaCcRoot, Collections.singletonList(compilationUnit.toString()));
 	}
 

@@ -39,5 +39,10 @@
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-s3</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+		</dependency>
 	</dependencies>
 </project>

@@ -4,7 +4,7 @@ format:
 	mvnd spring-javaformat:apply
 
 build:
-	mvnd spring-javaformat:apply verify spring-javaformat:apply
+	mvnd spring-javaformat:apply verify
 
 clean:
 	mvnd clean
