@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 
@@ -35,9 +33,8 @@ public class S3Properties extends AwsClientProperties {
 	public static final String PREFIX = "spring.cloud.aws.s3";
 
 	/**
-	 * Option to enable using the accelerate enedpoint when accessing S3. Accelerate
-	 * endpoints allow faster transfer of objects by using Amazon CloudFront's globally
-	 * distributed edge locations.
+	 * Option to enable using the accelerate enedpoint when accessing S3. Accelerate endpoints allow faster transfer of
+	 * objects by using Amazon CloudFront's globally distributed edge locations.
 	 */
 	@Nullable
 	private Boolean accelerateModeEnabled;
@@ -57,25 +54,23 @@ public class S3Properties extends AwsClientProperties {
 	private Boolean chunkedEncodingEnabled;
 
 	/**
-	 * Option to enable using the dualstack endpoints when accessing S3. Dualstack should
-	 * be enabled if you want to use IPv6.
+	 * Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use
+	 * IPv6.
 	 */
 	@Nullable
 	private Boolean dualstackEnabled;
 
 	/**
-	 * Option to enable using path style access for accessing S3 objects instead of DNS
-	 * style access. DNS style access is preferred as it will result in better load
-	 * balancing when accessing S3.
+	 * Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access
+	 * is preferred as it will result in better load balancing when accessing S3.
 	 */
 	@Nullable
 	private Boolean pathStyleAccessEnabled;
 
 	/**
-	 * If an S3 resource ARN is passed in as the target of an S3 operation that has a
-	 * different region to the one the client was configured with, this flag must be set
-	 * to 'true' to permit the client to make a cross-region call to the region specified
-	 * in the ARN otherwise an exception will be thrown.
+	 * If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the
+	 * client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to
+	 * the region specified in the ARN otherwise an exception will be thrown.
 	 */
 	@Nullable
 	private Boolean useArnRegionEnabled;

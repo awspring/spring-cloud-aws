@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import software.amazon.awssdk.services.ssm.SsmClient;
-
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.ssm.SsmClient;
 
 /**
  * @author Eddú Meléndez
@@ -34,11 +32,9 @@ public class ParameterStorePropertySources {
 	/**
 	 * Creates property source for given context.
 	 * @param context property source context equivalent to the parameter name
-	 * @param optional if creating context should fail with exception if parameter cannot
-	 * be loaded
+	 * @param optional if creating context should fail with exception if parameter cannot be loaded
 	 * @param client System Manager Management client
-	 * @return a property source or null if parameter could not be loaded and optional is
-	 * set to true
+	 * @return a property source or null if parameter could not be loaded and optional is set to true
 	 */
 	@Nullable
 	public ParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {

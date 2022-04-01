@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.secretsmanager;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.lang.Nullable;
-
 /**
- * Retrieves secret value under the given context / path from the AWS Secrets Manager
- * using the provided Secrets Manager client.
+ * Retrieves secret value under the given context / path from the AWS Secrets Manager using the provided Secrets Manager
+ * client.
  *
  * @author Fabio Maia
  * @author Maciej Walkowiak
@@ -59,8 +56,7 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 
 	/**
 	 * Loads properties from the Secrets Manager secret.
-	 * @throws ResourceNotFoundException if specified secret does not exist in the AWS
-	 * Secret Manager service.
+	 * @throws ResourceNotFoundException if specified secret does not exist in the AWS Secret Manager service.
 	 */
 	public void init() {
 		readSecretValue(GetSecretValueRequest.builder().secretId(context).build());

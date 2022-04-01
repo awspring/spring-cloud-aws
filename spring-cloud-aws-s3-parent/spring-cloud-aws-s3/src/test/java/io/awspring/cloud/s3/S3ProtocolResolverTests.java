@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import software.amazon.awssdk.services.s3.S3Client;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,9 +33,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Tests for {@link S3ProtocolResolverTests}.
@@ -44,7 +42,8 @@ import static org.mockito.Mockito.mock;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-// context must be cleaned up before each method to make sure that for each use case
+// context must be cleaned up before each method to make sure that for each use
+// case
 // protocol resolver is registered before resource is requested
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class S3ProtocolResolverTests {

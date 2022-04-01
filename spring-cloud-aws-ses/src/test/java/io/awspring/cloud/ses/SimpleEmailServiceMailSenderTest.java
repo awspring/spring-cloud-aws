@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.ses;
-
-import java.util.Objects;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.SendEmailRequest;
-import software.amazon.awssdk.services.ses.model.SendEmailResponse;
-import software.amazon.awssdk.services.ses.model.SesException;
-
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -35,6 +21,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Objects;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.SendEmailResponse;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 /**
  * Tests for {@link SimpleEmailServiceMailSender}.

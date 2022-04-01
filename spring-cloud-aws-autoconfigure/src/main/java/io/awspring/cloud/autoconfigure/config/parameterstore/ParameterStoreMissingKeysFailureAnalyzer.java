@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
 /**
- * An {@link AbstractFailureAnalyzer} that performs analysis of a Parameter Store
- * configuration failure caused by not providing a Parameter Store key to
- * `spring.config.import` property.
+ * An {@link AbstractFailureAnalyzer} that performs analysis of a Parameter Store configuration failure caused by not
+ * providing a Parameter Store key to `spring.config.import` property.
  *
  * @author Maciej Walkowiak
  * @since 3.0.0

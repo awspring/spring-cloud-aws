@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure;
 
 import java.net.URI;
-
 import org.springframework.lang.Nullable;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.secretsmanager;
-
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
-import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
 /**
  * Tests for {@link SecretsManagerPropertySource}.

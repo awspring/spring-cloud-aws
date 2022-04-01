@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
-import java.time.Instant;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
@@ -26,8 +26,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.StorageClass;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link ObjectMetadata}.

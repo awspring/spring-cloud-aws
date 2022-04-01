@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.core;
 
+import io.awspring.cloud.core.region.StaticRegionProvider;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import io.awspring.cloud.core.region.StaticRegionProvider;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
-
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * {@link EnableAutoConfiguration} for {@link AwsRegionProvider}.

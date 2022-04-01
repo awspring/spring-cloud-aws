@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
-
-import java.util.Collections;
 
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-
+import java.util.Collections;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**
  * Loads config data from AWS Secret Manager.

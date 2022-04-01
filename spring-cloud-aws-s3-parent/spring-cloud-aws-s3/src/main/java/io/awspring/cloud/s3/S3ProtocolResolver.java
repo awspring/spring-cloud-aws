@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.S3Client;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -30,10 +27,11 @@ import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
- * Resolves {@link S3Resource} for resources paths starting from s3://. Registers resolver
- * for S3 protocol in {@link ResourceLoader}.
+ * Resolves {@link S3Resource} for resources paths starting from s3://. Registers resolver for S3 protocol in
+ * {@link ResourceLoader}.
  *
  * @author Agim Emruli
  * @author Alain Sahli

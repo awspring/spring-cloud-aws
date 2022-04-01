@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.core.region;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 /**
- * Static {@link AwsRegionProvider} implementation that can used to statically configure a
- * region. The region could be provided through a configuration file at configuration
- * time.
+ * Static {@link AwsRegionProvider} implementation that can used to statically configure a region. The region could be
+ * provided through a configuration file at configuration time.
  *
  * @author Agim Emruli
  * @author Maciej Walkowiak
@@ -34,8 +32,7 @@ public class StaticRegionProvider implements AwsRegionProvider {
 
 	/**
 	 * Constructs and configures the static region for this RegionProvider implementation.
-	 * @param configuredRegion - the region that will be statically returned in
-	 * {@link #getRegion()}
+	 * @param configuredRegion - the region that will be statically returned in {@link #getRegion()}
 	 */
 	public StaticRegionProvider(String configuredRegion) {
 		try {

@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.amazonaws.auth.AWSCredentials;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,8 +27,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
-
-import com.amazonaws.auth.AWSCredentials;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,9 +45,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.StorageClass;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Integration tests for {@link S3Resource}.
  *
@@ -63,7 +61,8 @@ class S3ResourceTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make test
+		// region and credentials are irrelevant for test, but must be added to make
+		// test
 		// work on
 		// environments without AWS cli configured
 		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.samples.secretsmanager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -28,9 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
 /**
- * Secrets from the Secret Manager are added to the {@link Environment} and can be
- * retrieved using: - {@link Value} annotation - {@link Environment#getProperty(String)} -
- * or bound to {@link ConfigurationProperties} annotated classes.
+ * Secrets from the Secret Manager are added to the {@link Environment} and can be retrieved using: - {@link Value}
+ * annotation - {@link Environment#getProperty(String)} - or bound to {@link ConfigurationProperties} annotated classes.
  *
  * @author Maciej Walkowiak
  */

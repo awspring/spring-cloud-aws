@@ -1,10 +1,13 @@
-.PHONY: format build
+.PHONY: format build docs
 
 format:
-	mvnd spring-javaformat:apply
+	mvnd spotless:apply
 
 build:
-	mvnd spring-javaformat:apply verify
+	mvnd spotless:apply verify
 
 clean:
 	mvnd clean
+
+docs:
+	mvnd verify -Pdocs -DskipTests=true

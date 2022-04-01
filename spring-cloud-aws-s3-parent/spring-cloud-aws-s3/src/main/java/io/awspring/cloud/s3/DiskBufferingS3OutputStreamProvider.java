@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
-
-import software.amazon.awssdk.services.s3.S3Client;
-
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Creates {@link DiskBufferingS3OutputStream}.

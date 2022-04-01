@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3.crossregion;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -32,17 +37,9 @@ import software.amazon.awssdk.services.s3.model.GetBucketLocationResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 /**
- * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not
- * possible due to: https://github.com/localstack/localstack/issues/5748
+ * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not possible due to:
+ * https://github.com/localstack/localstack/issues/5748
  *
  * @author Maciej Walkowiak
  */

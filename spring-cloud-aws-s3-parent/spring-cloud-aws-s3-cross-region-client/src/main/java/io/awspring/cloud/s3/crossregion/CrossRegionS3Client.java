@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ConcurrentLruCache;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -33,8 +35,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest;
 import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import org.springframework.util.ConcurrentLruCache;
-import org.springframework.util.StringUtils;
 
 public class CrossRegionS3Client implements S3Client {
 
@@ -330,6 +330,11 @@ public class CrossRegionS3Client implements S3Client {
     }
 
     @Override
+    public software.amazon.awssdk.core.ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectResponse> getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest p0) throws AwsServiceException, SdkClientException {
+        return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObject(p0));
+    }
+
+    @Override
     public software.amazon.awssdk.services.s3.model.GetObjectResponse getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObject(p0, p1));
     }
@@ -337,11 +342,6 @@ public class CrossRegionS3Client implements S3Client {
     @Override
     public <ReturnT> ReturnT getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest p0, software.amazon.awssdk.core.sync.ResponseTransformer<software.amazon.awssdk.services.s3.model.GetObjectResponse, ReturnT> p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObject(p0, p1));
-    }
-
-    @Override
-    public software.amazon.awssdk.core.ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectResponse> getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest p0) throws AwsServiceException, SdkClientException {
-        return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObject(p0));
     }
 
     @Override
@@ -380,11 +380,6 @@ public class CrossRegionS3Client implements S3Client {
     }
 
     @Override
-    public software.amazon.awssdk.services.s3.model.GetObjectTorrentResponse getObjectTorrent(software.amazon.awssdk.services.s3.model.GetObjectTorrentRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
-        return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObjectTorrent(p0, p1));
-    }
-
-    @Override
     public <ReturnT> ReturnT getObjectTorrent(software.amazon.awssdk.services.s3.model.GetObjectTorrentRequest p0, software.amazon.awssdk.core.sync.ResponseTransformer<software.amazon.awssdk.services.s3.model.GetObjectTorrentResponse, ReturnT> p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObjectTorrent(p0, p1));
     }
@@ -392,6 +387,11 @@ public class CrossRegionS3Client implements S3Client {
     @Override
     public software.amazon.awssdk.core.ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectTorrentResponse> getObjectTorrent(software.amazon.awssdk.services.s3.model.GetObjectTorrentRequest p0) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObjectTorrent(p0));
+    }
+
+    @Override
+    public software.amazon.awssdk.services.s3.model.GetObjectTorrentResponse getObjectTorrent(software.amazon.awssdk.services.s3.model.GetObjectTorrentRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
+        return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.getObjectTorrent(p0, p1));
     }
 
     @Override
@@ -570,12 +570,12 @@ public class CrossRegionS3Client implements S3Client {
     }
 
     @Override
-    public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
+    public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest p0, software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.putObject(p0, p1));
     }
 
     @Override
-    public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest p0, software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
+    public software.amazon.awssdk.services.s3.model.PutObjectResponse putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.putObject(p0, p1));
     }
 
@@ -615,12 +615,12 @@ public class CrossRegionS3Client implements S3Client {
     }
 
     @Override
-    public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(software.amazon.awssdk.services.s3.model.UploadPartRequest p0, software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
+    public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(software.amazon.awssdk.services.s3.model.UploadPartRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.uploadPart(p0, p1));
     }
 
     @Override
-    public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(software.amazon.awssdk.services.s3.model.UploadPartRequest p0, java.nio.file.Path p1) throws AwsServiceException, SdkClientException {
+    public software.amazon.awssdk.services.s3.model.UploadPartResponse uploadPart(software.amazon.awssdk.services.s3.model.UploadPartRequest p0, software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
         return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.uploadPart(p0, p1));
     }
 

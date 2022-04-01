@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.s3;
 
-import java.io.IOException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -25,19 +25,16 @@ import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
-
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
  * Tests for {@link S3AutoConfiguration}.

@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.s3;
-
-import java.util.Optional;
 
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.S3Configuration;
-
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,6 +32,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.

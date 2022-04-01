@@ -15,8 +15,7 @@
  */
 
 /**
- * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS
- * Secrets Manager.
+ * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS Secrets Manager.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

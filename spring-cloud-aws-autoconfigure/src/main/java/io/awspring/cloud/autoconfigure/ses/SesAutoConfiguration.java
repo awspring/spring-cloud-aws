@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.ses;
-
-import java.util.Optional;
-
-import javax.mail.Session;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.ses.SimpleEmailServiceMailSender;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
-
+import java.util.Optional;
+import javax.mail.Session;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -43,6 +34,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and

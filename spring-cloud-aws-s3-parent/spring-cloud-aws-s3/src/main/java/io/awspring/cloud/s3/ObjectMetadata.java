@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.s3;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus;
@@ -29,11 +28,8 @@ import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.StorageClass;
 
-import org.springframework.lang.Nullable;
-
 /**
- * Container for S3 Object Metadata. For information about each field look at
- * {@link PutObjectRequest} Javadocs.
+ * Container for S3 Object Metadata. For information about each field look at {@link PutObjectRequest} Javadocs.
  *
  * @author Maciej Walkowiak
  * @since 3.0
