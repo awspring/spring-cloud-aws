@@ -43,7 +43,7 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | CloudFormation | ✅ | ❌
 |===
 
-Note, that Spring provides to support for other AWS services in following projects:
+Note, that Spring provides support for other AWS services in following projects:
 
 - https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
 - https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
