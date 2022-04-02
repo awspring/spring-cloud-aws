@@ -136,10 +136,10 @@ public class SimpleResourceLoadingBean {
 
 	private ResourcePatternResolver resourcePatternResolver;
 
- 	@Autowired
-    public void setupResolver(ApplicationContext applicationContext, AmazonS3 amazonS3){
-        this.resourcePatternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, applicationContext);
-    }
+	@Autowired
+	public void setupResolver(ApplicationContext applicationContext, AmazonS3 amazonS3) {
+		this.resourcePatternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, applicationContext);
+	}
 
  	public void resolveAndLoad() throws IOException {
  		Resource[] allTxtFilesInFolder =  this.resourcePatternResolver.getResources("s3://bucket/name/*.txt");
@@ -191,10 +191,10 @@ public class SimpleResourceLoadingBean {
 	}
 
 	public void resolveAndLoad() {
-		String sampleBucketName = this.idResolver.
-			resolveToPhysicalResourceId("sampleBucket");
-		Resource resource = this.loader.
-			getResource("s3://" + sampleBucketName + "/test");
+		String sampleBucketName = this.idResolver
+			.resolveToPhysicalResourceId("sampleBucket");
+		Resource resource = this.loader
+			.getResource("s3://" + sampleBucketName + "/test");
 	}
 }
 ----
