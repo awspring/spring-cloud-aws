@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>spring-cloud-aws-s3</artifactId>
+	<name>Spring Cloud AWS S3 Integration</name>
 
 	<dependencies>
 		<dependency>

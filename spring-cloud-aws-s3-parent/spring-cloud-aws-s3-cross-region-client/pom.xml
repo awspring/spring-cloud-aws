@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+	<name>Spring Cloud AWS S3 Cross Region Client</name>
 
 	<dependencies>
 		<dependency>
