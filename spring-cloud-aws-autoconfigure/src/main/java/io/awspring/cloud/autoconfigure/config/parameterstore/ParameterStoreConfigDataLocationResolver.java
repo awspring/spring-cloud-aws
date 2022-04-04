@@ -56,6 +56,7 @@ public class ParameterStoreConfigDataLocationResolver
 	public List<ParameterStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
+		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
@@ -99,7 +100,8 @@ public class ParameterStoreConfigDataLocationResolver
 		}
 		if (awsProperties.getEndpoint() != null) {
 			builder.endpointOverride(awsProperties.getEndpoint());
-		} else if (properties.getEndpoint() != null) {
+		}
+		else if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);
@@ -110,5 +112,4 @@ public class ParameterStoreConfigDataLocationResolver
 		return binder.bind(ParameterStoreProperties.CONFIG_PREFIX, Bindable.of(ParameterStoreProperties.class))
 				.orElseGet(ParameterStoreProperties::new);
 	}
-
 }

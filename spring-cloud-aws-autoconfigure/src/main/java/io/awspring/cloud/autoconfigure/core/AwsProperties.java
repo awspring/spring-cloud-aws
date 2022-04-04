@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
+
 import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
@@ -25,8 +27,12 @@ import org.springframework.lang.Nullable;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-@ConfigurationProperties("spring.cloud.aws")
+@ConfigurationProperties(CONFIG_PREFIX)
 public class AwsProperties {
+	/**
+	 * Configuration prefix.
+	 */
+	public static final String CONFIG_PREFIX = "spring.cloud.aws";
 
 	/**
 	 * Overrides the default endpoint for all auto-configured AWS clients.

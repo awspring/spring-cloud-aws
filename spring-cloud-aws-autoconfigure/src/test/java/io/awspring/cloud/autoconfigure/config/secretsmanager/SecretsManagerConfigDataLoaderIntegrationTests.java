@@ -146,11 +146,26 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void endpointCanBeOverwrittenWithGlobalAwsProperties() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second", "spring.cloud.aws.endpoint")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
+		return runApplication(application, springConfigImport, "spring.cloud.aws.secretsmanager.endpoint");
+	}
+
+	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
+			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.endpoint="
-						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug");
 	}

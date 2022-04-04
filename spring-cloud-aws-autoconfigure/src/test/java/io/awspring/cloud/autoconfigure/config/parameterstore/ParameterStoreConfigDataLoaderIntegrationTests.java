@@ -151,18 +151,19 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-parameterstore:/config/spring/", "spring.cloud.aws.endpoint")) {
+		try (ConfigurableApplicationContext context = runApplication(application, "aws-parameterstore:/config/spring/",
+				"spring.cloud.aws.endpoint")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
 	}
 
-	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport, String endpointProperty) {
+	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
+			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
-			"--spring.cloud.aws.parameterstore.region=" + REGION,
-			"--" + endpointProperty + "=" + localstack.getEndpointOverride(SSM).toString(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
 	}
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {

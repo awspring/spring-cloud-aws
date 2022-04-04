@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
@@ -59,6 +60,7 @@ public class SecretsManagerConfigDataLocationResolver
 	public List<SecretsManagerConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
+		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
@@ -94,13 +96,18 @@ public class SecretsManagerConfigDataLocationResolver
 			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
 		}
 
+		AwsProperties awsProperties = context.get(AwsProperties.class);
+
 		SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 
 		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
 		}
-		if (properties.getEndpoint() != null) {
+		if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
+		}
+		else if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);

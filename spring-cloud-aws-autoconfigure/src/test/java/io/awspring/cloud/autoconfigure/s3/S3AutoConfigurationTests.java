@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -27,6 +28,7 @@ import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -111,6 +113,37 @@ class S3AutoConfigurationTests {
 			assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 			assertThat(context).hasSingleBean(S3Client.class);
 		});
+	}
+
+	@Test
+	void withCustomEndpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(client.isEndpointOverridden()).isTrue();
+		});
+	}
+
+	@Test
+	void withCustomGlobalEndpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(client.isEndpointOverridden()).isTrue();
+		});
+	}
+
+	@Test
+	void withCustomGlobalEndpointAndS3Endpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+				"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+					assertThat(client.isEndpointOverridden()).isTrue();
+				});
 	}
 
 	@Configuration(proxyBeanMethods = false)
