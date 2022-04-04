@@ -3,6 +3,7 @@ name: Build and upload docs
 on:
   push:
     branches:
+      - main
       - 3.0.x
       - 2.4.x
       - 2.3.x
