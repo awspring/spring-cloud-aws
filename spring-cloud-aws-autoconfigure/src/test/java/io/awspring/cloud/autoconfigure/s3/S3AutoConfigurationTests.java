@@ -71,6 +71,15 @@ class S3AutoConfigurationTests {
 	}
 
 	@Test
+	void s3AutoConfigurationIsDisabled2() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:3333")
+			.withUserConfiguration(NoTimeoutClientConfiguration.class)
+			.run(context -> {
+			S3Client s3Client = context.getBean(S3Client.class);
+		});
+	}
+
+	@Test
 	void autoconfigurationIsNotTriggeredWhenS3ModuleIsNotOnClasspath() {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(S3OutputStreamProvider.class)).run(context -> {
 			assertThat(context).doesNotHaveBean(S3Client.class);

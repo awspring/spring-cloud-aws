@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.s3;
 
+import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
@@ -33,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -45,27 +48,35 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  * @author Maciej Walkowiak
  */
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
-@EnableConfigurationProperties(S3Properties.class)
+@EnableConfigurationProperties({S3Properties.class, AwsProperties.class})
 @Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {
 
 	private final S3Properties properties;
+	private final AwsProperties awsProperties;
 
-	public S3AutoConfiguration(S3Properties properties) {
+	public S3AutoConfiguration(S3Properties properties, AwsProperties awsProperties) {
 		this.properties = properties;
+		this.awsProperties = awsProperties;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
-		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-				: regionProvider.getRegion();
-		S3ClientBuilder builder = S3Client.builder().credentialsProvider(credentialsProvider).region(region)
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration())
-				.serviceConfiguration(s3ServiceConfiguration());
-		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		S3ClientBuilder builder = (S3ClientBuilder) configureBuilder(S3Client.builder(), credentialsProvider, regionProvider, this.properties, this.awsProperties);
+		builder.serviceConfiguration(s3ServiceConfiguration());
+		return builder;
+	}
+
+	private AwsClientBuilder<?, ?> configureBuilder(AwsClientBuilder<?, ?> builder, AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider, AwsClientProperties properties, AwsProperties awsProperties) {
+		Region region = StringUtils.hasLength(properties.getRegion()) ? Region.of(properties.getRegion())
+			: regionProvider.getRegion();
+		builder.credentialsProvider(credentialsProvider).region(region)
+				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
 	}
 
