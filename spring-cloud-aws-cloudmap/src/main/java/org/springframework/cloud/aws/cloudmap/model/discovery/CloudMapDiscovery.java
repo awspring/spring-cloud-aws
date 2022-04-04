@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cloudmap;
+package org.springframework.cloud.aws.cloudmap.model.discovery;
 
 import java.util.List;
 

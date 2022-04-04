@@ -27,6 +27,7 @@ import com.amazonaws.services.servicediscovery.model.NamespaceSummary;
 import com.amazonaws.services.servicediscovery.model.Operation;
 import com.amazonaws.services.servicediscovery.model.RegisterInstanceResult;
 import com.amazonaws.services.servicediscovery.model.ServiceSummary;
+import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
 
 /**
  * Unit testcase for {@link CloudMapUtils}
@@ -41,6 +42,8 @@ public class CloudMapTestUtils {
 	public static final String SERVICE = "SERVICE";
 
 	public static final String OPERATION_ID = "OPERATION_ID";
+
+	private static final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
 
 	public static GetOperationResult getOperationResult() {
 		GetOperationResult operationResult = new GetOperationResult();
@@ -74,7 +77,7 @@ public class CloudMapTestUtils {
 
 	public static Map<String, String> getAttributesMap() {
 		Map<String, String> attributeMap = new HashMap<>();
-		attributeMap.put(CloudMapUtils.IPV_4_ADDRESS, "10.1.1.23");
+		attributeMap.put(UTILS.IPV_4_ADDRESS, "10.1.1.23");
 		return attributeMap;
 	}
 

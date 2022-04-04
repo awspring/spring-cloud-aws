@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cloudmap;
-
-import java.util.Map;
+package org.springframework.cloud.aws.cloudmap.model.registration;
 
 /**
- * POJO class to capture cloudmap discovery attributes.
+ * POJO class to capture cloudmap registration parameters.
  *
  * @author Hari Ohm Prasath
  * @since 2.3.2
  */
-public class CloudMapDiscoveryProperties {
+public class CloudMapRegistryProperties {
 
 	private String nameSpace;
 
 	private String service;
 
-	private Map<String, String> filterAttributes;
+	private String description;
 
 	public String getNameSpace() {
-		return this.nameSpace;
+		return nameSpace;
 	}
 
 	public void setNameSpace(String nameSpace) {
@@ -41,30 +39,19 @@ public class CloudMapDiscoveryProperties {
 	}
 
 	public String getService() {
-		return this.service;
+		return service;
 	}
 
 	public void setService(String service) {
 		this.service = service;
 	}
 
-	public Map<String, String> getFilterAttributes() {
-		return this.filterAttributes;
+	public String getDescription() {
+		return description;
 	}
 
-	public void setFilterAttributes(Map<String, String> filterAttributes) {
-		this.filterAttributes = filterAttributes;
-	}
-
-	@Override
-	public String toString() {
-		String data = "AwsCloudMapDiscoveryProperties{" + "serviceNameSpace=" + nameSpace + ", service=" + service;
-		if (filterAttributes != null) {
-			data += filterAttributes.keySet().stream().map(f -> "key = " + f + ":" + filterAttributes.get(f))
-					.reduce((a, b) -> a + "," + b).get();
-		}
-		data += "}";
-		return data;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 }

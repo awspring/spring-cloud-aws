@@ -20,18 +20,18 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
 import com.amazonaws.util.StringUtils;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
-import org.springframework.cloud.aws.cloudmap.AwsCloudMapPropertySourceLocator;
-import org.springframework.cloud.aws.cloudmap.CloudMapDiscoverService;
-import org.springframework.cloud.aws.cloudmap.CloudMapProperties;
-import org.springframework.cloud.aws.cloudmap.CloudMapRegistryAnnotationScanner;
-import org.springframework.cloud.aws.cloudmap.CloudMapRegistryService;
+import org.springframework.cloud.aws.cloudmap.discovery.CloudMapDiscoveryClient;
+import org.springframework.cloud.aws.cloudmap.model.CloudMapProperties;
+import org.springframework.cloud.aws.cloudmap.registration.CloudMapAutoRegistration;
+import org.springframework.cloud.aws.cloudmap.registration.ServiceRegistration;
+import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,32 +43,14 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CloudMapProperties.class)
-@ConditionalOnClass({ AWSServiceDiscovery.class })
+@ConditionalOnClass({AWSServiceDiscovery.class})
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
+@ConditionalOnDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 public class AwsCloudMapBootstrapConfiguration {
 
-	@Bean
-	AwsCloudMapPropertySourceLocator awscloudMapPropertySourceLocator(AWSServiceDiscovery serviceDiscovery,
-			CloudMapProperties properties, CloudMapDiscoverService instanceDiscovery) {
-		return new AwsCloudMapPropertySourceLocator(serviceDiscovery, properties.getDiscovery(), instanceDiscovery);
-	}
-
-	@Bean
-	CloudMapRegistryService registerInstance(AWSServiceDiscovery serviceDiscovery, CloudMapProperties properties) {
-		CloudMapRegistryService registryService = new CloudMapRegistryService(serviceDiscovery,
-				properties.getRegistry());
-		registryService.registerInstance();
-		return registryService;
-	}
-
-	@Bean
-	CloudMapRegistryAnnotationScanner scanRegistryAnnotation(AWSServiceDiscovery serviceDiscovery,
-			CloudMapProperties properties) {
-		CloudMapRegistryAnnotationScanner annotationScanner = new CloudMapRegistryAnnotationScanner(serviceDiscovery,
-				properties.getAnnotationBasePackage());
-		annotationScanner.scanAndRegister();
-		return annotationScanner;
-	}
+	@Autowired
+	private ApplicationContext context;
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -78,20 +60,26 @@ public class AwsCloudMapBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	CloudMapDiscoverService createInstanceDiscovery() {
-		return new CloudMapDiscoverService();
+	CloudMapAutoRegistration createAutoRegistration(AWSServiceDiscovery serviceDiscovery,
+													CloudMapProperties properties) {
+		return new CloudMapAutoRegistration(context, serviceDiscovery, properties.getRegistry());
 	}
 
 	@Bean
-	ConfigurableServletWebServerFactory webServerFactory(final CloudMapRegistryService cloudMapRegistryService) {
-		TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
-		factory.addConnectorCustomizers(cloudMapRegistryService);
-		return factory;
+	@ConditionalOnMissingBean
+	public CloudMapDiscoveryClient discoveryClient(AWSServiceDiscovery serviceDiscovery, CloudMapProperties properties) {
+		return new CloudMapDiscoveryClient(serviceDiscovery, properties);
 	}
 
-	public static AWSServiceDiscovery createServiceDiscoveryClient(CloudMapProperties properties) {
+	@Bean
+	@ConditionalOnMissingBean
+	public ServiceRegistration serviceRegistration(CloudMapProperties properties) {
+		return new ServiceRegistration(properties.getRegistry());
+	}
+
+	public AWSServiceDiscovery createServiceDiscoveryClient(CloudMapProperties properties) {
 		AWSServiceDiscoveryClientBuilder builder = AWSServiceDiscoveryClientBuilder.standard()
-				.withCredentials(new DefaultAWSCredentialsProviderChain());
+			.withCredentials(new DefaultAWSCredentialsProviderChain());
 
 		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
 			builder.withRegion(properties.getRegion());
@@ -99,5 +87,4 @@ public class AwsCloudMapBootstrapConfiguration {
 
 		return builder.build();
 	}
-
 }

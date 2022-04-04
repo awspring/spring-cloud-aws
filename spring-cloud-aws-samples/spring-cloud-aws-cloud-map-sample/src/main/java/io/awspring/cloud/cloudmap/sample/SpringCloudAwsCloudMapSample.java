@@ -16,22 +16,19 @@
 
 package io.awspring.cloud.cloudmap.sample;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 public class SpringCloudAwsCloudMapSample implements ApplicationRunner {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SpringCloudAwsCloudMapSample.class);
-
-	@Value("${hari-namespace/hari-service}")
-	private String registryDetails;
+	@Autowired
+	private DiscoveryClient discoveryClient;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringCloudAwsCloudMapSample.class, args);
@@ -39,7 +36,7 @@ public class SpringCloudAwsCloudMapSample implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
-		LOGGER.info("CloudMap registry details: {}", registryDetails);
+		this.discoveryClient.getServices();
 	}
 
 }

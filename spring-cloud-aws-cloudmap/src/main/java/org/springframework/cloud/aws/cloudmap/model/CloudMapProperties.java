@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cloudmap;
+package org.springframework.cloud.aws.cloudmap.model;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
+import org.springframework.cloud.aws.cloudmap.model.discovery.CloudMapDiscovery;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 
 /**
  * POJO to capture all cloudmap integration parameters (both registry and discovery).
@@ -25,7 +29,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.3.2
  */
 @ConfigurationProperties(CloudMapProperties.CONFIG_PREFIX)
-public class CloudMapProperties {
+public class CloudMapProperties implements EnvironmentAware {
 
 	/**
 	 * Default cloudmap prefix.
@@ -41,6 +45,8 @@ public class CloudMapProperties {
 	private boolean enabled;
 
 	private String annotationBasePackage;
+
+	private Environment environment;
 
 	public String getAnnotationBasePackage() {
 		return this.annotationBasePackage;
@@ -82,10 +88,18 @@ public class CloudMapProperties {
 		this.enabled = enabled;
 	}
 
+	public Environment getEnvironment() {
+		return environment;
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
 	@Override
 	public String toString() {
 		return "AwsCloudMapProperties{" + "registry=" + registry + ", discovery=" + discovery + ", region='" + region
-				+ '\'' + ", enabled=" + enabled + ", annotationBasePackage='" + annotationBasePackage + '\'' + '}';
+			+ '\'' + ", enabled=" + enabled + ", annotationBasePackage='" + annotationBasePackage + '\'' + '}';
 	}
-
 }
