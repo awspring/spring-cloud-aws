@@ -8,7 +8,6 @@ on:
       - 2.4.x
       - 2.3.x
       - 2.2.x
-      - gh-289
 
 env:
   AWS_EC2_METADATA_DISABLED: true
