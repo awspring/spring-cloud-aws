@@ -14,7 +14,7 @@
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
-		<docs.whitelisted.branches>2.1.x,2.2.x,2.3.x,3.0.x</docs.whitelisted.branches>
+		<docs.whitelisted.branches>main,2.1.x,2.2.x,2.3.x,3.0.x</docs.whitelisted.branches>
 		<configprops.inclusionPattern>cloud.aws.*|aws.*|spring.cloud.aws.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 		<generated-docs-multipage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/html</generated-docs-multipage-output.dir>
