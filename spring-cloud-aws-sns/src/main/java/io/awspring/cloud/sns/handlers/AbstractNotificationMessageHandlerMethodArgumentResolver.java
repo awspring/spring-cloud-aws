@@ -42,7 +42,6 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 
 	private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {

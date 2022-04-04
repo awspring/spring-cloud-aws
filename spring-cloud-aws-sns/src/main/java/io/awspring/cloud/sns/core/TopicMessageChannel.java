@@ -51,7 +51,7 @@ import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT
  */
 public class TopicMessageChannel extends AbstractMessageChannel {
 
-	private final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
+	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
 
 	private final SnsClient snsClient;
 

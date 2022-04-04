@@ -141,8 +141,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 			messageConverters.add(mappingJackson2MessageConverter);
 		}
 
-		CompositeMessageConverter converter = new CompositeMessageConverter(messageConverters);
-		return converter;
+		return new CompositeMessageConverter(messageConverters);
 	}
 
 	protected TopicMessageChannel resolveMessageChannel(String physicalResourceIdentifier) {

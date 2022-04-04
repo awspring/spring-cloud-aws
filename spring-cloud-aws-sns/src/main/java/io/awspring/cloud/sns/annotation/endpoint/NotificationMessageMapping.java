@@ -41,8 +41,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * subscription. Controllers will use a {@link NotificationSubscriptionMapping} annotated
  * method to confirm the subscription.
  *
- * Since 3.0 Annotation can be used on a method level and provide path mapping. Works same
- * like {@link RequestMapping}.
+ * Since 3.0 Annotation can be used on a method level and provide path mapping. Works like
+ * {@link RequestMapping}.
  *
  * @author Agim Emruli
  * @author Matej Nedic
