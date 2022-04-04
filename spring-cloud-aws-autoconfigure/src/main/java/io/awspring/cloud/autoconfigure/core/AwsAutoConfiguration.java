@@ -21,6 +21,12 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
+/**
+ * Autoconfigures AWS environment.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AwsProperties.class)
 public class AwsAutoConfiguration {
@@ -32,7 +38,7 @@ public class AwsAutoConfiguration {
 	}
 
 	@Bean
-	AwsClientBuilderConfigurer awsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider,
+	public AwsClientBuilderConfigurer awsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider,
 			AwsRegionProvider awsRegionProvider) {
 		return new AwsClientBuilderConfigurer(credentialsProvider, awsRegionProvider, awsProperties);
 	}

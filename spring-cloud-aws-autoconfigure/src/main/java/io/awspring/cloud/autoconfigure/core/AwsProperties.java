@@ -19,11 +19,17 @@ import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 
+/**
+ * Configuration properties for AWS environment.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 @ConfigurationProperties("spring.cloud.aws")
 public class AwsProperties {
 
 	/**
-	 * Overrides the default endpoint.
+	 * Overrides the default endpoint for all auto-configured AWS clients.
 	 */
 	@Nullable
 	private URI endpoint;

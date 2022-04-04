@@ -24,6 +24,12 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
+/**
+ * Provides a convenience method to apply common configuration to any {@link AwsClientBuilder}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public class AwsClientBuilderConfigurer {
 	private final AwsCredentialsProvider credentialsProvider;
 	private final AwsRegionProvider regionProvider;
