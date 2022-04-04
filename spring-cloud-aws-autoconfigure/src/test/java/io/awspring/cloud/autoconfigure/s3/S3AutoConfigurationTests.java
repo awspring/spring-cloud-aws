@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
@@ -45,7 +46,7 @@ class S3AutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
 
 	@Test
@@ -67,15 +68,6 @@ class S3AutoConfigurationTests {
 			assertThat(context).doesNotHaveBean(S3Client.class);
 			assertThat(context).doesNotHaveBean(S3ClientBuilder.class);
 			assertThat(context).doesNotHaveBean(S3Properties.class);
-		});
-	}
-
-	@Test
-	void s3AutoConfigurationIsDisabled2() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:3333")
-			.withUserConfiguration(NoTimeoutClientConfiguration.class)
-			.run(context -> {
-			S3Client s3Client = context.getBean(S3Client.class);
 		});
 	}
 
