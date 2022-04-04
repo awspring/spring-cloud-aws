@@ -10,6 +10,7 @@ on:
       - 2.2.x
 
 env:
+  # https://github.com/actions/checkout/issues/440#issuecomment-854240996
   AWS_EC2_METADATA_DISABLED: true
 
 jobs:
