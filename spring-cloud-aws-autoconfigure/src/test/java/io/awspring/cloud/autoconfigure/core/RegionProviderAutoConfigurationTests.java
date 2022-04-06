@@ -113,7 +113,7 @@ class RegionProviderAutoConfigurationTests {
 	@Configuration
 	static class CustomRegionProviderConfiguration {
 
-		@Bean(name = "regionProvider")
+		@Bean
 		public AwsRegionProvider customRegionProvider() {
 			return new CustomRegionProvider();
 		}

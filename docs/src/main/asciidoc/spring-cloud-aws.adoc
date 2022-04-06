@@ -55,7 +55,7 @@ If you’re a Maven user, adding the following to your `pom.xml` file will allow
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-dependencies</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>{project-version}</version>
 			<type>pom</type>
 			<scope>import</scope>
 		</dependency>
@@ -121,87 +121,11 @@ before any other BOM dependency that configures AWS SDK dependencies.
 </dependencyManagement>
 ----
 
-== Spring Cloud AWS Core
+include::core.adoc[]
 
-//=== Amazon SDK configuration
-//
-//==== SDK credentials configuration
-//In order to make calls to Amazon Web Services, credentials must be configured for the Amazon SDK. Spring Cloud AWS
-//provides support for configuring an application context specific set of credentials that are used for _each_ service
-//call for requests done by Spring Cloud AWS components, except for the Parameter Store and Secrets Manager Configuration
-//modules. Therefore, there must be *exactly one* configuration of the credentials for an entire application context.
-//
-//[TIP]
-//====
-//The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the clients if there is no dedicated credentials
-// provider defined. This will essentially use the following authentication information
-//
-//* the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-//* the system properties `aws.accessKeyId` and `aws.secretKey`
-//* the web identity token from AWS STS (requires `aws-java-sdk-sts` library)
-//* the user specific profile credentials file
-//* the ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
-//* the instance profile credentials (see below)
-//====
-//
-//Based on the overall credentials policy there are different options to configure the credentials. The possible ones are described in
-//the following sub-chapters.
-//
-//===== Simple credentials configuration
-//Credentials for the Amazon SDK consist of an access key (which might be shared) and a secret key (which must *not* be shared). Both
-//security attributes can be configured using the XML namespaces for each Amazon SDK service created by the Spring Cloud AWS
-//module. The overall configuration looks like this
-//
-//[source,xml,indent=0]
-//----
-//<beans ...>
-//  <aws-context:context-credentials>
-//   <aws-context:simple-credentials access-key="AKIAIO" secret-key="wJalrXUtnFEMI/K7M" />
-//  </aws-context:context-credentials>
-//</beans>
-//----
-//
-//[CAUTION]
-//====
-//The access-key and secret-key should be externalized into property files (e.g. Spring Boot application configuration)
-//and not be checked in into the source management system.
-//====
-//
-//===== Instance profile configuration
-//An https://docs.aws.amazon.com/IAM/latest/UserGuide/instance-profiles.html[instance profile configuration] allows to assign
-//a profile that is authorized by a role while starting an EC2 instance. All calls made from the EC2 instance are then authenticated
-//with the instance profile specific user role. Therefore there is no dedicated access-key and secret-key needed in the configuration.
-//The configuration for the instance profile in Spring Cloud AWS looks like this:
-//
-//[source,xml,indent=0]
-//----
-//<beans ...>
-//	<aws-context:context-credentials>
-// 		<aws-context:instance-profile-credentials/>
-// 	</aws-context:context-credentials>
-//</beans>
-//----
-//
-//===== Mixing both security configurations
-//In some cases it is useful to combine both authentication strategies to allow the application to use the instance profile
-//with a fallback for an explicit access-key and secret-key configuration. This is useful if the application is tested inside
-//EC2 (e.g. on a test server) and locally for testing. The next snippet shows a combination of both security configurations.
-//
-//[source,xml,indent=0]
-//----
-// <beans ...>
-//    <aws-context:context-credentials>
-//        <aws-context:instance-profile-credentials/>
-//        <aws-context:simple-credentials access-key="${accessKey:}" secret-key="${secretKey:}"/>
-//    </aws-context:context-credentials>
-// </beans>
-//----
-//
-//[TIP]
-//====
-//The access-key and secret-key are defined using a placeholder expressions along with a default value to avoid bootstrap
-//errors if the properties are not configured at all.
-//====
+include::s3.adoc[]
+
+
 //
 //===== AWS EKS IAM Roles for Service Accounts configuration
 //If your application is deployed to AWS EKS and you wish to use
@@ -219,197 +143,7 @@ before any other BOM dependency that configures AWS SDK dependencies.
 //</dependencies>
 //----
 //
-//===== Parameter Store and Secrets Manager Configuration credentials and region configuration
-//The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default Amazon
-//SDK client for each of AWS services, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and
-//`com.amazonaws.regions.DefaultAwsRegionProviderChain`. If you want to override this, then you need to
-//https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#customizing-the-bootstrap-configuration[define your own Spring Cloud bootstrap configuration class]
-//with a bean of the appropriate type of Amazon SDK client (`AWSSimpleSystemsManagement` or `AWSSecretsManager`),
-//that's configured to use your chosen credentials and/or region provider. Because this context is created when your
-//Spring Cloud Bootstrap context is created, you can't simply override the bean in a regular `@Configuration` class.
-//
-//==== Region configuration
-//Amazon Web services are available in different https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[regions]. Based
-//on the custom requirements, the user can host the application on different Amazon regions. The `spring-cloud-aws-context`
-//module provides a way to define the region for the entire application context.
-//
-//===== Explicit region configuration
-//The region can be explicitly configured using an XML element. This is particularly useful if the region can not be automatically
-//derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden.
-//
-//[source,xml,indent=0]
-//----
-//<beans ...>
-//  	<aws-context:context-region region="eu-west-1"/>
-//</beans>
-//----
-//
-//[TIP]
-//====
-//It is also allowed to use expressions or placeholders to externalize the configuration and ensure that the region can
-//be reconfigured with property files or system properties.
-//====
-//
-//===== Automatic region configuration
-//If the application context is started inside an EC2 instance, then the region can automatically be fetched from the
-//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[instance metadata] and therefore must
-//not be configured statically. The configuration will look like this:
-//
-//[source,xml,indent=0]
-//----
-//   <beans ...>
-//     <aws-context:context-region auto-detect="true" />
-//   </beans>
-//----
-//
-//===== Service specific region configuration
-//A region can also be overridden for particular services if one application context consumes services from different regions.
-//The configuration can be done globally like described above and configured for each service with a region attribute.
-//The configuration might look like this for a database service (described later)
-//
-//[source,xml,indent=0]
-//----
-// <beans ...>
-//  <aws-context:context-region region="eu-central-1" />
-//  <jdbc:data-source ... region="eu-west-1" />
-// </beans>
-//----
-//
-//[NOTE]
-//====
-//While it is theoretically possible to use multiple regions per application, we strongly recommend to write applications that
-//are hosted only inside one region and split the application if it is hosted in different regions at the same time.
-//====
-//
-//==== Spring Boot auto-configuration
-//Following the Spring Cloud umbrella project, Spring Cloud AWS also provides dedicated Spring Boot support. Spring Cloud
-//AWS can be configured using Spring Boot properties and will also automatically guess any sensible configuration based on
-//the general setup.
-//
-//===== Maven dependencies
-//Spring Cloud AWS provides a dedicated module to enable the Spring Boot support. That module must be added to the general
-//maven dependency inside the application. The typical configuration will look like this
-//
-//[source,xml,indent=0]
-//----
-//<dependencies>
-//  <dependency>
-//    <groupId>io.awspring.cloud</groupId>
-//    <artifactId>spring-cloud-aws-autoconfigure</artifactId>
-//    <version>{spring-cloud-aws-version}</version>
-//  </dependency>
-//</dependencies>
-//----
-//
-//Additional dependencies to enable particular features like messaging and JDBC have to be added. Spring Cloud AWS will
-//only configure classes that are available in the Spring Boot application's classpath.
-//
-//===== Configuring credentials
-//Spring Boot provides a standard way to define properties with property file or YAML configuration files. Spring Cloud
-//AWS provides support to configure the credential information with the Spring Boot application configuration files.
-//
-//By default Spring Cloud AWS configures https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] to resolve AWS credentials.
-//
-//If other credentials providers are configured, https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] is not used and Spring Cloud AWS configures following credentials chain:
-//
-//1. `AWSStaticCredentialsProvider` if `cloud.aws.credentials.access-key` is provided
-//2. `EC2ContainerCredentialsProviderWrapper` if `cloud.aws.credentials.instance-profile` is set to `true`
-//3. `ProfileCredentialsProvider` if `cloud.aws.credentials.profile-name` is provided
-//
-//Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
-//
-//[cols="3*", options="header"]
-//|===
-//|property
-//|example
-//|description
-//
-//|cloud.aws.credentials.access-key
-//|AKIAIOSFODNN7EXAMPLE
-//|The access key to be used with a static provider
-//
-//|cloud.aws.credentials.secret-key
-//|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-//|The secret key to be used with a static provider
-//
-//|cloud.aws.credentials.instance-profile
-//|true
-//|Configures an instance profile credentials provider with no further configuration
-//
-//|cloud.aws.credentials.profile-name
-//|default
-//|The name of a configuration profile in the specified configuration file
-//
-//|cloud.aws.credentials.profile-path
-//|`~/.aws/credentials`
-//|The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
-//|===
-//
-//===== Configuring region
-//Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
-//Boot configuration files. The region can be automatically detected using https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/DefaultAwsRegionProviderChain.html[DefaultAwsRegionProviderChain] or explicitly configured (e.g. in case of local tests
-//against the AWS cloud).
-//
-//The properties to configure the region are shown below
-//
-//[cols="3*", options="header"]
-//|===
-//|property
-//|example
-//|description
-//
-//|cloud.aws.region.static
-//|eu-west-1
-//|Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
-//eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
-//configured with own region meta data.
-//
-//This is particularly useful if the region can not be automatically derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden
-//
-//|===
-//
-//Each integration can now be configured to have a specific region. If region is specified this way it takes priority over default or static region. For example:
-//
-//[cols="3*", options="header"]
-//|===
-//|property
-//|example
-//|description
-//
-//|cloud.aws.sqs.region
-//|eu-west-1
-//|Configures a region that SQS integration will use.
-//
-//|===
-//
-//===== Enabling integrations
-//
-//Each integration can be enabled or disabled through a property. By default, all integrations are enabled except `ContextInstanceDataAutoConfiguration`:
-//
-//[cols="3*", options="header"]
-//|===
-//|property
-//|example
-//|description
-//
-//|cloud.aws.sqs.enabled
-//|false
-//|Disables SQS integration autoconfiguration.
-//|===
-//
-//
-//===== Configuring endpoints
-//For each integrated AWS service you can configure Spring Cloud AWS to use a custom endpoint using configuration properties. For example:
-//
-//[source,properties,indent=0]
-//----
-//cloud.aws.s3.endpoint=http://localhost:4566
-//cloud.aws.sqs.endpoint=http://localhost:4566
-//cloud.aws.rds.endpoint=http://localhost:4566
-//----
-//
-//Using custom endpoint can be especially useful when using https://github.com/localstack/localstack[Localstack] in integration tests or integrating with AWS compatible 3rd party services like https://min.io/[MinIO].
-//
+
 //===== Configuring client configuration
 //
 //For some AWS service integrations you can configure Spring Cloud AWS to use custom `ClientConfiguration`.
@@ -481,16 +215,15 @@ before any other BOM dependency that configures AWS SDK dependencies.
 //
 //include::secrets-manager.adoc[]
 //
-////include::sqs.adoc[]
+//include::sqs.adoc[]
 //
-////include::sns.adoc[]
+//include::sns.adoc[]
 //
-////include::ses.adoc[]
+//include::ses.adoc[]
 //
-//include::s3.adoc[]
+//include::cloudwatch.adoc[]
 //
-////include::cloudwatch.adoc[]
-//
-//== Configuration properties
-//
-//To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].
+
+== Configuration properties
+
+To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].
