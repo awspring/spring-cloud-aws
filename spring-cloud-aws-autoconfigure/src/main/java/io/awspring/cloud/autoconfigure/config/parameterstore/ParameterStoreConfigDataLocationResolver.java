@@ -98,11 +98,11 @@ public class ParameterStoreConfigDataLocationResolver
 		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
 		}
-		if (awsProperties.getEndpoint() != null) {
-			builder.endpointOverride(awsProperties.getEndpoint());
-		}
-		else if (properties.getEndpoint() != null) {
+		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
+		}
+		else if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);
 		return builder.build();
