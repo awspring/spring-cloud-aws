@@ -16,7 +16,68 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 === Using S3 client
 
+The starter automatically configures and registers a `S3Client` bean in the Spring application context. The `S3Client` bean can be used to perform operations on S3 buckets and objects.
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
+
+@Component
+public class S3ClientSample {
+	private final S3Client s3Client;
+
+	S3ClientSample(S3Client s3Client) {
+		this.s3Client = s3Client;
+	}
+
+	void readFile() throws IOException {
+		ResponseInputStream<GetObjectResponse> response = s3Client.getObject(
+			request -> request.bucket("bucket-name").key("file-name.txt"));
+
+		String fileContent = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
+
+		System.out.println(fileContent);
+	}
+}
+----
+
 === Using Cross-Region S3 client
+
+`S3Client` implementation provided in AWS SDK is region specific - meaning it can be used only to operate on buckets and objects stored in region for which the client has been configured to use.
+
+For example, assuming that `DefaultAwsRegionProviderChain` resolves a region `us-east-1`, running any S3 operation that uses a bucket created in another region would result in an exception:
+
+[source]
+----
+software.amazon.awssdk.services.s3.model.S3Exception: The bucket you are attempting to access must be addressed using the specified endpoint. Please send all future requests to this endpoint. (Service: S3, Status Code: 301, Request ID: ..., Extended Request ID: ...)
+----
+
+Spring Cloud AWS provides a `CrossRegionS3Client` that solves this problem by maintaining an internal dictionary of `S3Client` objects per region. If you need to customize these clients, you can create a custom `S3ClientBuilder` bean that acts as a template to create region-specific S3 clients in `CrossRegionS3Client`.
+There is no extra work needed to use cross-region S3 client - it is the `S3Client` auto-configured by Spring Cloud AWS.
+
+To disable `CrossRegionS3Client` creation and use instead a regular region-specific `S3Client`, you can either create a custom `S3Client` bean, or exclude `spring-cloud-aws-s3-cross-region-client` dependency:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-starter-aws-s3</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+----
 
 === S3 Objects as Spring Resources
 
