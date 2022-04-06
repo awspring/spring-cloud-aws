@@ -3,13 +3,13 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
+		<artifactId>spring-cloud-aws-starters</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<artifactId>spring-cloud-aws</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-starter-aws-s3</artifactId>
+	<artifactId>spring-cloud-aws-starter-s3</artifactId>
 	<name>Spring Cloud AWS S3 Starter</name>
 
 	<dependencies>
@@ -23,7 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws</artifactId>
+			<artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -84,31 +84,31 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws</artifactId>
+				<artifactId>spring-cloud-aws-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
+				<artifactId>spring-cloud-aws-starter-parameter-store</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-secrets-manager</artifactId>
+				<artifactId>spring-cloud-aws-starter-secrets-manager</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-ses</artifactId>
+				<artifactId>spring-cloud-aws-starter-ses</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-s3</artifactId>
+				<artifactId>spring-cloud-aws-starter-s3</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
