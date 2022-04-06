@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 class CredentialsProviderAutoConfigurationTests {
 
@@ -112,7 +114,20 @@ class CredentialsProviderAutoConfigurationTests {
 			AwsCredentialsProvider awsCredentialsProvider = context.getBean(AwsCredentialsProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(CustomAWSCredentialsProvider.class);
 		});
+	}
 
+	@Test
+	void isNotCreatedWhenAwsAuthModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(AwsCredentialsProvider.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(CredentialsProviderAutoConfiguration.class);
+		});
+	}
+
+	@Test
+	void isNotCreatedWhenAwsProfilesModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(ProfileFile.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(CredentialsProviderAutoConfiguration.class);
+		});
 	}
 
 	@Configuration

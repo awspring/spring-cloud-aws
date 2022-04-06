@@ -84,6 +84,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-starter-aws</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
 				<version>${project.version}</version>
 			</dependency>
