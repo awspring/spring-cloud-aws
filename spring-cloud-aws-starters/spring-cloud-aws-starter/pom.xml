@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-starter-aws</artifactId>
+	<artifactId>spring-cloud-aws-starter</artifactId>
 	<name>Spring Cloud AWS Starter</name>
 
 	<dependencies>

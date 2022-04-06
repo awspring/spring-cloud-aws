@@ -14,11 +14,11 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-cloud-starter-aws</module>
-		<module>spring-cloud-starter-aws-parameter-store</module>
-		<module>spring-cloud-starter-aws-secrets-manager</module>
-		<module>spring-cloud-starter-aws-ses</module>
-		<module>spring-cloud-starter-aws-s3</module>
+		<module>spring-cloud-aws-starter</module>
+		<module>spring-cloud-aws-starter-parameter-store</module>
+		<module>spring-cloud-aws-starter-secrets-manager</module>
+		<module>spring-cloud-aws-starter-ses</module>
+		<module>spring-cloud-aws-starter-s3</module>
 	</modules>
 
 </project>

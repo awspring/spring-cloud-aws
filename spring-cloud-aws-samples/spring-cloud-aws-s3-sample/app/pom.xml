@@ -20,7 +20,7 @@
 
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws-s3</artifactId>
+			<artifactId>spring-cloud-aws-starter-s3</artifactId>
 		</dependency>
 	</dependencies>
 

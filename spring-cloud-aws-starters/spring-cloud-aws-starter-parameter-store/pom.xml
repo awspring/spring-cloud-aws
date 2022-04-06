@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
+	<artifactId>spring-cloud-aws-starter-parameter-store</artifactId>
 	<name>Spring Cloud AWS Parameter Store Starter</name>
 
 	<dependencies>
@@ -19,7 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws</artifactId>
+			<artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-starter-aws-s3</artifactId>
+	<artifactId>spring-cloud-aws-starter-s3</artifactId>
 	<name>Spring Cloud AWS S3 Starter</name>
 
 	<dependencies>
@@ -23,7 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws</artifactId>
+			<artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 	</dependencies>
 </project>
