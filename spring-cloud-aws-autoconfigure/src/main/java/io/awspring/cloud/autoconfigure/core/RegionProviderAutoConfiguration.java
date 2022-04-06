@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnClass({ StaticRegionProvider.class, AwsRegionProvider.class, ProfileFile.class })
 @EnableConfigurationProperties(RegionProperties.class)
 public class RegionProviderAutoConfiguration {
 

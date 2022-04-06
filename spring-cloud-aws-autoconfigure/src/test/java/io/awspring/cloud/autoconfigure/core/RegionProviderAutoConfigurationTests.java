@@ -22,11 +22,13 @@ import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -107,6 +109,27 @@ class RegionProviderAutoConfigurationTests {
 			List<AwsRegionProvider> credentialsProviders = (List<AwsRegionProvider>) ReflectionTestUtils
 					.getField(awsCredentialsProvider, "providers");
 			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
+		});
+	}
+
+	@Test
+	void isNotCreatedWhenAwsRegionModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(AwsRegionProvider.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(RegionProviderAutoConfiguration.class);
+		});
+	}
+
+	@Test
+	void isNotCreatedWhenAwsProfilesModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(ProfileFile.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(RegionProviderAutoConfiguration.class);
+		});
+	}
+
+	@Test
+	void isNotCreatedWhenCoreModuleIsNotInClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(StaticRegionProvider.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(RegionProviderAutoConfiguration.class);
 		});
 	}
 

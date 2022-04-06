@@ -15,11 +15,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+			<artifactId>spring-cloud-aws-parameter-store</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-parameter-store</artifactId>
+			<artifactId>spring-cloud-starter-aws</artifactId>
 		</dependency>
 	</dependencies>
 
