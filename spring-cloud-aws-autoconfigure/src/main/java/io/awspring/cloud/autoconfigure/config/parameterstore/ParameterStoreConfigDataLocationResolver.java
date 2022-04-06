@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
@@ -55,6 +56,7 @@ public class ParameterStoreConfigDataLocationResolver
 	public List<ParameterStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
+		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
@@ -89,6 +91,8 @@ public class ParameterStoreConfigDataLocationResolver
 			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
 		}
 
+		AwsProperties awsProperties = context.get(AwsProperties.class);
+
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
@@ -96,6 +100,9 @@ public class ParameterStoreConfigDataLocationResolver
 		}
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
+		}
+		else if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);
 		return builder.build();
@@ -105,5 +112,4 @@ public class ParameterStoreConfigDataLocationResolver
 		return binder.bind(ParameterStoreProperties.CONFIG_PREFIX, Bindable.of(ParameterStoreProperties.class))
 				.orElseGet(ParameterStoreProperties::new);
 	}
-
 }

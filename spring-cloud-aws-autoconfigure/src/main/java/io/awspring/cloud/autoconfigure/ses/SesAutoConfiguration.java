@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.ses;
 
+import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.ses.SimpleEmailServiceMailSender;
-import java.util.Optional;
 import javax.mail.Session;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -33,12 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and
@@ -55,21 +49,10 @@ import software.amazon.awssdk.services.ses.SesClientBuilder;
 @ConditionalOnProperty(name = "spring.cloud.aws.ses.enabled", havingValue = "true", matchIfMissing = true)
 public class SesAutoConfiguration {
 
-	private final SesProperties properties;
-
-	public SesAutoConfiguration(SesProperties properties) {
-		this.properties = properties;
-	}
-
 	@Bean
 	@ConditionalOnMissingBean
-	public SesClient sesClient(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
-		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-				: regionProvider.getRegion();
-		SesClientBuilder client = SesClient.builder().credentialsProvider(credentialsProvider).region(region)
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
-		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(client::endpointOverride);
-		return client.build();
+	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+		return (SesClient) awsClientBuilderConfigurer.configure(SesClient.builder(), properties).build();
 	}
 
 	@Bean
