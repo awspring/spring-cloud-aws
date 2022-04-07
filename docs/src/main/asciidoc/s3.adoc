@@ -81,7 +81,68 @@ To disable `CrossRegionS3Client` creation and use instead a regular region-speci
 
 === S3 Objects as Spring Resources
 
-Setting object metadata
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[Spring Resources] are an abstraction for a number of low-level resources, such as file system files, classpath files, servlet context-relative files, etc.
+Spring Cloud AWS adds a new resource type: a `S3Resource` object.
+
+The Spring Resource Abstraction for S3 allows S3 objects to be accessed by their S3 URL using the `@Value` annotation:
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+----
+
+...or the Spring application context
+
+[source,java]
+----
+SpringApplication.run(...).getResource("s3://[S3_BUCKET_NAME]/[FILE_NAME]");
+----
+
+
+This creates a `Resource` object that can be used to read the object, among https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html#resources-resource[other possible operations].
+
+It is also possible to write to a `Resource`, although a `WriteableResource` is required.
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+try (OutputStream os = ((WritableResource) s3Resource).getOutputStream()) {
+  os.write("content".getBytes());
+}
+----
+
+To work with the `Resource` as a S3 resource, cast it to `io.awspring.cloud.s3.S3Resource`.
+Using `S3Resource` directly lets you set the https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html[S3 object metadata].
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+ObjectMetadata objectMetadata = ObjectMetadata.builder()
+    .contentType("application/json")
+    .serverSideEncryption(ServerSideEncryption.AES256)
+    .build();
+s3Resource.setObjectMetadata(objectMetadata);
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+}
+----
+
+When data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
+
+[source,java]
+----
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+} catch (UploadFailedException e) {
+    // e.getPath contains a file location in temporary folder
+}
+----
 
 Providing custom S3 output stream
 
