@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.handlers;
-
-import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
-import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
 
 /**
- * Interface used for confirming Subscription/Unsubscription. Implementation of interface can be used in Controllers
- * methods that are annotated with {@link NotificationSubscriptionMapping} and
- * {@link NotificationUnsubscribeConfirmationMapping}.
- *
- * @author Agim Emruli
+ * Sns integration.
  */
-public interface NotificationStatus {
-
-	void confirmSubscription();
-
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sns;

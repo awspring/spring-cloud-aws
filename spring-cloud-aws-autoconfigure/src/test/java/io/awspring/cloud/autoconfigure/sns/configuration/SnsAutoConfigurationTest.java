@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.sns.configuration;
 
-import java.net.URI;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.utils.AttributeMap;
-
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Tests for class {@link SnsAutoConfiguration}.

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.annotation.handlers;
 
 import java.lang.annotation.ElementType;
@@ -22,8 +21,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that is used to map SNS notification value to a variable that is annotated.
- * Used in Controllers method for handling/receiving SNS notifications.
+ * Annotation that is used to map SNS notification value to a variable that is annotated. Used in Controllers method for
+ * handling/receiving SNS notifications.
  *
  * @author Alain Sahli
  */

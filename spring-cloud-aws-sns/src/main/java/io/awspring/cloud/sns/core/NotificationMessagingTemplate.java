@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.core;
 
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import software.amazon.awssdk.services.sns.SnsClient;
-
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.CompositeMessageConverter;
@@ -34,12 +33,11 @@ import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
-
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
- * Helper class that simplifies synchronous sending of notifications to SNS. The only
- * mandatory fields are {@link SnsClient} and AutoCreate boolean.
+ * Helper class that simplifies synchronous sending of notifications to SNS. The only mandatory fields are
+ * {@link SnsClient} and AutoCreate boolean.
  *
  * @author Alain Sahli
  * @author Matej Nedic
@@ -52,12 +50,12 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 
 	private final AutoTopicCreator autoTopicCreator;
 
-	public NotificationMessagingTemplate(SnsClient snsClient, boolean autoCreate, ObjectMapper objectMapper) {
+	public NotificationMessagingTemplate(SnsClient snsClient, boolean autoCreate, @Nullable ObjectMapper objectMapper) {
 		this(snsClient, null, autoCreate, objectMapper);
 	}
 
 	public NotificationMessagingTemplate(SnsClient snsClient, MessageConverter messageConverter, boolean autoCreate,
-			ObjectMapper objectMapper) {
+			@Nullable ObjectMapper objectMapper) {
 		Assert.notNull(snsClient, "SnsClient must not be null");
 		Assert.notNull(snsClient, "AutoCreate must not be null");
 		this.autoTopicCreator = new DefaultAutoTopicCreator(snsClient, autoCreate);
@@ -66,7 +64,7 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	}
 
 	public NotificationMessagingTemplate(SnsClient snsClient, AutoTopicCreator autoTopicCreator,
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			@Nullable MessageConverter messageConverter, @Nullable ObjectMapper objectMapper) {
 		Assert.notNull(snsClient, "SnsClient must not be null");
 		Assert.notNull(snsClient, "AutoCreate must not be null");
 		this.autoTopicCreator = autoTopicCreator;
@@ -96,21 +94,21 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	}
 
 	@Override
-	public <T> void convertAndSend(String destination, T payload, Map<String, Object> headers)
+	public <T> void convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers)
 			throws MessagingException {
 		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, headers);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destination, T payload, MessagePostProcessor postProcessor)
+	public <T> void convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor)
 			throws MessagingException {
 		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, postProcessor);
 	}
 
 	@Override
-	public <T> void convertAndSend(String destination, T payload, Map<String, Object> headers,
+	public <T> void convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers,
 			MessagePostProcessor postProcessor) throws MessagingException {
 		TopicMessageChannel channel = resolveMessageChannelByLogicalName(destination);
 		convertAndSend(channel, payload, headers, postProcessor);
@@ -149,29 +147,26 @@ public class NotificationMessagingTemplate extends AbstractMessageSendingTemplat
 	}
 
 	/**
-	 * Convenience method that sends a notification with the given {@literal message} and
-	 * {@literal subject} to the {@literal destination}. The {@literal subject} is sent as
-	 * header as defined in the
-	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
-	 * JSON formats</a>.
+	 * Convenience method that sends a notification with the given {@literal message} and {@literal subject} to the
+	 * {@literal destination}. The {@literal subject} is sent as header as defined in the
+	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>.
 	 * @param destinationName The logical name of the destination
 	 * @param message The message to send
 	 * @param subject The subject to send
 	 */
-	public void sendNotification(String destinationName, Object message, String subject) {
+	public void sendNotification(String destinationName, Object message, @Nullable String subject) {
 		this.convertAndSend(destinationName, message, Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
 	/**
-	 * Convenience method that sends a notification with the given {@literal message} and
-	 * {@literal subject} to the {@literal destination}. The {@literal subject} is sent as
-	 * header as defined in the
-	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message
-	 * JSON formats</a>. The configured default destination will be used.
+	 * Convenience method that sends a notification with the given {@literal message} and {@literal subject} to the
+	 * {@literal destination}. The {@literal subject} is sent as header as defined in the
+	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>. The
+	 * configured default destination will be used.
 	 * @param message The message to send
 	 * @param subject The subject to send
 	 */
-	public void sendNotification(Object message, String subject) {
+	public void sendNotification(Object message, @Nullable String subject) {
 		this.convertAndSend(getRequiredDefaultDestination(), message,
 				Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
 	}

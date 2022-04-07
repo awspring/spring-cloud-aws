@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.annotation.endpoint;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
-
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,20 +26,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoints using the Spring
- * Controller model. This annotation configures a method to receive notification messages
- * on the method. A notification method can have two parameters annotation by the
- * {@link NotificationMessage} annotation to receive the payload and and a
+ * Spring Web MVC request mapping that supports Amazon SNS HTTP endpoints using the Spring Controller model. This
+ * annotation configures a method to receive notification messages on the method. A notification method can have two
+ * parameters annotation by the {@link NotificationMessage} annotation to receive the payload and and a
  * {@link NotificationSubject} annotation to receive the subject of a notification.
  *
- * A notification controller will be mapped to a particular url inside the application
- * context. The mapped url must be configured inside the Amazon Web Service platform as a
- * subscription. Before receiving any notification itself a controller must confirm the
- * subscription. Controllers will use a {@link NotificationSubscriptionMapping} annotated
+ * A notification controller will be mapped to a particular url inside the application context. The mapped url must be
+ * configured inside the Amazon Web Service platform as a subscription. Before receiving any notification itself a
+ * controller must confirm the subscription. Controllers will use a {@link NotificationSubscriptionMapping} annotated
  * method to confirm the subscription.
  *
- * Since 3.0 Annotation can be used on a method level and provide path mapping. Works like
- * {@link RequestMapping}.
+ * Since 3.0 Annotation can be used on a method level and provide path mapping. Works like {@link RequestMapping}.
  *
  * @author Agim Emruli
  * @author Matej Nedic

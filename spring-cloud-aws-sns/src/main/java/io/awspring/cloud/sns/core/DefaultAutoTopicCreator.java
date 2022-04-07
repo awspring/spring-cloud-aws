@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.core;
 
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-import org.springframework.util.Assert;
-
 /**
- * Default implementation of {@link AutoTopicCreator} used to determine topic ARN by name
- * and create a topic. If AutoCreate is turned off destination must be ARN, meaning topic
- * ARN can't be resolved by topic name.
+ * Default implementation of {@link AutoTopicCreator} used to determine topic ARN by name and create a topic. If
+ * AutoCreate is turned off destination must be ARN, meaning topic ARN can't be resolved by topic name.
  *
  * @author Matej Nedic
  */
@@ -43,8 +40,8 @@ public class DefaultAutoTopicCreator implements AutoTopicCreator {
 	}
 
 	/**
-	 * AutoCreate must be specified with true if topics ARN is to be found or if topic is
-	 * to be created by name. If AutoCreate is turned off method should only accept ARN.
+	 * AutoCreate must be specified with true if topics ARN is to be found or if topic is to be created by name. If
+	 * AutoCreate is turned off method should only accept ARN.
 	 */
 	public String createTopicBasedOnName(String destination) {
 		Assert.notNull(destination, "Destination must not be null");

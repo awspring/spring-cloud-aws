@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.handlers;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class BaseNotificationMessageHandlerMethodArgumentResolverTest {
 

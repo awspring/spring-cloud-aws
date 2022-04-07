@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpInputMessage;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.http.HttpInputMessage;
-
 /**
  *
- * Handles Subscription and Unsubscription events by transforming them to
- * {@link NotificationStatus} which can be used to confirm Subscriptions/Subscriptions.
+ * Handles Subscription and Unsubscription events by transforming them to {@link NotificationStatus} which can be used
+ * to confirm Subscriptions/Subscriptions.
  *
  * @author Agim Emruli
  */

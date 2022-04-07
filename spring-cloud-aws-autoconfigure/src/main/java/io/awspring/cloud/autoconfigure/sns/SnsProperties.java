@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.autoconfigure.sns;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -36,8 +34,8 @@ public class SnsProperties extends AwsClientProperties {
 	public static final String PREFIX = "spring.cloud.aws.sns";
 
 	/**
-	 * Value which determines will auto create for topic creation be used when
-	 * {@link NotificationMessagingTemplate} methods are called.
+	 * Value which determines will auto create for topic creation be used when {@link NotificationMessagingTemplate}
+	 * methods are called.
 	 */
 	private boolean autoCreate = true;
 

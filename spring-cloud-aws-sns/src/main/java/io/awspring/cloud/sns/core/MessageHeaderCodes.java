@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.core;
 
 /**
- * Helper Class that helps people reference Header keys when using
- * {@link NotificationMessagingTemplate}.
+ * Helper Class that helps people reference Header keys when using {@link NotificationMessagingTemplate}.
  *
  * @author Matej Nedic
  * @since 3.0.0

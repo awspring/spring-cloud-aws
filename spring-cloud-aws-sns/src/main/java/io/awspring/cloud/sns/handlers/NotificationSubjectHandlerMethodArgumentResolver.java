@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.util.ClassUtils;
 
 /**
  *
- * Handles conversion of SNS subject value to a variable that is annotated with
- * {@link NotificationSubject}.
+ * Handles conversion of SNS subject value to a variable that is annotated with {@link NotificationSubject}.
  *
  * @author Agim Emruli
  */

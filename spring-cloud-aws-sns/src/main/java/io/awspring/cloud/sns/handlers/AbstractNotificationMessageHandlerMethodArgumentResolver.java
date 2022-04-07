@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.handlers;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -54,8 +51,9 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 			webRequest.setAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME, content, RequestAttributes.SCOPE_REQUEST);
 		}
 
-		content = content != null ? content : (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
-				RequestAttributes.SCOPE_REQUEST);
+		content = content != null ? content
+				: (JsonNode) webRequest.getAttribute(NOTIFICATION_REQUEST_ATTRIBUTE_NAME,
+						RequestAttributes.SCOPE_REQUEST);
 
 		return doResolveArgumentFromNotificationMessage(content, httpInputMessage, parameter.getParameterType());
 	}

@@ -13,36 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.core;
 
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_DEDUPLICATION_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.AbstractMessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
-
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_DEDUPLICATION_ID_HEADER;
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.MESSAGE_GROUP_ID_HEADER;
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
 /**
- * Implementation of {@link AbstractMessageChannel} which is used for converting and
- * sending messages via {@link SnsClient} to SNS.
+ * Implementation of {@link AbstractMessageChannel} which is used for converting and sending messages via
+ * {@link SnsClient} to SNS.
  *
  * @author Agim Emruli
  * @author Alain Sahli
@@ -64,7 +61,8 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 
 	private static String findNotificationSubject(Message<?> message) {
 		return message.getHeaders().containsKey(NOTIFICATION_SUBJECT_HEADER)
-				? message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString() : null;
+				? message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString()
+				: null;
 	}
 
 	@Override

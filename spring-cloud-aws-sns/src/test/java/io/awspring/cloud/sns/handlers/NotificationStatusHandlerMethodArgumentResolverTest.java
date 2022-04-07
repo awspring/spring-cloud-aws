@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.handlers;
-
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
-
-import org.springframework.core.MethodParameter;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.web.context.request.ServletWebRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.core.MethodParameter;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.web.context.request.ServletWebRequest;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
 public class NotificationStatusHandlerMethodArgumentResolverTest {
 
