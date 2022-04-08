@@ -18,11 +18,15 @@ package io.awspring.cloud.autoconfigure.core;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
+import software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
  * Provides a convenience method to apply common configuration to any {@link AwsClientBuilder}.
@@ -42,13 +46,24 @@ public class AwsClientBuilderConfigurer {
 		this.awsProperties = awsProperties;
 	}
 
-	public AwsClientBuilder<?, ?> configure(AwsClientBuilder<?, ?> builder, AwsClientProperties clientProperties) {
+	public <T extends AwsSyncClientBuilder<?,?> & AwsClientBuilder<?, ?>> T configure(T builder,
+			AwsClientProperties clientProperties, @Nullable AwsClientConfigurer<T> configurer) {
+
 		Region region = StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
 				: regionProvider.getRegion();
 		builder.credentialsProvider(credentialsProvider).region(region)
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
+		}
+		if (clientProperties.getEndpoint() != null) {
+			builder.endpointOverride(clientProperties.getEndpoint());
+		}
+
+		if (configurer != null) {
+			builder.httpClientBuilder(configurer.httpClientBuilder());
+			builder.overrideConfiguration(configurer.overrideConfiguration());
+		}
 		return builder;
 	}
 }

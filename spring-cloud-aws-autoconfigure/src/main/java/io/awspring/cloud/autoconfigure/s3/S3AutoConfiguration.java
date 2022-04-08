@@ -16,11 +16,16 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,6 +36,8 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -55,9 +62,10 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
-		S3ClientBuilder builder = (S3ClientBuilder) awsClientBuilderConfigurer.configure(S3Client.builder(),
-				this.properties);
+	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientConfigurer<S3ClientBuilder>> configurer) {
+		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(),
+				this.properties, configurer.getIfAvailable());
 		builder.serviceConfiguration(s3ServiceConfiguration());
 		return builder;
 	}
@@ -105,4 +113,35 @@ public class S3AutoConfiguration {
 
 	}
 
+	@Bean
+	ClientBuilderBeanPostProcessor clientBuilderBeanPostProcessor() {
+		return new ClientBuilderBeanPostProcessor();
+	}
+
+	@Bean
+	ClientBeanPostProcessor clientBeanPostProcessor() {
+		return new ClientBeanPostProcessor();
+	}
+}
+
+class ClientBuilderBeanPostProcessor implements BeanPostProcessor {
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		System.out.println(this.getClass() + " " + beanName);
+		if (bean instanceof AwsSyncClientBuilder) {
+			System.out.println(bean + "" + beanName);
+		}
+		return BeanPostProcessor.super.postProcessBeforeInitialization(bean, beanName);
+	}
+}
+
+class ClientBeanPostProcessor implements BeanPostProcessor {
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		System.out.println(this.getClass() + " " + beanName);
+		if (bean instanceof SdkClient) {
+			System.out.println(bean + "" + beanName);
+		}
+		return BeanPostProcessor.super.postProcessBeforeInitialization(bean, beanName);
+	}
 }
