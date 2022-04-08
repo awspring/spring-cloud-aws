@@ -11,12 +11,12 @@
 
 	<artifactId>spring-cloud-aws-samples</artifactId>
 	<name>Spring Cloud AWS Samples</name>
-	<packaging>pom</packaging>
 
 	<modules>
 		<module>spring-cloud-aws-parameter-store-sample</module>
 		<module>spring-cloud-aws-secrets-manager-sample</module>
 		<module>spring-cloud-aws-s3-sample</module>
+		<module>spring-cloud-aws-ses-sample</module>
 	</modules>
 
 	<build>
