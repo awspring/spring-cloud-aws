@@ -132,7 +132,7 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-When data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.DiskBufferingS3OutputStream`. When data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
 If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
 
 [source,java]
@@ -144,7 +144,9 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-Providing custom S3 output stream
+If `DiskBufferingS3OutputStream` behavior does not fit your needs, you can implement custom `S3OutputStream` and provide a bean of type `io.awspring.cloud.s3.S3OutputStreamProvider` that is responsible for creating stream from `S3Resource`.
+
+Possible alternative implementations can use multi-part upload (for example with https://github.com/CI-CMG/aws-s3-outputstream[aws-s3-outputstream library)] or https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/transfer/s3/S3TransferManager.html[S3TransferManager].
 
 === Configuration
 
