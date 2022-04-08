@@ -11,7 +11,6 @@
 
 	<artifactId>spring-cloud-aws-samples</artifactId>
 	<name>Spring Cloud AWS Samples</name>
-	<packaging>pom</packaging>
 
 	<modules>
 		<module>spring-cloud-aws-parameter-store-sample</module>
