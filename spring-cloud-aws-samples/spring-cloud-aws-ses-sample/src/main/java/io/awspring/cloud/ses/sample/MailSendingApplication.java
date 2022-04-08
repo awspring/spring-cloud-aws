@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
 @SpringBootApplication
 public class MailSendingApplication {
 
+	private static final String EMAIL = "someMail@bar.foo";
 	Logger LOG = LoggerFactory.getLogger(MailSendingApplication.class);
 
 	// DEBUG must be set as env variable to get log for sending an email since Localstack is mocking email server.
@@ -56,10 +57,10 @@ public class MailSendingApplication {
 	ApplicationRunner applicationRunner(MailSender mailSender, SesClient sesClient) {
 		return args -> {
 			sesClient.verifyEmailAddress(
-					VerifyEmailAddressRequest.builder().emailAddress("matejnedic1@gmail.com").build());
+					VerifyEmailAddressRequest.builder().emailAddress(EMAIL).build());
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-			simpleMailMessage.setFrom("matejnedic1@gmail.com");
-			simpleMailMessage.setTo("matejnedic1@gmail.com");
+			simpleMailMessage.setFrom(EMAIL);
+			simpleMailMessage.setTo(EMAIL);
 			simpleMailMessage.setSubject("test subject");
 			simpleMailMessage.setText("test content");
 			mailSender.send(simpleMailMessage);
