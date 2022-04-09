@@ -50,14 +50,14 @@ class AwsSecretsManagerPropertiesTest {
 	void checkExceptionLoggingForPrefix() {
 		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build();
 		assertThatThrownBy(properties::afterPropertiesSet)
-				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
+				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9.\\-]+)*");
 	}
 
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/someRandomValue-dev01")
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/secret/someRandomValue-dev01")
 						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),

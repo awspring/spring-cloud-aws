@@ -40,49 +40,9 @@ class AwsParamStorePropertiesTest {
 		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
 	}
 
-	@Test
-	void validationSucceeds() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con")
-				.withDefaultContext("app").withProfileSeparator("_").build();
-
-		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
-	}
-
-	@Test
-	void validationSucceedsForPrefix() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/someRandomValue-dev01")
-				.withDefaultContext("app").withProfileSeparator("_").build();
-
-		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
-	}
-
-	@Test
-	void validationSucceedsPrefix() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla")
-				.withDefaultContext("app").withProfileSeparator("_").build();
-
-		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
-	}
-
-	@Test
-	void validationSucceedsNoPrefix() {
-		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("")
-				.withDefaultContext("app").withProfileSeparator("_").build();
-
-		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
-	}
-
-	@Test
-	void acceptsForwardSlashAsProfileSeparator() {
-		AwsParamStoreProperties properties = new AwsParamStoreProperties();
-		properties.setProfileSeparator("/");
-		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
-	}
-
-	@Test
-	void acceptsBackslashAsProfileSeparator() {
-		AwsParamStoreProperties properties = new AwsParamStoreProperties();
-		properties.setProfileSeparator("\\");
+	@ParameterizedTest
+	@MethodSource("validProperties")
+	void validationSucceeds(AwsParamStoreProperties properties) {
 		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
@@ -90,7 +50,23 @@ class AwsParamStorePropertiesTest {
 	void checkExceptionLoggingForPrefix() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("!.").build();
 		assertThatThrownBy(properties::afterPropertiesSet)
-				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
+				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9.\\-]+)*");
+	}
+
+	private static Stream<Arguments> validProperties() {
+		return Stream.of(
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("/con").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("/config/someRandomValue-dev01")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("/config").withDefaultContext("app")
+						.withProfileSeparator("/").build()),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("/config").withDefaultContext("app")
+						.withProfileSeparator("\\").build()));
 	}
 
 	private static Stream<Arguments> invalidProperties() {
