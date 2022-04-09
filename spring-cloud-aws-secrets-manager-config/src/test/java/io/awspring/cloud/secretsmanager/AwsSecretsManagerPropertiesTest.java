@@ -18,12 +18,14 @@ package io.awspring.cloud.secretsmanager;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for {@link AwsSecretsManagerProperties}.
@@ -43,6 +45,18 @@ class AwsSecretsManagerPropertiesTest {
 	@MethodSource("validProperties")
 	void validationSucceeds(AwsSecretsManagerProperties properties) {
 		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
+	}
+
+	@Test
+	void checkExceptionLoggingForPrefix() {
+		try {
+			AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build();
+			properties.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			assertEquals(e.getMessage(),
+					"The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
+		}
 	}
 
 	private static Stream<Arguments> validProperties() {

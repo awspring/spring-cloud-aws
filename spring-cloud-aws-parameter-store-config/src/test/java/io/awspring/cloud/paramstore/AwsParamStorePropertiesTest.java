@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -76,6 +77,18 @@ class AwsParamStorePropertiesTest {
 		AwsParamStoreProperties properties = new AwsParamStoreProperties();
 		properties.setProfileSeparator("\\");
 		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
+	}
+
+	@Test
+	void checkExceptionLoggingForPrefix() {
+		try {
+			AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("!.").build();
+			properties.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			assertEquals(e.getMessage(),
+					"The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
+		}
 	}
 
 	private static Stream<Arguments> invalidProperties() {

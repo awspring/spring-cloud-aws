@@ -96,7 +96,7 @@ public class AwsParamStoreProperties implements InitializingBean {
 
 		if (StringUtils.hasLength(prefix) && !PREFIX_PATTERN.matcher(prefix).matches()) {
 			throw new ValidationException(CONFIG_PREFIX + ".prefix",
-					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+					"The prefix value: " + prefix + " must have pattern of:  " + PREFIX_PATTERN.toString());
 		}
 		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
 			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
