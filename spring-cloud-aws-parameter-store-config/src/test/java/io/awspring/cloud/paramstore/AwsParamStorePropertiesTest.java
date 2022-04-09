@@ -50,6 +50,14 @@ class AwsParamStorePropertiesTest {
 	}
 
 	@Test
+	void validationSucceedsForPrefix() {
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/someRandomValue-dev01")
+				.withDefaultContext("app").withProfileSeparator("_").build();
+
+		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
+	}
+
+	@Test
 	void validationSucceedsPrefix() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("/con/test/bla")
 				.withDefaultContext("app").withProfileSeparator("_").build();
@@ -81,14 +89,9 @@ class AwsParamStorePropertiesTest {
 
 	@Test
 	void checkExceptionLoggingForPrefix() {
-		try {
-			AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("!.").build();
-			properties.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			assertEquals(e.getMessage(),
-					"The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
-		}
+		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("!.").build();
+		assertThatThrownBy(properties::afterPropertiesSet)
+				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
 	}
 
 	private static Stream<Arguments> invalidProperties() {

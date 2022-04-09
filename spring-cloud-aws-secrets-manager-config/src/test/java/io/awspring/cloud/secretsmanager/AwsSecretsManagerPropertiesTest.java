@@ -25,7 +25,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for {@link AwsSecretsManagerProperties}.
@@ -49,20 +48,17 @@ class AwsSecretsManagerPropertiesTest {
 
 	@Test
 	void checkExceptionLoggingForPrefix() {
-		try {
-			AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build();
-			properties.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			assertEquals(e.getMessage(),
-					"The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
-		}
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build();
+		assertThatThrownBy(properties::afterPropertiesSet)
+				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9]+)*");
 	}
 
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/someRandomValue-dev01")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec/test/var")
