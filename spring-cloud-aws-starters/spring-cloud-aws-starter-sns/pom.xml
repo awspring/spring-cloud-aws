@@ -10,7 +10,6 @@
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<packaging>pom</packaging>
 
 	<artifactId>spring-cloud-aws-starter-sns</artifactId>
 	<name>Spring Cloud AWS SNS Starter</name>
