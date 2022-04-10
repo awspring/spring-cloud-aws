@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.cloud.aws.cloudmap.model;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
 import org.springframework.cloud.aws.cloudmap.model.discovery.CloudMapDiscovery;
+import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 
@@ -100,6 +100,7 @@ public class CloudMapProperties implements EnvironmentAware {
 	@Override
 	public String toString() {
 		return "AwsCloudMapProperties{" + "registry=" + registry + ", discovery=" + discovery + ", region='" + region
-			+ '\'' + ", enabled=" + enabled + ", annotationBasePackage='" + annotationBasePackage + '\'' + '}';
+				+ '\'' + ", enabled=" + enabled + ", annotationBasePackage='" + annotationBasePackage + '\'' + '}';
 	}
+
 }

@@ -43,41 +43,17 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CloudMapProperties.class)
-@ConditionalOnClass({AWSServiceDiscovery.class})
+@ConditionalOnClass({AWSServiceDiscovery.class, ServiceRegistration.class, CloudMapAutoRegistration.class})
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnBlockingDiscoveryEnabled
 public class AwsCloudMapBootstrapConfiguration {
 
-	@Autowired
-	private ApplicationContext context;
+	private final ApplicationContext context;
+	private final AWSServiceDiscovery serviceDiscovery;
+	private final CloudMapProperties properties;
 
-	@Bean
-	@ConditionalOnMissingBean
-	AWSServiceDiscovery serviceDiscovery(CloudMapProperties properties) {
-		return createServiceDiscoveryClient(properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	CloudMapAutoRegistration createAutoRegistration(AWSServiceDiscovery serviceDiscovery,
-													CloudMapProperties properties) {
-		return new CloudMapAutoRegistration(context, serviceDiscovery, properties.getRegistry());
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public CloudMapDiscoveryClient discoveryClient(AWSServiceDiscovery serviceDiscovery, CloudMapProperties properties) {
-		return new CloudMapDiscoveryClient(serviceDiscovery, properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ServiceRegistration serviceRegistration(CloudMapProperties properties) {
-		return new ServiceRegistration(properties.getRegistry());
-	}
-
-	public AWSServiceDiscovery createServiceDiscoveryClient(CloudMapProperties properties) {
+	public AwsCloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context){
 		AWSServiceDiscoveryClientBuilder builder = AWSServiceDiscoveryClientBuilder.standard()
 			.withCredentials(new DefaultAWSCredentialsProviderChain());
 
@@ -85,6 +61,26 @@ public class AwsCloudMapBootstrapConfiguration {
 			builder.withRegion(properties.getRegion());
 		}
 
-		return builder.build();
+		this.serviceDiscovery =  builder.build();
+		this.properties = properties;
+		this.context = context;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	CloudMapAutoRegistration createAutoRegistration() {
+		return new CloudMapAutoRegistration(context, serviceDiscovery, properties.getRegistry());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public CloudMapDiscoveryClient discoveryClient() {
+		return new CloudMapDiscoveryClient(serviceDiscovery, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ServiceRegistration serviceRegistration() {
+		return new ServiceRegistration(properties.getRegistry());
 	}
 }

@@ -16,19 +16,6 @@
 
 package org.springframework.cloud.aws.cloudmap;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.amazonaws.services.servicediscovery.model.GetOperationResult;
-import com.amazonaws.services.servicediscovery.model.ListNamespacesResult;
-import com.amazonaws.services.servicediscovery.model.ListServicesResult;
-import com.amazonaws.services.servicediscovery.model.NamespaceSummary;
-import com.amazonaws.services.servicediscovery.model.Operation;
-import com.amazonaws.services.servicediscovery.model.RegisterInstanceResult;
-import com.amazonaws.services.servicediscovery.model.ServiceSummary;
-import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
-
 /**
  * Unit testcase for {@link CloudMapUtils}
  *
@@ -42,51 +29,5 @@ public class CloudMapTestUtils {
 	public static final String SERVICE = "SERVICE";
 
 	public static final String OPERATION_ID = "OPERATION_ID";
-
-	private static final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
-
-	public static GetOperationResult getOperationResult() {
-		GetOperationResult operationResult = new GetOperationResult();
-		operationResult.setOperation(new Operation().withStatus("SUCCESS"));
-		return operationResult;
-	}
-
-	public static RegisterInstanceResult getRegisterInstanceResult() {
-		RegisterInstanceResult registerInstanceRequest = new RegisterInstanceResult();
-		registerInstanceRequest.setOperationId(OPERATION_ID);
-		return registerInstanceRequest;
-	}
-
-	public static ListServicesResult getListServicesResult() {
-		ServiceSummary serviceSummary = new ServiceSummary();
-		serviceSummary.setId(SERVICE);
-		serviceSummary.setName(SERVICE);
-		ListServicesResult listServicesResult = new ListServicesResult();
-		listServicesResult.setServices(Collections.singletonList(serviceSummary));
-		return listServicesResult;
-	}
-
-	public static ListNamespacesResult getListNamespacesResult() {
-		NamespaceSummary summary = new NamespaceSummary();
-		summary.setId(NAMESPACE);
-		summary.setName(NAMESPACE);
-		ListNamespacesResult result = new ListNamespacesResult();
-		result.setNamespaces(Collections.singleton(summary));
-		return result;
-	}
-
-	public static Map<String, String> getAttributesMap() {
-		Map<String, String> attributeMap = new HashMap<>();
-		attributeMap.put(UTILS.IPV_4_ADDRESS, "10.1.1.23");
-		return attributeMap;
-	}
-
-	public static CloudMapRegistryProperties getProperties() {
-		CloudMapRegistryProperties properties = new CloudMapRegistryProperties();
-		properties.setService(SERVICE);
-		properties.setNameSpace(NAMESPACE);
-		properties.setDescription("DESCRIPTION");
-		return properties;
-	}
 
 }
