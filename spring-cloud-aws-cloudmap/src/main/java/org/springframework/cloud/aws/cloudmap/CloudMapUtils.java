@@ -86,41 +86,35 @@ public enum CloudMapUtils {
 	 */
 	INSTANCE;
 
+	public static final String META_DATA_URL = "http://169.254.169.254/latest/meta-data";
 	/*
 	 * AWS VPC ID
 	 */
 	private static final String VPC_ID = "VPC_ID";
-
 	/*
 	 * Local IP address
 	 */
 	private static final String AWS_INSTANCE_IPV_4 = "AWS_INSTANCE_IPV4";
-
 	/*
 	 * AWS Region
 	 */
 	private static final String REGION = "REGION";
-
 	/*
 	 * Logger
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(CloudMapUtils.class);
-
 	/*
 	 * Namespace status - SUBMITTED
 	 */
 	private static final String SUBMITTED = "SUBMITTED";
-
 	/*
 	 * Namespace status - PENDING
 	 */
 	private static final String PENDING = "PENDING";
-
 	/*
 	 * Maximum number of polling before returning error
 	 */
 	private static final int MAX_POLL = 30;
-
 	/*
 	 * Deployment platform environment variable
 	 */
@@ -129,7 +123,7 @@ public enum CloudMapUtils {
 	/*
 	 * Deployment platform type ECS
 	 */
-	public final String ECS = "ECS";
+	public final String EKS = "EKS";
 
 	/*
 	 * Metadata URL
@@ -169,9 +163,10 @@ public enum CloudMapUtils {
 	 */
 	public Map<String, String> getRegistrationAttributes() {
 		String deploymentPlatform = System.getenv(DEPLOYMENT_PLATFORM);
-		if (StringUtils.hasText(deploymentPlatform) && ECS.equalsIgnoreCase(deploymentPlatform.trim()))
-			return getEcsRegistrationAttributes();
-		return getEksRegistrationAttributes();
+		LOGGER.info("Deployment platform passed in {}", deploymentPlatform);
+		if (StringUtils.hasText(deploymentPlatform) && EKS.equalsIgnoreCase(deploymentPlatform.trim()))
+			return getEksRegistrationAttributes();
+		return getEcsRegistrationAttributes();
 	}
 
 	/**
@@ -190,10 +185,12 @@ public enum CloudMapUtils {
 			List<NamespaceSummary> namespaceSummaries = namespacesResult.getNamespaces();
 			if (namespaceSummaries != null) {
 				Optional<String> namespaceId = namespaceSummaries.stream().filter(n -> n.getName().equals(nameSpace))
-						.map(NamespaceSummary::getId).findFirst();
+					.map(NamespaceSummary::getId).findFirst();
 				if (namespaceId.isPresent())
 					return namespaceId.get();
 			}
+			else
+				LOGGER.warn("Namespace {} not available", nameSpace);
 		}
 		while (StringUtils.hasText(token));
 
@@ -208,7 +205,7 @@ public enum CloudMapUtils {
 	 * @return list of cloudmap services
 	 */
 	public List<String> listServices(final AWSServiceDiscovery serviceDiscovery,
-			List<CloudMapDiscoveryProperties> discoveryProperties) {
+		List<CloudMapDiscoveryProperties> discoveryProperties) {
 		final List<String> serviceList = new ArrayList<>();
 
 		if (discoveryProperties != null && !discoveryProperties.isEmpty()) {
@@ -223,24 +220,26 @@ public enum CloudMapUtils {
 					if (StringUtils.hasText(nameSpaceId)) {
 						// Filter cloudmap services
 						final ServiceFilter serviceFilter = new ServiceFilter().withName(NAMESPACE_ID)
-								.withCondition("EQ").withValues(nameSpaceId);
+							.withCondition("EQ").withValues(nameSpaceId);
 						final ListServicesRequest servicesRequest = new ListServicesRequest()
-								.withFilters(serviceFilter);
+							.withFilters(serviceFilter);
 						Optional.ofNullable(token).ifPresent(servicesRequest::withNextToken);
 						final ListServicesResult result = serviceDiscovery.listServices(servicesRequest);
 						token = result.getNextToken();
 
 						if (StringUtils.hasText(serviceName)) {
 							serviceList.addAll(result.getServices().stream()
-									.filter(r -> r.getName().equals(d.getService()))
-									.map(r -> generateServiceId(r.getName(), nameSpace)).collect(Collectors.toList()));
+								.filter(r -> r.getName().equals(d.getService()))
+								.map(r -> generateServiceId(r.getName(), nameSpace)).collect(Collectors.toList()));
 							if (serviceList.size() == discoveryProperties.size())
 								return serviceList;
 						}
 						else
 							serviceList.addAll(result.getServices().stream()
-									.map(r -> generateServiceId(r.getName(), nameSpace)).collect(Collectors.toList()));
+								.map(r -> generateServiceId(r.getName(), nameSpace)).collect(Collectors.toList()));
 					}
+					else
+						LOGGER.warn("Namespace is empty");
 				}
 				while (StringUtils.hasText(token));
 			}
@@ -257,9 +256,9 @@ public enum CloudMapUtils {
 	 * @return list of http instances
 	 */
 	public List<HttpInstanceSummary> listInstances(final AWSServiceDiscovery serviceDiscovery, final String namespace,
-			String serviceName) {
+		String serviceName) {
 		final DiscoverInstancesRequest dRequest = new DiscoverInstancesRequest().withNamespaceName(namespace)
-				.withServiceName(serviceName);
+			.withServiceName(serviceName);
 
 		return serviceDiscovery.discoverInstances(dRequest).getInstances();
 	}
@@ -283,9 +282,9 @@ public enum CloudMapUtils {
 	 * @return map of registration properties
 	 */
 	public Map<String, String> registerInstance(final AWSServiceDiscovery serviceDiscovery,
-			final CloudMapRegistryProperties properties, final Environment environment) {
+		final CloudMapRegistryProperties properties, final Environment environment) {
 		if (properties != null && StringUtils.hasText(properties.getNameSpace())
-				&& StringUtils.hasText(properties.getService())) {
+			&& StringUtils.hasText(properties.getService())) {
 
 			String nameSpace = properties.getNameSpace();
 			if (!StringUtils.hasText(nameSpace))
@@ -300,6 +299,8 @@ public enum CloudMapUtils {
 
 			final String serviceInstanceId = UUID.randomUUID().toString();
 
+			LOGGER.info("Registration details namespace {} - service {} - serviceInstance {}", nameSpace, service,
+				serviceInstanceId);
 			Map<String, String> registrationDetails = getRegistrationAttributes();
 			String nameSpaceId = getNameSpaceId(serviceDiscovery, properties.getNameSpace());
 			try {
@@ -326,7 +327,7 @@ public enum CloudMapUtils {
 				// Register instance
 				final String operationId = serviceDiscovery.registerInstance(new RegisterInstanceRequest()
 						.withInstanceId(serviceInstanceId).withServiceId(serviceId).withAttributes(attributes))
-						.getOperationId();
+					.getOperationId();
 				LOGGER.debug("Register instance initiated, polling for completion {}", operationId);
 
 				// Poll for completion
@@ -348,7 +349,7 @@ public enum CloudMapUtils {
 			}
 			catch (MaxRetryExceededException e) {
 				LOGGER.error("Maximum number of retry exceeded for registering instance with {} for {}", nameSpace,
-						service, e);
+					service, e);
 			}
 		}
 		else {
@@ -367,12 +368,13 @@ public enum CloudMapUtils {
 	 * @throws CreateNameSpaceException thrown in case of runtime exception
 	 */
 	private String createNameSpace(AWSServiceDiscovery serviceDiscovery, CloudMapRegistryProperties properties,
-			String vpcId) throws CreateNameSpaceException {
+		String vpcId) throws CreateNameSpaceException {
 		final String nameSpace = properties.getNameSpace();
 		try {
 			// Create namespace
 			final String operationId = serviceDiscovery.createPrivateDnsNamespace(new CreatePrivateDnsNamespaceRequest()
-					.withName(nameSpace).withVpc(vpcId).withDescription(properties.getDescription())).getOperationId();
+				.withName(nameSpace).withVpc(vpcId).withDescription(properties.getDescription())).getOperationId();
+			LOGGER.info("Creating namespace {} with operationId {}", nameSpace, operationId);
 
 			// Wait till completion
 			pollForCompletion(serviceDiscovery, operationId);
@@ -380,6 +382,7 @@ public enum CloudMapUtils {
 			return getNameSpaceId(serviceDiscovery, nameSpace);
 		}
 		catch (NamespaceAlreadyExistsException e) {
+			LOGGER.warn("Namespace {} already exists", nameSpace);
 			return getNameSpaceId(serviceDiscovery, nameSpace);
 		}
 		catch (InvalidInputException | ResourceLimitExceededException | DuplicateRequestException e) {
@@ -405,17 +408,18 @@ public enum CloudMapUtils {
 	 * @throws CreateServiceException thrown in case of runtime exception
 	 */
 	private String createService(AWSServiceDiscovery serviceDiscovery, String nameSpaceId, String service)
-			throws CreateServiceException {
+		throws CreateServiceException {
 		try {
 			CreateServiceRequest serviceRequest = new CreateServiceRequest().withName(service)
-					.withNamespaceId(nameSpaceId).withDnsConfig(
-							new DnsConfig().withDnsRecords(new DnsRecord().withType(RecordType.A).withTTL(300L)));
+				.withNamespaceId(nameSpaceId).withDnsConfig(
+					new DnsConfig().withDnsRecords(new DnsRecord().withType(RecordType.A).withTTL(300L)));
 
 			final String serviceId = serviceDiscovery.createService(serviceRequest).getService().getId();
 			LOGGER.info("Service ID create {} for {} with namespace {}", serviceId, service, nameSpaceId);
 			return serviceId;
 		}
 		catch (ServiceAlreadyExistsException e) {
+			LOGGER.warn("Service {} already exists", service);
 			return getServiceId(serviceDiscovery, service, nameSpaceId);
 		}
 		catch (InvalidInputException | ResourceLimitExceededException e) {
@@ -441,9 +445,9 @@ public enum CloudMapUtils {
 
 			// Deregister instance
 			String operationId = serviceDiscovery
-					.deregisterInstance(
-							new DeregisterInstanceRequest().withInstanceId(serviceInstanceId).withServiceId(serviceId))
-					.getOperationId();
+				.deregisterInstance(
+					new DeregisterInstanceRequest().withInstanceId(serviceInstanceId).withServiceId(serviceId))
+				.getOperationId();
 
 			// Wait till completion
 			pollForCompletion(serviceDiscovery, operationId);
@@ -472,8 +476,8 @@ public enum CloudMapUtils {
 		filter.setName(NAMESPACE_ID);
 		filter.setValues(Collections.singletonList(nameSpaceId));
 		Optional<ServiceSummary> serviceSummary = serviceDiscovery
-				.listServices(new ListServicesRequest().withFilters(filter)).getServices().stream()
-				.filter(s -> serviceName.equals(s.getName())).findFirst();
+			.listServices(new ListServicesRequest().withFilters(filter)).getServices().stream()
+			.filter(s -> serviceName.equals(s.getName())).findFirst();
 		return serviceSummary.map(ServiceSummary::getId).orElse(null);
 	}
 
@@ -485,14 +489,15 @@ public enum CloudMapUtils {
 	 * @throws MaxRetryExceededException thrown if maximum polling duration has exceeded
 	 */
 	private void pollForCompletion(AWSServiceDiscovery serviceDiscovery, String operationId)
-			throws InterruptedException, MaxRetryExceededException {
+		throws InterruptedException, MaxRetryExceededException {
 		Operation operation = serviceDiscovery.getOperation(new GetOperationRequest().withOperationId(operationId))
-				.getOperation();
+			.getOperation();
 		int counter = 0;
+		LOGGER.info("Operation ID {} will be polled", operationId);
 		while ((SUBMITTED.equalsIgnoreCase(operation.getStatus()) || PENDING.equalsIgnoreCase(operation.getStatus()))
-				&& counter < MAX_POLL) {
+			&& counter < MAX_POLL) {
 			operation = serviceDiscovery.getOperation(new GetOperationRequest().withOperationId(operationId))
-					.getOperation();
+				.getOperation();
 			Thread.sleep(2000);
 			counter++;
 		}
@@ -508,12 +513,11 @@ public enum CloudMapUtils {
 	 */
 	private Map<String, String> getEksRegistrationAttributes() {
 		try {
-			final String metaDataUrl = "http://169.254.169.254/latest/meta-data";
-			String ipAddress = getUrlResponse(String.format("%s/local-ipv4", metaDataUrl));
-			final String macId = getUrlResponse(String.format("%s/network/interfaces/macs", metaDataUrl));
+			String ipAddress = getUrlResponse(String.format("%s/local-ipv4", META_DATA_URL));
+			final String macId = getUrlResponse(String.format("%s/network/interfaces/macs", META_DATA_URL));
 			if (StringUtils.hasText(macId) && macId.contains("/")) {
 				final String macAddress = macId.split("/")[0];
-				final String vpcUrl = String.format("%s/network/interfaces/macs/%s/vpc-id", metaDataUrl, macAddress);
+				final String vpcUrl = String.format("%s/network/interfaces/macs/%s/vpc-id", META_DATA_URL, macAddress);
 				final String vpcId = getUrlResponse(vpcUrl);
 				LOGGER.info("Meta data details IP Address {}, macAddress {} - VPCId {}", ipAddress, macAddress, vpcId);
 				return getCloudMapAttributes(ipAddress, vpcId);
@@ -531,15 +535,18 @@ public enum CloudMapUtils {
 	 */
 	private Map<String, String> getEcsRegistrationAttributes() {
 		try {
-			final String responseBody = getUrlResponse(System.getenv(ECS_CONTAINER_METADATA_URI_V_4) + "/task");
+			String metaDataUrl = System.getenv(ECS_CONTAINER_METADATA_URI_V_4);
+			if (!StringUtils.hasText(metaDataUrl))
+				metaDataUrl = META_DATA_URL;
+			final String responseBody = getUrlResponse(metaDataUrl + "/task");
 			JsonNode root = JSON_MAPPER.readTree(responseBody);
 			JsonNode jsonNode = root.get("Containers").get(0).get("Networks").get(0);
 			final String ipv4Address = jsonNode.get("IPv4Addresses").get(0).asText();
 			final String cidrBlock = jsonNode.get("IPv4SubnetCIDRBlock").asText();
 			final String vpcId = getEc2Client()
-					.describeSubnets(new DescribeSubnetsRequest()
-							.withFilters(new Filter().withName("cidr-block").withValues(cidrBlock)))
-					.getSubnets().get(0).getVpcId();
+				.describeSubnets(new DescribeSubnetsRequest()
+					.withFilters(new Filter().withName("cidr-block").withValues(cidrBlock)))
+				.getSubnets().get(0).getVpcId();
 			LOGGER.info("IPv4Address {} - CIDR Block {} - VPC ID {}", ipv4Address, cidrBlock, vpcId);
 
 			return getCloudMapAttributes(ipv4Address, vpcId);
@@ -585,7 +592,7 @@ public enum CloudMapUtils {
 	AmazonEC2 getEc2Client() {
 		if (ec2Client == null) {
 			ec2Client = AmazonEC2ClientBuilder.standard().withRegion(System.getenv("AWS_REGION"))
-					.withCredentials(new DefaultAWSCredentialsProviderChain()).build();
+				.withCredentials(new DefaultAWSCredentialsProviderChain()).build();
 		}
 		return ec2Client;
 	}
