@@ -35,6 +35,11 @@ as a Bootstrap Property Source, comparable to the support provided for the Sprin
 * *Spring Cloud AWS Secrets Manager Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html[AWS Secrets Manager]
 as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
 
+Note, that Spring provides support for other AWS services in following projects:
+
+- https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
+- https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
+- https://github.com/spring-projects/spring-integration-aws[Spring Integration for AWS]
 
 == Basic setup
 Before using a Spring Cloud AWS module developers have to pick the dependencies and configure the module.
