@@ -25,6 +25,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Tests for {@link AwsParamStoreProperties}.
@@ -36,8 +38,14 @@ class AwsParamStorePropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsParamStoreProperties properties, String field, String errorCode) {
-		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
+	public void validationFails(AwsParamStoreProperties properties, String field) throws Exception {
+		try {
+			properties.afterPropertiesSet();
+			fail("validation should fail");
+		}
+		catch (ValidationException e) {
+			assertThat(e.getField()).endsWith(field);
+		}
 	}
 
 	@ParameterizedTest
@@ -50,7 +58,7 @@ class AwsParamStorePropertiesTest {
 	void checkExceptionLoggingForPrefix() {
 		AwsParamStoreProperties properties = new AwsParamStorePropertiesBuilder().withPrefix("!.").build();
 		assertThatThrownBy(properties::afterPropertiesSet)
-				.hasMessage("The prefix value: !. must have pattern of:  (/)?([a-zA-Z0-9.\\-]+)(?:/[a-zA-Z0-9.\\-]+)*");
+				.hasMessage("The prefix value: !. must have pattern of: [a-zA-Z0-9.\\-/]+");
 	}
 
 	private static Stream<Arguments> validProperties() {
@@ -70,14 +78,11 @@ class AwsParamStorePropertiesTest {
 	}
 
 	private static Stream<Arguments> invalidProperties() {
-		return Stream.of(
-				Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
-				Arguments.of(new AwsParamStorePropertiesBuilder().withDefaultContext("").build(), "defaultContext",
-						"NotEmpty"),
-				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("").build(), "profileSeparator",
-						"NotEmpty"),
+		return Stream.of(Arguments.of(new AwsParamStorePropertiesBuilder().withPrefix("!.").build(), "prefix"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withDefaultContext("").build(), "defaultContext"),
+				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("").build(), "profileSeparator"),
 				Arguments.of(new AwsParamStorePropertiesBuilder().withProfileSeparator("!_").build(),
-						"profileSeparator", "Pattern"));
+						"profileSeparator"));
 	}
 
 	private static class AwsParamStorePropertiesBuilder {
