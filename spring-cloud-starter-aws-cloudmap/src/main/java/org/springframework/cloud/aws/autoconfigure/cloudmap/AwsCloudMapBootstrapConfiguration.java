@@ -20,6 +20,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
 import com.amazonaws.util.StringUtils;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,25 +43,27 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CloudMapProperties.class)
-@ConditionalOnClass({AWSServiceDiscovery.class, ServiceRegistration.class, CloudMapAutoRegistration.class})
+@ConditionalOnClass({ AWSServiceDiscovery.class, ServiceRegistration.class, CloudMapAutoRegistration.class })
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnBlockingDiscoveryEnabled
 public class AwsCloudMapBootstrapConfiguration {
 
 	private final ApplicationContext context;
+
 	private final AWSServiceDiscovery serviceDiscovery;
+
 	private final CloudMapProperties properties;
 
-	public AwsCloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context){
+	public AwsCloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context) {
 		AWSServiceDiscoveryClientBuilder builder = AWSServiceDiscoveryClientBuilder.standard()
-			.withCredentials(new DefaultAWSCredentialsProviderChain());
+				.withCredentials(new DefaultAWSCredentialsProviderChain());
 
 		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
 			builder.withRegion(properties.getRegion());
 		}
 
-		this.serviceDiscovery =  builder.build();
+		this.serviceDiscovery = builder.build();
 		this.properties = properties;
 		this.context = context;
 	}
@@ -82,4 +85,5 @@ public class AwsCloudMapBootstrapConfiguration {
 	public ServiceRegistration serviceRegistration() {
 		return new ServiceRegistration(properties.getRegistry());
 	}
+
 }
