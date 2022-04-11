@@ -17,14 +17,15 @@ package io.awspring.cloud.sns.core;
 
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
 /**
- * Default implementation of {@link AutoTopicCreator} used to determine topic ARN by name and create a topic. If
+ * Default implementation of {@link TopicArnResolver} used to determine topic ARN by name and create a topic. If
  * AutoCreate is turned off destination must be ARN, meaning topic ARN can't be resolved by topic name.
  *
  * @author Matej Nedic
  */
-public class DefaultAutoTopicCreator implements AutoTopicCreator {
+class DefaultAutoTopicCreator implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
@@ -35,18 +36,14 @@ public class DefaultAutoTopicCreator implements AutoTopicCreator {
 		this.autoCreate = autoCreate;
 	}
 
-	public DefaultAutoTopicCreator(SnsClient snsClient) {
-		this(snsClient, true);
-	}
-
 	/**
 	 * AutoCreate must be specified with true if topics ARN is to be found or if topic is to be created by name. If
 	 * AutoCreate is turned off method should only accept ARN.
 	 */
-	public String createTopicBasedOnName(String destination) {
+	public String resolveTopicArn(String destination) {
 		Assert.notNull(destination, "Destination must not be null");
 		if (this.autoCreate && !destination.toLowerCase().startsWith("arn:")) {
-			return this.snsClient.createTopic(request -> request.name(destination)).topicArn();
+			return this.snsClient.createTopic(CreateTopicRequest.builder().name(destination).build()).topicArn();
 		}
 		else {
 			Assert.isTrue(destination.toLowerCase().startsWith("arn"),

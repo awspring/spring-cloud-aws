@@ -15,31 +15,16 @@
  */
 package io.awspring.cloud.sns.core;
 
-/**
- * Helper Class that helps people reference Header keys when using {@link SnsTemplate}.
- *
- * @author Matej Nedic
- * @since 3.0.0
- */
-public final class MessageHeaderCodes {
+import static org.mockito.ArgumentMatchers.argThat;
 
-	/**
-	 * Header name.
-	 */
-	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
+import java.util.function.Consumer;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
-	/**
-	 * Message group id for SNS message (applies only to FIFO topic).
-	 */
-	public static final String MESSAGE_GROUP_ID_HEADER = "message-group-id";
-
-	/**
-	 * Message Deduplication id for SNS message.
-	 */
-	public static final String MESSAGE_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
-
-	private MessageHeaderCodes() {
-
+class Matchers {
+	static PublishRequest requestMatches(Consumer<PublishRequest> consumer) {
+		return argThat(it -> {
+			consumer.accept(it);
+			return true;
+		});
 	}
-
 }

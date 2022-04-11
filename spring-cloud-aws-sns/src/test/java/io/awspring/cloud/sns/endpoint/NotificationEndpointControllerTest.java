@@ -22,6 +22,13 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
+import io.awspring.cloud.sns.handlers.NotificationStatus;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +37,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.stereotype.Controller;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -142,6 +151,42 @@ class NotificationEndpointControllerTest {
 					argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
 				}
 			};
+		}
+
+	}
+
+	@Controller
+	@RequestMapping("/mySampleTopic")
+	static class NotificationTestController {
+
+		private String subject;
+
+		private String message;
+
+		String getSubject() {
+			return this.subject;
+		}
+
+		String getMessage() {
+			return this.message;
+		}
+
+		@NotificationSubscriptionMapping
+		void handleSubscriptionMessage(NotificationStatus status) throws IOException {
+			// We subscribe to start receive the message
+			status.confirmSubscription();
+		}
+
+		@NotificationMessageMapping
+		void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
+			this.subject = subject;
+			this.message = message;
+		}
+
+		@NotificationUnsubscribeConfirmationMapping
+		void handleUnsubscribeMessage(NotificationStatus status) {
+			// e.g. the client has been unsubscribed and we want to "re-subscribe"
+			status.confirmSubscription();
 		}
 
 	}

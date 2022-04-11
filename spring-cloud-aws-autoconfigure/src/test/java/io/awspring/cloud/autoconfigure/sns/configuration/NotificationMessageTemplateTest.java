@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.sns.configuration;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
-import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
+import io.awspring.cloud.sns.core.SnsTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
@@ -52,11 +52,9 @@ public class NotificationMessageTemplateTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			NotificationMessagingTemplate notificationMessagingTemplate = context
-					.getBean(NotificationMessagingTemplate.class);
+			SnsTemplate snsTemplate = context.getBean(SnsTemplate.class);
 
-			assertThatCode(() -> notificationMessagingTemplate.convertAndSend(TOPIC_NAME, "message"))
-					.doesNotThrowAnyException();
+			assertThatCode(() -> snsTemplate.convertAndSend(TOPIC_NAME, "message")).doesNotThrowAnyException();
 		}
 	}
 
@@ -66,13 +64,11 @@ public class NotificationMessageTemplateTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			NotificationMessagingTemplate notificationMessagingTemplate = context
-					.getBean(NotificationMessagingTemplate.class);
+			SnsTemplate snsTemplate = context.getBean(SnsTemplate.class);
 			SnsClient client = context.getBean(SnsClient.class);
 			String topic_arn = client.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 
-			assertThatCode(() -> notificationMessagingTemplate.convertAndSend(topic_arn, "message"))
-					.doesNotThrowAnyException();
+			assertThatCode(() -> snsTemplate.convertAndSend(topic_arn, "message")).doesNotThrowAnyException();
 		}
 	}
 

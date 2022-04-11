@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.core;
 
 /**
- * Interface that is used by {@link NotificationMessagingTemplate} to create topic or find topic ARN by name.
- *
- * @author Matej Nedic
+ * Sns integration.
  */
-public interface AutoTopicCreator {
-
-	String createTopicBasedOnName(String destination);
-
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sns.handlers;

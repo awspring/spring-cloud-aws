@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.AbstractMessageChannel;
@@ -59,10 +60,10 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		this.topicArn = topicArn;
 	}
 
+	@Nullable
 	private static String findNotificationSubject(Message<?> message) {
-		return message.getHeaders().containsKey(NOTIFICATION_SUBJECT_HEADER)
-				? message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER).toString()
-				: null;
+		Object notificationSubjectHeader = message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER);
+		return notificationSubjectHeader != null ? notificationSubjectHeader.toString() : null;
 	}
 
 	@Override
@@ -70,9 +71,11 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		PublishRequest.Builder publishRequestBuilder = PublishRequest.builder();
 		publishRequestBuilder.topicArn(this.topicArn).message(message.getPayload().toString())
 				.subject(findNotificationSubject(message));
-		Map<String, MessageAttributeValue> messageAttributes = getMessageAttributes(message);
+		Map<String, MessageAttributeValue> messageAttributes = toSnsMessageAttributes(message);
 
-		Optional.of(messageAttributes).ifPresent(publishRequestBuilder::messageAttributes);
+		if (!messageAttributes.isEmpty()) {
+			publishRequestBuilder.messageAttributes(messageAttributes);
+		}
 		Optional.ofNullable(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class))
 				.ifPresent(publishRequestBuilder::messageGroupId);
 		Optional.ofNullable(message.getHeaders().get(MESSAGE_DEDUPLICATION_ID_HEADER, String.class))
@@ -82,7 +85,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 		return true;
 	}
 
-	private Map<String, MessageAttributeValue> getMessageAttributes(Message<?> message) {
+	private Map<String, MessageAttributeValue> toSnsMessageAttributes(Message<?> message) {
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
 		for (Map.Entry<String, Object> messageHeader : message.getHeaders().entrySet()) {
 			String messageHeaderName = messageHeader.getKey();
@@ -123,6 +126,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	}
 
 	private boolean isSkipHeader(String headerName) {
+		// TODO: what about NOTIFICATION_SUBJECT_HEADER?
 		return MESSAGE_GROUP_ID_HEADER.equals(headerName) || MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName);
 	}
 
@@ -141,6 +145,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 				.binaryValue(SdkBytes.fromByteBuffer(messageHeaderValue)).build();
 	}
 
+	@Nullable
 	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
 		if (messageHeaderValue instanceof MimeType) {
 			return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
