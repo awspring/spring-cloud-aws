@@ -33,6 +33,7 @@ import org.springframework.messaging.support.AbstractMessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
@@ -53,9 +54,9 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 
 	private final SnsClient snsClient;
 
-	private final String topicArn;
+	private final Arn topicArn;
 
-	public TopicMessageChannel(SnsClient snsClient, String topicArn) {
+	public TopicMessageChannel(SnsClient snsClient, Arn topicArn) {
 		this.snsClient = snsClient;
 		this.topicArn = topicArn;
 	}
@@ -69,7 +70,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	@Override
 	protected boolean sendInternal(Message<?> message, long timeout) {
 		PublishRequest.Builder publishRequestBuilder = PublishRequest.builder();
-		publishRequestBuilder.topicArn(this.topicArn).message(message.getPayload().toString())
+		publishRequestBuilder.topicArn(this.topicArn.toString()).message(message.getPayload().toString())
 				.subject(findNotificationSubject(message));
 		Map<String, MessageAttributeValue> messageAttributes = toSnsMessageAttributes(message);
 

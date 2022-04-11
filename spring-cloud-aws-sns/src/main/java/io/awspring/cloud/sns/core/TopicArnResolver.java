@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sns.core;
 
+import software.amazon.awssdk.arns.Arn;
+
 /**
  * Interface that is used by {@link SnsTemplate} to create topic or find topic ARN by name.
  *
@@ -22,6 +24,6 @@ package io.awspring.cloud.sns.core;
  */
 public interface TopicArnResolver {
 
-	String resolveTopicArn(String destination);
+	Arn resolveTopicArn(String destination);
 
 }

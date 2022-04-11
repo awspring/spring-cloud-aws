@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import io.awspring.cloud.sns.core.SnsTemplate;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -32,18 +31,4 @@ public class SnsProperties extends AwsClientProperties {
 	 * The prefix used for AWS SNS configuration.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.sns";
-
-	/**
-	 * Value which determines will auto create for topic creation be used when {@link SnsTemplate} methods are called.
-	 */
-	private boolean autoCreate = true;
-
-	public boolean getAutoCreate() {
-		return autoCreate;
-	}
-
-	public void setAutoCreate(boolean autoCreate) {
-		this.autoCreate = autoCreate;
-	}
-
 }

@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
  * @author Alain Sahli
  */
 class SnsTemplateTest {
+	private static final String TOPIC_ARN = "arn:aws:sns:eu-west:123456789012:test";
 
 	private final SnsClient snsClient = mock(SnsClient.class);
 
@@ -42,18 +43,18 @@ class SnsTemplateTest {
 	void init() {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
-		snsTemplate = new SnsTemplate(snsClient, new DefaultAutoTopicCreator(snsClient, true), converter);
+		snsTemplate = new SnsTemplate(snsClient, new AutoCreatingTopicArnResolver(snsClient), converter);
+
+		when(snsClient.createTopic(CreateTopicRequest.builder().name("topic name").build()))
+				.thenReturn(CreateTopicResponse.builder().topicArn(TOPIC_ARN).build());
 	}
 
 	@Test
 	void sendsTextMessage() {
-		when(snsClient.createTopic(CreateTopicRequest.builder().name("topic name").build()))
-				.thenReturn(CreateTopicResponse.builder().topicArn("topic arn").build());
-
 		snsTemplate.sendNotification("topic name", "message content", "subject");
 
 		verify(snsClient).publish(requestMatches(r -> {
-			assertThat(r.topicArn()).isEqualTo("topic arn");
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(r.message()).isEqualTo("message content");
 			assertThat(r.subject()).isEqualTo("subject");
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
@@ -63,13 +64,10 @@ class SnsTemplateTest {
 
 	@Test
 	void sendsJsonMessage() {
-		when(snsClient.createTopic(CreateTopicRequest.builder().name("topic name").build()))
-				.thenReturn(CreateTopicResponse.builder().topicArn("topic arn").build());
-
 		snsTemplate.sendNotification("topic name", new Person("John Doe"), "subject");
 
 		verify(snsClient).publish(requestMatches(r -> {
-			assertThat(r.topicArn()).isEqualTo("topic arn");
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(r.message()).isEqualTo("{\"name\":\"John Doe\"}");
 			assertThat(r.subject()).isEqualTo("subject");
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
@@ -79,14 +77,11 @@ class SnsTemplateTest {
 
 	@Test
 	void sendsMessageToDefaultDestination() {
-		when(snsClient.createTopic(CreateTopicRequest.builder().name("topic name").build()))
-				.thenReturn(CreateTopicResponse.builder().topicArn("topic arn").build());
-
 		snsTemplate.setDefaultDestinationName("topic name");
 		snsTemplate.sendNotification("message content", "subject");
 
 		verify(snsClient).publish(requestMatches(r -> {
-			assertThat(r.topicArn()).isEqualTo("topic arn");
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
 		}));
 	}
 

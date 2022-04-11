@@ -36,6 +36,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
@@ -43,9 +44,10 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  * @author Alain Sahli
  */
 public class TopicMessageChannelTest {
+	private static final String TOPIC_ARN = "arn:aws:sns:eu-west:123456789012:test";
 
 	private final SnsClient snsClient = mock(SnsClient.class);
-	private final MessageChannel messageChannel = new TopicMessageChannel(snsClient, "topicArn");
+	private final MessageChannel messageChannel = new TopicMessageChannel(snsClient, Arn.fromString(TOPIC_ARN));
 
 	@Test
 	void sendMessage_validTextMessageAndSubject_returnsTrue() throws Exception {
@@ -59,7 +61,7 @@ public class TopicMessageChannelTest {
 		// Assert
 		verify(snsClient, only()).publish(requestMatches(it -> {
 			assertThat(it.subject()).isEqualTo("Subject");
-			assertThat(it.topicArn()).isEqualTo("topicArn");
+			assertThat(it.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(it.message()).isEqualTo("Message content");
 			assertThat(it.messageAttributes().keySet()).contains(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
 		}));
@@ -77,7 +79,7 @@ public class TopicMessageChannelTest {
 		// Assert
 		verify(snsClient, only()).publish(requestMatches(it -> {
 			assertThat(it.subject()).isNull();
-			assertThat(it.topicArn()).isEqualTo("topicArn");
+			assertThat(it.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(it.message()).isEqualTo("Message content");
 			assertThat(it.messageAttributes().keySet()).contains(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
 		}));
@@ -171,7 +173,6 @@ public class TopicMessageChannelTest {
 	@Test
 	void sendMessage_withUuidAsId_shouldConvertUuidToString() {
 		// Arrange
-		TopicMessageChannel messageChannel = new TopicMessageChannel(snsClient, "http://testQueue");
 		Message<String> message = MessageBuilder.withPayload("Hello").build();
 		UUID uuid = (UUID) message.getHeaders().get(MessageHeaders.ID);
 

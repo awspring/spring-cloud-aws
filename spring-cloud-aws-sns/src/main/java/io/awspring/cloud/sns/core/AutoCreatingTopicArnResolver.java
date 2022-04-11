@@ -16,6 +16,7 @@
 package io.awspring.cloud.sns.core;
 
 import org.springframework.util.Assert;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
@@ -25,30 +26,27 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
  *
  * @author Matej Nedic
  */
-class DefaultAutoTopicCreator implements TopicArnResolver {
+class AutoCreatingTopicArnResolver implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
-	private final boolean autoCreate;
-
-	public DefaultAutoTopicCreator(SnsClient snsClient, boolean autoCreate) {
+	public AutoCreatingTopicArnResolver(SnsClient snsClient) {
 		this.snsClient = snsClient;
-		this.autoCreate = autoCreate;
 	}
 
 	/**
 	 * AutoCreate must be specified with true if topics ARN is to be found or if topic is to be created by name. If
 	 * AutoCreate is turned off method should only accept ARN.
 	 */
-	public String resolveTopicArn(String destination) {
+	public Arn resolveTopicArn(String destination) {
 		Assert.notNull(destination, "Destination must not be null");
-		if (this.autoCreate && !destination.toLowerCase().startsWith("arn:")) {
-			return this.snsClient.createTopic(CreateTopicRequest.builder().name(destination).build()).topicArn();
+		if (destination.toLowerCase().startsWith("arn:")) {
+			return Arn.fromString(destination);
 		}
 		else {
-			Assert.isTrue(destination.toLowerCase().startsWith("arn"),
-					"Only sending notifications which has destination as an ARN is allowed when AutoCreate is turned off.");
-			return destination;
+			// if topic exists, createTopic returns successful response with topic arn
+			return Arn.fromString(
+					this.snsClient.createTopic(CreateTopicRequest.builder().name(destination).build()).topicArn());
 		}
 	}
 

@@ -31,6 +31,7 @@ import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
@@ -48,8 +49,8 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 
 	private final TopicArnResolver topicArnResolver;
 
-	public SnsTemplate(SnsClient snsClient, boolean autoCreate, @Nullable MessageConverter messageConverter) {
-		this(snsClient, new DefaultAutoTopicCreator(snsClient, autoCreate), messageConverter);
+	public SnsTemplate(SnsClient snsClient, @Nullable MessageConverter messageConverter) {
+		this(snsClient, new AutoCreatingTopicArnResolver(snsClient), messageConverter);
 	}
 
 	public SnsTemplate(SnsClient snsClient, TopicArnResolver topicArnResolver,
@@ -127,7 +128,7 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 	}
 
 	private TopicMessageChannel resolveMessageChannelByTopicName(String topicName) {
-		String topicArn = this.topicArnResolver.resolveTopicArn(topicName);
+		Arn topicArn = this.topicArnResolver.resolveTopicArn(topicName);
 		return new TopicMessageChannel(this.snsClient, topicArn);
 	}
 
