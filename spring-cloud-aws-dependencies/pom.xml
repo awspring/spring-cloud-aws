@@ -10,6 +10,11 @@
 		<version>3.0.0</version>
 		<relativePath/>
 	</parent>
+	<scm>
+		<url>https://github.com/awspring/spring-cloud-aws</url>
+		<connection>scm:git:git://github.com/awspring/spring-cloud-aws.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/awspring/spring-cloud-aws.git</developerConnection>
+	</scm>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
