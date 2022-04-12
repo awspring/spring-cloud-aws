@@ -100,7 +100,7 @@ SpringApplication.run(...).getResource("s3://[S3_BUCKET_NAME]/[FILE_NAME]");
 ----
 
 
-This creates a `Resource` object that can be used to read the object, among https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html#resources-resource[other possible operations].
+This creates a `Resource` object that can be used to read the file, among https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html#resources-resource[other possible operations].
 
 It is also possible to write to a `Resource`, although a `WriteableResource` is required.
 
