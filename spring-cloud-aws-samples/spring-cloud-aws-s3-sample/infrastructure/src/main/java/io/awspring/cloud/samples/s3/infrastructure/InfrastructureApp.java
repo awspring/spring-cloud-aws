@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.parameterstore.sample.infrastructure;
+package io.awspring.cloud.samples.s3.infrastructure;
 
-import software.amazon.awscdk.Stack;
+import software.amazon.awscdk.App;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.ssm.StringParameter;
-import software.constructs.Construct;
 
-public class InfrastructureStack extends Stack {
+public class InfrastructureApp {
 
-	public InfrastructureStack(final Construct scope, final String id) {
-		this(scope, id, null);
-	}
+	public static void main(final String[] args) {
+		App app = new App();
 
-	public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
-		super(scope, id, props);
+		new InfrastructureStack(app, "InfrastructureStack", StackProps.builder().build());
 
-		StringParameter.Builder.create(this, "Parameter").parameterName("/config/spring/message")
-				.stringValue("Spring-cloud-aws value!").build();
+		app.synth();
 	}
 
 }

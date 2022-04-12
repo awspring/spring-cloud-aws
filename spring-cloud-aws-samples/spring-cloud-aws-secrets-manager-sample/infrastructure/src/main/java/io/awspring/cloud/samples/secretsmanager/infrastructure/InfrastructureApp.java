@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.s3.sample.infrastructure;
+package io.awspring.cloud.samples.secretsmanager.infrastructure;
 
 import software.amazon.awscdk.App;
 import software.amazon.awscdk.StackProps;

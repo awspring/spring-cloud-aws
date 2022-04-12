@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.s3.sample.infrastructure;
+package io.awspring.cloud.samples.secretsmanager.infrastructure;
 
-import java.util.Arrays;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.deployment.BucketDeployment;
-import software.amazon.awscdk.services.s3.deployment.Source;
+import software.amazon.awscdk.services.secretsmanager.Secret;
+import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator;
 import software.constructs.Construct;
 
 public class InfrastructureStack extends Stack {
@@ -32,12 +30,11 @@ public class InfrastructureStack extends Stack {
 	public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);
 
-		Bucket bucket1 = Bucket.Builder.create(this, "bucket1").bucketName("spring-cloud-aws-sample-bucket1").build();
+		SecretStringGenerator secretStringGenerator = SecretStringGenerator.builder().generateStringKey("password")
+				.secretStringTemplate("{}").build();
 
-		BucketDeployment.Builder.create(this, "bucketDeployment").destinationBucket(bucket1)
-				.sources(Arrays.asList(Source.data("my-file.txt", "my file content"),
-						Source.data("test-file.txt", "test file content")))
-				.build();
+		Secret.Builder.create(this, "Secret").secretName("/secrets/spring-cloud-aws-sample-app")
+				.generateSecretString(secretStringGenerator).build();
 	}
 
 }

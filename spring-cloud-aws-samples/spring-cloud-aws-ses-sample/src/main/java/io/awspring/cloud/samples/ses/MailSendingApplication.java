@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.ses.sample;
+package io.awspring.cloud.samples.ses;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SES;
 

@@ -22,7 +22,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>io.awspring.cloud.parameterstore.sample.infrastructure.InfrastructureApp</mainClass>
+                    <mainClass>io.awspring.cloud.samples.parameterstore.infrastructure.InfrastructureApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
