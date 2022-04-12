@@ -62,13 +62,13 @@ public class S3Template implements S3Operations {
 
 	@Override
 	public void store(String bucketName, String key, Object object) {
-		s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+		s3Client.putObject(r -> r.bucket(bucketName).key(key),
 				s3ObjectConverter.write(object));
 	}
 
 	@Override
 	public <T> T read(String bucketName, String key, Class<T> clazz) {
-		try (InputStream is = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(key).build())) {
+		try (InputStream is = s3Client.getObject(r -> r.bucket(bucketName).key(key))) {
 			return s3ObjectConverter.read(is, clazz);
 		}
 		catch (IOException e) {
