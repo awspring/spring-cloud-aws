@@ -37,6 +37,13 @@
 		<jmemcached.version>1.0.0</jmemcached.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
+
+	<scm>
+		<url>https://github.com/awspring/spring-cloud-aws</url>
+		<connection>scm:git:git://github.com/awspring/spring-cloud-aws.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/awspring/spring-cloud-aws.git</developerConnection>
+	</scm>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
