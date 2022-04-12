@@ -21,8 +21,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
 /**
- * Default implementation of {@link TopicArnResolver} used to determine topic ARN by name and create a topic. If
- * AutoCreate is turned off destination must be ARN, meaning topic ARN can't be resolved by topic name.
+ * Default implementation of {@link TopicArnResolver} used to determine topic ARN by name.
  *
  * @author Matej Nedic
  */
@@ -35,18 +34,18 @@ class AutoCreatingTopicArnResolver implements TopicArnResolver {
 	}
 
 	/**
-	 * AutoCreate must be specified with true if topics ARN is to be found or if topic is to be created by name. If
-	 * AutoCreate is turned off method should only accept ARN.
+	 * Resolves topic ARN by topic name. If topicName is already an ARN, it returns {@link Arn}. If topicName is just a
+	 * string with a topic name, it attempts to create a topic or if topic already exists, just returns its ARN.
 	 */
-	public Arn resolveTopicArn(String destination) {
-		Assert.notNull(destination, "Destination must not be null");
-		if (destination.toLowerCase().startsWith("arn:")) {
-			return Arn.fromString(destination);
+	public Arn resolveTopicArn(String topicName) {
+		Assert.notNull(topicName, "Destination must not be null");
+		if (topicName.toLowerCase().startsWith("arn:")) {
+			return Arn.fromString(topicName);
 		}
 		else {
 			// if topic exists, createTopic returns successful response with topic arn
 			return Arn.fromString(
-					this.snsClient.createTopic(CreateTopicRequest.builder().name(destination).build()).topicArn());
+					this.snsClient.createTopic(CreateTopicRequest.builder().name(topicName).build()).topicArn());
 		}
 	}
 

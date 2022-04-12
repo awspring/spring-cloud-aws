@@ -15,7 +15,7 @@
  */
 
 /**
- * Sns integration.
+ * Sns integration core.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields
