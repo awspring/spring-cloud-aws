@@ -21,8 +21,6 @@ import java.io.OutputStream;
 import org.springframework.core.io.Resource;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class S3Template implements S3Operations {
 
@@ -62,8 +60,7 @@ public class S3Template implements S3Operations {
 
 	@Override
 	public void store(String bucketName, String key, Object object) {
-		s3Client.putObject(r -> r.bucket(bucketName).key(key),
-				s3ObjectConverter.write(object));
+		s3Client.putObject(r -> r.bucket(bucketName).key(key), s3ObjectConverter.write(object));
 	}
 
 	@Override
@@ -77,10 +74,13 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public void upload(String bucketName, String key, InputStream inputStream) throws IOException {
+	public void upload(String bucketName, String key, InputStream inputStream) {
 		S3Resource s3Resource = new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
 		try (OutputStream os = s3Resource.getOutputStream()) {
 			StreamUtils.copy(inputStream, os);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}
