@@ -33,13 +33,21 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
 
+/*
+	We are using Localstack for SES. Since localstack does not support sending and email but rather uses MOTO which mocks sending an email.
+	Only way to see that integration works is then to print logs of mail being sent.
+	More about MOTO https://github.com/spulec/moto
+ */
 @SpringBootApplication
 public class MailSendingApplication {
 
-	private static final String EMAIL = "someMail@bar.foo";
+	private static final String EMAIL = "someMail@foo.bar";
 	Logger LOG = LoggerFactory.getLogger(MailSendingApplication.class);
 
-	// DEBUG must be set as env variable to get log for sending an email since Localstack is mocking email server.
+	/*
+	 * DEBUG must be set as env variable to get log for sending an email since Moto is only writing Mail has been sent
+	 * logs in debug mode.
+	 */
 	private static final LocalStackContainer localStack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:0.14.0")).withEnv(Collections.singletonMap("DEBUG", "1"))
 					.withServices(SES);
@@ -56,21 +64,27 @@ public class MailSendingApplication {
 	@Bean
 	ApplicationRunner applicationRunner(MailSender mailSender, SesClient sesClient) {
 		return args -> {
-			sesClient.verifyEmailAddress(
-					VerifyEmailAddressRequest.builder().emailAddress(EMAIL).build());
-			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-			simpleMailMessage.setFrom(EMAIL);
-			simpleMailMessage.setTo(EMAIL);
-			simpleMailMessage.setSubject("test subject");
-			simpleMailMessage.setText("test content");
-			mailSender.send(simpleMailMessage);
+			sendAnEmail(mailSender, sesClient);
 
-			// sleep 2 seconds so localstack logs show up. Awatility can be used instead to improve.
+			// sleep 2 seconds so localstack logs show up.
 			Thread.sleep(2000);
-			// last 6 lines will be log in SES localstack mocked mail server about sending email
+			// last 6 lines will be log in SES Localstack will be about how mail is sent.
 			List<String> logs = Arrays.asList(localStack.getLogs().split("\n"));
 			LOG.info(String.join("\n", (logs.subList(Math.max(0, logs.size() - 6), logs.size()))));
 		};
+	}
+
+	public static void sendAnEmail(MailSender mailSender, SesClient sesClient) {
+		// Email has to verified before we send an email to it. If it is not verified SES will return error.
+		sesClient.verifyEmailAddress(VerifyEmailAddressRequest.builder().emailAddress(EMAIL).build());
+
+		// SimpleMailMessage is created and we use MailSender bean which is autoconfigured to send an email to SES.
+		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+		simpleMailMessage.setFrom("something@foo.bar");
+		simpleMailMessage.setTo(EMAIL);
+		simpleMailMessage.setSubject("test subject");
+		simpleMailMessage.setText("test content");
+		mailSender.send(simpleMailMessage);
 	}
 
 }
