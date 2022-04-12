@@ -15,13 +15,8 @@
 
 	<dependencies>
 	<dependency>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter</artifactId>
-	</dependency>
-	<dependency>
 		<groupId>io.awspring.cloud</groupId>
 		<artifactId>spring-cloud-aws-starter-ses</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
 	</dependency>
 	<dependency>
 		<groupId>javax.mail</groupId>

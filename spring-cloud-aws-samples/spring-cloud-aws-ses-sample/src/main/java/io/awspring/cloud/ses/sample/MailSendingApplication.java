@@ -37,12 +37,15 @@ import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
 	We are using Localstack for SES. Since localstack does not support sending and email but rather uses MOTO which mocks sending an email.
 	Only way to see that integration works is then to print logs of mail being sent.
 	More about MOTO https://github.com/spulec/moto
+
+	Other problem is that if we user real AWS SES service we would have to verify mail first, which would not be most convenient way to showcase how integration works.
+	Users would have to manually add their emails to CDK and change the code.
  */
 @SpringBootApplication
 public class MailSendingApplication {
 
 	private static final String EMAIL = "someMail@foo.bar";
-	Logger LOG = LoggerFactory.getLogger(MailSendingApplication.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MailSendingApplication.class);
 
 	/*
 	 * DEBUG must be set as env variable to get log for sending an email since Moto is only writing Mail has been sent
@@ -65,13 +68,17 @@ public class MailSendingApplication {
 	ApplicationRunner applicationRunner(MailSender mailSender, SesClient sesClient) {
 		return args -> {
 			sendAnEmail(mailSender, sesClient);
+			printEmailBeingSentMockFromLogs();
 
-			// sleep 2 seconds so localstack logs show up.
-			Thread.sleep(2000);
-			// last 6 lines will be log in SES Localstack will be about how mail is sent.
-			List<String> logs = Arrays.asList(localStack.getLogs().split("\n"));
-			LOG.info(String.join("\n", (logs.subList(Math.max(0, logs.size() - 6), logs.size()))));
 		};
+	}
+
+	public static void printEmailBeingSentMockFromLogs() throws InterruptedException {
+		// sleep 2 seconds so localstack logs show up.
+		Thread.sleep(2000);
+		// last 6 lines will be log in SES Localstack will be about how mail is sent.
+		List<String> logs = Arrays.asList(localStack.getLogs().split("\n"));
+		LOGGER.info(String.join("\n", (logs.subList(Math.max(0, logs.size() - 6), logs.size()))));
 	}
 
 	public static void sendAnEmail(MailSender mailSender, SesClient sesClient) {
