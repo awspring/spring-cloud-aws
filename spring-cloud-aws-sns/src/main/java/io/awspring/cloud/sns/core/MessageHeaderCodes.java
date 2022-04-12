@@ -16,7 +16,7 @@
 package io.awspring.cloud.sns.core;
 
 /**
- * Helper Class that helps people reference Header keys when using {@link NotificationMessagingTemplate}.
+ * Helper Class that helps people reference Header keys when using {@link SnsTemplate}.
  *
  * @author Matej Nedic
  * @since 3.0.0

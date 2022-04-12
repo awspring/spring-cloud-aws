@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sns;
+package io.awspring.cloud.sns.core;
 
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import static org.mockito.ArgumentMatchers.argThat;
 
-/**
- * Properties related to AWS SNS.
- *
- * @author Matej Nedic
- * @since 3.0
- */
-@ConfigurationProperties(prefix = SnsProperties.PREFIX)
-public class SnsProperties extends AwsClientProperties {
+import java.util.function.Consumer;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
-	/**
-	 * The prefix used for AWS SNS configuration.
-	 */
-	public static final String PREFIX = "spring.cloud.aws.sns";
+class Matchers {
+	static PublishRequest requestMatches(Consumer<PublishRequest> consumer) {
+		return argThat(it -> {
+			consumer.accept(it);
+			return true;
+		});
+	}
 }

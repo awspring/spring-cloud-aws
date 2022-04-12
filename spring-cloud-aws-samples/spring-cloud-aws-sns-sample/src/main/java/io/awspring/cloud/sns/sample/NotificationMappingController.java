@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.sample;
 
 import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
@@ -24,7 +23,6 @@ import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.stereotype.Controller;
 
 @Controller

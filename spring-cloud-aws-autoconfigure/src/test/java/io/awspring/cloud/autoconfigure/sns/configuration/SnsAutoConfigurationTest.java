@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
-import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
+import io.awspring.cloud.sns.core.SnsTemplate;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -55,7 +55,7 @@ public class SnsAutoConfigurationTest {
 	void snsAutoConfigurationIsEnabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
-			assertThat(context).hasSingleBean(NotificationMessagingTemplate.class);
+			assertThat(context).hasSingleBean(SnsTemplate.class);
 			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
 					.getBean(HandlerMethodArgumentResolver.class);
 
@@ -77,7 +77,7 @@ public class SnsAutoConfigurationTest {
 			SnsClient client = context.getBean(SnsClient.class);
 			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
 					.getBean(HandlerMethodArgumentResolver.class);
-			assertThat(context).hasSingleBean(NotificationMessagingTemplate.class);
+			assertThat(context).hasSingleBean(SnsTemplate.class);
 
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
 					"clientConfiguration");

@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sns.sample;
 
-import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
+import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
+
+import io.awspring.cloud.sns.core.SnsTemplate;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.support.MessageBuilder;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -24,26 +31,17 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.support.MessageBuilder;
-
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
-
 @SpringBootApplication
 public class SpringSNSSample {
 
-	private final NotificationMessagingTemplate notificationMessagingTemplate;
+	private final SnsTemplate snsTemplate;
 
 	private final SnsClient snsClient;
 
 	private static LocalStackContainer localStack;
 
-	public SpringSNSSample(NotificationMessagingTemplate notificationMessagingTemplate, SnsClient snsClient) {
-		this.notificationMessagingTemplate = notificationMessagingTemplate;
+	public SpringSNSSample(SnsTemplate snsTemplate, SnsClient snsClient) {
+		this.snsTemplate = snsTemplate;
 		this.snsClient = snsClient;
 	}
 
@@ -63,7 +61,7 @@ public class SpringSNSSample {
 		String arn = snsClient.createTopic(CreateTopicRequest.builder().name("testTopic").build()).topicArn();
 		snsClient.subscribe(SubscribeRequest.builder().protocol("http")
 				.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(arn).build());
-		this.notificationMessagingTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
+		this.snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
 				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
 	}
 

@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sns;
-
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Properties related to AWS SNS.
- *
- * @author Matej Nedic
- * @since 3.0
+ * Convenience annotations serving as a replacement for {@link org.springframework.web.bind.annotation.RequestMapping}
+ * for SNS HTTP endpoints.
  */
-@ConfigurationProperties(prefix = SnsProperties.PREFIX)
-public class SnsProperties extends AwsClientProperties {
-
-	/**
-	 * The prefix used for AWS SNS configuration.
-	 */
-	public static final String PREFIX = "spring.cloud.aws.sns";
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sns.annotation.endpoint;

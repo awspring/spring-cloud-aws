@@ -20,7 +20,7 @@ import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgum
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.sns.core.NotificationMessagingTemplate;
+import io.awspring.cloud.sns.core.SnsTemplate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -31,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -51,7 +52,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * @author Matej Nedic
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({ SnsClient.class, NotificationMessagingTemplate.class })
+@ConditionalOnClass({ SnsClient.class, SnsTemplate.class })
 @EnableConfigurationProperties({ SnsProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
@@ -78,10 +79,11 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public NotificationMessagingTemplate notificationTemplate(SnsClient snsClient,
-			Optional<ObjectMapper> objectMapper) {
-		return new NotificationMessagingTemplate(snsClient, this.properties.getAutoCreate(),
-				objectMapper.orElseGet(ObjectMapper::new));
+	public SnsTemplate notificationTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper) {
+		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		converter.setSerializedPayloadClass(String.class);
+		objectMapper.ifPresent(converter::setObjectMapper);
+		return new SnsTemplate(snsClient, converter);
 	}
 
 	@ConditionalOnMissingBean

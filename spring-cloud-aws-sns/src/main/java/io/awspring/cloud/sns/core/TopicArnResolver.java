@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sns;
+package io.awspring.cloud.sns.core;
 
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import software.amazon.awssdk.arns.Arn;
 
 /**
- * Properties related to AWS SNS.
+ * Resolves topic ARN by name.
  *
  * @author Matej Nedic
- * @since 3.0
  */
-@ConfigurationProperties(prefix = SnsProperties.PREFIX)
-public class SnsProperties extends AwsClientProperties {
+public interface TopicArnResolver {
 
-	/**
-	 * The prefix used for AWS SNS configuration.
-	 */
-	public static final String PREFIX = "spring.cloud.aws.sns";
+	Arn resolveTopicArn(String topicName);
+
 }
