@@ -15,13 +15,20 @@
  */
 package io.awspring.cloud.autoconfigure.s3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
+import io.awspring.cloud.s3.S3ObjectConverter;
+import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
+import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
@@ -68,6 +75,14 @@ public class S3AutoConfiguration {
 		return new DiskBufferingS3OutputStreamProvider(s3Client);
 	}
 
+	@Bean
+	@ConditionalOnMissingBean(S3Operations.class)
+	@ConditionalOnBean(S3ObjectConverter.class)
+	S3Template s3Template(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider,
+			S3ObjectConverter s3ObjectConverter) {
+		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter);
+	}
+
 	private S3Configuration s3ServiceConfiguration() {
 		S3Configuration.Builder config = S3Configuration.builder();
 		PropertyMapper propertyMapper = PropertyMapper.get();
@@ -103,6 +118,17 @@ public class S3AutoConfiguration {
 			return s3ClientBuilder.build();
 		}
 
+	}
+
+	@Configuration
+	@ConditionalOnClass(ObjectMapper.class)
+	static class Jackson2JsonS3ObjectConverterConfiguration {
+
+		@ConditionalOnMissingBean
+		@Bean
+		S3ObjectConverter s3ObjectConverter(Optional<ObjectMapper> objectMapper) {
+			return new Jackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+		}
 	}
 
 }
