@@ -18,8 +18,27 @@ package io.awspring.cloud.s3;
 import java.io.InputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 
+/**
+ * Converter used to serialize Java objects into S3 objects.
+ *
+ * @author Maciej Walkowiak
+ */
 public interface S3ObjectConverter {
-	<T> RequestBody write(T o);
+	/**
+	 * Converts object into a {@link RequestBody}.
+	 *
+	 * @param object - the object to serialize
+	 * @param <T> - type of the object
+	 * @return the request body
+	 */
+	<T> RequestBody write(T object);
 
+	/**
+	 * Reads S3 object from the input stream into a Java object.
+	 * @param is - the input stream
+	 * @param clazz - the class of the object
+	 * @param <T> - the the type of the object
+	 * @return deserialized object
+	 */
 	<T> T read(InputStream is, Class<T> clazz);
 }

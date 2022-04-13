@@ -21,6 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 
+/**
+ * Jackson based implementation of {@link S3ObjectConverter}. Serializes/deserializes objects to/from JSON.
+ *
+ * @author Maciej Walkowiak
+ */
 public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 	private final ObjectMapper objectMapper;
 
@@ -29,12 +34,12 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 	}
 
 	@Override
-	public <T> RequestBody write(T o) {
+	public <T> RequestBody write(T object) {
 		try {
-			return RequestBody.fromBytes(objectMapper.writeValueAsBytes(o));
+			return RequestBody.fromBytes(objectMapper.writeValueAsBytes(object));
 		}
 		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			throw new S3Exception("Failed to serialize object to JSON", e);
 		}
 	}
 
@@ -44,7 +49,7 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 			return objectMapper.readValue(is, clazz);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new S3Exception("Failed to deserialize object from JSON", e);
 		}
 	}
 }

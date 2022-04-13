@@ -15,13 +15,17 @@
  */
 package io.awspring.cloud.s3;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.springframework.core.io.Resource;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 
+/**
+ * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
+ *
+ * @author Maciej Walkowiak
+ */
 public class S3Template implements S3Operations {
 
 	private final S3Client s3Client;
@@ -68,8 +72,9 @@ public class S3Template implements S3Operations {
 		try (InputStream is = s3Client.getObject(r -> r.bucket(bucketName).key(key))) {
 			return s3ObjectConverter.read(is, clazz);
 		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
+		catch (Exception e) {
+			throw new S3Exception(
+					String.format("Failed to read object with a key '%s' from bucket '%s'", key, bucketName), e);
 		}
 	}
 
@@ -79,10 +84,10 @@ public class S3Template implements S3Operations {
 		try (OutputStream os = s3Resource.getOutputStream()) {
 			StreamUtils.copy(inputStream, os);
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (Exception e) {
+			throw new S3Exception(
+					String.format("Failed to upload object with a key '%s' to bucket '%s'", key, bucketName), e);
 		}
-
 	}
 
 	@Override

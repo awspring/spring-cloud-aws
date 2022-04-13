@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,7 +52,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
  * @author Maciej Walkowiak
  */
 @Testcontainers
-class S3ResourceTests {
+class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
@@ -62,9 +63,7 @@ class S3ResourceTests {
 	@BeforeAll
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make
-		// test
-		// work on
-		// environments without AWS cli configured
+		// test work on environments without AWS cli configured
 		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
 				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
@@ -159,6 +158,18 @@ class S3ResourceTests {
 		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
+	@Test
+	void foo() {
+		S3Template s3Template = new S3Template(client, new DiskBufferingS3OutputStreamProvider(client),
+				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
+		Person p = new Person();
+		p.setName("foo bar");
+		s3Template.store("first-bucket", "p.json", p);
+
+		System.out.println(s3Template.read("first-bucket", "p.json", Person.class));
+
+	}
+
 	@NotNull
 	private S3Resource s3Resource(String location) {
 		return new S3Resource(location, client, new DiskBufferingS3OutputStreamProvider(client));
@@ -173,6 +184,23 @@ class S3ResourceTests {
 	private String retrieveContent(S3Resource resource) throws IOException {
 		return new BufferedReader(new InputStreamReader(resource.getInputStream())).lines()
 				.collect(Collectors.joining("\n"));
+	}
+
+	static class Person {
+		private String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return "Person{" + "name='" + name + '\'' + '}';
+		}
 	}
 
 }
