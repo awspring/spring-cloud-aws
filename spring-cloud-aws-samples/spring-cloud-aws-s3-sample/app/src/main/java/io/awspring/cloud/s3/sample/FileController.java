@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.s3.sample;
 
+import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Operations;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +48,8 @@ public class FileController {
 			return ResponseEntity.badRequest().body("only png images are allowed");
 		}
 		try (InputStream is = multipartFile.getInputStream()) {
-			s3Operations.upload(BUCKET, multipartFile.getOriginalFilename(), is);
+			s3Operations.upload(BUCKET, multipartFile.getOriginalFilename(), is,
+					ObjectMetadata.builder().contentType(multipartFile.getContentType()).build());
 		}
 		return ResponseEntity.accepted().build();
 	}

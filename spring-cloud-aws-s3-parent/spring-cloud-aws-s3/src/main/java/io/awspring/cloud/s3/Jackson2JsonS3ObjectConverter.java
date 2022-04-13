@@ -52,4 +52,9 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
 		}
 	}
+
+	@Override
+	public String contentType() {
+		return "application/json";
+	}
 }

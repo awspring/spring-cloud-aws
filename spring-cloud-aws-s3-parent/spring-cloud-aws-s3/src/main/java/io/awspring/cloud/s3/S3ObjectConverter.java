@@ -41,4 +41,11 @@ public interface S3ObjectConverter {
 	 * @return deserialized object
 	 */
 	<T> T read(InputStream is, Class<T> clazz);
+
+	/**
+	 * Supported content type.
+	 *
+	 * @return the content type
+	 */
+	String contentType();
 }

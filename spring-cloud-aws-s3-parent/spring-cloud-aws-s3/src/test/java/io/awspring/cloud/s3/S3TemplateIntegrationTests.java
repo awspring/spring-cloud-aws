@@ -36,9 +36,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
@@ -134,10 +136,12 @@ class S3TemplateIntegrationTests {
 	void storesObject() throws IOException {
 		s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
 
-		String result = StreamUtils.copyToString(client.getObject(r -> r.bucket("test-bucket").key("person.json")),
-				StandardCharsets.UTF_8);
+		ResponseInputStream<GetObjectResponse> response = client
+				.getObject(r -> r.bucket("test-bucket").key("person.json"));
+		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 
 		assertThat(result).isEqualTo("{\"firstName\":\"John\",\"lastName\":\"Doe\"}");
+		assertThat(response.response().contentType()).isEqualTo("application/json");
 	}
 
 	@Test
@@ -154,12 +158,15 @@ class S3TemplateIntegrationTests {
 	@Test
 	void uploadsFile() throws IOException {
 		try (InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8))) {
-			s3Template.upload("test-bucket", "file.txt", is);
+			s3Template.upload("test-bucket", "file.txt", is,
+					ObjectMetadata.builder().contentType("text/plain").build());
 		}
 
-		String result = StreamUtils.copyToString(client.getObject(r -> r.bucket("test-bucket").key("file.txt")),
-				StandardCharsets.UTF_8);
+		ResponseInputStream<GetObjectResponse> response = client
+				.getObject(r -> r.bucket("test-bucket").key("file.txt"));
+		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 		assertThat(result).isEqualTo("hello");
+		assertThat(response.response().contentType()).isEqualTo("text/plain");
 	}
 
 	@Test

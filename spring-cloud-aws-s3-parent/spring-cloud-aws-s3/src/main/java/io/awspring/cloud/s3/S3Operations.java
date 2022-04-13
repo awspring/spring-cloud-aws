@@ -17,6 +17,7 @@ package io.awspring.cloud.s3;
 
 import java.io.InputStream;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
 public interface S3Operations {
@@ -77,8 +78,20 @@ public interface S3Operations {
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
 	 * @param inputStream - the input stream
+	 * @param objectMetadata - the object metadata
 	 */
-	void upload(String bucketName, String key, InputStream inputStream);
+	void upload(String bucketName, String key, InputStream inputStream, @Nullable ObjectMetadata objectMetadata);
+
+	/**
+	 * Uploads data from an input stream to a S3 bucket.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @param inputStream - the input stream
+	 */
+	default void upload(String bucketName, String key, InputStream inputStream) {
+		upload(bucketName, key, inputStream, null);
+	}
 
 	/**
 	 * Downloads object from S3.

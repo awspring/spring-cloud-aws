@@ -18,8 +18,10 @@ package io.awspring.cloud.s3;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
@@ -64,7 +66,10 @@ public class S3Template implements S3Operations {
 
 	@Override
 	public void store(String bucketName, String key, Object object) {
-		s3Client.putObject(r -> r.bucket(bucketName).key(key), s3ObjectConverter.write(object));
+		ObjectMetadata objectMetadata = ObjectMetadata.builder().contentType(s3ObjectConverter.contentType()).build();
+		PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
+		objectMetadata.apply(requestBuilder);
+		s3Client.putObject(requestBuilder.build(), s3ObjectConverter.write(object));
 	}
 
 	@Override
@@ -79,8 +84,12 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public void upload(String bucketName, String key, InputStream inputStream) {
+	public void upload(String bucketName, String key, InputStream inputStream,
+			@Nullable ObjectMetadata objectMetadata) {
 		S3Resource s3Resource = new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
+		if (objectMetadata != null) {
+			s3Resource.setObjectMetadata(objectMetadata);
+		}
 		try (OutputStream os = s3Resource.getOutputStream()) {
 			StreamUtils.copy(inputStream, os);
 		}
