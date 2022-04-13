@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -156,18 +155,6 @@ class S3ResourceIntegrationTests {
 		assertThat(result.storageClass()).isEqualTo(StorageClass.ONEZONE_IA);
 		assertThat(result.contentLanguage()).isEqualTo("en");
 		assertThat(result.metadata()).containsEntry("key", "value");
-	}
-
-	@Test
-	void foo() {
-		S3Template s3Template = new S3Template(client, new DiskBufferingS3OutputStreamProvider(client),
-				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
-		Person p = new Person();
-		p.setName("foo bar");
-		s3Template.store("first-bucket", "p.json", p);
-
-		System.out.println(s3Template.read("first-bucket", "p.json", Person.class));
-
 	}
 
 	@NotNull
