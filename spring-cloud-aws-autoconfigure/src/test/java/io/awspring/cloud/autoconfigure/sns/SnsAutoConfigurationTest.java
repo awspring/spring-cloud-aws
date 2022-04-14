@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sns.configuration;
+package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Tests for class {@link SnsAutoConfiguration}.
+ * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
  *
  * @author Matej Nedic
  */

@@ -25,11 +25,11 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
  *
  * @author Matej Nedic
  */
-class AutoCreatingTopicArnResolver implements TopicArnResolver {
+class DefaultTopicArnResolver implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
-	public AutoCreatingTopicArnResolver(SnsClient snsClient) {
+	public DefaultTopicArnResolver(SnsClient snsClient) {
 		this.snsClient = snsClient;
 	}
 
@@ -37,6 +37,7 @@ class AutoCreatingTopicArnResolver implements TopicArnResolver {
 	 * Resolves topic ARN by topic name. If topicName is already an ARN, it returns {@link Arn}. If topicName is just a
 	 * string with a topic name, it attempts to create a topic or if topic already exists, just returns its ARN.
 	 */
+	@Override
 	public Arn resolveTopicArn(String topicName) {
 		Assert.notNull(topicName, "Destination must not be null");
 		if (topicName.toLowerCase().startsWith("arn:")) {

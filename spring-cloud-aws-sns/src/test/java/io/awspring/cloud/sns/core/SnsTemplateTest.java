@@ -21,10 +21,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -43,7 +46,7 @@ class SnsTemplateTest {
 	void init() {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
-		snsTemplate = new SnsTemplate(snsClient, new AutoCreatingTopicArnResolver(snsClient), converter);
+		snsTemplate = new SnsTemplate(snsClient, new DefaultTopicArnResolver(snsClient), converter);
 
 		when(snsClient.createTopic(CreateTopicRequest.builder().name("topic name").build()))
 				.thenReturn(CreateTopicResponse.builder().topicArn(TOPIC_ARN).build());
@@ -60,6 +63,27 @@ class SnsTemplateTest {
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.TIMESTAMP);
 		}));
+	}
+
+	@Test
+	void sendsTestMessageCacheHit() {
+		CachingTopicArnResolver cachingTopicArnResolver = new CachingTopicArnResolver(
+				new DefaultTopicArnResolver(snsClient));
+		SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, cachingTopicArnResolver, null);
+		snsTemplateTestCache.sendNotification("topic name", "message content", "subject");
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
+			assertThat(r.message()).isEqualTo("message content");
+			assertThat(r.subject()).isEqualTo("subject");
+			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
+			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.TIMESTAMP);
+		}));
+		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
+				.isEqualTo(1);
+
+		snsTemplateTestCache.sendNotification("topic name", "message content", "subject");
+		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
+				.isEqualTo(1);
 	}
 
 	@Test

@@ -79,7 +79,7 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsTemplate notificationTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper) {
+	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper) {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
 		objectMapper.ifPresent(converter::setObjectMapper);
