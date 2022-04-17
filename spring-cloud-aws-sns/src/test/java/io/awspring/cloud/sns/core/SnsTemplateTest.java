@@ -31,6 +31,7 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
  * @author Alain Sahli
@@ -106,6 +107,33 @@ class SnsTemplateTest {
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
+		}));
+	}
+
+	@Test
+	void sendsComplexSnsNotification() {
+		snsTemplate.sendNotification("topic name", SnsNotification.builder(new Person("foo")).groupId("groupId")
+				.deduplicationId("deduplicationId").header("header-1", "value-1").build());
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
+			assertThat(r.message()).isEqualTo("{\"name\":\"foo\"}");
+			assertThat(r.messageGroupId()).isEqualTo("groupId");
+			assertThat(r.messageDeduplicationId()).isEqualTo("deduplicationId");
+			assertThat(r.messageAttributes()).containsEntry("header-1",
+					MessageAttributeValue.builder().stringValue("value-1").dataType("String").build());
+		}));
+	}
+
+	@Test
+	void sendsSimpleSnsNotification() {
+		snsTemplate.sendNotification("topic name", SnsNotification.of(new Person("bar")));
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
+			assertThat(r.message()).isEqualTo("{\"name\":\"bar\"}");
+			assertThat(r.messageGroupId()).isNull();
+			assertThat(r.messageDeduplicationId()).isNull();
 		}));
 	}
 

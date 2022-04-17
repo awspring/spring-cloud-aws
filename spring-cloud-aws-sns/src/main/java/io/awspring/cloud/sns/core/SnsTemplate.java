@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @since 1.0
  */
 public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChannel>
-		implements DestinationResolvingMessageSendingOperations<TopicMessageChannel> {
+		implements DestinationResolvingMessageSendingOperations<TopicMessageChannel>, SnsOperations {
 
 	private final SnsClient snsClient;
 
@@ -127,6 +127,11 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 				Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
 	}
 
+	@Override
+	public void sendNotification(String topic, SnsNotification<?> notification) {
+		this.convertAndSend(topic, notification.getPayload(), notification.getHeaders());
+	}
+
 	private TopicMessageChannel resolveMessageChannelByTopicName(String topicName) {
 		Arn topicArn = this.topicArnResolver.resolveTopicArn(topicName);
 		return new TopicMessageChannel(this.snsClient, topicArn);
@@ -145,5 +150,4 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 
 		return new CompositeMessageConverter(converters);
 	}
-
 }
