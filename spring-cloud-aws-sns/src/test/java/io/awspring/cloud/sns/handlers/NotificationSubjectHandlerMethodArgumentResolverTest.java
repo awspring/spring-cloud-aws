@@ -27,7 +27,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
-public class NotificationSubjectHandlerMethodArgumentResolverTest {
+class NotificationSubjectHandlerMethodArgumentResolverTest {
 
 	@Test
 	void resolveArgument_wrongMessageType_reportsErrors() throws Exception {

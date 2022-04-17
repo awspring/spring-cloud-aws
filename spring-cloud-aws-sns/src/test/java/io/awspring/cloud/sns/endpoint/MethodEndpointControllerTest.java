@@ -58,7 +58,7 @@ import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = MethodEndpointControllerTest.Config.class)
-public class MethodEndpointControllerTest {
+class MethodEndpointControllerTest {
 
 	@Autowired
 	private WebApplicationContext context;

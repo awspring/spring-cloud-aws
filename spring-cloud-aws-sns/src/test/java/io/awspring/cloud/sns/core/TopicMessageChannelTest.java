@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 /**
  * @author Alain Sahli
  */
-public class TopicMessageChannelTest {
+class TopicMessageChannelTest {
 	private static final String TOPIC_ARN = "arn:aws:sns:eu-west:123456789012:test";
 
 	private final SnsClient snsClient = mock(SnsClient.class);
@@ -187,7 +187,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withStringArrayMessageHeader_shouldBeSentAsTopicMessageAttribute() {
+	void sendMessage_withStringArrayMessageHeader_shouldBeSentAsTopicMessageAttribute() {
 		// Arrange
 		List<String> headerValue = Arrays.asList("List", "\"of\"", "header", "values");
 		String headerName = "MyHeader";
@@ -207,7 +207,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withMessageGroupIdHeader_shouldSetMessageGroupIdOnPublishRequestAndNotSetItAsMessageAttribute() {
+	void sendMessage_withMessageGroupIdHeader_shouldSetMessageGroupIdOnPublishRequestAndNotSetItAsMessageAttribute() {
 		// Arrange
 		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MESSAGE_GROUP_ID_HEADER, "id-5")
 				.build();
@@ -224,7 +224,7 @@ public class TopicMessageChannelTest {
 	}
 
 	@Test
-	public void sendMessage_withMessageDeduplicationIdHeader_shouldSetMessageDeduplicationIdOnPublishRequestAndNotSetItAsMessageAttribute() {
+	void sendMessage_withMessageDeduplicationIdHeader_shouldSetMessageDeduplicationIdOnPublishRequestAndNotSetItAsMessageAttribute() {
 		// Arrange
 		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MESSAGE_DEDUPLICATION_ID_HEADER, "id-5")
 				.build();

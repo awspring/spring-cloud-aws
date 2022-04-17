@@ -39,7 +39,7 @@ class DefaultTopicArnResolver implements TopicArnResolver {
 	 */
 	@Override
 	public Arn resolveTopicArn(String topicName) {
-		Assert.notNull(topicName, "Destination must not be null");
+		Assert.notNull(topicName, "topicName must not be null");
 		if (topicName.toLowerCase().startsWith("arn:")) {
 			return Arn.fromString(topicName);
 		}

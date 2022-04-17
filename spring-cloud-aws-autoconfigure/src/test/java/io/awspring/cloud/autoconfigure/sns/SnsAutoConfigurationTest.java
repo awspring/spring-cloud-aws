@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  *
  * @author Matej Nedic
  */
-public class SnsAutoConfigurationTest {
+class SnsAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")

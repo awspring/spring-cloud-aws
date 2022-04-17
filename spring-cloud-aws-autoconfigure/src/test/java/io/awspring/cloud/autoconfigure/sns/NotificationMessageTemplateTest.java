@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
  * @since 3.0
  */
 @Testcontainers
-public class NotificationMessageTemplateTest {
+class NotificationMessageTemplateTest {
 
 	private static final String REGION = "eu-west-1";
 

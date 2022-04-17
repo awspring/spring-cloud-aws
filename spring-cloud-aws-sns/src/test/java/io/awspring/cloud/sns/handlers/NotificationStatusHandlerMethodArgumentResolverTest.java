@@ -30,7 +30,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
-public class NotificationStatusHandlerMethodArgumentResolverTest {
+class NotificationStatusHandlerMethodArgumentResolverTest {
 
 	@Test
 	void resolveArgument_wrongMessageType_reportsErrors() throws Exception {
