@@ -113,11 +113,12 @@ class SnsTemplateTest {
 	@Test
 	void sendsComplexSnsNotification() {
 		snsTemplate.sendNotification("topic name", SnsNotification.builder(new Person("foo")).groupId("groupId")
-				.deduplicationId("deduplicationId").header("header-1", "value-1").build());
+				.deduplicationId("deduplicationId").header("header-1", "value-1").subject("subject").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(r.message()).isEqualTo("{\"name\":\"foo\"}");
+			assertThat(r.subject()).isEqualTo("subject");
 			assertThat(r.messageGroupId()).isEqualTo("groupId");
 			assertThat(r.messageDeduplicationId()).isEqualTo("deduplicationId");
 			assertThat(r.messageAttributes()).containsEntry("header-1",
@@ -132,6 +133,7 @@ class SnsTemplateTest {
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(r.message()).isEqualTo("{\"name\":\"bar\"}");
+			assertThat(r.subject()).isNull();
 			assertThat(r.messageGroupId()).isNull();
 			assertThat(r.messageDeduplicationId()).isNull();
 		}));

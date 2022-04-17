@@ -63,7 +63,8 @@ class TopicMessageChannelTest {
 			assertThat(it.subject()).isEqualTo("Subject");
 			assertThat(it.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(it.message()).isEqualTo("Message content");
-			assertThat(it.messageAttributes().keySet()).contains(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
+			assertThat(it.messageAttributes()).containsKeys(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
+			assertThat(it.messageAttributes()).doesNotContainKey(NOTIFICATION_SUBJECT_HEADER);
 		}));
 		assertThat(sent).isTrue();
 	}
@@ -218,7 +219,7 @@ class TopicMessageChannelTest {
 		// Assert
 		assertThat(sent).isTrue();
 		verify(snsClient).publish(requestMatches(it -> {
-			assertThat(it.messageAttributes().containsKey(MESSAGE_GROUP_ID_HEADER)).isFalse();
+			assertThat(it.messageAttributes()).doesNotContainKey(MESSAGE_GROUP_ID_HEADER);
 			assertThat(it.messageGroupId()).isEqualTo("id-5");
 		}));
 	}

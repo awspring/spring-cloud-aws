@@ -24,8 +24,6 @@ import org.springframework.lang.Nullable;
  * @param <T> - type of payload
  */
 public class SnsNotification<T> {
-	@Nullable
-	private final String subject;
 
 	private final T payload;
 
@@ -40,7 +38,7 @@ public class SnsNotification<T> {
 	 * @return the notification
 	 */
 	public static <T> SnsNotification<T> of(T payload) {
-		return new SnsNotification<>(null, payload, null);
+		return new SnsNotification<>(payload, null);
 	}
 
 	/**
@@ -54,15 +52,20 @@ public class SnsNotification<T> {
 		return new Builder<T>(payload);
 	}
 
-	public SnsNotification(@Nullable String subject, T payload, @Nullable Map<String, Object> headers) {
-		this.subject = subject;
+	public SnsNotification(T payload, @Nullable Map<String, Object> headers) {
 		this.payload = payload;
 		this.headers = headers;
 	}
 
 	@Nullable
 	public String getSubject() {
-		return subject;
+		Map<String, Object> headersMap = this.headers;
+		if (headersMap != null) {
+			return (String) headersMap.get(SnsHeaders.NOTIFICATION_SUBJECT_HEADER);
+		}
+		else {
+			return null;
+		}
 	}
 
 	public T getPayload() {
@@ -99,15 +102,13 @@ public class SnsNotification<T> {
 	public static class Builder<T> {
 		private final T payload;
 		private final Map<String, Object> headers = new HashMap<>();
-		@Nullable
-		private String subject;
 
 		Builder(T payload) {
 			this.payload = payload;
 		}
 
 		public Builder<T> subject(String subject) {
-			this.subject = subject;
+			this.headers.put(SnsHeaders.NOTIFICATION_SUBJECT_HEADER, subject);
 			return this;
 		}
 
@@ -132,7 +133,7 @@ public class SnsNotification<T> {
 		}
 
 		public SnsNotification<T> build() {
-			return new SnsNotification<T>(subject, payload, headers);
+			return new SnsNotification<T>(payload, headers);
 		}
 	}
 }
