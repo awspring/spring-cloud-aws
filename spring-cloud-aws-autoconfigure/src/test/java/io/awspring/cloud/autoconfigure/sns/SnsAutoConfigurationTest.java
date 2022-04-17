@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
@@ -42,7 +43,8 @@ class SnsAutoConfigurationTest {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, SnsAutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, SnsAutoConfiguration.class,
+					AwsAutoConfiguration.class));
 
 	@Test
 	void snsAutoConfigurationIsDisabled() {

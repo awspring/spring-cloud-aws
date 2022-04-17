@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sns;
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
@@ -32,14 +33,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.util.StringUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.
@@ -66,15 +62,8 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsClient snsClient(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
-		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-				: regionProvider.getRegion();
-		SnsClientBuilder snsClientBuilder = SnsClient.builder();
-		snsClientBuilder.region(region).credentialsProvider(credentialsProvider);
-
-		Optional.ofNullable(properties.getEndpoint()).ifPresent(snsClientBuilder::endpointOverride);
-
-		return snsClientBuilder.build();
+	public SnsClient snsClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+		return (SnsClient) awsClientBuilderConfigurer.configure(SnsClient.builder(), this.properties).build();
 	}
 
 	@ConditionalOnMissingBean
