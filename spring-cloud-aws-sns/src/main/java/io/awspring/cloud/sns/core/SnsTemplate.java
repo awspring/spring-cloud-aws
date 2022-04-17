@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns.core;
 
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
+import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
 import java.util.ArrayList;
 import java.util.Collections;

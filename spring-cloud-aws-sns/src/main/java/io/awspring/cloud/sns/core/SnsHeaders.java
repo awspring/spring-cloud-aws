@@ -15,30 +15,35 @@
  */
 package io.awspring.cloud.sns.core;
 
+import org.springframework.messaging.Message;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+
 /**
- * Helper Class that helps people reference Header keys when using {@link SnsTemplate}.
+ * SNS specific headers that can be applied to Spring Messaging {@link Message}.
  *
  * @author Matej Nedic
  * @since 3.0.0
  */
-public final class MessageHeaderCodes {
+public final class SnsHeaders {
 
 	/**
-	 * Header name.
+	 * Notification subject. The value of this header is set to {@link PublishRequest#subject()}.
 	 */
-	public static final String NOTIFICATION_SUBJECT_HEADER = "NOTIFICATION_SUBJECT_HEADER";
+	public static final String NOTIFICATION_SUBJECT_HEADER = "notification-subject";
 
 	/**
-	 * Message group id for SNS message (applies only to FIFO topic).
+	 * Message group id for SNS message (applies only to FIFO topic). The value of this header is set to
+	 * {@link PublishRequest#messageGroupId()}}.
 	 */
 	public static final String MESSAGE_GROUP_ID_HEADER = "message-group-id";
 
 	/**
-	 * Message Deduplication id for SNS message.
+	 * Message Deduplication id for SNS message. The value of this header is set to
+	 * {@link PublishRequest#messageDeduplicationId()}}}.
 	 */
 	public static final String MESSAGE_DEDUPLICATION_ID_HEADER = "message-deduplication-id";
 
-	private MessageHeaderCodes() {
+	private SnsHeaders() {
 
 	}
 
