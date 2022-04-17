@@ -4,69 +4,105 @@ include::_attributes.adoc[]
 
 include::intro.adoc[]
 
+*{project-version}*
+
 include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing-docs.adoc[]
 
 == Using Amazon Web Services
 
-Amazon provides a https://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for the all services provided by the
-https://aws.amazon.com[Amazon Web Service] platform. Using the SDK, application developers still have to integrate the
-SDK into their application with a considerable amount of infrastructure related code. Spring Cloud AWS provides application
-developers already integrated Spring-based modules to consume services and avoid infrastructure related code as much as possible.
-The Spring Cloud AWS module provides a module set so that application developers can arrange the dependencies based on
-their needs for the particular services. The graphic below provides a general overview of all Spring Cloud AWS modules along
-with the service support for the respective Spring Cloud AWS services.
+AWS provides a https://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for the all services provided by the
+https://aws.amazon.com[Amazon Web Service] platform. While the SDK offers all functionality available on AWS, there is a considerable amount of low level code needed to use it in Spring idiomatic way.
+Spring Cloud AWS provides application developers already integrated Spring-based modules to consume the most popular AWS services and avoid low level code as much as possible.
 
-image::overview.png[Overview]
+Thanks to Spring Cloud AWS modularity you can include only dependencies relevant to the particular AWS service you want to integrate with.
 
-* *Spring Cloud AWS Core* is the core module of Spring Cloud AWS providing basic services for security and configuration
-setup. Developers will not use this module directly but rather through other modules. The core module provides support for
-cloud based environment configurations providing direct access to the instance based https://aws.amazon.com/ec2/[EC2]
-metadata and the overall application stack specific https://aws.amazon.com/cloudformation/[CloudFormation] metadata.
-* *Spring Cloud AWS Context* delivers access to the https://aws.amazon.com/s3/[Simple Storage Service] via the Spring
-resource loader abstraction. Moreover developers can send e-mails using the https://aws.amazon.com/ses/[Simple E-Mail Service]
-and the Spring mail abstraction. Further the developers can introduce declarative caching using the Spring caching support
-and the https://aws.amazon.com/elasticache/[ElastiCache] caching service.
-* *Spring Cloud AWS JDBC* provides automatic datasource lookup and configuration for the https://aws.amazon.com/rds/[Relational Database Service]
-which can be used with JDBC or any other support data access technology by Spring.
-* *Spring Cloud AWS Messaging* enables developers to receive and send messages with the https://aws.amazon.com/sqs/[Simple Queueing Service] for
-point-to-point communication. Publish-subscribe messaging is supported with the integration of the https://aws.amazon.com/sns/[Simple Notification Service].
-* *Spring Cloud AWS Parameter Store Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html[AWS Parameter Store]
-as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
-* *Spring Cloud AWS Secrets Manager Configuration* enables Spring Cloud applications to use the https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html[AWS Secrets Manager]
-as a Bootstrap Property Source, comparable to the support provided for the Spring Cloud Config Server or Consul's key-value store.
+Spring Cloud AWS lets you leverage the power and simplicity of the Spring Framework to:
 
+- Write and read from Spring Resources backed up by S3
+- Send emails using SES
+- Import environment configuration using https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/context/config/ConfigDataLoader.html[ConfigDataLoader] from Parameter Store and Secrets Manager
+- Send and receive HTTP notifications from SNS (TODO)
+- Send metrics data to CloudWatch (TODO)
+- Send and listen to SQS messages (TODO)
+
+It also simplifies creating any non-integrated AWS SDK client by auto-configuring region and credentials providers.
+
+That being said, it is perfectly valid option to use AWS SDK without using Spring Cloud AWS.
+
+[TIP]
+----
 Note, that Spring provides support for other AWS services in following projects:
 
-- https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
-- https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
-- https://github.com/spring-projects/spring-integration-aws[Spring Integration for AWS]
+* https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
+* https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
+* https://github.com/spring-projects/spring-integration-aws[Spring Integration for AWS]
+----
 
-== Basic setup
-Before using a Spring Cloud AWS module developers have to pick the dependencies and configure the module.
-The next chapters describe the dependency management and also the basic configuration for the Spring AWS Cloud project.
+== Getting Started
 
-=== Spring Cloud AWS maven dependency management
-Spring Cloud AWS module dependencies can be used directly in https://maven.apache.org[Maven] with a direct configuration
-of the particular module. The Spring Cloud AWS module includes all transitive dependencies for the Spring modules and
-also the Amazon SDK that are needed to operate the modules. The general dependency configuration will look like this:
+This section describes how to get up to speed with Spring Cloud AWS libraries.
+
+=== Bill of Materials
+
+The Spring Cloud AWS Bill of Materials (BOM) contains the versions of all the dependencies it uses.
+
+If you’re a Maven user, adding the following to your `pom.xml` file will allow you omit any Spring Cloud AWS dependency version numbers from your configuration. Instead, the version of the BOM you’re using determines the versions of the used dependencies.
 
 [source,xml,indent=0]
 ----
-<dependencies>
-  <dependency>
-    <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-aws-context</artifactId>
-    <version>{spring-cloud-aws-version}</version>
-  </dependency>
-</dependencies>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-dependencies</artifactId>
+			<version>{project-version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
 ----
 
-Different modules can be included by replacing the module name with the respective one (e.g. `spring-cloud-aws-messaging`
-instead of `spring-cloud-aws-context`)
+Gradle users can achieve the same kind of BOM experience using Spring’s https://github.com/spring-gradle-plugins/dependency-management-plugin[dependency-management-plugin] Gradle plugin. For simplicity, the Gradle dependency snippets in the remainder of this document will also omit their versions.
 
-=== Amazon SDK dependency version management
+=== Starter Dependencies
 
-The Amazon SDK is released more frequently than Spring Cloud AWS. If you need to use a  newer version of the SDK than
+Spring Cloud AWS offers https://github.com/awspring/spring-cloud-aws/tree/main/spring-cloud-aws-starters[starter dependencies] through Maven to easily depend on different modules of the library.
+Each starter contains all the dependencies and transitive dependencies needed to begin using their corresponding Spring Cloud AWS module.
+
+For example, if you wish to write a Spring application with S3, you would include the `spring-cloud-aws-starter-s3` dependency in your project.
+You do *not* need to include the underlying `spring-cloud-aws-s3` dependency, because the `starter` dependency includes it.
+
+A summary of these artifacts are provided below.
+
+|===
+| Spring Cloud AWS Starter | Description | Maven Artifact Name
+
+| Core
+| Automatically configure authentication and region selection
+| io.awspring.cloud:spring-cloud-aws-starter
+
+| S3
+| Provides integrations with S3
+| io.awspring.cloud:spring-cloud-aws-starter-s3
+
+| SES
+| Provides integrations with SES
+| io.awspring.cloud:spring-cloud-aws-starter-ses
+
+| Parameter Store
+| Provides integrations with AWS Parameter Store
+| io.awspring.cloud:spring-cloud-aws-starter-paremeter-store
+
+| Secrets Manager
+| Provides integrations with AWS Secrets manager
+| io.awspring.cloud:spring-cloud-aws-starter-secrets-manager
+
+|===
+
+=== Choosing AWS SDK version
+
+The AWS SDK is released more frequently than Spring Cloud AWS. If you need to use a  newer version of the SDK than
 the one configured by Spring Cloud AWS, add the SDK BOM to the dependency management section making sure it is declared
 before any other BOM dependency that configures AWS SDK dependencies.
 
@@ -75,714 +111,118 @@ before any other BOM dependency that configures AWS SDK dependencies.
 <dependencyManagement>
 	<dependencies>
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-bom</artifactId>
-			<version>${aws-java-sdk.version}</version>
-			<type>pom</type>
-			<scope>import</scope>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bom</artifactId>
+            <version>${aws-java-sdk.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
 		</dependency>
 	</dependencies>
 </dependencyManagement>
 ----
 
-=== Amazon SDK configuration
-The Spring Cloud AWS configuration is currently done using custom elements provided by Spring Cloud AWS namespaces.
-JavaConfig will be supported soon. The configuration setup is done directly in Spring XML configuration files
-so that the elements can be directly used. Each module of Spring Cloud AWS provides custom namespaces to allow the modular
-use of the modules. A typical XML configuration to use Spring Cloud AWS is outlined below:
-
-
-[source,xml,indent=0]
-----
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-        https://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/cloud/aws/context
-        http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
-
-           <aws-context:context-region region="..."/>
-</beans>
-----
-
-[TIP]
-====
-On application startup, Spring Cloud AWS performs a check to determine whether the application is running in an AWS
-cloud environment by using the `EC2MetadataUtils` class provided by AWS SDK. Starting from version 1.11.678, the SDK
-logs a warning message detailing an exception when this check is performed outside of an AWS environment. This warning
-message can be suppressed by setting the logging level for the `com.amazonaws.util.EC2MetadataUtils` class to `ERROR` -
-
-[source,indent=0]
-----
-logging.level.com.amazonaws.util.EC2MetadataUtils=error
-----
-
-If `ContextInstanceDataAutoConfiguration` is enabled, but the application is not running in EC2 environment, the AWS SDK
-logs a warning message with an exception which adds potentially unnecessary noise to application logs. This warning
-message can be suppressed by setting the logging level for the
-`com.amazonaws.internal.InstanceMetadataServiceResourceFetcher` class to `ERROR` -
-
-[source,indent=0]
-----
-logging.level.com.amazonaws.internal.InstanceMetadataServiceResourceFetcher=error
-----
-====
-
-==== SDK credentials configuration
-In order to make calls to Amazon Web Services, credentials must be configured for the Amazon SDK. Spring Cloud AWS
-provides support for configuring an application context specific set of credentials that are used for _each_ service
-call for requests done by Spring Cloud AWS components, except for the Parameter Store and Secrets Manager Configuration
-modules. Therefore, there must be *exactly one* configuration of the credentials for an entire application context.
-
-[TIP]
-====
-The `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` is used by all the clients if there is no dedicated credentials
- provider defined. This will essentially use the following authentication information
-
-* the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-* the system properties `aws.accessKeyId` and `aws.secretKey`
-* the web identity token from AWS STS (requires `aws-java-sdk-sts` library)
-* the user specific profile credentials file
-* the ECS credentials if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set
-* the instance profile credentials (see below)
-====
-
-Based on the overall credentials policy there are different options to configure the credentials. The possible ones are described in
-the following sub-chapters.
-
-===== Simple credentials configuration
-Credentials for the Amazon SDK consist of an access key (which might be shared) and a secret key (which must *not* be shared). Both
-security attributes can be configured using the XML namespaces for each Amazon SDK service created by the Spring Cloud AWS
-module. The overall configuration looks like this
-
-[source,xml,indent=0]
-----
-<beans ...>
-  <aws-context:context-credentials>
-   <aws-context:simple-credentials access-key="AKIAIO" secret-key="wJalrXUtnFEMI/K7M" />
-  </aws-context:context-credentials>
-</beans>
-----
-
-[CAUTION]
-====
-The access-key and secret-key should be externalized into property files (e.g. Spring Boot application configuration)
-and not be checked in into the source management system.
-====
-
-===== Instance profile configuration
-An https://docs.aws.amazon.com/IAM/latest/UserGuide/instance-profiles.html[instance profile configuration] allows to assign
-a profile that is authorized by a role while starting an EC2 instance. All calls made from the EC2 instance are then authenticated
-with the instance profile specific user role. Therefore there is no dedicated access-key and secret-key needed in the configuration.
-The configuration for the instance profile in Spring Cloud AWS looks like this:
-
-[source,xml,indent=0]
-----
-<beans ...>
-	<aws-context:context-credentials>
- 		<aws-context:instance-profile-credentials/>
- 	</aws-context:context-credentials>
-</beans>
-----
-
-===== Mixing both security configurations
-In some cases it is useful to combine both authentication strategies to allow the application to use the instance profile
-with a fallback for an explicit access-key and secret-key configuration. This is useful if the application is tested inside
-EC2 (e.g. on a test server) and locally for testing. The next snippet shows a combination of both security configurations.
-
-[source,xml,indent=0]
-----
- <beans ...>
-    <aws-context:context-credentials>
-        <aws-context:instance-profile-credentials/>
-        <aws-context:simple-credentials access-key="${accessKey:}" secret-key="${secretKey:}"/>
-    </aws-context:context-credentials>
- </beans>
-----
-
-[TIP]
-====
-The access-key and secret-key are defined using a placeholder expressions along with a default value to avoid bootstrap
-errors if the properties are not configured at all.
-====
-
-===== AWS EKS IAM Roles for Service Accounts configuration
-If your application is deployed to AWS EKS and you wish to use
-https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html[IAM Roles for Service Accounts] for AWS Authentication, simply include
-the `aws-java-sdk-sts` dependency in your project, and the `DefaultAWSCredentialsProviderChain` will load from Java system properties or environment variables.
-
-[source,xml,indent=0]
-----
-<dependencies>
-	<dependency>
-		<groupId>com.amazonaws</groupId>
-		<artifactId>aws-java-sdk-sts</artifactId>
-		<version>${aws-java-sdk.version}</version>
-	</dependency>
-</dependencies>
-----
-
-===== Parameter Store and Secrets Manager Configuration credentials and region configuration
-The Parameter Store and Secrets Manager Configuration support uses a bootstrap context to configure a default Amazon
-SDK client for each of AWS services, which uses a `com.amazonaws.auth.DefaultAWSCredentialsProviderChain` and
-`com.amazonaws.regions.DefaultAwsRegionProviderChain`. If you want to override this, then you need to
-https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#customizing-the-bootstrap-configuration[define your own Spring Cloud bootstrap configuration class]
-with a bean of the appropriate type of Amazon SDK client (`AWSSimpleSystemsManagement` or `AWSSecretsManager`),
-that's configured to use your chosen credentials and/or region provider. Because this context is created when your
-Spring Cloud Bootstrap context is created, you can't simply override the bean in a regular `@Configuration` class.
-
-==== Region configuration
-Amazon Web services are available in different https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html[regions]. Based
-on the custom requirements, the user can host the application on different Amazon regions. The `spring-cloud-aws-context`
-module provides a way to define the region for the entire application context.
-
-===== Explicit region configuration
-The region can be explicitly configured using an XML element. This is particularly useful if the region can not be automatically
-derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden.
-
-[source,xml,indent=0]
-----
-<beans ...>
-  	<aws-context:context-region region="eu-west-1"/>
-</beans>
-----
-
-[TIP]
-====
-It is also allowed to use expressions or placeholders to externalize the configuration and ensure that the region can
-be reconfigured with property files or system properties.
-====
-
-===== Automatic region configuration
-If the application context is started inside an EC2 instance, then the region can automatically be fetched from the
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[instance metadata] and therefore must
-not be configured statically. The configuration will look like this:
-
-[source,xml,indent=0]
-----
-   <beans ...>
-     <aws-context:context-region auto-detect="true" />
-   </beans>
-----
-
-===== Service specific region configuration
-A region can also be overridden for particular services if one application context consumes services from different regions.
-The configuration can be done globally like described above and configured for each service with a region attribute.
-The configuration might look like this for a database service (described later)
-
-[source,xml,indent=0]
-----
- <beans ...>
-  <aws-context:context-region region="eu-central-1" />
-  <jdbc:data-source ... region="eu-west-1" />
- </beans>
-----
-
-[NOTE]
-====
-While it is theoretically possible to use multiple regions per application, we strongly recommend to write applications that
-are hosted only inside one region and split the application if it is hosted in different regions at the same time.
-====
-
-==== Spring Boot auto-configuration
-Following the Spring Cloud umbrella project, Spring Cloud AWS also provides dedicated Spring Boot support. Spring Cloud
-AWS can be configured using Spring Boot properties and will also automatically guess any sensible configuration based on
-the general setup.
-
-===== Maven dependencies
-Spring Cloud AWS provides a dedicated module to enable the Spring Boot support. That module must be added to the general
-maven dependency inside the application. The typical configuration will look like this
-
-[source,xml,indent=0]
-----
-<dependencies>
-  <dependency>
-    <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-aws-autoconfigure</artifactId>
-    <version>{spring-cloud-aws-version}</version>
-  </dependency>
-</dependencies>
-----
-
-Additional dependencies to enable particular features like messaging and JDBC have to be added. Spring Cloud AWS will
-only configure classes that are available in the Spring Boot application's classpath.
-
-===== Configuring credentials
-Spring Boot provides a standard way to define properties with property file or YAML configuration files. Spring Cloud
-AWS provides support to configure the credential information with the Spring Boot application configuration files.
-
-By default Spring Cloud AWS configures https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] to resolve AWS credentials.
-
-If other credentials providers are configured, https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] is not used and Spring Cloud AWS configures following credentials chain:
-
-1. `AWSStaticCredentialsProvider` if `cloud.aws.credentials.access-key` is provided
-2. `EC2ContainerCredentialsProviderWrapper` if `cloud.aws.credentials.instance-profile` is set to `true`
-3. `ProfileCredentialsProvider` if `cloud.aws.credentials.profile-name` is provided
-
-Spring Cloud AWS provides the following properties to configure the credentials setup for the whole application.
-
-[cols="3*", options="header"]
-|===
-|property
-|example
-|description
-
-|cloud.aws.credentials.access-key
-|AKIAIOSFODNN7EXAMPLE
-|The access key to be used with a static provider
-
-|cloud.aws.credentials.secret-key
-|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-|The secret key to be used with a static provider
-
-|cloud.aws.credentials.instance-profile
-|true
-|Configures an instance profile credentials provider with no further configuration
-
-|cloud.aws.credentials.profile-name
-|default
-|The name of a configuration profile in the specified configuration file
-
-|cloud.aws.credentials.profile-path
-|`~/.aws/credentials`
-|The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
-|===
-
-===== Configuring region
-Like for the credentials, the Spring Cloud AWS module also supports the configuration of the region inside the Spring
-Boot configuration files. The region can be automatically detected using https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/DefaultAwsRegionProviderChain.html[DefaultAwsRegionProviderChain] or explicitly configured (e.g. in case of local tests
-against the AWS cloud).
-
-The properties to configure the region are shown below
-
-[cols="3*", options="header"]
-|===
-|property
-|example
-|description
-
-|cloud.aws.region.static
-|eu-west-1
-|Configures a static region for the application. Possible regions are (currently) us-east-1, us-west-1, us-west-2,
-eu-west-1, eu-central-1, ap-southeast-1, ap-southeast-1, ap-northeast-1, sa-east-1, cn-north-1 and any custom region
-configured with own region meta data.
-
-This is particularly useful if the region can not be automatically derived because the application is not hosted on a EC2 instance (e.g. local testing) or the region must be manually overridden
-
-|===
-
-Each integration can now be configured to have a specific region. If region is specified this way it takes priority over default or static region. For example:
-
-[cols="3*", options="header"]
-|===
-|property
-|example
-|description
-
-|cloud.aws.sqs.region
-|eu-west-1
-|Configures a region that SQS integration will use.
-
-|===
-
-===== Enabling integrations
-
-Each integration can be enabled or disabled through a property. By default, all integrations are enabled except `ContextInstanceDataAutoConfiguration`:
-
-[cols="3*", options="header"]
-|===
-|property
-|example
-|description
-
-|cloud.aws.sqs.enabled
-|false
-|Disables SQS integration autoconfiguration.
-|===
-
-
-===== Configuring endpoints
-For each integrated AWS service you can configure Spring Cloud AWS to use a custom endpoint using configuration properties. For example:
-
-[source,properties,indent=0]
-----
-cloud.aws.s3.endpoint=http://localhost:4566
-cloud.aws.sqs.endpoint=http://localhost:4566
-cloud.aws.rds.endpoint=http://localhost:4566
-----
-
-Using custom endpoint can be especially useful when using https://github.com/localstack/localstack[Localstack] in integration tests or integrating with AWS compatible 3rd party services like https://min.io/[MinIO].
-
-===== Configuring client configuration
-
-For some AWS service integrations you can configure Spring Cloud AWS to use custom `ClientConfiguration`.
-
-To override the default `ClientConfiguration` used by all integrations, create a bean of type `ClientConfiguration` with a name `com.amazonaws.ClientConfiguration.BEAN_NAME`.
-
-[source,java,indent=0]
-----
-@Configuration
-class CustomAwsConfiguration {
-
-    @Bean(name = "com.amazonaws.ClientConfiguration.BEAN_NAME")
-	ClientConfiguration clientConfiguration() {
-		ClientConfiguration clientConfiguration= new ClientConfiguration();
-		clientConfiguration.setProxyHost(proxyHost);
-		clientConfiguration.setProxyPort(proxyPort);
-		clientConfiguration.setProxyUsername(proxyUserName);
-		clientConfiguration.setProxyPassword(proxyPassword);
-		return clientConfiguration;
-	}
-}
-----
-
-It's also possible to provide `ClientConfiguration` for particular integration by defining a bean of type `ClientConfiguration` and a name specific to the integration:
-
-[cols="2"]
-|===
-| SQS
-| `sqsClientConfiguration`
-
-| SNS
-| `snsClientConfiguration`
-
-| SES
-| `sesClientConfiguration`
-
-| RDS
-| `rdsClientConfiguration`
-
-| ElastiCache
-| `elastiCacheClientConfiguration`
-
-| CloudWatch
-| `cloudWatchClientConfiguration`
-
-|===
-
-For example:
-
-[source,java,indent=0]
-----
-@Configuration
-class CustomSqsConfiguration {
-
-    @Bean
-    ClientConfiguration sqsClientConfiguration() {
-        ClientConfiguration clientConfiguration= new ClientConfiguration();
-		clientConfiguration.setProxyHost(proxyHost);
-		clientConfiguration.setProxyPort(proxyPort);
-		clientConfiguration.setProxyUsername(proxyUserName);
-		clientConfiguration.setProxyPassword(proxyPassword);
-		return clientConfiguration;
-    }
-}
-----
-
-== Cloud environment
-Applications often need environment specific configuration information, especially in changing environments like in the
-Amazon cloud environment. Spring Cloud AWS provides support for retrieving and using environment specific data inside the
-application context using common Spring mechanisms like property placeholder or the Spring expression language.
-
-=== Retrieving instance metadata
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[Instance metadata] is available inside an
-EC2 environment. The metadata can be queried using a special HTTP address that provides the instance metadata. Spring Cloud
-AWS enables application to access this metadata directly in expression or property placeholder without the need to call
-an external HTTP service.
-
-==== Enabling instance metadata support with XML
-The instance metadata retrieval support is enabled through an XML element like the standard property placeholder in Spring.
-The following code sample demonstrates the activation of the instance metadata support inside an application context.
-
-[source,xml,indent=0]
-----
-   <beans ...>
-     	<aws-context:context-instance-data />
-   </beans>
-----
-
-[TIP]
-====
-Instance metadata can be retrieved without an authorized service call, therefore the configuration above does not require
-any region or security specific configuration.
-====
-
-==== Enabling instance metadata support with Java
-The instance metadata can also be configured within a Java configuration class without the need for an XML configuration.
-The next example shows a typical Spring `@Configuration` class that enables the instance metadata with the
-`io.awspring.cloud.context.config.annotation.EnableInstanceData`
-
-[source,java,indent=0]
-----
-  @Configuration
-  @EnableContextInstanceData
-  public static class ApplicationConfiguration {
-  }
-----
-
-==== Enabling instance metadata support in Spring Boot
-The instance metadata is available in a Spring Boot application as a property source if the application
-is running on an EC2 instance and `cloud.aws.instance.data.enabled` property is set to `true`.
-
-==== Using instance metadata
-Instance metadata can be used in XML, Java placeholders and expressions. The example below demonstrates the usage of
-instance metadata inside an XML file using placeholders and also the expression referring to the special variable `environment`
-
-[source,xml,indent=0]
-----
-<beans ...>
- <bean class="io.awspring.cloud....SimpleConfigurationBean">
-	<property name="value1" value="#{environment.ami-id}" />
-	<property name="value2" value="#{environment.hostname}" />
-	<property name="value3" value="${instance-type}" />
-	<property name="value4" value="${instance-id}" />
- </bean>
-</beans>
-----
-
-Instance metadata can also be injected with the Spring `org.springframework.beans.factory.annotation.Value` annotation
-directly into Java fields. The next example demonstrates the use of instance metadata inside a Spring bean.
-
-[source,java,indent=0]
-----
-   @Component
-   public class ApplicationInfoBean {
-
-       @Value("${ami-id:N/A}")
-       private String amiId;
-
-       @Value("${hostname:N/A}")
-       private String hostname;
-
-       @Value("${instance-type:N/A}")
-       private String instanceType;
-
-       @Value("${services/domain:N/A}")
-       private String serviceDomain;
-   }
-
-----
-
-[NOTE]
-====
-Every instance metadata can be accessed by the key available in the https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html[instance metadata service]
-Nested properties can be accessed by separating the properties with a slash ('/').
-====
-
-==== Using instance user data
-Besides the default instance metadata it is also possible to configure user data on each instance. This user data is retrieved and
-parsed by Spring Cloud AWS. The user data can be defined while starting an EC2 instance with the application. Spring Cloud AWS
-expects the format `<key>:<value>;<key>:<value>` inside the user data so that it can parse the string and extract the key value pairs.
-
-The user data can be configured using either the management console shown below or a https://aws.amazon.com/cloudformation/aws-cloudformation-templates/[CloudFormation template].
-
-image::cloud-environment-user-data.png[User data in the management console]
-
-
-A CloudFormation template snippet for the configuration of the user data is outlined below:
-
-[source,json,indent=0]
-----
-   ...
-   "Resources": {
-    "ApplicationServerInstance": {
-   	 "Type": "AWS::EC2::Instance",
-   	 "Properties": {
-   	  "ImageId": "ami-6a56b81d",
-   	  "UserData": {
-   	     "Fn::Base64": "data1:value1;data2:value2"
-   	   },
-   	  "InstanceType": "t1.micro",
-   	 }
-   }
-   ...
-----
-
-The user data can be accessed directly in the application context like the instance metadata through placeholders
-or expressions.
-
-[source,java,indent=0]
-----
-@Component
-public class SecondConfigurationBean {
-
-	@Value("${data1}")
-	private String firstDataOption;
-
-	@Value("${data2}")
-	private String secondDataOption;
-}
-----
-
-==== Using instance tags
-User configured properties can also be configured with tags instead of user data. Tags are a global concept in the context
-of Amazon Web services and used in different services. Spring Cloud AWS supports instance tags also across different
-services. Compared to user data, user tags can be updated during runtime, there is no need to stop and restart
-the instance.
-
-[TIP]
-====
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html[User data] can also be used to execute scripts
-on instance startup. Therefore it is useful to leverage instance tags for user configuration and user data to execute scripts
-on instance startup.
-====
-
-Instance specific tags can be configured on the instance level through the management console outlined below and
-like user data also with a CloudFormation template shown afterwards.
-
-image::cloud-environment-instance-tags.png[Instance data in the management console]
-
-A CloudFormation template snippet for the configuration of the instance tags is outlined below:
-
-
-[source,json,indent=0]
-----
-...
-"Resources": {
-	"UserTagAndUserDataInstance": {
-		"Type": "AWS::EC2::Instance",
-		"Properties": {
-			"ImageId": "ami-6a56b81d",
-		  	"InstanceType": "t1.micro",
-		  	"Tags": [
-			{
-				"Key": "tag1",
-			  	"Value": "tagv1"
-			},
-			{
-				"Key": "tag3",
-			  	"Value": "tagv3"
-			},
-			{
-				"Key": "tag2",
-			  	"Value": "tagv2"
-			},
-			{
-				"Key": "tag4",
-				"Value": "tagv4"
-			}
-			]
-		}
-	}
-}
-...
-----
-
-To retrieve the instance tags, Spring Cloud AWS has to make authenticated requests and therefore it will need the region
-and security configuration before actually resolving the placeholders. Also because the instance tags are not available while starting
-the application context, they can only be referenced as expressions and not with placeholders. The `context-instance-data`
-element defines an attribute `user-tags-map` that will create a map in the application context for the name. This map
-can then be queried using expression for other bean definitions.
-
-[source,xml,indent=0]
-----
- <beans ...>
-  <aws-context:context-instance-data user-tags-map="instanceData" />
- </beans>
-----
-
-A java bean might resolve expressions with the `@Value` annotation.
-
-[source,java,indent=0]
-----
- public class SimpleConfigurationBean {
-
- 	@Value("#{instanceData.tag1}")
- 	private String value1;
-
- 	@Value("#{instanceData.tag2}")
- 	private String value2;
-
- 	@Value("#{instanceData.tag3}")
- 	private String value3;
-
- 	@Value("#{instanceData.tag4}")
- 	private String value4;
- }
-----
-
-==== Configuring custom EC2 client
-In some circumstances it is necessary to have a custom EC2 client to retrieve the instance information. The
-`context-instance-data` element supports a custom EC2 client with the `amazon-ec2` attribute. The next
-example shows the use of a custom EC2 client that might have a special configuration in place.
-
-[source,xml,indent=0]
-----
-<beans ...>
-
-  <aws-context:context-credentials>....</aws-context:context-credentials>
-  <aws-context:context-region ... />
-  <aws-context:context-instance-data  amazon-ec2="myCustomClient"/>
-
-  <bean id="myCustomClient" class="com.amazonaws.services.ec2.AmazonEC2Client">
-	...
-  </bean>
-</beans>
-----
-
-==== Injecting the default EC2 client
-If there are user tags configured for the instance data (see above) Spring Cloud AWS configures an EC2 client with
-the specified region and security credentials. Application developers can inject the EC2 client directly into their code using the `@Autowired` annotation.
-
-[source,java,indent=0]
-----
-public class ApplicationService {
-
-	private final AmazonEC2 amazonEc2;
-
-	@Autowired
-	public ApplicationService(AmazonEC2 amazonEc2) {
-		this.amazonEc2 = amazonEc2;
-	}
-}
-----
-
-include::parameter-store.adoc[]
-
-include::secrets-manager.adoc[]
-
-include::cloudformation.adoc[]
-
-== Messaging
-Spring Cloud AWS provides https://aws.amazon.com/sqs/[Amazon SQS] and https://aws.amazon.com/sqs/[Amazon SNS] integration
-that simplifies the publication and consumption of messages over SQS or SNS. While SQS fully relies on the messaging API
-introduced with Spring 4.0, SNS only partially implements it as the receiving part must be handled differently for
-push notifications.
-
-=== Configuring messaging
-Before using and configuring the messaging support, the application has to include the respective module dependency
-into the Maven configuration. Spring Cloud AWS Messaging support comes as a separate module to allow the modularized use
-of the modules.
-
-==== Maven dependency configuration
-
-The Spring Cloud AWS messaging module comes as a standalone module and can be imported with the following dependency declaration:
-
-[source,xml,indent=0]
-----
-<dependency>
-	<groupId>io.awspring.cloud</groupId>
-	<artifactId>spring-cloud-aws-messaging</artifactId>
-	<version>{spring-cloud-version}</version>
-</dependency>
-----
-
-include::sqs.adoc[]
-
-include::sns.adoc[]
-
-include::elasticache.adoc[]
-
-include::rds.adoc[]
-
-include::ses.adoc[]
+include::core.adoc[]
 
 include::s3.adoc[]
 
-include::cloudwatch.adoc[]
 
-include::cognito.adoc[]
+//
+//===== AWS EKS IAM Roles for Service Accounts configuration
+//If your application is deployed to AWS EKS and you wish to use
+//https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html[IAM Roles for Service Accounts] for AWS Authentication, simply include
+//the `aws-java-sdk-sts` dependency in your project, and the `DefaultAWSCredentialsProviderChain` will load from Java system properties or environment variables.
+//
+//[source,xml,indent=0]
+//----
+//<dependencies>
+//	<dependency>
+//		<groupId>com.amazonaws</groupId>
+//		<artifactId>aws-java-sdk-sts</artifactId>
+//		<version>${aws-java-sdk.version}</version>
+//	</dependency>
+//</dependencies>
+//----
+//
+
+//===== Configuring client configuration
+//
+//For some AWS service integrations you can configure Spring Cloud AWS to use custom `ClientConfiguration`.
+//
+//To override the default `ClientConfiguration` used by all integrations, create a bean of type `ClientConfiguration` with a name `com.amazonaws.ClientConfiguration.BEAN_NAME`.
+//
+//[source,java,indent=0]
+//----
+//@Configuration
+//class CustomAwsConfiguration {
+//
+//    @Bean(name = "com.amazonaws.ClientConfiguration.BEAN_NAME")
+//	ClientConfiguration clientConfiguration() {
+//		ClientConfiguration clientConfiguration= new ClientConfiguration();
+//		clientConfiguration.setProxyHost(proxyHost);
+//		clientConfiguration.setProxyPort(proxyPort);
+//		clientConfiguration.setProxyUsername(proxyUserName);
+//		clientConfiguration.setProxyPassword(proxyPassword);
+//		return clientConfiguration;
+//	}
+//}
+//----
+//
+//It's also possible to provide `ClientConfiguration` for particular integration by defining a bean of type `ClientConfiguration` and a name specific to the integration:
+//
+//[cols="2"]
+//|===
+//| SQS
+//| `sqsClientConfiguration`
+//
+//| SNS
+//| `snsClientConfiguration`
+//
+//| SES
+//| `sesClientConfiguration`
+//
+//| RDS
+//| `rdsClientConfiguration`
+//
+//| ElastiCache
+//| `elastiCacheClientConfiguration`
+//
+//| CloudWatch
+//| `cloudWatchClientConfiguration`
+//
+//|===
+//
+//For example:
+//
+//[source,java,indent=0]
+//----
+//@Configuration
+//class CustomSqsConfiguration {
+//
+//    @Bean
+//    ClientConfiguration sqsClientConfiguration() {
+//        ClientConfiguration clientConfiguration= new ClientConfiguration();
+//		clientConfiguration.setProxyHost(proxyHost);
+//		clientConfiguration.setProxyPort(proxyPort);
+//		clientConfiguration.setProxyUsername(proxyUserName);
+//		clientConfiguration.setProxyPassword(proxyPassword);
+//		return clientConfiguration;
+//    }
+//}
+//----
+//
+//
+//include::parameter-store.adoc[]
+//
+//include::secrets-manager.adoc[]
+//
+//include::sqs.adoc[]
+//
+//include::sns.adoc[]
+//
+//include::ses.adoc[]
+//
+//include::cloudwatch.adoc[]
+//
 
 == Configuration properties
 

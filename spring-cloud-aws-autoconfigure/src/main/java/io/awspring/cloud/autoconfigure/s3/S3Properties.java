@@ -33,7 +33,7 @@ public class S3Properties extends AwsClientProperties {
 	public static final String PREFIX = "spring.cloud.aws.s3";
 
 	/**
-	 * Option to enable using the accelerate enedpoint when accessing S3. Accelerate endpoints allow faster transfer of
+	 * Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of
 	 * objects by using Amazon CloudFront's globally distributed edge locations.
 	 */
 	@Nullable

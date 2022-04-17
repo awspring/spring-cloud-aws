@@ -18,9 +18,24 @@
 		<module>spring-cloud-aws-secrets-manager-sample</module>
 		<module>spring-cloud-aws-s3-sample</module>
 		<module>spring-cloud-aws-sns-sample</module>
+		<module>spring-cloud-aws-ses-sample</module>
 	</modules>
 
+	<properties>
+		<cdk.version>2.17.0</cdk.version>
+		<constructs.version>[10.0.0,11.0.0)</constructs.version>
+	</properties>
+
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -32,4 +47,19 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencyManagement>
+		<dependencies>
+			<!-- AWS Cloud Development Kit -->
+			<dependency>
+				<groupId>software.amazon.awscdk</groupId>
+				<artifactId>aws-cdk-lib</artifactId>
+				<version>${cdk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>software.constructs</groupId>
+				<artifactId>constructs</artifactId>
+				<version>${constructs.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>

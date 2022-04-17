@@ -1,0 +1,161 @@
+[#spring-cloud-aws-core]
+== Spring Cloud AWS Core
+
+Each Spring Cloud AWS module uses `AwsCredentialsProvider` and `AwsRegionProvider` to get the AWS region and access credentials.
+
+Spring Cloud AWS provides a Spring Boot starter to auto-configure the core components.
+
+Maven coordinates, using <<getting-started.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter</artifactId>
+</dependency>
+----
+
+=== Credentials
+
+`software.amazon.awssdk.auth.credentials.AwsCredentialsProvider` is a functional interface that returns the credentials to authenticate and authorize calls to AWS services.
+
+[source,java]
+----
+public interface AwsCredentialsProvider {
+    AwsCredentials resolveCredentials();
+}
+----
+
+By default, Spring Cloud AWS starter auto-configures a `DefaultCredentialsProvider`, which looks for AWS credentials in this order:
+
+1. Java System Properties - `aws.accessKeyId` and `aws.secretAccessKey`
+2. Environment Variables - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+3. Web Identity Token credentials from system properties or environment variables
+4. Credential profiles file at the default location (`~/.aws/credentials`) shared by all AWS SDKs and the AWS CLI
+5. Credentials delivered through the Amazon EC2 container service if `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`" environment variable is set and security manager has permission to access the variable,
+6. Instance profile credentials delivered through the Amazon EC2 metadata service
+
+If it does not serve your project needs, this behavior can be changed by setting additional properties:
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|spring.cloud.aws.credentials.access-key
+|AKIAIOSFODNN7EXAMPLE
+|The access key to be used with a static provider
+
+|spring.cloud.aws.credentials.secret-key
+|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+|The secret key to be used with a static provider
+
+|spring.cloud.aws.credentials.instance-profile
+|true
+|Configures an https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/auth/credentials/InstanceProfileCredentialsProvider.html[InstanceProfileCredentialsProvider] with no further configuration
+
+|spring.cloud.aws.credentials.profile.name
+|default
+|The name of a configuration profile in the specified configuration file
+
+|spring.cloud.aws.credentials.profile.path
+|`~/.aws/credentials`
+|The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
+|===
+
+It is also possible to configure custom `AwsCredentialsProvider` bean which will prevent Spring Cloud AWS from auto-configuring credentials provider:
+
+[source,java,indent=0]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+
+@Configuration
+class CustomCredentialsProviderConfiguration {
+
+    @Bean
+    public AwsCredentialsProvider customAwsCredentialsProvider() {
+        return new CustomAWSCredentialsProvider();
+    }
+}
+----
+
+=== Region
+
+`software.amazon.awssdk.regions.providers.AwsRegionProvider` is a functional interface that returns the region AWS clients issue requests to.
+
+[source,java]
+----
+public interface AwsRegionProvider {
+    Region getRegion();
+}
+----
+
+By default, Spring Cloud AWS starter auto-configures a `DefaultAwsRegionProviderChain`, which looks resolves AWS region in this order:
+
+1. Check the `aws.region` system property for the region.
+2. Check the `AWS_REGION` environment variable for the region.
+3. Check the `{user.home}/.aws/credentials` and `{user.home}/.aws/config` files for the region.
+4. If running in EC2, check the EC2 metadata service for the region.
+
+If it does not serve your project needs, this behavior can be changed by setting additional properties:
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|spring.cloud.aws.region.static
+|eu-west-1
+|A static value for region used by auto-configured AWS clients
+
+|spring.cloud.aws.region.instance-profile
+|true
+|Configures an https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/regions/providers/InstanceProfileRegionProvider.html[InstanceProfileRegionProvider] with no further configuration
+
+|spring.cloud.aws.region.profile.name
+|default
+|The name of a configuration profile in the specified configuration file
+
+|spring.cloud.aws.region.profile.path
+|`~/.aws/credentials`
+|The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
+|===
+
+It is also possible to configure custom `AwsRegionProvider` bean which will prevent Spring Cloud AWS from auto-configuring region provider:
+
+[source,java,indent=0]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+
+@Configuration
+class CustomRegionProviderConfiguration {
+
+    @Bean
+    public AwsRegionProvider customRegionProvider() {
+        return new CustomRegionProvider();
+    }
+}
+----
+
+=== Endpoint
+
+To simplify using services with AWS compatible APIs, or running applications against https://localstack.cloud/[Localstack], it is possible to configure an endpoint set on all auto-configured AWS clients:
+
+[cols="3*", options="header"]
+|===
+|property
+|example
+|description
+
+|`spring.cloud.aws.endpoint`
+|`http://localhost:4566`
+|endpoint url applied to auto-configured AWS clients
+|===

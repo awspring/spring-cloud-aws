@@ -1,203 +1,170 @@
-== Resource handling
-The Spring Framework provides a `org.springframework.core.io.ResourceLoader` abstraction to load files from the filesystem,
-servlet context and the classpath. Spring Cloud AWS adds support for the https://aws.amazon.com/s3/[Amazon S3] service
-to load and write resources with the resource loader and the `s3` protocol.
+[#spring-cloud-aws-s3]
+== Spring Cloud AWS S3
 
-The resource loader is part of the context module, therefore no additional dependencies are necessary to use the resource
-handling support.
+https://aws.amazon.com/s3/[S3] allows storing files in a cloud.
+A Spring Boot starter is provided to auto-configure the various S3 integration related components.
 
-=== Configuring the resource loader with Spring Boot
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
-Resource loader is enabled by default when `spring-cloud-starter-aws` is added as the dependency.
-
-=== Configuring the resource loader with XML
-Spring Cloud AWS does not modify the default resource loader unless it encounters an explicit configuration with an XML namespace element.
-The configuration consists of one element for the whole application context that is shown below:
-
-[source,xml,indent=0]
+[source,xml]
 ----
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
-	   xsi:schemaLocation="http://www.springframework.org/schema/cloud/aws/context
-	   http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd">
-
-	<aws-context:context-credentials>
-    		...
-        </aws-context:context-credentials>
-
-	<aws-context:context-resource-loader/>
-</beans>
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-starter-aws-s3</artifactId>
+</dependency>
 ----
 
-=== Downloading files
-Downloading files can be done by using the `s3` protocol to reference Amazon S3 buckets and objects inside their bucket. The
-typical pattern is `s3://<bucket>/<object>` where bucket is the global and unique bucket name and object is a valid object
-name inside the bucket. The object name can be a file in the _root_ folder of a bucket or a nested file within a directory
-inside a bucket.
+=== Using S3 client
 
-The next example demonstrates the use of the resource loader to load different resources.
+The starter automatically configures and registers a `S3Client` bean in the Spring application context. The `S3Client` bean can be used to perform operations on S3 buckets and objects.
 
-[source,java,indent=0]
+[source,java]
 ----
-public class SimpleResourceLoadingBean {
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-	@Autowired
-	private ResourceLoader resourceLoader;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-	public void resourceLoadingMethod() throws IOException {
-		Resource resource = this.resourceLoader.getResource("s3://myBucket/rootFile.log");
-		Resource secondResource = this.resourceLoader.getResource("s3://myBucket/rootFolder/subFile");
+import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 
-		InputStream inputStream = resource.getInputStream();
-		//read file
+@Component
+public class S3ClientSample {
+	private final S3Client s3Client;
+
+	S3ClientSample(S3Client s3Client) {
+		this.s3Client = s3Client;
+	}
+
+	void readFile() throws IOException {
+		ResponseInputStream<GetObjectResponse> response = s3Client.getObject(
+			request -> request.bucket("bucket-name").key("file-name.txt"));
+
+		String fileContent = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
+
+		System.out.println(fileContent);
 	}
 }
 ----
 
-=== Uploading files
-Since Spring Framework 3.1 the resource loader can also be used to upload files with the `org.springframework.core.io.WritableResource`
-interface which is a specialization of the `org.springframework.core.io.ResourceLoader` interface. Clients can upload files
-using the `WritableResource` interface. The next example demonstrates an upload of a resource using the resource loader.
+=== Using Cross-Region S3 client
 
-[source,java,indent=0]
+`S3Client` implementation provided in AWS SDK is region specific - meaning it can be used only to operate on buckets and objects stored in region for which the client has been configured to use.
+
+For example, assuming that `DefaultAwsRegionProviderChain` resolves a region `us-east-1`, running any S3 operation that uses a bucket created in another region would result in an exception:
+
+[source]
 ----
-public class SimpleResourceLoadingBean {
+software.amazon.awssdk.services.s3.model.S3Exception: The bucket you are attempting to access must be addressed using the specified endpoint. Please send all future requests to this endpoint. (Service: S3, Status Code: 301, Request ID: ..., Extended Request ID: ...)
+----
 
-    @Autowired
-    private ResourceLoader resourceLoader;
+Spring Cloud AWS provides a `CrossRegionS3Client` that solves this problem by maintaining an internal dictionary of `S3Client` objects per region. If you need to customize these clients, you can create a custom `S3ClientBuilder` bean that acts as a template to create region-specific S3 clients in `CrossRegionS3Client`.
+There is no extra work needed to use cross-region S3 client - it is the `S3Client` auto-configured by Spring Cloud AWS.
 
-    public void writeResource() throws IOException {
-        Resource resource = this.resourceLoader.getResource("s3://myBucket/rootFile.log");
-        WritableResource writableResource = (WritableResource) resource;
-        try (OutputStream outputStream = writableResource.getOutputStream()) {
-            outputStream.write("test".getBytes());
-        }
-    }
+To disable `CrossRegionS3Client` creation and use instead a regular region-specific `S3Client`, you can either create a custom `S3Client` bean, or exclude `spring-cloud-aws-s3-cross-region-client` dependency:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-starter-aws-s3</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+----
+
+=== S3 Objects as Spring Resources
+
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[Spring Resources] are an abstraction for a number of low-level resources, such as file system files, classpath files, servlet context-relative files, etc.
+Spring Cloud AWS adds a new resource type: a `S3Resource` object.
+
+The Spring Resource Abstraction for S3 allows S3 objects to be accessed by their S3 URL using the `@Value` annotation:
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+----
+
+...or the Spring application context
+
+[source,java]
+----
+SpringApplication.run(...).getResource("s3://[S3_BUCKET_NAME]/[FILE_NAME]");
+----
+
+
+This creates a `Resource` object that can be used to read the file, among https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html#resources-resource[other possible operations].
+
+It is also possible to write to a `Resource`, although a `WriteableResource` is required.
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+try (OutputStream os = ((WritableResource) s3Resource).getOutputStream()) {
+  os.write("content".getBytes());
 }
 ----
 
-==== Uploading multi-part files
-Amazon S3 supports https://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html[multi-part uploads] to
-increase the general throughput while uploading. Spring Cloud AWS by default only uses one thread to upload the files and
-therefore does not provide parallel upload support. Users can configure a custom `org.springframework.core.task.TaskExecutor`
-for the resource loader. The resource loader will queue multiple threads at the same time to use parallel multi-part uploads.
+To work with the `Resource` as a S3 resource, cast it to `io.awspring.cloud.s3.S3Resource`.
+Using `S3Resource` directly lets you set the https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html[S3 object metadata].
 
-The configuration for a resource loader that uploads with 10 Threads looks like the following
-
-[source,xml,indent=0]
+[source,java]
 ----
-<beans ...>
-  <aws-context:context-resource-loader task-executor="executor" />
-  <task:executor id="executor" pool-size="10" queue-capacity="0" rejection-policy="CALLER_RUNS" />
-</beans>
-----
-
-[WARNING]
-====
-Spring Cloud AWS consumes up to 5 MB (at a minimum) of memory per thread. Therefore each parallel thread will incur
-a memory footprint of 5 MB in the heap, and a thread size of 10 will consume therefore up to 50 mb of heap space. Spring Cloud
-AWS releases the memory as soon as possible. Also, the example above shows that there is no `queue-capacity` configured,
-because queued requests would also consume memory.
-====
-
-==== Uploading with the TransferManager
-The Amazon SDK also provides a high-level abstraction that is useful to upload files, also with multiple threads using
-the multi-part functionality. A `com.amazonaws.services.s3.transfer.TransferManager` can be easily created in the application
-code and injected with the pre-configured `com.amazonaws.services.s3.AmazonS3` client that is already created
-with the Spring Cloud AWS resource loader configuration.
-
-This example shows the use of the `transferManager` within an application to upload files from the hard-drive.
-
-[source,java,indent=0]
-----
-public class SimpleResourceUploadingBean {
-
-	@Autowired
-	private AmazonS3 amazonS3;
-
-	public void withTransferManager() {
-		TransferManager transferManager = TransferManagerBuilder.standard()
-		                                                        .withS3Client(this.amazonS3)
-		                                                        .build();
-		transferManager.upload("myBucket","filename",new File("someFile"));
-	}
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+ObjectMetadata objectMetadata = ObjectMetadata.builder()
+    .contentType("application/json")
+    .serverSideEncryption(ServerSideEncryption.AES256)
+    .build();
+s3Resource.setObjectMetadata(objectMetadata);
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
 }
 ----
 
-=== Searching resources
-The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
-offers the same support to resolve resources within a bucket and even throughout buckets. The actual resource loader needs
-to be wrapped with the Spring Cloud AWS one in order to search for s3 buckets, in case of non s3 bucket the resource loader
-will fall back to the original one. The next example shows the resource resolution by using different patterns.
+Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.DiskBufferingS3OutputStream`. When data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
 
-[source,java,indent=0]
+[source,java]
 ----
-public class SimpleResourceLoadingBean {
-
-	private ResourcePatternResolver resourcePatternResolver;
-
- 	@Autowired
-    public void setupResolver(ApplicationContext applicationContext, AmazonS3 amazonS3){
-        this.resourcePatternResolver = new PathMatchingSimpleStorageResourcePatternResolver(amazonS3, applicationContext);
-    }
-
- 	public void resolveAndLoad() throws IOException {
- 		Resource[] allTxtFilesInFolder =  this.resourcePatternResolver.getResources("s3://bucket/name/*.txt");
- 		Resource[] allTxtFilesInBucket =  this.resourcePatternResolver.getResources("s3://bucket/**/*.txt");
- 		Resource[] allTxtFilesGlobally =  this.resourcePatternResolver.getResources("s3://**/*.txt");
- 	}
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+} catch (UploadFailedException e) {
+    // e.getPath contains a file location in temporary folder
 }
 ----
 
-[WARNING]
-====
-Resolving resources throughout all buckets can be very time consuming depending on the number of buckets a user owns.
-====
+If `DiskBufferingS3OutputStream` behavior does not fit your needs, you can implement custom `S3OutputStream` and provide a bean of type `io.awspring.cloud.s3.S3OutputStreamProvider` that is responsible for creating stream from `S3Resource`.
 
-=== Using CloudFormation
-CloudFormation also allows to create buckets during stack creation. These buckets will typically have a generated name
-that must be used as the bucket name. In order to allow application developers to define _static_ names inside their
-configuration, Spring Cloud AWS provides support to resolve the generated bucket names.
-Application developers can use the `io.awspring.cloud.core.env.ResourceIdResolver` interface to resolve the
-physical names that are generated based on the logical names.
+Possible alternative implementations can use multi-part upload (for example with https://github.com/CI-CMG/aws-s3-outputstream[aws-s3-outputstream library)] or https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/transfer/s3/S3TransferManager.html[S3TransferManager].
 
-The next example shows a bucket definition inside a CloudFormation stack template. The bucket will be created with a name
-like _integrationteststack-sampleBucket-23qysofs62tc2_
+=== Configuration
 
-[source,json,indent=0]
-----
-{
-	"Resources": {
-		"sampleBucket": {
-			"Type": "AWS::S3::Bucket"
-		}
-	}
-}
-----
+The Spring Boot Starter for S3 provides the following configuration options:
 
-Application developers can resolve that name and use it to load resources as shown in the next example below.
-
-[source,java,indent=0]
-----
-public class SimpleResourceLoadingBean {
-
-	private final ResourceLoader loader;
-	private final ResourceIdResolver idResolver;
-
-	@Autowired
-	public SimpleResourceLoadingBean(ResourceLoader loader, ResourceIdResolver idResolver) {
-		this.loader = loader;
-		this.idResolver = idResolver;
-	}
-
-	public void resolveAndLoad() {
-		String sampleBucketName = this.idResolver.
-			resolveToPhysicalResourceId("sampleBucket");
-		Resource resource = this.loader.
-			getResource("s3://" + sampleBucketName + "/test");
-	}
-}
-----
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.s3.enabled` | Enables the S3 integration. | No | `true`
+| `spring.cloud.aws.s3.endpoint` | Configures endpoint used by `S3Client`. | No | `http://localhost:4566`
+| `spring.cloud.aws.s3.region` | Configures region used by `S3Client`. | No | `eu-west-1`
+| `spring.cloud.aws.s3.accelerate-mode-enabled` | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.checksum-validation-enabled` | Option to disable doing a validation of the checksum of an object stored in S3. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.dualstack-enabled` | Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use IPv6. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.path-style-access-enabled` | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.use-arn-region-enabled` | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown. | No | `null` (falls back to SDK default)
+|===
 
 === IAM Permissions
 red

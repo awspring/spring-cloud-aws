@@ -133,7 +133,7 @@ class CredentialsProviderAutoConfigurationTests {
 	@Configuration
 	static class CustomCredentialsProviderConfiguration {
 
-		@Bean(name = "credentialsProvider")
+		@Bean
 		public AwsCredentialsProvider customAwsCredentialsProvider() {
 			return new CustomAWSCredentialsProvider();
 		}
