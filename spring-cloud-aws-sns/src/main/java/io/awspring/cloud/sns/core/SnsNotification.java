@@ -76,9 +76,9 @@ public class SnsNotification<T> {
 
 	@Nullable
 	public String getGroupId() {
-		Map<String, Object> headers = this.headers;
-		if (headers != null) {
-			return (String) headers.get(SnsHeaders.MESSAGE_GROUP_ID_HEADER);
+		Map<String, Object> headersMap = this.headers;
+		if (headersMap != null) {
+			return (String) headersMap.get(SnsHeaders.MESSAGE_GROUP_ID_HEADER);
 		}
 		else {
 			return null;
@@ -87,9 +87,9 @@ public class SnsNotification<T> {
 
 	@Nullable
 	public String getDeduplicationId() {
-		Map<String, Object> headers = this.headers;
-		if (headers != null) {
-			return (String) headers.get(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER);
+		Map<String, Object> headersMap = this.headers;
+		if (headersMap != null) {
+			return (String) headersMap.get(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER);
 		}
 		else {
 			return null;
