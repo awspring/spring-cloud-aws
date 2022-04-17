@@ -22,6 +22,7 @@ import software.amazon.awssdk.arns.Arn;
 /**
  * Caching implementation for resolving ARN from topicName. It is delegating work to {@link TopicArnResolver}
  * implementation, meaning it will only cache Arn for given topic name and return it.
+ *
  * @author Matej Nedic
  * @since 3.0.0
  */

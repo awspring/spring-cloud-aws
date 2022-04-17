@@ -31,6 +31,7 @@ import io.awspring.cloud.sns.handlers.NotificationStatus;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -77,83 +78,85 @@ class ComplexNotificationEndpointControllerTest {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
 	}
 
-	@Test
-	void subscribe_subscriptionConfirmationRequestReceived_subscriptionConfirmedThroughSubscriptionStatus()
-			throws Exception {
-		// Arrange
-		byte[] subscriptionRequestJsonContent = FileCopyUtils
-				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("subscriptionConfirmation.json"));
+	@Nested
+	class SubscriptionConfirmationRequestReceived {
+		@Test
+		void subscriptionConfirmedThroughSubscriptionStatus() throws Exception {
+			// Arrange
+			byte[] subscriptionRequestJsonContent = FileCopyUtils
+					.copyToByteArray(getClass().getClassLoader().getResourceAsStream("subscriptionConfirmation.json"));
 
-		// Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation")
-				.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
+			// Act
+			mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "SubscriptionConfirmation")
+					.content(subscriptionRequestJsonContent)).andExpect(status().isNoContent());
 
-		// Assert
-		verify(this.snsClient, times(1)).confirmSubscription(
-				ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
-						.token("111111111111111111111111111111111111111111111111111111"
-								+ "1111111111111111111111111111111111111111111111111111"
-								+ "1111111111111111111111111111111111111111111111111111"
-								+ "1111111111111111111111111111111111111111111111111111")
-						.build());
+			// Assert
+			verify(snsClient, times(1)).confirmSubscription(
+					ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
+							.token("111111111111111111111111111111111111111111111111111111"
+									+ "1111111111111111111111111111111111111111111111111111"
+									+ "1111111111111111111111111111111111111111111111111111"
+									+ "1111111111111111111111111111111111111111111111111111")
+							.build());
+		}
 	}
 
-	// @checkstyle:off
-	@Test
-	void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod()
-			throws Exception {
-		// @checkstyle:on
-		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				getClass().getClassLoader().getResourceAsStream("notificationMessage-complexObject.json"));
+	@Nested
+	class NotificationReceivedAsMessageWithComplextContent {
+		@Test
+		void notificationSubjectAndMessagePassedToAnnotatedControllerMethod() throws Exception {
+			// Arrange
+			byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
+					getClass().getClassLoader().getResourceAsStream("notificationMessage-complexObject.json"));
 
-		// Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
-				.content(notificationJsonContent)).andExpect(status().isNoContent());
+			// Act
+			mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
+					.content(notificationJsonContent)).andExpect(status().isNoContent());
 
-		// Assert
-		assertThat(this.notificationTestController.getMessage().getFirstName()).isEqualTo("Agim");
-		assertThat(this.notificationTestController.getMessage().getLastName()).isEqualTo("Emruli");
-		assertThat(this.notificationTestController.getSubject()).isEqualTo("Notification Subject");
+			// Assert
+			assertThat(notificationTestController.getMessage().getFirstName()).isEqualTo("Agim");
+			assertThat(notificationTestController.getMessage().getLastName()).isEqualTo("Emruli");
+			assertThat(notificationTestController.getSubject()).isEqualTo("Notification Subject");
+		}
+
+		@Test
+		void notificationSubjectAndMessagePassedToAnnotatedControllerMethod_Check_UTF8() throws Exception {
+			// Arrange
+			byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(getClass().getClassLoader()
+					.getResourceAsStream("notificationMessage-complexObject-UTF-8-Check.json"));
+
+			// Act
+			mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
+					.content(notificationJsonContent)).andExpect(status().isNoContent());
+
+			// Assert
+			assertThat(notificationTestController.getMessage().getFirstName()).isEqualTo("الْحُرُوف");
+			assertThat(notificationTestController.getMessage().getLastName()).isEqualTo("口廿竹十火");
+			assertThat(notificationTestController.getSubject()).isEqualTo("Notification Subject");
+		}
 	}
 
-	// @checkstyle:off
-	@Test
-	void notification_notificationReceivedAsMessageWithComplexContent_notificationSubjectAndMessagePassedToAnnotatedControllerMethod_Check_UTF8()
-			throws Exception {
-		// @checkstyle:on
-		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils.copyToByteArray(
-				getClass().getClassLoader().getResourceAsStream("notificationMessage-complexObject-UTF-8-Check.json"));
+	@Nested
+	class UnsubscribeConfirmationReceivedAsMessage {
+		@Test
+		void reSubscriptionCalledByController() throws Exception {
+			// Arrange
+			byte[] notificationJsonContent = FileCopyUtils
+					.copyToByteArray(getClass().getClassLoader().getResourceAsStream("unsubscribeConfirmation.json"));
 
-		// Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "Notification")
-				.content(notificationJsonContent)).andExpect(status().isNoContent());
+			// Act
+			mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation")
+					.content(notificationJsonContent)).andExpect(status().isNoContent());
 
-		// Assert
-		assertThat(this.notificationTestController.getMessage().getFirstName()).isEqualTo("الْحُرُوف");
-		assertThat(this.notificationTestController.getMessage().getLastName()).isEqualTo("口廿竹十火");
-		assertThat(this.notificationTestController.getSubject()).isEqualTo("Notification Subject");
-	}
-
-	@Test
-	void notification_unsubscribeConfirmationReceivedAsMessage_reSubscriptionCalledByController() throws Exception {
-		// Arrange
-		byte[] notificationJsonContent = FileCopyUtils
-				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("unsubscribeConfirmation.json"));
-
-		// Act
-		this.mockMvc.perform(post("/myComplexTopic").header("x-amz-sns-message-type", "UnsubscribeConfirmation")
-				.content(notificationJsonContent)).andExpect(status().isNoContent());
-
-		// Assert
-		verify(this.snsClient, times(1)).confirmSubscription(
-				ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
-						.token("2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb86"
-								+ "07743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dc"
-								+ "a3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf546"
-								+ "05e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f4" + "0bddfb45")
-						.build());
+			// Assert
+			verify(snsClient, times(1)).confirmSubscription(
+					ConfirmSubscriptionRequest.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:mySampleTopic")
+							.token("2336412f37fb687f5d51e6e241d638b05824e9e2f6713b42abaeb86"
+									+ "07743f5ba91d34edd2b9dabe2f1616ed77c0f8801ee79911d34dc"
+									+ "a3d210c228af87bd5d9597bf0d6093a1464e03af6650e992ecf546"
+									+ "05e020f04ad3d47796045c9f24d902e72e811a1ad59852cad453f4" + "0bddfb45")
+							.build());
+		}
 	}
 
 	@EnableWebMvc

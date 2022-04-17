@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
  *
  * @author Matej Nedic
  */
-class DefaultTopicArnResolver implements TopicArnResolver {
+public class DefaultTopicArnResolver implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
