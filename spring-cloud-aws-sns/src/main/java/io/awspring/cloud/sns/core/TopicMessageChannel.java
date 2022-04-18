@@ -127,8 +127,8 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	}
 
 	private boolean isSkipHeader(String headerName) {
-		// TODO: what about NOTIFICATION_SUBJECT_HEADER?
-		return MESSAGE_GROUP_ID_HEADER.equals(headerName) || MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName);
+		return NOTIFICATION_SUBJECT_HEADER.equals(headerName) || MESSAGE_GROUP_ID_HEADER.equals(headerName)
+				|| MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName);
 	}
 
 	private MessageAttributeValue getStringArrayMessageAttribute(List<Object> messageHeaderValue) {
