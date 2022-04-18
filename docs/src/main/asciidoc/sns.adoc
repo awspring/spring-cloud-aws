@@ -16,6 +16,8 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 === Sending Notifications
 
+==== SNS Template
+
 The starter automatically configures and registers a `SnsTemplate` bean providing higher level abstractions for sending SNS notifications.
 `SnsTemplate` implements Spring Messaging abstractions making it easy to combine with other messaging technologies compatible with Spring Messaging.
 
@@ -60,6 +62,34 @@ When sending SNS notification, it is required to provide a topic ARN. Spring Clo
 Otherwise, Spring Cloud AWS will make an attempt to create topic with this name with a first call.
 
 The behavior of resolving topic ARN by a topic name can be altered by providing a custom bean of type `io.awspring.cloud.sns.core.TopicArnResolver`.
+
+==== SNS Operations
+
+Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
+In such case, we recommend using `SnsOperations` - an interface implemented by `SnsTemplate`, that exposes a convenient method for sending SNS notification, including support for FIFO topics.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.SnsNotification;
+import io.awspring.cloud.sns.core.SnsOperations;
+import io.awspring.cloud.sns.core.SnsTemplate;
+
+public class NotificationService {
+	private final SnsOperations snsOperations;
+
+	NotificationService(SnsOperations snsOperations) {
+		this.snsOperations = snsOperations;
+	}
+
+	void sendNotification() {
+		SnsNotification<Person> notification = SnsNotification.builder(new Person("John", "Doe"))
+			.deduplicationId("..")
+			.groupId("..")
+			.build();
+		snsOperations.sendNotification("topic-arn", notification);
+	}
+}
+----
 
 === Using SNS Client
 
