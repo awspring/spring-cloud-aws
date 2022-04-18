@@ -10,78 +10,89 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 ----
 <dependency>
     <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-starter-aws-sns</artifactId>
+    <artifactId>spring-cloud-aws-starter-sns</artifactId>
 </dependency>
 ----
 
-=== Using SnsTemplate
+=== Sending Notifications
 
-The starter automatically configures and registers a `SnsTemplate` bean in the Spring application context. `SnsTemplate` is used to publish notifications to SNS service.
-It is built on top of Spring Messaging which means it supports `Message` objects for publishing, but also supports conversion of objects to String representation.
+The starter automatically configures and registers a `SnsTemplate` bean providing higher level abstractions for sending SNS notifications.
+`SnsTemplate` implements Spring Messaging abstractions making it easy to combine with other messaging technologies compatible with Spring Messaging.
+
+It supports sending notifications with payload of type:
+
+* `String` - using `org.springframework.messaging.converter.StringMessageConverter`
+* `Object` - which gets serialized to JSON using `org.springframework.messaging.converter.MappingJackson2MessageConverter` and Jackson's `com.fasterxml.jackson.databind.ObjectMapper` autoconfigured by Spring Boot.
+
+Additionally, it exposes handful of methods supporting `org.springframework.messaging.Message`.
 
 [source,java]
 ----
 import io.awspring.cloud.sns.core.SnsTemplate;
+
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Component;
 
-import static io.awspring.cloud.sns.core.MessageHeaderCodes.NOTIFICATION_SUBJECT_HEADER;
-
-@Component
-public class SnsMessageSender {
+public class NotificationService {
 	private final SnsTemplate snsTemplate;
 
-	public SnsMessageSender(SnsTemplate snsTemplate) {
+	NotificationService(SnsTemplate snsTemplate) {
 		this.snsTemplate = snsTemplate;
 	}
 
-	void sendMessage() {
-		this.snsTemplate.send("arn:someArn", MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
-			.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
-
-		this.snsTemplate.convertAndSend(arn, new Person("Foo", "Bar"));
-    	}
-
-    	class Person {
-    		private String firstName;
-    		private String lastName;
-
-    		public Person() {
-    		}
-
-    		public Person(String firstName, String lastName) {
-    			this.firstName = firstName;
-    			this.lastName = lastName;
-    		}
-
-    		//getters and setter
-
-    	}
+	void sendNotification() {
+        // sends String payload
+		snsTemplate.sendNotification("topic-arn", "payload", "subject");
+        // sends object serialized to JSON
+		snsTemplate.sendNotification("topic-arn", new Person("John", "Doe"), "subject");
+        // sends a Spring Messaging Message
+		Message<String> message = MessageBuilder.withPayload("payload")
+			.setHeader("header-name", "header-value")
+			.build();
+		snsTemplate.send("topic-arn", message);
+	}
 }
 ----
 
-If you want to use your own implementation of converters you can create `SnsTemplate` and pass `MessageConverter` object.
+If autoconfigured converters do not meet your needs, you can provide a custom `SnsTemplate` bean with a message converter of your choice.
 
-`SnsTemplate` also supports publishing notification by a topic name and by default it uses Caching for referencing topic name to ARN. Publishing notification cannot be done without ARN which means:
-*	1. Calling create topic which will return ARN for topic that already exist or create topic and return ARN. (This is default behaviour.)
-*	2. Getting list of topics filter the list by finding one that has same name as topic name that is being published to. (This would use pagination and possible more calls to SNS).
+When sending SNS notification, it is required to provide a topic ARN. Spring Cloud AWS simplifies it and allows providing a topic name instead, under a condition that topic with that name has already been created.
+Otherwise, Spring Cloud AWS will make an attempt to create topic with this name with a first call.
 
-You can override this behaviour by creating your own implementation of `TopicArnResolver` and pass it to `SnsTemplate` constructor.
+The behavior of resolving topic ARN by a topic name can be altered by providing a custom bean of type `io.awspring.cloud.sns.core.TopicArnResolver`.
 
-=== Using SnsClient
+=== Using SNS Client
 
-There are also other features such as creating topics,sending SMS and so on, that SNS can be used for, but is not supported by `SnsTemplate`. For those features `SnsClient` can be easily used, simply inject the Bean since it is created by autoconfiguration.
+To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
 
-=== Http Notification Controller Endpoints
+If autoconfigured `SnsClient` bean configuration does not meet your needs, it can be replaced by creating a custom bean of type `SnsClient`.
 
-SNS integration provides support for HTTP endpoints, to be more specific, it allows subscription to events emitted by topic.
-SNS is sending following requests and following annotations are used for it:
+[source,java]
+----
+import software.amazon.awssdk.services.sns.SnsClient;
+
+public class NotificationService {
+	private final SnsClient snsClient;
+
+	public NotificationService(SnsClient snsClient) {
+		this.snsClient = snsClient;
+	}
+
+	void sendNotification() {
+		snsClient.publish(request -> request.topicArn("sns-topic-arn").message("payload"));
+	}
+}
+----
+
+=== Annotation-driven HTTP notification endpoint
+
+SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
+SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
 
 * Subscription request -> `@NotificationSubscriptionMapping`
 * Notification request -> `@NotificationMessageMapping`
 * Unsubscription request -> `@NotificationUnsubscribeMapping`
 
-Annotations support path variable which is actually alias to `RequestMapping` path variable, meaning you can use it to fine grain path of your controller class.
 HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract the message and subject out of the notification requests.
 
 Example of integration:
@@ -94,62 +105,29 @@ import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirma
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class NotificationMappingController {
+@RequestMapping("/topicName")
+public class NotificationTestController {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);
-
-	@import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
-     import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
-     import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
-     import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
-     import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
-     import io.awspring.cloud.sns.handlers.NotificationStatus;
-     import org.slf4j.Logger;
-     import org.slf4j.LoggerFactory;
-     import org.springframework.stereotype.Controller;
-
-     @Controller
-     public class NotificationMappingController {
-
-     	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);
-
-     	@NotificationSubscriptionMapping(path = "/testTopic")
-     	public void handleSubscriptionMessage(NotificationStatus status) {
-     		status.confirmSubscription();
-     	}
-
-     	@NotificationMessageMapping(path = "/testTopic")
-     	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-     		LOGGER.info("NotificationMessageMapping message is: {}", message);
-     		LOGGER.info("NotificationMessageMapping subject is: {}", subject);
-     	}
-
-     	@NotificationUnsubscribeConfirmationMapping(path = "/testTopic")
-     	public void handleUnsubscribeMessage(NotificationStatus status) {
-     		status.confirmSubscription();
-     	}
-
-     }(path = "/testTopic")
+	@NotificationSubscriptionMapping
 	public void handleSubscriptionMessage(NotificationStatus status) {
+		//We subscribe to start receive the message
 		status.confirmSubscription();
 	}
 
-	@NotificationMessageMapping(path = "/testTopic")
+	@NotificationMessageMapping
 	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-		LOGGER.info("NotificationMessageMapping message is: {}", message);
-		LOGGER.info("NotificationMessageMapping subject is: {}", subject);
+		// ...
 	}
 
-	@NotificationUnsubscribeConfirmationMapping(path = "/testTopic")
+	@NotificationUnsubscribeConfirmationMapping
 	public void handleUnsubscribeMessage(NotificationStatus status) {
+		//e.g. the client has been unsubscribed and we want to "re-subscribe"
 		status.confirmSubscription();
 	}
-
 }
 ----
 
