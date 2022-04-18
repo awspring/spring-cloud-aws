@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sns;
+package io.awspring.cloud.autoconfigure.sns.it;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
@@ -32,11 +32,13 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
 /**
+ * Integration tests for {@link SnsTemplate}.
+ *
  * @author Matej Nedic
  * @since 3.0
  */
 @Testcontainers
-class NotificationMessageTemplateTest {
+class SnsTemplateIntegrationTest {
 
 	private static final String REGION = "eu-west-1";
 

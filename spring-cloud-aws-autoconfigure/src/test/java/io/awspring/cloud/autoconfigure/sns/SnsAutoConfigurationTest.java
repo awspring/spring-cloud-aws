@@ -21,13 +21,17 @@ import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
+import io.awspring.cloud.sns.core.TopicArnResolver;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -90,6 +94,30 @@ class SnsAutoConfigurationTest {
 			assertThat(((HandlerMethodArgumentResolverComposite) handlerMethodArgumentResolver).getResolvers().size())
 					.isEqualTo(3);
 		});
+	}
+
+	@Test
+	void customTopicArnResolverCanBeConfigured() {
+		this.contextRunner.withUserConfiguration(CustomTopicArnResolverConfiguration.class)
+				.run(context -> assertThat(context).hasSingleBean(CustomTopicArnResolver.class));
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomTopicArnResolverConfiguration {
+
+		@Bean
+		TopicArnResolver customS3OutputStreamProvider() {
+			return new CustomTopicArnResolver();
+		}
+
+	}
+
+	static class CustomTopicArnResolver implements TopicArnResolver {
+
+		@Override
+		public Arn resolveTopicArn(String topicName) {
+			return Arn.builder().build();
+		}
 	}
 
 }
