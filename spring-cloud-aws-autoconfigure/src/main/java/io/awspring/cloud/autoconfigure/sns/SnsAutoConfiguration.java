@@ -78,22 +78,16 @@ public class SnsAutoConfiguration {
 				.orElseGet(() -> new SnsTemplate(snsClient, converter));
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	public HandlerMethodArgumentResolver handlerMethodArgumentResolver(SnsClient snsClient) {
-		return getNotificationHandlerMethodArgumentResolver(snsClient);
-	}
-
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(WebMvcConfigurer.class)
 	static class SnsWebConfiguration {
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(HandlerMethodArgumentResolver handlerMethodArgumentResolver) {
+		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient) {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-					resolvers.add(handlerMethodArgumentResolver);
+					resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
 				}
 			};
 		}

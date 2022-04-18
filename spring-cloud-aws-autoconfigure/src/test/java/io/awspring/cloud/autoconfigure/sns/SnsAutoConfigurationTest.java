@@ -25,12 +25,12 @@ import io.awspring.cloud.sns.core.TopicArnResolver;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -61,8 +61,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
-			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
-					.getBean(HandlerMethodArgumentResolver.class);
+			assertThat(context).hasBean("snsWebMvcConfigurer");
 
 			SnsClient client = context.getBean(SnsClient.class);
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
@@ -70,9 +69,7 @@ class SnsAutoConfigurationTest {
 			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
 			assertThat(attributes.get(SdkClientOption.ENDPOINT))
 					.isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
-			assertThat(handlerMethodArgumentResolver).isNotNull();
-			assertThat(((HandlerMethodArgumentResolverComposite) handlerMethodArgumentResolver).getResolvers().size())
-					.isEqualTo(3);
+
 		});
 	}
 
@@ -80,19 +77,14 @@ class SnsAutoConfigurationTest {
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.endpoint:http://localhost:8090").run(context -> {
 			SnsClient client = context.getBean(SnsClient.class);
-			HandlerMethodArgumentResolver handlerMethodArgumentResolver = context
-					.getBean(HandlerMethodArgumentResolver.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasBean("snsWebMvcConfigurer");
 
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
 					"clientConfiguration");
 			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
 			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
-			assertThat(context).hasSingleBean(HandlerMethodArgumentResolver.class);
-			assertThat(handlerMethodArgumentResolver).isNotNull();
-			assertThat(((HandlerMethodArgumentResolverComposite) handlerMethodArgumentResolver).getResolvers().size())
-					.isEqualTo(3);
 		});
 	}
 
@@ -100,6 +92,15 @@ class SnsAutoConfigurationTest {
 	void customTopicArnResolverCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(CustomTopicArnResolverConfiguration.class)
 				.run(context -> assertThat(context).hasSingleBean(CustomTopicArnResolver.class));
+	}
+
+	@Test
+	void doesNotConfigureArgumentResolversWhenSpringWebNotOnTheClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
+			assertThat(context).hasSingleBean(SnsClient.class);
+			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
+		});
 	}
 
 	@Configuration(proxyBeanMethods = false)
