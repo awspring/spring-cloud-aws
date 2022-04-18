@@ -20,13 +20,13 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
+import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.UrlConnectionS3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -76,7 +76,7 @@ public class S3AutoConfiguration {
 	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client,
 			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
 		return new DiskBufferingS3OutputStreamProvider(s3Client,
-				contentTypeResolver.orElseGet(UrlConnectionS3ObjectContentTypeResolver::new));
+				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
 
 	@Bean

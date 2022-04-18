@@ -77,7 +77,7 @@ class S3TemplateIntegrationTests {
 	@BeforeEach
 	void init() {
 		this.s3Template = new S3Template(client,
-				new DiskBufferingS3OutputStreamProvider(client, new UrlConnectionS3ObjectContentTypeResolver()),
+				new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
 				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
 
 		client.createBucket(r -> r.bucket("test-bucket"));

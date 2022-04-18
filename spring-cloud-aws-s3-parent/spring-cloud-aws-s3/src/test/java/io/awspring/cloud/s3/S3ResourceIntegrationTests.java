@@ -147,7 +147,7 @@ class S3ResourceIntegrationTests {
 	}
 
 	private DiskBufferingS3OutputStreamProvider s3OutputStreamProvider() {
-		return new DiskBufferingS3OutputStreamProvider(client, new UrlConnectionS3ObjectContentTypeResolver());
+		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
 	}
 
 	@Test

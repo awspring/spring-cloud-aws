@@ -20,16 +20,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link UrlConnectionS3ObjectContentTypeResolver}.
+ * Tests for {@link PropertiesS3ObjectContentTypeResolver}.
  *
  * @author Maciej Walkowiak
  */
-class UrlConnectionS3ObjectContentTypeResolverTests {
+class PropertiesS3ObjectContentTypeResolverTests {
+	private final PropertiesS3ObjectContentTypeResolver resolver = new PropertiesS3ObjectContentTypeResolver();
 
 	@Test
-	void resolvesTypeFromBuiltInMap() {
-		UrlConnectionS3ObjectContentTypeResolver resolver = new UrlConnectionS3ObjectContentTypeResolver();
+	void resolvesTypeFromKnownProperties() {
 		String contentType = resolver.resolveContentType("object.txt");
 		assertThat(contentType).isEqualTo("text/plain");
+	}
+
+	@Test
+	void returnsNullForUnknownExtension() {
+		String contentType = resolver.resolveContentType("object.xxx");
+		assertThat(contentType).isNull();
 	}
 }

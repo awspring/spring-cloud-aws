@@ -17,7 +17,19 @@ package io.awspring.cloud.s3;
 
 import org.springframework.lang.Nullable;
 
+/**
+ * Resolves content type of S3 objects.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public interface S3ObjectContentTypeResolver {
+	/**
+	 * Resolves content type from a file name.
+	 *
+	 * @param fileName - the file name
+	 * @return content type or null if not resolved
+	 */
 	@Nullable
 	String resolveContentType(String fileName);
 }
