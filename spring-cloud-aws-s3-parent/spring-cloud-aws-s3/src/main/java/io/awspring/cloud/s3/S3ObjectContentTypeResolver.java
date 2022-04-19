@@ -18,26 +18,18 @@ package io.awspring.cloud.s3;
 import org.springframework.lang.Nullable;
 
 /**
- * Thrown when uploading to S3 fails.
+ * Resolves content type of S3 objects.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
-public class UploadFailedException extends S3Exception {
-
+public interface S3ObjectContentTypeResolver {
 	/**
-	 * A path to temporary location containing a file that has not been uploaded to S3.
+	 * Resolves content type from a file name.
+	 *
+	 * @param fileName - the file name
+	 * @return content type or null if not resolved
 	 */
 	@Nullable
-	private final String path;
-
-	public UploadFailedException(@Nullable String path, @Nullable Exception se) {
-		super("Upload failed. File is stored in a temporary folder in the filesystem " + path, se);
-		this.path = path;
-	}
-
-	@Nullable
-	public String getPath() {
-		return path;
-	}
-
+	String resolveContentType(String fileName);
 }

@@ -15,29 +15,27 @@
  */
 package io.awspring.cloud.s3;
 
-import org.springframework.lang.Nullable;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Thrown when uploading to S3 fails.
+ * Tests for {@link PropertiesS3ObjectContentTypeResolver}.
  *
  * @author Maciej Walkowiak
  */
-public class UploadFailedException extends S3Exception {
+class PropertiesS3ObjectContentTypeResolverTests {
+	private final PropertiesS3ObjectContentTypeResolver resolver = new PropertiesS3ObjectContentTypeResolver();
 
-	/**
-	 * A path to temporary location containing a file that has not been uploaded to S3.
-	 */
-	@Nullable
-	private final String path;
-
-	public UploadFailedException(@Nullable String path, @Nullable Exception se) {
-		super("Upload failed. File is stored in a temporary folder in the filesystem " + path, se);
-		this.path = path;
+	@Test
+	void resolvesTypeFromKnownProperties() {
+		String contentType = resolver.resolveContentType("object.txt");
+		assertThat(contentType).isEqualTo("text/plain");
 	}
 
-	@Nullable
-	public String getPath() {
-		return path;
+	@Test
+	void returnsNullForUnknownExtension() {
+		String contentType = resolver.resolveContentType("object.xxx");
+		assertThat(contentType).isNull();
 	}
-
 }

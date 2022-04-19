@@ -148,6 +148,45 @@ If `DiskBufferingS3OutputStream` behavior does not fit your needs, you can imple
 
 Possible alternative implementations can use multi-part upload (for example with https://github.com/CI-CMG/aws-s3-outputstream[aws-s3-outputstream library)] or https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/transfer/s3/S3TransferManager.html[S3TransferManager].
 
+=== Using S3Template
+
+Spring Cloud AWS provides a higher abstraction on the top of `S3Client` providing methods for the most common use cases when working with S3.
+
+On the top of self-explanatory methods for creating and deleting buckets, `S3Template` provides a simple methods for uploading and downloading files:
+
+[source,java]
+----
+@Autowired
+private S3Template s3Template;
+
+InputStream is = ...
+// uploading file without metadata
+s3Template.upload(BUCKET, "file.txt", is);
+
+// uploading file with metadata
+s3Template.upload(BUCKET, "file.txt", is, ObjectMetadata.builder().contentType("text/plain").build());
+----
+
+`S3Template` also allows storing & retrieving Java objects.
+
+[source,java]
+----
+Person p = new Person("John", "Doe");
+s3Template.store(BUCKET, "person.json", p);
+
+Person loadedPerson = s3Template.read(BUCKET, "person.json", Person.class);
+----
+
+By default, if Jackson is on the classpath, `S3Template` uses `ObjectMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+This behavior can be overwritten by providing custom bean of type `S3ObjectConverter`.
+
+=== Determining S3 Objects Content Type
+
+All S3 objects stored in S3 through `S3Template`, `S3Resource` or `S3OutputStream` automatically get set a `contentType` property on the S3 object metadata, based on the S3 object key (file name).
+
+By default, `PropertiesS3ObjectContentTypeResolver` - a component supporting over 800 file extensions is responsible for content type resolution.
+If this content type resolution does not meet your needs, you can provide a custom bean of type `S3ObjectContentTypeResolver` which will be automatically used in all components responsible for uploading files.
+
 === Configuration
 
 The Spring Boot Starter for S3 provides the following configuration options:

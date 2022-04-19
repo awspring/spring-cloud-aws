@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
  * @author Maciej Walkowiak
  */
 @Testcontainers
-class S3ResourceTests {
+class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
@@ -62,9 +62,7 @@ class S3ResourceTests {
 	@BeforeAll
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make
-		// test
-		// work on
-		// environments without AWS cli configured
+		// test work on environments without AWS cli configured
 		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
 				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
@@ -107,6 +105,15 @@ class S3ResourceTests {
 	}
 
 	@Test
+	void objectHasContentType() {
+		String contents = "{\"foo\":\"bar\"}";
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.json")
+				.contentType("application/json").build(), RequestBody.fromString(contents));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.json");
+		assertThat(resource.contentType()).isEqualTo("application/json");
+	}
+
+	@Test
 	void contentLengthThrowsWhenResourceDoesNotExist() {
 		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
@@ -131,8 +138,7 @@ class S3ResourceTests {
 	void resourceIsWritableWithDiskBuffering() throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
-				new DiskBufferingS3OutputStreamProvider(client));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider());
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
 			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
@@ -140,10 +146,13 @@ class S3ResourceTests {
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
 	}
 
+	private DiskBufferingS3OutputStreamProvider s3OutputStreamProvider() {
+		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
+	}
+
 	@Test
 	void objectMetadataCanBeSetOnWriting() throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
-				new DiskBufferingS3OutputStreamProvider(client));
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
 
 		ObjectMetadata objectMetadata = ObjectMetadata.builder().storageClass(StorageClass.ONEZONE_IA.name())
 				.metadata("key", "value").contentLanguage("en").build();
@@ -159,9 +168,21 @@ class S3ResourceTests {
 		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
+	@Test
+	void contentTypeCanBeResolved() throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+		}
+		GetObjectResponse result = client
+				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+		assertThat(result.contentType()).isEqualTo("text/plain");
+	}
+
 	@NotNull
 	private S3Resource s3Resource(String location) {
-		return new S3Resource(location, client, new DiskBufferingS3OutputStreamProvider(client));
+		return new S3Resource(location, client, s3OutputStreamProvider());
 	}
 
 	@NotNull
@@ -173,6 +194,23 @@ class S3ResourceTests {
 	private String retrieveContent(S3Resource resource) throws IOException {
 		return new BufferedReader(new InputStreamReader(resource.getInputStream())).lines()
 				.collect(Collectors.joining("\n"));
+	}
+
+	static class Person {
+		private String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return "Person{" + "name='" + name + '\'' + '}';
+		}
 	}
 
 }
