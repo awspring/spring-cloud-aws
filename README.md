@@ -4,7 +4,8 @@ Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
 For a deep dive into the project, refer to the Spring Cloud AWS Reference documentation:
 
-- [Spring Cloud AWS 2.4.0](https://docs.awspring.io/spring-cloud-aws/docs/2.4.0/reference/html/index.html)
+- [Spring Cloud AWS 3.0.0-SNAPSHOT](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-SNAPSHOT/reference/html/index.html)
+- [Spring Cloud AWS 2.4.1](https://docs.awspring.io/spring-cloud-aws/docs/2.4.1/reference/html/index.html)
 - [Spring Cloud AWS 2.3.4](https://docs.awspring.io/spring-cloud-aws/docs/2.3.4/reference/html/index.html)
 
 ## Compatibility with Spring Project Versions
@@ -19,18 +20,18 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 
 ## Supported AWS integrations
 
-| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                       |
-|-----------------|----------------------|----------------------------------------------------------------------------|
-| S3              | ✅                    | ✅                                                                          |
-| SNS             | ✅                    | [Under development](https://github.com/awspring/spring-cloud-aws/pull/276) |
-| SES             | ✅                    | ✅                                                                          |
-| Parameter Store | ✅                    | ✅                                                                          |
-| Secrets Manager | ✅                    | ✅                                                                          |
-| SQS             | ✅                    | TODO                                                                       |
-| RDS             | ✅                    | TODO                                                                       |
-| EC2             | ✅                    | ❌                                                                          |
-| ElastiCache     | ✅                    | ❌                                                                          |
-| CloudFormation  | ✅                    | ❌                                                                          |
+| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                 |
+|-----------------|----------------------|----------------------------------------------------------------------|
+| S3              | ✅                    | ✅                                                                    |
+| SNS             | ✅                    | ✅                                                                    |
+| SES             | ✅                    | ✅                                                                    |
+| Parameter Store | ✅                    | ✅                                                                    |
+| Secrets Manager | ✅                    | ✅                                                                    |
+| SQS             | ✅                    | TODO                                                                 |
+| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322) |
+| EC2             | ✅                    | ❌                                                                    |
+| ElastiCache     | ✅                    | ❌                                                                    |
+| CloudFormation  | ✅                    | ❌                                                                    |
 
 Note, that Spring provides support for other AWS services in following projects:
 
@@ -83,7 +84,7 @@ make format
 Documentation can be built by activating the `docs` profile in the maven build.
 
 ```
-./mvnw package -Pdocs
+make docs
 ```
 
 It generates:
