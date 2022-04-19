@@ -66,9 +66,8 @@ public class S3Template implements S3Operations {
 
 	@Override
 	public void store(String bucketName, String key, Object object) {
-		ObjectMetadata objectMetadata = ObjectMetadata.builder().contentType(s3ObjectConverter.contentType()).build();
-		PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
-		objectMetadata.apply(requestBuilder);
+		PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key)
+				.contentType(s3ObjectConverter.contentType());
 		s3Client.putObject(requestBuilder.build(), s3ObjectConverter.write(object));
 	}
 

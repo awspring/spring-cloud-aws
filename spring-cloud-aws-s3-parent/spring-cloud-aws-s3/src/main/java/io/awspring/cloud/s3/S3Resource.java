@@ -91,6 +91,13 @@ public class S3Resource extends AbstractResource implements WritableResource {
 				.versionId(location.getVersion()));
 	}
 
+	public String contentType() {
+		if (headMetadata == null) {
+			fetchMetadata();
+		}
+		return headMetadata.contentType;
+	}
+
 	public void setObjectMetadata(@Nullable ObjectMetadata objectMetadata) {
 		this.objectMetadata = objectMetadata;
 	}
@@ -145,9 +152,12 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 		private final Instant lastModified;
 
+		private final String contentType;
+
 		HeadMetadata(HeadObjectResponse headObjectResponse) {
 			this.contentLength = headObjectResponse.contentLength();
 			this.lastModified = headObjectResponse.lastModified();
+			this.contentType = headObjectResponse.contentType();
 		}
 
 	}

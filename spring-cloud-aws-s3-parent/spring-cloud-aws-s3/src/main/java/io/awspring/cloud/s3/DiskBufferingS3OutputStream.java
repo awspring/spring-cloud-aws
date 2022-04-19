@@ -27,7 +27,6 @@ import java.util.Base64;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -48,15 +47,7 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DiskBufferingS3OutputStream.class);
 
-	/**
-	 * Bucket name of the S3 bucket.
-	 */
-	private final String bucket;
-
-	/**
-	 * Key of the file when it is uploaded to S3.
-	 */
-	private final String key;
+	private final Location location;
 
 	/**
 	 * The local file that will be uploaded when the stream is closed.
@@ -84,13 +75,21 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 	 */
 	private boolean closed;
 
-	DiskBufferingS3OutputStream(@NonNull String bucket, @NonNull String key, @NonNull S3Client client,
-			@Nullable ObjectMetadata objectMetadata) throws IOException {
-		Assert.notNull(bucket, "Bucket name must not be null.");
-		this.bucket = bucket;
-		this.key = key;
+	@Nullable
+	private final S3ObjectContentTypeResolver contentTypeResolver;
+
+	DiskBufferingS3OutputStream(Location location, S3Client s3Client, @Nullable ObjectMetadata objectMetadata)
+			throws IOException {
+		this(location, s3Client, objectMetadata, null);
+	}
+
+	DiskBufferingS3OutputStream(Location location, S3Client client, @Nullable ObjectMetadata objectMetadata,
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver) throws IOException {
+		Assert.notNull(location, "Location must not be null.");
+		this.location = location;
 		this.s3Client = client;
 		this.objectMetadata = objectMetadata;
+		this.contentTypeResolver = contentTypeResolver;
 		this.file = File.createTempFile("DiskBufferingS3OutputStream", UUID.randomUUID().toString());
 		try {
 			hash = MessageDigest.getInstance("MD5");
@@ -132,8 +131,8 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 		localOutputStream.close();
 		closed = true;
 		try {
-			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(bucket).key(key)
-					.contentLength(file.length());
+			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(location.getBucket())
+					.key(location.getObject()).contentLength(file.length());
 			if (objectMetadata != null) {
 				objectMetadata.apply(builder);
 			}
@@ -141,11 +140,17 @@ class DiskBufferingS3OutputStream extends S3OutputStream {
 				String contentMD5 = new String(Base64.getEncoder().encode(hash.digest()));
 				builder = builder.contentMD5(contentMD5);
 			}
+			if (contentTypeResolver != null && (objectMetadata == null || objectMetadata.getContentType() == null)) {
+				String contentType = contentTypeResolver.resolveContentType(location.getObject());
+				if (contentType != null) {
+					builder.contentType(contentType);
+				}
+			}
 			s3Client.putObject(builder.build(), RequestBody.fromFile(file));
 			file.delete();
 		}
 		catch (Exception se) {
-			LOG.error("Failed to upload " + key + ". Temporary file @ " + file.getPath());
+			LOG.error(String.format("Failed to upload %s. Temporary file @%s", location.getObject(), file.getPath()));
 			throw new UploadFailedException(file.getPath(), se);
 		}
 	}

@@ -105,6 +105,15 @@ class S3ResourceIntegrationTests {
 	}
 
 	@Test
+	void objectHasContentType() {
+		String contents = "{\"foo\":\"bar\"}";
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.json")
+				.contentType("application/json").build(), RequestBody.fromString(contents));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.json");
+		assertThat(resource.contentType()).isEqualTo("application/json");
+	}
+
+	@Test
 	void contentLengthThrowsWhenResourceDoesNotExist() {
 		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
@@ -129,8 +138,7 @@ class S3ResourceIntegrationTests {
 	void resourceIsWritableWithDiskBuffering() throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt",
-				new DiskBufferingS3OutputStreamProvider(client));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider());
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
 			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
@@ -138,10 +146,13 @@ class S3ResourceIntegrationTests {
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
 	}
 
+	private DiskBufferingS3OutputStreamProvider s3OutputStreamProvider() {
+		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
+	}
+
 	@Test
 	void objectMetadataCanBeSetOnWriting() throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
-				new DiskBufferingS3OutputStreamProvider(client));
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
 
 		ObjectMetadata objectMetadata = ObjectMetadata.builder().storageClass(StorageClass.ONEZONE_IA.name())
 				.metadata("key", "value").contentLanguage("en").build();
@@ -157,9 +168,21 @@ class S3ResourceIntegrationTests {
 		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
+	@Test
+	void contentTypeCanBeResolved() throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+		}
+		GetObjectResponse result = client
+				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+		assertThat(result.contentType()).isEqualTo("text/plain");
+	}
+
 	@NotNull
 	private S3Resource s3Resource(String location) {
-		return new S3Resource(location, client, new DiskBufferingS3OutputStreamProvider(client));
+		return new S3Resource(location, client, s3OutputStreamProvider());
 	}
 
 	@NotNull
