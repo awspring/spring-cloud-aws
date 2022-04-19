@@ -20,18 +20,20 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 
 ## Supported AWS integrations
 
-| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                 |
-|-----------------|----------------------|----------------------------------------------------------------------|
-| S3              | ✅                    | ✅                                                                    |
-| SNS             | ✅                    | ✅                                                                    |
-| SES             | ✅                    | ✅                                                                    |
-| Parameter Store | ✅                    | ✅                                                                    |
-| Secrets Manager | ✅                    | ✅                                                                    |
-| SQS             | ✅                    | TODO                                                                 |
-| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322) |
-| EC2             | ✅                    | ❌                                                                    |
-| ElastiCache     | ✅                    | ❌                                                                    |
-| CloudFormation  | ✅                    | ❌                                                                    |
+| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                      |
+|-----------------|----------------------|---------------------------------------------------------------------------|
+| S3              | ✅                    | ✅                                                                         |
+| SNS             | ✅                    | ✅                                                                         |
+| SES             | ✅                    | ✅                                                                         |
+| Parameter Store | ✅                    | ✅                                                                         |
+| Secrets Manager | ✅                    | ✅                                                                         |
+| SQS             | ✅                    | TODO                                                                      |
+| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
+| EC2             | ✅                    | ❌                                                                         |
+| ElastiCache     | ✅                    | ❌                                                                         |
+| CloudFormation  | ✅                    | ❌                                                                         |
+| CloudWatch      | ✅                    | In Progress [#237](https://github.com/awspring/spring-cloud-aws/pull/237) |
+| Cognito         | ✅                    | TODO                                                                      |
 
 Note, that Spring provides support for other AWS services in following projects:
 
