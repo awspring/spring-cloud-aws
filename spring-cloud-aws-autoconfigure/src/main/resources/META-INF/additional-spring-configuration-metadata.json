@@ -2,6 +2,12 @@
 	"properties": [
 		{
 			"defaultValue": true,
+			"name": "spring.cloud.aws.sns.enabled",
+			"description": "Enables SNS integration.",
+			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
 			"name": "spring.cloud.aws.ses.enabled",
 			"description": "Enables Simple Email Service integration.",
 			"type": "java.lang.Boolean"
