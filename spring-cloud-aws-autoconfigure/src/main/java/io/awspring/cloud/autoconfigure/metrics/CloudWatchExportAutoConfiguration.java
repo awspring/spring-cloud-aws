@@ -73,7 +73,7 @@ public class CloudWatchExportAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CloudWatchAsyncClient amazonCloudWatchAsync(AwsCredentialsProvider credentialsProvider,
+	public CloudWatchAsyncClient cloudWatchAsyncClient(AwsCredentialsProvider credentialsProvider,
 			AwsRegionProvider regionProvider) {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
 				: regionProvider.getRegion();
