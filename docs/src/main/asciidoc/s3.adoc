@@ -1,5 +1,5 @@
 [#spring-cloud-aws-s3]
-== Spring Cloud AWS S3
+== S3 Integration
 
 https://aws.amazon.com/s3/[S3] allows storing files in a cloud.
 A Spring Boot starter is provided to auto-configure the various S3 integration related components.
@@ -206,19 +206,14 @@ The Spring Boot Starter for S3 provides the following configuration options:
 |===
 
 === IAM Permissions
-red
+
 Following IAM permissions are required by Spring Cloud AWS:
 
-[cols="2"]
+[cols="2,1"]
 |===
-| Downloading files
-| `s3:GetObject`
-
-| Searching files
-| `s3:ListObjects`
-
-| Uploading files
-| `s3:PutObject`
+| Downloading files | `s3:GetObject`
+| Searching files | `s3:ListObjects`
+| Uploading files | `s3:PutObject`
 |===
 
 Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
