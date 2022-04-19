@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.s3.sample;
+package io.awspring.cloud.samples.s3;
 
 import io.awspring.cloud.s3.S3Template;
 import org.springframework.web.bind.annotation.GetMapping;
