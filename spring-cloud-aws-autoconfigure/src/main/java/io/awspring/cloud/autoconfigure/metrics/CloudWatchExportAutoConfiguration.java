@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 		MetricsAutoConfiguration.class })
 @EnableConfigurationProperties(CloudWatchProperties.class)
-@ConditionalOnProperty(prefix = "management.metrics.export.cloudwatch", name = "namespace")
+@ConditionalOnProperty(prefix = "spring.cloud.aws.cloudwatch", name = "namespace")
 @ConditionalOnClass({ CloudWatchAsyncClient.class, CloudWatchMeterRegistry.class, AwsRegionProvider.class })
 public class CloudWatchExportAutoConfiguration {
 
@@ -65,7 +65,7 @@ public class CloudWatchExportAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "management.metrics.export.cloudwatch.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(value = "spring.cloud.aws.cloudwatch.enabled", matchIfMissing = true)
 	public CloudWatchMeterRegistry cloudWatchMeterRegistry(CloudWatchConfig config, Clock clock,
 			CloudWatchAsyncClient client) {
 		return new CloudWatchMeterRegistry(config, clock, client);
@@ -73,7 +73,7 @@ public class CloudWatchExportAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CloudWatchAsyncClient amazonCloudWatchAsync(AwsCredentialsProvider credentialsProvider,
+	public CloudWatchAsyncClient cloudWatchAsyncClient(AwsCredentialsProvider credentialsProvider,
 			AwsRegionProvider regionProvider) {
 		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
 				: regionProvider.getRegion();

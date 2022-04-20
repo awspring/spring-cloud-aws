@@ -56,7 +56,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationSettingNamespace() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.cloudwatch.namespace:test").run(context -> {
 			CloudWatchMeterRegistry metricsExporter = context.getBean(CloudWatchMeterRegistry.class);
 			assertThat(metricsExporter).isNotNull();
 
@@ -75,8 +75,8 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationWithSpecificRegion() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
-				"management.metrics.export.cloudwatch.region:us-east-1").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.cloudwatch.namespace:test",
+				"spring.cloud.aws.cloudwatch.region:us-east-1").run(context -> {
 					CloudWatchMeterRegistry metricsExporter = context.getBean(CloudWatchMeterRegistry.class);
 					assertThat(metricsExporter).isNotNull();
 
@@ -103,8 +103,8 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationWithCustomEndpoint() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
-				"management.metrics.export.cloudwatch.endpoint:http://localhost:8090").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.cloudwatch.namespace:test",
+				"spring.cloud.aws.cloudwatch.endpoint:http://localhost:8090").run(context -> {
 					CloudWatchAsyncClient client = context.getBean(CloudWatchAsyncClient.class);
 
 					SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils
