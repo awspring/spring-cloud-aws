@@ -22,6 +22,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -99,6 +100,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
 		});
 	}

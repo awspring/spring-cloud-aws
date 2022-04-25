@@ -15,18 +15,15 @@
  */
 package io.awspring.cloud.sns.core;
 
+import static io.awspring.cloud.sns.core.MessageConverters.initMessageConverter;
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
@@ -36,7 +33,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
  * Helper class that simplifies synchronous sending of notifications to SNS. The only mandatory fields are
- * {@link SnsClient} and AutoCreate boolean.
+ * {@link SnsClient}.
  *
  * @author Alain Sahli
  * @author Matej Nedic
@@ -137,17 +134,4 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 		return new TopicMessageChannel(this.snsClient, topicArn);
 	}
 
-	private static CompositeMessageConverter initMessageConverter(@Nullable MessageConverter messageConverter) {
-		List<MessageConverter> converters = new ArrayList<>();
-
-		StringMessageConverter stringMessageConverter = new StringMessageConverter();
-		stringMessageConverter.setSerializedPayloadClass(String.class);
-		converters.add(stringMessageConverter);
-
-		if (messageConverter != null) {
-			converters.add(messageConverter);
-		}
-
-		return new CompositeMessageConverter(converters);
-	}
 }

@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns.core;
 
-import static io.awspring.cloud.sns.core.Matchers.requestMatches;
+import static io.awspring.cloud.sns.Matchers.requestMatches;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
