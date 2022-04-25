@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
  * @author Matej Nedic
  * @since 3.0
  */
-public class SnsSmsTemplateTest {
+class SnsSmsTemplateTest {
 
 	private static final String TARGET_ARN = "arn:aws:sns:eu-west:123456789012:test";
 

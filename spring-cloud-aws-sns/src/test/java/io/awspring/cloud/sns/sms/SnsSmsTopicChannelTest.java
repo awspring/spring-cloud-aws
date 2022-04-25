@@ -29,7 +29,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
-public class SnsSmsTopicChannelTest {
+class SnsSmsTopicChannelTest {
 
 	private static final String TARGET_ARN = "arn:aws:sns:eu-west:123456789012:test";
 	private final SnsClient snsClient = mock(SnsClient.class);

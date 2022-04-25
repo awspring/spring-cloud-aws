@@ -33,7 +33,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
  * Integration tests for {@link SnsSmsTemplate}.
@@ -43,11 +42,10 @@ import software.amazon.awssdk.services.sns.SnsClient;
  */
 @Testcontainers
 @SpringBootTest()
-public class SnsSmsTemplateIntegrationTest {
+class SnsSmsTemplateIntegrationTest {
 	@Autowired
 	private SnsSmsTemplate snsSmsTemplate;
-	@Autowired
-	private SnsClient snsClient;
+
 	private static final String REGION = "eu-west-1";
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(

@@ -26,6 +26,9 @@ import org.springframework.messaging.Message;
  */
 public class SnsSmsHeaders {
 
+	private SnsSmsHeaders() {
+	}
+
 	/**
 	 * Type of SMS which will be used when sending SMS. Currently AWS supports: - Promotional default Marketing and so
 	 * on. (Lower cost) - Transactional Highest reliability used in for example: One time passcode, MFA auth and so on.

@@ -30,6 +30,9 @@ import org.springframework.messaging.converter.StringMessageConverter;
  */
 public class MessageConverters {
 
+	private MessageConverters() {
+	}
+
 	public static CompositeMessageConverter initMessageConverter(@Nullable MessageConverter messageConverter) {
 		List<MessageConverter> converters = new ArrayList<>();
 
