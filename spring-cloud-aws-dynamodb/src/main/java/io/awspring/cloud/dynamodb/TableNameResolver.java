@@ -16,11 +16,11 @@
 package io.awspring.cloud.dynamodb;
 
 /**
- * Simple interface which entity should implement when using {@link DynamoDbTemplate} save and update.
- * Since {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean} annotation does not support table name it is impossible to know what is a TableName for a given bean.
+ * Used to resolve TableName used by {@link DynamoDbOperations} from Class.
  *
  * @author Matej Nedic
  */
-public interface TableNameProvider {
-	String getTableName();
+public interface TableNameResolver {
+
+	String resolve(Class clazz);
 }

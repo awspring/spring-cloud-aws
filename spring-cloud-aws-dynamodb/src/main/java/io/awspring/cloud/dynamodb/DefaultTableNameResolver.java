@@ -15,23 +15,17 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import java.util.Locale;
 
 /**
- * Default implementation with simple cache for {@link TableSchema}.
+ * Simple implementation of {@link TableNameResolver} that resolves class simple name to table name.
  *
  * @author Matej Nedic
  */
-public class DefaultTableSchemaResolver implements TableSchemaResolver {
-	private final Map<String, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
-
-	public DefaultTableSchemaResolver() {
-	}
+public class DefaultTableNameResolver implements TableNameResolver {
 
 	@Override
-	public <T> TableSchema<T> resolve(Class<T> clazz, String tableName) {
-		return tableSchemaCache.computeIfAbsent(tableName, entityClassName -> TableSchema.fromBean(clazz));
+	public String resolve(Class clazz) {
+		return clazz.getSimpleName().toLowerCase(Locale.ROOT);
 	}
 }

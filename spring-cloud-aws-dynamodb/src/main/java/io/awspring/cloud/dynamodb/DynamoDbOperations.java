@@ -33,66 +33,68 @@ public interface DynamoDbOperations {
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
 	 */
-	<T extends TableNameProvider> T save(T entity);
+	<T> T save(T entity);
 
 	/**
 	 * Updated Entity to DynamoDB table.
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
 	 */
-	<T extends TableNameProvider> T update(T entity);
+	<T> T update(T entity);
 
 	/**
 	 * Deletes a record for a given Key.
 	 * @param key to determine record in DynamoDB table.
-	 * @param clazz Class of entity being deleted so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * @param tableName Name of Table which is being deleted upon on.
+	 * @param clazz Class of entity being deleted so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
 	 */
-	void delete(Key key, Class<?> clazz, String tableName);
+	void delete(Key key, Class<?> clazz);
 
 	/**
 	 * Deletes a record for a given Entity.
 	 * @param entity Entity object for deletion.
 	 */
-	<T extends TableNameProvider> void delete(T entity);
+	<T> void delete(T entity);
 
 	/**
 	 * Loads entity for a given Key.
 	 * @param key to determine record in DynamoDB table.
-	 * @param clazz Class of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * @param clazz Class of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
 	 * @param <T> Type of Entity object.
-	 * @param tableName Name of Table which entity will be fetched from.
 	 */
-	<T> T load(Key key, Class<T> clazz, String tableName);
+	<T> T load(Key key, Class<T> clazz);
 
 	/**
 	 * Queries a data for a given request.
-	 * @param queryEnhancedRequest Request that is used by {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute query request.
-	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * @param queryEnhancedRequest Request that is used by
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute query request.
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
 	 * @param <T> Type of Entity object.
-	 * @param tableName Name of Table which query will be preformed on.
 	 * @return Iterable object which can be used to iterate pages and items.
 	 */
-	<T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz, String tableName);
+	<T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz);
 
 	/**
 	 * Scans whole DynamoDB table.
 	 *
-	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * @param tableName Name of Table which query will be preformed on.
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
 	 * @param <T> type of Entity object.
 	 * @return Iterable object which can be used to iterate pages and items.
 	 */
-	<T> PageIterable<T> scanAll(Class<T> clazz, String tableName);
+	<T> PageIterable<T> scanAll(Class<T> clazz);
 
 	/**
 	 * Scans Table using given request.
-	 *
-	 * @param scanEnhancedRequest request used by {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute scan request.
-	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * @param tableName Name of Table which query will be preformed on.
+	 * @param scanEnhancedRequest request used by
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute scan request.
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
+	 * 
 	 * @param <T> type of Entity object.
-	 @return Iterable object which can be used to iterate pages and items.
+	 * @return Iterable object which can be used to iterate pages and items.
 	 */
-	<T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz, String tableName );
+	<T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz);
 }

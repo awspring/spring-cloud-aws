@@ -30,50 +30,55 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final TableSchemaResolver tableSchemaResolver;
+	private final TableNameResolver tableNameResolver;
 
-	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, TableSchemaResolver tableSchemaResolver) {
+	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, TableSchemaResolver tableSchemaResolver,
+			TableNameResolver tableNameResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 		this.tableSchemaResolver = tableSchemaResolver;
+		this.tableNameResolver = tableNameResolver;
 	}
 
-	public <T extends TableNameProvider> T save(T entity) {
+	public <T> T save(T entity) {
 		prepareTable(entity).putItem(entity);
 		return entity;
 	}
 
-	public <T extends TableNameProvider> T update(T entity) {
+	public <T> T update(T entity) {
 		return prepareTable(entity).updateItem(entity);
 	}
 
-	public void delete(Key key, Class<?> clazz, String tableName) {
-		prepareTable(clazz, tableName).deleteItem(key);
+	public void delete(Key key, Class<?> clazz) {
+		prepareTable(clazz).deleteItem(key);
 	}
 
-	public <T extends TableNameProvider> void delete(T entity) {
+	public <T> void delete(T entity) {
 		prepareTable(entity).deleteItem(entity);
 	}
 
-	public <T> T load(Key key, Class<T> clazz, String tableName) {
-		return prepareTable(clazz, tableName).getItem(key);
+	public <T> T load(Key key, Class<T> clazz) {
+		return prepareTable(clazz).getItem(key);
 	}
 
-	public <T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz, String tableName ) {
-		return prepareTable(clazz, tableName).scan(scanEnhancedRequest);
+	public <T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz) {
+		return prepareTable(clazz).scan(scanEnhancedRequest);
 	}
 
-	public <T> PageIterable<T> scanAll(Class<T> clazz, String tableName) {
-		return prepareTable(clazz, tableName).scan();
+	public <T> PageIterable<T> scanAll(Class<T> clazz) {
+		return prepareTable(clazz).scan();
 	}
 
-	public <T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz, String tableName) {
-		return prepareTable(clazz, tableName).query(queryEnhancedRequest);
+	public <T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz) {
+		return prepareTable(clazz).query(queryEnhancedRequest);
 	}
 
-	private <T extends TableNameProvider> DynamoDbTable<T> prepareTable(T entity){
-	 return dynamoDbEnhancedClient.table(entity.getTableName(), tableSchemaResolver.resolve(entity.getClass(), entity.getTableName()));
+	private <T> DynamoDbTable<T> prepareTable(T entity) {
+		String tableName = tableNameResolver.resolve(entity.getClass());
+		return dynamoDbEnhancedClient.table(tableName, tableSchemaResolver.resolve(entity.getClass(), tableName));
 	}
 
-	private <T> DynamoDbTable<T> prepareTable(Class<T> clazz, String tableName) {
+	private <T> DynamoDbTable<T> prepareTable(Class<T> clazz) {
+		String tableName = tableNameResolver.resolve(clazz);
 		return dynamoDbEnhancedClient.table(tableName, tableSchemaResolver.resolve(clazz, tableName));
 	}
 

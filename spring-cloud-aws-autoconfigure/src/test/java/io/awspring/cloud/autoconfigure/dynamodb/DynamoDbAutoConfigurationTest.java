@@ -15,11 +15,15 @@
  */
 package io.awspring.cloud.autoconfigure.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
+import io.awspring.cloud.dynamodb.TableNameResolver;
 import io.awspring.cloud.dynamodb.TableSchemaResolver;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -33,10 +37,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
-import java.net.URI;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  *
  * @author Matej Nedic
@@ -44,15 +44,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DynamoDbAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-			CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class,
-			AwsAutoConfiguration.class));
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class,
+					AwsAutoConfiguration.class));
 
 	@Test
 	void dynamoDBAutoConfigurationIsDisabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.enabled:false")
-			.run(context -> assertThat(context).doesNotHaveBean(DynamoDbClient.class));
+				.run(context -> assertThat(context).doesNotHaveBean(DynamoDbClient.class));
 	}
 
 	@Test
@@ -64,37 +64,42 @@ public class DynamoDbAutoConfigurationTest {
 
 			DynamoDbClient client = context.getBean(DynamoDbClient.class);
 			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-				"clientConfiguration");
+					"clientConfiguration");
 			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
 			assertThat(attributes.get(SdkClientOption.ENDPOINT))
-				.isEqualTo(URI.create("https://dynamodb.eu-west-1.amazonaws.com"));
+					.isEqualTo(URI.create("https://dynamodb.eu-west-1.amazonaws.com"));
 
 		});
 	}
 
 	@Test
 	void withCustomEndpoint() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090").run(context -> {
-			assertThat(context).hasSingleBean(DynamoDbClient.class);
-			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
-			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090")
+				.run(context -> {
+					assertThat(context).hasSingleBean(DynamoDbClient.class);
+					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
-			DynamoDbClient client = context.getBean(DynamoDbClient.class);
+					DynamoDbClient client = context.getBean(DynamoDbClient.class);
 
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-				"clientConfiguration");
-			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
-			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
-			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
-		});
+					SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils
+							.getField(client, "clientConfiguration");
+					AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration,
+							"attributes");
+					assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
+					assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
+				});
 	}
 
 	@Test
 	void customTableResolverResolverCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomDynamoDbConfiguration.class)
-			.run(context -> assertThat(context).hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableResolver.class));
+				.run(context -> {
+					assertThat(context).hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableResolver.class);
+					assertThat(context)
+							.hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableNameResolver.class);
+				});
 	}
-
 
 	@Configuration(proxyBeanMethods = false)
 	static class CustomDynamoDbConfiguration {
@@ -102,6 +107,11 @@ public class DynamoDbAutoConfigurationTest {
 		@Bean
 		TableSchemaResolver tableSchemaResolver() {
 			return new CustomDynamoDBTableResolver();
+		}
+
+		@Bean
+		TableNameResolver tableNameResolver() {
+			return new CustomDynamoDBTableNameResolver();
 		}
 	}
 
@@ -112,6 +122,14 @@ public class DynamoDbAutoConfigurationTest {
 			return null;
 		}
 
+	}
+
+	static class CustomDynamoDBTableNameResolver implements TableNameResolver {
+
+		@Override
+		public String resolve(Class clazz) {
+			return null;
+		}
 	}
 
 }

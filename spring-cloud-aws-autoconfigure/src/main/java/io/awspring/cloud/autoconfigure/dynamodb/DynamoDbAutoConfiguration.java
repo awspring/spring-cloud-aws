@@ -19,6 +19,7 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -30,8 +31,6 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import java.util.Optional;
-
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
  *
@@ -40,7 +39,7 @@ import java.util.Optional;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(DynamoDbProperties.class)
-@ConditionalOnClass({ DynamoDbClient.class, DynamoDbEnhancedClient.class})
+@ConditionalOnClass({ DynamoDbClient.class, DynamoDbEnhancedClient.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
 public class DynamoDbAutoConfiguration {
@@ -63,10 +62,13 @@ public class DynamoDbAutoConfiguration {
 		return DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 	}
 
-	@ConditionalOnMissingBean(DynamoDBOperations.class)
+	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
-	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<TableSchemaResolver> tableSchemaResolver) {
-		return tableSchemaResolver.map(it -> new DynamoDbTemplate(dynamoDbEnhancedClient, it)).orElseGet(() -> new DynamoDbTemplate(dynamoDbEnhancedClient, new DefaultTableSchemaResolver()));
+	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
+			Optional<TableSchemaResolver> tableSchemaResolver, Optional<TableNameResolver> tableNameResolver) {
+		TableSchemaResolver tableSchemaRes = tableSchemaResolver.orElseGet(DefaultTableSchemaResolver::new);
+		TableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultTableNameResolver::new);
+		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
 	}
 
 }
