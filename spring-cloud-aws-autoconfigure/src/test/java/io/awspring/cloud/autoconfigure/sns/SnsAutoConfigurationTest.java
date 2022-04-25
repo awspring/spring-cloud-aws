@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -29,13 +30,9 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
@@ -63,12 +60,8 @@ class SnsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SnsTemplate.class);
 			assertThat(context).hasBean("snsWebMvcConfigurer");
 
-			SnsClient client = context.getBean(SnsClient.class);
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-					"clientConfiguration");
-			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
-			assertThat(attributes.get(SdkClientOption.ENDPOINT))
-					.isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
 
 		});
 	}
@@ -76,15 +69,12 @@ class SnsAutoConfigurationTest {
 	@Test
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.endpoint:http://localhost:8090").run(context -> {
-			SnsClient client = context.getBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
 			assertThat(context).hasBean("snsWebMvcConfigurer");
 
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-					"clientConfiguration");
-			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
-			assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
-			assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(client.isEndpointOverridden()).isTrue();
 		});
 	}
 
