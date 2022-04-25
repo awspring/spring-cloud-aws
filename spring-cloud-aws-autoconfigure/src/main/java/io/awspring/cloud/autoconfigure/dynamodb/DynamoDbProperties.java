@@ -26,8 +26,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = DynamoDbProperties.PREFIX)
 public class DynamoDbProperties extends AwsClientProperties {
 
-		/**
-		 * The prefix used for AWS credentials related properties.
-		 */
-		public static final String PREFIX = "spring.cloud.aws.dynamodb";
+	/**
+	 * The prefix used for AWS credentials related properties.
+	 */
+	public static final String PREFIX = "spring.cloud.aws.dynamodb";
 }

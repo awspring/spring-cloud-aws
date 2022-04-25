@@ -18,7 +18,8 @@ package io.awspring.cloud.dynamodb;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
- * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is expensive.
+ * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is
+ * expensive.
  * @author Matej Nedic
  */
 public interface TableSchemaResolver {
