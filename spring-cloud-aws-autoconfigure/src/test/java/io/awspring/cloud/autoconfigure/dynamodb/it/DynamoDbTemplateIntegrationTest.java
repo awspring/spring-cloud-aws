@@ -1,6 +1,6 @@
 package io.awspring.cloud.autoconfigure.dynamodb.it;
 
-import io.awspring.cloud.dynamodb.DynamoDBTemplate;
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
@@ -35,7 +35,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
  * @author Matej Nedic
  */
 @Testcontainers
-public class DynamoDBTemplateIntegrationTest {
+public class DynamoDbTemplateIntegrationTest {
 
 	private static final String REGION = "us-east-1";
 	private static DynamoDbTable dynamoDbTable;
@@ -58,7 +58,7 @@ public class DynamoDBTemplateIntegrationTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDBTemplate dynamoDBTemplate = context.getBean(DynamoDBTemplate.class);
+			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
 			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
 			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
 
@@ -72,7 +72,7 @@ public class DynamoDBTemplateIntegrationTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDBTemplate dynamoDBTemplate = context.getBean(DynamoDBTemplate.class);
+			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
 			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
 			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
 
@@ -91,7 +91,7 @@ public class DynamoDBTemplateIntegrationTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDBTemplate dynamoDBTemplate = context.getBean(DynamoDBTemplate.class);
+			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
 			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
 			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
 
@@ -114,7 +114,7 @@ public class DynamoDBTemplateIntegrationTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDBTemplate dynamoDBTemplate = context.getBean(DynamoDBTemplate.class);
+			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
 			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
 			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
 
@@ -134,7 +134,7 @@ public class DynamoDBTemplateIntegrationTest {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDBTemplate dynamoDBTemplate = context.getBean(DynamoDBTemplate.class);
+			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
 			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
 			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
 

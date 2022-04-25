@@ -39,15 +39,15 @@ import java.util.Optional;
  * @since 3.0.0
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(DynamoDBProperties.class)
+@EnableConfigurationProperties(DynamoDbProperties.class)
 @ConditionalOnClass({ DynamoDbClient.class, DynamoDbEnhancedClient.class})
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
-public class DynamoDBAutoConfiguration {
+public class DynamoDbAutoConfiguration {
 
-	private final DynamoDBProperties properties;
+	private final DynamoDbProperties properties;
 
-	public DynamoDBAutoConfiguration(DynamoDBProperties properties) {
+	public DynamoDbAutoConfiguration(DynamoDbProperties properties) {
 		this.properties = properties;
 	}
 
@@ -65,8 +65,8 @@ public class DynamoDBAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDBOperations.class)
 	@Bean
-	public DynamoDBTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<TableSchemaResolver> tableSchemaResolver) {
-		return tableSchemaResolver.map(it -> new DynamoDBTemplate(dynamoDbEnhancedClient, it)).orElseGet(() -> new DynamoDBTemplate(dynamoDbEnhancedClient, new DefaultTableSchemaResolver()));
+	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<TableSchemaResolver> tableSchemaResolver) {
+		return tableSchemaResolver.map(it -> new DynamoDbTemplate(dynamoDbEnhancedClient, it)).orElseGet(() -> new DynamoDbTemplate(dynamoDbEnhancedClient, new DefaultTableSchemaResolver()));
 	}
 
 }

@@ -16,7 +16,7 @@
 package io.awspring.cloud.dynamodb;
 
 /**
- * Simple interface which entity should implement when using {@link DynamoDBTemplate} save and update.
+ * Simple interface which entity should implement when using {@link DynamoDbTemplate} save and update.
  * Since {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean} annotation does not support table name it is impossible to know what is a TableName for a given bean.
  *
  * @author Matej Nedic

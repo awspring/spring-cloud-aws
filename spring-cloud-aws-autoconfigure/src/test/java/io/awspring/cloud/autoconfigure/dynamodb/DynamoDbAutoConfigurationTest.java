@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.dynamodb.DynamoDBTemplate;
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import io.awspring.cloud.dynamodb.TableSchemaResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -41,12 +41,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Matej Nedic
  */
-public class DynamoDBAutoConfigurationTest {
+public class DynamoDbAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-			CredentialsProviderAutoConfiguration.class, DynamoDBAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class,
 			AwsAutoConfiguration.class));
 
 	@Test
@@ -59,7 +59,7 @@ public class DynamoDBAutoConfigurationTest {
 	void dynamoDBAutoConfigurationIsEnabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(DynamoDbClient.class);
-			assertThat(context).hasSingleBean(DynamoDBTemplate.class);
+			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
 			DynamoDbClient client = context.getBean(DynamoDbClient.class);
@@ -76,7 +76,7 @@ public class DynamoDBAutoConfigurationTest {
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090").run(context -> {
 			assertThat(context).hasSingleBean(DynamoDbClient.class);
-			assertThat(context).hasSingleBean(DynamoDBTemplate.class);
+			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
 			DynamoDbClient client = context.getBean(DynamoDbClient.class);
@@ -91,8 +91,8 @@ public class DynamoDBAutoConfigurationTest {
 
 	@Test
 	void customTableResolverResolverCanBeConfigured() {
-		this.contextRunner.withUserConfiguration(DynamoDBAutoConfigurationTest.CustomDynamoDbConfiguration.class)
-			.run(context -> assertThat(context).hasSingleBean(DynamoDBAutoConfigurationTest.CustomDynamoDBTableResolver.class));
+		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomDynamoDbConfiguration.class)
+			.run(context -> assertThat(context).hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableResolver.class));
 	}
 
 

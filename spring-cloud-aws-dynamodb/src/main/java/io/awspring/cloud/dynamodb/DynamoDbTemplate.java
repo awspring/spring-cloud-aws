@@ -27,11 +27,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  *
  * @author Matej Nedic
  */
-public class DynamoDBTemplate implements DynamoDBOperations {
+public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final TableSchemaResolver tableSchemaResolver;
 
-	public DynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, TableSchemaResolver tableSchemaResolver) {
+	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, TableSchemaResolver tableSchemaResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 		this.tableSchemaResolver = tableSchemaResolver;
 	}

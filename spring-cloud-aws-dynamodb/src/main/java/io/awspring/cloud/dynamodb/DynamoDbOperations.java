@@ -26,7 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface DynamoDBOperations {
+public interface DynamoDbOperations {
 
 	/**
 	 * Saves Entity to DynamoDB table.
