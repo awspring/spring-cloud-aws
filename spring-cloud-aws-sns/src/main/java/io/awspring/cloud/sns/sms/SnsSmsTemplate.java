@@ -15,18 +15,14 @@
  */
 package io.awspring.cloud.sns.sms;
 
-import static io.awspring.cloud.sns.core.MessageConverters.initMessageConverter;
-
+import io.awspring.cloud.sns.core.HeaderConverter;
+import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.core.AbstractMessageSendingTemplate;
-import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
-import org.springframework.messaging.core.MessagePostProcessor;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
 /**
  * Helper class that simplifies synchronous sending of sms messages to Mobile Phones or Platforms such as GCM and APNS.
@@ -35,68 +31,41 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @author Matej Nedic
  * @since 3.0
  */
-public class SnsSmsTemplate extends AbstractMessageSendingTemplate<SnsSmsTopicChannel>
-		implements DestinationResolvingMessageSendingOperations<SnsSmsTopicChannel> {
+public class SnsSmsTemplate implements SnsSmsOperations {
 
 	private final SnsClient snsClient;
+	// Think about supporting List<Converter> to support multiple conversions.
+	private final Converter converter;
+	private final HeaderConverter headerConverter = new HeaderConverter(LogFactory.getLog(SnsSmsTemplate.class));
 
-	public SnsSmsTemplate(SnsClient snsClient, @Nullable MessageConverter messageConverter) {
+	public SnsSmsTemplate(SnsClient snsClient, Converter converter) {
 		Assert.notNull(snsClient, "SnsClient must not be null");
+		Assert.notNull(converter, "Converter must not be null");
 		this.snsClient = snsClient;
+		this.converter = converter;
+	}
 
-		if (messageConverter != null) {
-			this.setMessageConverter(initMessageConverter(messageConverter));
+	@Override
+	public void sendMessage(String destination, Object payload) {
+		sendMessage(destination, payload, new HashMap<>());
+	}
+
+	@Override
+	public void sendMessage(String destination, Object payload, Map<String, Object> headers) {
+		PublishRequest.Builder request = resolveRequestByDestination(destination);
+		request.message(converter.convert(payload));
+		Map<String, MessageAttributeValue> messageAttributes = headerConverter.toSnsMessageAttributes(headers);
+		if (!messageAttributes.isEmpty()) {
+			request.messageAttributes(messageAttributes);
 		}
+		this.snsClient.publish(request.build());
 	}
 
-	@Override
-	public void send(String destination, Message<?> message) throws MessagingException {
-		doSend(resolveMessageChannelByTopicName(destination), message);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destination, T payload) throws MessagingException {
-		this.convertAndSend(destination, payload, null, null);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers)
-			throws MessagingException {
-		this.convertAndSend(destination, payload, headers, null);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor)
-			throws MessagingException {
-		this.convertAndSend(destination, payload, null, postProcessor);
-	}
-
-	@Override
-	public <T> void convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers,
-			@Nullable MessagePostProcessor postProcessor) throws MessagingException {
-		convertAndSend(resolveMessageChannelByTopicName(destination), payload, headers, postProcessor);
-	}
-
-	/**
-	 * Helper method for sending SMS to phone number or PlatformApplication.
-	 *
-	 * @param destination Number phone or Target Arn of PlatformApplication.
-	 * @param notification Notification that contains message and MessageAttributes to be sent.
-	 */
-	public void sendNotification(String destination, SnsSmsNotification<?> notification) {
-		this.convertAndSend(destination, notification.getPayload(), notification.getHeaders());
-	}
-
-	@Override
-	protected void doSend(SnsSmsTopicChannel destination, Message<?> message) {
-		destination.send(message);
-	}
-
-	private SnsSmsTopicChannel resolveMessageChannelByTopicName(String topicName) {
-		if (topicName.startsWith("+")) {
-			return new SnsSmsTopicChannel(this.snsClient, null, topicName);
+	private PublishRequest.Builder resolveRequestByDestination(String destination) {
+		if (destination.startsWith("+")) {
+			return PublishRequest.builder().phoneNumber(destination);
 		}
-		return new SnsSmsTopicChannel(this.snsClient, topicName, null);
+		return PublishRequest.builder().targetArn(destination);
 	}
 
 }

@@ -19,7 +19,6 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEA
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.lang.Nullable;
@@ -44,7 +43,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	private final SnsClient snsClient;
 
 	private final Arn topicArn;
-	private HeaderConverter headerConverter = new HeaderConverter(JsonStringEncoder.getInstance(), this.logger);
+	private HeaderConverter headerConverter = new HeaderConverter(this.logger);
 
 	public TopicMessageChannel(SnsClient snsClient, Arn topicArn) {
 		this.snsClient = snsClient;

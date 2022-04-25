@@ -16,13 +16,16 @@
 package io.awspring.cloud.sns.sms;
 
 import static io.awspring.cloud.sns.Matchers.requestMatches;
+import static io.awspring.cloud.sns.sms.SnsSmsHeaders.DEFAULT_SENDER_ID;
+import static io.awspring.cloud.sns.sms.SnsSmsHeaders.DEFAULT_SMS_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -38,19 +41,23 @@ class SnsSmsTemplateTest {
 	private final SnsClient snsClient = mock(SnsClient.class);
 
 	private SnsSmsTemplate snsSmsTemplate;
+	private static HashMap<String, Object> smsAttributeValues = new HashMap<>();
+
+	{
+		smsAttributeValues.put(DEFAULT_SMS_TYPE, "Transactional");
+		smsAttributeValues.put(DEFAULT_SENDER_ID, "AWSPRING");
+		smsAttributeValues.put("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background");
+	}
 
 	@BeforeEach
 	void init() {
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-		converter.setSerializedPayloadClass(String.class);
-		snsSmsTemplate = new SnsSmsTemplate(snsClient, converter);
+		DefaultConverter defaultConverter = new DefaultConverter(new ObjectMapper());
+		snsSmsTemplate = new SnsSmsTemplate(snsClient, defaultConverter);
 	}
 
 	@Test
 	void sendSmsNotificationToPhoneNumber_withHeaders() {
-		SnsSmsNotification<String> snsSmsNotification = SnsSmsNotification.builder("message").smsType("Transactional")
-				.senderId("AWSPRING").header("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background").build();
-		snsSmsTemplate.sendNotification("+000000000000", snsSmsNotification);
+		snsSmsTemplate.sendMessage("+000000000000", "message", smsAttributeValues);
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("+000000000000");
@@ -60,9 +67,7 @@ class SnsSmsTemplateTest {
 
 	@Test
 	void sendSmsNotificationToPublisherApplication_withHeaders() {
-		SnsSmsNotification<String> snsSmsNotification = SnsSmsNotification.builder("message").smsType("Transactional")
-				.senderId("AWSPRING").header("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background").build();
-		snsSmsTemplate.sendNotification(TARGET_ARN, snsSmsNotification);
+		snsSmsTemplate.sendMessage(TARGET_ARN, "message", smsAttributeValues);
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.targetArn()).isEqualTo(TARGET_ARN);
@@ -72,10 +77,7 @@ class SnsSmsTemplateTest {
 
 	@Test
 	void sendsComplexSnsNotification_PlatformApplication() {
-		SnsSmsNotification<Person> snsSmsNotification = SnsSmsNotification.builder(new Person("foo"))
-				.smsType("Transactional").senderId("AWSPRING").header("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background")
-				.build();
-		snsSmsTemplate.sendNotification(TARGET_ARN, snsSmsNotification);
+		snsSmsTemplate.sendMessage(TARGET_ARN, new Person("foo"), smsAttributeValues);
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.targetArn()).isEqualTo(TARGET_ARN);
@@ -85,14 +87,55 @@ class SnsSmsTemplateTest {
 
 	@Test
 	void sendsComplexSnsNotification_PhoneNumber() {
-		SnsSmsNotification<Person> snsSmsNotification = SnsSmsNotification.builder(new Person("foo"))
-				.smsType("Transactional").senderId("AWSPRING").header("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background")
-				.build();
-		snsSmsTemplate.sendNotification("+000000000000", snsSmsNotification);
+		snsSmsTemplate.sendMessage("+000000000000", new Person("foo"), smsAttributeValues);
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("+000000000000");
 			assertHeadersAndMessage(r, "{\"name\":\"foo\"}");
+		}));
+	}
+
+	@Test
+	void sendSmsNotificationToPhoneNumber_withHeaders_withoutHeade() {
+		snsSmsTemplate.sendMessage("+000000000000", "message");
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.phoneNumber()).isEqualTo("+000000000000");
+			assertThat(r.message()).isEqualTo("message");
+			assertThat(r.messageAttributes().size()).isEqualTo(0);
+		}));
+	}
+
+	@Test
+	void sendSmsNotificationToPublisherApplication_withHeaders_withoutHeade() {
+		snsSmsTemplate.sendMessage(TARGET_ARN, "message");
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.targetArn()).isEqualTo(TARGET_ARN);
+			assertThat(r.message()).isEqualTo("message");
+			assertThat(r.messageAttributes().size()).isEqualTo(0);
+		}));
+	}
+
+	@Test
+	void sendsComplexSnsNotification_PlatformApplication_withoutHeade() {
+		snsSmsTemplate.sendMessage(TARGET_ARN, new Person("foo"));
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.targetArn()).isEqualTo(TARGET_ARN);
+			assertThat(r.message()).isEqualTo("{\"name\":\"foo\"}");
+			assertThat(r.messageAttributes().size()).isEqualTo(0);
+		}));
+	}
+
+	@Test
+	void sendsComplexSnsNotification_PhoneNumber_withoutHeader() {
+		snsSmsTemplate.sendMessage("+000000000000", new Person("foo"));
+
+		verify(snsClient).publish(requestMatches(r -> {
+			assertThat(r.phoneNumber()).isEqualTo("+000000000000");
+			assertThat(r.message()).isEqualTo("{\"name\":\"foo\"}");
+			assertThat(r.messageAttributes().size()).isEqualTo(0);
 		}));
 	}
 
@@ -104,7 +147,7 @@ class SnsSmsTemplateTest {
 				MessageAttributeValue.builder().stringValue("AWSPRING").dataType("String").build());
 		assertThat(r.messageAttributes()).containsEntry("AWS.SNS.MOBILE.APNS.PUSH_TYPE",
 				MessageAttributeValue.builder().stringValue("background").dataType("String").build());
-		assertThat(r.messageAttributes().size()).isEqualTo(6);
+		assertThat(r.messageAttributes().size()).isEqualTo(3);
 	}
 
 	static class Person {

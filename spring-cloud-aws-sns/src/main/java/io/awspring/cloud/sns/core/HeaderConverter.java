@@ -45,17 +45,24 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  */
 public class HeaderConverter {
 
-	private final JsonStringEncoder jsonStringEncoder;
+	private final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
 	private final Log logger;
 
-	public HeaderConverter(JsonStringEncoder jsonStringEncoder, Log logger) {
-		this.jsonStringEncoder = jsonStringEncoder;
+	// this can't be null
+	public Map<String, MessageAttributeValue> toSnsMessageAttributes(Message<?> message) {
+		return toSnsMessageAttributes(message.getHeaders());
+	}
+
+	public HeaderConverter(Log logger) {
 		this.logger = logger;
 	}
 
-	public Map<String, MessageAttributeValue> toSnsMessageAttributes(Message<?> message) {
+	public Map<String, MessageAttributeValue> toSnsMessageAttributes(Map<String, Object> messageHeaders) {
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
-		for (Map.Entry<String, Object> messageHeader : message.getHeaders().entrySet()) {
+		if (messageHeaders.size() == 0) {
+
+		}
+		for (Map.Entry<String, Object> messageHeader : messageHeaders.entrySet()) {
 			String messageHeaderName = messageHeader.getKey();
 			Object messageHeaderValue = messageHeader.getValue();
 

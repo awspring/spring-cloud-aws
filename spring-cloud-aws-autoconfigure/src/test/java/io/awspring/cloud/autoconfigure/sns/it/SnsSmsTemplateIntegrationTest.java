@@ -20,13 +20,11 @@ import static io.awspring.cloud.sns.sms.SnsSmsHeaders.DEFAULT_SMS_TYPE;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
-import io.awspring.cloud.sns.sms.SnsSmsNotification;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
+import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -43,10 +41,19 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 @SpringBootTest()
 class SnsSmsTemplateIntegrationTest {
+
 	@Autowired
 	private SnsSmsTemplate snsSmsTemplate;
 
 	private static final String REGION = "eu-west-1";
+
+	private static HashMap<String, Object> smsAttributeValues = new HashMap<>();
+
+	{
+		smsAttributeValues.put(DEFAULT_SMS_TYPE, "Transactional");
+		smsAttributeValues.put(DEFAULT_SENDER_ID, "AWSPRING");
+		smsAttributeValues.put("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background");
+	}
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
@@ -62,23 +69,37 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Test
 	void send_validTextMessage_useSmsTopicMessageChannel_send_phoneNumber() {
-		assertThatCode(() -> snsSmsTemplate.convertAndSend("+000000000000", "message")).doesNotThrowAnyException();
+		assertThatCode(() -> snsSmsTemplate.sendMessage("+000000000000", "message")).doesNotThrowAnyException();
 	}
 
 	@Test
 	void send_validTextMessage_useSmsTopicMessageChannel_send_phoneNumber_with_Headers() {
-		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(DEFAULT_SENDER_ID, "AWSPRING")
-				.setHeader(DEFAULT_SMS_TYPE, "Transactional").setHeader("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background")
-				.build();
-		assertThatCode(() -> snsSmsTemplate.send("+000000000000", message)).doesNotThrowAnyException();
+		assertThatCode(() -> snsSmsTemplate.sendMessage("+000000000000", "Hello", smsAttributeValues))
+				.doesNotThrowAnyException();
 	}
 
 	@Test
 	void send_validTextMessage_useSmsNotification_send_phoneNumber_with_Headers() {
-		SnsSmsNotification<String> snsSmsNotification = SnsSmsNotification.builder("message").smsType("Transactional")
-				.senderId("AWSPRING").header("AWS.SNS.MOBILE.APNS.PUSH_TYPE", "background").build();
-
-		assertThatCode(() -> snsSmsTemplate.sendNotification("+000000000000", snsSmsNotification))
+		assertThatCode(() -> snsSmsTemplate.sendMessage("+000000000000", "message", smsAttributeValues))
 				.doesNotThrowAnyException();
 	}
+
+	@Test
+	void send_validObject_useSmsNotification_send_phoneNumber_with_Headers() {
+		assertThatCode(() -> snsSmsTemplate.sendMessage("+000000000000", new Person("foo"), smsAttributeValues))
+				.doesNotThrowAnyException();
+	}
+
+	static class Person {
+		private final String name;
+
+		public Person(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+
 }
