@@ -1,102 +1,121 @@
-=== SNS support
-Amazon SNS is a publish-subscribe messaging system that allows clients to publish notification to a particular topic. Other
-interested clients may subscribe using different protocols like HTTP/HTTPS, e-mail or an Amazon SQS queue to receive the messages.
+[#spring-cloud-aws-sns]
+== SNS Integration
 
-The next graphic shows a typical example of an Amazon SNS architecture.
+https://aws.amazon.com/sns/[SNS] is a pub/sub messaging service that allows clients to publish notifications to a particuluar topic.
+A Spring Boot starter is provided to auto-configure SNS integration beans.
 
-image::sns-overview.png[SNS Overview]
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
-Spring Cloud AWS supports Amazon SNS by providing support to send notifications with a `NotificationMessagingTemplate` and
-to receive notifications with the HTTP/HTTPS endpoint using the Spring Web MVC `@Controller` based programming model. Amazon
-SQS based subscriptions can be used with the annotation-driven message support that is provided by the Spring Cloud AWS messaging module.
-
-==== Sending a message
-The `NotificationMessagingTemplate` contains two convenience methods to send a notification. The first one specifies the
-destination using a `String` which is going to be resolved against the SNS API. The second one takes no destination
-argument and uses the default destination. All the usual send methods that are available on the `MessageSendingOperations`
-are implemented but are less convenient to send notifications because the subject must be passed as header.
-
-[NOTE]
-====
-Currently only `String` payloads can be sent using the `NotificationMessagingTemplate` as this is the expected
-type by the SNS API.
-====
-
-[source,java,indent=0]
+[source,xml]
 ----
-import com.amazonaws.services.sns.AmazonSNS;
-import org.springframework.beans.factory.annotation.Autowired;
-import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-sns</artifactId>
+</dependency>
+----
 
-public class SnsNotificationSender {
+=== Sending Notifications
 
-	private final NotificationMessagingTemplate notificationMessagingTemplate;
+==== SNS Template
 
-	@Autowired
-	public SnsNotificationSender(AmazonSNS amazonSns) {
-		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+The starter automatically configures and registers a `SnsTemplate` bean providing higher level abstractions for sending SNS notifications.
+`SnsTemplate` implements Spring Messaging abstractions making it easy to combine with other messaging technologies compatible with Spring Messaging.
+
+It supports sending notifications with payload of type:
+
+* `String` - using `org.springframework.messaging.converter.StringMessageConverter`
+* `Object` - which gets serialized to JSON using `org.springframework.messaging.converter.MappingJackson2MessageConverter` and Jackson's `com.fasterxml.jackson.databind.ObjectMapper` autoconfigured by Spring Boot.
+
+Additionally, it exposes handful of methods supporting `org.springframework.messaging.Message`.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.SnsTemplate;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class NotificationService {
+	private final SnsTemplate snsTemplate;
+
+	NotificationService(SnsTemplate snsTemplate) {
+		this.snsTemplate = snsTemplate;
 	}
 
-	public void send(String subject, String message) {
-		this.notificationMessagingTemplate.sendNotification("physicalTopicName", message, subject);
-	}
-}
-----
-
-This example constructs a new `NotificationMessagingTemplate` by passing an `AmazonSNS` client as argument. In the `send`
-method the convenience `sendNotification` method is used to send a `message` with `subject` to an SNS topic. The
-destination in the `sendNotification` method is a string value that must match the topic name defined on AWS. This value
-is resolved at runtime by the Amazon SNS client. Optionally a `ResourceIdResolver` implementation can be passed to the
-`NotificationMessagingTemplate` constructor to resolve resources by logical name when running inside a CloudFormation stack.
-(See <<Managing cloud environments>> for more information about resource name resolution.)
-
-It is recommended to use the XML messaging namespace to create `NotificationMessagingTemplate` as it will automatically
-configure the SNS client to setup the default converter.
-
-[source,xml,indent=0]
-----
-<aws-messaging:notification-messaging-template id="notificationMessagingTemplate" />
-----
-
-FIFO SNS Topics have additional required and optional request parameters. For example MessageGroupId is a required
-parameter for a FIFO topic. These parameters can be set by specifying them in the headers map.
-Spring Cloud AWS extracts the keys and sets the parameters on the underlying SNS SendMessage request.
-
-To specify message attributes on the SNS SendMessage request, additional headers can be added to the header map.
-
-This example shows how to add the MessageGroupId parameter (required for FIFO topics) and MessageDeduplicationId parameter
-(optional) to the request. The additional header is added as a MessageAttribute. The attribute Type is based on the java
-type of the value by Spring Cloud AWS.
-
-[source,java,indent=0]
-----
-import com.amazonaws.services.sns.AmazonSNS;
-import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
-import io.awspring.cloud.messaging.core.TopicMessageChannel;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashMap;
-
-public class SnsNotificationSender {
-
-	private final NotificationMessagingTemplate notificationMessagingTemplate;
-
-	@Autowired
-	public SnsNotificationSender(AmazonSNS amazonSns) {
-		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
-	}
-
-	public void send(String message, String messageGroupId, String messageDeduplicationId) {
-		HashMap<String, Object> headers = new HashMap<>();
-		headers.put(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, messageGroupId);
-		headers.put(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER, messageDeduplicationId);
-		headers.put("attributeName", "attributeValue");
-		this.notificationMessagingTemplate.convertAndSend("physicalTopicName", message, headers);
+	void sendNotification() {
+        // sends String payload
+		snsTemplate.sendNotification("topic-arn", "payload", "subject");
+        // sends object serialized to JSON
+		snsTemplate.sendNotification("topic-arn", new Person("John", "Doe"), "subject");
+        // sends a Spring Messaging Message
+		Message<String> message = MessageBuilder.withPayload("payload")
+			.setHeader("header-name", "header-value")
+			.build();
+		snsTemplate.send("topic-arn", message);
 	}
 }
 ----
 
-==== Annotation-driven HTTP notification endpoint
+If autoconfigured converters do not meet your needs, you can provide a custom `SnsTemplate` bean with a message converter of your choice.
+
+When sending SNS notification, it is required to provide a topic ARN. Spring Cloud AWS simplifies it and allows providing a topic name instead, under a condition that topic with that name has already been created.
+Otherwise, Spring Cloud AWS will make an attempt to create topic with this name with a first call.
+
+The behavior of resolving topic ARN by a topic name can be altered by providing a custom bean of type `io.awspring.cloud.sns.core.TopicArnResolver`.
+
+==== SNS Operations
+
+Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
+In such case, we recommend using `SnsOperations` - an interface implemented by `SnsTemplate`, that exposes a convenient method for sending SNS notification, including support for FIFO topics.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.SnsNotification;
+import io.awspring.cloud.sns.core.SnsOperations;
+import io.awspring.cloud.sns.core.SnsTemplate;
+
+public class NotificationService {
+	private final SnsOperations snsOperations;
+
+	NotificationService(SnsOperations snsOperations) {
+		this.snsOperations = snsOperations;
+	}
+
+	void sendNotification() {
+		SnsNotification<Person> notification = SnsNotification.builder(new Person("John", "Doe"))
+			.deduplicationId("..")
+			.groupId("..")
+			.build();
+		snsOperations.sendNotification("topic-arn", notification);
+	}
+}
+----
+
+=== Using SNS Client
+
+To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
+
+If autoconfigured `SnsClient` bean configuration does not meet your needs, it can be replaced by creating a custom bean of type `SnsClient`.
+
+[source,java]
+----
+import software.amazon.awssdk.services.sns.SnsClient;
+
+public class NotificationService {
+	private final SnsClient snsClient;
+
+	public NotificationService(SnsClient snsClient) {
+		this.snsClient = snsClient;
+	}
+
+	void sendNotification() {
+		snsClient.publish(request -> request.topicArn("sns-topic-arn").message("payload"));
+	}
+}
+----
+
+=== Annotation-driven HTTP notification endpoint
+
 SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
 SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
 
@@ -104,25 +123,27 @@ SNS sends three type of requests to an HTTP topic listener endpoint, for each of
 * Notification request -> `@NotificationMessageMapping`
 * Unsubscription request -> `@NotificationUnsubscribeMapping`
 
-[NOTE]
-====
-Since 2.4.0 verification has been introduced for Notification request and is turned on by default. Verification is using same region as SNSClient is.
-To turn off verification simply set property 'cloud.aws.sns.verification=false'.
-With Localstack verification won't work, so you have to set property to 'false' if you want `@NotificationMessageMapping` to work properly.
-For more information about SNS verification https://docs.awspring.io/spring-cloud-aws/docs/2.3.3/reference/html/index.html [here].
-====
+HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract the message and subject out of the notification requests.
 
-HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract
-the message and subject out of the notification requests.
+Example of integration:
 
-[source,java,indent=0]
+[source,java]
 ----
+import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
+import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
+import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
+import io.awspring.cloud.sns.handlers.NotificationStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 @Controller
 @RequestMapping("/topicName")
 public class NotificationTestController {
 
 	@NotificationSubscriptionMapping
-	public void handleSubscriptionMessage(NotificationStatus status) throws IOException {
+	public void handleSubscriptionMessage(NotificationStatus status) {
 		//We subscribe to start receive the message
 		status.confirmSubscription();
 	}
@@ -140,46 +161,27 @@ public class NotificationTestController {
 }
 ----
 
-[CAUTION]
-====
-Currently it is not possible to define the mapping URL on the method level therefore the `RequestMapping` must
-be done at type level and must contain the full path of the endpoint.
-====
+=== Configuration
 
-This example creates a new Spring MVC controller with three methods to handle the three requests listed above. In order
-to resolve the arguments of the `handleNotificationMessage` methods a custom argument resolver must be registered. The
-XML configuration is listed below.
+The Spring Boot Starter for SNS provides the following configuration options:
 
-[source,xml,indent=0]
-----
-<mvc:annotation-driven>
-	<mvc:argument-resolvers>
-		<ref bean="notificationResolver" />
-	</mvc:argument-resolvers>
-</mvc:annotation-driven>
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.sns.enabled` | Enables the SNS integration. | No | `true`
+| `spring.cloud.aws.sns.endpoint` | Configures endpoint used by `SnsClient`. | No | `http://localhost:4566`
+| `spring.cloud.aws.sns.region` | Configures region used by `SnsClient`. | No | `eu-west-1`
+|===
 
-<aws-messaging:notification-argument-resolver id="notificationResolver" />
-----
-
-The `aws-messaging:notification-argument-resolver` element registers three argument resolvers:
-`NotificationStatusHandlerMethodArgumentResolver`, `NotificationMessageHandlerMethodArgumentResolver`,
-and `NotificationSubjectHandlerMethodArgumentResolver`.
-
-==== IAM Permissions
+=== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
-[cols="2"]
+[cols="2,1"]
 |===
-| To publish notification to topic
-| `sns:Publish`
-
-| To publish notification you will also need
-| `sns:ListTopics`
-
-| To use Annotation-driven HTTP notification endpoint
-| `sns:ConfirmSubscription`
-
-
+| To publish notification to topic | `sns:Publish`
+| To publish notification you will also need | `sns:ListTopics`
+| To use Annotation-driven HTTP notification endpoint | `sns:ConfirmSubscription`
+| For resolving topic name to ARN | `sns:CreateTopic`
 |===
 
 Sample IAM policy granting access to SNS:
@@ -201,48 +203,12 @@ Sample IAM policy granting access to SNS:
             "Effect": "Allow",
             "Action": "sns:ListTopics",
             "Resource": "*"
+        },
+        {
+        "Effect": "Allow",
+        "Action": "sns:CreateTopic",
+        "Resource": "*"
         }
     ]
 }
 ----
-
-=== Using CloudFormation
-Amazon SQS queues and SNS topics can be configured within a stack and then be used by applications. Spring Cloud AWS
-also supports the lookup of stack-configured queues and topics by their logical name with the resolution to the physical
-name. The example below shows an SNS topic and SQS queue configuration inside a CloudFormation template.
-
-[source,json,indent=0]
-----
-"LogicalQueueName": {
-	"Type": "AWS::SQS::Queue",
-	"Properties": {
-	}
-},
-"LogicalTopicName": {
-	"Type": "AWS::SNS::Topic",
-	"Properties": {
-  	}
-}
-----
-
-The logical names `LogicalQueueName` and `LogicalTopicName` can then be used in the configuration and in the application
-as shown below:
-
-[source,xml,indent=0]
-----
-<aws-messaging:queue-messaging-template default-destination="LogicalQueueName" />
-
-<aws-messaging:notification-messaging-template default-destination="LogicalTopicName" />
-----
-
-[source,java,indent=0]
-----
-@SqsListener("LogicalQueueName")
-public void receiveQueueMessages(Person person) {
-	// Logical names can also be used with messaging templates
-	this.notificationMessagingTemplate.sendNotification("anotherLogicalTopicName", "Message", "Subject");
-}
-----
-
-When using the logical names like in the example above, the stack can be created on different environments without any
-configuration or code changes inside the application.

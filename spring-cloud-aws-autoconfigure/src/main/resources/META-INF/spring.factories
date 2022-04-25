@@ -3,7 +3,8 @@ io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration,\
 io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration,\
 io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration,\
 io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration,\
-io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
+io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration,\
+io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration
 
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\

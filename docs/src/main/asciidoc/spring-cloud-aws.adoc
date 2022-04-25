@@ -30,13 +30,13 @@ It also simplifies creating any non-integrated AWS SDK client by auto-configurin
 That being said, it is perfectly valid option to use AWS SDK without using Spring Cloud AWS.
 
 [TIP]
-----
+====
 Note, that Spring provides support for other AWS services in following projects:
 
 * https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
 * https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
 * https://github.com/spring-projects/spring-integration-aws[Spring Integration for AWS]
-----
+====
 
 == Getting Started
 
@@ -124,6 +124,8 @@ before any other BOM dependency that configures AWS SDK dependencies.
 include::core.adoc[]
 
 include::s3.adoc[]
+
+include::sns.adoc[]
 
 include::parameter-store.adoc[]
 

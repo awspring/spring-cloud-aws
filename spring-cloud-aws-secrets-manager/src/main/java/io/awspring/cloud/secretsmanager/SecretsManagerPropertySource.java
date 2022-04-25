@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.secretsmanager;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,16 +76,21 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 	}
 
 	private void readSecretValue(GetSecretValueRequest secretValueRequest) {
+		GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
 		try {
-			GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
 			Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
 					new TypeReference<Map<String, Object>>() {
 					});
 
 			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
-				LOG.debug("Populating property retrieved from AWS Parameter Store: " + secretEntry.getKey());
+				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
 				properties.put(secretEntry.getKey(), secretEntry.getValue());
 			}
+		}
+		catch (JsonParseException e) {
+			// If the secret is not a JSON string, then it is a simple "plain text" string
+			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretValueResponse.name());
+			properties.put(secretValueResponse.name(), secretValueResponse.secretString());
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);

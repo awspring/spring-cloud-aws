@@ -87,8 +87,8 @@ public final class CrossRegionS3ClientGenerator {
 		TypeSolver typeSolver = new ClassLoaderTypeSolver(CrossRegionS3ClientGenerator.class.getClassLoader());
 		ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = typeSolver
 				.solveType(S3Client.class.getName());
-		resolvedReferenceTypeDeclaration.getAllMethods().stream().sorted(Comparator.comparing(MethodUsage::getName))
-				.forEach(method -> {
+		resolvedReferenceTypeDeclaration.getAllMethods().stream()
+				.sorted(Comparator.comparing(MethodUsage::getSignature)).forEach(method -> {
 					if (isRegionSpecific(method) && isCanonical(method)) {
 						MethodDeclaration methodDeclaration = crossRegionS3Client.addMethod(method.getName(),
 								Modifier.Keyword.PUBLIC);

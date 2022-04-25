@@ -52,6 +52,15 @@ class Location {
 	 * Creates location.
 	 * @param bucket - the bucket name
 	 * @param object - the object key
+	 */
+	Location(String bucket, String object) {
+		this(bucket, object, null);
+	}
+
+	/**
+	 * Creates location.
+	 * @param bucket - the bucket name
+	 * @param object - the object key
 	 * @param version - the object version
 	 */
 	Location(String bucket, String object, @Nullable String version) {
