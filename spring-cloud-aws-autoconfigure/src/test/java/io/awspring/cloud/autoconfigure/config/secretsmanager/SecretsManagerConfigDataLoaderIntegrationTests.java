@@ -142,7 +142,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
 			context.getEnvironment().getProperty("message");
-			assertThat(output.getAll()).contains("Populating property retrieved from AWS Parameter Store: message");
+			assertThat(output.getAll()).contains("Populating property retrieved from AWS Secrets Manager: message");
 		}
 	}
 

@@ -54,8 +54,8 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void shouldParsePlainTextSecretValue() {
-		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder()
-			.secretString("my secret").name("secret name").build();
+		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder().secretString("my secret")
+				.name("secret name").build();
 
 		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
 

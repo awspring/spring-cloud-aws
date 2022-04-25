@@ -86,7 +86,8 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
 				properties.put(secretEntry.getKey(), secretEntry.getValue());
 			}
-		} catch (JsonParseException e) {
+		}
+		catch (JsonParseException e) {
 			// If the secret is not a JSON string, then it is a simple "plain text" string
 			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretValueResponse.name());
 			properties.put(secretValueResponse.name(), secretValueResponse.secretString());
