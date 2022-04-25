@@ -18,9 +18,11 @@ package io.awspring.cloud.autoconfigure;
 import java.net.URI;
 import java.util.Objects;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class ConfiguredAwsClient {
@@ -40,6 +42,10 @@ public class ConfiguredAwsClient {
 
 	public boolean isEndpointOverridden() {
 		return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
+	}
+
+	public Region getRegion() {
+		return clientConfigurationAttributes.get(AwsClientOption.AWS_REGION);
 	}
 
 }

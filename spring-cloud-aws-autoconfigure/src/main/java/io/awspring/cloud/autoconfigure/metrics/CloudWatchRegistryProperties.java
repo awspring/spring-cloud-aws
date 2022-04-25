@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.metrics;
 
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.StepRegistryProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * {@link ConfigurationProperties} for configuring CloudWatch client.
+ * {@link ConfigurationProperties} for configuring CloudWatch metrics export.
  *
  * @author Jon Schneider
  * @author Dawid Kublik
@@ -27,6 +27,26 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eddú Meléndez
  * @since 2.0.0
  */
-@ConfigurationProperties(prefix = "spring.cloud.aws.cloudwatch")
-public class CloudWatchProperties extends AwsClientProperties {
+@ConfigurationProperties(prefix = "management.metrics.export.cloudwatch")
+public class CloudWatchRegistryProperties extends StepRegistryProperties {
+
+	private static final int DEFAULT_BATCH_SIZE = 20;
+
+	/**
+	 * The namespace which will be used when sending metrics to CloudWatch. This property is needed and must not be
+	 * null.
+	 */
+	private String namespace = "";
+
+	public CloudWatchRegistryProperties() {
+		setBatchSize(DEFAULT_BATCH_SIZE);
+	}
+
+	public String getNamespace() {
+		return this.namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
 }

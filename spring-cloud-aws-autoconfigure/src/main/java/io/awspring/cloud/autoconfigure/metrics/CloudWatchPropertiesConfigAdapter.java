@@ -19,27 +19,27 @@ import io.micrometer.cloudwatch2.CloudWatchConfig;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.StepRegistryPropertiesConfigAdapter;
 
 /**
- * Adapter to convert {@link CloudWatchProperties} to a {@link CloudWatchConfig}.
+ * Adapter to convert {@link CloudWatchRegistryProperties} to a {@link CloudWatchConfig}.
  *
  * @author Jon Schneider
  * @author Dawid Kublik
  * @since 2.0.0
  */
-class CloudWatchPropertiesConfigAdapter extends StepRegistryPropertiesConfigAdapter<CloudWatchProperties>
+class CloudWatchPropertiesConfigAdapter extends StepRegistryPropertiesConfigAdapter<CloudWatchRegistryProperties>
 		implements CloudWatchConfig {
 
-	CloudWatchPropertiesConfigAdapter(CloudWatchProperties properties) {
+	CloudWatchPropertiesConfigAdapter(CloudWatchRegistryProperties properties) {
 		super(properties);
 	}
 
 	@Override
 	public String namespace() {
-		return get(CloudWatchProperties::getNamespace, CloudWatchConfig.super::namespace);
+		return get(CloudWatchRegistryProperties::getNamespace, CloudWatchConfig.super::namespace);
 	}
 
 	@Override
 	public int batchSize() {
-		return get(CloudWatchProperties::getBatchSize, CloudWatchConfig.super::batchSize);
+		return get(CloudWatchRegistryProperties::getBatchSize, CloudWatchConfig.super::batchSize);
 	}
 
 }

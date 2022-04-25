@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.metrics;
-
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * {@link ConfigurationProperties} for configuring CloudWatch client.
- *
- * @author Jon Schneider
- * @author Dawid Kublik
- * @author Bernardo Martins
- * @author Eddú Meléndez
- * @since 2.0.0
+ * Auto-configuration for CloudWatch integration.
  */
-@ConfigurationProperties(prefix = "spring.cloud.aws.cloudwatch")
-public class CloudWatchProperties extends AwsClientProperties {
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.autoconfigure.metrics;
