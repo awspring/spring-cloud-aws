@@ -60,7 +60,7 @@ public class HeaderConverter {
 	public Map<String, MessageAttributeValue> toSnsMessageAttributes(Map<String, Object> messageHeaders) {
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();
 		if (messageHeaders.size() == 0) {
-
+			return messageAttributes;
 		}
 		for (Map.Entry<String, Object> messageHeader : messageHeaders.entrySet()) {
 			String messageHeaderName = messageHeader.getKey();
