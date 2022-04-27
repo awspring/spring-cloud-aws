@@ -16,7 +16,7 @@
 package io.awspring.cloud.dynamodb;
 
 /**
- * Used to resolve TableName used by {@link DynamoDbOperations} from Class.
+ * Resolves DynamoDB table name from a {@link Class}. Used by {@link DynamoDbTemplate}.
  *
  * @author Matej Nedic
  */
