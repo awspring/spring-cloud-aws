@@ -27,13 +27,14 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | SES             | ✅                    | ✅                                                                         |
 | Parameter Store | ✅                    | ✅                                                                         |
 | Secrets Manager | ✅                    | ✅                                                                         |
-| SQS             | ✅                    | TODO                                                                      |
+| SQS             | ✅                    | TODO [#344](https://github.com/awspring/spring-cloud-aws/issues/344)       |
 | RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
 | EC2             | ✅                    | ❌                                                                         |
 | ElastiCache     | ✅                    | ❌                                                                         |
 | CloudFormation  | ✅                    | ❌                                                                         |
 | CloudWatch      | ✅                    | In Progress [#237](https://github.com/awspring/spring-cloud-aws/pull/237) |
-| Cognito         | ✅                    | TODO                                                                      |
+| Cognito         | ✅                    | In Progesss [#340](https://github.com/awspring/spring-cloud-aws/pull/340) |
+| DynamoDB        | ❌                    | In Progesss [#339](https://github.com/awspring/spring-cloud-aws/pull/339) |
 
 Note, that Spring provides support for other AWS services in following projects:
 
