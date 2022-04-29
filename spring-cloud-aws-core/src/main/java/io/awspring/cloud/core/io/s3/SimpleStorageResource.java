@@ -144,7 +144,11 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 	@Override
 	public URL getURL() throws IOException {
 		Region region = this.amazonS3.getRegion().toAWSRegion();
-		String encodedObjectName = URLEncoder.encode(this.objectName, StandardCharsets.UTF_8.toString());
+		List<String> splits = new ArrayList<>();
+		for (String split : this.objectName.split("/")) {
+			splits.add(URLEncoder.encode(split, StandardCharsets.UTF_8.toString()));
+		}
+		String encodedObjectName = String.join("/", splits);
 		return new URL("https", region.getServiceEndpoint(AmazonS3Client.S3_SERVICE_NAME),
 				"/" + this.bucketName + "/" + encodedObjectName);
 	}
