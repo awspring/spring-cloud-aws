@@ -29,14 +29,15 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
-	private final TableSchemaResolver tableSchemaResolver;
-	private final TableNameResolver tableNameResolver;
+	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
+	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
-	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, TableSchemaResolver tableSchemaResolver,
-			TableNameResolver tableNameResolver) {
+	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
+			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver,
+			DynamoDbTableNameResolver dynamoDbTableNameResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
-		this.tableSchemaResolver = tableSchemaResolver;
-		this.tableNameResolver = tableNameResolver;
+		this.dynamoDbTableSchemaResolver = dynamoDbTableSchemaResolver;
+		this.dynamoDbTableNameResolver = dynamoDbTableNameResolver;
 	}
 
 	public <T> T save(T entity) {
@@ -73,13 +74,14 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	}
 
 	private <T> DynamoDbTable<T> prepareTable(T entity) {
-		String tableName = tableNameResolver.resolve(entity.getClass());
-		return dynamoDbEnhancedClient.table(tableName, tableSchemaResolver.resolve(entity.getClass(), tableName));
+		String tableName = dynamoDbTableNameResolver.resolve(entity.getClass());
+		return dynamoDbEnhancedClient.table(tableName,
+				dynamoDbTableSchemaResolver.resolve(entity.getClass(), tableName));
 	}
 
 	private <T> DynamoDbTable<T> prepareTable(Class<T> clazz) {
-		String tableName = tableNameResolver.resolve(clazz);
-		return dynamoDbEnhancedClient.table(tableName, tableSchemaResolver.resolve(clazz, tableName));
+		String tableName = dynamoDbTableNameResolver.resolve(clazz);
+		return dynamoDbEnhancedClient.table(tableName, dynamoDbTableSchemaResolver.resolve(clazz, tableName));
 	}
 
 }

@@ -19,14 +19,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -48,20 +52,36 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  *
  * @author Matej Nedic
  */
-// Switch to SpringBootTest TO::DO
+
+@SpringBootTest(classes = { CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+		AwsAutoConfiguration.class, DynamoDbAutoConfiguration.class })
 @Testcontainers
 public class DynamoDbTemplateIntegrationTest {
 
 	private static final String REGION = "us-east-1";
 	private static DynamoDbTable dynamoDbTable;
+	@Autowired
+	private DynamoDbClient dynamoDbClient;
+	@Autowired
+	private DynamoDbTemplate dynamoDbTemplate;
+
+	@DynamicPropertySource
+	static void snsProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.cloud.aws.dynamodb.region", REGION::toString);
+		registry.add("spring.cloud.aws.dynamodb.endpoint", localstack.getEndpointOverride(DYNAMODB)::toString);
+		registry.add("spring.cloud.aws.credentials.access-key", "noop"::toString);
+		registry.add("spring.cloud.aws.credentials.secret-key", "noop"::toString);
+		registry.add("spring.cloud.aws.region.static", "eu-west-1"::toString);
+	}
+
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(DYNAMODB).withReuse(true);
 
 	@BeforeAll
-	public static void before() {
-		DynamoDbClient dynamoDbClient = DynamoDbClient.builder().region(Region.of(REGION))
-				.endpointOverride(localstack.getEndpointOverride(DYNAMODB))
+	public static void createTable() {
+		DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
 		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build().table("person",
@@ -70,124 +90,133 @@ public class DynamoDbTemplateIntegrationTest {
 	}
 
 	@Test
-	void save() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
+	void dynamoDbTemplate_save_entitySuccessful() {
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
 
-		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
-			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar")
-					.withUuid(UUID.randomUUID()).build();
-			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
-
-			cleanUp(person.getUuid());
-		}
+		cleanUp(person.getUuid());
 	}
 
 	@Test
-	void saveAndRead() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
+	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
 
-		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
-			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar")
-					.withUuid(UUID.randomUUID()).build();
-			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
+					Person.class);
+			assertThat(person1).isEqualTo(person);
+		}).doesNotThrowAnyException();
 
-			assertThatCode(() -> {
-				Person person1 = dynamoDBTemplate
-						.load(Key.builder().partitionValue(person.getUuid().toString()).build(), Person.class);
-				assertThat(person1).isEqualTo(person);
-			}).doesNotThrowAnyException();
-
-			cleanUp(person.getUuid());
-		}
+		cleanUp(person.getUuid());
 	}
 
 	@Test
-	void saveUpdateAndRead() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-
-		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
-			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar")
-					.withUuid(UUID.randomUUID()).build();
-			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
-
-			person.setLastName("xxx");
-			assertThatCode(() -> dynamoDBTemplate.update(person)).doesNotThrowAnyException();
-
-			assertThatCode(() -> {
-				Person person1 = dynamoDBTemplate
-						.load(Key.builder().partitionValue(person.getUuid().toString()).build(), Person.class);
-				assertThat(person1).isEqualTo(person);
-			}).doesNotThrowAnyException();
-
-			// clean up
-			cleanUp(person.getUuid());
-		}
+	void dynamoDbTemplate_read_entitySuccessful_returnsNull() {
+		assertThatCode(() -> {
+			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
+					Person.class);
+			assertThat(person1).isNull();
+		}).doesNotThrowAnyException();
 	}
 
 	@Test
-	void saveAndDelete() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
+	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
 
-		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
-			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar")
-					.withUuid(UUID.randomUUID()).build();
-			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
+		person.setLastName("xxx");
+		assertThatCode(() -> dynamoDbTemplate.update(person)).doesNotThrowAnyException();
 
-			assertThatCode(() -> dynamoDBTemplate.delete(person)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
+					Person.class);
+			assertThat(person1).isEqualTo(person);
+		}).doesNotThrowAnyException();
 
-			assertThatCode(() -> {
-				Person person1 = dynamoDBTemplate
-						.load(Key.builder().partitionValue(person.getUuid().toString()).build(), Person.class);
-				assertThat(person1).isEqualTo(null);
-			}).doesNotThrowAnyException();
-		}
+		// clean up
+		cleanUp(person.getUuid());
 	}
 
 	@Test
-	void query() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
 
-		try (ConfigurableApplicationContext context = runApplication(application)) {
-			DynamoDbTemplate dynamoDBTemplate = context.getBean(DynamoDbTemplate.class);
-			Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar")
-					.withUuid(UUID.randomUUID()).build();
-			assertThatCode(() -> dynamoDBTemplate.save(person)).doesNotThrowAnyException();
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
 
-			QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder().queryConditional(
-					QueryConditional.keyEqualTo(Key.builder().partitionValue(person.getUuid().toString()).build()))
-					.build();
+		assertThatCode(() -> dynamoDbTemplate.delete(person)).doesNotThrowAnyException();
 
-			PageIterable<Person> persons = dynamoDBTemplate.query(queryEnhancedRequest, Person.class);
-			// items size
-			assertThat((int) persons.items().stream().count()).isEqualTo(1);
-			// page size
-			assertThat((int) persons.stream().count()).isEqualTo(1);
-		}
+		assertThatCode(() -> {
+			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
+					Person.class);
+			assertThat(person1).isEqualTo(null);
+		}).doesNotThrowAnyException();
+		cleanUp(person.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
+
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+
+		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(person.getUuid().toString()).build(),
+				Person.class)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
+					Person.class);
+			assertThat(person1).isEqualTo(null);
+		}).doesNotThrowAnyException();
+		cleanUp(person.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
+		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
+				Person.class)).doesNotThrowAnyException();
+	}
+
+	@Test
+	void dynamoDbTemplate_query_returns_singlePagePerson() {
+		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
+				.build();
+		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+
+		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
+				.queryConditional(
+						QueryConditional.keyEqualTo(Key.builder().partitionValue(person.getUuid().toString()).build()))
+				.build();
+
+		PageIterable<Person> persons = dynamoDbTemplate.query(queryEnhancedRequest, Person.class);
+		// items size
+		assertThat((int) persons.items().stream().count()).isEqualTo(1);
+		// page size
+		assertThat((int) persons.stream().count()).isEqualTo(1);
+		cleanUp(person.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_query_returns_empty() {
+		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
+				.queryConditional(
+						QueryConditional.keyEqualTo(Key.builder().partitionValue(UUID.randomUUID().toString()).build()))
+				.build();
+
+		PageIterable<Person> persons = dynamoDbTemplate.query(queryEnhancedRequest, Person.class);
+		// items size
+		assertThat((int) persons.items().stream().count()).isEqualTo(0);
+		// page size
+		assertThat((int) persons.stream().count()).isEqualTo(1);
 	}
 
 	public static void cleanUp(UUID uuid) {
 		dynamoDbTable.deleteItem(Key.builder().partitionValue(uuid.toString()).build());
-	}
-
-	private ConfigurableApplicationContext runApplication(SpringApplication application) {
-		return application.run("--spring.cloud.aws.dynamodb.region=" + REGION,
-				"--spring.cloud.aws.dynamodb.endpoint=" + localstack.getEndpointOverride(DYNAMODB).toString(),
-				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1");
-	}
-
-	@SpringBootApplication
-	static class App {
-
 	}
 
 }

@@ -15,23 +15,13 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
- * Default implementation with simple cache for {@link TableSchema}.
- *
+ * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is
+ * expensive.
  * @author Matej Nedic
  */
-public class DefaultTableSchemaResolver implements TableSchemaResolver {
-	private final Map<String, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
-
-	public DefaultTableSchemaResolver() {
-	}
-
-	@Override
-	public <T> TableSchema<T> resolve(Class<T> clazz, String tableName) {
-		return tableSchemaCache.computeIfAbsent(tableName, entityClassName -> TableSchema.fromBean(clazz));
-	}
+public interface DynamoDbTableSchemaResolver {
+	<T> TableSchema resolve(Class<T> clazz, String tableName);
 }

@@ -15,17 +15,12 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import java.util.Locale;
-
 /**
- * Simple implementation of {@link TableNameResolver} that resolves class simple name to table name.
+ * Resolves DynamoDB table name from a {@link Class}. Used by {@link DynamoDbTemplate}.
  *
  * @author Matej Nedic
  */
-public class DefaultTableNameResolver implements TableNameResolver {
+public interface DynamoDbTableNameResolver {
 
-	@Override
-	public String resolve(Class clazz) {
-		return clazz.getSimpleName().toLowerCase(Locale.ROOT);
-	}
+	String resolve(Class clazz);
 }

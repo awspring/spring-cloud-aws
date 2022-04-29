@@ -15,13 +15,24 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+public class FakePerson {
 
-/**
- * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is
- * expensive.
- * @author Matej Nedic
- */
-public interface TableSchemaResolver {
-	<T> TableSchema resolve(Class<T> clazz, String tableName);
+	private String firstName;
+	private String lastName;
+
+	public FakePerson() {
+	}
+
+	public FakePerson(String firstName, String lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
 }

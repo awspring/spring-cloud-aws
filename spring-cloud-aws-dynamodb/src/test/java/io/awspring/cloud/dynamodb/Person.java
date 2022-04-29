@@ -15,12 +15,29 @@
  */
 package io.awspring.cloud.dynamodb;
 
-/**
- * Resolves DynamoDB table name from a {@link Class}. Used by {@link DynamoDbTemplate}.
- *
- * @author Matej Nedic
- */
-public interface TableNameResolver {
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
-	String resolve(Class clazz);
+@DynamoDbBean
+public class Person {
+	private String firstName;
+	private String lastName;
+
+	public Person() {
+	}
+
+	public Person(String firstName, String lastName) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+
+	// FirstName should never be partition key but for sake of a test.
+	@DynamoDbPartitionKey
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
 }

@@ -17,25 +17,22 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
-import io.awspring.cloud.dynamodb.TableNameResolver;
-import io.awspring.cloud.dynamodb.TableSchemaResolver;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  *
@@ -62,13 +59,8 @@ public class DynamoDbAutoConfigurationTest {
 			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
-			DynamoDbClient client = context.getBean(DynamoDbClient.class);
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(client,
-					"clientConfiguration");
-			AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration, "attributes");
-			assertThat(attributes.get(SdkClientOption.ENDPOINT))
-					.isEqualTo(URI.create("https://dynamodb.eu-west-1.amazonaws.com"));
-
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://dynamodb.eu-west-1.amazonaws.com"));
 		});
 	}
 
@@ -80,14 +72,9 @@ public class DynamoDbAutoConfigurationTest {
 					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
-					DynamoDbClient client = context.getBean(DynamoDbClient.class);
-
-					SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils
-							.getField(client, "clientConfiguration");
-					AttributeMap attributes = (AttributeMap) ReflectionTestUtils.getField(clientConfiguration,
-							"attributes");
-					assertThat(attributes.get(SdkClientOption.ENDPOINT)).isEqualTo(URI.create("http://localhost:8090"));
-					assertThat(attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN)).isTrue();
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+					assertThat(client.isEndpointOverridden()).isTrue();
 				});
 	}
 
@@ -95,9 +82,19 @@ public class DynamoDbAutoConfigurationTest {
 	void customTableResolverResolverCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomDynamoDbConfiguration.class)
 				.run(context -> {
-					assertThat(context).hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableResolver.class);
-					assertThat(context)
-							.hasSingleBean(DynamoDbAutoConfigurationTest.CustomDynamoDBTableNameResolver.class);
+					DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
+							.getBean(DynamoDbTableSchemaResolver.class);
+					DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
+							.getBean(DynamoDbTableNameResolver.class);
+
+					assertThat(dynamoDbTableSchemaResolver).isNotNull();
+					assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
+
+					assertThat(dynamoDbTableSchemaResolver)
+							.isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
+					assertThat(dynamoDBDynamoDbTableNameResolver)
+							.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
+
 				});
 	}
 
@@ -105,17 +102,17 @@ public class DynamoDbAutoConfigurationTest {
 	static class CustomDynamoDbConfiguration {
 
 		@Bean
-		TableSchemaResolver tableSchemaResolver() {
-			return new CustomDynamoDBTableResolver();
+		DynamoDbTableSchemaResolver tableSchemaResolver() {
+			return new CustomDynamoDBDynamoDbTableSchemaResolver();
 		}
 
 		@Bean
-		TableNameResolver tableNameResolver() {
-			return new CustomDynamoDBTableNameResolver();
+		DynamoDbTableNameResolver tableNameResolver() {
+			return new CustomDynamoDBDynamoDbTableNameResolver();
 		}
 	}
 
-	static class CustomDynamoDBTableResolver implements TableSchemaResolver {
+	static class CustomDynamoDBDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
 
 		@Override
 		public <T> TableSchema resolve(Class<T> clazz, String tableName) {
@@ -124,7 +121,7 @@ public class DynamoDbAutoConfigurationTest {
 
 	}
 
-	static class CustomDynamoDBTableNameResolver implements TableNameResolver {
+	static class CustomDynamoDBDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
 
 		@Override
 		public String resolve(Class clazz) {
