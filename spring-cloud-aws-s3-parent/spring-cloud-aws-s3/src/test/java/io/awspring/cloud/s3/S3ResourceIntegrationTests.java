@@ -129,9 +129,9 @@ class S3ResourceIntegrationTests {
 	void returnsEncodedResourceUrlAndUri() throws IOException, URISyntaxException {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]");
 		assertThat(resource.getURL().toString())
-				.isEqualTo("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D");
+				.isEqualTo("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D");
 		assertThat(resource.getURI())
-				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some%2F%5BobjectName%5D"));
+				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
 	}
 
 	@Test
