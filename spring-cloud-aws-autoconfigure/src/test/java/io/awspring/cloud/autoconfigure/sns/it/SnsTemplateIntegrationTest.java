@@ -46,7 +46,7 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SNS).withReuse(true);
 
 	@Test
 	void send_validTextMessage_usesTopicChannel_auto_create() {

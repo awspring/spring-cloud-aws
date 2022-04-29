@@ -56,7 +56,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SECRETSMANAGER).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
