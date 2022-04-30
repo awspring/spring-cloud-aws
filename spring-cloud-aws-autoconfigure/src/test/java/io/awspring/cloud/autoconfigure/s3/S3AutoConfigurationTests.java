@@ -29,6 +29,7 @@ import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
+import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
@@ -43,6 +44,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -66,6 +68,20 @@ class S3AutoConfigurationTests {
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
 			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
+		});
+	}
+
+	@Test
+	void createsS3TransferManagerBeanWhenInClassPath() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(S3TransferManager.class);
+		});
+	}
+
+	@Test
+	void doesNotCreateS3TransferManagerBeanWhenNotInClassPath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(S3TransferManager.class);
 		});
 	}
 
@@ -114,9 +130,17 @@ class S3AutoConfigurationTests {
 
 	@Nested
 	class OutputStreamProviderTests {
+
 		@Test
-		void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
-			contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
+		void whenS3TransferManagerInClassPathCreatesTransferManagerSS3OutputStreamProvider() {
+			contextRunner
+					.run(context -> assertThat(context).hasSingleBean(TransferManagerS3OutputStreamProvider.class));
+		}
+
+		@Test
+		void whenS3TransferManagerNotInClassPathCreatesDiskBufferingS3OutputStreamProvider() {
+			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class))
+					.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
 		}
 
 		@Test

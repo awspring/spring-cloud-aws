@@ -136,7 +136,6 @@ public class S3AutoConfiguration {
 	@Bean
 	S3TransferManager s3TransferManager(AwsCredentialsProvider credentialsProvider,
 			AwsRegionProvider awsRegionProvider) {
-
 		return S3TransferManager.builder()
 				.s3ClientConfiguration(
 						cfg -> cfg.credentialsProvider(credentialsProvider).region(awsRegionProvider.getRegion()))
