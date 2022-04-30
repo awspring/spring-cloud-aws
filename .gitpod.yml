@@ -1,7 +1,7 @@
 tasks:
-  - before: brew install mvndaemon/homebrew-mvnd/mvnd
-  - init: make build
+  - init: ./mvnw verify spotless:apply -DskipTests=true
 
 vscode:
   extensions:
     - Pivotal.vscode-boot-dev-pack
+    - vscjava.vscode-java-pack
