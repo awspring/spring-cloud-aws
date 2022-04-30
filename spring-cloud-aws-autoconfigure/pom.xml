@@ -60,6 +60,12 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-transfer-manager</artifactId>
+			<version>${transfer-manager.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
 			<optional>true</optional>
