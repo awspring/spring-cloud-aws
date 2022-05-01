@@ -1,0 +1,7 @@
+tasks:
+  - init: ./mvnw verify spotless:apply -DskipTests=true
+
+vscode:
+  extensions:
+    - Pivotal.vscode-boot-dev-pack
+    - vscjava.vscode-java-pack

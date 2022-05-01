@@ -34,4 +34,10 @@
 
 * Ask any question about how to use Spring Cloud AWS in the [Discussions](https://github.com/awspring/spring-cloud-aws/discussions).
 
+#### **Using Gitpod**
+
+To avoid setting up your local development environment, you can use [Gitpod](https://www.gitpod.io/) and develop directly in browser based Visual Studio Code, or [JetBrains Client via JetBrains Gateway](https://www.gitpod.io/docs/ides-and-editors/jetbrains-gateway).
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/awspring/spring-cloud-aws)
+
 Thanks!
