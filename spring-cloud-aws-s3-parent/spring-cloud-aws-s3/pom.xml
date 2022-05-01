@@ -30,6 +30,7 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3-transfer-manager</artifactId>
 			<version>${awssdk.version}-PREVIEW</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
