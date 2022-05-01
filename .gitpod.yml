@@ -1,4 +1,5 @@
 tasks:
+  - init: sdk install mvnd
   - init: ./mvnw verify spotless:apply -DskipTests=true
 
 vscode:
