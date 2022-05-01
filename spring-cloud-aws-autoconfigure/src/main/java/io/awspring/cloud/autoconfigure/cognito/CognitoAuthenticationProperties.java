@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.security;
+package io.awspring.cloud.autoconfigure.cognito;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -29,6 +29,16 @@ public class CognitoAuthenticationProperties {
 	private static final String COGNITO_ISSUER = "https://cognito-idp.%s.amazonaws.com/%s";
 
 	private static final String COGNITO_REGISTRY = "https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json";
+
+	/**
+	 * Url of the issuer.
+	 */
+	private String issuerUrl;
+
+	/**
+	 * Url of the registry.
+	 */
+	private String registryUrl;
 
 	/**
 	 * Id of the user pool.
@@ -50,6 +60,22 @@ public class CognitoAuthenticationProperties {
 	 */
 	private String appClientId;
 
+	public String getIssuerUrl() {
+		return this.issuerUrl;
+	}
+
+	public void setIssuerUrl(String issuerUrl) {
+		this.issuerUrl = issuerUrl;
+	}
+
+	public String getRegistryUrl() {
+		return this.registryUrl;
+	}
+
+	public void setRegistryUrl(String registryUrl) {
+		this.registryUrl = registryUrl;
+	}
+
 	public String getUserPoolId() {
 		return this.userPoolId;
 	}
@@ -67,7 +93,10 @@ public class CognitoAuthenticationProperties {
 	}
 
 	public String getRegistry() {
-		return String.format(COGNITO_REGISTRY, this.region, this.userPoolId);
+		if (this.registryUrl == null) {
+			return String.format(COGNITO_REGISTRY, this.region, this.userPoolId);
+		}
+		return this.registryUrl;
 	}
 
 	public String getAlgorithm() {
@@ -79,7 +108,10 @@ public class CognitoAuthenticationProperties {
 	}
 
 	public String getIssuer() {
-		return String.format(COGNITO_ISSUER, this.region, this.userPoolId);
+		if (this.issuerUrl == null) {
+			return String.format(COGNITO_ISSUER, this.region, this.userPoolId);
+		}
+		return this.issuerUrl;
 	}
 
 	public String getAppClientId() {
