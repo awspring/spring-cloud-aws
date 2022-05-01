@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3-transfer-manager</artifactId>
-			<version>${transfer-manager.version}</version>
+			<version>${awssdk.version}-PREVIEW</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
