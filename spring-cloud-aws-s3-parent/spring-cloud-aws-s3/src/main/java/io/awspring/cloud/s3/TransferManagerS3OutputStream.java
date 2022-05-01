@@ -49,6 +49,10 @@ class TransferManagerS3OutputStream extends BaseTempFileS3OutputStream {
 
 	@Override
 	protected void upload(PutObjectRequest putObjectRequest) {
-		s3TransferManager.uploadFile(UploadFileRequest.builder().putObjectRequest(putObjectRequest).build());
+		s3TransferManager.uploadFile(UploadFileRequest.builder()
+			.putObjectRequest(putObjectRequest)
+			.source(file)
+			.build()
+		);
 	}
 }
