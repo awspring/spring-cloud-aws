@@ -16,5 +16,6 @@
 	<modules>
 		<module>infrastructure</module>
 		<module>app</module>
+		<module>app-transfermanager</module>
 	</modules>
 </project>

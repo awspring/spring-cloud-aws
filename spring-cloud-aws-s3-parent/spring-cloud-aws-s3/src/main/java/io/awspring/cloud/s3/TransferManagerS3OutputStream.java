@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.s3;
 
+import java.io.IOException;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
-
-import java.io.IOException;
 
 /**
  * {@link S3OutputStream} implementation, that uses the TransferManager from AWS (in preview).
@@ -49,10 +48,8 @@ class TransferManagerS3OutputStream extends BaseTempFileS3OutputStream {
 
 	@Override
 	protected void upload(PutObjectRequest putObjectRequest) {
-		s3TransferManager.uploadFile(UploadFileRequest.builder()
-			.putObjectRequest(putObjectRequest)
-			.source(file)
-			.build()
-		);
+		s3TransferManager
+				.uploadFile(UploadFileRequest.builder().putObjectRequest(putObjectRequest).source(file).build())
+				.completionFuture().join();
 	}
 }

@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.s3;
 
+import java.io.IOException;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import java.io.IOException;
 
 /**
  * {@link S3OutputStream} implementation, that first uploads to a local file in tmp folder and then flushes file to S3.
@@ -43,7 +42,7 @@ class DiskBufferingS3OutputStream extends BaseTempFileS3OutputStream {
 
 	DiskBufferingS3OutputStream(Location location, S3Client client, @Nullable ObjectMetadata objectMetadata,
 			@Nullable S3ObjectContentTypeResolver contentTypeResolver) throws IOException {
-		super(location,objectMetadata, contentTypeResolver);
+		super(location, objectMetadata, contentTypeResolver);
 		this.s3Client = client;
 	}
 

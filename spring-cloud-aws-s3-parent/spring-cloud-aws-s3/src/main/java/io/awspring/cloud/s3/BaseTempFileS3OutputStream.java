@@ -15,12 +15,6 @@
  */
 package io.awspring.cloud.s3;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,6 +25,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * {@link BaseTempFileS3OutputStream} abstract class defining the common behaviour for implementations that use a temp
@@ -77,8 +76,8 @@ abstract class BaseTempFileS3OutputStream extends S3OutputStream {
 		this(location, objectMetadata, null);
 	}
 
-	BaseTempFileS3OutputStream(Location location,
-                               @Nullable ObjectMetadata objectMetadata, @Nullable S3ObjectContentTypeResolver contentTypeResolver)
+	BaseTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata,
+							   @Nullable S3ObjectContentTypeResolver contentTypeResolver)
 			throws IOException {
 		Assert.notNull(location, "Location must not be null.");
 		this.location = location;
@@ -126,7 +125,7 @@ abstract class BaseTempFileS3OutputStream extends S3OutputStream {
 		closed = true;
 		try {
 			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(location.getBucket())
-				.key(location.getObject()).contentLength(file.length());
+					.key(location.getObject()).contentLength(file.length());
 			if (objectMetadata != null) {
 				objectMetadata.apply(builder);
 			}
@@ -144,7 +143,8 @@ abstract class BaseTempFileS3OutputStream extends S3OutputStream {
 			file.delete();
 		}
 		catch (Exception se) {
-			getLogger().error(String.format("Failed to upload %s. Temporary file @%s", location.getObject(), file.getPath()));
+			getLogger().error(
+					String.format("Failed to upload %s. Temporary file @%s", location.getObject(), file.getPath()));
 			throw new UploadFailedException(file.getPath(), se);
 		}
 	}
