@@ -1,6 +1,6 @@
 tasks:
-  - init: sdk install mvnd
-    command: mvnd verify spotless:apply -DskipTests=true
+  - before: sdk install mvnd
+    init: mvnd verify spotless:apply -DskipTests=true
 
 vscode:
   extensions:
