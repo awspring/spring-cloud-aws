@@ -44,6 +44,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.StorageClass;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Integration tests for {@link S3Resource}.
@@ -58,6 +59,7 @@ class S3ResourceIntegrationTests {
 			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(Service.S3).withReuse(true);
 
 	private static S3Client client;
+	private static S3TransferManager s3TransferManager;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -68,6 +70,13 @@ class S3ResourceIntegrationTests {
 				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
+		s3TransferManager = S3TransferManager.builder()
+			.s3ClientConfiguration(b ->
+				b.region(Region.of(localstack.getRegion()))
+					.credentialsProvider(credentialsProvider)
+					.endpointOverride(localstack.getEndpointOverride(Service.S3))
+					.build())
+			.build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
@@ -146,10 +155,25 @@ class S3ResourceIntegrationTests {
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
 	}
 
+	@Test
+	void resourceIsWritableWithDiskBufferingAndTransferManager() throws IOException {
+		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
+			RequestBody.fromString("test-file-content"));
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3TransferManagerProvider());
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
+		}
+		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
+	}
+
 	private DiskBufferingS3OutputStreamProvider s3OutputStreamProvider() {
 		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
 	}
 
+	private TransferManagerS3OutputStreamProvider s3TransferManagerProvider() {
+		return new TransferManagerS3OutputStreamProvider(s3TransferManager, new PropertiesS3ObjectContentTypeResolver());
+	}
 	@Test
 	void objectMetadataCanBeSetOnWriting() throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
