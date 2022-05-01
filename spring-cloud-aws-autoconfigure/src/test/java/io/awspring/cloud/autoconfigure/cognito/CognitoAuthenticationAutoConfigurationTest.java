@@ -24,6 +24,12 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
+/**
+ * Test for {@link CognitoAuthenticationAutoConfiguration}
+ *
+ * @author Eddú Meléndez
+ * @since 2.3
+ */
 class CognitoAuthenticationAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

@@ -37,6 +37,8 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 /**
+ * Enables autoconfiguration for token provided by Cognito.
+ *
  * @author Eddú Meléndez
  * @since 2.3
  */
