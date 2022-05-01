@@ -48,6 +48,33 @@ public class S3ClientSample {
 	}
 }
 ----
+=== (Alternative) Using S3TransferManager
+
+AWS launched https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[a high level file transfer utility], called Transfer Manager, and **it is currently in preview**. The starter automatically configures and registers an `S3TransferManager` bean if it finds the class in the classpath.
+You can add it to your project by adding the dependency:
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3-transfer-manager</artifactId>
+</dependency>
+```
+And later it can be used, like so:
+```java
+@Component
+public class S3TransferManagerSample {
+	private final S3TransferManager s3TransferManager;
+
+	S3TransferManagerSample(S3TransferManager s3TransferManager) {
+		this.s3TransferManager = s3TransferManager;
+	}
+
+	void readFile() throws IOException {
+		FileDownload fileDownload = s3TransferManager.downloadFile(b -> b.destination(Paths.get("my-path.txt"))
+				.getObjectRequest(req -> req.bucket("bucket-name").key("file-name.txt")));
+		fileDownload.completionFuture().join();
+	}
+}
+```
 
 === Using Cross-Region S3 client
 
@@ -143,10 +170,9 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
     // e.getPath contains a file location in temporary folder
 }
 ----
+If you are using the `S3TransferManager`, the default implementation will switch to `TransferManagerS3OutputStream`. This OutputStream also uses a temporary file to write it on disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
 
 If `DiskBufferingS3OutputStream` behavior does not fit your needs, you can implement custom `S3OutputStream` and provide a bean of type `io.awspring.cloud.s3.S3OutputStreamProvider` that is responsible for creating stream from `S3Resource`.
-
-Possible alternative implementations can use multi-part upload (for example with https://github.com/CI-CMG/aws-s3-outputstream[aws-s3-outputstream library)] or https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/transfer/s3/S3TransferManager.html[S3TransferManager].
 
 === Using S3Template
 
