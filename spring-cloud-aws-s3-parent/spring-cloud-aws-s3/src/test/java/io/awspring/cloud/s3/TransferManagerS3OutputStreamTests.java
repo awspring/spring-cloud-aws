@@ -15,21 +15,21 @@
  */
 package io.awspring.cloud.s3;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.UploadFileRequest;
 
 /**
  * Unit tests for {@link TransferManagerS3OutputStream}.
@@ -40,7 +40,7 @@ class TransferManagerS3OutputStreamTests {
 
 	@Test
 	void setsMd5hash() throws IOException {
-		S3TransferManager s3TransferManager = mock(S3TransferManager.class);
+		S3TransferManager s3TransferManager = mock(S3TransferManager.class, Answers.RETURNS_DEEP_STUBS);
 
 		try (TransferManagerS3OutputStream transferManagerS3OutputStream = new TransferManagerS3OutputStream(
 				new Location("bucket", "key"), s3TransferManager, null)) {
