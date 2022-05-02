@@ -21,7 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
-public class Person {
+public class MoreComplexPerson {
 
 	private UUID uuid;
 	private String name;
@@ -58,9 +58,9 @@ public class Person {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		Person person = (Person) o;
-		return Objects.equals(uuid, person.uuid) && Objects.equals(name, person.name)
-				&& Objects.equals(lastName, person.lastName);
+		MoreComplexPerson moreComplexPerson = (MoreComplexPerson) o;
+		return Objects.equals(uuid, moreComplexPerson.uuid) && Objects.equals(name, moreComplexPerson.name)
+				&& Objects.equals(lastName, moreComplexPerson.lastName);
 	}
 
 	@Override
@@ -68,39 +68,39 @@ public class Person {
 		return Objects.hash(uuid, name, lastName);
 	}
 
-	public static final class PersonBuilder {
+	public static final class MoreComplexPersonBuilder {
 		private UUID uuid;
 		private String name;
 		private String lastName;
 
-		private PersonBuilder() {
+		private MoreComplexPersonBuilder() {
 		}
 
-		public static PersonBuilder person() {
-			return new PersonBuilder();
+		public static MoreComplexPersonBuilder person() {
+			return new MoreComplexPersonBuilder();
 		}
 
-		public PersonBuilder withUuid(UUID uuid) {
+		public MoreComplexPersonBuilder withUuid(UUID uuid) {
 			this.uuid = uuid;
 			return this;
 		}
 
-		public PersonBuilder withName(String name) {
+		public MoreComplexPersonBuilder withName(String name) {
 			this.name = name;
 			return this;
 		}
 
-		public PersonBuilder withLastName(String lastName) {
+		public MoreComplexPersonBuilder withLastName(String lastName) {
 			this.lastName = lastName;
 			return this;
 		}
 
-		public Person build() {
-			Person person = new Person();
-			person.setUuid(uuid);
-			person.setName(name);
-			person.setLastName(lastName);
-			return person;
+		public MoreComplexPerson build() {
+			MoreComplexPerson moreComplexPerson = new MoreComplexPerson();
+			moreComplexPerson.setUuid(uuid);
+			moreComplexPerson.setName(name);
+			moreComplexPerson.setLastName(lastName);
+			return moreComplexPerson;
 		}
 	}
 }

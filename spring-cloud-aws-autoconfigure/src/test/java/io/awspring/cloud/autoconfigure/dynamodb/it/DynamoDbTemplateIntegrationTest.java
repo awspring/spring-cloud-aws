@@ -37,15 +37,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Integration tests for DynamoDBTemplate.
@@ -60,8 +59,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	private static final String REGION = "us-east-1";
 	private static DynamoDbTable dynamoDbTable;
-	@Autowired
-	private DynamoDbClient dynamoDbClient;
+
 	@Autowired
 	private DynamoDbTemplate dynamoDbTemplate;
 
@@ -84,121 +82,126 @@ public class DynamoDbTemplateIntegrationTest {
 				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build().table("person",
-				TableSchema.fromBean(Person.class));
+		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
+				.table("more_complex_person", TableSchema.fromBean(MoreComplexPerson.class));
 		dynamoDbTable.createTable();
 	}
 
 	@Test
 	void dynamoDbTemplate_save_entitySuccessful() {
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
-					Person.class);
-			assertThat(person1).isEqualTo(person);
+			MoreComplexPerson moreComplexPerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build(),
+					MoreComplexPerson.class);
+			assertThat(moreComplexPerson1).isEqualTo(moreComplexPerson);
 		}).doesNotThrowAnyException();
 
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_read_entitySuccessful_returnsNull() {
 		assertThatCode(() -> {
-			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
-					Person.class);
-			assertThat(person1).isNull();
+			MoreComplexPerson moreComplexPerson1 = dynamoDbTemplate
+					.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), MoreComplexPerson.class);
+			assertThat(moreComplexPerson1).isNull();
 		}).doesNotThrowAnyException();
 	}
 
 	@Test
 	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
-		person.setLastName("xxx");
-		assertThatCode(() -> dynamoDbTemplate.update(person)).doesNotThrowAnyException();
+		moreComplexPerson.setLastName("xxx");
+		assertThatCode(() -> dynamoDbTemplate.update(moreComplexPerson)).doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
-					Person.class);
-			assertThat(person1).isEqualTo(person);
+			MoreComplexPerson moreComplexPerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build(),
+					MoreComplexPerson.class);
+			assertThat(moreComplexPerson1).isEqualTo(moreComplexPerson);
 		}).doesNotThrowAnyException();
 
 		// clean up
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
 
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
-		assertThatCode(() -> dynamoDbTemplate.delete(person)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.delete(moreComplexPerson)).doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
-					Person.class);
-			assertThat(person1).isEqualTo(null);
+			MoreComplexPerson moreComplexPerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build(),
+					MoreComplexPerson.class);
+			assertThat(moreComplexPerson1).isEqualTo(null);
 		}).doesNotThrowAnyException();
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
 
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
-		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(person.getUuid().toString()).build(),
-				Person.class)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.delete(
+				Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build(), MoreComplexPerson.class))
+						.doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			Person person1 = dynamoDbTemplate.load(Key.builder().partitionValue(person.getUuid().toString()).build(),
-					Person.class);
-			assertThat(person1).isEqualTo(null);
+			MoreComplexPerson moreComplexPerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build(),
+					MoreComplexPerson.class);
+			assertThat(moreComplexPerson1).isEqualTo(null);
 		}).doesNotThrowAnyException();
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
 		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
-				Person.class)).doesNotThrowAnyException();
+				MoreComplexPerson.class)).doesNotThrowAnyException();
 	}
 
 	@Test
 	void dynamoDbTemplate_query_returns_singlePagePerson() {
-		Person person = Person.PersonBuilder.person().withName("foo").withLastName("bar").withUuid(UUID.randomUUID())
-				.build();
-		assertThatCode(() -> dynamoDbTemplate.save(person)).doesNotThrowAnyException();
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
 
 		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
-				.queryConditional(
-						QueryConditional.keyEqualTo(Key.builder().partitionValue(person.getUuid().toString()).build()))
+				.queryConditional(QueryConditional
+						.keyEqualTo(Key.builder().partitionValue(moreComplexPerson.getUuid().toString()).build()))
 				.build();
 
-		PageIterable<Person> persons = dynamoDbTemplate.query(queryEnhancedRequest, Person.class);
+		PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, MoreComplexPerson.class);
 		// items size
 		assertThat((int) persons.items().stream().count()).isEqualTo(1);
 		// page size
 		assertThat((int) persons.stream().count()).isEqualTo(1);
-		cleanUp(person.getUuid());
+		cleanUp(moreComplexPerson.getUuid());
 	}
 
 	@Test
@@ -208,11 +211,75 @@ public class DynamoDbTemplateIntegrationTest {
 						QueryConditional.keyEqualTo(Key.builder().partitionValue(UUID.randomUUID().toString()).build()))
 				.build();
 
-		PageIterable<Person> persons = dynamoDbTemplate.query(queryEnhancedRequest, Person.class);
+		PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, MoreComplexPerson.class);
 		// items size
 		assertThat((int) persons.items().stream().count()).isEqualTo(0);
 		// page size
 		assertThat((int) persons.stream().count()).isEqualTo(1);
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
+		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.scanAll(MoreComplexPerson.class);
+			assertThat(persons.items().iterator().next()).isEqualTo(moreComplexPerson);
+		}).doesNotThrowAnyException();
+
+		cleanUp(moreComplexPerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_scanAll_returnsEmpty() {
+		assertThatCode(() -> {
+			PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.scanAll(MoreComplexPerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(0);
+		}).doesNotThrowAnyException();
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful() {
+		MoreComplexPerson moreComplexPerson1 = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		MoreComplexPerson moreComplexPerson2 = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson2)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.scanAll(MoreComplexPerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(2);
+		}).doesNotThrowAnyException();
+
+		cleanUp(moreComplexPerson1.getUuid());
+		cleanUp(moreComplexPerson2.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful() {
+		MoreComplexPerson moreComplexPerson1 = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		MoreComplexPerson moreComplexPerson2 = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson2)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
+					.putExpressionName("#uuidToBeLooked", "uuid").putExpressionValue(":myValue",
+							AttributeValue.builder().s(moreComplexPerson1.getUuid().toString()).build())
+					.build();
+			ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
+					.filterExpression(expression).build();
+			PageIterable<MoreComplexPerson> persons = dynamoDbTemplate.scan(scanEnhancedRequest,
+					MoreComplexPerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(1);
+			assertThat(persons.items().iterator().next()).isEqualTo(moreComplexPerson1);
+		}).doesNotThrowAnyException();
+
+		cleanUp(moreComplexPerson1.getUuid());
+		cleanUp(moreComplexPerson2.getUuid());
 	}
 
 	public static void cleanUp(UUID uuid) {

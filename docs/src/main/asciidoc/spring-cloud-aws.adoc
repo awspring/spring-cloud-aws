@@ -133,6 +133,8 @@ include::ses.adoc[]
 
 include::sns.adoc[]
 
+include::dynamodb.adoc[]
+
 include::secrets-manager.adoc[]
 
 include::parameter-store.adoc[]
