@@ -37,13 +37,13 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
  * An example on how to upload and download files using TransferManager
  */
 @RestController
-@RequestMapping("/file")
-public class FileController {
+@RequestMapping("/file/transfermanager")
+public class TransferManagerFileController {
 	private static final String BUCKET = "spring-cloud-aws-sample-bucket1";
 	private final S3TransferManager transferManager;
 	private static final String TEMPORARY_PATH_STRING_FORMAT = "/tmp/%s";
 
-	public FileController(S3TransferManager transferManager) {
+	public TransferManagerFileController(S3TransferManager transferManager) {
 		this.transferManager = transferManager;
 	}
 
