@@ -14,7 +14,9 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== DynamoDbTemplate
+DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
+
+=== DynamoDbOperations
 
 The starter automatically configures and registers a `DynamoDbOperations` bean providing higher level abstractions for working with DynamoDb.
 `DynamoDbTemplate` is built on top of `DynamoDbEnhancedClient`, this means it uses annotations provided by AWS.
