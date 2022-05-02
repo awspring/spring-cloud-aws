@@ -45,6 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -73,9 +74,15 @@ class S3AutoConfigurationTests {
 
 	@Test
 	void createsS3TransferManagerBeanWhenInClassPath() {
-		this.contextRunner.run(context -> {
-			assertThat(context).hasSingleBean(S3TransferManager.class);
-		});
+		this.contextRunner.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
+	}
+
+	@Test
+	void usesExistingS3TransferManagerBeanWhenExists() {
+		S3TransferManager customDefinedS3TransferManager = DefaultS3TransferManager.builder().build();
+		this.contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
+				.run(context -> assertThat(context.getBean(S3TransferManager.class))
+						.isEqualTo(customDefinedS3TransferManager));
 	}
 
 	@Test
