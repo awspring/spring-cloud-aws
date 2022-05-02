@@ -71,12 +71,10 @@ class S3ResourceIntegrationTests {
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		s3TransferManager = S3TransferManager.builder()
-			.s3ClientConfiguration(b ->
-				b.region(Region.of(localstack.getRegion()))
-					.credentialsProvider(credentialsProvider)
-					.endpointOverride(localstack.getEndpointOverride(Service.S3))
-					.build())
-			.build();
+				.s3ClientConfiguration(
+						b -> b.region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
+								.endpointOverride(localstack.getEndpointOverride(Service.S3)).build())
+				.build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
@@ -139,8 +137,7 @@ class S3ResourceIntegrationTests {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]");
 		assertThat(resource.getURL().toString())
 				.isEqualTo("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D");
-		assertThat(resource.getURI())
-				.isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
+		assertThat(resource.getURI()).isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
 	}
 
 	@Test
@@ -158,7 +155,7 @@ class S3ResourceIntegrationTests {
 	@Test
 	void resourceIsWritableWithDiskBufferingAndTransferManager() throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
-			RequestBody.fromString("test-file-content"));
+				RequestBody.fromString("test-file-content"));
 		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3TransferManagerProvider());
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
@@ -172,8 +169,10 @@ class S3ResourceIntegrationTests {
 	}
 
 	private TransferManagerS3OutputStreamProvider s3TransferManagerProvider() {
-		return new TransferManagerS3OutputStreamProvider(s3TransferManager, new PropertiesS3ObjectContentTypeResolver());
+		return new TransferManagerS3OutputStreamProvider(s3TransferManager,
+				new PropertiesS3ObjectContentTypeResolver());
 	}
+
 	@Test
 	void objectMetadataCanBeSetOnWriting() throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());

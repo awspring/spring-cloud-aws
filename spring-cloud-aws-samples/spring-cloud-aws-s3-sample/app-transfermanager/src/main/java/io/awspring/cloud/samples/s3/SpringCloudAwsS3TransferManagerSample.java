@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.samples.s3;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +30,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.WritableResource;
 import software.amazon.awssdk.services.s3.S3Client;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 
 @SpringBootApplication
 public class SpringCloudAwsS3TransferManagerSample {
@@ -50,11 +49,11 @@ public class SpringCloudAwsS3TransferManagerSample {
 		return args -> {
 			// use auto-configured cross-region client
 			s3Client.listObjects(request -> request.bucket("spring-cloud-aws-sample-bucket1")).contents()
-				.forEach(s3Object -> LOGGER.info("Object in bucket: {}", s3Object.key()));
+					.forEach(s3Object -> LOGGER.info("Object in bucket: {}", s3Object.key()));
 
 			// load resource using ResourceLoader
 			WritableResource resource = (WritableResource) resourceLoader
-				.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
+					.getResource("s3://spring-cloud-aws-sample-bucket1/my-file.txt");
 			LOGGER.info("File content: {}", readContent(resource));
 
 			// load content of file retrieved with @Value

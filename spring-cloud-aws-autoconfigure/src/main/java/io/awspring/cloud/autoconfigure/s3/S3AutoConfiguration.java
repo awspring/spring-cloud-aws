@@ -136,12 +136,11 @@ public class S3AutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
-															 Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
+				Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
 			return new DiskBufferingS3OutputStreamProvider(s3Client,
-				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
+					contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 		}
 	}
-
 
 	@ConditionalOnClass(S3TransferManager.class)
 	@Configuration(proxyBeanMethods = false)
@@ -154,12 +153,13 @@ public class S3AutoConfiguration {
 							cfg -> cfg.credentialsProvider(credentialsProvider).region(awsRegionProvider.getRegion()))
 					.build();
 		}
+
 		@Bean
 		@ConditionalOnMissingBean
 		S3OutputStreamProvider transferManagerS3StreamProvider(S3TransferManager s3TransferManager,
-															   Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
+				Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
 			return new TransferManagerS3OutputStreamProvider(s3TransferManager,
-				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
+					contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 		}
 	}
 

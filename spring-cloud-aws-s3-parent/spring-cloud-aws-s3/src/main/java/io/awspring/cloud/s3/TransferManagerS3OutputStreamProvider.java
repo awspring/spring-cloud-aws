@@ -15,10 +15,9 @@
  */
 package io.awspring.cloud.s3;
 
+import java.io.IOException;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-
-import java.io.IOException;
 
 /**
  * Creates {@link TransferManagerS3OutputStream}.

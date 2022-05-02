@@ -33,8 +33,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * {@link BaseTempFileS3OutputStream} abstract class defining the common behaviour for implementations that use a temp
- * file for the {@link S3OutputStream}.
- * Extracted from the original implementation of {@link DiskBufferingS3OutputStream} by Maciej Walkowiak
+ * file for the {@link S3OutputStream}. Extracted from the original implementation of
+ * {@link DiskBufferingS3OutputStream} by Maciej Walkowiak
  *
  * @author Anton Perez
  * @since 3.0
@@ -77,8 +77,7 @@ abstract class BaseTempFileS3OutputStream extends S3OutputStream {
 	}
 
 	BaseTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata,
-							   @Nullable S3ObjectContentTypeResolver contentTypeResolver)
-			throws IOException {
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver) throws IOException {
 		Assert.notNull(location, "Location must not be null.");
 		this.location = location;
 		this.objectMetadata = objectMetadata;
