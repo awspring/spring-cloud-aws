@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-class DiskBufferingS3OutputStream extends BaseTempFileS3OutputStream {
+class DiskBufferingS3OutputStream extends AbstractTempFileS3OutputStream {
 
 	private final S3Client s3Client;
 

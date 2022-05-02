@@ -30,7 +30,7 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
  * @author Anton Perez
  * @since 3.0
  */
-class TransferManagerS3OutputStream extends BaseTempFileS3OutputStream {
+class TransferManagerS3OutputStream extends AbstractTempFileS3OutputStream {
 
 	private final S3TransferManager s3TransferManager;
 

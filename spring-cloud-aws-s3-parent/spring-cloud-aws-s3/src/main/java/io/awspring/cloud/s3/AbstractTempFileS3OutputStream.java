@@ -32,14 +32,14 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
- * {@link BaseTempFileS3OutputStream} abstract class defining the common behaviour for implementations that use a temp
- * file for the {@link S3OutputStream}. Extracted from the original implementation of
- * {@link DiskBufferingS3OutputStream} by Maciej Walkowiak
+ * {@link AbstractTempFileS3OutputStream} defines the common behaviour for implementations that use a temporary file for
+ * the {@link S3OutputStream}.
  *
+ * @author Maciej Walkowiak
  * @author Anton Perez
  * @since 3.0
  */
-abstract class BaseTempFileS3OutputStream extends S3OutputStream {
+abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -72,11 +72,11 @@ abstract class BaseTempFileS3OutputStream extends S3OutputStream {
 	@Nullable
 	protected final S3ObjectContentTypeResolver contentTypeResolver;
 
-	BaseTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata) throws IOException {
+	AbstractTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata) throws IOException {
 		this(location, objectMetadata, null);
 	}
 
-	BaseTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata,
+	AbstractTempFileS3OutputStream(Location location, @Nullable ObjectMetadata objectMetadata,
 			@Nullable S3ObjectContentTypeResolver contentTypeResolver) throws IOException {
 		Assert.notNull(location, "Location must not be null.");
 		this.location = location;
