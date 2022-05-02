@@ -146,6 +146,7 @@ public class S3AutoConfiguration {
 	@Configuration(proxyBeanMethods = false)
 	static class S3TransferManagerConfiguration {
 		@Bean
+		@ConditionalOnMissingBean
 		S3TransferManager s3TransferManager(AwsCredentialsProvider credentialsProvider,
 				AwsRegionProvider awsRegionProvider) {
 			return S3TransferManager.builder()
