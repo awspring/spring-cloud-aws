@@ -27,9 +27,7 @@ import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-import java.util.Optional;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -41,12 +39,11 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
+
+import java.util.Optional;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -138,28 +135,6 @@ public class S3AutoConfiguration {
 		S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
 				Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
 			return new DiskBufferingS3OutputStreamProvider(s3Client,
-					contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
-		}
-	}
-
-	@ConditionalOnClass(S3TransferManager.class)
-	@Configuration(proxyBeanMethods = false)
-	static class S3TransferManagerConfiguration {
-		@Bean
-		@ConditionalOnMissingBean
-		S3TransferManager s3TransferManager(AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider awsRegionProvider) {
-			return S3TransferManager.builder()
-					.s3ClientConfiguration(
-							cfg -> cfg.credentialsProvider(credentialsProvider).region(awsRegionProvider.getRegion()))
-					.build();
-		}
-
-		@Bean
-		@ConditionalOnMissingBean
-		S3OutputStreamProvider transferManagerS3StreamProvider(S3TransferManager s3TransferManager,
-				Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
-			return new TransferManagerS3OutputStreamProvider(s3TransferManager,
 					contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 		}
 	}

@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Properties related to AWS S3.
@@ -75,6 +76,14 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	private Boolean useArnRegionEnabled;
 
+
+	/**
+	 * When in the classpath, an S3TransferManager bean will be created. This property holds specific configuration
+	 * allowed by it.
+	 */
+	@Nullable
+	private S3TransferManagerProperties transferManager;
+
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return accelerateModeEnabled;
@@ -129,4 +138,12 @@ public class S3Properties extends AwsClientProperties {
 		this.useArnRegionEnabled = useArnRegionEnabled;
 	}
 
+	@Nullable
+	public S3TransferManagerProperties getTransferManager() {
+		return transferManager;
+	}
+
+	public void setTransferManager(@Nullable S3TransferManagerProperties transferManager) {
+		this.transferManager = transferManager;
+	}
 }
