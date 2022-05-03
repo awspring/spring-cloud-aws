@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.dynamodb;
+package io.awspring.cloud.samples.dynamodb.infrastructure;
 
-import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
+import software.amazon.awscdk.App;
+import software.amazon.awscdk.StackProps;
 
-public interface DynamoDbAdminOperations {
+public class InfrastructureApp {
+	public static void main(final String[] args) {
+		App app = new App();
 
-	<T> void createTable(Class<T> clazz);
+		new InfrastructureStack(app, "InfrastructureStack", StackProps.builder().build());
 
-	<T> void deleteTable(Class<T> clazz);
-
-	<T> DescribeTableEnhancedResponse describeTable(Class<T> clazz);
+		app.synth();
+	}
 }

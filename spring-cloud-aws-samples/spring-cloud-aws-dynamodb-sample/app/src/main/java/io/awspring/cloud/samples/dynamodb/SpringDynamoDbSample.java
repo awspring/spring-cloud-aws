@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.samples.dynamodb;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
-
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -24,9 +22,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -41,35 +36,23 @@ public class SpringDynamoDbSample {
 	private DynamoDbOperations dynamoDbOperations;
 	private DynamoDbEnhancedClient dynamoDbEnhancedClient;
 
-	private static LocalStackContainer localStack;
-
 	public SpringDynamoDbSample(DynamoDbOperations dynamoDbOperations, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 		this.dynamoDbOperations = dynamoDbOperations;
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 	}
 
 	public static void main(String[] args) {
-		Testcontainers.exposeHostPorts(8080);
-		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.0"))
-				.withServices(DYNAMODB);
-		localStack.start();
-		System.setProperty("spring.cloud.aws.dynamodb.region", localStack.getRegion());
-		System.setProperty("spring.cloud.aws.dynamodb.endpoint", localStack.getEndpointOverride(DYNAMODB).toString());
-		System.setProperty("spring.cloud.aws.credentials.access-key", "test");
-		System.setProperty("spring.cloud.aws.credentials.secret-key", "test");
 		SpringApplication.run(SpringDynamoDbSample.class, args);
 
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
-		dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class))
-				.createTable();
+		dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).createTable();
 		UUID departmentId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		Department department = Department.Builder.aDepartment().withDepartmentId(departmentId)
-				.withUserId(userId).withOpeningDate(LocalDate.now()).withEmployeeNumber(10L)
-				.build();
+		Department department = Department.Builder.aDepartment().withDepartmentId(departmentId).withUserId(userId)
+				.withOpeningDate(LocalDate.now()).withEmployeeNumber(10L).build();
 		// Saving Department
 		dynamoDbOperations.save(department);
 
@@ -79,11 +62,12 @@ public class SpringDynamoDbSample {
 						.sortValue(userId.toString()).build(), Department.class);
 
 		// Query
-		PageIterable<Department> departmentPageIterable = dynamoDbOperations
-				.query(QueryEnhancedRequest.builder()
-						.queryConditional(
-								QueryConditional.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
-						.build(), Department.class);
+		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
+				QueryEnhancedRequest.builder()
+						.queryConditional(QueryConditional
+								.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
+						.build(),
+				Department.class);
 
 		// Delete
 		dynamoDbOperations.delete(department);

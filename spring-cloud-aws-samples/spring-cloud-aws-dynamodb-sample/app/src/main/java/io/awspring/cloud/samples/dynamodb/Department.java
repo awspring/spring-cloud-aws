@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.samples.dynamodb;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -56,7 +55,6 @@ public class Department {
 		this.openingDate = openingDate;
 	}
 
-
 	public Long getEmployeeNumber() {
 		return employeeNumber;
 	}
@@ -64,7 +62,6 @@ public class Department {
 	public void setEmployeeNumber(Long employeeNumber) {
 		this.employeeNumber = employeeNumber;
 	}
-
 
 	public static final class Builder {
 		private UUID userId;
