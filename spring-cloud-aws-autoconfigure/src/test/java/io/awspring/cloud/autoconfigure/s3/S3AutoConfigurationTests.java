@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.URI;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -46,7 +47,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -81,7 +81,7 @@ class S3AutoConfigurationTests {
 
 	@Test
 	void usesExistingS3TransferManagerBeanWhenExists() {
-		S3TransferManager customDefinedS3TransferManager = DefaultS3TransferManager.builder().build();
+		S3TransferManager customDefinedS3TransferManager = Mockito.mock(S3TransferManager.class);
 		this.contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
 				.run(context -> assertThat(context.getBean(S3TransferManager.class))
 						.isEqualTo(customDefinedS3TransferManager));
