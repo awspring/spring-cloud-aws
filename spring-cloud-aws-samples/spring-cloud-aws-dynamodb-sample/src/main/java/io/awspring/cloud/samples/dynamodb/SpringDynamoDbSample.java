@@ -18,7 +18,6 @@ package io.awspring.cloud.samples.dynamodb;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.apache.commons.logging.Log;
@@ -67,29 +66,29 @@ public class SpringDynamoDbSample {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
-		dynamoDbEnhancedClient.table("banking_information", TableSchema.fromBean(BankingInformation.class))
+		dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class))
 				.createTable();
-		UUID cardId = UUID.randomUUID();
+		UUID departmentId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		BankingInformation bankingInformation = BankingInformation.Builder.builder().withCardId(cardId)
-				.withUserId(userId).withCardName("Visa").withValidity(LocalDate.now()).withBalance(BigDecimal.TEN)
+		Department department = Department.Builder.aDepartment().withDepartmentId(departmentId)
+				.withUserId(userId).withOpeningDate(LocalDate.now()).withEmployeeNumber(10L)
 				.build();
-		// Saving BankingInformation
-		dynamoDbOperations.save(bankingInformation);
+		// Saving Department
+		dynamoDbOperations.save(department);
 
-		// Get Banking Information for CardId
-		BankingInformation bankingInformationLoaded = dynamoDbOperations
-				.load(Key.builder().partitionValue(AttributeValue.builder().s(cardId.toString()).build())
-						.sortValue(userId.toString()).build(), BankingInformation.class);
+		// Get Department for departmentId
+		Department departmentLoaded = dynamoDbOperations
+				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
+						.sortValue(userId.toString()).build(), Department.class);
 
 		// Query
-		PageIterable<BankingInformation> bankingInformationPageIterable = dynamoDbOperations
+		PageIterable<Department> departmentPageIterable = dynamoDbOperations
 				.query(QueryEnhancedRequest.builder()
 						.queryConditional(
-								QueryConditional.keyEqualTo(Key.builder().partitionValue(cardId.toString()).build()))
-						.build(), BankingInformation.class);
+								QueryConditional.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
+						.build(), Department.class);
 
 		// Delete
-		dynamoDbOperations.delete(bankingInformation);
+		dynamoDbOperations.delete(department);
 	}
 }
