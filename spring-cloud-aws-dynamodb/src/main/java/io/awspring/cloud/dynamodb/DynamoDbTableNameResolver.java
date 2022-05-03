@@ -22,5 +22,5 @@ package io.awspring.cloud.dynamodb;
  */
 public interface DynamoDbTableNameResolver {
 
-	String resolve(Class clazz);
+	<T> String resolve(Class<T> clazz);
 }

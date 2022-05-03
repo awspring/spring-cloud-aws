@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
-public class DynamoDbTableSchemaResolverTest {
+class DynamoDbTableSchemaResolverTest {
 
 	DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
 

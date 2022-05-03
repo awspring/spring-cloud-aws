@@ -20,8 +20,6 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import java.time.LocalDate;
 import java.util.UUID;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -42,7 +40,6 @@ public class SpringDynamoDbSample {
 
 	private DynamoDbOperations dynamoDbOperations;
 	private DynamoDbEnhancedClient dynamoDbEnhancedClient;
-	private Log LOG = LogFactory.getLog(this.getClass());
 
 	private static LocalStackContainer localStack;
 
