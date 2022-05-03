@@ -23,6 +23,7 @@ import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
@@ -57,7 +58,8 @@ class S3AutoConfigurationTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3TransferManagerAutoConfiguration.class,
+					S3AutoConfiguration.class));
 
 	@Test
 	void createsS3ClientBean() {

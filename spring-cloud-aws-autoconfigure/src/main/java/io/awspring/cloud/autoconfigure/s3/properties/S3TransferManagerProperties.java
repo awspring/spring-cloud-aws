@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.s3.properties;
 
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
 
-/**
- * Properties related to AWS S3 TransferManager.
- *
- * @author Anton Perez
- */
-public class S3TransferManagerProperties extends AwsClientProperties {
+public class S3TransferManagerProperties {
 	@Nullable
 	private Double targetThroughputInGbps;
 
@@ -33,6 +28,8 @@ public class S3TransferManagerProperties extends AwsClientProperties {
 	@Nullable
 	private Long minimumPartSizeInBytes;
 
+	@Nullable
+	@NestedConfigurationProperty
 	private S3UploadDirectoryProperties uploadDirectory;
 
 	@Nullable
@@ -44,11 +41,12 @@ public class S3TransferManagerProperties extends AwsClientProperties {
 		this.targetThroughputInGbps = targetThroughputInGbps;
 	}
 
+	@Nullable
 	public S3UploadDirectoryProperties getUploadDirectory() {
 		return uploadDirectory;
 	}
 
-	public void setUploadDirectory(S3UploadDirectoryProperties uploadDirectory) {
+	public void setUploadDirectory(@Nullable S3UploadDirectoryProperties uploadDirectory) {
 		this.uploadDirectory = uploadDirectory;
 	}
 
