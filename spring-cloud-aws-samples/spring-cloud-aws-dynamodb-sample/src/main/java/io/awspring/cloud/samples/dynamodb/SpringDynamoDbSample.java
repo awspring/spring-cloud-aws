@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.samples.dynamodb;
 
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
+
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.SpringApplication;
@@ -34,12 +38,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
-
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
-
 @SpringBootApplication
 public class SpringDynamoDbSample {
 
@@ -56,7 +54,8 @@ public class SpringDynamoDbSample {
 
 	public static void main(String[] args) {
 		Testcontainers.exposeHostPorts(8080);
-		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.0")).withServices(DYNAMODB);
+		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.0"))
+				.withServices(DYNAMODB);
 		localStack.start();
 		System.setProperty("spring.cloud.aws.dynamodb.region", localStack.getRegion());
 		System.setProperty("spring.cloud.aws.dynamodb.endpoint", localStack.getEndpointOverride(DYNAMODB).toString());
@@ -68,22 +67,29 @@ public class SpringDynamoDbSample {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void sendMessage() {
-		dynamoDbEnhancedClient.table("banking_information", TableSchema.fromBean(BankingInformation.class)).createTable();
+		dynamoDbEnhancedClient.table("banking_information", TableSchema.fromBean(BankingInformation.class))
+				.createTable();
 		UUID cardId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		BankingInformation bankingInformation = BankingInformation.Builder.builder().withCardId(cardId).withUserId(userId).withCardName("Visa").withValidity(LocalDate.now()).withBalance(BigDecimal.TEN).build();
-		//Saving BankingInformation
+		BankingInformation bankingInformation = BankingInformation.Builder.builder().withCardId(cardId)
+				.withUserId(userId).withCardName("Visa").withValidity(LocalDate.now()).withBalance(BigDecimal.TEN)
+				.build();
+		// Saving BankingInformation
 		dynamoDbOperations.save(bankingInformation);
 
-		//Get Banking Information for CardId
-		BankingInformation bankingInformationLoaded = dynamoDbOperations.load(Key.builder().partitionValue(AttributeValue.builder().s(cardId.toString()).build()).sortValue(userId.toString()).build(), BankingInformation.class);
+		// Get Banking Information for CardId
+		BankingInformation bankingInformationLoaded = dynamoDbOperations
+				.load(Key.builder().partitionValue(AttributeValue.builder().s(cardId.toString()).build())
+						.sortValue(userId.toString()).build(), BankingInformation.class);
 
-		//Query
-		PageIterable<BankingInformation> bankingInformationPageIterable = dynamoDbOperations.query(QueryEnhancedRequest.builder()
-			.queryConditional(
-				QueryConditional.keyEqualTo(Key.builder().partitionValue(cardId.toString()).build())).build(), BankingInformation.class);
+		// Query
+		PageIterable<BankingInformation> bankingInformationPageIterable = dynamoDbOperations
+				.query(QueryEnhancedRequest.builder()
+						.queryConditional(
+								QueryConditional.keyEqualTo(Key.builder().partitionValue(cardId.toString()).build()))
+						.build(), BankingInformation.class);
 
-		//Delete
+		// Delete
 		dynamoDbOperations.delete(bankingInformation);
 	}
 }

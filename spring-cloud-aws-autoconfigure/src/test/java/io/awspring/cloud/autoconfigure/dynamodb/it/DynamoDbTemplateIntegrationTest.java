@@ -55,7 +55,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SpringBootTest(classes = { CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 		AwsAutoConfiguration.class, DynamoDbAutoConfiguration.class })
 @Testcontainers
-public class DynamoDbTemplateIntegrationTest {
+class DynamoDbTemplateIntegrationTest {
 
 	private static final String REGION = "us-east-1";
 	private static DynamoDbTable dynamoDbTable;

@@ -15,26 +15,23 @@
  */
 package io.awspring.cloud.samples.dynamodb;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
-
 @DynamoDbBean
 public class BankingInformation {
 
-private UUID cardId;
-private UUID userId;
-private LocalDate validity;
-private String cardName;
-private BigDecimal balance;
+	private UUID userId;
+	private UUID cardId;
+	private LocalDate validity;
+	private String cardName;
+	private BigDecimal balance;
 
-
-
-	@DynamoDbPartitionKey
+	@DynamoDbSortKey
 	public UUID getCardId() {
 		return cardId;
 	}
@@ -43,7 +40,7 @@ private BigDecimal balance;
 		this.cardId = cardId;
 	}
 
-	@DynamoDbSortKey
+	@DynamoDbPartitionKey
 	public UUID getUserId() {
 		return userId;
 	}
@@ -75,7 +72,6 @@ private BigDecimal balance;
 	public void setBalance(BigDecimal balance) {
 		this.balance = balance;
 	}
-
 
 	public static final class Builder {
 		private UUID cardId;

@@ -20,6 +20,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedRespo
 public interface DynamoDbAdminOperations {
 
 	<T> void createTable(Class<T> clazz);
+
 	<T> void deleteTable(Class<T> clazz);
+
 	<T> DescribeTableEnhancedResponse describeTable(Class<T> clazz);
 }

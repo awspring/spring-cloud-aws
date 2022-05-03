@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  *
  * @author Matej Nedic
  */
-public class DynamoDbAutoConfigurationTest {
+class DynamoDbAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")

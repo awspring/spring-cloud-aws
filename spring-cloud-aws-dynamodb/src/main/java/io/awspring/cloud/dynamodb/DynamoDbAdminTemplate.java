@@ -24,14 +24,16 @@ public class DynamoDbAdminTemplate implements DynamoDbAdminOperations {
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
-	public DynamoDbAdminTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient, DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver, DynamoDbTableNameResolver dynamoDbTableNameResolver) {
+	public DynamoDbAdminTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
+			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver,
+			DynamoDbTableNameResolver dynamoDbTableNameResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 		this.dynamoDbTableSchemaResolver = dynamoDbTableSchemaResolver;
 		this.dynamoDbTableNameResolver = dynamoDbTableNameResolver;
 	}
 
 	@Override
-	public <T> void createTable(Class<T> clazz){
+	public <T> void createTable(Class<T> clazz) {
 		prepareTable(clazz).createTable();
 	}
 
