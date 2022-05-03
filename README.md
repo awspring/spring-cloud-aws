@@ -8,7 +8,7 @@ For a deep dive into the project, refer to the Spring Cloud AWS Reference docume
 
 - [Spring Cloud AWS 3.0.0-SNAPSHOT](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-SNAPSHOT/reference/html/index.html)
 - [Spring Cloud AWS 2.4.1](https://docs.awspring.io/spring-cloud-aws/docs/2.4.1/reference/html/index.html)
-- [Spring Cloud AWS 2.3.4](https://docs.awspring.io/spring-cloud-aws/docs/2.3.4/reference/html/index.html)
+- [Spring Cloud AWS 2.3.5](https://docs.awspring.io/spring-cloud-aws/docs/2.3.4/reference/html/index.html)
 
 ## Compatibility with Spring Project Versions
 
