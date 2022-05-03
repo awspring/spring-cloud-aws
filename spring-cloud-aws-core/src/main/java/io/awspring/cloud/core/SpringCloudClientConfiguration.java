@@ -26,7 +26,7 @@ public final class SpringCloudClientConfiguration {
 
 	private static final String NAME = "spring-cloud-aws";
 
-	private static final String VERSION = "2.3.0";
+	private static final String VERSION = "2.3.5";
 
 	private SpringCloudClientConfiguration() {
 
