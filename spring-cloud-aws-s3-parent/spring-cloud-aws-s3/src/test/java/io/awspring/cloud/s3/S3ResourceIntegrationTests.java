@@ -52,6 +52,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * Integration tests for {@link S3Resource}.
  *
  * @author Maciej Walkowiak
+ * @author Anton Perez
  */
 @Testcontainers
 class S3ResourceIntegrationTests {
@@ -62,7 +63,6 @@ class S3ResourceIntegrationTests {
 
 	private static S3Client client;
 	private static S3TransferManager s3TransferManager;
-	private S3OutputStreamProvider defaultOutputStreamProvider = diskBufferingOutputStreamProvider();
 
 	private static Stream<S3OutputStreamProvider> availableProviders() {
 		return Stream.of(diskBufferingOutputStreamProvider(), transferManagerProvider());
@@ -199,11 +199,6 @@ class S3ResourceIntegrationTests {
 		GetObjectResponse result = client
 				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
-	}
-
-	@NotNull
-	private S3Resource s3Resource(String location) {
-		return new S3Resource(location, client, defaultOutputStreamProvider);
 	}
 
 	@NotNull
