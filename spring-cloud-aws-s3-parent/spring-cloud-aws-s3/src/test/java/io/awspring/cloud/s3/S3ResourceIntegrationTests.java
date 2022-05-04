@@ -27,9 +27,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
@@ -60,6 +62,11 @@ class S3ResourceIntegrationTests {
 
 	private static S3Client client;
 	private static S3TransferManager s3TransferManager;
+	private S3OutputStreamProvider defaultOutputStreamProvider = diskBufferingOutputStreamProvider();
+
+	private static Stream<S3OutputStreamProvider> availableProviders() {
+		return Stream.of(diskBufferingOutputStreamProvider(), transferManagerProvider());
+	}
 
 	@BeforeAll
 	static void beforeAll() {
@@ -78,73 +85,83 @@ class S3ResourceIntegrationTests {
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
-	@Test
-	void readsFileFromS3() throws IOException {
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void readsFileFromS3(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
 
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider);
 		String content = retrieveContent(resource);
 		assertThat(content).isEqualTo("test-file-content");
 	}
 
-	@Test
-	void existsReturnsTrueWhenKeyExists() {
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void existsReturnsTrueWhenKeyExists(S3OutputStreamProvider s3OutputStreamProvider) {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider);
 		assertThat(resource.exists()).isTrue();
 	}
 
-	@Test
-	void existsReturnsFalseWhenObjectDoesNotExist() {
-		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void existsReturnsFalseWhenObjectDoesNotExist(S3OutputStreamProvider s3OutputStreamProvider) {
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt", s3OutputStreamProvider);
 		assertThat(resource.exists()).isFalse();
 	}
 
-	@Test
-	void objectHasContentLength() throws IOException {
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt");
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider);
 		assertThat(resource.contentLength()).isEqualTo(contents.length());
 	}
 
-	@Test
-	void objectHasContentType() {
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void objectHasContentType(S3OutputStreamProvider s3OutputStreamProvider) {
 		String contents = "{\"foo\":\"bar\"}";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.json")
 				.contentType("application/json").build(), RequestBody.fromString(contents));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.json");
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.json", s3OutputStreamProvider);
 		assertThat(resource.contentType()).isEqualTo("application/json");
 	}
 
-	@Test
-	void contentLengthThrowsWhenResourceDoesNotExist() {
-		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt");
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void contentLengthThrowsWhenResourceDoesNotExist(S3OutputStreamProvider s3OutputStreamProvider) {
+		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt", s3OutputStreamProvider);
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
 	}
 
-	@Test
-	void returnsResourceUrl() throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt");
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void returnsResourceUrl(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt", s3OutputStreamProvider);
 		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
 	}
 
-	@Test
-	void returnsEncodedResourceUrlAndUri() throws IOException, URISyntaxException {
-		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]");
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void returnsEncodedResourceUrlAndUri(S3OutputStreamProvider s3OutputStreamProvider)
+			throws IOException, URISyntaxException {
+		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]", s3OutputStreamProvider);
 		assertThat(resource.getURL().toString())
 				.isEqualTo("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D");
 		assertThat(resource.getURI()).isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
 	}
 
-	@Test
-	void resourceIsWritableWithDiskBuffering() throws IOException {
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void resourceIsWritableWithDiskBuffering(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider());
+		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3OutputStreamProvider);
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
 			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
@@ -152,30 +169,10 @@ class S3ResourceIntegrationTests {
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
 	}
 
-	@Test
-	void resourceIsWritableWithDiskBufferingAndTransferManager() throws IOException {
-		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
-				RequestBody.fromString("test-file-content"));
-		S3Resource resource = s3Resource("s3://first-bucket/test-file.txt", s3TransferManagerProvider());
-
-		try (OutputStream outputStream = resource.getOutputStream()) {
-			outputStream.write("overwritten with buffering".getBytes(StandardCharsets.UTF_8));
-		}
-		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
-	}
-
-	private DiskBufferingS3OutputStreamProvider s3OutputStreamProvider() {
-		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
-	}
-
-	private TransferManagerS3OutputStreamProvider s3TransferManagerProvider() {
-		return new TransferManagerS3OutputStreamProvider(s3TransferManager,
-				new PropertiesS3ObjectContentTypeResolver());
-	}
-
-	@Test
-	void objectMetadataCanBeSetOnWriting() throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void objectMetadataCanBeSetOnWriting(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
 
 		ObjectMetadata objectMetadata = ObjectMetadata.builder().storageClass(StorageClass.ONEZONE_IA.name())
 				.metadata("key", "value").contentLanguage("en").build();
@@ -191,9 +188,10 @@ class S3ResourceIntegrationTests {
 		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
-	@Test
-	void contentTypeCanBeResolved() throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider());
+	@ParameterizedTest
+	@MethodSource(value = { "availableProviders" })
+	void contentTypeCanBeResolved(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
 			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
@@ -205,7 +203,7 @@ class S3ResourceIntegrationTests {
 
 	@NotNull
 	private S3Resource s3Resource(String location) {
-		return new S3Resource(location, client, s3OutputStreamProvider());
+		return new S3Resource(location, client, defaultOutputStreamProvider);
 	}
 
 	@NotNull
@@ -234,6 +232,15 @@ class S3ResourceIntegrationTests {
 		public String toString() {
 			return "Person{" + "name='" + name + '\'' + '}';
 		}
+	}
+
+	private static DiskBufferingS3OutputStreamProvider diskBufferingOutputStreamProvider() {
+		return new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver());
+	}
+
+	private static TransferManagerS3OutputStreamProvider transferManagerProvider() {
+		return new TransferManagerS3OutputStreamProvider(s3TransferManager,
+				new PropertiesS3ObjectContentTypeResolver());
 	}
 
 }
