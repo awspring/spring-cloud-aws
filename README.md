@@ -10,6 +10,12 @@ For a deep dive into the project, refer to the Spring Cloud AWS Reference docume
 - [Spring Cloud AWS 2.4.1](https://docs.awspring.io/spring-cloud-aws/docs/2.4.1/reference/html/index.html)
 - [Spring Cloud AWS 2.3.5](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)
 
+## Sponsors
+
+Big thanks to [Localstack](https://localstack.cloud) for providing PRO licenses to the development team!
+
+[![localstacklogo](https://user-images.githubusercontent.com/1357927/166442325-6a94bdcd-8da0-4c76-b04e-69819a490c1c.png)](https://localstack.cloud)
+
 ## Compatibility with Spring Project Versions
 
 This project has dependency and transitive dependencies on Spring Projects. The table below outlines the versions of Spring Cloud, Spring Boot and Spring Framework versions that are compatible with certain Spring Cloud AWS version.
