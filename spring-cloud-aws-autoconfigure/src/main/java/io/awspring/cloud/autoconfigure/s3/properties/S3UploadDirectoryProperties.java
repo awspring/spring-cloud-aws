@@ -16,11 +16,13 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
- * Properties related to AWS S3 TransferManager uploadDirectory.
+ * Properties related to AWS S3 {@link S3TransferManager#uploadDirectory}.
  *
  * @author Anton Perez
+ * @since 3.0
  */
 public class S3UploadDirectoryProperties {
 	@Nullable

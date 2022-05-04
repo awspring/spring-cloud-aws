@@ -42,8 +42,10 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -71,26 +73,6 @@ class S3AutoConfigurationTests {
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
 			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
-		});
-	}
-
-	@Test
-	void createsS3TransferManagerBeanWhenInClassPath() {
-		this.contextRunner.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
-	}
-
-	@Test
-	void usesExistingS3TransferManagerBeanWhenExists() {
-		S3TransferManager customDefinedS3TransferManager = Mockito.mock(S3TransferManager.class);
-		this.contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
-				.run(context -> assertThat(context.getBean(S3TransferManager.class))
-						.isEqualTo(customDefinedS3TransferManager));
-	}
-
-	@Test
-	void doesNotCreateS3TransferManagerBeanWhenNotInClassPath() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
-			assertThat(context).doesNotHaveBean(S3TransferManager.class);
 		});
 	}
 
@@ -240,6 +222,63 @@ class S3AutoConfigurationTests {
 		}
 	}
 
+	@Nested
+	class TransferManagerTests {
+		@Test
+		void createsS3TransferManagerBeanWhenInClassPath() {
+			contextRunner.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
+		}
+
+		@Test
+		void usesExistingS3TransferManagerBeanWhenExists() {
+			S3TransferManager customDefinedS3TransferManager = Mockito.mock(S3TransferManager.class);
+			contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
+					.run(context -> assertThat(context.getBean(S3TransferManager.class))
+							.isEqualTo(customDefinedS3TransferManager));
+		}
+
+		@Test
+		void doesNotCreateS3TransferManagerBeanWhenNotInClassPath() {
+			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(S3TransferManager.class);
+			});
+		}
+	}
+
+	@Nested
+	class TransferManagerEndpointConfigurationTests {
+		@Test
+		void withCustomEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
+				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
+				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
+				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+				assertThat(client.isEndpointOverridden()).isTrue();
+			});
+		}
+
+		@Test
+		void withCustomGlobalEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
+				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
+				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
+				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+				assertThat(client.isEndpointOverridden()).isTrue();
+			});
+		}
+
+		@Test
+		void withCustomGlobalEndpointAndS3Endpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+						S3TransferManager transferManager = context.getBean(S3TransferManager.class);
+						ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
+						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+						assertThat(client.isEndpointOverridden()).isTrue();
+					});
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomJacksonConfiguration {
 		@Bean
@@ -283,6 +322,12 @@ class S3AutoConfigurationTests {
 		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
 			return null;
 		}
+	}
+
+	@NonNull
+	private static S3AsyncClient resolveS3Client(S3TransferManager builder) {
+		return (S3AsyncClient) ReflectionTestUtils.getField(ReflectionTestUtils.getField(builder, "s3CrtAsyncClient"),
+				"s3AsyncClient");
 	}
 
 }

@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
 import org.springframework.util.StringUtils;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
 
 /**
  * Provides a convenience method to apply common configuration to any {@link AwsClientBuilder}.
@@ -43,12 +45,24 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public AwsClientBuilder<?, ?> configure(AwsClientBuilder<?, ?> builder, AwsClientProperties clientProperties) {
-		Region region = StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
-				: regionProvider.getRegion();
-		builder.credentialsProvider(credentialsProvider).region(region)
+		builder.credentialsProvider(credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
 		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
+	}
+
+	public S3ClientConfiguration.Builder configure(S3ClientConfiguration.Builder builder,
+			S3Properties clientProperties) {
+		builder.credentialsProvider(credentialsProvider).region(resolveRegion(clientProperties));
+		// TODO: how to set client override configuration?
+		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		return builder;
+	}
+
+	private Region resolveRegion(AwsClientProperties clientProperties) {
+		return StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
+				: regionProvider.getRegion();
 	}
 }

@@ -19,6 +19,7 @@ import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Properties related to AWS S3.
@@ -77,8 +78,7 @@ public class S3Properties extends AwsClientProperties {
 	private Boolean useArnRegionEnabled;
 
 	/**
-	 * When in the classpath, an S3TransferManager bean will be created. This property holds specific configuration
-	 * allowed by it.
+	 * Configuration properties for {@link S3TransferManager} integration.
 	 */
 	@Nullable
 	@NestedConfigurationProperty
