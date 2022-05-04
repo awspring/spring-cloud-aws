@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.s3.properties;
 
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
@@ -36,7 +35,6 @@ public class S3TransferManagerProperties {
 	private Long minimumPartSizeInBytes;
 
 	@Nullable
-	@NestedConfigurationProperty
 	private S3UploadDirectoryProperties uploadDirectory;
 
 	@Nullable
@@ -74,4 +72,41 @@ public class S3TransferManagerProperties {
 	public void setMinimumPartSizeInBytes(@Nullable Long minimumPartSizeInBytes) {
 		this.minimumPartSizeInBytes = minimumPartSizeInBytes;
 	}
+
+	public static class S3UploadDirectoryProperties {
+		@Nullable
+		private Boolean recursive;
+		@Nullable
+		private Boolean followSymbolicLinks;
+		@Nullable
+		private Integer maxDepth;
+
+		@Nullable
+		public Boolean getRecursive() {
+			return recursive;
+		}
+
+		public void setRecursive(@Nullable Boolean recursive) {
+			this.recursive = recursive;
+		}
+
+		@Nullable
+		public Boolean getFollowSymbolicLinks() {
+			return followSymbolicLinks;
+		}
+
+		public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
+			this.followSymbolicLinks = followSymbolicLinks;
+		}
+
+		@Nullable
+		public Integer getMaxDepth() {
+			return maxDepth;
+		}
+
+		public void setMaxDepth(@Nullable Integer maxDepth) {
+			this.maxDepth = maxDepth;
+		}
+	}
+
 }

@@ -19,7 +19,6 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3TransferManagerProperties;
-import io.awspring.cloud.autoconfigure.s3.properties.S3UploadDirectoryProperties;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
@@ -91,8 +90,8 @@ public class S3TransferManagerAutoConfiguration {
 	private S3TransferManagerOverrideConfiguration extractUploadDirectoryOverrideConfiguration() {
 		UploadDirectoryOverrideConfiguration.Builder config = UploadDirectoryOverrideConfiguration.builder();
 		if (properties.getTransferManager() != null && properties.getTransferManager().getUploadDirectory() != null) {
-			S3UploadDirectoryProperties s3UploadDirectoryProperties = properties.getTransferManager()
-					.getUploadDirectory();
+			S3TransferManagerProperties.S3UploadDirectoryProperties s3UploadDirectoryProperties = properties
+					.getTransferManager().getUploadDirectory();
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			propertyMapper.from(s3UploadDirectoryProperties::getMaxDepth).whenNonNull().to(config::maxDepth);
 			propertyMapper.from(s3UploadDirectoryProperties::getRecursive).whenNonNull().to(config::recursive);
