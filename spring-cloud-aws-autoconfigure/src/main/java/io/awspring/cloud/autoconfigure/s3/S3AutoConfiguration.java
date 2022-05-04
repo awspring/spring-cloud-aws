@@ -128,15 +128,12 @@ public class S3AutoConfiguration {
 		}
 	}
 
-	@ConditionalOnMissingClass("software.amazon.awssdk.transfer.s3.S3TransferManager")
-	static class DefaultS3OutputStreamConfiguration {
-		@Bean
-		@ConditionalOnMissingBean
-		S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
-				Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
-			return new DiskBufferingS3OutputStreamProvider(s3Client,
-					contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
-		}
+	@Bean
+	@ConditionalOnMissingBean
+	S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
+			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
+		return new DiskBufferingS3OutputStreamProvider(s3Client,
+				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
 
 }

@@ -44,7 +44,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -54,7 +53,6 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 class S3AutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withClassLoader(new FilteredClassLoader(S3TransferManager.class))
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
@@ -83,13 +81,11 @@ class S3AutoConfigurationTests {
 
 	@Test
 	void autoconfigurationIsNotTriggeredWhenS3ModuleIsNotOnClasspath() {
-		this.contextRunner
-				.withClassLoader(new FilteredClassLoader(S3TransferManager.class, S3OutputStreamProvider.class))
-				.run(context -> {
-					assertThat(context).doesNotHaveBean(S3Client.class);
-					assertThat(context).doesNotHaveBean(S3ClientBuilder.class);
-					assertThat(context).doesNotHaveBean(S3Properties.class);
-				});
+		this.contextRunner.withClassLoader(new FilteredClassLoader(S3OutputStreamProvider.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(S3Client.class);
+			assertThat(context).doesNotHaveBean(S3ClientBuilder.class);
+			assertThat(context).doesNotHaveBean(S3Properties.class);
+		});
 	}
 
 	@Nested
@@ -110,11 +106,10 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class, CrossRegionS3Client.class))
-					.run(context -> {
-						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-						assertThat(context).hasSingleBean(S3Client.class);
-					});
+			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+				assertThat(context).hasSingleBean(S3Client.class);
+			});
 		}
 	}
 
@@ -122,12 +117,7 @@ class S3AutoConfigurationTests {
 	class OutputStreamProviderTests {
 
 		@Test
-		void whenS3TransferManagerInClassPathDoesntCreateBean() {
-			contextRunner.run(context -> assertThat(context).doesNotHaveBean(S3TransferManager.class));
-		}
-
-		@Test
-		void whenS3TransferManagerNotInClassPathCreatesDiskBufferingS3OutputStreamProvider() {
+		void createsDiskBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
 			contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
 		}
 
@@ -185,11 +175,10 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void withoutJacksonOnClasspathDoesNotConfigureObjectConverter() {
-			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class, ObjectMapper.class))
-					.run(context -> {
-						assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
-						assertThat(context).doesNotHaveBean(S3Template.class);
-					});
+			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
+				assertThat(context).doesNotHaveBean(S3Template.class);
+			});
 		}
 
 		@Test
