@@ -23,6 +23,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +34,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
@@ -62,7 +68,7 @@ class S3ResourceIntegrationTests {
 	private static S3Client client;
 	private static S3TransferManager s3TransferManager;
 
-	// Required for the @S3ResourceIntegrationTest annotation
+	// Required for the @TestAvailableOutputStreamProviders annotation
 	private static Stream<S3OutputStreamProvider> availableS3OutputStreamProviders() {
 		return Stream.of(new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
 				new TransferManagerS3OutputStreamProvider(s3TransferManager,
@@ -86,7 +92,7 @@ class S3ResourceIntegrationTests {
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void readsFileFromS3(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
@@ -96,7 +102,7 @@ class S3ResourceIntegrationTests {
 		assertThat(content).isEqualTo("test-file-content");
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void existsReturnsTrueWhenKeyExists(S3OutputStreamProvider s3OutputStreamProvider) {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
@@ -104,13 +110,13 @@ class S3ResourceIntegrationTests {
 		assertThat(resource.exists()).isTrue();
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void existsReturnsFalseWhenObjectDoesNotExist(S3OutputStreamProvider s3OutputStreamProvider) {
 		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt", s3OutputStreamProvider);
 		assertThat(resource.exists()).isFalse();
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
@@ -119,7 +125,7 @@ class S3ResourceIntegrationTests {
 		assertThat(resource.contentLength()).isEqualTo(contents.length());
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void objectHasContentType(S3OutputStreamProvider s3OutputStreamProvider) {
 		String contents = "{\"foo\":\"bar\"}";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.json")
@@ -128,19 +134,19 @@ class S3ResourceIntegrationTests {
 		assertThat(resource.contentType()).isEqualTo("application/json");
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void contentLengthThrowsWhenResourceDoesNotExist(S3OutputStreamProvider s3OutputStreamProvider) {
 		S3Resource resource = s3Resource("s3://first-bucket/non-existing-file.txt", s3OutputStreamProvider);
 		assertThatThrownBy(resource::contentLength).isInstanceOf(NoSuchKeyException.class);
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void returnsResourceUrl(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt", s3OutputStreamProvider);
 		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void returnsEncodedResourceUrlAndUri(S3OutputStreamProvider s3OutputStreamProvider)
 			throws IOException, URISyntaxException {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]", s3OutputStreamProvider);
@@ -149,7 +155,7 @@ class S3ResourceIntegrationTests {
 		assertThat(resource.getURI()).isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void resourceIsWritableWithDiskBuffering(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString("test-file-content"));
@@ -161,7 +167,7 @@ class S3ResourceIntegrationTests {
 		assertThat(retrieveContent(resource)).isEqualTo("overwritten with buffering");
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void objectMetadataCanBeSetOnWriting(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
 
@@ -179,7 +185,7 @@ class S3ResourceIntegrationTests {
 		assertThat(result.metadata()).containsEntry("key", "value");
 	}
 
-	@S3ResourceIntegrationTest
+	@TestAvailableOutputStreamProviders
 	void contentTypeCanBeResolved(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
 
@@ -219,4 +225,10 @@ class S3ResourceIntegrationTests {
 		}
 	}
 
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@ParameterizedTest
+	@MethodSource("availableS3OutputStreamProviders")
+	@interface TestAvailableOutputStreamProviders {
+	}
 }

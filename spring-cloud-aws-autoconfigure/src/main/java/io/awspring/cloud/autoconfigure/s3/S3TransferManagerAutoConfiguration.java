@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3TransferManagerProperties;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
@@ -45,7 +44,7 @@ import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
  * @since 3.0
  */
 @ConditionalOnClass({ S3TransferManager.class, S3OutputStreamProvider.class })
-@EnableConfigurationProperties({ S3Properties.class, AwsProperties.class })
+@EnableConfigurationProperties({ S3Properties.class })
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3AutoConfiguration.class)
