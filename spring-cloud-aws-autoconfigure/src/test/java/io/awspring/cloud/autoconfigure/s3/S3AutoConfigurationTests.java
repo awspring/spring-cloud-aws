@@ -23,6 +23,7 @@ import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
@@ -114,8 +115,9 @@ class S3AutoConfigurationTests {
 
 	@Nested
 	class OutputStreamProviderTests {
+
 		@Test
-		void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
+		void createsDiskBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
 			contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
 		}
 
