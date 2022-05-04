@@ -17,16 +17,9 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter-s3</artifactId>
-		</dependency>
-
-		<!-- This will automatically trigger the autoconfiguration to use the TransferManager S3OutputStream implementation and a TransferManager bean -->
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3-transfer-manager</artifactId>
 		</dependency>
 	</dependencies>
 
