@@ -5,12 +5,13 @@
 |spring.cloud.aws.credentials.instance-profile | `false` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
+|spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
 |spring.cloud.aws.region.instance-profile | `false` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
 |spring.cloud.aws.region.static |  | 
-|spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate enedpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
+|spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
 |spring.cloud.aws.s3.dualstack-enabled |  | Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use IPv6.
@@ -18,11 +19,20 @@
 |spring.cloud.aws.s3.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.s3.path-style-access-enabled |  | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3.
 |spring.cloud.aws.s3.region |  | Overrides the default region.
+|spring.cloud.aws.s3.transfer-manager.max-concurrency |  | 
+|spring.cloud.aws.s3.transfer-manager.minimum-part-size-in-bytes |  | 
+|spring.cloud.aws.s3.transfer-manager.target-throughput-in-gbps |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.follow-symbolic-links |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.max-depth |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.recursive |  | 
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
 |spring.cloud.aws.ses.enabled | `true` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
+|spring.cloud.aws.sns.enabled | `true` | Enables SNS integration.
+|spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sns.region |  | Overrides the default region.
 
 |===
