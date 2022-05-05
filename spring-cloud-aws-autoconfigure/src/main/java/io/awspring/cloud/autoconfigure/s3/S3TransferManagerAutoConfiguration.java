@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3TransferManagerProperties;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
@@ -32,6 +33,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.S3TransferManagerOverrideConfiguration;
@@ -51,15 +53,22 @@ import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
 public class S3TransferManagerAutoConfiguration {
 
 	private final S3Properties properties;
+	private final AwsProperties awsProperties;
+	private final AwsCredentialsProvider credentialsProvider;
+	private final AwsClientBuilderConfigurer awsClientBuilderConfigurer;
 
-	public S3TransferManagerAutoConfiguration(S3Properties properties) {
+	public S3TransferManagerAutoConfiguration(S3Properties properties, AwsProperties awsProperties,
+			AwsCredentialsProvider credentialsProvider, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
 		this.properties = properties;
+		this.awsProperties = awsProperties;
+		this.credentialsProvider = credentialsProvider;
+		this.awsClientBuilderConfigurer = awsClientBuilderConfigurer;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3TransferManager s3TransferManager(AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
-		return S3TransferManager.builder().s3ClientConfiguration(s3ClientConfiguration(awsClientBuilderConfigurer))
+	S3TransferManager s3TransferManager() {
+		return S3TransferManager.builder().s3ClientConfiguration(s3ClientConfiguration())
 				.transferConfiguration(extractUploadDirectoryOverrideConfiguration()).build();
 	}
 
@@ -71,9 +80,8 @@ public class S3TransferManagerAutoConfiguration {
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
 
-	private S3ClientConfiguration s3ClientConfiguration(AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
-		S3ClientConfiguration.Builder builder = awsClientBuilderConfigurer.configure(S3ClientConfiguration.builder(),
-				properties);
+	private S3ClientConfiguration s3ClientConfiguration() {
+		S3ClientConfiguration.Builder builder = configure(S3ClientConfiguration.builder());
 		if (properties.getTransferManager() != null) {
 			S3TransferManagerProperties transferManagerProperties = properties.getTransferManager();
 			PropertyMapper propertyMapper = PropertyMapper.get();
@@ -84,6 +92,15 @@ public class S3TransferManagerAutoConfiguration {
 					.to(builder::minimumPartSizeInBytes);
 		}
 		return builder.build();
+	}
+
+	private S3ClientConfiguration.Builder configure(S3ClientConfiguration.Builder builder) {
+		// this must follow the same logic as in AwsClientBuilderConfigurer
+		builder.credentialsProvider(credentialsProvider).region(awsClientBuilderConfigurer.resolveRegion(properties));
+		// TODO: how to set client override configuration?
+		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		return builder;
 	}
 
 	private S3TransferManagerOverrideConfiguration extractUploadDirectoryOverrideConfiguration() {
