@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -34,17 +35,19 @@ public class AwsClientBuilderConfigurer {
 	private final AwsCredentialsProvider credentialsProvider;
 	private final AwsRegionProvider regionProvider;
 	private final AwsProperties awsProperties;
+	private final ClientOverrideConfiguration clientOverrideConfiguration;
 
 	AwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
 			AwsProperties awsProperties) {
 		this.credentialsProvider = credentialsProvider;
 		this.regionProvider = regionProvider;
 		this.awsProperties = awsProperties;
+		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
 	public AwsClientBuilder<?, ?> configure(AwsClientBuilder<?, ?> builder, AwsClientProperties clientProperties) {
 		builder.credentialsProvider(credentialsProvider).region(resolveRegion(clientProperties))
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+				.overrideConfiguration(clientOverrideConfiguration);
 		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;

@@ -94,7 +94,7 @@ public class ParameterStoreConfigDataLocationResolver
 		AwsProperties awsProperties = context.get(AwsProperties.class);
 
 		SsmClientBuilder builder = SsmClient.builder()
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+				.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
 		}
