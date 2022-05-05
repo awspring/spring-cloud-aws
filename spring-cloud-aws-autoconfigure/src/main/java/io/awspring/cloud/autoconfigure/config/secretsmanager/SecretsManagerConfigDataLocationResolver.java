@@ -99,7 +99,7 @@ public class SecretsManagerConfigDataLocationResolver
 		AwsProperties awsProperties = context.get(AwsProperties.class);
 
 		SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
+				.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
 
 		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
