@@ -57,7 +57,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SSM).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SSM).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {

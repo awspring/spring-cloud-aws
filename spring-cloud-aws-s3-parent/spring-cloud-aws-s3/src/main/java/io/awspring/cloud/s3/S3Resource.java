@@ -23,6 +23,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
@@ -76,7 +78,11 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public URL getURL() throws IOException {
-		String encodedObjectName = URLEncoder.encode(location.getObject(), StandardCharsets.UTF_8.toString());
+		List<String> splits = new ArrayList<>();
+		for (String split : location.getObject().split("/")) {
+			splits.add(URLEncoder.encode(split, StandardCharsets.UTF_8.toString()));
+		}
+		String encodedObjectName = String.join("/", splits);
 		return new URL("https", location.getBucket() + ".s3.amazonaws.com", "/" + encodedObjectName);
 	}
 

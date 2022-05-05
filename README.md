@@ -1,12 +1,20 @@
 # 🍃 Spring Cloud AWS
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/awspring/spring-cloud-aws)
+
 Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
 For a deep dive into the project, refer to the Spring Cloud AWS Reference documentation:
 
 - [Spring Cloud AWS 3.0.0-SNAPSHOT](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-SNAPSHOT/reference/html/index.html)
 - [Spring Cloud AWS 2.4.1](https://docs.awspring.io/spring-cloud-aws/docs/2.4.1/reference/html/index.html)
-- [Spring Cloud AWS 2.3.4](https://docs.awspring.io/spring-cloud-aws/docs/2.3.4/reference/html/index.html)
+- [Spring Cloud AWS 2.3.5](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)
+
+## Sponsors
+
+Big thanks to [Localstack](https://localstack.cloud) for providing PRO licenses to the development team!
+
+[![localstacklogo](https://user-images.githubusercontent.com/1357927/166442325-6a94bdcd-8da0-4c76-b04e-69819a490c1c.png)](https://localstack.cloud)
 
 ## Compatibility with Spring Project Versions
 
@@ -27,13 +35,14 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | SES             | ✅                    | ✅                                                                         |
 | Parameter Store | ✅                    | ✅                                                                         |
 | Secrets Manager | ✅                    | ✅                                                                         |
-| SQS             | ✅                    | TODO                                                                      |
+| SQS             | ✅                    | TODO [#344](https://github.com/awspring/spring-cloud-aws/issues/344)       |
 | RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
 | EC2             | ✅                    | ❌                                                                         |
 | ElastiCache     | ✅                    | ❌                                                                         |
 | CloudFormation  | ✅                    | ❌                                                                         |
 | CloudWatch      | ✅                    | In Progress [#237](https://github.com/awspring/spring-cloud-aws/pull/237) |
-| Cognito         | ✅                    | TODO                                                                      |
+| Cognito         | ✅                    | In Progesss [#340](https://github.com/awspring/spring-cloud-aws/pull/340) |
+| DynamoDB        | ❌                    | In Progesss [#339](https://github.com/awspring/spring-cloud-aws/pull/339) |
 
 Note, that Spring provides support for other AWS services in following projects:
 
