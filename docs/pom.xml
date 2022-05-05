@@ -31,6 +31,13 @@
 		</plugins>
 	</build>
 
+	<dependencies>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+		</dependency>
+	</dependencies>
+
 	<profiles>
 		<profile>
 			<id>docs</id>
