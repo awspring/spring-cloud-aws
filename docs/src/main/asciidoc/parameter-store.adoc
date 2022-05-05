@@ -17,12 +17,24 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 To fetch parameters from Parameter Store and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
 
-For example, assuming that the parameters in Parameter Store are stored have path `/config/spring`:
+For example, assuming that the parameters in Parameter Store are stored under path `/config/spring`:
+
+|===
+| Parameter Name | Parameter Value
+
+| `/config/spring/message` | `Welcome`
+
+| `/config/spring/httpUrl` | `https://external-service:3030/`
+|===
+
+Once `spring.config.import` statement is added:
 
 [source,properties]
 ----
 spring.config.import=aws-parameterstore:/config/spring
 ----
+
+Two parameters are added to environment: `message` and `httpUrl`.
 
 If a given path in Parameter Store does not exist, application will fail to start. If parameters retrieved from Parameter Store are not required for the application, and it should continue to startup even when the path is missing, add `optional` before prefix:
 
@@ -46,9 +58,56 @@ spring.config.import[0]=optional:aws-parameterstore=/config/spring
 spring.config.import[1]=aws-parameterstore=/config/optional-params/
 ----
 
-=== Customizing SSMClient
+=== Using SsmClient
 
-TODO
+The starter automatically configures and registers a `SsmClient` bean in the Spring application context. The `SsmClient` bean can be used to create or retrieve parameters from Parameter Store.
+
+[source,java]
+----
+import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.ssm.SsmClient;
+...
+@Autowired
+private SsmClient ssmClient;
+...
+ssmClient.getParametersByPath(request -> request.path("/config/spring/")).parameters();
+----
+
+=== Customizing SsmClient
+
+To use custom `SsmClient` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
+
+[source,java]
+----
+package com.app;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ssm.SsmClient;
+
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+
+public class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+    @Override
+    public void initialize(BootstrapRegistry registry) {
+        registry.register(SsmClient.class, context -> {
+			AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("yourAccessKey", "yourSecretKey"));
+			return SsmClient.builder().credentialsProvider(awsCredentialsProvider).region(Region.EU_WEST_2).build();
+		});
+    }
+}
+----
+
+Note that this class must be listed under `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+
+[source, properties]
+----
+org.springframework.boot.BootstrapRegistryInitializer=com.app.ParameterStoreBootstrapConfiguration
+----
 
 === Configuration
 
@@ -57,6 +116,7 @@ The Spring Boot Starter for Parameter Store provides the following configuration
 [cols="4,3,1,1"]
 |===
 | Name | Description | Required | Default value
+
 | `spring.cloud.aws.parameterstore.enabled` | Enables the Parameter Store integration. | No | `true`
 | `spring.cloud.aws.parameterstore.endpoint` | Configures endpoint used by `SsmClient`. | No | `null`
 | `spring.cloud.aws.parameterstore.region` | Configures region used by `SsmClient`. | No | `null`
