@@ -40,7 +40,7 @@ abstract class BaseSqsIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(false);
+			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
@@ -57,7 +57,7 @@ abstract class BaseSqsIntegrationTest {
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
 		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("cloud.aws.sqs.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
 	}
 
 }

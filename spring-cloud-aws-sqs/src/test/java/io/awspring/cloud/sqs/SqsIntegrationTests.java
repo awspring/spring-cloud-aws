@@ -70,8 +70,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
  */
 @SpringBootTest
 @DirtiesContext
-@TestPropertySource(properties = { "cloud.aws.credentials.access-key=noop", "cloud.aws.credentials.secret-key=noop",
-		"cloud.aws.region.static=us-east-2" })
+@TestPropertySource(properties = { "spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
+		"spring.cloud.aws.region.static=us-east-2" })
 class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsIntegrationTests.class);
