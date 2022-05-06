@@ -129,6 +129,8 @@ include::sns.adoc[]
 
 include::secrets-manager.adoc[]
 
+include::parameter-store.adoc[]
+
 
 //
 //===== AWS EKS IAM Roles for Service Accounts configuration
