@@ -18,8 +18,7 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.BootstrapContext;
@@ -29,11 +28,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
  * @author Eddú Meléndez
@@ -60,6 +55,7 @@ public class ParameterStoreConfigDataLocationResolver
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
@@ -79,33 +75,7 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
-
-		AwsCredentialsProvider credentialsProvider;
-
-		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
-		}
-		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
-		}
-
-		AwsProperties awsProperties = context.get(AwsProperties.class);
-
-		SsmClientBuilder builder = SsmClient.builder()
-				.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
-		if (StringUtils.hasLength(properties.getRegion())) {
-			builder.region(Region.of(properties.getRegion()));
-		}
-		if (properties.getEndpoint() != null) {
-			builder.endpointOverride(properties.getEndpoint());
-		}
-		else if (awsProperties.getEndpoint() != null) {
-			builder.endpointOverride(awsProperties.getEndpoint());
-		}
-		builder.credentialsProvider(credentialsProvider);
-		return builder.build();
+		return configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context).build();
 	}
 
 	protected ParameterStoreProperties loadProperties(Binder binder) {

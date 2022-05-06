@@ -174,6 +174,20 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void secretsManagerClientUsesGlobalRegion() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=" + REGION)) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
 		return runApplication(application, springConfigImport, "spring.cloud.aws.secretsmanager.endpoint");
 	}
