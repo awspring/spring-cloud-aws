@@ -1,0 +1,18 @@
+version: "2.1"
+services:
+  localstack:
+    image: localstack/localstack:0.14.2
+    ports:
+      - "4566:4566"
+    environment:
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY}
+      - HOSTNAME_EXTERNAL=localstack
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LAMBDA_EXECUTOR=docker
+      - LAMBDA_NETWORK=bridge
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    tmpfs:
+      - /tmp/localstack:exec,mode=600
