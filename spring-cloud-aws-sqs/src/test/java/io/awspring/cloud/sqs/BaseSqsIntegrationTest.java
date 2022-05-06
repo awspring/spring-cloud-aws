@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
+import com.amazonaws.auth.AWSCredentials;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -25,6 +26,8 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 @Testcontainers
 abstract class BaseSqsIntegrationTest {
@@ -42,6 +45,8 @@ abstract class BaseSqsIntegrationTest {
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(true);
 
+	static StaticCredentialsProvider credentialsProvider;
+
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
 		// create needed queues in SQS
@@ -52,6 +57,10 @@ abstract class BaseSqsIntegrationTest {
 				DOES_NOT_ACK_ON_ERROR_QUEUE_NAME);
 		localstack.execInContainer("awslocal", "io/awspring/cloud/sqs", "create-queue", "--queue-name",
 				RECEIVE_FROM_MANY_1_QUEUE_NAME);
+
+		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
+		credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
+				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
 	}
 
 	@DynamicPropertySource

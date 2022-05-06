@@ -59,6 +59,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -70,8 +71,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
  */
 @SpringBootTest
 @DirtiesContext
-@TestPropertySource(properties = { "spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-		"spring.cloud.aws.region.static=us-east-2" })
+@TestPropertySource(properties = { "spring.cloud.aws.credentials.access-key=noop",
+		"spring.cloud.aws.credentials.secret-key=noop", "spring.cloud.aws.region.static=us-east-2" })
 class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsIntegrationTests.class);
@@ -130,8 +131,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	final int outerBatchSize = 1; //20;
-	final int innerBatchSize = 1; //10;
+	final int outerBatchSize = 1; // 20;
+	final int innerBatchSize = 1; // 10;
 	final int totalMessages = 2 * outerBatchSize * innerBatchSize;
 
 	// These tests are really only for us to have some indication on how the system performs under load.
@@ -363,7 +364,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		// TODO: Probably move some of this to auto configuration with @ConditionalOnMissingBean
 		@Bean(name = SqsConfigUtils.SQS_ASYNC_CLIENT_BEAN_NAME)
 		SqsAsyncClient sqsAsyncClientConsumer() throws Exception {
-			SqsAsyncClient asyncClient = SqsAsyncClient.builder().endpointOverride(localstack.getEndpointOverride(SQS))
+			SqsAsyncClient asyncClient = SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
+					.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
 					.build();
 			createQueues(asyncClient);
 			return asyncClient;
@@ -437,7 +439,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
 		SqsAsyncClient sqsAsyncClientProducer() {
-			return SqsAsyncClient.builder().endpointOverride(localstack.getEndpointOverride(SQS)).build();
+			return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
+					.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
+					.build();
 		}
 
 		private void createQueues(SqsAsyncClient client) throws InterruptedException, ExecutionException {
