@@ -48,6 +48,8 @@
 		<module>spring-cloud-aws-starters</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>docs</module>
+        <module>spring-cloud-aws-messaging-support</module>
+		<module>spring-cloud-aws-sqs</module>
 
 		<!--
 		these modules need to be rewritten
