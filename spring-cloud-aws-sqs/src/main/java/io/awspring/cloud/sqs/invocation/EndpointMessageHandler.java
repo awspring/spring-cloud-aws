@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanExpressionContext;
@@ -161,7 +162,7 @@ public class EndpointMessageHandler extends AbstractMethodMessageHandler<Endpoin
 					.minTimeToProcess(resolveInteger(sqsListenerAnnotation.minSecondsToProcess()))
 					.async(CompletionStage.class.isAssignableFrom(method.getReturnType()))
 					.queuesAttributes(logicalEndpointNames.stream()
-							.collect(Collectors.toMap(name -> name, this::queueAttributes)))
+							.collect(Collectors.toMap(name -> name, this::getQueueAttributes)))
 					.build();
 		}
 
@@ -211,39 +212,22 @@ public class EndpointMessageHandler extends AbstractMethodMessageHandler<Endpoin
 		}
 	}
 
-	private QueueAttributes queueAttributes(String queue) {
-		return queueAttributes(queue, 10);
-	}
-
-	private QueueAttributes queueAttributes(String queue, int attemptsLeft) {
+	private QueueAttributes getQueueAttributes(String queue) {
 		try {
 			logger.debug("Fetching queue attributes for queue " + queue);
-
 			String queueUrl = this.sqsAsyncClient.getQueueUrl(req -> req.queueName(queue)).get().queueUrl();
 			Map<QueueAttributeName, String> attributes = this.sqsAsyncClient
-					.getQueueAttributes(req -> req.queueUrl(queueUrl)).get().attributes();
-
+						.getQueueAttributes(req -> req.queueUrl(queueUrl)).get().attributes();
 			boolean hasRedrivePolicy = attributes.containsKey(QueueAttributeName.REDRIVE_POLICY);
 			boolean isFifo = queue.endsWith(".fifo");
 			return new QueueAttributes(queueUrl, hasRedrivePolicy, getVisibility(attributes), isFifo);
 		}
-		catch (Exception e) {
-			logger.warn(
-					String.format("Could not retrieve attributes for queue %s. Attempts left: %s", queue, attemptsLeft),
-					e);
-			try {
-				if (attemptsLeft == 0) {
-					throw new IllegalStateException("Could not retrieve properties for queue " + queue, e);
-				}
-				Thread.sleep(8000 / attemptsLeft);
-				return queueAttributes(queue, attemptsLeft - 1);
-			}
-			catch (InterruptedException ex) {
-				throw new IllegalStateException("Interrupted while retrieving attributes for queue " + queue, ex);
-			}
-			catch (Exception ex) {
-				throw new IllegalStateException("Could not retrieve properties for queue " + queue, ex);
-			}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Interrupted while fetching attributes for queue " + queue);
+		}
+		catch (ExecutionException e) {
+			throw new IllegalStateException("ExecutionException while fetching attributes for queue " + queue);
 		}
 	}
 
