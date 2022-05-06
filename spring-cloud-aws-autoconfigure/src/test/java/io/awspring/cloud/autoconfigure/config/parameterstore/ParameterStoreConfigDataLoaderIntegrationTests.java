@@ -174,6 +174,21 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Test
+	void parameterStoreClientUsesGlobalRegion() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=" + REGION,
+				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,

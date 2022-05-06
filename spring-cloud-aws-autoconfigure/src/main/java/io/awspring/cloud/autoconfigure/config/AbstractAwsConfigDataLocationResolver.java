@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.config;
 
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
+import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +87,11 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 	protected CredentialsProperties loadCredentialsProperties(Binder binder) {
 		return binder.bind(CredentialsProperties.PREFIX, Bindable.of(CredentialsProperties.class))
 				.orElseGet(CredentialsProperties::new);
+	}
+
+	protected RegionProperties loadRegionProperties(Binder binder) {
+		return binder.bind(RegionProperties.PREFIX, Bindable.of(RegionProperties.class))
+				.orElseGet(RegionProperties::new);
 	}
 
 	protected AwsProperties loadAwsProperties(Binder binder) {

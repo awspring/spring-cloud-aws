@@ -19,6 +19,8 @@ import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResol
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProperties;
+import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
@@ -60,6 +63,7 @@ public class ParameterStoreConfigDataLocationResolver
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
@@ -91,12 +95,25 @@ public class ParameterStoreConfigDataLocationResolver
 			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
 		}
 
+		AwsRegionProvider regionProvider;
+
+		try {
+			regionProvider = context.get(AwsRegionProvider.class);
+		}
+		catch (IllegalStateException e) {
+			RegionProperties regionProperties = context.get(RegionProperties.class);
+			regionProvider = RegionProviderAutoConfiguration.createRegionProvider(regionProperties);
+		}
+
 		AwsProperties awsProperties = context.get(AwsProperties.class);
 
 		SsmClientBuilder builder = SsmClient.builder()
 				.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
 		if (StringUtils.hasLength(properties.getRegion())) {
 			builder.region(Region.of(properties.getRegion()));
+		}
+		else {
+			builder.region(regionProvider.getRegion());
 		}
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
