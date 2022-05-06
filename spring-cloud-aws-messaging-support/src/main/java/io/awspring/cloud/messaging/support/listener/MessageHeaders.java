@@ -21,6 +21,9 @@ package io.awspring.cloud.messaging.support.listener;
  */
 public class MessageHeaders {
 
+	private MessageHeaders() {
+	}
+
 	public static final String ACKNOWLEDGMENT_HEADER = "acknowledgement";
 
 }

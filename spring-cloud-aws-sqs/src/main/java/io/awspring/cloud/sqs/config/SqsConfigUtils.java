@@ -21,6 +21,9 @@ package io.awspring.cloud.sqs.config;
  */
 public class SqsConfigUtils {
 
+	private SqsConfigUtils() {
+	}
+
 	public static final String SQS_ASYNC_CLIENT_BEAN_NAME = "io.awspring.cloud.sqs.internalSqsAsyncClient";
 
 	public static final String SQS_ASYNC_LISTENER_BEAN_NAME = "io.awspring.cloud.sqs.internalSqsAsyncListener";

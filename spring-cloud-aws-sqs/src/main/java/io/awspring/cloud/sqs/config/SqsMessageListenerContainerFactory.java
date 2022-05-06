@@ -92,7 +92,7 @@ public class SqsMessageListenerContainerFactory
 
 	@Override
 	protected void initializeContainer(SqsMessageListenerContainer container) {
-		logger.debug("Initializing container: " + container);
+		logger.debug("Initializing container {}", container);
 		container.afterPropertiesSet();
 	}
 

@@ -65,7 +65,7 @@ public class SqsMessageProducer implements AsyncMessageProducer<String>, SmartLi
 
 	@Override
 	public CompletableFuture<Collection<Message<String>>> produce(int numberOfMessages, Duration timeout) {
-		logger.trace("Polling for messages at " + this.queueUrl);
+		logger.trace("Polling for messages at {}", this.queueUrl);
 		return sqsAsyncClient
 				.receiveMessage(req -> req.queueUrl(this.queueUrl).maxNumberOfMessages(numberOfMessages)
 						.waitTimeSeconds((int) timeout.getSeconds()))
@@ -143,14 +143,13 @@ public class SqsMessageProducer implements AsyncMessageProducer<String>, SmartLi
 
 	@Override
 	public void start() {
-		logger.debug("Starting SqsMessageProducer for " + this.logicalEndpointName);
-		// Synchronization not necessary as field is volatile
+		logger.debug("Starting SqsMessageProducer for {}", this.logicalEndpointName);
 		this.running = true;
 	}
 
 	@Override
 	public void stop() {
-		logger.debug("Stopping SqsMessageProducer for " + this.logicalEndpointName);
+		logger.debug("Stopping SqsMessageProducer for {}", this.logicalEndpointName);
 		this.running = false;
 	}
 

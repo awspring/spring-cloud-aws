@@ -34,6 +34,6 @@ public interface Visibility {
 	 * @param seconds number of seconds to extend the visibility timeout by
 	 * @return a {@link Future} as the extension can involve some asynchronous request (i.e. request to an AWS API).
 	 */
-	CompletableFuture<?> changeTo(int seconds);
+	CompletableFuture<Void> changeTo(int seconds);
 
 }

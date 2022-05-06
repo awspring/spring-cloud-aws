@@ -32,7 +32,7 @@ public class OnSuccessAckHandler<T> implements AsyncAckHandler<T> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public CompletableFuture<?> onSuccess(Message<T> message) {
+	public CompletableFuture<Void> onSuccess(Message<T> message) {
 		logger.trace("Acknowledging message " + message);
 		Object ackObject = message.getHeaders().get(MessageHeaders.ACKNOWLEDGMENT_HEADER);
 		Assert.notNull(ackObject, () -> "No acknowledgment found for " + message);

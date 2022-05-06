@@ -23,6 +23,6 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface AsyncAcknowledgement {
 
-	CompletableFuture<?> acknowledge();
+	CompletableFuture<Void> acknowledge();
 
 }

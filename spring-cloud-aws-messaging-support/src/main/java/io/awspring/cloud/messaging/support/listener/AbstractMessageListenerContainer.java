@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListenerContainer<T> implements MessageListenerContainer<T>, InitializingBean {
+public abstract class AbstractMessageListenerContainer<T> implements MessageListenerContainer, InitializingBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageListenerContainer.class);
 
@@ -58,7 +58,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private AsyncMessageInterceptor<T> messageInterceptor = null;
 
-	public AbstractMessageListenerContainer(AbstractContainerOptions<?> options, TaskExecutor taskExecutor,
+	protected AbstractMessageListenerContainer(AbstractContainerOptions<?> options, TaskExecutor taskExecutor,
 			AsyncMessageListener<T> messageListener, Collection<AsyncMessageProducer<T>> producers) {
 		this.messageListener = messageListener;
 		handleCallbackListener(messageListener);
@@ -128,7 +128,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	protected CompletableFuture<?> splitAndProcessMessages(Collection<Message<T>> messages) {
-		logger.trace("Received {} messages in Thread {}", messages.size(), threadName());
+		logger.trace("Received {} messages in Thread {}", messages.size(), Thread.currentThread().getName());
 		return CompletableFuture
 				.allOf(messages.stream().map(this::processMessageAsync).toArray(CompletableFuture[]::new));
 	}
@@ -138,7 +138,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	protected CompletableFuture<?> processMessage(Message<T> message) {
-		logger.debug("Processing message {} in thread {}", message, threadName());
+		logger.debug("Processing message {} in thread {}", message, Thread.currentThread().getName());
 		CompletableFuture<Void> messageListenerResult = maybeIntercept(message, this.messageListener::onMessage);
 		return this.messageListener instanceof CallbackMessageListener ? CompletableFuture.completedFuture(null)
 				: messageListenerResult.handle((val, t) -> handleResult(message, t));
@@ -156,19 +156,15 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 				: listener.apply(message);
 	}
 
-	private String threadName() {
-		return Thread.currentThread().getName();
-	}
-
 	private void acquireSemaphore() throws InterruptedException {
 		producersSemaphore.acquire();
-		logger.trace("Semaphore acquired for producer {} in thread {} ", this, threadName());
+		logger.trace("Semaphore acquired for producer {} in thread {} ", this, Thread.currentThread().getName());
 	}
 
 	private Runnable releaseSemaphore() {
 		return () -> {
 			this.producersSemaphore.release();
-			logger.trace("Semaphore released for producer {} in thread {} ", this, threadName());
+			logger.trace("Semaphore released for producer {} in thread {} ", this, Thread.currentThread().getName());
 		};
 	}
 

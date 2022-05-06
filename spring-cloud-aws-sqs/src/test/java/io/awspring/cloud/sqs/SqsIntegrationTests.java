@@ -130,9 +130,12 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	final int outerBatchSize = 20;
-	final int innerBatchSize = 10;
+	final int outerBatchSize = 1; //20;
+	final int innerBatchSize = 1; //10;
 	final int totalMessages = 2 * outerBatchSize * innerBatchSize;
+
+	// These tests are really only for us to have some indication on how the system performs under load.
+	// We can probably remove them later, or adapt to only make sure it handles more than one queue.
 
 	@Test
 	void receivesManyFromTwoQueuesWithLoad() throws Exception {

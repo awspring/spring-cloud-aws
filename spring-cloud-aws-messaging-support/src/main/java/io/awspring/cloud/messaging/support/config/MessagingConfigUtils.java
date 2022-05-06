@@ -21,6 +21,9 @@ package io.awspring.cloud.messaging.support.config;
  */
 public class MessagingConfigUtils {
 
+	private MessagingConfigUtils() {
+	}
+
 	public static final String DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME = "defaultListenerContainerFactory";
 
 	public static final String ENDPOINT_REGISTRY_BEAN_NAME = "io.awspring.cloud.messaging.internalEndpointRegistryBeanName";

@@ -36,10 +36,6 @@ public class DefaultEndpointProcessor implements EndpointProcessor, BeanFactoryA
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointProcessor.class);
 
-	public static final String DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME = "defaultListenerContainerFactory";
-
-	public static final String ENDPOINT_REGISTRY_BEAN_NAME = "defaultEndpointRegistry";
-
 	private BeanFactory beanFactory;
 
 	private MessageListenerContainerRegistry listenerContainerRegistry;
@@ -58,12 +54,12 @@ public class DefaultEndpointProcessor implements EndpointProcessor, BeanFactoryA
 
 	@Override
 	public void process(Endpoint endpoint) {
-		logger.debug("Processing endpoint: " + endpoint);
+		logger.debug("Processing endpoint {}", endpoint);
 		this.listenerContainerRegistry.registerListenerContainer(createContainerFor(endpoint));
 	}
 
 	@SuppressWarnings("unchecked")
-	private MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
+	private MessageListenerContainer createContainerFor(Endpoint endpoint) {
 		String factoryBeanName = getListenerContainerFactoryName(endpoint);
 		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName),
 				() -> "No bean with name " + factoryBeanName + " found for MessageListenerContainerFactory.");

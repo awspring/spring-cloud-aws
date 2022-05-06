@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  */
 public class SqsMessageListenerContainer extends AbstractMessageListenerContainer<String> {
 
-	private final static Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
 
 	public SqsMessageListenerContainer(SqsContainerOptions options, SqsAsyncClient sqsClient,
 			AsyncMessageListener<String> messageListener, TaskExecutor taskExecutor) {
@@ -52,13 +52,13 @@ public class SqsMessageListenerContainer extends AbstractMessageListenerContaine
 
 	@Override
 	protected void doStart() {
-		logger.debug("Starting SqsMessageListenerContainer: " + this);
+		logger.debug("Starting SqsMessageListenerContainer {}", this);
 		super.getMessageProducers().stream().map(SqsMessageProducer.class::cast).forEach(SqsMessageProducer::start);
 	}
 
 	@Override
 	protected void doStop() {
-		logger.debug("Stopping SqsMessageListenerContainer: " + this);
+		logger.debug("Stopping SqsMessageListenerContainer {}", this);
 		super.getMessageProducers().stream().map(SqsMessageProducer.class::cast).forEach(SqsMessageProducer::stop);
 	}
 }

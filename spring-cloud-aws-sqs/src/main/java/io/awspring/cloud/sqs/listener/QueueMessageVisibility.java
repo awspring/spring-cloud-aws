@@ -42,10 +42,9 @@ public class QueueMessageVisibility implements Visibility {
 	}
 
 	@Override
-	public CompletableFuture<?> changeTo(int seconds) {
-		logger.debug("Changing visibility of message {} to {}", this.receiptHandle, seconds);
+	public CompletableFuture<Void> changeTo(int seconds) {
 		return this.sqsAsyncClient.changeMessageVisibility(
-				req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle).visibilityTimeout(seconds));
+				req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle).visibilityTimeout(seconds))
+			.thenRun(() -> logger.trace("Changed the visibility of message {} to {} seconds", this.receiptHandle, seconds));
 	}
-
 }

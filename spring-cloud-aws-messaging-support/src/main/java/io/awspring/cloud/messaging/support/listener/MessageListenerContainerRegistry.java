@@ -24,8 +24,8 @@ import org.springframework.context.SmartLifecycle;
  */
 public interface MessageListenerContainerRegistry extends SmartLifecycle {
 
-	void registerListenerContainer(MessageListenerContainer<?> listenerContainer);
+	void registerListenerContainer(MessageListenerContainer listenerContainer);
 
-	Collection<MessageListenerContainer<?>> retrieveListenerContainers();
+	Collection<MessageListenerContainer> retrieveListenerContainers();
 
 }

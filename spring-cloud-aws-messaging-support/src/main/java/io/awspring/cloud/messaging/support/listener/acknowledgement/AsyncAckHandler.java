@@ -24,9 +24,9 @@ import org.springframework.messaging.Message;
  */
 public interface AsyncAckHandler<T> {
 
-	CompletableFuture<?> onSuccess(Message<T> message);
+	CompletableFuture<Void> onSuccess(Message<T> message);
 
-	default CompletableFuture<?> onError(Message<T> message, Throwable t) {
+	default CompletableFuture<Void> onError(Message<T> message, Throwable t) {
 		return CompletableFuture.completedFuture(null);
 	}
 }

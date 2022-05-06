@@ -27,6 +27,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.handler.invocation.AbstractMethodMessageHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.util.Assert;
 
 /**
  * @author Tomaz Fernandes
@@ -45,11 +46,13 @@ public class AsyncMessageHandlerMessageListener<T> implements CallbackMessageLis
 	@SuppressWarnings("unchecked")
 	@Override
 	public void addResultCallback(BiFunction<Message<T>, Throwable, CompletableFuture<?>> callback) {
-		AbstractMethodMessageHandler<T> messageHandler = (AbstractMethodMessageHandler<T>) this.messageHandler;
+		Assert.isInstanceOf(AbstractMethodMessageHandler.class, this.messageHandler, () -> "MessageHandler must be an instance of" +
+			"AbstractMethodMessageHandler in order to enable callbacks");
+		AbstractMethodMessageHandler<T> abstractHandler = (AbstractMethodMessageHandler<T>) this.messageHandler;
 		List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>(
-				messageHandler.getReturnValueHandlers());
+				abstractHandler.getReturnValueHandlers());
 		returnValueHandlers.add(new CallbackFutureReturnValueHandler<>(callback));
-		messageHandler.setReturnValueHandlers(returnValueHandlers);
+		abstractHandler.setReturnValueHandlers(returnValueHandlers);
 	}
 
 	@Override

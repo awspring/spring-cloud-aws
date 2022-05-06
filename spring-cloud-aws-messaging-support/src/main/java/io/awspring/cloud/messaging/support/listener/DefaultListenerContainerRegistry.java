@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +31,20 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultListenerContainerRegistry.class);
 
-	private final List<MessageListenerContainer<?>> listenerContainers = new ArrayList<>();
+	private final List<MessageListenerContainer> listenerContainers = new ArrayList<>();
 
 	private final Object lifecycleMonitor = new Object();
 
 	private volatile boolean running = false;
 
 	@Override
-	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
+	public void registerListenerContainer(MessageListenerContainer listenerContainer) {
 		logger.debug("Registering listener container {}", listenerContainer);
 		this.listenerContainers.add(listenerContainer);
 	}
 
 	@Override
-	public Collection<MessageListenerContainer<?>> retrieveListenerContainers() {
+	public Collection<MessageListenerContainer> retrieveListenerContainers() {
 		return Collections.unmodifiableList(this.listenerContainers);
 	}
 

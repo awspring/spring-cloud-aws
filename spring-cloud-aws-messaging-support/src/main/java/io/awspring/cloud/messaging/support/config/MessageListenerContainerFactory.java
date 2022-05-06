@@ -22,7 +22,7 @@ import io.awspring.cloud.messaging.support.listener.MessageListenerContainer;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface MessageListenerContainerFactory<C extends MessageListenerContainer<?>, E extends Endpoint> {
+public interface MessageListenerContainerFactory<C extends MessageListenerContainer, E extends Endpoint> {
 
 	C create(E endpoint);
 

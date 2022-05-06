@@ -65,8 +65,6 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -80,7 +78,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @since 1.0
  */
 public class EndpointMessageHandler extends AbstractMethodMessageHandler<Endpoint>
-		implements EndpointRegistry, DisposableBean {
+		implements EndpointRegistry {
 
 	private final List<MessageConverter> messageConverters;
 
@@ -280,21 +278,4 @@ public class EndpointMessageHandler extends AbstractMethodMessageHandler<Endpoin
 		return Collections.unmodifiableSet(super.getHandlerMethods().keySet());
 	}
 
-	@Override
-	public void destroy() throws Exception {
-		logger.error("Destroying");
-	}
-
-	private static final class NoOpValidator implements Validator {
-
-		@Override
-		public boolean supports(Class<?> clazz) {
-			return false;
-		}
-
-		@Override
-		public void validate(Object target, Errors errors) {
-		}
-
-	}
 }
