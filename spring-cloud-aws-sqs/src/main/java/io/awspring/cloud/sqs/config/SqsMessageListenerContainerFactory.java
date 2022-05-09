@@ -15,95 +15,94 @@
  */
 package io.awspring.cloud.sqs.config;
 
-import io.awspring.cloud.messaging.support.MessagingUtils;
-import io.awspring.cloud.messaging.support.config.AbstractMessageListenerContainerFactory;
-import io.awspring.cloud.messaging.support.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.endpoint.SqsEndpoint;
-import io.awspring.cloud.sqs.listener.MessageVisibilityExtenderInterceptor;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
+import io.awspring.cloud.sqs.listener.interceptor.MessageVisibilityExtenderInterceptor;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * {@link MessageListenerContainerFactory} implementation for creating {@link SqsMessageListenerContainer} instances.
+ *
+ * @param <T> the {@link Message} payload type.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessageListenerContainerFactory
-		extends AbstractMessageListenerContainerFactory<String, SqsMessageListenerContainer, SqsEndpoint> {
+public class SqsMessageListenerContainerFactory<T>
+		extends AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainerFactory.class);
 
-	private SqsAsyncClient sqsAsyncClient;
+	private Supplier<SqsAsyncClient> sqsAsyncClientSupplier;
 
-	private final SqsFactoryOptions factoryOptions;
-
+	/**
+	 * Create an instance with default {@link ContainerOptions}.
+	 */
 	public SqsMessageListenerContainerFactory() {
-		this(SqsFactoryOptions.withOptions());
+		this(ContainerOptions.create());
 	}
 
-	public SqsMessageListenerContainerFactory(SqsFactoryOptions factoryOptions) {
-		super(factoryOptions);
-		this.factoryOptions = factoryOptions;
+	/**
+	 * Create an instance with the provided {@link ContainerOptions}. Note that a copy of these options will be made, so
+	 * any further change to the original options will have no effect on this factory.
+	 * @param containerOptions the container options instance.
+	 */
+	private SqsMessageListenerContainerFactory(ContainerOptions containerOptions) {
+		super(containerOptions);
 	}
 
 	@Override
-	protected SqsMessageListenerContainer createContainerInstance(SqsEndpoint endpoint) {
-		SqsContainerOptions containerOptions = createContainerOptions(endpoint);
-		SqsMessageListenerContainer container = new SqsMessageListenerContainer(containerOptions, this.sqsAsyncClient,
-				getMessageListener(endpoint), super.createTaskExecutor());
-		MessagingUtils.INSTANCE.acceptBothIfNoneNull(containerOptions.getMinTimeToProcess(), container,
-				this::addVisibilityExtender);
-		return container;
+	protected SqsMessageListenerContainer<T> createContainerInstance(Endpoint endpoint,
+			ContainerOptions containerOptions) {
+		logger.debug("Creating {} for endpoint {}", SqsMessageListenerContainer.class.getSimpleName(), endpoint);
+		Assert.notNull(this.sqsAsyncClientSupplier, "No asyncClient set");
+		SqsAsyncClient asyncClient = this.sqsAsyncClientSupplier.get();
+		return new SqsMessageListenerContainer<>(asyncClient, configureContainerOptions(endpoint, containerOptions));
 	}
 
-	@SuppressWarnings("unchecked")
-	private AsyncMessageListener<String> getMessageListener(SqsEndpoint endpoint) {
-		return endpoint.isAsync() && super.getBeanFactory().containsBean(SqsConfigUtils.SQS_ASYNC_CLIENT_BEAN_NAME)
-				? getBeanFactory().getBean(SqsConfigUtils.SQS_ASYNC_LISTENER_BEAN_NAME, AsyncMessageListener.class)
-				: super.getMessageListener();
-	}
-
-	private void addVisibilityExtender(Integer minTimeToProcess, SqsMessageListenerContainer container) {
-		MessageVisibilityExtenderInterceptor<String> interceptor = new MessageVisibilityExtenderInterceptor<>(
-				this.sqsAsyncClient);
-		interceptor.setMinTimeToProcessMessage(minTimeToProcess);
-		container.setMessageInterceptor(interceptor);
-	}
-
-	protected SqsContainerOptions createContainerOptions(SqsEndpoint endpoint) {
-		SqsContainerOptions options = SqsContainerOptions.optionsFor(endpoint);
-		MessagingUtils.INSTANCE.acceptFirstNonNull(options::messagesPerProduce, factoryOptions.getMessagesPerPoll())
-				.acceptFirstNonNull(options::minTimeToProcess, endpoint.getMinTimeToProcess(),
-						factoryOptions.getMinTimeToProcess())
-				.acceptFirstNonNull(options::simultaneousProduceCalls, endpoint.getSimultaneousPollsPerQueue(),
-						factoryOptions.getSimultaneousPollsPerQueue())
-				.acceptFirstNonNull(options::produceTimeout, endpoint.getPollTimeoutSeconds(),
-						factoryOptions.getPollTimeoutSeconds());
+	private ContainerOptions configureContainerOptions(Endpoint endpoint, ContainerOptions options) {
+		if (endpoint instanceof SqsEndpoint) {
+			SqsEndpoint sqsEndpoint = (SqsEndpoint) endpoint;
+			ConfigUtils.INSTANCE
+					.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+					.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
+					.acceptIfNotNull(sqsEndpoint.getMinimumVisibility(), this::addVisibilityExtender);
+		}
 		return options;
 	}
 
+	/**
+	 * Set a supplier for {@link SqsAsyncClient} instances. A new instance will be used for each container created by
+	 * this factory. Useful for high throughput containers where sharing an {@link SqsAsyncClient} would be harmful to
+	 * performance.
+	 *
+	 * @param sqsAsyncClientSupplier the supplier.
+	 */
+	public void setSqsAsyncClientSupplier(Supplier<SqsAsyncClient> sqsAsyncClientSupplier) {
+		Assert.notNull(sqsAsyncClientSupplier, "sqsAsyncClientSupplier cannot be null.");
+		this.sqsAsyncClientSupplier = sqsAsyncClientSupplier;
+	}
+
+	/**
+	 * Set the {@link SqsAsyncClient} instance to be shared by the containers. Useful for not-so-high throughput
+	 * scenarios or when the client is tuned for more than the default maximum connections.
+	 * @param sqsAsyncClient the client instance.
+	 */
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
-		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null");
-		this.sqsAsyncClient = sqsAsyncClient;
+		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
+		setSqsAsyncClientSupplier(() -> sqsAsyncClient);
 	}
 
-	@Override
-	protected void initializeContainer(SqsMessageListenerContainer container) {
-		logger.debug("Initializing container {}", container);
-		container.afterPropertiesSet();
+	private void addVisibilityExtender(Integer minTimeToProcess) {
+		MessageVisibilityExtenderInterceptor<T> interceptor = new MessageVisibilityExtenderInterceptor<>();
+		interceptor.setMinimumVisibility(minTimeToProcess);
+		super.addAsyncMessageInterceptor(interceptor);
 	}
 
-	@Override
-	protected void initializeFactory() {
-		if (this.sqsAsyncClient == null) {
-			Assert.isTrue(getBeanFactory().containsBean(SqsConfigUtils.SQS_ASYNC_CLIENT_BEAN_NAME),
-					"A SqsAsyncClient must be registered with name " + SqsConfigUtils.SQS_ASYNC_CLIENT_BEAN_NAME);
-			this.sqsAsyncClient = getBeanFactory().getBean(SqsConfigUtils.SQS_ASYNC_CLIENT_BEAN_NAME,
-					SqsAsyncClient.class);
-		}
-
-	}
 }

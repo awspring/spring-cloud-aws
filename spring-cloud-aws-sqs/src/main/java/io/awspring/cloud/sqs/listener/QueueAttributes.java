@@ -16,39 +16,65 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * Queue attributes extracted from SQS.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see QueueAttributesResolver
  */
 public class QueueAttributes {
 
-	private final String destinationUrl;
+	private final String queueUrl;
 
 	private final boolean hasRedrivePolicy;
 
 	private final Integer visibilityTimeout;
 
-	private final boolean fifo;
+	private final boolean isFifo;
 
-	public QueueAttributes(String destinationUrl, boolean hasRedrivePolicy, Integer visibilityTimeout, boolean fifo) {
+	/**
+	 * Create an instance with the provided arguments.
+	 * @param queueUrl the url for this queue.
+	 * @param hasRedrivePolicy whether this queue has a redrive policy.
+	 * @param visibilityTimeout the visibility timeout for this queue.
+	 * @param isFifo whether this is a FIFO queue.
+	 */
+	public QueueAttributes(String queueUrl, boolean hasRedrivePolicy, Integer visibilityTimeout, boolean isFifo) {
 		this.hasRedrivePolicy = hasRedrivePolicy;
-		this.destinationUrl = destinationUrl;
+		this.queueUrl = queueUrl;
 		this.visibilityTimeout = visibilityTimeout;
-		this.fifo = fifo;
+		this.isFifo = isFifo;
 	}
 
+	/**
+	 * Return the url for this queue.
+	 * @return the url.
+	 */
+	public String getQueueUrl() {
+		return this.queueUrl;
+	}
+
+	/**
+	 * Return whether this queue has a redrive policy.
+	 * @return true if this queue has a redrive policy.
+	 */
 	public boolean hasRedrivePolicy() {
 		return this.hasRedrivePolicy;
 	}
 
-	boolean isFifo() {
-		return fifo;
-	}
-
-	public String getDestinationUrl() {
-		return destinationUrl;
-	}
-
+	/**
+	 * Return the visibility timeout for this queue.
+	 * @return the visibility timeout.
+	 */
 	public Integer getVisibilityTimeout() {
-		return visibilityTimeout;
+		return this.visibilityTimeout;
+	}
+
+	/**
+	 * Return whether this is a FIFO queue.
+	 * @return true if this is a FIFO queue.
+	 */
+	boolean isFifo() {
+		return this.isFifo;
 	}
 }

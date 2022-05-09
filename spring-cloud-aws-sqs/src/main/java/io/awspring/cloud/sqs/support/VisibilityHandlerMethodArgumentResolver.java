@@ -22,6 +22,8 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.util.ClassUtils;
 
 /**
+ * {@link HandlerMethodArgumentResolver} for {@link Visibility} method parameters.
+ *
  * @author Szymon Dembek
  * @since 1.3
  */

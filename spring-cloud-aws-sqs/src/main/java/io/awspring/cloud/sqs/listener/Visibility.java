@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.listener;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * Visibility interface that can be injected as parameter into a listener method. The purpose of this interface is to
@@ -29,10 +28,9 @@ import java.util.concurrent.Future;
 public interface Visibility {
 
 	/**
-	 * Allows extending the visibility timeout of a message that was already fetched from the queue, in case when the
-	 * configured visibility timeout turns out to be to short.
-	 * @param seconds number of seconds to extend the visibility timeout by
-	 * @return a {@link Future} as the extension can involve some asynchronous request (i.e. request to an AWS API).
+	 * Asynchronously changes the message visibility to the provided value.
+	 * @param seconds number of seconds to set the visibility of the message to.
+	 * @return a completable future.
 	 */
 	CompletableFuture<Void> changeTo(int seconds);
 
