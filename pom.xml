@@ -46,12 +46,11 @@
 		<module>spring-cloud-aws-ses</module>
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-dynamodb</module>
+		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-s3-parent</module>
 		<module>spring-cloud-aws-starters</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>docs</module>
-        <module>spring-cloud-aws-messaging-support</module>
-		<module>spring-cloud-aws-sqs</module>
 
 		<!--
 		these modules need to be rewritten

@@ -22,9 +22,14 @@
 		</encoder>
 	</appender>
 
-	<logger name="io.awspring.cloud.messaging" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.invocation.EndpointMessageHandler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.SqsMessageListenerContainer" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.sink" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.interceptor" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.source.SqsMessageSource" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.acknowledgement" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

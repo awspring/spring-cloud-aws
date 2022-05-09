@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * {@link Visibility} implementation for SQS messages.
+ *
  * @author Szymon Dembek
  * @author Tomaz Fernandes
  * @since 1.3
@@ -35,6 +37,12 @@ public class QueueMessageVisibility implements Visibility {
 
 	private final String receiptHandle;
 
+	/**
+	 * Create an instance for changing the visibility for the provided queue.
+	 * @param amazonSqsAsync the client to be used.
+	 * @param queueUrl the queue url.
+	 * @param receiptHandle the message receipt handle.
+	 */
 	public QueueMessageVisibility(SqsAsyncClient amazonSqsAsync, String queueUrl, String receiptHandle) {
 		this.sqsAsyncClient = amazonSqsAsync;
 		this.queueUrl = queueUrl;
@@ -43,8 +51,10 @@ public class QueueMessageVisibility implements Visibility {
 
 	@Override
 	public CompletableFuture<Void> changeTo(int seconds) {
-		return this.sqsAsyncClient.changeMessageVisibility(
-				req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle).visibilityTimeout(seconds))
-			.thenRun(() -> logger.trace("Changed the visibility of message {} to {} seconds", this.receiptHandle, seconds));
+		return this.sqsAsyncClient
+				.changeMessageVisibility(
+						req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle).visibilityTimeout(seconds))
+				.thenRun(() -> logger.trace("Changed the visibility of message {} to {} seconds", this.receiptHandle,
+						seconds));
 	}
 }

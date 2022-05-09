@@ -15,13 +15,15 @@
  */
 package io.awspring.cloud.sqs.support;
 
-import io.awspring.cloud.messaging.support.listener.acknowledgement.AsyncAcknowledgement;
+import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ClassUtils;
 
 /**
+ * {@link HandlerMethodArgumentResolver} for {@link Acknowledgement} method parameters.
+ *
  * @author Alain Sahli
  * @author Tomaz Fernandes
  * @since 1.1
@@ -36,7 +38,7 @@ public class AsyncAcknowledgmentHandlerMethodArgumentResolver implements Handler
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return ClassUtils.isAssignable(AsyncAcknowledgement.class, parameter.getParameterType());
+		return ClassUtils.isAssignable(Acknowledgement.class, parameter.getParameterType());
 	}
 
 	@Override
