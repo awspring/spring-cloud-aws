@@ -1,6 +1,6 @@
 # 🍃 Spring Cloud AWS
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/awspring/spring-cloud-aws)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)
 
 Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
