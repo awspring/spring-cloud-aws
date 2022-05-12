@@ -35,7 +35,7 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | SES             | ✅                    | ✅                                                                         |
 | Parameter Store | ✅                    | ✅                                                                         |
 | Secrets Manager | ✅                    | ✅                                                                         |
-| SQS             | ✅                    | TODO [#344](https://github.com/awspring/spring-cloud-aws/issues/344)       |
+| SQS             | ✅                    | In Progress [#344](https://github.com/awspring/spring-cloud-aws/pull/374)       |
 | RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
 | EC2             | ✅                    | ❌                                                                         |
 | ElastiCache     | ✅                    | ❌                                                                         |
