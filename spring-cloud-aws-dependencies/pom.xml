@@ -25,7 +25,8 @@
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
 		<spotless.version>2.22.0</spotless.version>
-		<awssdk.version>2.17.172</awssdk.version>
+		<awssdk-v2.version>2.17.189</awssdk-v2.version>
+		<awssdk-v1.version>1.12.218</awssdk-v1.version>
 	</properties>
 
 	<dependencyManagement>
@@ -33,7 +34,7 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>bom</artifactId>
-				<version>${awssdk.version}</version>
+				<version>${awssdk-v2.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -41,7 +42,7 @@
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk-bom</artifactId>
-				<version>1.12.201</version>
+				<version>${awssdk-v1.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -49,7 +50,7 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
-				<version>${awssdk.version}-PREVIEW</version>
+				<version>${awssdk-v2.version}-PREVIEW</version>
 				<optional>true</optional>
 			</dependency>
 
