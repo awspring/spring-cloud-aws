@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
  * @author Eddú Meléndez
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnClass({ StaticRegionProvider.class, AwsRegionProvider.class, ProfileFile.class })
 @EnableConfigurationProperties(RegionProperties.class)
 public class RegionProviderAutoConfiguration {
 
@@ -51,17 +53,21 @@ public class RegionProviderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsRegionProvider regionProvider() {
+		return createRegionProvider(this.properties);
+	}
+
+	public static AwsRegionProvider createRegionProvider(RegionProperties properties) {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
-		if (this.properties.getStatic() != null && this.properties.isStatic()) {
-			providers.add(new StaticRegionProvider(this.properties.getStatic()));
+		if (properties.getStatic() != null && properties.isStatic()) {
+			providers.add(new StaticRegionProvider(properties.getStatic()));
 		}
 
-		if (this.properties.isInstanceProfile()) {
+		if (properties.isInstanceProfile()) {
 			providers.add(new InstanceProfileRegionProvider());
 		}
 
-		Profile profile = this.properties.getProfile();
+		Profile profile = properties.getProfile();
 		if (profile != null && profile.getName() != null) {
 			providers.add(createProfileRegionProvider(profile));
 		}
@@ -74,7 +80,7 @@ public class RegionProviderAutoConfiguration {
 		}
 	}
 
-	private AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
+	private static AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
 		Supplier<ProfileFile> profileFileFn = () -> {
 			if (profile.getPath() != null) {
 				return ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION).content(Paths.get(profile.getPath()))

@@ -17,25 +17,21 @@ package io.awspring.cloud.autoconfigure.ses;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
-import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Tests for class {@link SesAutoConfiguration}
+ * Tests for class {@link SesAutoConfiguration}.
  *
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
@@ -45,7 +41,7 @@ class SesAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, SesAutoConfiguration.class));
 
 	@Test
@@ -92,25 +88,23 @@ class SesAutoConfigurationTest {
 		});
 	}
 
-	private static class ConfiguredAwsClient {
+	@Test
+	void withCustomGlobalEndpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+			assertThat(client.isEndpointOverridden()).isTrue();
+		});
+	}
 
-		private final AttributeMap clientConfigurationAttributes;
-
-		ConfiguredAwsClient(SdkClient sdkClient) {
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils
-					.getField(sdkClient, "clientConfiguration");
-			this.clientConfigurationAttributes = (AttributeMap) ReflectionTestUtils
-					.getField(Objects.requireNonNull(clientConfiguration), "attributes");
-		}
-
-		URI getEndpoint() {
-			return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT);
-		}
-
-		boolean isEndpointOverridden() {
-			return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
-		}
-
+	@Test
+	void withCustomGlobalEndpointAndSesEndpoint() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+				"spring.cloud.aws.ses.endpoint:http://localhost:9999").run(context -> {
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+					assertThat(client.isEndpointOverridden()).isTrue();
+				});
 	}
 
 }

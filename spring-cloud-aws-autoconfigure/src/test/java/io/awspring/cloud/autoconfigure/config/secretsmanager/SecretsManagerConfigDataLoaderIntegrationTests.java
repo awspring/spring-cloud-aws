@@ -56,7 +56,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SECRETSMANAGER).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -142,15 +142,61 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
 			context.getEnvironment().getProperty("message");
-			assertThat(output.getAll()).contains("Populating property retrieved from AWS Parameter Store: message");
+			assertThat(output.getAll()).contains("Populating property retrieved from AWS Secrets Manager: message");
+		}
+	}
+
+	@Test
+	void endpointCanBeOverwrittenWithGlobalAwsProperties() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second", "spring.cloud.aws.endpoint")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
+	@Test
+	void serviceSpecificEndpointTakesPrecedenceOverGlobalAwsRegion() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+				"--spring.cloud.aws.endpoint=http://non-existing-host/",
+				"--spring.cloud.aws.secretsmanager.endpoint="
+						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
+	@Test
+	void secretsManagerClientUsesGlobalRegion() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=" + REGION)) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
 	}
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
+		return runApplication(application, springConfigImport, "spring.cloud.aws.secretsmanager.endpoint");
+	}
+
+	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
+			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.endpoint="
-						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug");
 	}

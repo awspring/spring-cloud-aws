@@ -42,8 +42,8 @@ class DiskBufferingS3OutputStreamTests {
 	void setsMd5hash() throws IOException {
 		S3Client s3Client = mock(S3Client.class);
 
-		try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream("bucket", "key",
-				s3Client, null)) {
+		try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream(
+				new Location("bucket", "key"), s3Client, null)) {
 			diskBufferingS3OutputStream.write("hello".getBytes(StandardCharsets.UTF_8));
 		}
 
@@ -59,8 +59,8 @@ class DiskBufferingS3OutputStreamTests {
 		when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenThrow(S3Exception.class);
 
 		try {
-			try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream("bucket",
-					"key", s3Client, null)) {
+			try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream(
+					new Location("bucket", "key"), s3Client, null)) {
 				diskBufferingS3OutputStream.write("hello".getBytes(StandardCharsets.UTF_8));
 			}
 			fail("UploadFailedException should be thrown");

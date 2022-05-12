@@ -28,14 +28,19 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class DiskBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
 	private final S3Client s3Client;
+	@Nullable
+	private final S3ObjectContentTypeResolver contentTypeResolver;
 
-	public DiskBufferingS3OutputStreamProvider(S3Client s3Client) {
+	public DiskBufferingS3OutputStreamProvider(S3Client s3Client,
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver) {
 		this.s3Client = s3Client;
+		this.contentTypeResolver = contentTypeResolver;
 	}
 
 	@Override
 	public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
-		return new DiskBufferingS3OutputStream(bucket, key, s3Client, metadata);
+		return new DiskBufferingS3OutputStream(new Location(bucket, key, null), s3Client, metadata,
+				contentTypeResolver);
 	}
 
 }

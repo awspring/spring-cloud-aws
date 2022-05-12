@@ -252,6 +252,146 @@ public class ObjectMetadata {
 		}
 	}
 
+	@Nullable
+	public String getAcl() {
+		return acl;
+	}
+
+	@Nullable
+	public String getCacheControl() {
+		return cacheControl;
+	}
+
+	@Nullable
+	public String getContentDisposition() {
+		return contentDisposition;
+	}
+
+	@Nullable
+	public String getContentEncoding() {
+		return contentEncoding;
+	}
+
+	@Nullable
+	public String getContentLanguage() {
+		return contentLanguage;
+	}
+
+	@Nullable
+	public String getContentType() {
+		return contentType;
+	}
+
+	@Nullable
+	public Instant getExpires() {
+		return expires;
+	}
+
+	@Nullable
+	public String getGrantFullControl() {
+		return grantFullControl;
+	}
+
+	@Nullable
+	public String getGrantRead() {
+		return grantRead;
+	}
+
+	@Nullable
+	public String getGrantReadACP() {
+		return grantReadACP;
+	}
+
+	@Nullable
+	public String getGrantWriteACP() {
+		return grantWriteACP;
+	}
+
+	@Nullable
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
+
+	@Nullable
+	public String getServerSideEncryption() {
+		return serverSideEncryption;
+	}
+
+	@Nullable
+	public String getStorageClass() {
+		return storageClass;
+	}
+
+	@Nullable
+	public String getWebsiteRedirectLocation() {
+		return websiteRedirectLocation;
+	}
+
+	@Nullable
+	public String getSseCustomerAlgorithm() {
+		return sseCustomerAlgorithm;
+	}
+
+	@Nullable
+	public String getSseCustomerKey() {
+		return sseCustomerKey;
+	}
+
+	@Nullable
+	public String getSseCustomerKeyMD5() {
+		return sseCustomerKeyMD5;
+	}
+
+	@Nullable
+	public String getSsekmsKeyId() {
+		return ssekmsKeyId;
+	}
+
+	@Nullable
+	public String getSsekmsEncryptionContext() {
+		return ssekmsEncryptionContext;
+	}
+
+	@Nullable
+	public Boolean getBucketKeyEnabled() {
+		return bucketKeyEnabled;
+	}
+
+	@Nullable
+	public String getRequestPayer() {
+		return requestPayer;
+	}
+
+	@Nullable
+	public String getTagging() {
+		return tagging;
+	}
+
+	@Nullable
+	public String getObjectLockMode() {
+		return objectLockMode;
+	}
+
+	@Nullable
+	public Instant getObjectLockRetainUntilDate() {
+		return objectLockRetainUntilDate;
+	}
+
+	@Nullable
+	public String getObjectLockLegalHoldStatus() {
+		return objectLockLegalHoldStatus;
+	}
+
+	@Nullable
+	public String getExpectedBucketOwner() {
+		return expectedBucketOwner;
+	}
+
+	@Nullable
+	public String getChecksumAlgorithm() {
+		return checksumAlgorithm;
+	}
+
 	public static class Builder {
 
 		private final Map<String, String> metadata = new HashMap<>();

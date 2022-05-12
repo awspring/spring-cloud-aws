@@ -59,7 +59,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceJavaMailSender.class);
 
 	private static final String SMART_MIME_MESSAGE_CLASS_NAME = "org.springframework.mail.javamail.SmartMimeMessage";
 

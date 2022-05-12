@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2013-2022 the original author or authors.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      https://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -26,14 +10,23 @@
 		<version>3.0.0</version>
 		<relativePath/>
 	</parent>
+	<scm>
+		<url>https://github.com/awspring/spring-cloud-aws</url>
+		<connection>scm:git:git://github.com/awspring/spring-cloud-aws.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/awspring/spring-cloud-aws.git</developerConnection>
+	</scm>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
+	<name>Spring Cloud AWS Dependencies</name>
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
+		<spotless.version>2.22.0</spotless.version>
+		<awssdk-v2.version>2.17.189</awssdk-v2.version>
+		<awssdk-v1.version>1.12.218</awssdk-v1.version>
 	</properties>
 
 	<dependencyManagement>
@@ -41,7 +34,7 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>bom</artifactId>
-				<version>2.17.189</version>
+				<version>${awssdk-v2.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -49,9 +42,16 @@
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk-bom</artifactId>
-				<version>1.12.218</version>
+				<version>${awssdk-v1.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>s3-transfer-manager</artifactId>
+				<version>${awssdk.version}-PREVIEW</version>
+				<optional>true</optional>
 			</dependency>
 
 			<dependency>
@@ -80,6 +80,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-sns</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-ses</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -98,25 +104,37 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
+				<artifactId>spring-cloud-aws-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-secrets-manager</artifactId>
+				<artifactId>spring-cloud-aws-starter-parameter-store</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-ses</artifactId>
+				<artifactId>spring-cloud-aws-starter-secrets-manager</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-starter-aws-s3</artifactId>
+				<artifactId>spring-cloud-aws-starter-ses</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-s3</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-sns</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -133,6 +151,7 @@
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
 				<executions>
 					<execution>
 						<phase>validate</phase>

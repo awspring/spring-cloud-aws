@@ -15,13 +15,23 @@
  */
 package io.awspring.cloud.autoconfigure.s3;
 
-import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
+import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
+import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
+import io.awspring.cloud.s3.S3ObjectConverter;
+import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
+import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
@@ -31,10 +41,6 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -45,7 +51,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  * @author Maciej Walkowiak
  */
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
-@EnableConfigurationProperties(S3Properties.class)
+@EnableConfigurationProperties({ S3Properties.class, AwsProperties.class })
 @Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
@@ -59,20 +65,19 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3ClientBuilder s3ClientBuilder(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
-		Region region = StringUtils.hasLength(this.properties.getRegion()) ? Region.of(this.properties.getRegion())
-				: regionProvider.getRegion();
-		S3ClientBuilder builder = S3Client.builder().credentialsProvider(credentialsProvider).region(region)
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration())
-				.serviceConfiguration(s3ServiceConfiguration());
-		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
+	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+		S3ClientBuilder builder = (S3ClientBuilder) awsClientBuilderConfigurer.configure(S3Client.builder(),
+				this.properties);
+		builder.serviceConfiguration(s3ServiceConfiguration());
 		return builder;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
-	S3OutputStreamProvider s3OutputStreamProvider(S3Client s3Client) {
-		return new DiskBufferingS3OutputStreamProvider(s3Client);
+	@ConditionalOnMissingBean(S3Operations.class)
+	@ConditionalOnBean(S3ObjectConverter.class)
+	S3Template s3Template(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider,
+			S3ObjectConverter s3ObjectConverter) {
+		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter);
 	}
 
 	private S3Configuration s3ServiceConfiguration() {
@@ -110,6 +115,25 @@ public class S3AutoConfiguration {
 			return s3ClientBuilder.build();
 		}
 
+	}
+
+	@Configuration
+	@ConditionalOnClass(ObjectMapper.class)
+	static class Jackson2JsonS3ObjectConverterConfiguration {
+
+		@ConditionalOnMissingBean
+		@Bean
+		S3ObjectConverter s3ObjectConverter(Optional<ObjectMapper> objectMapper) {
+			return new Jackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+		}
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
+			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
+		return new DiskBufferingS3OutputStreamProvider(s3Client,
+				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
 
 }

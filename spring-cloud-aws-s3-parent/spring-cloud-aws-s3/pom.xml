@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>spring-cloud-aws-s3</artifactId>
+	<name>Spring Cloud AWS S3 Integration</name>
 
 	<dependencies>
 		<dependency>
@@ -24,6 +25,15 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-transfer-manager</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
 		<dependency>
