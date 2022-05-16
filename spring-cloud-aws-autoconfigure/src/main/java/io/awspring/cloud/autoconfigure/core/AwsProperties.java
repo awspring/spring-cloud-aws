@@ -42,7 +42,7 @@ public class AwsProperties {
 
 	@Nullable
 	public URI getEndpoint() {
-		return endpoint;
+		return this.endpoint;
 	}
 
 	public void setEndpoint(@Nullable URI endpoint) {

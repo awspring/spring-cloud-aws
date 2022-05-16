@@ -39,7 +39,7 @@ public abstract class AwsClientProperties {
 
 	@Nullable
 	public URI getEndpoint() {
-		return endpoint;
+		return this.endpoint;
 	}
 
 	public void setEndpoint(URI endpoint) {
@@ -48,7 +48,7 @@ public abstract class AwsClientProperties {
 
 	@Nullable
 	public String getRegion() {
-		return region;
+		return this.region;
 	}
 
 	public void setRegion(String region) {

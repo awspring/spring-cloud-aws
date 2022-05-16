@@ -86,7 +86,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
-		return accelerateModeEnabled;
+		return this.accelerateModeEnabled;
 	}
 
 	public void setAccelerateModeEnabled(@Nullable Boolean accelerateModeEnabled) {
@@ -95,7 +95,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getChecksumValidationEnabled() {
-		return checksumValidationEnabled;
+		return this.checksumValidationEnabled;
 	}
 
 	public void setChecksumValidationEnabled(@Nullable Boolean checksumValidationEnabled) {
@@ -104,7 +104,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getChunkedEncodingEnabled() {
-		return chunkedEncodingEnabled;
+		return this.chunkedEncodingEnabled;
 	}
 
 	public void setChunkedEncodingEnabled(@Nullable Boolean chunkedEncodingEnabled) {
@@ -113,7 +113,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getDualstackEnabled() {
-		return dualstackEnabled;
+		return this.dualstackEnabled;
 	}
 
 	public void setDualstackEnabled(@Nullable Boolean dualstackEnabled) {
@@ -122,7 +122,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getPathStyleAccessEnabled() {
-		return pathStyleAccessEnabled;
+		return this.pathStyleAccessEnabled;
 	}
 
 	public void setPathStyleAccessEnabled(@Nullable Boolean pathStyleAccessEnabled) {
@@ -131,7 +131,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getUseArnRegionEnabled() {
-		return useArnRegionEnabled;
+		return this.useArnRegionEnabled;
 	}
 
 	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
@@ -140,7 +140,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public S3TransferManagerProperties getTransferManager() {
-		return transferManager;
+		return this.transferManager;
 	}
 
 	public void setTransferManager(@Nullable S3TransferManagerProperties transferManager) {

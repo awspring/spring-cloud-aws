@@ -39,7 +39,7 @@ public class S3TransferManagerProperties {
 
 	@Nullable
 	public Double getTargetThroughputInGbps() {
-		return targetThroughputInGbps;
+		return this.targetThroughputInGbps;
 	}
 
 	public void setTargetThroughputInGbps(@Nullable Double targetThroughputInGbps) {
@@ -48,7 +48,7 @@ public class S3TransferManagerProperties {
 
 	@Nullable
 	public S3UploadDirectoryProperties getUploadDirectory() {
-		return uploadDirectory;
+		return this.uploadDirectory;
 	}
 
 	public void setUploadDirectory(@Nullable S3UploadDirectoryProperties uploadDirectory) {
@@ -57,7 +57,7 @@ public class S3TransferManagerProperties {
 
 	@Nullable
 	public Integer getMaxConcurrency() {
-		return maxConcurrency;
+		return this.maxConcurrency;
 	}
 
 	public void setMaxConcurrency(@Nullable Integer maxConcurrency) {
@@ -66,7 +66,7 @@ public class S3TransferManagerProperties {
 
 	@Nullable
 	public Long getMinimumPartSizeInBytes() {
-		return minimumPartSizeInBytes;
+		return this.minimumPartSizeInBytes;
 	}
 
 	public void setMinimumPartSizeInBytes(@Nullable Long minimumPartSizeInBytes) {
@@ -83,7 +83,7 @@ public class S3TransferManagerProperties {
 
 		@Nullable
 		public Boolean getRecursive() {
-			return recursive;
+			return this.recursive;
 		}
 
 		public void setRecursive(@Nullable Boolean recursive) {
@@ -92,7 +92,7 @@ public class S3TransferManagerProperties {
 
 		@Nullable
 		public Boolean getFollowSymbolicLinks() {
-			return followSymbolicLinks;
+			return this.followSymbolicLinks;
 		}
 
 		public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
@@ -101,7 +101,7 @@ public class S3TransferManagerProperties {
 
 		@Nullable
 		public Integer getMaxDepth() {
-			return maxDepth;
+			return this.maxDepth;
 		}
 
 		public void setMaxDepth(@Nullable Integer maxDepth) {

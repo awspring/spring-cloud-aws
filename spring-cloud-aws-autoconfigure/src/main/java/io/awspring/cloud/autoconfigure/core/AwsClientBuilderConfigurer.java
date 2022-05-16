@@ -46,15 +46,15 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public AwsClientBuilder<?, ?> configure(AwsClientBuilder<?, ?> builder, AwsClientProperties clientProperties) {
-		builder.credentialsProvider(credentialsProvider).region(resolveRegion(clientProperties))
-				.overrideConfiguration(clientOverrideConfiguration);
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
+				.overrideConfiguration(this.clientOverrideConfiguration);
+		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
 	}
 
 	public Region resolveRegion(AwsClientProperties clientProperties) {
 		return StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
-				: regionProvider.getRegion();
+				: this.regionProvider.getRegion();
 	}
 }
