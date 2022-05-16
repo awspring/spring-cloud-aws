@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.cognito;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * Cognito Authentication properties.
@@ -33,21 +34,25 @@ public class CognitoAuthenticationProperties {
 	/**
 	 * Url of the issuer.
 	 */
+	@Nullable
 	private String issuerUrl;
 
 	/**
 	 * Url of the registry.
 	 */
+	@Nullable
 	private String registryUrl;
 
 	/**
 	 * Id of the user pool.
 	 */
+	@Nullable
 	private String userPoolId;
 
 	/**
 	 * Region of the user pool.
 	 */
+	@Nullable
 	private String region;
 
 	/**
@@ -58,8 +63,10 @@ public class CognitoAuthenticationProperties {
 	/**
 	 * Non-dynamic audience string to validate.
 	 */
+	@Nullable
 	private String appClientId;
 
+	@Nullable
 	public String getIssuerUrl() {
 		return this.issuerUrl;
 	}
@@ -68,6 +75,7 @@ public class CognitoAuthenticationProperties {
 		this.issuerUrl = issuerUrl;
 	}
 
+	@Nullable
 	public String getRegistryUrl() {
 		return this.registryUrl;
 	}
@@ -76,6 +84,7 @@ public class CognitoAuthenticationProperties {
 		this.registryUrl = registryUrl;
 	}
 
+	@Nullable
 	public String getUserPoolId() {
 		return this.userPoolId;
 	}
@@ -84,6 +93,7 @@ public class CognitoAuthenticationProperties {
 		this.userPoolId = userPoolId;
 	}
 
+	@Nullable
 	public String getRegion() {
 		return this.region;
 	}
@@ -92,6 +102,7 @@ public class CognitoAuthenticationProperties {
 		this.region = region;
 	}
 
+	@Nullable
 	public String getRegistry() {
 		if (this.registryUrl == null) {
 			return String.format(COGNITO_REGISTRY, this.region, this.userPoolId);
@@ -107,6 +118,7 @@ public class CognitoAuthenticationProperties {
 		this.algorithm = algorithm;
 	}
 
+	@Nullable
 	public String getIssuer() {
 		if (this.issuerUrl == null) {
 			return String.format(COGNITO_ISSUER, this.region, this.userPoolId);
@@ -114,8 +126,9 @@ public class CognitoAuthenticationProperties {
 		return this.issuerUrl;
 	}
 
+	@Nullable
 	public String getAppClientId() {
-		return appClientId;
+		return this.appClientId;
 	}
 
 	public void setAppClientId(String appClientId) {
