@@ -92,7 +92,7 @@ A summary of these artifacts are provided below.
 
 | Parameter Store
 | Provides integrations with AWS Parameter Store
-| io.awspring.cloud:spring-cloud-aws-starter-paremeter-store
+| io.awspring.cloud:spring-cloud-aws-starter-parameter-store
 
 | Secrets Manager
 | Provides integrations with AWS Secrets manager
