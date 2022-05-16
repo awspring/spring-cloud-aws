@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SES (Simple Email Service) integrations.
+ * Auto-configuration for Amazon SNS (Simple Notification Service) integrations.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields
