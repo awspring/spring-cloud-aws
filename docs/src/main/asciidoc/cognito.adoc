@@ -10,6 +10,14 @@ Following configuration properties are available to configure Cognito integratio
 |default
 |description
 
+|spring.cloud.aws.security.cognito.issuer-url
+|
+|Issuer URL for AWS Cognito. If `region` and `userPoolId` are provided, the url is built automatically.
+
+|spring.cloud.aws.security.cognito.registry-url
+|
+|Registry URL for AWS Cognito. If `region` and `userPoolId` are provided, the url is built automatically.
+
 |spring.cloud.aws.security.cognito.app-client-id
 |
 |You need app client id in order to make api calls towards AWS Cognito
