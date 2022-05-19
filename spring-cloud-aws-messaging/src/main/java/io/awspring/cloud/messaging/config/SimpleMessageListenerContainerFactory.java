@@ -24,6 +24,7 @@ import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
@@ -45,6 +46,8 @@ public class SimpleMessageListenerContainerFactory {
 	private Long queueStopTimeout;
 
 	private boolean autoStartup = true;
+
+	private boolean failOnMissingQueue = false;
 
 	private AmazonSQSAsync amazonSqs;
 
@@ -115,6 +118,19 @@ public class SimpleMessageListenerContainerFactory {
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * Configures if this container should fail on initialization if destination resolver
+	 * reports an {@link DestinationResolutionException} error.
+	 * <p>
+	 * Default is <b>false</b> meaning that container ignores queues with resolution
+	 * errors (such as {@link QueueDoesNotExistException}) on initialization.
+	 * @param failOnMissingQueue - false if the container should ignore queues with
+	 * resolution errors.
+	 */
+	public void setFailOnMissingQueue(boolean failOnMissingQueue) {
+		this.failOnMissingQueue = failOnMissingQueue;
 	}
 
 	public AmazonSQS getAmazonSqs() {
@@ -202,6 +218,7 @@ public class SimpleMessageListenerContainerFactory {
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		simpleMessageListenerContainer.setAmazonSqs(this.amazonSqs);
 		simpleMessageListenerContainer.setAutoStartup(this.autoStartup);
+		simpleMessageListenerContainer.setFailOnMissingQueue(this.failOnMissingQueue);
 
 		if (this.taskExecutor != null) {
 			simpleMessageListenerContainer.setTaskExecutor(this.taskExecutor);

@@ -101,6 +101,11 @@ public class SqsProperties extends AwsClientProperties {
 		 */
 		private boolean autoStartup = true;
 
+		/**
+		 * Configures if this container should fail on initialization if queue not found.
+		 */
+		private boolean failOnMissingQueue = false;
+
 		public Integer getMaxNumberOfMessages() {
 			return maxNumberOfMessages;
 		}
@@ -147,6 +152,14 @@ public class SqsProperties extends AwsClientProperties {
 
 		public void setAutoStartup(boolean autoStartup) {
 			this.autoStartup = autoStartup;
+		}
+
+		public boolean isFailOnMissingQueue() {
+			return failOnMissingQueue;
+		}
+
+		public void setFailOnMissingQueue(boolean failOnMissingQueue) {
+			this.failOnMissingQueue = failOnMissingQueue;
 		}
 
 	}
