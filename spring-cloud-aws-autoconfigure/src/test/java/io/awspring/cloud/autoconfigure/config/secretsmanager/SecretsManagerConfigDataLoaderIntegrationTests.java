@@ -62,11 +62,13 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	static void beforeAll() {
 		createSecret(localstack, "/config/spring",
 				"{\"message\":\"value from tests\", \"another-parameter\": \"another parameter value\"}", REGION);
+		createSecret(localstack, "/certs/prod/fn_certificate", "=== my cert should be here", REGION);
+		createSecret(localstack, "fn_certificate", "=== my cert should be here", REGION);
 		createSecret(localstack, "/config/second", "{\"secondMessage\":\"second value from tests\"}", REGION);
 	}
 
 	@Test
-	void resolvesPropertyFromParameterStore() {
+	void resolvesPropertyFromSecretsManager() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -76,6 +78,28 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("secondMessage")).isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_PlainTextSecret() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/certs/prod/fn_certificate")) {
+			assertThat(context.getEnvironment().getProperty("fn_certificate")).isEqualTo("=== my cert should be here");
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_PlainTextSecret_WithoutSlashes() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:fn_certificate")) {
+			assertThat(context.getEnvironment().getProperty("fn_certificate")).isEqualTo("=== my cert should be here");
 		}
 	}
 
