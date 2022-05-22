@@ -18,11 +18,9 @@ package io.awspring.cloud.autoconfigure.core;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -49,8 +47,8 @@ public class AwsClientBuilderConfigurer {
 		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
-	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder, AwsClientProperties clientProperties,
-																					   @Nullable AwsClientConfigurer<T> configurer) {
+	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
+			AwsClientProperties clientProperties, @Nullable AwsClientConfigurer<T> configurer) {
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
