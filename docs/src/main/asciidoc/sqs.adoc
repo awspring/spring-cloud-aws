@@ -145,6 +145,14 @@ message attributes] sent with an SQS message are fully supported.
 Custom message attributes are handled as if custom type label (everything after '.' in type name) wasn't present in attribute key.
 It is silently omitted during conversion, but still can be accessed as long as original message is present in 'sourceData' header.
 
+Note that by default application will fail to start up if SQS Queue does not exist. This behaviour can be controlled by following property:
+
+[source,properties,indent=0]
+----
+cloud.aws.sqs.listener.fail-on-missing-queue=false
+----
+
+
 In addition to the provided argument resolvers, custom ones can be registered on the
 `aws-messaging:annotation-driven-queue-listener` element using the `aws-messaging:argument-resolvers` attribute (see example below).
 
