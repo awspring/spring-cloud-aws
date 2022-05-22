@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,12 +35,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -112,6 +116,21 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			SsmClient clientFromContext = context.getBean(SsmClient.class);
 			assertThat(clientFromContext).isEqualTo(mockClient);
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from mock");
+		}
+	}
+
+	@Test
+	void checkIfClientIsConfiguredForTimeout() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/")) {
+			SsmClient ssmClient = context.getBean(SsmClient.class);
+			// very ugly have to check if there is better way to access this field
+			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+					ReflectionTestUtils.getField(ssmClient, "clientConfiguration"), "attributes"), "attributes");
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2828));
 		}
 	}
 

@@ -35,7 +35,6 @@ import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -196,6 +195,15 @@ class S3AutoConfigurationTests {
 		}
 
 		@Test
+		void useAwsConfigurerClient() {
+			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
+				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
+				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout().get())
+						.isEqualTo(Duration.ofMillis(1542));
+			});
+		}
+
+		@Test
 		void usesCustomS3ObjectConverter() {
 			contextRunner
 					.withUserConfiguration(CustomJacksonConfiguration.class, CustomS3ObjectConverterConfiguration.class)
@@ -235,47 +243,42 @@ class S3AutoConfigurationTests {
 	static class CustomS3ClientConfiguration {
 
 		@Bean
-		S3AwsClientClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
-			return new S3AwsClientClientConfigurer<>();
-		}
-
-		@Bean
-		SesAwsClientClientConfigurer<SesAwsClientClientConfigurer> sesAwsClientClientConfigurerSesAwsClientClientConfigurer() {
-			return new SesAwsClientClientConfigurer<>();
-		}
-		@Bean
 		S3Client customS3Client() {
 			return mock(S3Client.class);
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomAwsConfigurerClient {
+
+		@Bean
+		S3AwsClientClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer<>();
 		}
 
 		static class S3AwsClientClientConfigurer<S3ClientBuilder> implements AwsClientConfigurer<S3ClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
-				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(10000)).build();
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
 			}
 
 			@Override
 			@Nullable
-			public  <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
+			public <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
 				return null;
 			}
 		}
 
-		static class SesAwsClientClientConfigurer<SesClientBuilder> implements AwsClientConfigurer<SesClientBuilder> {
-			@Override
-			@Nullable
-			public ClientOverrideConfiguration overrideConfiguration() {
-				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(10000)).build();
-			}
+	}
 
-			@Override
-			@Nullable
-			public  <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
-				return null;
-			}
+	static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
+
+		@Override
+		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
+			return null;
 		}
-
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -286,13 +289,13 @@ class S3AutoConfigurationTests {
 			return new CustomS3OutputStreamProvider();
 		}
 
-	}
+		static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
 
-	static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
-
-		@Override
-		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
-			return null;
+			@Override
+			public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata)
+					throws IOException {
+				return null;
+			}
 		}
 	}
 

@@ -18,9 +18,7 @@ package io.awspring.cloud.autoconfigure.config;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-
 import java.util.*;
-
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
@@ -111,8 +109,9 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		return Collections.emptyList();
 	}
 
-	protected <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
-																					   BootstrapContext context, Class<? extends AwsClientConfigurer> awsClientConfigurerClass) {
+	protected <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
+			AwsClientProperties properties, BootstrapContext context,
+			Class<? extends AwsClientConfigurer> awsClientConfigurerClass) {
 		AwsCredentialsProvider credentialsProvider;
 
 		try {
@@ -152,7 +151,9 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 
 		try {
 			AwsClientConfigurer.apply(builder, context.get(awsClientConfigurerClass));
-		} catch (Exception e) { }
+		}
+		catch (IllegalStateException e) {
+		}
 		return builder;
 	}
 
