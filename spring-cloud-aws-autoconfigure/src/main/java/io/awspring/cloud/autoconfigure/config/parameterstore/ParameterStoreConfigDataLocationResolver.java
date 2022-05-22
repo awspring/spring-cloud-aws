@@ -75,7 +75,7 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		return configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context).build();
+		return configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context, AwsClientConfigurerParameterStore.class).build();
 	}
 
 	protected ParameterStoreProperties loadProperties(Binder binder) {

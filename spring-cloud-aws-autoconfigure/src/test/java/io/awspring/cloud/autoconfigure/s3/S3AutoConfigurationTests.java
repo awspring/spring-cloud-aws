@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -33,6 +34,8 @@ import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -42,6 +45,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -230,8 +235,45 @@ class S3AutoConfigurationTests {
 	static class CustomS3ClientConfiguration {
 
 		@Bean
+		S3AwsClientClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer<>();
+		}
+
+		@Bean
+		SesAwsClientClientConfigurer<SesAwsClientClientConfigurer> sesAwsClientClientConfigurerSesAwsClientClientConfigurer() {
+			return new SesAwsClientClientConfigurer<>();
+		}
+		@Bean
 		S3Client customS3Client() {
 			return mock(S3Client.class);
+		}
+
+		static class S3AwsClientClientConfigurer<S3ClientBuilder> implements AwsClientConfigurer<S3ClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(10000)).build();
+			}
+
+			@Override
+			@Nullable
+			public  <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
+				return null;
+			}
+		}
+
+		static class SesAwsClientClientConfigurer<SesClientBuilder> implements AwsClientConfigurer<SesClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(10000)).build();
+			}
+
+			@Override
+			@Nullable
+			public  <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
+				return null;
+			}
 		}
 
 	}

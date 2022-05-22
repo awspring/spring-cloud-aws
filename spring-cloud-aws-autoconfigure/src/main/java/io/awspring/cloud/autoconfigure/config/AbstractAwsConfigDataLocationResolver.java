@@ -16,15 +16,11 @@
 package io.awspring.cloud.autoconfigure.config;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import io.awspring.cloud.autoconfigure.core.AwsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.RegionProperties;
-import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
+
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
@@ -40,6 +36,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -114,8 +111,8 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		return Collections.emptyList();
 	}
 
-	protected <T extends AwsClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
-			BootstrapContext context) {
+	protected <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
+																					   BootstrapContext context, Class<? extends AwsClientConfigurer> awsClientConfigurerClass) {
 		AwsCredentialsProvider credentialsProvider;
 
 		try {
@@ -152,6 +149,10 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		builder.credentialsProvider(credentialsProvider);
 		builder.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
+
+		try {
+			AwsClientConfigurer.apply(builder, context.get(awsClientConfigurerClass));
+		} catch (Exception e) { }
 		return builder;
 	}
 

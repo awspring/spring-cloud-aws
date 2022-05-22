@@ -80,7 +80,7 @@ public class SecretsManagerConfigDataLocationResolver
 	}
 
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
-		return configure(SecretsManagerClient.builder(), context.get(SecretsManagerProperties.class), context).build();
+		return configure(SecretsManagerClient.builder(), context.get(SecretsManagerProperties.class), context, AwsClientConfigurerSecretsManager.class).build();
 	}
 
 	protected SecretsManagerProperties loadProperties(Binder binder) {
