@@ -21,6 +21,7 @@ import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -37,8 +38,7 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 				context -> new AwsClientConfigurerParameter<SsmClientBuilder>());
 	}
 
-	public class AwsClientConfigurerSecrets<SecretsManagerClientBuilder>
-			implements AwsClientConfigurerSecretsManager<SecretsManagerClientBuilder> {
+	public class AwsClientConfigurerSecrets<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurerSecretsManager<SecretsManagerClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
@@ -51,8 +51,7 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 		}
 	}
 
-	public class AwsClientConfigurerParameter<SsmClientBuilder>
-			implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
+	public class AwsClientConfigurerParameter<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828)).build();

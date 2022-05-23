@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -24,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
  * @author Matej Nedić
  * @since 3.0.0
  */
-public interface AwsClientConfigurer<AwsClientBuilder> {
+public interface AwsClientConfigurer<T extends AwsClientBuilder<?,?>> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {
@@ -32,12 +33,12 @@ public interface AwsClientConfigurer<AwsClientBuilder> {
 	}
 
 	@Nullable
-	default <T extends SdkHttpClient> SdkHttpClient httpClient() {
+	default <V extends SdkHttpClient> SdkHttpClient httpClient() {
 		return null;
 	}
 
-	static <T extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
-			T builder, @Nullable AwsClientConfigurer<T> configurer) {
+	static <V extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
+			V builder, @Nullable AwsClientConfigurer<V> configurer) {
 		if (configurer != null) {
 			if (configurer.overrideConfiguration() != null) {
 				builder.overrideConfiguration(configurer.overrideConfiguration());

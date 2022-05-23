@@ -37,6 +37,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -141,7 +142,7 @@ class SnsAutoConfigurationTest {
 			return new CustomAwsClientConfig.SnsAwsClientConfigurer<>();
 		}
 
-		static class SnsAwsClientConfigurer<SnsClientBuilder> implements AwsClientConfigurer<SnsClientBuilder> {
+		static class SnsAwsClientConfigurer<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurer<SnsClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {

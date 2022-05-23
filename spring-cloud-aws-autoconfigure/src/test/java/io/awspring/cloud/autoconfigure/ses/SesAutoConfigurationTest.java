@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -139,7 +140,7 @@ class SesAutoConfigurationTest {
 			return new CustomAwsClientConfig.SesAwsClientConfigurer<>();
 		}
 
-		static class SesAwsClientConfigurer<SesClientBuilder> implements AwsClientConfigurer<SesClientBuilder> {
+		static class SesAwsClientConfigurer<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurer<SesClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
