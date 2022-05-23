@@ -17,11 +17,10 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface AwsClientConfigurerParameterStore<T extends AwsClientBuilder<?,?>> extends AwsClientConfigurer<SsmClientBuilder> {
+public interface AwsClientConfigurerParameterStore<T extends AwsClientBuilder<?, ?>> extends AwsClientConfigurer<T> {
 }

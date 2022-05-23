@@ -21,7 +21,6 @@ import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -32,13 +31,12 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsClientConfigurerSecretsManager.class,
-				context -> new AwsClientConfigurerSecrets<SecretsManagerClientBuilder>());
-		registry.register(AwsClientConfigurerParameterStore.class,
-				context -> new AwsClientConfigurerParameter<SsmClientBuilder>());
+		registry.register(AwsClientConfigurerSecretsManager.class, context -> new AwsClientConfigurerSecrets());
+		registry.register(AwsClientConfigurerParameterStore.class, context -> new AwsClientConfigurerParameter());
 	}
 
-	public class AwsClientConfigurerSecrets<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurerSecretsManager<SecretsManagerClientBuilder> {
+	public static class AwsClientConfigurerSecrets
+			implements AwsClientConfigurerSecretsManager<SecretsManagerClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
@@ -51,7 +49,7 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 		}
 	}
 
-	public class AwsClientConfigurerParameter<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
+	public static class AwsClientConfigurerParameter implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828)).build();

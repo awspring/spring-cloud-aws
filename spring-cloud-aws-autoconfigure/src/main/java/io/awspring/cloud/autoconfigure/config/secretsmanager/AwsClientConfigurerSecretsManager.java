@@ -17,12 +17,10 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 /**
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface AwsClientConfigurerSecretsManager<T extends AwsClientBuilder<?,?>>
-		extends AwsClientConfigurer<SecretsManagerClientBuilder> {
+public interface AwsClientConfigurerSecretsManager<T extends AwsClientBuilder<?, ?>> extends AwsClientConfigurer<T> {
 }

@@ -45,7 +45,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -264,11 +263,11 @@ class S3AutoConfigurationTests {
 	static class CustomAwsConfigurerClient {
 
 		@Bean
-		S3AwsClientClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
-			return new S3AwsClientClientConfigurer<>();
+		AwsClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer();
 		}
 
-		static class S3AwsClientClientConfigurer<T extends AwsClientBuilder<?,?>> implements AwsClientConfigurer<S3ClientBuilder> {
+		static class S3AwsClientClientConfigurer implements AwsClientConfigurer<S3ClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {

@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
  * @author Matej Nedić
  * @since 3.0.0
  */
-public interface AwsClientConfigurer<T extends AwsClientBuilder<?,?>> {
+public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?>> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {

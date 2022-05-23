@@ -131,11 +131,11 @@ public class ParameterStoreBootstrapConfiguration implements BootstrapRegistryIn
 	@Override
 	public void initialize(BootstrapRegistry registry) {
 		registry.register(AwsClientConfigurerParameterStore.class,
-				context -> new AwsClientConfigurerParameter<SsmClientBuilder>());
+				context -> new AwsClientConfigurerParameter());
 	}
 
 
-	public class AwsClientConfigurerParameter<SsmClientBuilder>
+	public class AwsClientConfigurerParameter
 			implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
