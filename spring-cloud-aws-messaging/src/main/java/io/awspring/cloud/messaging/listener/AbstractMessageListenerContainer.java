@@ -104,6 +104,8 @@ abstract class AbstractMessageListenerContainer
 
 	private int phase = Integer.MAX_VALUE;
 
+	private boolean failOnMissingQueue = false;
+
 	// Settings that are changed at runtime
 	private boolean active;
 
@@ -257,6 +259,19 @@ abstract class AbstractMessageListenerContainer
 		this.phase = phase;
 	}
 
+	/**
+	 * Configures if this container should fail on initialization if destination resolver
+	 * reports an {@link DestinationResolutionException} error.
+	 * <p>
+	 * Default is <b>false</b> meaning that container ignores queues with resolution
+	 * errors (such as {@link QueueDoesNotExistException}) on initialization.
+	 * @param failOnMissingQueue - false if the container should ignore queues with
+	 * resolution errors.
+	 */
+	public void setFailOnMissingQueue(boolean failOnMissingQueue) {
+		this.failOnMissingQueue = failOnMissingQueue;
+	}
+
 	public boolean isActive() {
 		synchronized (this.getLifecycleMonitor()) {
 			return this.active;
@@ -328,6 +343,9 @@ abstract class AbstractMessageListenerContainer
 			destinationUrl = getDestinationResolver().resolveDestination(queue);
 		}
 		catch (DestinationResolutionException e) {
+			if (failOnMissingQueue) {
+				throw new DestinationResolutionException("Fail to resolve queue '" + queue + "' destination", e);
+			}
 			if (getLogger().isDebugEnabled()) {
 				getLogger().debug("Ignoring queue with name '" + queue + "': " + e.getMessage(), e);
 			}

@@ -50,6 +50,7 @@
 |cloud.aws.sqs.handler.default-deletion-policy |  | Configures global deletion policy used if deletion policy is not explicitly set on {@link SqsListener}.
 |cloud.aws.sqs.listener.auto-startup | `true` | Configures if this container should be automatically started.
 |cloud.aws.sqs.listener.back-off-time |  | The number of milliseconds the polling thread must wait before trying to recover when an error occurs (e.g. connection timeout).
+|cloud.aws.sqs.listener.fail-on-missing-queue | `false` | Configures if this container should fail on initialization if queue not found.
 |cloud.aws.sqs.listener.max-number-of-messages | `10` | The maximum number of messages that should be retrieved during one poll to the Amazon SQS system. This number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently not supported by the queueing system.
 |cloud.aws.sqs.listener.queue-stop-timeout |  | The queue stop timeout that waits for a queue to stop before interrupting the running thread.
 |cloud.aws.sqs.listener.visibility-timeout |  | The duration (in seconds) that the received messages are hidden from subsequent poll requests after being retrieved from the system.

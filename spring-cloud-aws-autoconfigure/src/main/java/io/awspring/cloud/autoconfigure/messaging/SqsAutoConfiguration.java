@@ -154,6 +154,7 @@ public class SqsAutoConfiguration {
 					.ifPresent(factory::setVisibilityTimeout);
 			Optional.ofNullable(sqsProperties.getListener().getWaitTimeout()).ifPresent(factory::setWaitTimeOut);
 			factory.setAutoStartup(sqsProperties.getListener().isAutoStartup());
+			factory.setFailOnMissingQueue(sqsProperties.getListener().isFailOnMissingQueue());
 
 			return factory;
 		}

@@ -187,6 +187,8 @@ class SqsConfigurationTest {
 		assertThat(ConfigurationWithCustomContainerFactory.DESTINATION_RESOLVER == ReflectionTestUtils
 				.getField(container, "destinationResolver")).isTrue();
 		assertThat(container.getBackOffTime()).isEqualTo(ConfigurationWithCustomContainerFactory.BACK_OFF_TIME);
+		assertThat(ReflectionTestUtils.getField(container, "failOnMissingQueue"))
+				.isEqualTo(ConfigurationWithCustomContainerFactory.FAIL_ON_MISSING_QUEUE);
 	}
 
 	@Test
@@ -371,6 +373,8 @@ class SqsConfigurationTest {
 
 		static final long BACK_OFF_TIME = 5000;
 
+		static final boolean FAIL_ON_MISSING_QUEUE = true;
+
 		static {
 			QueueMessageHandler queueMessageHandler = new QueueMessageHandler();
 			queueMessageHandler.setApplicationContext(new StaticApplicationContext());
@@ -391,6 +395,7 @@ class SqsConfigurationTest {
 			factory.setQueueStopTimeout(QUEUE_STOP_TIME_OUT);
 			factory.setDestinationResolver(DESTINATION_RESOLVER);
 			factory.setBackOffTime(BACK_OFF_TIME);
+			factory.setFailOnMissingQueue(FAIL_ON_MISSING_QUEUE);
 
 			return factory;
 		}

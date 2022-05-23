@@ -26,6 +26,7 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import io.awspring.cloud.messaging.listener.AbstractMessageListenerContainer.QueueAttributes;
 import io.awspring.cloud.messaging.listener.annotation.SqsListener;
 import io.awspring.cloud.messaging.support.destination.DynamicQueueUrlDestinationResolver;
@@ -464,6 +465,57 @@ class MessageListenerContainerTest {
 				.isEqualTo("Ignoring queue with name 'testQueue': " + destinationResolutionExceptionMessage);
 		assertThat(registeredQueues.get("anotherTestQueue").getReceiveMessageRequest().getQueueUrl())
 				.isEqualTo("https://anotherTestQueue.amazonaws.com");
+	}
+
+	@Test
+	void testFailOnMissingQueueEnabled() throws Exception {
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
+		container.setFailOnMissingQueue(true);
+
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+		container.setAmazonSqs(mock);
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		messageHandler.setApplicationContext(applicationContext);
+		applicationContext.registerSingleton("messageListener", MessageListener.class);
+		container.setMessageHandler(messageHandler);
+
+		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue")))
+				.thenThrow(new QueueDoesNotExistException("Queue not found"));
+
+		messageHandler.afterPropertiesSet();
+
+		assertThatThrownBy(container::afterPropertiesSet).isInstanceOf(DestinationResolutionException.class)
+				.hasRootCauseInstanceOf(QueueDoesNotExistException.class)
+				.hasMessageContainingAll("testQueue", "Queue not found");
+	}
+
+	@Test
+	void testQueueRegisteredOnMissingQueueEnabled() throws Exception {
+		AbstractMessageListenerContainer container = new StubAbstractMessageListenerContainer();
+		container.setFailOnMissingQueue(true);
+
+		AmazonSQSAsync mock = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+		container.setAmazonSqs(mock);
+
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		QueueMessageHandler messageHandler = new QueueMessageHandler();
+		messageHandler.setApplicationContext(applicationContext);
+		applicationContext.registerSingleton("messageListener", MessageListener.class);
+		container.setMessageHandler(messageHandler);
+
+		when(mock.getQueueUrl(new GetQueueUrlRequest().withQueueName("testQueue")))
+				.thenReturn(new GetQueueUrlResult().withQueueUrl("http://someUrl.amazonaws.com"));
+		when(mock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		messageHandler.afterPropertiesSet();
+		container.afterPropertiesSet();
+		container.start();
+
+		assertThat(container.getRegisteredQueues()).containsKey("testQueue")
+				.extracting(queues -> queues.get("testQueue").getReceiveMessageRequest().getQueueUrl())
+				.isEqualTo("http://someUrl.amazonaws.com");
 	}
 
 	private static class StubAbstractMessageListenerContainer extends AbstractMessageListenerContainer {
