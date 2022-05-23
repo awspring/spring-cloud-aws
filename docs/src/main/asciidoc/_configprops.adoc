@@ -50,12 +50,12 @@
 |cloud.aws.sqs.handler.default-deletion-policy |  | Configures global deletion policy used if deletion policy is not explicitly set on {@link SqsListener}.
 |cloud.aws.sqs.listener.auto-startup | `true` | Configures if this container should be automatically started.
 |cloud.aws.sqs.listener.back-off-time |  | The number of milliseconds the polling thread must wait before trying to recover when an error occurs (e.g. connection timeout).
+|cloud.aws.sqs.listener.fail-on-missing-queue | `false` | Configures if this container should fail on initialization if queue not found.
 |cloud.aws.sqs.listener.max-number-of-messages | `10` | The maximum number of messages that should be retrieved during one poll to the Amazon SQS system. This number must be a positive, non-zero number that has a maximum number of 10. Values higher then 10 are currently not supported by the queueing system.
 |cloud.aws.sqs.listener.queue-stop-timeout |  | The queue stop timeout that waits for a queue to stop before interrupting the running thread.
 |cloud.aws.sqs.listener.visibility-timeout |  | The duration (in seconds) that the received messages are hidden from subsequent poll requests after being retrieved from the system.
 |cloud.aws.sqs.listener.wait-timeout | `20` | The wait timeout that the poll request will wait for new message to arrive if the are currently no messages on the queue. Higher values will reduce poll request to the system significantly. The value should be between 1 and 20. For more information read the <a href= "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html">documentation</a>.
-|cloud.aws.sqs.listener.fail-on-missing-queue | `false` | Decides if application should fail on startup when {@link SqsListener} is used for a Queue that does not exist.
-|cloud.aws.sqs.region |  |
+|cloud.aws.sqs.region |  | 
 |cloud.aws.stack.auto | `true` | Enables the automatic stack name detection for the application.
 |cloud.aws.stack.enabled | `true` | Enables Stack integration.
 |cloud.aws.stack.name |  | The name of the manually configured stack name that will be used to retrieve the resources.
