@@ -83,6 +83,21 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/")) {
+			SsmClient ssmClient = context.getBean(SsmClient.class);
+			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+					ReflectionTestUtils.getField(ssmClient, "clientConfiguration"), "attributes"), "attributes");
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2828));
+			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+		}
+	}
+
+	@Test
 	void whenKeysAreNotSpecifiedFailsWithHumanReadableFailureMessage(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);

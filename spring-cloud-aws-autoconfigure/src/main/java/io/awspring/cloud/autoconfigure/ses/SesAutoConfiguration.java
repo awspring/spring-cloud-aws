@@ -22,7 +22,6 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.ses.SimpleEmailServiceMailSender;
 import javax.mail.Session;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -56,8 +55,9 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-							   ObjectProvider<AwsClientConfigurer<SesClientBuilder>> configurer) {
-		return (SesClient) awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable()).build();
+			ObjectProvider<AwsClientConfigurer<SesClientBuilder>> configurer) {
+		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable())
+				.build();
 	}
 
 	@Bean

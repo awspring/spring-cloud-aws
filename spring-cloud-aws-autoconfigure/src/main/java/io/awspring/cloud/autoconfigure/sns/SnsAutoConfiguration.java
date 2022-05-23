@@ -26,7 +26,6 @@ import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -62,8 +61,9 @@ public class SnsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-							   ObjectProvider<AwsClientConfigurer<SnsClientBuilder>> configurer) {
-		return (SnsClient) awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable()).build();
+			ObjectProvider<AwsClientConfigurer<SnsClientBuilder>> configurer) {
+		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable())
+				.build();
 	}
 
 	@ConditionalOnMissingBean

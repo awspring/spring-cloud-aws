@@ -35,6 +35,7 @@ import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -45,7 +46,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -198,8 +201,15 @@ class S3AutoConfigurationTests {
 		void useAwsConfigurerClient() {
 			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
 				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
+				CustomAwsConfigurerClient.S3AwsClientClientConfigurer s3AwsClientClientConfigurer = context
+						.getBean(CustomAwsConfigurerClient.S3AwsClientClientConfigurer.class);
 				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout().get())
 						.isEqualTo(Duration.ofMillis(1542));
+				Map attributeMap = (Map) ReflectionTestUtils.getField(
+						ReflectionTestUtils.getField(
+								ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"),
+						"configuration");
+				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 			});
 		}
 
@@ -266,8 +276,8 @@ class S3AutoConfigurationTests {
 
 			@Override
 			@Nullable
-			public <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
-				return null;
+			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
 		}
 
@@ -289,14 +299,6 @@ class S3AutoConfigurationTests {
 			return new CustomS3OutputStreamProvider();
 		}
 
-		static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {
-
-			@Override
-			public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata)
-					throws IOException {
-				return null;
-			}
-		}
 	}
 
 }

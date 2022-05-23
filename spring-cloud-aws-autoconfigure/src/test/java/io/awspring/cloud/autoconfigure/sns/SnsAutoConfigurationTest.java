@@ -40,6 +40,7 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
@@ -97,10 +98,11 @@ class SnsAutoConfigurationTest {
 	void customSnsClientConfigurer() {
 		this.contextRunner.withUserConfiguration(CustomAwsClientConfig.class).run(context -> {
 			SnsClient snsClient = context.getBean(SnsClient.class);
-			// very ugly have to check if there is better way to access this field
+
 			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
 					ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
 			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
+			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 		});
 	}
 
@@ -139,7 +141,7 @@ class SnsAutoConfigurationTest {
 			return new CustomAwsClientConfig.SnsAwsClientConfigurer<>();
 		}
 
-		static class SnsAwsClientConfigurer<SesClientBuilder> implements AwsClientConfigurer<SnsClientBuilder> {
+		static class SnsAwsClientConfigurer<SnsClientBuilder> implements AwsClientConfigurer<SnsClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
@@ -148,8 +150,8 @@ class SnsAutoConfigurationTest {
 
 			@Override
 			@Nullable
-			public <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
-				return null;
+			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
 		}
 

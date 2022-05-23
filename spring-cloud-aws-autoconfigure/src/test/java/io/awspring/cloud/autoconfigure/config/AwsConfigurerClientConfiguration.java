@@ -20,8 +20,10 @@ import io.awspring.cloud.autoconfigure.config.secretsmanager.AwsClientConfigurer
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
@@ -42,8 +44,10 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
 		}
 
-		public <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
-			return null;
+		@Override
+		@Nullable
+		public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
 	}
 
@@ -54,9 +58,10 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828)).build();
 		}
 
-		public <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
-			return null;
+		@Override
+		@Nullable
+		public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
-
 	}
 }

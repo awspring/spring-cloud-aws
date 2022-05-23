@@ -20,6 +20,10 @@ import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 
+/**
+ * @author Matej Nedić
+ * @since 3.0.0
+ */
 public interface AwsClientConfigurer<AwsClientBuilder> {
 
 	@Nullable
@@ -28,7 +32,7 @@ public interface AwsClientConfigurer<AwsClientBuilder> {
 	}
 
 	@Nullable
-	default <T extends SdkHttpClient.Builder<T>> SdkHttpClient.Builder<T> httpClientBuilder() {
+	default <T extends SdkHttpClient> SdkHttpClient httpClient() {
 		return null;
 	}
 
@@ -38,8 +42,8 @@ public interface AwsClientConfigurer<AwsClientBuilder> {
 			if (configurer.overrideConfiguration() != null) {
 				builder.overrideConfiguration(configurer.overrideConfiguration());
 			}
-			if (configurer.httpClientBuilder() != null) {
-				builder.httpClientBuilder(configurer.httpClientBuilder());
+			if (configurer.httpClient() != null) {
+				builder.httpClient(configurer.httpClient());
 			}
 		}
 	}

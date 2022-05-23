@@ -70,7 +70,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void resolvesPropertyFromParameterStore() {
+	void resolvesSecretsFromSecretsManager() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -80,6 +80,23 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("secondMessage")).isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second")) {
+			SecretsManagerClient secretsManagerClient = context.getBean(SecretsManagerClient.class);
+			Map attributeMap = (Map) ReflectionTestUtils.getField(
+					ReflectionTestUtils.getField(
+							ReflectionTestUtils.getField(secretsManagerClient, "clientConfiguration"), "attributes"),
+					"attributes");
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1542));
+			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 		}
 	}
 

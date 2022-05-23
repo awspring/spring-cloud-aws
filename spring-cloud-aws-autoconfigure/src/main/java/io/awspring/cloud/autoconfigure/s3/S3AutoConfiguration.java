@@ -31,7 +31,6 @@ import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.Optional;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -68,7 +67,8 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer, ObjectProvider<AwsClientConfigurer<S3ClientBuilder>> configurer) {
+	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientConfigurer<S3ClientBuilder>> configurer) {
 		S3ClientBuilder builder = (S3ClientBuilder) awsClientBuilderConfigurer.configure(S3Client.builder(),
 				this.properties, configurer.getIfAvailable());
 		builder.serviceConfiguration(s3ServiceConfiguration());
