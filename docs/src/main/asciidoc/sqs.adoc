@@ -145,7 +145,7 @@ message attributes] sent with an SQS message are fully supported.
 Custom message attributes are handled as if custom type label (everything after '.' in type name) wasn't present in attribute key.
 It is silently omitted during conversion, but still can be accessed as long as original message is present in 'sourceData' header.
 
-Note that by default application will fail to start up if SQS Queue does not exist. This behaviour can be controlled by following property:
+If SQS queue does not exist application will log a warning message and continue to run. This behaviour can be controlled by following property:
 
 [source,properties,indent=0]
 ----
