@@ -33,6 +33,7 @@ import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -41,7 +42,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -185,8 +185,8 @@ class S3AutoConfigurationTests {
 		void usesCustomObjectMapperBean() {
 			contextRunner.withUserConfiguration(CustomJacksonConfiguration.class).run(context -> {
 				S3ObjectConverter bean = context.getBean(S3ObjectConverter.class);
-				ObjectMapper objectMapper = (ObjectMapper) ReflectionTestUtils.getField(bean, "objectMapper");
-				assertThat(objectMapper).isEqualTo(context.getBean("customObjectMapper"));
+				assertThat(bean).extracting("objectMapper", InstanceOfAssertFactories.type(ObjectMapper.class))
+						.isEqualTo(context.getBean("customObjectMapper"));
 			});
 		}
 
@@ -201,10 +201,10 @@ class S3AutoConfigurationTests {
 						assertThat(s3ObjectConverter).isEqualTo(customS3ObjectConverter);
 
 						S3Template s3Template = context.getBean(S3Template.class);
-
-						S3ObjectConverter converter = (S3ObjectConverter) ReflectionTestUtils.getField(s3Template,
-								"s3ObjectConverter");
-						assertThat(converter).isEqualTo(customS3ObjectConverter);
+						assertThat(s3Template)
+								.extracting("s3ObjectConverter",
+										InstanceOfAssertFactories.type(S3ObjectConverter.class))
+								.isEqualTo(customS3ObjectConverter);
 					});
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
@@ -79,12 +78,12 @@ class SnsTemplateTest {
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.TIMESTAMP);
 		}));
-		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
-				.isEqualTo(1);
+		assertThat(cachingTopicArnResolver).extracting("cache", InstanceOfAssertFactories.map(String.class, Arn.class))
+				.size().isOne();
 
 		snsTemplateTestCache.sendNotification("topic name", "message content", "subject");
-		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
-				.isEqualTo(1);
+		assertThat(cachingTopicArnResolver).extracting("cache", InstanceOfAssertFactories.map(String.class, Arn.class))
+				.hasSize(1);
 	}
 
 	@Test

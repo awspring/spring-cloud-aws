@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.List;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -26,7 +26,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -63,11 +62,10 @@ class CredentialsProviderAutoConfigurationTests {
 					assertThat(awsCredentialsProvider).isNotNull();
 					assertThat(awsCredentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("foo");
 					assertThat(awsCredentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("bar");
-
-					@SuppressWarnings("unchecked")
-					List<AwsCredentialsProvider> credentialsProviders = (List<AwsCredentialsProvider>) ReflectionTestUtils
-							.getField(awsCredentialsProvider, "credentialsProviders");
-					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(StaticCredentialsProvider.class);
+					assertThat(awsCredentialsProvider)
+							.extracting("credentialsProviders",
+									InstanceOfAssertFactories.list(AwsCredentialsProvider.class))
+							.hasSize(1).hasOnlyElementsOfType(StaticCredentialsProvider.class);
 				});
 	}
 
@@ -77,11 +75,9 @@ class CredentialsProviderAutoConfigurationTests {
 			AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 					AwsCredentialsProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull();
-
-			@SuppressWarnings("unchecked")
-			List<AwsCredentialsProvider> credentialsProviders = (List<AwsCredentialsProvider>) ReflectionTestUtils
-					.getField(awsCredentialsProvider, "credentialsProviders");
-			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileCredentialsProvider.class);
+			assertThat(awsCredentialsProvider)
+					.extracting("credentialsProviders", InstanceOfAssertFactories.list(AwsCredentialsProvider.class))
+					.hasSize(1).hasOnlyElementsOfType(InstanceProfileCredentialsProvider.class);
 		});
 	}
 
@@ -95,15 +91,16 @@ class CredentialsProviderAutoConfigurationTests {
 					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 							AwsCredentialsProvider.class);
 					assertThat(awsCredentialsProvider).isNotNull();
-
-					@SuppressWarnings("unchecked")
-					List<AwsCredentialsProvider> credentialsProviders = (List<AwsCredentialsProvider>) ReflectionTestUtils
-							.getField(awsCredentialsProvider, "credentialsProviders");
-					assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class);
-
-					ProfileCredentialsProvider provider = (ProfileCredentialsProvider) credentialsProviders.get(0);
-					assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("testAccessKey");
-					assertThat(provider.resolveCredentials().secretAccessKey()).isEqualTo("testSecretKey");
+					assertThat(awsCredentialsProvider)
+							.extracting("credentialsProviders",
+									InstanceOfAssertFactories.list(AwsCredentialsProvider.class))
+							.hasSize(1).hasOnlyElementsOfType(ProfileCredentialsProvider.class)
+							.satisfies(credentialsProviders -> {
+								ProfileCredentialsProvider provider = (ProfileCredentialsProvider) credentialsProviders
+										.get(0);
+								assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("testAccessKey");
+								assertThat(provider.resolveCredentials().secretAccessKey()).isEqualTo("testSecretKey");
+							});
 				});
 	}
 

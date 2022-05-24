@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.core.region.StaticRegionProvider;
 import java.io.IOException;
-import java.util.List;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -27,7 +27,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
@@ -58,14 +57,12 @@ class RegionProviderAutoConfigurationTests {
 	void staticRegionConfigured_staticRegionProviderWithConfiguredRegionConfigured() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:eu-west-1").run((context) -> {
 			AwsRegionProvider awsRegionProvider = context.getBean(AwsRegionProvider.class);
-
-			@SuppressWarnings("unchecked")
-			List<AwsRegionProvider> regionProviders = (List<AwsRegionProvider>) ReflectionTestUtils
-					.getField(awsRegionProvider, "providers");
-			assertThat(regionProviders).hasSize(1).hasOnlyElementsOfType(StaticRegionProvider.class);
-
-			StaticRegionProvider regionProvider = (StaticRegionProvider) regionProviders.get(0);
-			assertThat(regionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+			assertThat(awsRegionProvider)
+					.extracting("providers", InstanceOfAssertFactories.list(AwsRegionProvider.class)).hasSize(1)
+					.hasOnlyElementsOfType(StaticRegionProvider.class).satisfies(regionProviders -> {
+						StaticRegionProvider regionProvider = (StaticRegionProvider) regionProviders.get(0);
+						assertThat(regionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+					});
 		});
 	}
 
@@ -88,27 +85,24 @@ class RegionProviderAutoConfigurationTests {
 				.run((context) -> {
 					AwsRegionProvider awsRegionProvider = context.getBean("regionProvider", AwsRegionProvider.class);
 					assertThat(awsRegionProvider).isNotNull();
-
-					@SuppressWarnings("unchecked")
-					List<AwsRegionProvider> regionProviders = (List<AwsRegionProvider>) ReflectionTestUtils
-							.getField(awsRegionProvider, "providers");
-					assertThat(regionProviders).hasSize(1).hasOnlyElementsOfType(AwsProfileRegionProvider.class);
-
-					AwsProfileRegionProvider regionProvider = (AwsProfileRegionProvider) regionProviders.get(0);
-					assertThat(regionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+					assertThat(awsRegionProvider)
+							.extracting("providers", InstanceOfAssertFactories.list(AwsRegionProvider.class)).hasSize(1)
+							.hasOnlyElementsOfType(AwsProfileRegionProvider.class).satisfies(regionProviders -> {
+								AwsProfileRegionProvider regionProvider = (AwsProfileRegionProvider) regionProviders
+										.get(0);
+								assertThat(regionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+							});
 				});
 	}
 
 	@Test
 	void regionProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
-			AwsRegionProvider awsCredentialsProvider = context.getBean("regionProvider", AwsRegionProvider.class);
-			assertThat(awsCredentialsProvider).isNotNull();
-
-			@SuppressWarnings("unchecked")
-			List<AwsRegionProvider> credentialsProviders = (List<AwsRegionProvider>) ReflectionTestUtils
-					.getField(awsCredentialsProvider, "providers");
-			assertThat(credentialsProviders).hasSize(1).hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
+			AwsRegionProvider awsRegionProvider = context.getBean("regionProvider", AwsRegionProvider.class);
+			assertThat(awsRegionProvider).isNotNull();
+			assertThat(awsRegionProvider)
+					.extracting("providers", InstanceOfAssertFactories.list(AwsRegionProvider.class)).hasSize(1)
+					.hasOnlyElementsOfType(InstanceProfileRegionProvider.class);
 		});
 	}
 
