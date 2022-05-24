@@ -92,7 +92,6 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 			if (secretValueResponse.name().endsWith("/")) {
 				String msg = "Plain Text Secret which name ends with / cannot be resolved. Please change SecretName so it does not end with `/`   SecretName is:"
 						+ secretValueResponse.name();
-				LOG.error(msg);
 				throw new RuntimeException(msg);
 			}
 			String secretName = secretValueResponse.name().lastIndexOf("/") != 0
