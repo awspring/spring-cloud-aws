@@ -25,7 +25,7 @@
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
 		<spotless.version>2.22.0</spotless.version>
-		<awssdk-v2.version>2.17.189</awssdk-v2.version>
+		<awssdk-v2.version>2.17.198</awssdk-v2.version>
 		<awssdk-v1.version>1.12.218</awssdk-v1.version>
 	</properties>
 
