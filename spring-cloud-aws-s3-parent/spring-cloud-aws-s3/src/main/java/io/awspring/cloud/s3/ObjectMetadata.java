@@ -18,15 +18,10 @@ package io.awspring.cloud.s3;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus;
-import software.amazon.awssdk.services.s3.model.ObjectLockMode;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.RequestPayer;
-import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
-import software.amazon.awssdk.services.s3.model.StorageClass;
+
+import software.amazon.awssdk.services.s3.model.*;
 
 /**
  * Container for S3 Object Metadata. For information about each field look at {@link PutObjectRequest} Javadocs.
@@ -249,6 +244,132 @@ public class ObjectMetadata {
 		}
 		if (checksumAlgorithm != null) {
 			builder.checksumAlgorithm(checksumAlgorithm);
+		}
+	}
+
+	void apply(CreateMultipartUploadRequest.Builder builder) {
+		if (acl != null) {
+			builder.acl(acl);
+		}
+		if (cacheControl != null) {
+			builder.cacheControl(cacheControl);
+		}
+		if (contentDisposition != null) {
+			builder.contentDisposition(contentDisposition);
+		}
+		if (contentEncoding != null) {
+			builder.contentEncoding(contentEncoding);
+		}
+		if (contentLanguage != null) {
+			builder.contentLanguage(contentLanguage);
+		}
+		if (contentType != null) {
+			builder.contentType(contentType);
+		}
+		if (expires != null) {
+			builder.expires(expires);
+		}
+		if (grantFullControl != null) {
+			builder.grantFullControl(grantFullControl);
+		}
+		if (grantRead != null) {
+			builder.grantRead(grantRead);
+		}
+		if (grantReadACP != null) {
+			builder.grantReadACP(grantReadACP);
+		}
+		if (grantWriteACP != null) {
+			builder.grantWriteACP(grantWriteACP);
+		}
+		if (metadata != null) {
+			builder.metadata(metadata);
+		}
+		if (serverSideEncryption != null) {
+			builder.serverSideEncryption(serverSideEncryption);
+		}
+		if (storageClass != null) {
+			builder.storageClass(storageClass);
+		}
+		if (websiteRedirectLocation != null) {
+			builder.websiteRedirectLocation(websiteRedirectLocation);
+		}
+		if (sseCustomerAlgorithm != null) {
+			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
+		}
+		if (sseCustomerKey != null) {
+			builder.sseCustomerKey(sseCustomerKey);
+		}
+		if (sseCustomerKeyMD5 != null) {
+			builder.sseCustomerKeyMD5(sseCustomerKeyMD5);
+		}
+		if (ssekmsKeyId != null) {
+			builder.ssekmsKeyId(ssekmsKeyId);
+		}
+		if (ssekmsEncryptionContext != null) {
+			builder.ssekmsEncryptionContext(ssekmsEncryptionContext);
+		}
+		if (bucketKeyEnabled != null) {
+			builder.bucketKeyEnabled(bucketKeyEnabled);
+		}
+		if (requestPayer != null) {
+			builder.requestPayer(requestPayer);
+		}
+		if (tagging != null) {
+			builder.tagging(tagging);
+		}
+		if (objectLockMode != null) {
+			builder.objectLockMode(objectLockMode);
+		}
+		if (objectLockRetainUntilDate != null) {
+			builder.objectLockRetainUntilDate(objectLockRetainUntilDate);
+		}
+		if (objectLockLegalHoldStatus != null) {
+			builder.objectLockLegalHoldStatus(objectLockLegalHoldStatus);
+		}
+		if (expectedBucketOwner != null) {
+			builder.expectedBucketOwner(expectedBucketOwner);
+		}
+		if (checksumAlgorithm != null) {
+			builder.checksumAlgorithm(checksumAlgorithm);
+		}
+	}
+
+	void apply(UploadPartRequest.Builder builder) {
+		if (sseCustomerAlgorithm != null) {
+			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
+		}
+		if (sseCustomerKey != null) {
+			builder.sseCustomerKey(sseCustomerKey);
+		}
+		if (sseCustomerKeyMD5 != null) {
+			builder.sseCustomerKeyMD5(sseCustomerKeyMD5);
+		}
+		if (requestPayer != null) {
+			builder.requestPayer(requestPayer);
+		}
+		if (expectedBucketOwner != null) {
+			builder.expectedBucketOwner(expectedBucketOwner);
+		}
+		if (checksumAlgorithm != null) {
+			builder.checksumAlgorithm(checksumAlgorithm);
+		}
+	}
+
+	void apply(CompleteMultipartUploadRequest.Builder builder) {
+		if (sseCustomerAlgorithm != null) {
+			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
+		}
+		if (sseCustomerKey != null) {
+			builder.sseCustomerKey(sseCustomerKey);
+		}
+		if (sseCustomerKeyMD5 != null) {
+			builder.sseCustomerKeyMD5(sseCustomerKeyMD5);
+		}
+		if (requestPayer != null) {
+			builder.requestPayer(requestPayer);
+		}
+		if (expectedBucketOwner != null) {
+			builder.expectedBucketOwner(expectedBucketOwner);
 		}
 	}
 
