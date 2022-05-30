@@ -94,17 +94,13 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void resolvesPropertyFromSecretsManager_PlainTextSecret_CannotResolve(CapturedOutput output) {
+	void resolvesPropertyFromSecretsManager_PlainTextSecret_endingWithSlash() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/certs/dev/fn_certificate/")) {
-			fail("SecretName ending with `/` should fail on start");
-		}
-		catch (RuntimeException e) {
-			assertThat(e.getCause().getMessage()).contains(
-					"Plain Text Secret which name ends with / cannot be resolved. Please change SecretName so it does not end with `/`   SecretName is:");
+			assertThat(context.getEnvironment().getProperty("fn_certificate")).isEqualTo("=== my cert should be here");
 		}
 	}
 
