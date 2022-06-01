@@ -243,8 +243,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		@Override
 		public void initialize(BootstrapRegistry registry) {
-			registry.register(AwsParameterStoreClientConfigurer.class,
-					context -> new AwsParameterStoreClientConfigurer() {
+			registry.register(AwsParameterStoreClientCustomizer.class,
+					context -> new AwsParameterStoreClientCustomizer() {
 
 						@Override
 						public ClientOverrideConfiguration overrideConfiguration() {

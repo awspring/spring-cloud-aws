@@ -22,5 +22,5 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilde
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface AwsSecretsManagerClientConfigurer extends AwsClientCustomizer<SecretsManagerClientBuilder> {
+public interface AwsSecretsManagerClientCustomizer extends AwsClientCustomizer<SecretsManagerClientBuilder> {
 }

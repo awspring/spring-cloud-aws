@@ -116,12 +116,11 @@ Autoconfiguration will configure `SsmClient` Bean with provided values after tha
 ----
 package com.app;
 
-import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientConfigurer;
+import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientCustomizer;
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
-import org.springframework.lang.Nullable;
-import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientConfigurer;import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -130,8 +129,8 @@ class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializ
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsParameterStoreClientConfigurer.class,
-            context -> new AwsParameterStoreClientConfigurer() {
+		registry.register(AwsParameterStoreClientCustomizer.class,
+            context -> new AwsParameterStoreClientCustomizer() {
 
                 @Override
                 public ClientOverrideConfiguration overrideConfiguration() {

@@ -22,5 +22,5 @@ import software.amazon.awssdk.services.ssm.SsmClientBuilder;
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface AwsParameterStoreClientConfigurer extends AwsClientCustomizer<SsmClientBuilder> {
+public interface AwsParameterStoreClientCustomizer extends AwsClientCustomizer<SsmClientBuilder> {
 }

@@ -92,7 +92,7 @@ public class SecretsManagerConfigDataLocationResolver
 		SecretsManagerClientBuilder builder = configure(SecretsManagerClient.builder(),
 				context.get(SecretsManagerProperties.class), context);
 		try {
-			AwsSecretsManagerClientConfigurer configurer = context.get(AwsSecretsManagerClientConfigurer.class);
+			AwsSecretsManagerClientCustomizer configurer = context.get(AwsSecretsManagerClientCustomizer.class);
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}

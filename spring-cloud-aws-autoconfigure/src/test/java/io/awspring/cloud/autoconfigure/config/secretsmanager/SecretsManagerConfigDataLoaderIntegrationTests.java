@@ -242,8 +242,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 		@Override
 		public void initialize(BootstrapRegistry registry) {
-			registry.register(AwsSecretsManagerClientConfigurer.class,
-					context -> new AwsSecretsManagerClientConfigurer() {
+			registry.register(AwsSecretsManagerClientCustomizer.class,
+					context -> new AwsSecretsManagerClientCustomizer() {
 
 						@Override
 						public ClientOverrideConfiguration overrideConfiguration() {

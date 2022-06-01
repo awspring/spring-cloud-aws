@@ -86,7 +86,7 @@ public class ParameterStoreConfigDataLocationResolver
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		SsmClientBuilder builder = configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context);
 		try {
-			AwsParameterStoreClientConfigurer configurer = context.get(AwsParameterStoreClientConfigurer.class);
+			AwsParameterStoreClientCustomizer configurer = context.get(AwsParameterStoreClientCustomizer.class);
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}
