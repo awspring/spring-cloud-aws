@@ -116,12 +116,12 @@ Autoconfiguration will configure `SsmClient` Bean with provided values after tha
 ----
 package com.app;
 
-import io.awspring.cloud.autoconfigure.config.parameterstore.AwsClientConfigurerParameterStore;
+import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientConfigurer;
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientConfigurer;import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
@@ -130,13 +130,13 @@ public class ParameterStoreBootstrapConfiguration implements BootstrapRegistryIn
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsClientConfigurerParameterStore.class,
+		registry.register(AwsParameterStoreClientConfigurer.class,
 				context -> new AwsClientConfigurerParameter());
 	}
 
 
 	public class AwsClientConfigurerParameter
-			implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
+			implements AwsParameterStoreClientConfigurer<SsmClientBuilder> {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828)).build();

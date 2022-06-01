@@ -31,7 +31,6 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -141,14 +140,12 @@ class SesAutoConfigurationTest {
 
 		static class SesAwsClientConfigurer implements AwsClientConfigurer<SesClientBuilder> {
 			@Override
-			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
 				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2000)).build();
 			}
 
 			@Override
-			@Nullable
-			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
 		}

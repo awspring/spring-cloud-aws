@@ -276,7 +276,7 @@ class S3AutoConfigurationTests {
 
 			@Override
 			@Nullable
-			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
 		}

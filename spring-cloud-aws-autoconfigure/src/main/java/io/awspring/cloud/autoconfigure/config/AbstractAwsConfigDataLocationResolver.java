@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.config;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -41,7 +40,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -116,9 +114,8 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		return Collections.emptyList();
 	}
 
-	protected <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
-			AwsClientProperties properties, BootstrapContext context,
-			Class<? extends AwsClientConfigurer> awsClientConfigurerClass) {
+	protected <T extends AwsClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
+			BootstrapContext context) {
 		AwsCredentialsProvider credentialsProvider;
 
 		try {
@@ -155,12 +152,6 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		builder.credentialsProvider(credentialsProvider);
 		builder.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
-
-		try {
-			AwsClientConfigurer.apply(builder, context.get(awsClientConfigurerClass));
-		}
-		catch (IllegalStateException e) {
-		}
 		return builder;
 	}
 

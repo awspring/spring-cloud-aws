@@ -69,8 +69,8 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientConfigurer<S3ClientBuilder>> configurer) {
-		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(),
-				this.properties, configurer.getIfAvailable());
+		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
+				configurer.getIfAvailable());
 		builder.serviceConfiguration(s3ServiceConfiguration());
 		return builder;
 	}

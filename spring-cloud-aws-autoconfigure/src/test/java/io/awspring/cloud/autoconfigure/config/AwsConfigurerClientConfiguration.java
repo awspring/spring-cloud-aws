@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.config;
 
-import io.awspring.cloud.autoconfigure.config.parameterstore.AwsClientConfigurerParameterStore;
-import io.awspring.cloud.autoconfigure.config.secretsmanager.AwsClientConfigurerSecretsManager;
+import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientConfigurer;
+import io.awspring.cloud.autoconfigure.config.secretsmanager.AwsSecretsManagerClientConfigurer;
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
@@ -24,19 +24,16 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsClientConfigurerSecretsManager.class, context -> new AwsClientConfigurerSecrets());
-		registry.register(AwsClientConfigurerParameterStore.class, context -> new AwsClientConfigurerParameter());
+		registry.register(AwsSecretsManagerClientConfigurer.class, context -> new AwsClientConfigurerSecrets());
+		registry.register(AwsParameterStoreClientConfigurer.class, context -> new AwsClientConfigurerParameter());
 	}
 
-	public static class AwsClientConfigurerSecrets
-			implements AwsClientConfigurerSecretsManager<SecretsManagerClientBuilder> {
+	public static class AwsClientConfigurerSecrets implements AwsSecretsManagerClientConfigurer {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
@@ -44,12 +41,12 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 
 		@Override
 		@Nullable
-		public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+		public SdkHttpClient httpClient() {
 			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
 	}
 
-	public static class AwsClientConfigurerParameter implements AwsClientConfigurerParameterStore<SsmClientBuilder> {
+	public static class AwsClientConfigurerParameter implements AwsParameterStoreClientConfigurer {
 
 		public ClientOverrideConfiguration overrideConfiguration() {
 			return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828)).build();
@@ -57,7 +54,7 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 
 		@Override
 		@Nullable
-		public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+		public SdkHttpClient httpClient() {
 			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
 	}
