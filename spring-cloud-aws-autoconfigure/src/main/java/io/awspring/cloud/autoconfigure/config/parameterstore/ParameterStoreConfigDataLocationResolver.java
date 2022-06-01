@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
@@ -87,7 +88,7 @@ public class ParameterStoreConfigDataLocationResolver
 		try {
 			AwsParameterStoreClientConfigurer configurer = context.get(AwsParameterStoreClientConfigurer.class);
 			if (configurer != null) {
-				configurer.apply(builder);
+				AwsClientConfigurer.apply(configurer, builder);
 			}
 		}
 		catch (IllegalStateException e) {

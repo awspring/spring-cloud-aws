@@ -42,15 +42,16 @@ public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?> & AwsSyncC
 		return null;
 	}
 
-	default void apply(T builder) {
-		if (this.overrideConfiguration() != null) {
-			builder.overrideConfiguration(this.overrideConfiguration());
+	static <V extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
+			AwsClientConfigurer<V> configurer, V builder) {
+		if (configurer.overrideConfiguration() != null) {
+			builder.overrideConfiguration(configurer.overrideConfiguration());
 		}
-		if (this.httpClient() != null) {
-			builder.httpClient(this.httpClient());
+		if (configurer.httpClient() != null) {
+			builder.httpClient(configurer.httpClient());
 		}
-		if (this.httpClientBuilder() != null) {
-			builder.httpClientBuilder(this.httpClientBuilder());
+		if (configurer.httpClientBuilder() != null) {
+			builder.httpClientBuilder(configurer.httpClientBuilder());
 		}
 	}
 }

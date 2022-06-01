@@ -54,7 +54,7 @@ public class AwsClientBuilderConfigurer {
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		if (configurer != null) {
-			configurer.apply(builder);
+			AwsClientConfigurer.apply(configurer, builder);
 		}
 		return builder;
 	}
