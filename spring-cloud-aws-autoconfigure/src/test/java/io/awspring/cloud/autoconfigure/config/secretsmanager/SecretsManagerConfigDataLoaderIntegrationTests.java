@@ -23,9 +23,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.config.AwsConfigurerClientConfiguration;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,14 +36,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -87,16 +86,13 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
-			SecretsManagerClient secretsManagerClient = context.getBean(SecretsManagerClient.class);
-			Map attributeMap = (Map) ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(
-							ReflectionTestUtils.getField(secretsManagerClient, "clientConfiguration"), "attributes"),
-					"attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1542));
-			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
+			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -104,16 +100,12 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void checkIfClientIsConfiguredForTimeout() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
-			SecretsManagerClient secretsManagerClient = context.getBean(SecretsManagerClient.class);
-			// very ugly have to check if there is better way to access this field
-			Map attributeMap = (Map) ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(
-							ReflectionTestUtils.getField(secretsManagerClient, "clientConfiguration"), "attributes"),
-					"attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1542));
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
 		}
 	}
 
