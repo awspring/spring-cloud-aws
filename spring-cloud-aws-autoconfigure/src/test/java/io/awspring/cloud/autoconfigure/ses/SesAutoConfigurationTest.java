@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
@@ -134,11 +134,11 @@ class SesAutoConfigurationTest {
 	static class CustomAwsClientConfig {
 
 		@Bean
-		AwsClientConfigurer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
 			return new CustomAwsClientConfig.SesAwsClientConfigurer();
 		}
 
-		static class SesAwsClientConfigurer implements AwsClientConfigurer<SesClientBuilder> {
+		static class SesAwsClientConfigurer implements AwsClientCustomizer<SesClientBuilder> {
 			@Override
 			public ClientOverrideConfiguration overrideConfiguration() {
 				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2000)).build();

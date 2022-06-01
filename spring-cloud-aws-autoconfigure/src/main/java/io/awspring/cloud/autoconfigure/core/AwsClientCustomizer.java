@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
  * @author Matej Nedić
  * @since 3.0.0
  */
-public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> {
+public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {
@@ -43,7 +43,7 @@ public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?> & AwsSyncC
 	}
 
 	static <V extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
-			AwsClientConfigurer<V> configurer, V builder) {
+			AwsClientCustomizer<V> configurer, V builder) {
 		if (configurer.overrideConfiguration() != null) {
 			builder.overrideConfiguration(configurer.overrideConfiguration());
 		}

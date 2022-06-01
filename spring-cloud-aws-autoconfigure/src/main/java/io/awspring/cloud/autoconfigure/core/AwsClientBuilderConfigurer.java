@@ -48,13 +48,13 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
-			AwsClientProperties clientProperties, @Nullable AwsClientConfigurer<T> configurer) {
+			AwsClientProperties clientProperties, @Nullable AwsClientCustomizer<T> customizer) {
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		if (configurer != null) {
-			AwsClientConfigurer.apply(configurer, builder);
+		if (customizer != null) {
+			AwsClientCustomizer.apply(customizer, builder);
 		}
 		return builder;
 	}

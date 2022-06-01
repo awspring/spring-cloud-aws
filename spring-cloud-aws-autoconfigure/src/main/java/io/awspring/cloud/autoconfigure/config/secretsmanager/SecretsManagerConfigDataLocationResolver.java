@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
@@ -94,7 +94,7 @@ public class SecretsManagerConfigDataLocationResolver
 		try {
 			AwsSecretsManagerClientConfigurer configurer = context.get(AwsSecretsManagerClientConfigurer.class);
 			if (configurer != null) {
-				AwsClientConfigurer.apply(configurer, builder);
+				AwsClientCustomizer.apply(configurer, builder);
 			}
 		}
 		catch (IllegalStateException e) {

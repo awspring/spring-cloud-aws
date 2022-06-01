@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
@@ -137,11 +137,11 @@ class SnsAutoConfigurationTest {
 	static class CustomAwsClientConfig {
 
 		@Bean
-		AwsClientConfigurer<SnsClientBuilder> snsClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<SnsClientBuilder> snsClientBuilderAwsClientConfigurer() {
 			return new CustomAwsClientConfig.SnsAwsClientConfigurer();
 		}
 
-		static class SnsAwsClientConfigurer implements AwsClientConfigurer<SnsClientBuilder> {
+		static class SnsAwsClientConfigurer implements AwsClientCustomizer<SnsClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {

@@ -168,7 +168,7 @@ In our case this will be S3Client, since we specified S3ClientBuilder as generic
 
 [source,java,indent=0]
 ----
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.Nullable;
 
@@ -181,23 +181,23 @@ import java.time.Duration;
 
 public class S3AwsClientConfigurerConfiguration {
 
-		@Bean
-    		AwsClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
-    			return new S3AwsClientClientConfigurer();
-    		}
+    @Bean
+    AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+        return new S3AwsClientClientConfigurer();
+    }
 
-    		static class S3AwsClientClientConfigurer implements AwsClientConfigurer<S3ClientBuilder> {
-    			@Override
-    			@Nullable
-    			public ClientOverrideConfiguration overrideConfiguration() {
-    				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
-    			}
+    static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
+        @Override
+        @Nullable
+        public ClientOverrideConfiguration overrideConfiguration() {
+            return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
+        }
 
-    			@Override
-    			@Nullable
-    			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
-    				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-    			}
-    		}
+        @Override
+        @Nullable
+        public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+            return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+        }
+    }
 }
 ----

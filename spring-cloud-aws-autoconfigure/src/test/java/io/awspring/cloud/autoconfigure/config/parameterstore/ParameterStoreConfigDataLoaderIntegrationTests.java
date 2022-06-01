@@ -239,25 +239,25 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	}
 
-	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
+static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
 
-		@Override
-		public void initialize(BootstrapRegistry registry) {
-			registry.register(AwsParameterStoreClientConfigurer.class,
-					context -> new AwsParameterStoreClientConfigurer() {
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(AwsParameterStoreClientConfigurer.class,
+				context -> new AwsParameterStoreClientConfigurer() {
 
-						@Override
-						public ClientOverrideConfiguration overrideConfiguration() {
-							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
-									.build();
-						}
+					@Override
+					public ClientOverrideConfiguration overrideConfiguration() {
+						return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
+								.build();
+					}
 
-						@Override
-						public SdkHttpClient httpClient() {
-							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-						}
-					});
-		}
+					@Override
+					public SdkHttpClient httpClient() {
+						return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+					}
+				});
 	}
+}
 
 }

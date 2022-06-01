@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -263,11 +263,11 @@ class S3AutoConfigurationTests {
 	static class CustomAwsConfigurerClient {
 
 		@Bean
-		AwsClientConfigurer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
 			return new S3AwsClientClientConfigurer();
 		}
 
-		static class S3AwsClientClientConfigurer implements AwsClientConfigurer<S3ClientBuilder> {
+		static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
 			@Override
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
