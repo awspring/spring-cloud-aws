@@ -238,25 +238,25 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	}
 
-static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
+	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
 
-	@Override
-	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsSecretsManagerClientConfigurer.class,
-				context -> new AwsSecretsManagerClientConfigurer() {
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(AwsSecretsManagerClientConfigurer.class,
+					context -> new AwsSecretsManagerClientConfigurer() {
 
-					@Override
-					public ClientOverrideConfiguration overrideConfiguration() {
-						return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
-								.build();
-					}
+						@Override
+						public ClientOverrideConfiguration overrideConfiguration() {
+							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
+									.build();
+						}
 
-					@Override
-					public SdkHttpClient httpClient() {
-						return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-					}
-				});
+						@Override
+						public SdkHttpClient httpClient() {
+							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+						}
+					});
+		}
 	}
-}
 
 }
