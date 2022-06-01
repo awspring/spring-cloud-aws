@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 /**
@@ -30,11 +31,13 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 	private final ObjectMapper objectMapper;
 
 	public Jackson2JsonS3ObjectConverter(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "objectMapper is required");
 		this.objectMapper = objectMapper;
 	}
 
 	@Override
 	public <T> RequestBody write(T object) {
+		Assert.notNull(object, "object is required");
 		try {
 			return RequestBody.fromBytes(objectMapper.writeValueAsBytes(object));
 		}
@@ -45,6 +48,8 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 
 	@Override
 	public <T> T read(InputStream is, Class<T> clazz) {
+		Assert.notNull(is, "InputStream is required");
+		Assert.notNull(clazz, "Clazz is required");
 		try {
 			return objectMapper.readValue(is, clazz);
 		}

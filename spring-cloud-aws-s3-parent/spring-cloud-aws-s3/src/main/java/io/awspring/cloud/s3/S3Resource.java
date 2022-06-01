@@ -28,6 +28,7 @@ import java.util.List;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -71,6 +72,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	public S3Resource(Location location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
+		Assert.notNull(location, "location is required");
+		Assert.notNull(s3Client, "s3Client is required");
+		Assert.notNull(s3OutputStreamProvider, "s3OutputStreamProvider is required");
+
 		this.location = location;
 		this.s3Client = s3Client;
 		this.s3OutputStreamProvider = s3OutputStreamProvider;

@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.configuration;
 import io.awspring.cloud.sns.handlers.NotificationMessageHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationStatusHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationSubjectHandlerMethodArgumentResolver;
+import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -35,6 +36,7 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 	}
 
 	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(SnsClient snsClient) {
+		Assert.notNull(snsClient, "snsClient is required");
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
 		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(snsClient));
 		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
