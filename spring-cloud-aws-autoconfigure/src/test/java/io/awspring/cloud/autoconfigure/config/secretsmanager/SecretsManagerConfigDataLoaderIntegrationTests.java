@@ -24,12 +24,13 @@ import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
-import io.awspring.cloud.autoconfigure.config.AwsConfigurerClientConfiguration;
 import java.io.IOException;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -42,6 +43,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -91,7 +95,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
 			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
@@ -105,7 +109,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
 			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 		}
 	}
 
@@ -245,6 +249,27 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootApplication
 	static class App {
 
+	}
+
+	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(AwsSecretsManagerClientConfigurer.class,
+					context -> new AwsSecretsManagerClientConfigurer() {
+
+						@Override
+						public ClientOverrideConfiguration overrideConfiguration() {
+							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
+									.build();
+						}
+
+						@Override
+						public SdkHttpClient httpClient() {
+							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+						}
+					});
+		}
 	}
 
 }
