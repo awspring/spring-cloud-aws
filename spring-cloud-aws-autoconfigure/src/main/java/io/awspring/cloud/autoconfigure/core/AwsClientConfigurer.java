@@ -37,12 +37,20 @@ public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?> & AwsSyncC
 		return null;
 	}
 
+	@Nullable
+	default SdkHttpClient.Builder<?> httpClientBuilder() {
+		return null;
+	}
+
 	default void apply(T builder) {
 		if (this.overrideConfiguration() != null) {
 			builder.overrideConfiguration(this.overrideConfiguration());
 		}
 		if (this.httpClient() != null) {
 			builder.httpClient(this.httpClient());
+		}
+		if (this.httpClientBuilder() != null) {
+			builder.httpClientBuilder(this.httpClientBuilder());
 		}
 	}
 }

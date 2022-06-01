@@ -20,7 +20,6 @@ import io.awspring.cloud.autoconfigure.config.secretsmanager.AwsSecretsManagerCl
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -40,7 +39,6 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 		}
 
 		@Override
-		@Nullable
 		public SdkHttpClient httpClient() {
 			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
@@ -53,7 +51,6 @@ public class AwsConfigurerClientConfiguration implements BootstrapRegistryInitia
 		}
 
 		@Override
-		@Nullable
 		public SdkHttpClient httpClient() {
 			return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 		}
