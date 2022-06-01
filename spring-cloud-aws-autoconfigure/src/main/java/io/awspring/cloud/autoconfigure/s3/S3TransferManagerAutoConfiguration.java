@@ -96,7 +96,8 @@ public class S3TransferManagerAutoConfiguration {
 
 	private S3ClientConfiguration.Builder configure(S3ClientConfiguration.Builder builder) {
 		// this must follow the same logic as in AwsClientBuilderConfigurer
-		builder.credentialsProvider(this.credentialsProvider).region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
+		builder.credentialsProvider(this.credentialsProvider)
+				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
 		// TODO: how to set client override configuration?
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
@@ -105,7 +106,8 @@ public class S3TransferManagerAutoConfiguration {
 
 	private S3TransferManagerOverrideConfiguration extractUploadDirectoryOverrideConfiguration() {
 		UploadDirectoryOverrideConfiguration.Builder config = UploadDirectoryOverrideConfiguration.builder();
-		if (this.properties.getTransferManager() != null && this.properties.getTransferManager().getUploadDirectory() != null) {
+		if (this.properties.getTransferManager() != null
+				&& this.properties.getTransferManager().getUploadDirectory() != null) {
 			S3TransferManagerProperties.S3UploadDirectoryProperties s3UploadDirectoryProperties = this.properties
 					.getTransferManager().getUploadDirectory();
 			PropertyMapper propertyMapper = PropertyMapper.get();
