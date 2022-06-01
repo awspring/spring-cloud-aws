@@ -87,7 +87,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
+	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
@@ -97,19 +97,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
 			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
-		}
-	}
-
-	@Test
-	void checkIfClientIsConfiguredForTimeout() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
-
-		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-secretsmanager:/config/spring;/config/second")) {
-			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 		}
 	}
 

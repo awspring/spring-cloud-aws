@@ -86,7 +86,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
+	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
@@ -133,19 +133,6 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			SsmClient clientFromContext = context.getBean(SsmClient.class);
 			assertThat(clientFromContext).isEqualTo(mockClient);
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from mock");
-		}
-	}
-
-	@Test
-	void checkIfClientIsConfiguredForTimeout() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
-
-		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-parameterstore:/config/spring/")) {
-			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 		}
 	}
 
