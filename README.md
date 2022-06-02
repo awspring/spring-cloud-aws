@@ -23,8 +23,8 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | Spring Cloud AWS          | Spring Cloud                                                                                                          | Spring Boot  | Spring Framework | AWS Java SDK |
 |---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------|------------------|--------------|
 | 2.3.x (maintenance mode)  | [2020.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2020.0-Release-Notes) (3.0/Illford) | 2.4.x, 2.5.x | 5.3.x            | 1.x          |
-| 2.4.x (maintenance mode)  | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x        | 5.3.x            | 1.x          |
-| 3.0.x (under development) | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x        | 5.3.x            | 2.x          |
+| 2.4.x (maintenance mode)  | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x, 2.7.x        | 5.3.x            | 1.x          |
+| 3.0.x (under development) | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x, 2.7.x        | 5.3.x            | 2.x          |
 
 ## Supported AWS integrations
 
