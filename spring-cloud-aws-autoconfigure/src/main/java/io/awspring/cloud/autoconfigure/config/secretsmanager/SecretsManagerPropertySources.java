@@ -19,6 +19,7 @@ import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**
@@ -42,6 +43,9 @@ public class SecretsManagerPropertySources {
 	@Nullable
 	public SecretsManagerPropertySource createPropertySource(String context, boolean optional,
 			SecretsManagerClient client) {
+		Assert.notNull(context, "context is required");
+		Assert.notNull(client, "SecretsManagerClient is required");
+
 		LOG.info("Loading secrets from AWS Secret Manager secret with name: " + context + ", optional: " + optional);
 		try {
 			SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource(context, client);

@@ -24,6 +24,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.Body;
@@ -60,11 +61,13 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	@Override
 	public void send(SimpleMailMessage simpleMessage) throws MailException {
+		Assert.notNull(simpleMessage, "simpleMessage are required");
 		send(new SimpleMailMessage[] { simpleMessage });
 	}
 
 	@Override
 	public void send(SimpleMailMessage... simpleMessages) throws MailException {
+		Assert.notNull(simpleMessages, "simpleMessages are required");
 		Map<Object, Exception> failedMessages = new HashMap<>();
 
 		for (SimpleMailMessage simpleMessage : simpleMessages) {
@@ -92,6 +95,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 	}
 
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
+		Assert.notNull(simpleMailMessage, "simpleMailMessage are required");
 		Destination.Builder destinationBuilder = Destination.builder();
 		destinationBuilder.toAddresses(simpleMailMessage.getTo());
 

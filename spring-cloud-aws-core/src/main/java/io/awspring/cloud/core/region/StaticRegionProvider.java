@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.core.region;
 
+import org.springframework.util.Assert;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -35,6 +36,8 @@ public class StaticRegionProvider implements AwsRegionProvider {
 	 * @param configuredRegion - the region that will be statically returned in {@link #getRegion()}
 	 */
 	public StaticRegionProvider(String configuredRegion) {
+		Assert.notNull(configuredRegion, "region is required");
+
 		try {
 			this.configuredRegion = Region.of(configuredRegion);
 		}
