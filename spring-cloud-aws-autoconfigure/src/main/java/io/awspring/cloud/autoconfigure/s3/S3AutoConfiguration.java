@@ -87,7 +87,6 @@ public class S3AutoConfiguration {
 		propertyMapper.from(properties::getChecksumValidationEnabled).whenNonNull()
 				.to(config::checksumValidationEnabled);
 		propertyMapper.from(properties::getChunkedEncodingEnabled).whenNonNull().to(config::chunkedEncodingEnabled);
-		propertyMapper.from(properties::getDualstackEnabled).whenNonNull().to(config::dualstackEnabled);
 		propertyMapper.from(properties::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(properties::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
