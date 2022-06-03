@@ -54,6 +54,10 @@ public class AwsClientBuilderConfigurer {
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+
+		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
+		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
+		Optional.ofNullable(this.awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder;
 	}
 

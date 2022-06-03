@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -207,6 +208,18 @@ class S3AutoConfigurationTests {
 						assertThat(converter).isEqualTo(customS3ObjectConverter);
 					});
 		}
+	}
+
+	@Test
+	void setsCommonAwsProperties() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isTrue();
+					assertThat(client.getFipsEnabled()).isTrue();
+					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
+				});
 	}
 
 	@Configuration(proxyBeanMethods = false)
