@@ -22,11 +22,10 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
-
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -109,7 +108,7 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 				if (!isMultiPartUpload()) {
 					createMultiPartUpload();
 				}
-				completedParts.add(uploadPart(outputStream.toByteArray()));
+				completedParts.add(uploadPart(outputStream.toByteArray(), multipartUploadResponse));
 				outputStream.reset();
 			}
 			outputStream.write(b);
@@ -123,7 +122,7 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 				return;
 			}
 			if (isMultiPartUpload()) {
-				completedParts.add(uploadPart(outputStream.toByteArray()));
+				completedParts.add(uploadPart(outputStream.toByteArray(), multipartUploadResponse));
 				completeMultiPartUpload(multipartUploadResponse);
 			}
 			else {
@@ -158,10 +157,7 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 						if (objectMetadata != null) {
 							objectMetadata.apply(builder);
 						}
-						if (contentTypeResolver != null
-								&& (objectMetadata == null || objectMetadata.getContentType() == null)) {
-							builder.contentType(contentTypeResolver.resolveContentType(location.getObject()));
-						}
+						applyContentType(builder::contentType);
 					}).build());
 		}
 		catch (SdkException e) {
@@ -169,15 +165,15 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 		}
 	}
 
-	private CompletedPart uploadPart(byte[] content) {
-		final UploadPartResponse response = s3Client
-				.uploadPart(UploadPartRequest.builder().bucket(location.getBucket()).key(location.getObject())
-						.contentLength((long) content.length).partNumber(partCounter).applyMutation(builder -> {
-							getHash(content).ifPresent(builder::contentMD5);
-							if (objectMetadata != null) {
-								objectMetadata.apply(builder);
-							}
-						}).build(), RequestBody.fromBytes(content));
+	private CompletedPart uploadPart(byte[] content, CreateMultipartUploadResponse createMultipartUploadResponse) {
+		final UploadPartResponse response = s3Client.uploadPart(UploadPartRequest.builder().bucket(location.getBucket())
+				.key(location.getObject()).contentLength((long) content.length)
+				.uploadId(createMultipartUploadResponse.uploadId()).partNumber(partCounter).applyMutation(builder -> {
+					getHash(content).ifPresent(builder::contentMD5);
+					if (objectMetadata != null) {
+						objectMetadata.apply(builder);
+					}
+				}).build(), RequestBody.fromBytes(content));
 		return CompletedPart.builder().partNumber(partCounter++).eTag(response.eTag()).build();
 	}
 
@@ -219,10 +215,17 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 						if (objectMetadata != null) {
 							objectMetadata.apply(builder);
 						}
+						applyContentType(builder::contentType);
 					}).build(), RequestBody.fromBytes(content));
 		}
 		catch (SdkException e) {
 			throw new S3Exception("Simple upload failed.", e);
+		}
+	}
+
+	private void applyContentType(Consumer<String> consumer) {
+		if (contentTypeResolver != null && (objectMetadata == null || objectMetadata.getContentType() == null)) {
+			consumer.accept(contentTypeResolver.resolveContentType(location.getObject()));
 		}
 	}
 }
