@@ -16,6 +16,7 @@
 package io.awspring.cloud.s3;
 
 import static io.awspring.cloud.s3.InMemoryBufferingS3OutputStream.DEFAULT_BUFFER_CAPACITY;
+import static io.awspring.cloud.s3.InMemoryBufferingS3OutputStream.DEFAULT_BUFFER_CAPACITY_IN_BYTES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +47,7 @@ public class InMemoryBufferingS3OutputStreamTests {
 
 	@Test
 	void writesWithPutObjectWhenBufferIsNotFull() throws IOException {
-		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY - 1];
+		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES - 1];
 
 		try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
 				new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY)) {
@@ -80,7 +81,7 @@ public class InMemoryBufferingS3OutputStreamTests {
 				UploadPartResponse.builder().eTag(etags[0]).build(),
 				UploadPartResponse.builder().eTag(etags[1]).build());
 
-		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY + 1];
+		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1];
 
 		try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
 				new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY)) {
@@ -104,12 +105,12 @@ public class InMemoryBufferingS3OutputStreamTests {
 
 		assertThat(firstRequest.bucket()).isEqualTo("bucket");
 		assertThat(firstRequest.key()).isEqualTo("key");
-		assertThat(firstRequest.contentLength()).isEqualTo(DEFAULT_BUFFER_CAPACITY);
+		assertThat(firstRequest.contentLength()).isEqualTo(DEFAULT_BUFFER_CAPACITY_IN_BYTES);
 		assertThat(firstRequest.contentMD5()).isNotNull();
 		assertThat(firstRequest.partNumber()).isEqualTo(1);
 
 		assertThat(firstBody.contentStreamProvider().newStream())
-				.hasBinaryContent(Arrays.copyOfRange(content, 0, DEFAULT_BUFFER_CAPACITY));
+				.hasBinaryContent(Arrays.copyOfRange(content, 0, DEFAULT_BUFFER_CAPACITY_IN_BYTES));
 
 		final UploadPartRequest secondRequest = requestCaptor.getAllValues().get(1);
 		final RequestBody secondBody = bodyCaptor.getAllValues().get(1);
@@ -120,8 +121,8 @@ public class InMemoryBufferingS3OutputStreamTests {
 		assertThat(secondRequest.contentMD5()).isNotNull();
 		assertThat(secondRequest.partNumber()).isEqualTo(2);
 
-		assertThat(secondBody.contentStreamProvider().newStream())
-				.hasBinaryContent(Arrays.copyOfRange(content, DEFAULT_BUFFER_CAPACITY, DEFAULT_BUFFER_CAPACITY + 1));
+		assertThat(secondBody.contentStreamProvider().newStream()).hasBinaryContent(
+				Arrays.copyOfRange(content, DEFAULT_BUFFER_CAPACITY_IN_BYTES, DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1));
 
 		// Check complete
 		final ArgumentCaptor<CompleteMultipartUploadRequest> completeUploadRequestCaptor = ArgumentCaptor
@@ -151,7 +152,7 @@ public class InMemoryBufferingS3OutputStreamTests {
 		when(s3Client.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
 				.thenThrow(SdkException.builder().build());
 
-		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY + 1];
+		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1];
 
 		try {
 			try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(

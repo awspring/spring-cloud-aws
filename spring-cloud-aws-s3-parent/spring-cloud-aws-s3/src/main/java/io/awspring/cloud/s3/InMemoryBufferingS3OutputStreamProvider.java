@@ -17,6 +17,7 @@ package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import org.springframework.lang.Nullable;
+import org.springframework.util.unit.DataSize;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class InMemoryBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
@@ -25,7 +26,7 @@ public class InMemoryBufferingS3OutputStreamProvider implements S3OutputStreamPr
 	@Nullable
 	private final S3ObjectContentTypeResolver contentTypeResolver;
 	@Nullable
-	private final Integer bufferSize;
+	private final DataSize bufferSize;
 
 	public InMemoryBufferingS3OutputStreamProvider(S3Client s3Client,
 			@Nullable S3ObjectContentTypeResolver contentTypeResolver) {
@@ -33,7 +34,7 @@ public class InMemoryBufferingS3OutputStreamProvider implements S3OutputStreamPr
 	}
 
 	public InMemoryBufferingS3OutputStreamProvider(S3Client s3Client,
-			@Nullable S3ObjectContentTypeResolver contentTypeResolver, @Nullable Integer bufferSize) {
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver, @Nullable DataSize bufferSize) {
 		this.s3Client = s3Client;
 		this.contentTypeResolver = contentTypeResolver;
 		this.bufferSize = bufferSize;

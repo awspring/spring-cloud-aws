@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.util.unit.DataSize;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -46,7 +47,8 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 
 	private static final Logger logger = LoggerFactory.getLogger(InMemoryBufferingS3OutputStream.class);
 
-	public static final int DEFAULT_BUFFER_CAPACITY = 1024 * 1024 * 5;
+	public static final DataSize DEFAULT_BUFFER_CAPACITY = DataSize.ofMegabytes(5);
+	static final int DEFAULT_BUFFER_CAPACITY_IN_BYTES = (int) DEFAULT_BUFFER_CAPACITY.toBytes();
 
 	private final Location location;
 
@@ -58,7 +60,7 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 	@Nullable
 	private final S3ObjectContentTypeResolver contentTypeResolver;
 
-	private final int bufferSize;
+	private final DataSize bufferSize;
 
 	@Nullable
 	private ByteArrayOutputStream outputStream;
@@ -73,18 +75,18 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 	private final List<CompletedPart> completedParts = new LinkedList<>();
 
 	InMemoryBufferingS3OutputStream(Location location, S3Client s3Client, @Nullable ObjectMetadata objectMetadata,
-			@Nullable S3ObjectContentTypeResolver contentTypeResolver, @Nullable Integer bufferSize) {
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver, @Nullable DataSize bufferSize) {
 		this.location = location;
 		this.s3Client = s3Client;
 		this.objectMetadata = objectMetadata;
 		this.contentTypeResolver = contentTypeResolver;
 		this.bufferSize = computeBufferSize(bufferSize);
-		this.outputStream = new ByteArrayOutputStream(this.bufferSize);
+		this.outputStream = new ByteArrayOutputStream((int) this.bufferSize.toBytes());
 	}
 
-	private static int computeBufferSize(@Nullable Integer bufferSize) {
+	private static DataSize computeBufferSize(@Nullable DataSize bufferSize) {
 		if (bufferSize != null) {
-			if (bufferSize >= DEFAULT_BUFFER_CAPACITY) {
+			if (bufferSize.toBytes() >= DEFAULT_BUFFER_CAPACITY.toBytes()) {
 				return bufferSize;
 			}
 			else {
@@ -103,7 +105,7 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 			}
 			// Flush before writing to ensure that the MultiPartUpload is only initiated when the user is writing
 			// at least bufferSize + 1 bytes.
-			if (outputStream.size() == bufferSize) {
+			if (outputStream.size() == bufferSize.toBytes()) {
 				// Create multipart upload if one isn't already in progress
 				if (!isMultiPartUpload()) {
 					createMultiPartUpload();
