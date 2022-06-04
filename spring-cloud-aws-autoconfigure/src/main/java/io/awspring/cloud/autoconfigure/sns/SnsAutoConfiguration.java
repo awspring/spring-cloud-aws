@@ -19,7 +19,7 @@ import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgum
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
@@ -61,7 +61,7 @@ public class SnsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientConfigurer<SnsClientBuilder>> configurer) {
+			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer) {
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable())
 				.build();
 	}

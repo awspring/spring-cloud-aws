@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.config.secretsmanager;
+package io.awspring.cloud.autoconfigure.config.parameterstore;
 
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
  * @author Matej Nedic
  * @since 3.0.0
  */
-public interface AwsClientConfigurerSecretsManager<T extends AwsClientBuilder<?, ?>> extends AwsClientConfigurer<T> {
+public interface AwsParameterStoreClientCustomizer extends AwsClientCustomizer<SsmClientBuilder> {
 }

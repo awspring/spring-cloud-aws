@@ -23,26 +23,29 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -83,17 +86,16 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void checkIfClientIsSetUpByAwsConfigurerClientConfiguration() {
+	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring/")) {
-			SsmClient ssmClient = context.getBean(SsmClient.class);
-			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(ssmClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2828));
-			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
+			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -131,21 +133,6 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			SsmClient clientFromContext = context.getBean(SsmClient.class);
 			assertThat(clientFromContext).isEqualTo(mockClient);
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from mock");
-		}
-	}
-
-	@Test
-	void checkIfClientIsConfiguredForTimeout() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-
-		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-parameterstore:/config/spring/")) {
-			SsmClient ssmClient = context.getBean(SsmClient.class);
-			// very ugly have to check if there is better way to access this field
-			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(ssmClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2828));
 		}
 	}
 
@@ -250,6 +237,27 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	@SpringBootApplication
 	static class App {
 
+	}
+
+	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(AwsParameterStoreClientCustomizer.class,
+					context -> new AwsParameterStoreClientCustomizer() {
+
+						@Override
+						public ClientOverrideConfiguration overrideConfiguration() {
+							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
+									.build();
+						}
+
+						@Override
+						public SdkHttpClient httpClient() {
+							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+						}
+					});
+		}
 	}
 
 }

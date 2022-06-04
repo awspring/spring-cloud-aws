@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
  * @author Matej Nedić
  * @since 3.0.0
  */
-public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?>> {
+public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {
@@ -33,19 +33,25 @@ public interface AwsClientConfigurer<T extends AwsClientBuilder<?, ?>> {
 	}
 
 	@Nullable
-	default <V extends SdkHttpClient> SdkHttpClient httpClient() {
+	default SdkHttpClient httpClient() {
+		return null;
+	}
+
+	@Nullable
+	default SdkHttpClient.Builder<?> httpClientBuilder() {
 		return null;
 	}
 
 	static <V extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
-			V builder, @Nullable AwsClientConfigurer<V> configurer) {
-		if (configurer != null) {
-			if (configurer.overrideConfiguration() != null) {
-				builder.overrideConfiguration(configurer.overrideConfiguration());
-			}
-			if (configurer.httpClient() != null) {
-				builder.httpClient(configurer.httpClient());
-			}
+			AwsClientCustomizer<V> configurer, V builder) {
+		if (configurer.overrideConfiguration() != null) {
+			builder.overrideConfiguration(configurer.overrideConfiguration());
+		}
+		if (configurer.httpClient() != null) {
+			builder.httpClient(configurer.httpClient());
+		}
+		if (configurer.httpClientBuilder() != null) {
+			builder.httpClientBuilder(configurer.httpClientBuilder());
 		}
 	}
 }

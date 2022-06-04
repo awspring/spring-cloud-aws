@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
@@ -31,7 +31,6 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -135,20 +134,18 @@ class SesAutoConfigurationTest {
 	static class CustomAwsClientConfig {
 
 		@Bean
-		AwsClientConfigurer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
 			return new CustomAwsClientConfig.SesAwsClientConfigurer();
 		}
 
-		static class SesAwsClientConfigurer implements AwsClientConfigurer<SesClientBuilder> {
+		static class SesAwsClientConfigurer implements AwsClientCustomizer<SesClientBuilder> {
 			@Override
-			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
 				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2000)).build();
 			}
 
 			@Override
-			@Nullable
-			public <T extends SdkHttpClient> SdkHttpClient httpClient() {
+			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
 		}

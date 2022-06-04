@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure.ses;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
@@ -55,7 +55,7 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientConfigurer<SesClientBuilder>> configurer) {
+			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer) {
 		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable())
 				.build();
 	}
