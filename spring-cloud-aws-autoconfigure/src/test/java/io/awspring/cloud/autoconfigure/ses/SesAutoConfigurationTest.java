@@ -19,16 +19,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
  * Tests for class {@link SesAutoConfiguration}.
@@ -105,6 +116,40 @@ class SesAutoConfigurationTest {
 					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
 					assertThat(client.isEndpointOverridden()).isTrue();
 				});
+	}
+
+	@Test
+	void customSesClientConfigurer() {
+		this.contextRunner.withUserConfiguration(CustomAwsClientConfig.class).run(context -> {
+			SesClient sesClient = context.getBean(SesClient.class);
+
+			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+					ReflectionTestUtils.getField(sesClient, "clientConfiguration"), "attributes"), "attributes");
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2000));
+			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+		});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomAwsClientConfig {
+
+		@Bean
+		AwsClientCustomizer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
+			return new CustomAwsClientConfig.SesAwsClientConfigurer();
+		}
+
+		static class SesAwsClientConfigurer implements AwsClientCustomizer<SesClientBuilder> {
+			@Override
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2000)).build();
+			}
+
+			@Override
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
+		}
+
 	}
 
 }

@@ -19,12 +19,14 @@ import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgum
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -37,6 +39,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.
@@ -57,8 +60,10 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
-		return (SnsClient) awsClientBuilderConfigurer.configure(SnsClient.builder(), properties).build();
+	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer) {
+		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable())
+				.build();
 	}
 
 	@ConditionalOnMissingBean

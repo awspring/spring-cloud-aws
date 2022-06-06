@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -33,6 +34,8 @@ import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -43,6 +46,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -193,6 +200,22 @@ class S3AutoConfigurationTests {
 		}
 
 		@Test
+		void useAwsConfigurerClient() {
+			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
+				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
+				CustomAwsConfigurerClient.S3AwsClientClientConfigurer s3AwsClientClientConfigurer = context
+						.getBean(CustomAwsConfigurerClient.S3AwsClientClientConfigurer.class);
+				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout().get())
+						.isEqualTo(Duration.ofMillis(1542));
+				Map attributeMap = (Map) ReflectionTestUtils.getField(
+						ReflectionTestUtils.getField(
+								ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"),
+						"configuration");
+				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+			});
+		}
+
+		@Test
 		void usesCustomS3ObjectConverter() {
 			contextRunner
 					.withUserConfiguration(CustomJacksonConfiguration.class, CustomS3ObjectConverterConfiguration.class)
@@ -251,11 +274,25 @@ class S3AutoConfigurationTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	static class CustomS3OutputStreamProviderConfiguration {
+	static class CustomAwsConfigurerClient {
 
 		@Bean
-		S3OutputStreamProvider customS3OutputStreamProvider() {
-			return new CustomS3OutputStreamProvider();
+		AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer();
+		}
+
+		static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
+			}
+
+			@Override
+			@Nullable
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
 		}
 
 	}
@@ -266,6 +303,16 @@ class S3AutoConfigurationTests {
 		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
 			return null;
 		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomS3OutputStreamProviderConfiguration {
+
+		@Bean
+		S3OutputStreamProvider customS3OutputStreamProvider() {
+			return new CustomS3OutputStreamProvider();
+		}
+
 	}
 
 }
