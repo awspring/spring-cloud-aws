@@ -54,5 +54,4 @@ public abstract class AwsClientProperties {
 	public void setRegion(String region) {
 		this.region = region;
 	}
-
 }

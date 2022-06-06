@@ -17,32 +17,32 @@ package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import org.springframework.util.unit.DataSize;
+import software.amazon.awssdk.services.s3.S3Client;
 
-/**
- * Creates {@link TransferManagerS3OutputStream}.
- *
- * @author Anton Perez
- * @since 3.0
- */
-public class TransferManagerS3OutputStreamProvider implements S3OutputStreamProvider {
+public class InMemoryBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
-	private final S3TransferManager s3TransferManager;
+	private final S3Client s3Client;
 	@Nullable
 	private final S3ObjectContentTypeResolver contentTypeResolver;
+	@Nullable
+	private final DataSize bufferSize;
 
-	public TransferManagerS3OutputStreamProvider(S3TransferManager s3TransferManager,
+	public InMemoryBufferingS3OutputStreamProvider(S3Client s3Client,
 			@Nullable S3ObjectContentTypeResolver contentTypeResolver) {
-		Assert.notNull(s3TransferManager, "s3TransferManager is required");
-		this.s3TransferManager = s3TransferManager;
+		this(s3Client, contentTypeResolver, null);
+	}
+
+	public InMemoryBufferingS3OutputStreamProvider(S3Client s3Client,
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver, @Nullable DataSize bufferSize) {
+		this.s3Client = s3Client;
 		this.contentTypeResolver = contentTypeResolver;
+		this.bufferSize = bufferSize;
 	}
 
 	@Override
 	public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
-		return new TransferManagerS3OutputStream(new Location(bucket, key, null), s3TransferManager, metadata,
-				contentTypeResolver);
+		return new InMemoryBufferingS3OutputStream(new Location(bucket, key, null), s3Client, metadata,
+				contentTypeResolver, bufferSize);
 	}
-
 }

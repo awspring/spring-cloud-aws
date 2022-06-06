@@ -25,7 +25,7 @@ import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -124,8 +125,9 @@ class S3AutoConfigurationTests {
 	class OutputStreamProviderTests {
 
 		@Test
-		void createsDiskBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
-			contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
+		void createsInMemoryBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
+			contextRunner
+					.run(context -> assertThat(context).hasSingleBean(InMemoryBufferingS3OutputStreamProvider.class));
 		}
 
 		@Test
@@ -230,6 +232,18 @@ class S3AutoConfigurationTests {
 						assertThat(converter).isEqualTo(customS3ObjectConverter);
 					});
 		}
+	}
+
+	@Test
+	void setsCommonAwsProperties() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isTrue();
+					assertThat(client.getFipsEnabled()).isTrue();
+					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
+				});
 	}
 
 	@Configuration(proxyBeanMethods = false)

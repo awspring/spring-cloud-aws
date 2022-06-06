@@ -56,13 +56,6 @@ public class S3Properties extends AwsClientProperties {
 	private Boolean chunkedEncodingEnabled;
 
 	/**
-	 * Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use
-	 * IPv6.
-	 */
-	@Nullable
-	private Boolean dualstackEnabled;
-
-	/**
 	 * Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access
 	 * is preferred as it will result in better load balancing when accessing S3.
 	 */
@@ -109,15 +102,6 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setChunkedEncodingEnabled(@Nullable Boolean chunkedEncodingEnabled) {
 		this.chunkedEncodingEnabled = chunkedEncodingEnabled;
-	}
-
-	@Nullable
-	public Boolean getDualstackEnabled() {
-		return this.dualstackEnabled;
-	}
-
-	public void setDualstackEnabled(@Nullable Boolean dualstackEnabled) {
-		this.dualstackEnabled = dualstackEnabled;
 	}
 
 	@Nullable

@@ -19,6 +19,7 @@ import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
@@ -49,10 +50,17 @@ public class AwsClientBuilderConfigurer {
 
 	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
 			AwsClientProperties clientProperties, @Nullable AwsClientCustomizer<T> customizer) {
+		Assert.notNull(builder, "builder is required");
+		Assert.notNull(builder, "clientProperties are required");
+
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+
+		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
+		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
+		Optional.ofNullable(this.awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		if (customizer != null) {
 			AwsClientCustomizer.apply(customizer, builder);
 		}
@@ -60,6 +68,8 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public Region resolveRegion(AwsClientProperties clientProperties) {
+		Assert.notNull(clientProperties, "clientProperties are required");
+
 		return StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
 				: this.regionProvider.getRegion();
 	}
