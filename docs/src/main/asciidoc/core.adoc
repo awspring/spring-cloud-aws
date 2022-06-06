@@ -160,17 +160,14 @@ To simplify using services with AWS compatible APIs, or running applications aga
 |endpoint url applied to auto-configured AWS clients
 |===
 
-=== Custom SDKClient and ClientOverrideConfiguration
+=== Customizing AWS Clients
 
-To configure Client with custom SDKClient and ClientOverrideConfiguration simply implement `AwsClientConfigurer` interface and register class as a Bean.
-Autoconfiguration module will automatically pick up the Bean of type `AwsClientConfigurer` and configure Client with given properties.
-In our case this will be S3Client, since we specified S3ClientBuilder as generic type, example:
+To configure an AWS client with custom HTTP client or `ClientOverrideConfiguration`, define a bean of type `AwsClientConfigurer` with a type parameter indicating configured client builder.
 
 [source,java,indent=0]
 ----
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.lang.Nullable;
 
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -179,6 +176,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 import java.time.Duration;
 
+@Configuration
 public class S3AwsClientConfigurerConfiguration {
 
     @Bean
@@ -188,15 +186,13 @@ public class S3AwsClientConfigurerConfiguration {
 
     static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
         @Override
-        @Nullable
         public ClientOverrideConfiguration overrideConfiguration() {
-            return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
+            return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500)).build();
         }
 
         @Override
-        @Nullable
-        public <T extends SdkHttpClient> SdkHttpClient httpClient() {
-            return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+        public SdkHttpClient httpClient() {
+            return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
         }
     }
 }
