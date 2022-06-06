@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.amazonaws.auth.AWSCredentials;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -30,6 +31,7 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +42,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.google.common.io.Files;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -60,6 +63,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  */
 @Testcontainers
 class S3ResourceIntegrationTests {
+	private static final int DEFAULT_PART_SIZE = 5242880;
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
@@ -72,7 +76,8 @@ class S3ResourceIntegrationTests {
 	private static Stream<S3OutputStreamProvider> availableS3OutputStreamProviders() {
 		return Stream.of(new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
 				new TransferManagerS3OutputStreamProvider(s3TransferManager,
-						new PropertiesS3ObjectContentTypeResolver()));
+						new PropertiesS3ObjectContentTypeResolver()),
+				new InMemoryBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()));
 	}
 
 	@BeforeAll
@@ -186,12 +191,32 @@ class S3ResourceIntegrationTests {
 	}
 
 	@TestAvailableOutputStreamProviders
-	void contentTypeCanBeResolved(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+	void contentTypeCanBeResolvedForLargeFiles(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
+
+		// create file larger than single part size in multipart upload to make sure that file can be successfully
+		// uploaded in parts
+		File file = File.createTempFile("s3resource", "test");
+		byte[] b = new byte[DEFAULT_PART_SIZE * 2];
+		new Random().nextBytes(b);
+		Files.write(b, file);
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write(Files.toByteArray(file));
+		}
+		GetObjectResponse result = client
+				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+		assertThat(result.contentType()).isEqualTo("text/plain");
+	}
+
+	@TestAvailableOutputStreamProviders
+	void contentTypeCanBeResolvedForSmallFiles(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
 
 		try (OutputStream outputStream = resource.getOutputStream()) {
 			outputStream.write("content".getBytes(StandardCharsets.UTF_8));
 		}
+
 		GetObjectResponse result = client
 				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");

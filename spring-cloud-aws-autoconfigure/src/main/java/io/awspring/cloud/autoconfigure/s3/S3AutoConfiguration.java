@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
@@ -129,9 +129,9 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3OutputStreamProvider diskBufferingS3StreamProvider(S3Client s3Client,
+	S3OutputStreamProvider inMemoryBufferingS3StreamProvider(S3Client s3Client,
 			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
-		return new DiskBufferingS3OutputStreamProvider(s3Client,
+		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
 
