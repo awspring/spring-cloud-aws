@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.s3.model.*;
  * @author Sam Garfinkel
  */
 @ExtendWith(MockitoExtension.class)
-public class InMemoryBufferingS3OutputStreamTests {
+class InMemoryBufferingS3OutputStreamTests {
 
 	@Mock
 	private S3Client s3Client;
