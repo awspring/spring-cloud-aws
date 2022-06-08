@@ -177,7 +177,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
 import java.time.Duration;
 
 @Configuration
-public class S3AwsClientConfigurerConfiguration {
+class S3AwsClientConfigurerConfiguration {
 
     @Bean
     AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {

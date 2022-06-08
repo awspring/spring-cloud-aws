@@ -2,7 +2,7 @@
 |Name | Default | Description
 
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
-|spring.cloud.aws.credentials.instance-profile |  | Configures an instance profile credentials provider with no further configuration.
+|spring.cloud.aws.credentials.instance-profile | `false` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK.
@@ -11,7 +11,7 @@
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
-|spring.cloud.aws.region.instance-profile |  | Configures an instance profile region provider with no further configuration.
+|spring.cloud.aws.region.instance-profile | `false` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
 |spring.cloud.aws.region.static |  | 
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
