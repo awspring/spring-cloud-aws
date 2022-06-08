@@ -24,7 +24,6 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -33,9 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -77,8 +74,7 @@ class SesAutoConfigurationTest {
 	void mailSenderWithSimpleEmail() {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(javax.mail.Session.class)).run(context -> {
 			assertThat(context).hasSingleBean(MailSender.class);
-			assertThat(context).hasBean("simpleMailSender");
-			assertThat(context).getBean("simpleMailSender").isSameAs(context.getBean(MailSender.class));
+			assertThat(context).hasBean("simpleMailSender").isSameAs(context.getBean(MailSender.class));
 		});
 	}
 
@@ -121,12 +117,9 @@ class SesAutoConfigurationTest {
 	@Test
 	void customSesClientConfigurer() {
 		this.contextRunner.withUserConfiguration(CustomAwsClientConfig.class).run(context -> {
-			SesClient sesClient = context.getBean(SesClient.class);
-
-			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(sesClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(2000));
-			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+			ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			assertThat(sesClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2000));
+			assertThat(sesClient.getSyncHttpClient()).isNotNull();
 		});
 	}
 
