@@ -21,7 +21,6 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.ses.SimpleEmailServiceMailSender;
-import javax.mail.Session;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -67,7 +66,7 @@ public class SesAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnClass(Session.class)
+	@ConditionalOnClass(name = "javax.mail.Session")
 	public JavaMailSender javaMailSender(SesClient sesClient) {
 		return new SimpleEmailServiceJavaMailSender(sesClient);
 	}
