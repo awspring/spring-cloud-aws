@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
 @Component
-public class S3ClientSample {
+class S3ClientSample {
 	private final S3Client s3Client;
 
 	S3ClientSample(S3Client s3Client) {
@@ -218,7 +218,6 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.accelerate-mode-enabled` | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.checksum-validation-enabled` | Option to disable doing a validation of the checksum of an object stored in S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
-| `spring.cloud.aws.s3.dualstack-enabled` | Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use IPv6. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.path-style-access-enabled` | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.use-arn-region-enabled` | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown. | No | `null` (falls back to SDK default)
 |===

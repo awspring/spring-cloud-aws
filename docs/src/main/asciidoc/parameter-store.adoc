@@ -90,7 +90,7 @@ import software.amazon.awssdk.services.ssm.SsmClient;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 
-public class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializer {
+class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializer {
 
     @Override
     public void initialize(BootstrapRegistry registry) {
