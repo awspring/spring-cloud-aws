@@ -60,7 +60,8 @@ public class SpringDynamoDbSample {
 		Department departmentLoaded = dynamoDbOperations
 				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
 						.sortValue(userId.toString()).build(), Department.class);
-
+		// Print openingDate for example.
+		System.out.println(departmentLoaded.getOpeningDate());
 		// Query
 		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
 				QueryEnhancedRequest.builder()
@@ -68,6 +69,8 @@ public class SpringDynamoDbSample {
 								.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
 						.build(),
 				Department.class);
+		// Print number of items queried.
+		System.out.println(departmentPageIterable.items().stream().count());
 
 		// Delete
 		dynamoDbOperations.delete(department);
