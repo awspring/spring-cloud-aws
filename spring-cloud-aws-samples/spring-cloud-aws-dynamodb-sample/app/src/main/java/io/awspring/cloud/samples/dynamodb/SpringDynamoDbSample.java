@@ -18,6 +18,9 @@ package io.awspring.cloud.samples.dynamodb;
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import java.time.LocalDate;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -35,6 +38,7 @@ public class SpringDynamoDbSample {
 
 	private DynamoDbOperations dynamoDbOperations;
 	private DynamoDbEnhancedClient dynamoDbEnhancedClient;
+	private static final Logger LOGGER = LoggerFactory.getLogger(SpringDynamoDbSample.class);
 
 	public SpringDynamoDbSample(DynamoDbOperations dynamoDbOperations, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 		this.dynamoDbOperations = dynamoDbOperations;
@@ -61,7 +65,7 @@ public class SpringDynamoDbSample {
 				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
 						.sortValue(userId.toString()).build(), Department.class);
 		// Print openingDate for example.
-		System.out.println(departmentLoaded.getOpeningDate());
+		LOGGER.info(departmentLoaded.getOpeningDate().toString());
 		// Query
 		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
 				QueryEnhancedRequest.builder()
@@ -70,7 +74,7 @@ public class SpringDynamoDbSample {
 						.build(),
 				Department.class);
 		// Print number of items queried.
-		System.out.println(departmentPageIterable.items().stream().count());
+		LOGGER.info(String.valueOf(departmentPageIterable.items().stream().count()));
 
 		// Delete
 		dynamoDbOperations.delete(department);
