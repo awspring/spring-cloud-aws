@@ -18,7 +18,6 @@ package io.awspring.cloud.samples.dynamodb;
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import java.time.LocalDate;
 import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -61,11 +60,10 @@ public class SpringDynamoDbSample {
 		dynamoDbOperations.save(department);
 
 		// Get Department for departmentId
-		Department departmentLoaded = dynamoDbOperations
+		dynamoDbOperations
 				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
 						.sortValue(userId.toString()).build(), Department.class);
-		// Print openingDate for example.
-		LOGGER.info(String.valueOf(departmentLoaded.getEmployeeNumber()));
+
 		// Query
 		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
 				QueryEnhancedRequest.builder()
