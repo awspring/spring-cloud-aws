@@ -65,7 +65,7 @@ public class SpringDynamoDbSample {
 				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
 						.sortValue(userId.toString()).build(), Department.class);
 		// Print openingDate for example.
-		LOGGER.info(departmentLoaded.getOpeningDate().toString());
+		LOGGER.info(String.valueOf(departmentLoaded.getOpeningDate()));
 		// Query
 		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
 				QueryEnhancedRequest.builder()
