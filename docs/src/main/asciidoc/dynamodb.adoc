@@ -142,6 +142,5 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 |===
 
 === IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
-
-TO:DO
+Since it depends how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
+To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
