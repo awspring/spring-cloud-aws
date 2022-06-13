@@ -20,10 +20,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -35,46 +35,47 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SpringBootApplication
 public class SpringDynamoDbSample {
 
-	private DynamoDbOperations dynamoDbOperations;
-	private DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringDynamoDbSample.class);
-
-	public SpringDynamoDbSample(DynamoDbOperations dynamoDbOperations, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this.dynamoDbOperations = dynamoDbOperations;
-		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
-	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringDynamoDbSample.class, args);
 
 	}
 
-	@EventListener(ApplicationReadyEvent.class)
-	public void sendMessage() {
-		dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).createTable();
-		UUID departmentId = UUID.randomUUID();
-		UUID userId = UUID.randomUUID();
-		Department department = Department.Builder.aDepartment().withDepartmentId(departmentId).withUserId(userId)
-				.withOpeningDate(LocalDate.now()).withEmployeeNumber(10L).build();
-		// Saving Department
-		dynamoDbOperations.save(department);
+	@Bean
+	ApplicationRunner applicationRunner(DynamoDbOperations dynamoDbOperations,
+			DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		return args -> {
+			// Create table on start up
+			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).createTable();
 
-		// Get Department for departmentId
-		dynamoDbOperations
-				.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
-						.sortValue(userId.toString()).build(), Department.class);
+			UUID departmentId = UUID.randomUUID();
+			UUID userId = UUID.randomUUID();
+			Department department = Department.Builder.aDepartment().withDepartmentId(departmentId).withUserId(userId)
+					.withOpeningDate(LocalDate.now()).withEmployeeNumber(10L).build();
+			// Saving Department
+			dynamoDbOperations.save(department);
 
-		// Query
-		PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
-				QueryEnhancedRequest.builder()
-						.queryConditional(QueryConditional
-								.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
-						.build(),
-				Department.class);
-		// Print number of items queried.
-		LOGGER.info(String.valueOf(departmentPageIterable.items().stream().count()));
+			// Get Department for departmentId
+			dynamoDbOperations
+					.load(Key.builder().partitionValue(AttributeValue.builder().s(departmentId.toString()).build())
+							.sortValue(userId.toString()).build(), Department.class);
 
-		// Delete
-		dynamoDbOperations.delete(department);
+			// Query
+			PageIterable<Department> departmentPageIterable = dynamoDbOperations.query(
+					QueryEnhancedRequest.builder()
+							.queryConditional(QueryConditional
+									.keyEqualTo(Key.builder().partitionValue(departmentId.toString()).build()))
+							.build(),
+					Department.class);
+			// Print number of items queried.
+			LOGGER.info(String.valueOf(departmentPageIterable.items().stream().count()));
+
+			// Delete
+			dynamoDbOperations.delete(department);
+
+			// Delete table after it has been used
+			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).deleteTable();
+		};
 	}
 }

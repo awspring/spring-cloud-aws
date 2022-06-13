@@ -136,9 +136,9 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 [cols="2,3,1,1"]
 |===
 | Name | Description | Required | Default value
-| `spring.cloud.aws.dynamoDb.enabled` | Enables the SNS integration. | No | `true`
-| `spring.cloud.aws.dynamoDb.endpoint` | Configures endpoint used by `SnsClient`. | No | NO
-| `spring.cloud.aws.dynamoDb.region` | Configures region used by `SnsClient`. | No | NO
+| `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
+| `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `SnsClient`. | No | NO
+| `spring.cloud.aws.dynamodb.region` | Configures region used by `SnsClient`. | No | NO
 |===
 
 === IAM Permissions

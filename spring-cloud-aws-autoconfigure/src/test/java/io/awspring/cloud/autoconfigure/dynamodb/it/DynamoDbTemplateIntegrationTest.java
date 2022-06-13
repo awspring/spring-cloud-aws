@@ -88,15 +88,6 @@ class DynamoDbTemplateIntegrationTest {
 	}
 
 	@Test
-	void dynamoDbTemplate_save_entitySuccessful() {
-		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(moreComplexPerson)).doesNotThrowAnyException();
-
-		cleanUp(moreComplexPerson.getUuid());
-	}
-
-	@Test
 	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
 		MoreComplexPerson moreComplexPerson = MoreComplexPerson.MoreComplexPersonBuilder.person().withName("foo")
 				.withLastName("bar").withUuid(UUID.randomUUID()).build();

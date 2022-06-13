@@ -14,7 +14,6 @@
 	<name>Spring Cloud AWS DynamoDb Sample Parent</name>
 
 	<modules>
-		<module>infrastructure</module>
 		<module>app</module>
 	</modules>
 </project>

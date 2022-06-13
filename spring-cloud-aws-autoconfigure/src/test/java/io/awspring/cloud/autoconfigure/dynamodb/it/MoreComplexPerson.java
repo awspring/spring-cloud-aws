@@ -20,6 +20,7 @@ import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
+// Called MoreComplexPerson so tableName can be resolved to more_complex_person. Used so it is not a plain tableName.
 @DynamoDbBean
 public class MoreComplexPerson {
 
