@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -57,6 +58,7 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		prepareTable(entity).deleteItem(entity);
 	}
 
+	@Nullable
 	public <T> T load(Key key, Class<T> clazz) {
 		return prepareTable(clazz).getItem(key);
 	}
