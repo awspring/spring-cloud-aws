@@ -15,21 +15,8 @@
  */
 package io.awspring.cloud.s3;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -44,110 +31,23 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-class DiskBufferingS3OutputStream extends S3OutputStream {
-
-	private static final Logger LOG = LoggerFactory.getLogger(DiskBufferingS3OutputStream.class);
-
-	/**
-	 * Bucket name of the S3 bucket.
-	 */
-	private final String bucket;
-
-	/**
-	 * Key of the file when it is uploaded to S3.
-	 */
-	private final String key;
-
-	/**
-	 * The local file that will be uploaded when the stream is closed.
-	 */
-	private final File file;
+class DiskBufferingS3OutputStream extends AbstractTempFileS3OutputStream {
 
 	private final S3Client s3Client;
 
-	/**
-	 * The outputstream to a local file where the file will be buffered until closed.
-	 */
-	private OutputStream localOutputStream;
+	DiskBufferingS3OutputStream(Location location, S3Client s3Client, @Nullable ObjectMetadata objectMetadata)
+			throws IOException {
+		this(location, s3Client, objectMetadata, null);
+	}
 
-	/**
-	 * The MD5 hash of the file.
-	 */
-	@Nullable
-	private MessageDigest hash;
-
-	@Nullable
-	private final ObjectMetadata objectMetadata;
-
-	/**
-	 * Flag to indicate this stream has been closed, to ensure close is only done once.
-	 */
-	private boolean closed;
-
-	DiskBufferingS3OutputStream(@NonNull String bucket, @NonNull String key, @NonNull S3Client client,
-			@Nullable ObjectMetadata objectMetadata) throws IOException {
-		Assert.notNull(bucket, "Bucket name must not be null.");
-		this.bucket = bucket;
-		this.key = key;
+	DiskBufferingS3OutputStream(Location location, S3Client client, @Nullable ObjectMetadata objectMetadata,
+			@Nullable S3ObjectContentTypeResolver contentTypeResolver) throws IOException {
+		super(location, objectMetadata, contentTypeResolver);
 		this.s3Client = client;
-		this.objectMetadata = objectMetadata;
-		this.file = File.createTempFile("DiskBufferingS3OutputStream", UUID.randomUUID().toString());
-		try {
-			hash = MessageDigest.getInstance("MD5");
-			localOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(file), hash));
-		}
-		catch (NoSuchAlgorithmException e) {
-			LOG.warn("Algorithm not available for MD5 hash.", e);
-			hash = null;
-			localOutputStream = new BufferedOutputStream(new FileOutputStream(file));
-		}
-		closed = false;
 	}
 
 	@Override
-	public void write(int b) throws IOException {
-		localOutputStream.write(b);
+	protected void upload(PutObjectRequest putObjectRequest) {
+		s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
 	}
-
-	@Override
-	public void write(byte[] b) throws IOException {
-		localOutputStream.write(b, 0, b.length);
-	}
-
-	@Override
-	public void write(byte[] b, int off, int len) throws IOException {
-		localOutputStream.write(b, off, len);
-	}
-
-	@Override
-	public void flush() throws IOException {
-		localOutputStream.flush();
-	}
-
-	@Override
-	public void close() throws IOException {
-		if (closed) {
-			return;
-		}
-		localOutputStream.close();
-		closed = true;
-		try {
-			PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(bucket).key(key)
-					.contentLength(file.length());
-			if (objectMetadata != null) {
-				objectMetadata.apply(builder);
-			}
-			if (hash != null) {
-				String contentMD5 = new String(Base64.getEncoder().encode(hash.digest()));
-				builder = builder.contentMD5(contentMD5);
-			}
-			s3Client.putObject(builder.build(), RequestBody.fromFile(file));
-			file.delete();
-		}
-		catch (Exception se) {
-			LOG.error("Failed to upload " + key + ". Temporary file @ " + file.getPath());
-			throw new UploadFailedException(file.getPath(), se);
-		}
-	}
-
 }

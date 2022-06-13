@@ -18,17 +18,25 @@ package io.awspring.cloud.autoconfigure.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
+import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
+import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
+import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -36,6 +44,12 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -82,68 +96,171 @@ class S3AutoConfigurationTests {
 		});
 	}
 
-	@Test
-	void byDefaultCreatesCrossRegionS3Client() {
-		this.contextRunner
-				.run(context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));
+	@Nested
+	class S3ClientTests {
+		@Test
+		void byDefaultCreatesCrossRegionS3Client() {
+			contextRunner.run(
+					context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));
+		}
+
+		@Test
+		void s3ClientCanBeOverwritten() {
+			contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
+				assertThat(context).hasSingleBean(S3Client.class);
+				assertThat(context).getBean(S3Client.class).isNotInstanceOf(CrossRegionS3Client.class);
+			});
+		}
+
+		@Test
+		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
+			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+				assertThat(context).hasSingleBean(S3Client.class);
+			});
+		}
+	}
+
+	@Nested
+	class OutputStreamProviderTests {
+
+		@Test
+		void createsInMemoryBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
+			contextRunner
+					.run(context -> assertThat(context).hasSingleBean(InMemoryBufferingS3OutputStreamProvider.class));
+		}
+
+		@Test
+		void customS3OutputStreamProviderCanBeConfigured() {
+			contextRunner.withUserConfiguration(CustomS3OutputStreamProviderConfiguration.class)
+					.run(context -> assertThat(context).hasSingleBean(CustomS3OutputStreamProvider.class));
+		}
+	}
+
+	@Nested
+	class EndpointConfigurationTests {
+		@Test
+		void withCustomEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
+				S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+				ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+				assertThat(client.isEndpointOverridden()).isTrue();
+			});
+		}
+
+		@Test
+		void withCustomGlobalEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
+				S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+				ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+				assertThat(client.isEndpointOverridden()).isTrue();
+			});
+		}
+
+		@Test
+		void withCustomGlobalEndpointAndS3Endpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+						S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+						ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+						assertThat(client.isEndpointOverridden()).isTrue();
+					});
+		}
+	}
+
+	@Nested
+	class S3TemplateAutoConfigurationTests {
+
+		@Test
+		void withJacksonOnClasspathAutoconfiguresObjectConverter() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(S3ObjectConverter.class);
+				assertThat(context).hasSingleBean(S3Template.class);
+			});
+		}
+
+		@Test
+		void withoutJacksonOnClasspathDoesNotConfigureObjectConverter() {
+			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
+				assertThat(context).doesNotHaveBean(S3Template.class);
+			});
+		}
+
+		@Test
+		void usesCustomObjectMapperBean() {
+			contextRunner.withUserConfiguration(CustomJacksonConfiguration.class).run(context -> {
+				S3ObjectConverter bean = context.getBean(S3ObjectConverter.class);
+				ObjectMapper objectMapper = (ObjectMapper) ReflectionTestUtils.getField(bean, "objectMapper");
+				assertThat(objectMapper).isEqualTo(context.getBean("customObjectMapper"));
+			});
+		}
+
+		@Test
+		void useAwsConfigurerClient() {
+			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
+				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
+				CustomAwsConfigurerClient.S3AwsClientClientConfigurer s3AwsClientClientConfigurer = context
+						.getBean(CustomAwsConfigurerClient.S3AwsClientClientConfigurer.class);
+				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout().get())
+						.isEqualTo(Duration.ofMillis(1542));
+				Map attributeMap = (Map) ReflectionTestUtils.getField(
+						ReflectionTestUtils.getField(
+								ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"),
+						"configuration");
+				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+			});
+		}
+
+		@Test
+		void usesCustomS3ObjectConverter() {
+			contextRunner
+					.withUserConfiguration(CustomJacksonConfiguration.class, CustomS3ObjectConverterConfiguration.class)
+					.run(context -> {
+						S3ObjectConverter s3ObjectConverter = context.getBean(S3ObjectConverter.class);
+						S3ObjectConverter customS3ObjectConverter = (S3ObjectConverter) context
+								.getBean("customS3ObjectConverter");
+						assertThat(s3ObjectConverter).isEqualTo(customS3ObjectConverter);
+
+						S3Template s3Template = context.getBean(S3Template.class);
+
+						S3ObjectConverter converter = (S3ObjectConverter) ReflectionTestUtils.getField(s3Template,
+								"s3ObjectConverter");
+						assertThat(converter).isEqualTo(customS3ObjectConverter);
+					});
+		}
 	}
 
 	@Test
-	void s3ClientCanBeOverwritten() {
-		this.contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
-			assertThat(context).hasSingleBean(S3Client.class);
-			assertThat(context).getBean(S3Client.class).isNotInstanceOf(CrossRegionS3Client.class);
-		});
-	}
-
-	@Test
-	void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
-		this.contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
-	}
-
-	@Test
-	void customS3OutputStreamProviderCanBeConfigured() {
-		this.contextRunner.withUserConfiguration(CustomS3OutputStreamProviderConfiguration.class)
-				.run(context -> assertThat(context).hasSingleBean(CustomS3OutputStreamProvider.class));
-	}
-
-	@Test
-	void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
-			assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-			assertThat(context).hasSingleBean(S3Client.class);
-		});
-	}
-
-	@Test
-	void withCustomEndpoint() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
-			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
-			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-			assertThat(client.isEndpointOverridden()).isTrue();
-		});
-	}
-
-	@Test
-	void withCustomGlobalEndpoint() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
-			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
-			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-			assertThat(client.isEndpointOverridden()).isTrue();
-		});
-	}
-
-	@Test
-	void withCustomGlobalEndpointAndS3Endpoint() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
-				"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+	void setsCommonAwsProperties() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
 					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-					assertThat(client.isEndpointOverridden()).isTrue();
+					assertThat(client.getDualstackEnabled()).isTrue();
+					assertThat(client.getFipsEnabled()).isTrue();
+					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
 				});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomJacksonConfiguration {
+		@Bean
+		ObjectMapper customObjectMapper() {
+			return new ObjectMapper();
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomS3ObjectConverterConfiguration {
+
+		@Bean
+		S3ObjectConverter customS3ObjectConverter() {
+			return mock(S3ObjectConverter.class);
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -157,11 +274,25 @@ class S3AutoConfigurationTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	static class CustomS3OutputStreamProviderConfiguration {
+	static class CustomAwsConfigurerClient {
 
 		@Bean
-		S3OutputStreamProvider customS3OutputStreamProvider() {
-			return new CustomS3OutputStreamProvider();
+		AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer();
+		}
+
+		static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
+			}
+
+			@Override
+			@Nullable
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
 		}
 
 	}
@@ -171,6 +302,15 @@ class S3AutoConfigurationTests {
 		@Override
 		public S3OutputStream create(String bucket, String key, @Nullable ObjectMetadata metadata) throws IOException {
 			return null;
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomS3OutputStreamProviderConfiguration {
+
+		@Bean
+		S3OutputStreamProvider customS3OutputStreamProvider() {
+			return new CustomS3OutputStreamProvider();
 		}
 
 	}

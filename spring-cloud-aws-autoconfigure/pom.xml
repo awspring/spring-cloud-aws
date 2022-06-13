@@ -57,7 +57,17 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-sns</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-s3</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-transfer-manager</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -71,11 +81,20 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-registry-cloudwatch2</artifactId>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
 			<optional>true</optional>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>localstack</artifactId>
@@ -85,6 +104,11 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-cloudwatch2</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<!-- AWS SDK v1 is required by testcontainers-localstack -->
 		<dependency>

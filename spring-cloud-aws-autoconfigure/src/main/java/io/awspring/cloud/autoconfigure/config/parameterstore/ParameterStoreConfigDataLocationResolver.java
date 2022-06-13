@@ -16,12 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -29,9 +30,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
@@ -47,6 +45,12 @@ public class ParameterStoreConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
+	private final Log log;
+
+	public ParameterStoreConfigDataLocationResolver(Log log) {
+		this.log = log;
+	}
+
 	@Override
 	protected String getPrefix() {
 		return PREFIX;
@@ -60,6 +64,7 @@ public class ParameterStoreConfigDataLocationResolver
 		registerBean(resolverContext, ParameterStoreProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
@@ -79,32 +84,16 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		ParameterStoreProperties properties = context.get(ParameterStoreProperties.class);
-
-		AwsCredentialsProvider credentialsProvider;
-
+		SsmClientBuilder builder = configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context);
 		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
+			AwsParameterStoreClientCustomizer configurer = context.get(AwsParameterStoreClientCustomizer.class);
+			if (configurer != null) {
+				AwsClientCustomizer.apply(configurer, builder);
+			}
 		}
 		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
+			log.debug("Bean of type AwsClientConfigurerParameterStore is not registered: " + e.getMessage());
 		}
-
-		AwsProperties awsProperties = context.get(AwsProperties.class);
-
-		SsmClientBuilder builder = SsmClient.builder()
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
-		if (StringUtils.hasLength(properties.getRegion())) {
-			builder.region(Region.of(properties.getRegion()));
-		}
-		if (properties.getEndpoint() != null) {
-			builder.endpointOverride(properties.getEndpoint());
-		}
-		else if (awsProperties.getEndpoint() != null) {
-			builder.endpointOverride(awsProperties.getEndpoint());
-		}
-		builder.credentialsProvider(credentialsProvider);
 		return builder.build();
 	}
 

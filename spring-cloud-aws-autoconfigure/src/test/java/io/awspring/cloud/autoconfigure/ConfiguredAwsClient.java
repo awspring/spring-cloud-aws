@@ -16,13 +16,16 @@
 package io.awspring.cloud.autoconfigure;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Objects;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class ConfiguredAwsClient {
@@ -46,6 +49,26 @@ public class ConfiguredAwsClient {
 
 	public Region getRegion() {
 		return clientConfigurationAttributes.get(AwsClientOption.AWS_REGION);
+	}
+
+	public Duration getApiCallTimeout() {
+		return clientConfigurationAttributes.get(SdkClientOption.API_CALL_TIMEOUT);
+	}
+
+	public SdkHttpClient getSyncHttpClient() {
+		return clientConfigurationAttributes.get(SdkClientOption.SYNC_HTTP_CLIENT);
+	}
+
+	public Boolean getFipsEnabled() {
+		return clientConfigurationAttributes.get(AwsClientOption.FIPS_ENDPOINT_ENABLED);
+	}
+
+	public Boolean getDualstackEnabled() {
+		return clientConfigurationAttributes.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED);
+	}
+
+	public DefaultsMode getDefaultsMode() {
+		return clientConfigurationAttributes.get(AwsClientOption.DEFAULTS_MODE);
 	}
 
 }

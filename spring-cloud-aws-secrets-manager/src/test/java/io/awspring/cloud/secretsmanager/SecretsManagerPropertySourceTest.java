@@ -53,6 +53,19 @@ class SecretsManagerPropertySourceTest {
 	}
 
 	@Test
+	void shouldParsePlainTextSecretValue() {
+		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder().secretString("my secret")
+				.name("secret name").build();
+
+		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("secret name");
+		assertThat(propertySource.getProperty("secret name")).isEqualTo("my secret");
+	}
+
+	@Test
 	void throwsExceptionWhenSecretNotFound() {
 		when(client.getSecretValue(any(GetSecretValueRequest.class)))
 				.thenThrow(ResourceNotFoundException.builder().message("secret not found").build());

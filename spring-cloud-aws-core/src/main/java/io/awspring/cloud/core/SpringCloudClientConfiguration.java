@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.core;
 
+import java.io.IOException;
+import java.util.Properties;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 
@@ -23,24 +27,44 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
  * server side (AWS or AWS-compatible service) can measure how many requests to its services come from Spring Cloud AWS.
  *
  * @author Eddú Meléndez
+ * @author Maciej Walkowiak
  */
 public final class SpringCloudClientConfiguration {
+	private static final String PROPERTIES_FILE_LOCATION = "/io/awspring/cloud/core/SpringCloudClientConfiguration.properties";
 
 	private static final String NAME = "spring-cloud-aws";
 
-	private static final String VERSION = "3.0";
+	private final String version;
+	private final ClientOverrideConfiguration clientOverrideConfiguration;
 
-	private SpringCloudClientConfiguration() {
-
-	}
-
-	public static ClientOverrideConfiguration clientOverrideConfiguration() {
-		return ClientOverrideConfiguration.builder()
+	public SpringCloudClientConfiguration(String version) {
+		this.version = version;
+		this.clientOverrideConfiguration = ClientOverrideConfiguration.builder()
 				.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, getUserAgent()).build();
 	}
 
-	private static String getUserAgent() {
-		return NAME + "/" + VERSION;
+	public SpringCloudClientConfiguration() {
+		this(loadVersion());
+	}
+
+	private static String loadVersion() {
+		try {
+			Properties properties = PropertiesLoaderUtils
+					.loadProperties(new ClassPathResource(PROPERTIES_FILE_LOCATION));
+			return properties.getProperty("build.version");
+		}
+		catch (IOException e) {
+			throw new IllegalStateException("Error when loading properties from " + PROPERTIES_FILE_LOCATION
+					+ " for resolving Spring Cloud AWS version.", e);
+		}
+	}
+
+	public ClientOverrideConfiguration clientOverrideConfiguration() {
+		return clientOverrideConfiguration;
+	}
+
+	private String getUserAgent() {
+		return NAME + "/" + version;
 	}
 
 }

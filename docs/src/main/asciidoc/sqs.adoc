@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 
-public class SqsQueueSender {
+class SqsQueueSender {
 
 	private final QueueMessagingTemplate queueMessagingTemplate;
 

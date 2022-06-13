@@ -32,8 +32,9 @@
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
 		<javax.activation.version>1.2.0</javax.activation.version>
 		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
-		<testcontainers.version>1.17.1</testcontainers.version>
+		<testcontainers.version>1.17.2</testcontainers.version>
 		<spotless.version>2.22.0</spotless.version>
+		<awssdk.version>2.17.172</awssdk.version>
 	</properties>
 
 	<modules>
@@ -43,6 +44,7 @@
 		<module>spring-cloud-aws-parameter-store</module>
 		<module>spring-cloud-aws-secrets-manager</module>
 		<module>spring-cloud-aws-ses</module>
+		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-s3-parent</module>
 		<module>spring-cloud-aws-starters</module>
 		<module>spring-cloud-aws-samples</module>

@@ -22,7 +22,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Maciej Walkowiak
  */
-public class UploadFailedException extends RuntimeException {
+public class UploadFailedException extends S3Exception {
 
 	/**
 	 * A path to temporary location containing a file that has not been uploaded to S3.
@@ -31,7 +31,7 @@ public class UploadFailedException extends RuntimeException {
 	private final String path;
 
 	public UploadFailedException(@Nullable String path, @Nullable Exception se) {
-		super(se);
+		super("Upload failed. File is stored in a temporary folder in the filesystem " + path, se);
 		this.path = path;
 	}
 

@@ -59,7 +59,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceJavaMailSender.class);
 
 	private static final String SMART_MIME_MESSAGE_CLASS_NAME = "org.springframework.mail.javamail.SmartMimeMessage";
 
@@ -97,6 +97,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	 * @param javaMailProperties java mail props
 	 */
 	public void setJavaMailProperties(Properties javaMailProperties) {
+		Assert.notNull(javaMailProperties, "javaMailProperties are required");
 		this.javaMailProperties = javaMailProperties;
 		this.session = null;
 	}
@@ -176,6 +177,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	@Override
 	public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
+		Assert.notNull(contentStream, "contentStream are required");
 		try {
 			return new MimeMessage(getSession(), contentStream);
 		}
@@ -186,12 +188,14 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	@Override
 	public void send(MimeMessage mimeMessage) throws MailException {
+		Assert.notNull(mimeMessage, "mimeMessage are required");
 		this.send(new MimeMessage[] { mimeMessage });
 	}
 
 	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
 	public void send(MimeMessage... mimeMessages) throws MailException {
+		Assert.notNull(mimeMessages, "mimeMessages are required");
 		Map<Object, Exception> failedMessages = new HashMap<>();
 
 		for (MimeMessage mimeMessage : mimeMessages) {
@@ -220,12 +224,14 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 
 	@Override
 	public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
+		Assert.notNull(mimeMessagePreparator, "mimeMessagePreparator are required");
 		send(new MimeMessagePreparator[] { mimeMessagePreparator });
 	}
 
 	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
 	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
+		Assert.notNull(mimeMessagePreparators, "mimeMessagePreparator are required");
 		MimeMessage mimeMessage = createMimeMessage();
 		for (MimeMessagePreparator mimeMessagePreparator : mimeMessagePreparators) {
 			try {

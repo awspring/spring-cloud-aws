@@ -52,9 +52,21 @@ class Location {
 	 * Creates location.
 	 * @param bucket - the bucket name
 	 * @param object - the object key
+	 */
+	Location(String bucket, String object) {
+		this(bucket, object, null);
+	}
+
+	/**
+	 * Creates location.
+	 * @param bucket - the bucket name
+	 * @param object - the object key
 	 * @param version - the object version
 	 */
 	Location(String bucket, String object, @Nullable String version) {
+		Assert.notNull(bucket, "bucket is required");
+		Assert.notNull(object, "object is required");
+
 		this.bucket = bucket;
 		this.object = object;
 		this.version = version;
@@ -65,6 +77,8 @@ class Location {
 	 * @param location - the location
 	 */
 	private Location(String location) {
+		Assert.notNull(location, "location is required");
+
 		this.bucket = resolveBucketName(location);
 		this.object = resolveObjectName(location);
 		this.version = resolveVersionId(location);

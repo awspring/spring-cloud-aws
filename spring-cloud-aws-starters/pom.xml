@@ -19,6 +19,7 @@
 		<module>spring-cloud-aws-starter-secrets-manager</module>
 		<module>spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starter-s3</module>
+		<module>spring-cloud-aws-starter-sns</module>
 	</modules>
 
 </project>

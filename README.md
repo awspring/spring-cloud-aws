@@ -1,11 +1,20 @@
 # 🍃 Spring Cloud AWS
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)
+
 Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
 For a deep dive into the project, refer to the Spring Cloud AWS Reference documentation:
 
-- [Spring Cloud AWS 2.4.0](https://docs.awspring.io/spring-cloud-aws/docs/2.4.0/reference/html/index.html)
-- [Spring Cloud AWS 2.3.4](https://docs.awspring.io/spring-cloud-aws/docs/2.3.4/reference/html/index.html)
+- [Spring Cloud AWS 3.0.0-SNAPSHOT](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-SNAPSHOT/reference/html/index.html)
+- [Spring Cloud AWS 2.4.1](https://docs.awspring.io/spring-cloud-aws/docs/2.4.1/reference/html/index.html)
+- [Spring Cloud AWS 2.3.5](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)
+
+## Sponsors
+
+Big thanks to [Localstack](https://localstack.cloud) for providing PRO licenses to the development team!
+
+[![localstacklogo](https://user-images.githubusercontent.com/1357927/166442325-6a94bdcd-8da0-4c76-b04e-69819a490c1c.png)](https://localstack.cloud)
 
 ## Compatibility with Spring Project Versions
 
@@ -14,23 +23,26 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | Spring Cloud AWS          | Spring Cloud                                                                                                          | Spring Boot  | Spring Framework | AWS Java SDK |
 |---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------|------------------|--------------|
 | 2.3.x (maintenance mode)  | [2020.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2020.0-Release-Notes) (3.0/Illford) | 2.4.x, 2.5.x | 5.3.x            | 1.x          |
-| 2.4.x (maintenance mode)  | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x        | 5.3.x            | 1.x          |
-| 3.0.x (under development) | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x        | 5.3.x            | 2.x          |
+| 2.4.x (maintenance mode)  | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x, 2.7.x        | 5.3.x            | 1.x          |
+| 3.0.x (under development) | [2021.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2021.0-Release-Notes) (3.1/Jubilee) | 2.6.x, 2.7.x        | 5.3.x            | 2.x          |
 
 ## Supported AWS integrations
 
-| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                       |
-|-----------------|----------------------|----------------------------------------------------------------------------|
-| S3              | ✅                    | ✅                                                                          |
-| SNS             | ✅                    | [Under development](https://github.com/awspring/spring-cloud-aws/pull/276) |
-| SES             | ✅                    | ✅                                                                          |
-| Parameter Store | ✅                    | ✅                                                                          |
-| Secrets Manager | ✅                    | ✅                                                                          |
-| SQS             | ✅                    | TODO                                                                       |
-| RDS             | ✅                    | TODO                                                                       |
-| EC2             | ✅                    | ❌                                                                          |
-| ElastiCache     | ✅                    | ❌                                                                          |
-| CloudFormation  | ✅                    | ❌                                                                          |
+| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                      |
+|-----------------|----------------------|---------------------------------------------------------------------------|
+| S3              | ✅                    | ✅                                                                         |
+| SNS             | ✅                    | ✅                                                                         |
+| SES             | ✅                    | ✅                                                                         |
+| Parameter Store | ✅                    | ✅                                                                         |
+| Secrets Manager | ✅                    | ✅                                                                         |
+| SQS             | ✅                    | In Progress [#344](https://github.com/awspring/spring-cloud-aws/pull/374)       |
+| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
+| EC2             | ✅                    | ❌                                                                         |
+| ElastiCache     | ✅                    | ❌                                                                         |
+| CloudFormation  | ✅                    | ❌                                                                         |
+| CloudWatch      | ✅                    | In Progress [#237](https://github.com/awspring/spring-cloud-aws/pull/237) |
+| Cognito         | ✅                    | In Progesss [#340](https://github.com/awspring/spring-cloud-aws/pull/340) |
+| DynamoDB        | ❌                    | In Progesss [#339](https://github.com/awspring/spring-cloud-aws/pull/339) |
 
 Note, that Spring provides support for other AWS services in following projects:
 
@@ -83,7 +95,7 @@ make format
 Documentation can be built by activating the `docs` profile in the maven build.
 
 ```
-./mvnw package -Pdocs
+make docs
 ```
 
 It generates:
