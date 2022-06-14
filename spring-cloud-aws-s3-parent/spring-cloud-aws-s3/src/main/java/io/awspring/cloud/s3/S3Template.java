@@ -100,7 +100,7 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public void upload(String bucketName, String key, InputStream inputStream,
+	public S3Resource upload(String bucketName, String key, InputStream inputStream,
 			@Nullable ObjectMetadata objectMetadata) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");
@@ -112,6 +112,7 @@ public class S3Template implements S3Operations {
 		}
 		try (OutputStream os = s3Resource.getOutputStream()) {
 			StreamUtils.copy(inputStream, os);
+			return s3Resource;
 		}
 		catch (Exception e) {
 			throw new S3Exception(

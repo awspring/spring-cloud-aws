@@ -159,8 +159,9 @@ class S3TemplateIntegrationTests {
 	@Test
 	void uploadsFile() throws IOException {
 		try (InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8))) {
-			s3Template.upload("test-bucket", "file.txt", is,
+			S3Resource uploadedResource = s3Template.upload("test-bucket", "file.txt", is,
 					ObjectMetadata.builder().contentType("text/plain").build());
+			assertThat(uploadedResource).isNotNull();
 		}
 
 		ResponseInputStream<GetObjectResponse> response = client

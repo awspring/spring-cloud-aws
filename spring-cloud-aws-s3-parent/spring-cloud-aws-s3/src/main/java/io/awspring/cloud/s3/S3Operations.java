@@ -79,8 +79,9 @@ public interface S3Operations {
 	 * @param key - the object key
 	 * @param inputStream - the input stream
 	 * @param objectMetadata - the object metadata
+	 * @return created {@link Resource}
 	 */
-	void upload(String bucketName, String key, InputStream inputStream, @Nullable ObjectMetadata objectMetadata);
+	S3Resource upload(String bucketName, String key, InputStream inputStream, @Nullable ObjectMetadata objectMetadata);
 
 	/**
 	 * Uploads data from an input stream to a S3 bucket.
@@ -88,9 +89,10 @@ public interface S3Operations {
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
 	 * @param inputStream - the input stream
+	 * @return created {@link Resource}
 	 */
-	default void upload(String bucketName, String key, InputStream inputStream) {
-		upload(bucketName, key, inputStream, null);
+	default S3Resource upload(String bucketName, String key, InputStream inputStream) {
+		return upload(bucketName, key, inputStream, null);
 	}
 
 	/**
