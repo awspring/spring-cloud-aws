@@ -135,12 +135,13 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void storesObject() throws IOException {
-		s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
+		S3Resource storedObject = s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
 
 		ResponseInputStream<GetObjectResponse> response = client
 				.getObject(r -> r.bucket("test-bucket").key("person.json"));
 		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 
+		assertThat(storedObject).isNotNull();
 		assertThat(result).isEqualTo("{\"firstName\":\"John\",\"lastName\":\"Doe\"}");
 		assertThat(response.response().contentType()).isEqualTo("application/json");
 	}
