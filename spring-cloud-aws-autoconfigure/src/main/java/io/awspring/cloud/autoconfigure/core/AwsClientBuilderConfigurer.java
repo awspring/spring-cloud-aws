@@ -48,15 +48,20 @@ public class AwsClientBuilderConfigurer {
 		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
+	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder) {
+		return configure(builder, null, null);
+	}
+
 	public <T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> T configure(T builder,
-			AwsClientProperties clientProperties, @Nullable AwsClientCustomizer<T> customizer) {
+			@Nullable AwsClientProperties clientProperties, @Nullable AwsClientCustomizer<T> customizer) {
 		Assert.notNull(builder, "builder is required");
 		Assert.notNull(builder, "clientProperties are required");
 
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(clientProperties).map(AwsClientProperties::getEndpoint)
+				.ifPresent(builder::endpointOverride);
 
 		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
 		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
@@ -67,10 +72,9 @@ public class AwsClientBuilderConfigurer {
 		return builder;
 	}
 
-	public Region resolveRegion(AwsClientProperties clientProperties) {
-		Assert.notNull(clientProperties, "clientProperties are required");
-
-		return StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
+	public Region resolveRegion(@Nullable AwsClientProperties clientProperties) {
+		return clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())
+				? Region.of(clientProperties.getRegion())
 				: this.regionProvider.getRegion();
 	}
 }
