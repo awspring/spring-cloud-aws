@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -203,14 +204,8 @@ class S3AutoConfigurationTests {
 		void useAwsConfigurerClient() {
 			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
 				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
-				CustomAwsConfigurerClient.S3AwsClientClientConfigurer s3AwsClientClientConfigurer = context
-						.getBean(CustomAwsConfigurerClient.S3AwsClientClientConfigurer.class);
-				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout().get())
-						.isEqualTo(Duration.ofMillis(1542));
-				Map attributeMap = (Map) ReflectionTestUtils.getField(
-						ReflectionTestUtils.getField(
-								ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"),
-						"configuration");
+				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout()).contains(Duration.ofMillis(1542));
+				Map attributeMap = resolveAttributeMap(s3ClientBuilder);
 				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 			});
 		}
@@ -315,4 +310,9 @@ class S3AutoConfigurationTests {
 
 	}
 
+	private static Map resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
+		Map attributes = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+				ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"), "configuration");
+		return Objects.requireNonNull(attributes);
+	}
 }
