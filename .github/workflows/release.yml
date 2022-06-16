@@ -43,9 +43,9 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify -Pspring
+        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs
       - name: Deploy to Sonatype
-        run: ./mvnw -V -Prelease,docs javadoc:aggregate deploy -DskipTests
+        run: ./mvnw -V -Prelease deploy -DskipTests
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
