@@ -6,6 +6,7 @@ on:
       - v2.3.*
       - v2.4.*
       - v3.0.*
+    branches: [ fix-release ]
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
