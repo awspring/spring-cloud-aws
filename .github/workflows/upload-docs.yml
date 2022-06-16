@@ -8,6 +8,7 @@ on:
       - 2.4.x
       - 2.3.x
       - 2.2.x
+      - fix-docs-build
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
