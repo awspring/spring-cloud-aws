@@ -125,7 +125,7 @@ class S3TransferManagerAutoConfigurationTests {
 	@NonNull
 	private static S3AsyncClient resolveS3Client(S3TransferManager builder) {
 		return (S3AsyncClient) ReflectionTestUtils.getField(ReflectionTestUtils.getField(builder, "s3CrtAsyncClient"),
-				"s3AsyncClient");
+				"delegate");
 	}
 
 }

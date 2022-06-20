@@ -16,7 +16,6 @@
 package io.awspring.cloud.s3;
 
 import java.io.InputStream;
-import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
@@ -58,8 +57,9 @@ public interface S3Operations {
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
 	 * @param object - the Java object to serialize and store
+	 * @return created {@link S3Resource}.
 	 */
-	void store(String bucketName, String key, Object object);
+	S3Resource store(String bucketName, String key, Object object);
 
 	/**
 	 * Reads a Java object from a S3 bucket. Uses {@link S3ObjectConverter} for deserialization.
@@ -79,8 +79,9 @@ public interface S3Operations {
 	 * @param key - the object key
 	 * @param inputStream - the input stream
 	 * @param objectMetadata - the object metadata
+	 * @return created {@link S3Resource}
 	 */
-	void upload(String bucketName, String key, InputStream inputStream, @Nullable ObjectMetadata objectMetadata);
+	S3Resource upload(String bucketName, String key, InputStream inputStream, @Nullable ObjectMetadata objectMetadata);
 
 	/**
 	 * Uploads data from an input stream to a S3 bucket.
@@ -88,9 +89,10 @@ public interface S3Operations {
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
 	 * @param inputStream - the input stream
+	 * @return created {@link S3Resource}
 	 */
-	default void upload(String bucketName, String key, InputStream inputStream) {
-		upload(bucketName, key, inputStream, null);
+	default S3Resource upload(String bucketName, String key, InputStream inputStream) {
+		return upload(bucketName, key, inputStream, null);
 	}
 
 	/**
@@ -98,7 +100,7 @@ public interface S3Operations {
 	 *
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
-	 * @return downloaded object represented as {@link Resource}
+	 * @return downloaded object represented as {@link S3Resource}
 	 */
-	Resource download(String bucketName, String key);
+	S3Resource download(String bucketName, String key);
 }

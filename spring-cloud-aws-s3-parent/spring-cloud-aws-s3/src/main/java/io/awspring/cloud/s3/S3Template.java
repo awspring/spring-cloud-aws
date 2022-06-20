@@ -17,7 +17,6 @@ package io.awspring.cloud.s3;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
@@ -74,7 +73,7 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public void store(String bucketName, String key, Object object) {
+	public S3Resource store(String bucketName, String key, Object object) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");
 		Assert.notNull(object, "object is required");
@@ -82,6 +81,7 @@ public class S3Template implements S3Operations {
 		PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key)
 				.contentType(s3ObjectConverter.contentType());
 		s3Client.putObject(requestBuilder.build(), s3ObjectConverter.write(object));
+		return new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public void upload(String bucketName, String key, InputStream inputStream,
+	public S3Resource upload(String bucketName, String key, InputStream inputStream,
 			@Nullable ObjectMetadata objectMetadata) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");
@@ -112,6 +112,7 @@ public class S3Template implements S3Operations {
 		}
 		try (OutputStream os = s3Resource.getOutputStream()) {
 			StreamUtils.copy(inputStream, os);
+			return s3Resource;
 		}
 		catch (Exception e) {
 			throw new S3Exception(
@@ -120,7 +121,7 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public Resource download(String bucketName, String key) {
+	public S3Resource download(String bucketName, String key) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");
 
