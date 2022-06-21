@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
-          java-version: 8.0.333
+          java-version: 8.0.332-tem
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
