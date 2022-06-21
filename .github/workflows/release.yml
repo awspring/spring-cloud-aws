@@ -16,7 +16,7 @@ jobs:
     name: "Release"
     strategy:
       matrix:
-        version: [ 8.0.275.hs-adpt ]
+        version: [ 8.0.332-tem ]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
