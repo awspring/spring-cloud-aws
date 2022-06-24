@@ -1,0 +1,253 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.awspring.cloud.dynamodb;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
+
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+@Testcontainers
+public class DynamoDbTemplateIntegrationTest {
+
+	private static final String REGION = "us-east-1";
+	private static DynamoDbTable dynamoDbTable;
+	private static DynamoDbClient dynamoDbClient;
+	private static DynamoDbTemplate dynamoDbTemplate;
+
+	@Container
+	static LocalStackContainer localstack = new LocalStackContainer(
+			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(DYNAMODB).withReuse(true);
+
+	@BeforeAll
+	public static void createTable() {
+		DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
+				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
+				.build();
+		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
+		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);
+		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
+				.table("underscore_person", TableSchema.fromBean(UnderscorePerson.class));
+		dynamoDbTable.createTable();
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
+		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			UnderscorePerson underscorePerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
+					UnderscorePerson.class);
+			assertThat(underscorePerson1).isEqualTo(underscorePerson);
+		}).doesNotThrowAnyException();
+
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_read_entitySuccessful_returnsNull() {
+		assertThatCode(() -> {
+			UnderscorePerson underscorePerson1 = dynamoDbTemplate
+					.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), UnderscorePerson.class);
+			assertThat(underscorePerson1).isNull();
+		}).doesNotThrowAnyException();
+	}
+
+	@Test
+	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
+		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		underscorePerson.setLastName("xxx");
+		assertThatCode(() -> dynamoDbTemplate.update(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			UnderscorePerson underscorePerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
+					UnderscorePerson.class);
+			assertThat(underscorePerson1).isEqualTo(underscorePerson);
+		}).doesNotThrowAnyException();
+
+		// clean up
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
+
+		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> dynamoDbTemplate.delete(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			UnderscorePerson UnderscorePerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
+					UnderscorePerson.class);
+			assertThat(UnderscorePerson1).isEqualTo(null);
+		}).doesNotThrowAnyException();
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
+
+		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> dynamoDbTemplate.delete(
+				Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(), UnderscorePerson.class))
+						.doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			UnderscorePerson UnderscorePerson1 = dynamoDbTemplate.load(
+					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
+					UnderscorePerson.class);
+			assertThat(UnderscorePerson1).isEqualTo(null);
+		}).doesNotThrowAnyException();
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
+		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
+				UnderscorePerson.class)).doesNotThrowAnyException();
+	}
+
+	@Test
+	void dynamoDbTemplate_query_returns_singlePagePerson() {
+		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
+				.queryConditional(QueryConditional
+						.keyEqualTo(Key.builder().partitionValue(underscorePerson.getUuid().toString()).build()))
+				.build();
+
+		PageIterable<UnderscorePerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, UnderscorePerson.class);
+		// items size
+		assertThat((int) persons.items().stream().count()).isEqualTo(1);
+		// page size
+		assertThat((int) persons.stream().count()).isEqualTo(1);
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_query_returns_empty() {
+		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
+				.queryConditional(
+						QueryConditional.keyEqualTo(Key.builder().partitionValue(UUID.randomUUID().toString()).build()))
+				.build();
+
+		PageIterable<UnderscorePerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, UnderscorePerson.class);
+		// items size
+		assertThat((int) persons.items().stream().count()).isEqualTo(0);
+		// page size
+		assertThat((int) persons.stream().count()).isEqualTo(1);
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
+		UnderscorePerson underscorePerson = io.awspring.cloud.dynamodb.UnderscorePerson.UnderscorePersonBuilder.person()
+				.withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+
+		assertThatCode(() -> {
+			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
+			assertThat(persons.items().iterator().next()).isEqualTo(underscorePerson);
+		}).doesNotThrowAnyException();
+
+		cleanUp(underscorePerson.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_scanAll_returnsEmpty() {
+		assertThatCode(() -> {
+			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(0);
+		}).doesNotThrowAnyException();
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful() {
+		UnderscorePerson UnderscorePerson1 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		UnderscorePerson UnderscorePerson2 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(UnderscorePerson1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(UnderscorePerson2)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(2);
+		}).doesNotThrowAnyException();
+
+		cleanUp(UnderscorePerson1.getUuid());
+		cleanUp(UnderscorePerson2.getUuid());
+	}
+
+	@Test
+	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful() {
+		UnderscorePerson underscorePerson1 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		UnderscorePerson underscorePerson2 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
+				.withLastName("bar").withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson2)).doesNotThrowAnyException();
+		assertThatCode(() -> {
+			Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
+					.putExpressionName("#uuidToBeLooked", "uuid").putExpressionValue(":myValue",
+							AttributeValue.builder().s(underscorePerson1.getUuid().toString()).build())
+					.build();
+			ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
+					.filterExpression(expression).build();
+			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scan(scanEnhancedRequest, UnderscorePerson.class);
+			assertThat(persons.items().stream().count()).isEqualTo(1);
+			assertThat(persons.items().iterator().next()).isEqualTo(underscorePerson1);
+		}).doesNotThrowAnyException();
+
+		cleanUp(underscorePerson1.getUuid());
+		cleanUp(underscorePerson2.getUuid());
+	}
+
+	public static void cleanUp(UUID uuid) {
+		dynamoDbTable.deleteItem(Key.builder().partitionValue(uuid.toString()).build());
+	}
+}

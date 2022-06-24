@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.dynamodb.it;
+package io.awspring.cloud.dynamodb;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 
 // Called MoreComplexPerson so tableName can be resolved to more_complex_person. Used so it is not a plain tableName.
 @DynamoDbBean
-public class MoreComplexPerson {
+public class UnderscorePerson {
 
 	private UUID uuid;
 	private String name;
@@ -59,9 +59,9 @@ public class MoreComplexPerson {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		MoreComplexPerson moreComplexPerson = (MoreComplexPerson) o;
-		return Objects.equals(uuid, moreComplexPerson.uuid) && Objects.equals(name, moreComplexPerson.name)
-				&& Objects.equals(lastName, moreComplexPerson.lastName);
+		UnderscorePerson underscorePerson = (UnderscorePerson) o;
+		return Objects.equals(uuid, underscorePerson.uuid) && Objects.equals(name, underscorePerson.name)
+				&& Objects.equals(lastName, underscorePerson.lastName);
 	}
 
 	@Override
@@ -69,39 +69,39 @@ public class MoreComplexPerson {
 		return Objects.hash(uuid, name, lastName);
 	}
 
-	public static final class MoreComplexPersonBuilder {
+	public static final class UnderscorePersonBuilder {
 		private UUID uuid;
 		private String name;
 		private String lastName;
 
-		private MoreComplexPersonBuilder() {
+		private UnderscorePersonBuilder() {
 		}
 
-		public static MoreComplexPersonBuilder person() {
-			return new MoreComplexPersonBuilder();
+		public static UnderscorePersonBuilder person() {
+			return new UnderscorePersonBuilder();
 		}
 
-		public MoreComplexPersonBuilder withUuid(UUID uuid) {
+		public UnderscorePersonBuilder withUuid(UUID uuid) {
 			this.uuid = uuid;
 			return this;
 		}
 
-		public MoreComplexPersonBuilder withName(String name) {
+		public UnderscorePersonBuilder withName(String name) {
 			this.name = name;
 			return this;
 		}
 
-		public MoreComplexPersonBuilder withLastName(String lastName) {
+		public UnderscorePersonBuilder withLastName(String lastName) {
 			this.lastName = lastName;
 			return this;
 		}
 
-		public MoreComplexPerson build() {
-			MoreComplexPerson moreComplexPerson = new MoreComplexPerson();
-			moreComplexPerson.setUuid(uuid);
-			moreComplexPerson.setName(name);
-			moreComplexPerson.setLastName(lastName);
-			return moreComplexPerson;
+		public UnderscorePerson build() {
+			UnderscorePerson underscorePerson = new UnderscorePerson();
+			underscorePerson.setUuid(uuid);
+			underscorePerson.setName(name);
+			underscorePerson.setLastName(lastName);
+			return underscorePerson;
 		}
 	}
 }

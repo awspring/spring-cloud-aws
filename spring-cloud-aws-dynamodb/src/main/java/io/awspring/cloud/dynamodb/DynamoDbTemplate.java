@@ -33,6 +33,10 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
+	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(), new DefaultDynamoDbTableNameResolver());
+	}
+
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
 			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver,
 			DynamoDbTableNameResolver dynamoDbTableNameResolver) {
