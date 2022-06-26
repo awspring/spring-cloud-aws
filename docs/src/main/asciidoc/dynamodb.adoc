@@ -19,10 +19,10 @@ DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOpe
 === DynamoDbOperations
 
 The starter automatically configures and registers a `DynamoDbOperations` bean providing higher level abstractions for working with DynamoDb.
-`DynamoDbTemplate` is built on top of `DynamoDbEnhancedClient`, this means it uses annotations provided by AWS.
-List of annotations that can be used can be found https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/enhanced/dynamodb/mapper/annotations/package-summary.html[here].
+`DynamoDbTemplate` - a default `DynamoDbOperations` implementation - being built on top of `DynamoDbEnhancedClient` uses annotations provided by AWS.
+The list of supported annotations can be found https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/enhanced/dynamodb/mapper/annotations/package-summary.html[here].
 
-Example of simple Entity:
+`DynamoDbEnchancedClient` supports a programming model similar to JPA - where a class is turned into an entity through applying certain annotations:
 
 [source,java]
 ----
@@ -30,24 +30,22 @@ import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
-
 @DynamoDbBean
-public class ComplexPerson {
-
-	private UUID uuid;
+public class Person {
+	private UUID id;
 	private String name;
 	private String lastName;
 
 	@DynamoDbPartitionKey
-	public UUID getUuid() {
-		return uuid;
+	public UUID getId() {
+		return id;
 	}
 
-...
-
+    ...
+}
 ----
 
-We can now preform operations on given entity with `DynamoDbTemplate`.
+`DynamoDbTemplate` provides methods to perform typical CRUD operations on such entities, plus it adds convenience methods for querying DynamoDb:
 
 [source,java]
 ----
@@ -58,50 +56,19 @@ import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 @Autowired
 DynamoDbTemplate dynamoDbTemplate;
 ...
-ComplexPerson person = new ComplexPerson(...)
+Person person = new Person(...)
 dynamoDbTemplate.save(person);
-
-
 ----
 
-Since `@DynamoDbBean` does not support naming table, we are using default implementation of `DynamoDbTableNameResolver`.
-Default implementation works that it calls `givenClass.getSimpleName()` puts `_` in front of UpperCased letter ignoring the first one and on the end lowercase everything.
-In our example `ComplexPerson` will be resolved to `complex_person`.
-If you wish to create your own implementation simply implement your own `DynamoDbTableNameResolver` and register it as a Bean and autoconfiguration will pick it up.
+==== Resolving Table Name
 
-Default implementation:
-[source,java]
-----
-import java.util.Locale;
+To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation.
+To use custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
-public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
+==== Resolving Table Schema
 
-	@Override
-	public String resolve(Class clazz) {
-		return clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT);
-	}
-}
-----
-
-Because `DynamoDbTemplate` is built on top of `DynamoDbEnhancedClient` that means it is using `TableSchema` for making a calls.
-Creating `TableSchema` is expensive and that is why default implementation of `DynamoDbTableSchemaResolver` is caching it by referencing `TableSchema` to a `TableName`.
-If there is need to use another implementation simply implement `DynamoDbTableSchemaResolver` and register it as a Bean and autoconfiguration will pick it up.
-
-Default implementation:
-----
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-
-public class DefaultDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
-	private final Map<String, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
-
-	@Override
-	public <T> TableSchema<T> resolve(Class<T> clazz, String tableName) {
-		return tableSchemaCache.computeIfAbsent(tableName, entityClassName -> TableSchema.fromBean(clazz));
-	}
-}
-----
+To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
+To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
 === Using DynamoDb Client
 
@@ -133,14 +100,15 @@ public class DynamoDbService {
 
 The Spring Boot Starter for DynamoDb provides the following configuration options:
 
-[cols="2,3,1,1"]
+[cols="3,3,1,1"]
 |===
 | Name | Description | Required | Default value
 | `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
-| `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `SnsClient`. | No | NO
-| `spring.cloud.aws.dynamodb.region` | Configures region used by `SnsClient`. | No | NO
+| `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `DynamoDbClient`. | No |
+| `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
 |===
 
 === IAM Permissions
-Since it depends how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
+
+Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
 To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
