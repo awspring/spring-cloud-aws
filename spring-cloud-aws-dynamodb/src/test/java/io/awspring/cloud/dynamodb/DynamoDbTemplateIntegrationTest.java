@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @Testcontainers
 public class DynamoDbTemplateIntegrationTest {
 
-	private static DynamoDbTable dynamoDbTable;
+	private static DynamoDbTable<PersonEntity> dynamoDbTable;
 	private static DynamoDbTemplate dynamoDbTemplate;
 
 	@Container
@@ -111,7 +111,6 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
-
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
 		dynamoDbTemplate.save(personEntity);
@@ -142,9 +141,9 @@ public class DynamoDbTemplateIntegrationTest {
 
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.query(queryEnhancedRequest, PersonEntity.class);
 		// items size
-		assertThat((int) persons.items().stream().count()).isEqualTo(1);
+		assertThat(persons.items().stream()).hasSize(1);
 		// page size
-		assertThat((int) persons.stream().count()).isEqualTo(1);
+		assertThat(persons.stream()).hasSize(1);
 		cleanUp(personEntity.getUuid());
 	}
 
@@ -157,9 +156,9 @@ public class DynamoDbTemplateIntegrationTest {
 
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.query(queryEnhancedRequest, PersonEntity.class);
 		// items size
-		assertThat((int) persons.items().stream().count()).isEqualTo(0);
+		assertThat(persons.items().stream()).isEmpty();
 		// page size
-		assertThat((int) persons.stream().count()).isEqualTo(1);
+		assertThat(persons.stream()).hasSize(1);
 	}
 
 	@Test
@@ -177,7 +176,7 @@ public class DynamoDbTemplateIntegrationTest {
 	@Test
 	void dynamoDbTemplate_scanAll_returnsEmpty() {
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
-		assertThat(persons.items().stream().count()).isEqualTo(0);
+		assertThat(persons.items().stream()).isEmpty();
 	}
 
 	@Test
@@ -189,7 +188,7 @@ public class DynamoDbTemplateIntegrationTest {
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
-		assertThat(persons.items().stream().count()).isEqualTo(2);
+		assertThat(persons.items().stream()).hasSize(2);
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
 	}
@@ -209,7 +208,7 @@ public class DynamoDbTemplateIntegrationTest {
 		ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
 				.filterExpression(expression).build();
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
-		assertThat(persons.items().stream().count()).isEqualTo(1);
+		assertThat(persons.items().stream()).hasSize(1);
 		assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
