@@ -19,13 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 class DynamoDbTableSchemaResolverTest {
 
-	DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
+	private final DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
 
 	@Test
 	void tableSchemaResolved_successfully() {
@@ -36,28 +37,32 @@ class DynamoDbTableSchemaResolverTest {
 		defaultTableSchemaResolver.resolve(Person.class, "person");
 
 		// then
-		assertThat(((Map<String, TableSchema>) ReflectionTestUtils.getField(defaultTableSchemaResolver,
-				"tableSchemaCache")).size()).isEqualTo(1);
 		assertThat(tableSchema).isNotNull();
+		assertThat(getTableSchemaCache(defaultTableSchemaResolver)).hasSize(1);
 	}
 
 	@Test
 	void tableSchemaResolved_successfully_for_multiple_tables() {
 		// given when
 		TableSchema<Person> person = defaultTableSchemaResolver.resolve(Person.class, "person");
-		TableSchema<MoreComplexPerson> moreComplexPersonTableSchema = defaultTableSchemaResolver
-				.resolve(MoreComplexPerson.class, "more_complex_person");
+		TableSchema<Book> bookTableSchema = defaultTableSchemaResolver.resolve(Book.class, "book");
 
 		// then
-		assertThat(((Map<String, TableSchema>) ReflectionTestUtils.getField(defaultTableSchemaResolver,
-				"tableSchemaCache")).size()).isEqualTo(2);
 		assertThat(person).isNotNull();
-		assertThat(moreComplexPersonTableSchema).isNotNull();
+		assertThat(bookTableSchema).isNotNull();
+		assertThat(getTableSchemaCache(defaultTableSchemaResolver)).hasSize(2);
 	}
 
 	@Test
 	void tableSchemaResolver_fail_entity_not_annotated() {
-		assertThatThrownBy(() -> defaultTableSchemaResolver.resolve(FakePerson.class, "fake_person"));
+		assertThatThrownBy(() -> defaultTableSchemaResolver.resolve(FakePerson.class, "fake_person"))
+				.isInstanceOf(IllegalArgumentException.class);
 
+	}
+
+	@Nullable
+	private Map<String, TableSchema> getTableSchemaCache(
+			DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver) {
+		return (Map<String, TableSchema>) ReflectionTestUtils.getField(defaultTableSchemaResolver, "tableSchemaCache");
 	}
 }

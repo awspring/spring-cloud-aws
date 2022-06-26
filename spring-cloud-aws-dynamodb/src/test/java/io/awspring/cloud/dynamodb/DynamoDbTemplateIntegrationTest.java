@@ -40,9 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @Testcontainers
 public class DynamoDbTemplateIntegrationTest {
 
-	private static final String REGION = "us-east-1";
 	private static DynamoDbTable dynamoDbTable;
-	private static DynamoDbClient dynamoDbClient;
 	private static DynamoDbTemplate dynamoDbTemplate;
 
 	@Container
@@ -57,117 +55,105 @@ public class DynamoDbTemplateIntegrationTest {
 				.build();
 		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);
-		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
-				.table("underscore_person", TableSchema.fromBean(UnderscorePerson.class));
+		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build().table("person_entity",
+				TableSchema.fromBean(PersonEntity.class));
 		dynamoDbTable.createTable();
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
-		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
 
-		assertThatCode(() -> {
-			UnderscorePerson underscorePerson1 = dynamoDbTemplate.load(
-					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
-					UnderscorePerson.class);
-			assertThat(underscorePerson1).isEqualTo(underscorePerson);
-		}).doesNotThrowAnyException();
+		PersonEntity personEntity1 = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+		assertThat(personEntity1).isEqualTo(personEntity);
 
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_read_entitySuccessful_returnsNull() {
-		assertThatCode(() -> {
-			UnderscorePerson underscorePerson1 = dynamoDbTemplate
-					.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), UnderscorePerson.class);
-			assertThat(underscorePerson1).isNull();
-		}).doesNotThrowAnyException();
+		PersonEntity personEntity1 = dynamoDbTemplate
+				.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), PersonEntity.class);
+		assertThat(personEntity1).isNull();
 	}
 
 	@Test
 	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
-		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		dynamoDbTemplate.save(personEntity);
 
-		underscorePerson.setLastName("xxx");
-		assertThatCode(() -> dynamoDbTemplate.update(underscorePerson)).doesNotThrowAnyException();
+		personEntity.setLastName("xxx");
+		dynamoDbTemplate.update(personEntity);
 
-		assertThatCode(() -> {
-			UnderscorePerson underscorePerson1 = dynamoDbTemplate.load(
-					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
-					UnderscorePerson.class);
-			assertThat(underscorePerson1).isEqualTo(underscorePerson);
-		}).doesNotThrowAnyException();
+		PersonEntity personEntity1 = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+		assertThat(personEntity1).isEqualTo(personEntity);
 
 		// clean up
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
 
-		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
-
-		assertThatCode(() -> dynamoDbTemplate.delete(underscorePerson)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.delete(personEntity)).doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			UnderscorePerson UnderscorePerson1 = dynamoDbTemplate.load(
-					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
-					UnderscorePerson.class);
-			assertThat(UnderscorePerson1).isEqualTo(null);
+			PersonEntity personEntity1 = dynamoDbTemplate
+					.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+			assertThat(personEntity1).isEqualTo(null);
 		}).doesNotThrowAnyException();
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
 
-		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
 
-		assertThatCode(() -> dynamoDbTemplate.delete(
-				Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(), UnderscorePerson.class))
+		assertThatCode(() -> dynamoDbTemplate
+				.delete(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class))
 						.doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			UnderscorePerson UnderscorePerson1 = dynamoDbTemplate.load(
-					Key.builder().partitionValue(underscorePerson.getUuid().toString()).build(),
-					UnderscorePerson.class);
-			assertThat(UnderscorePerson1).isEqualTo(null);
+			PersonEntity personEntity1 = dynamoDbTemplate
+					.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+			assertThat(personEntity1).isEqualTo(null);
 		}).doesNotThrowAnyException();
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
 		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
-				UnderscorePerson.class)).doesNotThrowAnyException();
+				PersonEntity.class)).doesNotThrowAnyException();
 	}
 
 	@Test
 	void dynamoDbTemplate_query_returns_singlePagePerson() {
-		UnderscorePerson underscorePerson = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
 
-		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
-				.queryConditional(QueryConditional
-						.keyEqualTo(Key.builder().partitionValue(underscorePerson.getUuid().toString()).build()))
+		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder().queryConditional(
+				QueryConditional.keyEqualTo(Key.builder().partitionValue(personEntity.getUuid().toString()).build()))
 				.build();
 
-		PageIterable<UnderscorePerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, UnderscorePerson.class);
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.query(queryEnhancedRequest, PersonEntity.class);
 		// items size
 		assertThat((int) persons.items().stream().count()).isEqualTo(1);
 		// page size
 		assertThat((int) persons.stream().count()).isEqualTo(1);
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
@@ -177,7 +163,7 @@ public class DynamoDbTemplateIntegrationTest {
 						QueryConditional.keyEqualTo(Key.builder().partitionValue(UUID.randomUUID().toString()).build()))
 				.build();
 
-		PageIterable<UnderscorePerson> persons = dynamoDbTemplate.query(queryEnhancedRequest, UnderscorePerson.class);
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.query(queryEnhancedRequest, PersonEntity.class);
 		// items size
 		assertThat((int) persons.items().stream().count()).isEqualTo(0);
 		// page size
@@ -186,65 +172,65 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
-		UnderscorePerson underscorePerson = io.awspring.cloud.dynamodb.UnderscorePerson.UnderscorePersonBuilder.person()
-				.withName("foo").withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson)).doesNotThrowAnyException();
+		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
 
 		assertThatCode(() -> {
-			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
-			assertThat(persons.items().iterator().next()).isEqualTo(underscorePerson);
+			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
+			assertThat(persons.items().iterator().next()).isEqualTo(personEntity);
 		}).doesNotThrowAnyException();
 
-		cleanUp(underscorePerson.getUuid());
+		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_scanAll_returnsEmpty() {
 		assertThatCode(() -> {
-			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
+			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(0);
 		}).doesNotThrowAnyException();
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful() {
-		UnderscorePerson UnderscorePerson1 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		UnderscorePerson UnderscorePerson2 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(UnderscorePerson1)).doesNotThrowAnyException();
-		assertThatCode(() -> dynamoDbTemplate.save(UnderscorePerson2)).doesNotThrowAnyException();
+		PersonEntity personEntity1 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity2)).doesNotThrowAnyException();
 		assertThatCode(() -> {
-			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scanAll(UnderscorePerson.class);
+			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(2);
 		}).doesNotThrowAnyException();
 
-		cleanUp(UnderscorePerson1.getUuid());
-		cleanUp(UnderscorePerson2.getUuid());
+		cleanUp(personEntity1.getUuid());
+		cleanUp(personEntity2.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful() {
-		UnderscorePerson underscorePerson1 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		UnderscorePerson underscorePerson2 = UnderscorePerson.UnderscorePersonBuilder.person().withName("foo")
-				.withLastName("bar").withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson1)).doesNotThrowAnyException();
-		assertThatCode(() -> dynamoDbTemplate.save(underscorePerson2)).doesNotThrowAnyException();
+		PersonEntity personEntity1 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
+				.withUuid(UUID.randomUUID()).build();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity1)).doesNotThrowAnyException();
+		assertThatCode(() -> dynamoDbTemplate.save(personEntity2)).doesNotThrowAnyException();
 		assertThatCode(() -> {
 			Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
 					.putExpressionName("#uuidToBeLooked", "uuid").putExpressionValue(":myValue",
-							AttributeValue.builder().s(underscorePerson1.getUuid().toString()).build())
+							AttributeValue.builder().s(personEntity1.getUuid().toString()).build())
 					.build();
 			ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
 					.filterExpression(expression).build();
-			PageIterable<UnderscorePerson> persons = dynamoDbTemplate.scan(scanEnhancedRequest, UnderscorePerson.class);
+			PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(1);
-			assertThat(persons.items().iterator().next()).isEqualTo(underscorePerson1);
+			assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
 		}).doesNotThrowAnyException();
 
-		cleanUp(underscorePerson1.getUuid());
-		cleanUp(underscorePerson2.getUuid());
+		cleanUp(personEntity1.getUuid());
+		cleanUp(personEntity2.getUuid());
 	}
 
 	public static void cleanUp(UUID uuid) {

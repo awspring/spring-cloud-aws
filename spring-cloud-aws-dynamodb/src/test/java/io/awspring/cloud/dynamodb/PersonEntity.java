@@ -20,9 +20,9 @@ import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
-// Called MoreComplexPerson so tableName can be resolved to more_complex_person. Used so it is not a plain tableName.
+// Called PersonEntity so tableName can be resolved to person_entity. Used so it is not a plain tableName.
 @DynamoDbBean
-public class UnderscorePerson {
+public class PersonEntity {
 
 	private UUID uuid;
 	private String name;
@@ -59,9 +59,9 @@ public class UnderscorePerson {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		UnderscorePerson underscorePerson = (UnderscorePerson) o;
-		return Objects.equals(uuid, underscorePerson.uuid) && Objects.equals(name, underscorePerson.name)
-				&& Objects.equals(lastName, underscorePerson.lastName);
+		PersonEntity personEntity = (PersonEntity) o;
+		return Objects.equals(uuid, personEntity.uuid) && Objects.equals(name, personEntity.name)
+				&& Objects.equals(lastName, personEntity.lastName);
 	}
 
 	@Override
@@ -69,39 +69,39 @@ public class UnderscorePerson {
 		return Objects.hash(uuid, name, lastName);
 	}
 
-	public static final class UnderscorePersonBuilder {
+	public static final class Builder {
 		private UUID uuid;
 		private String name;
 		private String lastName;
 
-		private UnderscorePersonBuilder() {
+		private Builder() {
 		}
 
-		public static UnderscorePersonBuilder person() {
-			return new UnderscorePersonBuilder();
+		public static Builder person() {
+			return new Builder();
 		}
 
-		public UnderscorePersonBuilder withUuid(UUID uuid) {
+		public Builder withUuid(UUID uuid) {
 			this.uuid = uuid;
 			return this;
 		}
 
-		public UnderscorePersonBuilder withName(String name) {
+		public Builder withName(String name) {
 			this.name = name;
 			return this;
 		}
 
-		public UnderscorePersonBuilder withLastName(String lastName) {
+		public Builder withLastName(String lastName) {
 			this.lastName = lastName;
 			return this;
 		}
 
-		public UnderscorePerson build() {
-			UnderscorePerson underscorePerson = new UnderscorePerson();
-			underscorePerson.setUuid(uuid);
-			underscorePerson.setName(name);
-			underscorePerson.setLastName(lastName);
-			return underscorePerson;
+		public PersonEntity build() {
+			PersonEntity personEntity = new PersonEntity();
+			personEntity.setUuid(uuid);
+			personEntity.setName(name);
+			personEntity.setLastName(lastName);
+			return personEntity;
 		}
 	}
 }

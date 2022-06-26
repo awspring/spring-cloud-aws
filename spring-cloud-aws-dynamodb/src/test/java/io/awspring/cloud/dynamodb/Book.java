@@ -19,25 +19,25 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
-public class MoreComplexPerson {
-	private String firstName;
-	private String lastName;
+public class Book {
+	private String title;
+	private String subtitle;
 
-	public MoreComplexPerson() {
+	public Book() {
 	}
 
-	public MoreComplexPerson(String firstName, String lastName) {
-		this.firstName = firstName;
-		this.lastName = lastName;
+	Book(String title, String subtitle) {
+		this.title = title;
+		this.subtitle = subtitle;
 	}
 
-	// FirstName should never be partition key but for sake of a test.
+	// title should never be partition key but for sake of a test.
 	@DynamoDbPartitionKey
-	public String getFirstName() {
-		return firstName;
+	public String getTitle() {
+		return title;
 	}
 
-	public String getLastName() {
-		return lastName;
+	public String getSubtitle() {
+		return subtitle;
 	}
 }
