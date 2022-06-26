@@ -103,13 +103,9 @@ public class DynamoDbTemplateIntegrationTest {
 		dynamoDbTemplate.save(personEntity);
 
 		dynamoDbTemplate.delete(personEntity);
-
-		{
-			PersonEntity personEntity1 = dynamoDbTemplate
-					.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
-			assertThat(personEntity1).isEqualTo(null);
-		}
-		;
+		PersonEntity personEntity1 = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+		assertThat(personEntity1).isEqualTo(null);
 		cleanUp(personEntity.getUuid());
 	}
 
@@ -180,11 +176,8 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_scanAll_returnsEmpty() {
-		{
-			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
-			assertThat(persons.items().stream().count()).isEqualTo(0);
-		}
-		;
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
+		assertThat(persons.items().stream().count()).isEqualTo(0);
 	}
 
 	@Test
@@ -195,12 +188,8 @@ public class DynamoDbTemplateIntegrationTest {
 				.withUuid(UUID.randomUUID()).build();
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
-		{
-			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
-			assertThat(persons.items().stream().count()).isEqualTo(2);
-		}
-		;
-
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
+		assertThat(persons.items().stream().count()).isEqualTo(2);
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
 	}
@@ -213,19 +202,15 @@ public class DynamoDbTemplateIntegrationTest {
 				.withUuid(UUID.randomUUID()).build();
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
-		{
-			Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
-					.putExpressionName("#uuidToBeLooked", "uuid").putExpressionValue(":myValue",
-							AttributeValue.builder().s(personEntity1.getUuid().toString()).build())
-					.build();
-			ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
-					.filterExpression(expression).build();
-			PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
-			assertThat(persons.items().stream().count()).isEqualTo(1);
-			assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
-		}
-		;
-
+		Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
+				.putExpressionName("#uuidToBeLooked", "uuid")
+				.putExpressionValue(":myValue", AttributeValue.builder().s(personEntity1.getUuid().toString()).build())
+				.build();
+		ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder().limit(1).consistentRead(true)
+				.filterExpression(expression).build();
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
+		assertThat(persons.items().stream().count()).isEqualTo(1);
+		assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
 	}
