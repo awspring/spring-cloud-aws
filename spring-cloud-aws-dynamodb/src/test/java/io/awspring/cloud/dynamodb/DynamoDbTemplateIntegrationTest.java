@@ -16,7 +16,6 @@
 package io.awspring.cloud.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 
 import java.util.UUID;
@@ -64,7 +63,7 @@ public class DynamoDbTemplateIntegrationTest {
 	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.save(personEntity);
 
 		PersonEntity personEntity1 = dynamoDbTemplate
 				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
@@ -101,15 +100,16 @@ public class DynamoDbTemplateIntegrationTest {
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.save(personEntity);
 
-		assertThatCode(() -> dynamoDbTemplate.delete(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.delete(personEntity);
 
-		assertThatCode(() -> {
+		{
 			PersonEntity personEntity1 = dynamoDbTemplate
 					.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
 			assertThat(personEntity1).isEqualTo(null);
-		}).doesNotThrowAnyException();
+		}
+		;
 		cleanUp(personEntity.getUuid());
 	}
 
@@ -118,31 +118,27 @@ public class DynamoDbTemplateIntegrationTest {
 
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.save(personEntity);
 
-		assertThatCode(() -> dynamoDbTemplate
-				.delete(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class))
-						.doesNotThrowAnyException();
+		dynamoDbTemplate.delete(Key.builder().partitionValue(personEntity.getUuid().toString()).build(),
+				PersonEntity.class);
 
-		assertThatCode(() -> {
-			PersonEntity personEntity1 = dynamoDbTemplate
-					.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
-			assertThat(personEntity1).isEqualTo(null);
-		}).doesNotThrowAnyException();
+		PersonEntity personEntity1 = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+		assertThat(personEntity1).isEqualTo(null);
 		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
-		assertThatCode(() -> dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(),
-				PersonEntity.class)).doesNotThrowAnyException();
+		dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), PersonEntity.class);
 	}
 
 	@Test
 	void dynamoDbTemplate_query_returns_singlePagePerson() {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.save(personEntity);
 
 		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder().queryConditional(
 				QueryConditional.keyEqualTo(Key.builder().partitionValue(personEntity.getUuid().toString()).build()))
@@ -174,22 +170,21 @@ public class DynamoDbTemplateIntegrationTest {
 	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity)).doesNotThrowAnyException();
+		dynamoDbTemplate.save(personEntity);
 
-		assertThatCode(() -> {
-			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
-			assertThat(persons.items().iterator().next()).isEqualTo(personEntity);
-		}).doesNotThrowAnyException();
+		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
+		assertThat(persons.items().iterator().next()).isEqualTo(personEntity);
 
 		cleanUp(personEntity.getUuid());
 	}
 
 	@Test
 	void dynamoDbTemplate_scanAll_returnsEmpty() {
-		assertThatCode(() -> {
+		{
 			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(0);
-		}).doesNotThrowAnyException();
+		}
+		;
 	}
 
 	@Test
@@ -198,12 +193,13 @@ public class DynamoDbTemplateIntegrationTest {
 				.withUuid(UUID.randomUUID()).build();
 		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity1)).doesNotThrowAnyException();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity2)).doesNotThrowAnyException();
-		assertThatCode(() -> {
+		dynamoDbTemplate.save(personEntity1);
+		dynamoDbTemplate.save(personEntity2);
+		{
 			PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(2);
-		}).doesNotThrowAnyException();
+		}
+		;
 
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
@@ -215,9 +211,9 @@ public class DynamoDbTemplateIntegrationTest {
 				.withUuid(UUID.randomUUID()).build();
 		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withUuid(UUID.randomUUID()).build();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity1)).doesNotThrowAnyException();
-		assertThatCode(() -> dynamoDbTemplate.save(personEntity2)).doesNotThrowAnyException();
-		assertThatCode(() -> {
+		dynamoDbTemplate.save(personEntity1);
+		dynamoDbTemplate.save(personEntity2);
+		{
 			Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")
 					.putExpressionName("#uuidToBeLooked", "uuid").putExpressionValue(":myValue",
 							AttributeValue.builder().s(personEntity1.getUuid().toString()).build())
@@ -227,7 +223,8 @@ public class DynamoDbTemplateIntegrationTest {
 			PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
 			assertThat(persons.items().stream().count()).isEqualTo(1);
 			assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
-		}).doesNotThrowAnyException();
+		}
+		;
 
 		cleanUp(personEntity1.getUuid());
 		cleanUp(personEntity2.getUuid());
