@@ -7,6 +7,9 @@
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK.
 |spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
+|spring.cloud.aws.dynamodb.enabled | `true` | Enables DynamoDb integration.
+|spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.dynamodb.region |  | Overrides the default region.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.

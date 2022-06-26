@@ -1,0 +1,114 @@
+[#spring-cloud-aws-dynamoDb]
+== DynamoDb Integration
+
+https://aws.amazon.com/dynamodb/[DynamoDb] is a fully managed serverless key/value Nosql database designed for high performance.
+A Spring Boot starter is provided to auto-configure DynamoDb integration beans.
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-dynamodb</artifactId>
+</dependency>
+----
+
+DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
+
+=== DynamoDbOperations
+
+The starter automatically configures and registers a `DynamoDbOperations` bean providing higher level abstractions for working with DynamoDb.
+`DynamoDbTemplate` - a default `DynamoDbOperations` implementation - being built on top of `DynamoDbEnhancedClient` uses annotations provided by AWS.
+The list of supported annotations can be found https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/enhanced/dynamodb/mapper/annotations/package-summary.html[here].
+
+`DynamoDbEnchancedClient` supports a programming model similar to JPA - where a class is turned into an entity through applying certain annotations:
+
+[source,java]
+----
+import java.util.UUID;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+
+@DynamoDbBean
+public class Person {
+	private UUID id;
+	private String name;
+	private String lastName;
+
+	@DynamoDbPartitionKey
+	public UUID getId() {
+		return id;
+	}
+
+    ...
+}
+----
+
+`DynamoDbTemplate` provides methods to perform typical CRUD operations on such entities, plus it adds convenience methods for querying DynamoDb:
+
+[source,java]
+----
+
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
+
+...
+@Autowired
+DynamoDbTemplate dynamoDbTemplate;
+...
+Person person = new Person(...)
+dynamoDbTemplate.save(person);
+----
+
+==== Resolving Table Name
+
+To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation.
+To use custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
+
+==== Resolving Table Schema
+
+To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
+To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
+
+=== Using DynamoDb Client
+
+Autoconfiguration automatically configures `DynamoDbClient` which can be used for low level api calls and `DynamoDbEnhancedClient` if `DynamoDbOperations` are not enough.
+
+If autoconfigured `DynamoDbClient` or `DynamoDbEnhancedClient` bean configuration does not meet your needs, it can be replaced by creating your custom bean.
+
+[source,java]
+----
+import java.util.Collections;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+
+public class DynamoDbService {
+	private final DynamoDbClient dynamoDbClient;
+
+	public DynamoDbService(DynamoDbClient dynamoDbClient) {
+		this.dynamoDbClient = dynamoDbClient;
+	}
+
+	void deletePerson(String uuid) {
+		dynamoDbClient.deleteItem(DeleteItemRequest.builder().key(Collections.singletonMap("uuid", AttributeValue.builder().s(uuid).build())).build());
+	}
+}
+----
+
+=== Configuration
+
+The Spring Boot Starter for DynamoDb provides the following configuration options:
+
+[cols="3,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
+| `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `DynamoDbClient`. | No |
+| `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
+|===
+
+=== IAM Permissions
+
+Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
+To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]

@@ -127,6 +127,8 @@ before any other BOM dependency that configures AWS SDK dependencies.
 
 include::core.adoc[]
 
+include::dynamodb.adoc[]
+
 include::s3.adoc[]
 
 include::ses.adoc[]
