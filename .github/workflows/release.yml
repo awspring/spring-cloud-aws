@@ -7,13 +7,17 @@ on:
       - v2.4.*
       - v3.0.*
 
+env:
+  # https://github.com/actions/checkout/issues/440#issuecomment-854240996
+  AWS_EC2_METADATA_DISABLED: true
+
 jobs:
   build:
     name: "Release"
     strategy:
       matrix:
-        version: [ 8.0.275.hs-adpt ]
-    runs-on: ubuntu-18.04
+        version: [ 8.0.332-tem ]
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
@@ -39,7 +43,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify javadoc:aggregate -Pdocs,spring
+        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs
       - name: Deploy to Sonatype
         run: ./mvnw -V -Prelease deploy -DskipTests
         env:
