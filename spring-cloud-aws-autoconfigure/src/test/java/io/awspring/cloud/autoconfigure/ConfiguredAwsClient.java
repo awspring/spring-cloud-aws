@@ -25,6 +25,8 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class ConfiguredAwsClient {
@@ -46,6 +48,10 @@ public class ConfiguredAwsClient {
 		return clientConfigurationAttributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
 	}
 
+	public Region getRegion() {
+		return clientConfigurationAttributes.get(AwsClientOption.AWS_REGION);
+	}
+
 	public Duration getApiCallTimeout() {
 		return clientConfigurationAttributes.get(SdkClientOption.API_CALL_TIMEOUT);
 	}
@@ -64,6 +70,10 @@ public class ConfiguredAwsClient {
 
 	public DefaultsMode getDefaultsMode() {
 		return clientConfigurationAttributes.get(AwsClientOption.DEFAULTS_MODE);
+	}
+
+	public SdkAsyncHttpClient getAsyncHttpClient() {
+		return clientConfigurationAttributes.get(SdkClientOption.ASYNC_HTTP_CLIENT);
 	}
 
 }

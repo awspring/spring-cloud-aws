@@ -16,16 +16,18 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
  * @author Matej Nedić
  * @since 3.0.0
  */
-public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> {
+public interface AwsClientCustomizer<T> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {
@@ -42,16 +44,38 @@ public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?> & AwsSyncC
 		return null;
 	}
 
-	static <V extends software.amazon.awssdk.awscore.client.builder.AwsClientBuilder<?, ?> & AwsSyncClientBuilder<?, ?>> void apply(
-			AwsClientCustomizer<V> configurer, V builder) {
+	@Nullable
+	default SdkAsyncHttpClient asyncHttpClient() {
+		return null;
+	}
+
+	@Nullable
+	default SdkAsyncHttpClient.Builder<?> asyncHttpClientBuilder() {
+		return null;
+	}
+
+	static <V extends AwsClientBuilder<?, ?>> void apply(AwsClientCustomizer<V> configurer, V builder) {
 		if (configurer.overrideConfiguration() != null) {
 			builder.overrideConfiguration(configurer.overrideConfiguration());
 		}
-		if (configurer.httpClient() != null) {
-			builder.httpClient(configurer.httpClient());
+
+		if (builder instanceof AwsSyncClientBuilder) {
+			AwsSyncClientBuilder syncClientBuilder = (AwsSyncClientBuilder) builder;
+			if (configurer.httpClient() != null) {
+				syncClientBuilder.httpClient(configurer.httpClient());
+			}
+			if (configurer.httpClientBuilder() != null) {
+				syncClientBuilder.httpClientBuilder(configurer.httpClientBuilder());
+			}
 		}
-		if (configurer.httpClientBuilder() != null) {
-			builder.httpClientBuilder(configurer.httpClientBuilder());
+		else if (builder instanceof AwsAsyncClientBuilder) {
+			AwsAsyncClientBuilder asyncClientBuilder = (AwsAsyncClientBuilder) builder;
+			if (configurer.asyncHttpClient() != null) {
+				asyncClientBuilder.httpClient(configurer.asyncHttpClient());
+			}
+			if (configurer.httpClientBuilder() != null) {
+				asyncClientBuilder.httpClientBuilder(configurer.asyncHttpClientBuilder());
+			}
 		}
 	}
 }
