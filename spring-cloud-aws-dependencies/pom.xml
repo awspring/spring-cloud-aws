@@ -81,6 +81,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-dynamodb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-sns</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -112,6 +118,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-parameter-store</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-dynamodb</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
