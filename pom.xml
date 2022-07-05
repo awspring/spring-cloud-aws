@@ -35,6 +35,7 @@
 		<testcontainers.version>1.17.2</testcontainers.version>
 		<spotless.version>2.22.0</spotless.version>
 		<awssdk.version>2.17.172</awssdk.version>
+		<amazon.dax.version>2.0.1</amazon.dax.version>
 	</properties>
 
 	<modules>

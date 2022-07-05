@@ -20,19 +20,24 @@ import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
+import java.io.IOException;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.dax.ClusterDaxClient;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
@@ -46,19 +51,43 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
 public class DynamoDbAutoConfiguration {
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(name = "software.amazon.dax.ClusterDaxClient")
+	static class DaxDynamoDbClient {
 
-	private final DynamoDbProperties properties;
+		@ConditionalOnMissingBean
+		@Bean
+		public DynamoDbClient dynamoDbClient(ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
+				DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
+				AwsRegionProvider regionProvider) throws IOException {
+			DaxProperties dax = properties.getDax();
+			return ClusterDaxClient.builder().overrideConfiguration(software.amazon.dax.Configuration.builder()
+					.idleTimeoutMillis(dax.getIdleTimeoutMillis()).connectionTtlMillis(dax.getConnectionTtlMillis())
+					.connectTimeoutMillis(dax.getConnectTimeoutMillis())
+					.requestTimeoutMillis(dax.getRequestTimeoutMillis()).writeRetries(dax.getWriteRetries())
+					.readRetries(dax.getReadRetries()).clusterUpdateIntervalMillis(dax.getClusterUpdateIntervalMillis())
+					.endpointRefreshTimeoutMillis(dax.getEndpointRefreshTimeoutMillis())
+					.maxConcurrency(dax.getMaxConcurrency())
+					.maxPendingConnectionAcquires(dax.getMaxPendingConnectionAcquires())
+					.skipHostNameVerification(dax.isSkipHostNameVerification())
+					.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
+					.credentialsProvider(credentialsProvider).url(properties.getEndpoint().toString()).build()).build();
+		}
 
-	public DynamoDbAutoConfiguration(DynamoDbProperties properties) {
-		this.properties = properties;
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable())
-				.build();
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("software.amazon.dax.ClusterDaxClient")
+	static class StandardDynamoDbClient {
+
+		@ConditionalOnMissingBean
+		@Bean
+		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer, DynamoDbProperties properties) {
+			return awsClientBuilderConfigurer
+					.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable()).build();
+		}
+
 	}
 
 	@ConditionalOnMissingBean

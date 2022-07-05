@@ -30,4 +30,14 @@ public class DynamoDbProperties extends AwsClientProperties {
 	 * The prefix used for AWS credentials related properties.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.dynamodb";
+
+	private DaxProperties dax = new DaxProperties();
+
+	public DaxProperties getDax() {
+		return dax;
+	}
+
+	public void setDax(DaxProperties dax) {
+		this.dax = dax;
+	}
 }

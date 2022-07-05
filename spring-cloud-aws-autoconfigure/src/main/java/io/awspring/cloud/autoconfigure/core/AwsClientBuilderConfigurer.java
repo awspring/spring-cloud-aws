@@ -72,8 +72,13 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public Region resolveRegion(@Nullable AwsClientProperties clientProperties) {
+		return resolveRegion(clientProperties, this.regionProvider);
+	}
+
+	public static Region resolveRegion(@Nullable AwsClientProperties clientProperties,
+			AwsRegionProvider regionProvider) {
 		return clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())
 				? Region.of(clientProperties.getRegion())
-				: this.regionProvider.getRegion();
+				: regionProvider.getRegion();
 	}
 }
