@@ -15,21 +15,20 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import software.amazon.awssdk.metrics.MetricPublisher;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class CloudWatchMetricsPublisherAutoConfigurationTests {
 
 	private static ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-			CredentialsProviderAutoConfiguration.class,
-			CloudWatchMetricsPublisherAutoConfiguration.class,
-			AwsAutoConfiguration.class));
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, CloudWatchMetricsPublisherAutoConfiguration.class,
+					AwsAutoConfiguration.class));
 
 	@Test
 	void createsMetricsPublisherByDefaultWhenDependencyInClasspath() {

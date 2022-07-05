@@ -57,7 +57,7 @@ class DynamoDbAutoConfigurationTest {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, CloudWatchMetricsPublisherAutoConfiguration.class,
-				DynamoDbAutoConfiguration.class, AwsAutoConfiguration.class));
+					DynamoDbAutoConfiguration.class, AwsAutoConfiguration.class));
 
 	@Test
 	void dynamoDBAutoConfigurationIsDisabled() {

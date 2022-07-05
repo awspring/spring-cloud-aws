@@ -55,7 +55,8 @@ class SesAutoConfigurationTest {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-				CloudWatchMetricsPublisherAutoConfiguration.class, CredentialsProviderAutoConfiguration.class, SesAutoConfiguration.class));
+					CloudWatchMetricsPublisherAutoConfiguration.class, CredentialsProviderAutoConfiguration.class,
+					SesAutoConfiguration.class));
 
 	@Test
 	void mailSenderWithJavaMail() {
