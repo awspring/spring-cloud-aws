@@ -59,13 +59,20 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
 @ConditionalOnProperty(name = "spring.cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
 
+
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
-			ObjectProvider<MetricPublisher> metricPublisher) {
+	public SnsClientBuilder snsClientBuilder(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+							   ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
+							   ObjectProvider<MetricPublisher> metricPublisher) {
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable(),
-				metricPublisher.getIfAvailable()).build();
+			metricPublisher.getIfAvailable());
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public SnsClient snsClient(SnsClientBuilder snsClientBuilder) {
+		return snsClientBuilder.build();
 	}
 
 	@ConditionalOnMissingBean

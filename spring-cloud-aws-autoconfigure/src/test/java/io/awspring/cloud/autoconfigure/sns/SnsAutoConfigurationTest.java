@@ -41,6 +41,9 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
@@ -103,6 +106,24 @@ class SnsAutoConfigurationTest {
 					ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
 			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
 			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+		});
+	}
+
+	@Test
+	void usesMetricsPublisherIfAvailable() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(MetricPublisher.class);
+			assertThat(context).hasSingleBean(SnsClientBuilder.class);
+			assertThat(context.getBean(SnsClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+		});
+	}
+
+	@Test
+	void doesNotUseMetricsPublisherIfNotAvailable() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(MetricPublisher.class);
+			assertThat(context).hasSingleBean(SnsClientBuilder.class);
+			assertThat(context.getBean(SnsClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
 		});
 	}
 

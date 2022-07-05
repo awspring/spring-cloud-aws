@@ -38,6 +38,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClientBuilder;
 
 /**
  * Configuration for exporting metrics to CloudWatch.
@@ -64,14 +65,20 @@ public class CloudWatchExportAutoConfiguration {
 		return new CloudWatchMeterRegistry(config, clock, client);
 	}
 
+
 	@Bean
 	@ConditionalOnMissingBean
-	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
-			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
-			ObjectProvider<MetricPublisher> metricPublisher) {
+	public CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder(CloudWatchProperties properties,
+														 AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+														 ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
+														 ObjectProvider<MetricPublisher> metricPublisher) {
 		return awsClientBuilderConfigurer.configure(CloudWatchAsyncClient.builder(), properties,
-				configurer.getIfAvailable(), metricPublisher.getIfAvailable()).build();
+			configurer.getIfAvailable(), metricPublisher.getIfAvailable());
+	}
+	@Bean
+	@ConditionalOnMissingBean
+	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder) {
+		return cloudWatchAsyncClientBuilder.build();
 	}
 
 	@Bean

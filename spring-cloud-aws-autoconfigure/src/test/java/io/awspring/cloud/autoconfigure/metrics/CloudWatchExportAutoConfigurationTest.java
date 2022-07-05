@@ -29,6 +29,7 @@ import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,9 +37,13 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClientBuilder;
+import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
  * Test for the {@link CloudWatchExportAutoConfiguration}.
@@ -132,6 +137,24 @@ class CloudWatchExportAutoConfigurationTest {
 					assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
 					assertThat(client.getAsyncHttpClient()).isNotNull();
 				});
+	}
+
+	@Test
+	void usesMetricsPublisherIfAvailable() {
+		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test").run(context -> {
+			assertThat(context).hasSingleBean(MetricPublisher.class);
+			assertThat(context).getBean(CloudWatchAsyncClientBuilder.class);
+			assertThat(context.getBean(CloudWatchAsyncClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+		});
+	}
+
+	@Test
+	void doesNotUseMetricsPublisherIfNotAvailable() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).withPropertyValues("management.metrics.export.cloudwatch.namespace:test").run(context -> {
+			assertThat(context).doesNotHaveBean(MetricPublisher.class);
+			assertThat(context).hasSingleBean(CloudWatchAsyncClientBuilder.class);
+			assertThat(context.getBean(CloudWatchAsyncClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
+		});
 	}
 
 	@Configuration(proxyBeanMethods = false)

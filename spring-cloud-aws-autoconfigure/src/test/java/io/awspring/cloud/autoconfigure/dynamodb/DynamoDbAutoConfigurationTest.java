@@ -29,6 +29,7 @@ import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +39,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
  *
@@ -104,7 +108,23 @@ class DynamoDbAutoConfigurationTest {
 
 				});
 	}
+	@Test
+	void usesMetricsPublisherIfAvailable() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(MetricPublisher.class);
+			assertThat(context).hasSingleBean(DynamoDbClientBuilder.class);
+			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+		});
+	}
 
+	@Test
+	void doesNotUseMetricsPublisherIfNotAvailable() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).run(context -> {
+			assertThat(context).doesNotHaveBean(MetricPublisher.class);
+			assertThat(context).hasSingleBean(DynamoDbClientBuilder.class);
+			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
+		});
+	}
 	@Test
 	void customDynamoDbClientConfigurer() {
 		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class)

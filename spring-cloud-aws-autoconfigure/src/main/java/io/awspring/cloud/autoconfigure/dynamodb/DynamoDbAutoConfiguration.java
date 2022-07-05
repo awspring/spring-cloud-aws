@@ -56,11 +56,17 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+	public DynamoDbClientBuilder dynamoDbClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
 			ObjectProvider<MetricPublisher> metricPublisher) {
 		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable(),
-				metricPublisher.getIfAvailable()).build();
+				metricPublisher.getIfAvailable());
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public DynamoDbClient dynamoDbClient(DynamoDbClientBuilder dynamoDbClientBuilder) {
+		return dynamoDbClientBuilder.build();
 	}
 
 	@ConditionalOnMissingBean

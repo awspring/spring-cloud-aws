@@ -53,7 +53,7 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
-			@Nullable AwsClientCustomizer<T> customizer, MetricPublisher metricPublisher) {
+			@Nullable AwsClientCustomizer<T> customizer, @Nullable MetricPublisher metricPublisher) {
 		ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = clientOverrideConfiguration
 				.toBuilder();
 		Assert.notNull(builder, "builder is required");

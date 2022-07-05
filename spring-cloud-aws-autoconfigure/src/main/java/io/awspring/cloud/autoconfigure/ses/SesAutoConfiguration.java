@@ -54,11 +54,16 @@ public class SesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
-			ObjectProvider<MetricPublisher> metricPublisher) {
+	public SesClientBuilder sesClientBuilder(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+							   ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
+							   ObjectProvider<MetricPublisher> metricPublisher) {
 		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable(),
-				metricPublisher.getIfAvailable()).build();
+			metricPublisher.getIfAvailable());
+	}
+	@Bean
+	@ConditionalOnMissingBean
+	public SesClient sesClient(SesClientBuilder sesClientBuilder) {
+		return sesClientBuilder.build();
 	}
 
 	@Bean
