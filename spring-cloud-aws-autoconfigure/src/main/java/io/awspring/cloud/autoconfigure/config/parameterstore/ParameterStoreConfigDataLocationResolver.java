@@ -65,7 +65,7 @@ public class ParameterStoreConfigDataLocationResolver
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
+		createMetricPublisher(resolverContext);
 		registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 
 		ParameterStorePropertySources sources = new ParameterStorePropertySources();

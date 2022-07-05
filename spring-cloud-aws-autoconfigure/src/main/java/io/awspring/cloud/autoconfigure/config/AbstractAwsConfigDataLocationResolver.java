@@ -16,12 +16,15 @@
 package io.awspring.cloud.autoconfigure.config;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySources;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
@@ -160,7 +163,7 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		Optional<MetricPublisher> metricPublisher;
 		try {
 			Class.forName("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher");
-			metricPublisher = Optional.of(context.get(CloudWatchMetricPublisher.class));
+			metricPublisher = Optional.of(context.get(MetricPublisher.class));
 		}
 		catch (IllegalStateException | ClassNotFoundException e) {
 			metricPublisher = Optional.empty();
@@ -174,6 +177,17 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		builder.overrideConfiguration(clientOverrideConfigurationBuilder.build());
 		return builder;
+	}
+
+	protected void createMetricPublisher(ConfigDataLocationResolverContext resolverContext) {
+		try {
+			Class.forName("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher");
+		}
+		catch (IllegalStateException | ClassNotFoundException ignored) {
+			// ignored, means that the optional dependency is not in the classpath
+			return;
+		}
+		registerBean(resolverContext, MetricPublisher.class, CloudWatchMetricPublisher.builder().build());
 	}
 
 }
